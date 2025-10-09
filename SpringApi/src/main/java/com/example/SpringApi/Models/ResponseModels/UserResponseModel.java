@@ -35,7 +35,6 @@ public class UserResponseModel {
     private Boolean emailConfirmed;
     private LocalDate dob;
     private Boolean isGuest;
-    private Integer lockedAttempts;
     private String apiKey;
     private String email;
     private Long addressId;
@@ -73,7 +72,6 @@ public class UserResponseModel {
             this.emailConfirmed = user.getEmailConfirmed();
             this.dob = user.getDob();
             this.isGuest = user.getIsGuest();
-            this.lockedAttempts = user.getLockedAttempts();
             this.apiKey = user.getApiKey();
             this.email = user.getEmail();
             this.addressId = user.getAddressId();

@@ -301,7 +301,6 @@ public class ApiRoutes {
         public static final String GET_USER_BY_ID = "getUserById";
         public static final String GOOGLE_SIGN_IN = "googleSignIn";
         public static final String GET_USERS_IN_CARRIER_IN_BATCHES = "getUsersInCarrierInBatches";
-        public static final String UPDATE_LOCKED_ATTEMPTS = "updateLockedAttempts";
         public static final String GET_USER_BY_EMAIL_PB = "getUserByEmail_Pb";
     }
 

@@ -136,8 +136,8 @@ public class LoginService implements ILoginSubTranslator {
         }
 
         // do the procedure for invalid login
-        user.setLockedAttempts(user.getLockedAttempts() - 1);
-        if(user.getLockedAttempts() == 0) {
+        user.setLoginAttempts(user.getLoginAttempts() - 1);
+        if(user.getLoginAttempts() == 0) {
             user.setLocked(true);
             userRepository.save(user);
             throw new UnauthorizedException(ErrorMessages.LoginErrorMessages.ER007);
@@ -176,7 +176,6 @@ public class LoginService implements ILoginSubTranslator {
         newUser.setPassword(saltAndHash[1]);
         newUser.setApiKey(PasswordHelper.getToken(newUser.getLoginName()));
         newUser.setToken(PasswordHelper.getToken(newUser.getLoginName()));
-        newUser.setLockedAttempts(5);
 
         User savedUser = userRepository.save(newUser);
         List<Client> clients = clientRepository.findAll();
@@ -220,7 +219,6 @@ public class LoginService implements ILoginSubTranslator {
             // set user defaults
             user.setSalt(saltAndHash[0]);
             user.setPassword(saltAndHash[1]);
-            user.setLockedAttempts(5);
             user.setLocked(false);
 
             Client client = clientRepository.findFirstByOrderByClientIdAsc();

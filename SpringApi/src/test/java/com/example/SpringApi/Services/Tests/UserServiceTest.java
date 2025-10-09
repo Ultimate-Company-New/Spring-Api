@@ -144,8 +144,7 @@ class UserServiceTest {
         testUserRequest.setLocked(false);
         testUserRequest.setEmailConfirmed(true);
         testUserRequest.setIsGuest(false);
-        testUserRequest.setLoginAttempts(0);
-        testUserRequest.setLockedAttempts(0);
+        testUserRequest.setLoginAttempts(5);
         
         // Use constructor to create test user from request model
         testUser = new User(testUserRequest, CREATED_USER);

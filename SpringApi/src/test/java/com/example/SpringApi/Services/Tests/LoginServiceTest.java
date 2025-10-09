@@ -125,7 +125,7 @@ class LoginServicesTest {
         testUser.setApiKey(TEST_API_KEY);
         testUser.setEmailConfirmed(true);
         testUser.setLocked(false);
-        testUser.setLockedAttempts(5);
+        testUser.setLoginAttempts(5);
         testUser.setSalt("test-salt");
         testUser.setPassword("hashedPassword");
         
@@ -379,8 +379,9 @@ class LoginServicesTest {
     @DisplayName("Sign In - Failure - Invalid password")
     void signIn_InvalidPassword_DecrementsAttemptsAndThrowsUnauthorized() {
         // Arrange
-        testUser.setLockedAttempts(1); // Will become 0 after failed attempt
+        testUser.setLoginAttempts(1); // Will become 0 after failed attempt
         when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         
         // Mock PasswordHelper static method to return false

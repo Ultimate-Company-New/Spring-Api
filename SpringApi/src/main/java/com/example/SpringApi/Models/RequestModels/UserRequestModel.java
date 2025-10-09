@@ -26,7 +26,6 @@ public class UserRequestModel extends PaginationBaseRequestModel {
     private String token;
     private LocalDate dob;
     private Boolean isGuest;
-    private Integer lockedAttempts;
     private String apiKey;
     private String email;
     private Long addressId;

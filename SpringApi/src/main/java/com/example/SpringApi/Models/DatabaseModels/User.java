@@ -79,9 +79,6 @@ public class User {
     @Column(name = "isGuest", nullable = false)
     private Boolean isGuest;
 
-    @Column(name = "lockedAttempts", nullable = false)
-    private Integer lockedAttempts;
-
     @Column(name = "apiKey", nullable = false)
     private String apiKey;
 
@@ -256,7 +253,7 @@ public class User {
         this.lastName = request.getLastName();
         this.phone = request.getPhone();
         this.datePasswordChanges = request.getDatePasswordChanges();
-        this.loginAttempts = request.getLoginAttempts() != null ? request.getLoginAttempts() : 0;
+        this.loginAttempts = request.getLoginAttempts() != null ? request.getLoginAttempts() : 5;
         this.role = request.getRole();
         this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : Boolean.FALSE;
         this.locked = request.getLocked() != null ? request.getLocked() : Boolean.FALSE;
@@ -264,7 +261,6 @@ public class User {
         this.token = request.getToken();
         this.dob = request.getDob();
         this.isGuest = request.getIsGuest() != null ? request.getIsGuest() : Boolean.FALSE;
-        this.lockedAttempts = request.getLockedAttempts() != null ? request.getLockedAttempts() : 0;
         this.apiKey = request.getApiKey();
         this.email = request.getEmail();
         this.addressId = request.getAddressId();

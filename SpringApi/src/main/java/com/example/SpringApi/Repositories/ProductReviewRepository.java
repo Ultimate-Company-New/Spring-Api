@@ -15,6 +15,6 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, Lo
     Page<ProductReview> findByProductIdAndIsDeletedFalse(Long productId, Pageable pageable);
 
     @Modifying
-    @Query("UPDATE ProductReview pr SET pr.isDeleted = true, pr.modifiedUser = :user WHERE pr.reviewId = :reviewId OR pr.parentReviewId = :reviewId")
+    @Query("UPDATE ProductReview pr SET pr.isDeleted = true, pr.modifiedUser = :user WHERE pr.reviewId = :reviewId OR pr.parentId = :reviewId")
     int markAllDescendantsAsDeleted(@Param("reviewId") Long reviewId, @Param("user") String user);
 }
