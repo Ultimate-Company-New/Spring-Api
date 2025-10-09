@@ -90,18 +90,18 @@ else
     exit 1
 fi
 
-# # =====================================================
-# # STEP 3: Run Tests
-# # =====================================================
-# print_status "Running tests..."
+# =====================================================
+# STEP 3: Run Tests
+# =====================================================
+print_status "Running tests..."
 
-# # Run tests with localhost profile
-# if ./mvnw test -Dspring.profiles.active=localhost; then
-#     print_success "All tests passed"
-# else
-#     print_error "Some tests failed"
-#     exit 1
-# fi
+# Run tests with localhost profile
+if ./mvnw test -Dspring.profiles.active=localhost; then
+    print_success "All tests passed"
+else
+    print_error "Some tests failed"
+    exit 1
+fi
 
 # =====================================================
 # STEP 4: Run the Application (IN DEBUG MODE)
