@@ -382,7 +382,6 @@ class LoginServicesTest {
         testUser.setLoginAttempts(1); // Will become 0 after failed attempt
         when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
         when(userRepository.save(any(User.class))).thenReturn(testUser);
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
         
         // Mock PasswordHelper static method to return false
         try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {

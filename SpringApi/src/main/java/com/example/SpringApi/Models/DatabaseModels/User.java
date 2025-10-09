@@ -144,6 +144,13 @@ public class User {
     private List<UserGroup> userGroups;
 
     /**
+     * Default no-argument constructor required by JPA/Hibernate.
+     */
+    public User() {
+        // Default constructor for JPA
+    }
+
+    /**
      * Constructor for creating a new customer user during signup.
      * 
      * @param request The UserRequestModel containing user data

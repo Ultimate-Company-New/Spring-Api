@@ -63,7 +63,14 @@ public class UserClientPermissionMapping {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "permissionId", insertable = false, updatable = false)
-    private Permissions permission;
+    private Permission permission;
+
+    /**
+     * Default no-argument constructor required by JPA/Hibernate.
+     */
+    public UserClientPermissionMapping() {
+        // Default constructor for JPA
+    }
 
     // Constructor for creation
     public UserClientPermissionMapping(Long userId, Long clientId, Long permissionId, String createdUser, String modifiedUser) {

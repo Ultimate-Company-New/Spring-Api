@@ -90,6 +90,13 @@ public class ProductReview {
     private String notes;
 
     /**
+     * Default no-argument constructor required by JPA/Hibernate.
+     */
+    public ProductReview() {
+        // Default constructor for JPA
+    }
+
+    /**
      * Constructor for creating a new product review.
      * 
      * @param request The ProductReviewRequestModel containing review data

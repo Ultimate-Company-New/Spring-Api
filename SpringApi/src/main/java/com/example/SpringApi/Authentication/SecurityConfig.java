@@ -27,7 +27,7 @@ public class SecurityConfig {
                 // Allow unauthenticated access to the root path (optional)
                 .requestMatchers("/").permitAll()
                 // Allow unauthenticated access to login endpoints
-                .requestMatchers("/api/login/**").permitAll()
+                .requestMatchers("/api/Login/**").permitAll()
                 // All other requests must be authenticated
                 .anyRequest().authenticated()
             )

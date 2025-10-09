@@ -6,7 +6,7 @@ import com.example.SpringApi.Logging.ContextualLogger;
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.DatabaseModels.Permissions;
+import com.example.SpringApi.Models.DatabaseModels.Permission;
 import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.DatabaseModels.UserClientMapping;
 import com.example.SpringApi.Repositories.ClientRepository;
@@ -102,9 +102,9 @@ public class Authorization{
 
     public boolean isAllowed(String userPermission, List<Long> permissionIds) {
         if (permissionIds != null && !permissionIds.isEmpty()) {
-            List<Permissions> permissions = permissionRepository.findAllById(permissionIds);
+            List<Permission> permissions = permissionRepository.findAllById(permissionIds);
             Set<String> userPermissionCodes = new HashSet<>();
-            for (Permissions p : permissions) {
+            for (Permission p : permissions) {
                 userPermissionCodes.add(p.getPermissionCode());
             }
             String[] requiredPermissions = userPermission.split(",");
