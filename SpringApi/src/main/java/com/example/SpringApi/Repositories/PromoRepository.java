@@ -13,15 +13,23 @@ import java.util.Optional;
 @Repository
 public interface PromoRepository extends JpaRepository<Promo, Long> {
 
-    @Query("SELECT p FROM Promo p WHERE " +
-           "(:columnName IS NULL OR :columnName = '' OR " +
-           "CASE :columnName " +
-           "WHEN 'promoId' THEN CAST(p.promoId AS string) " +
-           "WHEN 'description' THEN p.description " +
-           "WHEN 'promoCode' THEN p.promoCode " +
-           "WHEN 'discountValue' THEN CAST(p.discountValue AS string) " +
-           "ELSE '' END LIKE CONCAT('%', :filterExpr, '%')) " +
-           "AND (:includeDeleted = true OR p.isDeleted = false)")
+    @Query("SELECT p FROM Promo p " +
+           "WHERE (:includeDeleted = true OR p.isDeleted = false) " +
+           "AND (COALESCE(:filterExpr, '') = '' OR " +
+           "(CASE :columnName " +
+           "WHEN 'promoId' THEN CONCAT(p.promoId, '') " +
+           "WHEN 'promoCode' THEN CONCAT(p.promoCode, '') " +
+           "WHEN 'description' THEN CONCAT(p.description, '') " +
+           "WHEN 'discountValue' THEN CONCAT(p.discountValue, '') " +
+           "ELSE '' END) LIKE " +
+           "(CASE :condition " +
+           "WHEN 'contains' THEN CONCAT('%', :filterExpr, '%') " +
+           "WHEN 'equals' THEN :filterExpr " +
+           "WHEN 'startsWith' THEN CONCAT(:filterExpr, '%') " +
+           "WHEN 'endsWith' THEN CONCAT('%', :filterExpr) " +
+           "WHEN 'isEmpty' THEN '' " +
+           "WHEN 'isNotEmpty' THEN '%' " +
+           "ELSE '' END))")
     Page<Promo> findPaginatedPromos(@Param("columnName") String columnName,
                                     @Param("condition") String condition,
                                     @Param("filterExpr") String filterExpr,
