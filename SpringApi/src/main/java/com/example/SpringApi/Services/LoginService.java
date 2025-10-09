@@ -39,7 +39,6 @@ public class LoginService implements ILoginSubTranslator {
     private final UserRepository userRepository;
     private final UserClientPermissionMappingRepository userClientPermissionMappingRepository;
     private final ClientRepository clientRepository;
-    private final UserLogService userLogService;
     private final JwtTokenProvider jwtTokenProvider;
     private final Environment environment;
 
@@ -47,13 +46,11 @@ public class LoginService implements ILoginSubTranslator {
     public LoginService(UserRepository userRepository,
                              UserClientPermissionMappingRepository userClientPermissionMappingRepository,
                              ClientRepository clientRepository,
-                             UserLogService userLogService,
                              JwtTokenProvider jwtTokenProvider,
                              Environment environment) {
         this.userRepository = userRepository;
         this.userClientPermissionMappingRepository = userClientPermissionMappingRepository;
         this.clientRepository = clientRepository;
-        this.userLogService = userLogService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.environment = environment;
     }
@@ -76,7 +73,6 @@ public class LoginService implements ILoginSubTranslator {
             if(user.getToken().equals(loginRequestModel.getToken())){
                 user.setEmailConfirmed(true);
                 userRepository.save(user);
-                userLogService.logData(loginRequestModel.getUserId(), SuccessMessages.LoginSuccessMessages.UserEmailConfirmed, ApiRoutes.LoginSubRoute.CONFIRM_EMAIL);
             }
             else{
                 throw new UnauthorizedException(ErrorMessages.LoginErrorMessages.InvalidToken);
@@ -131,7 +127,6 @@ public class LoginService implements ILoginSubTranslator {
 
         // check if the password is correct
         if(PasswordHelper.checkPassword(loginRequestModel.getPassword(), user.getPassword(), user.getSalt())){
-            userLogService.logData(user.getUserId(), SuccessMessages.LoginSuccessMessages.SuccessSignIn, ApiRoutes.LoginSubRoute.SIGN_IN);
             return jwtTokenProvider.generateToken(user, new ArrayList<>(), user.getApiKey());
         }
 
@@ -234,7 +229,6 @@ public class LoginService implements ILoginSubTranslator {
                 throw new RuntimeException("Failed to send reset password email");
             }
 
-            userLogService.logData(user.getUserId(), "Password Reset Successfully", ApiRoutes.LoginSubRoute.RESET_PASSWORD);
             return true;
         }
         else{
@@ -279,7 +273,6 @@ public class LoginService implements ILoginSubTranslator {
         }
 
         String token = jwtTokenProvider.generateToken(user, permissionIds, loginRequestModel.getApiKey());
-        userLogService.logData(user.getUserId(), "Successfully got token", ApiRoutes.LoginSubRoute.GET_TOKEN);
         return token;
     }
 }

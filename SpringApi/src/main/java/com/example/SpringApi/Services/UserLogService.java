@@ -47,12 +47,11 @@ public class UserLogService extends BaseService implements IUserLogSubTranslator
         try {
             long userId = Long.parseLong(user);
             UserLog userLog = new UserLog(userId, endPoint, null, newValue);
-            if(getUserId() == null){
-                userLog.setAuditUserId(userId);
+            Long auditUserId = getUserId();
+            if(auditUserId != null){
+                userLog.setAuditUserId(auditUserId);
             }
-            else{
-                userLog.setAuditUserId(getUserId());
-            }
+            // If auditUserId is null, leave it as null (no authentication)
             userLogRepository.save(userLog);
             return true;
         } catch (NumberFormatException e) {
@@ -63,12 +62,11 @@ public class UserLogService extends BaseService implements IUserLogSubTranslator
     @Override
     public Boolean logData(long userId, String newValue, String endPoint) {
         UserLog userLog = new UserLog(userId, endPoint, null, newValue);
-        if(getUserId() == null){
-            userLog.setAuditUserId(userId);
+        Long auditUserId = getUserId();
+        if(auditUserId != null){
+            userLog.setAuditUserId(auditUserId);
         }
-        else{
-            userLog.setAuditUserId(getUserId());
-        }
+        // If auditUserId is null, leave it as null (no authentication)
         userLogRepository.save(userLog);
         return true;
     }
