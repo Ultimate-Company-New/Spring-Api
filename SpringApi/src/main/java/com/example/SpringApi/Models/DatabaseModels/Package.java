@@ -1,0 +1,197 @@
+package com.example.SpringApi.Models.DatabaseModels;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
+import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.ErrorMessages;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+/**
+ * JPA Entity for the Package table.
+ * 
+ * This entity represents physical package dimensions and pricing information.
+ * 
+ * @author SpringApi Team
+ * @version 1.0
+ * @since 2024-01-15
+ */
+@Getter
+@Setter
+@Entity
+@Table(name = "`Package`")
+public class Package {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "packageId", nullable = false)
+    private Long packageId;
+
+    @Column(name = "packageName", nullable = false)
+    private String packageName;
+
+    @Column(name = "length", nullable = false)
+    private Integer length;
+
+    @Column(name = "breadth", nullable = false)
+    private Integer breadth;
+
+    @Column(name = "height", nullable = false)
+    private Integer height;
+
+    @Column(name = "maxWeight", nullable = false, precision = 8, scale = 2)
+    private BigDecimal maxWeight;
+
+    @Column(name = "standardCapacity", nullable = false)
+    private Integer standardCapacity;
+
+    @Column(name = "pricePerUnit", nullable = false, precision = 10, scale = 2)
+    private BigDecimal pricePerUnit;
+
+    @Column(name = "packageType", nullable = false, length = 50)
+    private String packageType;
+
+    @Column(name = "clientId", nullable = false)
+    private Long clientId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "clientId", insertable = false, updatable = false)
+    private Client client;
+
+    @Column(name = "isDeleted", nullable = false)
+    private Boolean isDeleted;
+
+    @Column(name = "createdUser", nullable = false)
+    private String createdUser;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "createdUser", referencedColumnName = "loginName", insertable = false, updatable = false)
+    private User createdByUser;
+
+    @Column(name = "modifiedUser", nullable = false)
+    private String modifiedUser;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "modifiedUser", referencedColumnName = "loginName", insertable = false, updatable = false)
+    private User modifiedByUser;
+
+    @CreationTimestamp
+    @Column(name = "createdAt", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updatedAt", nullable = false)
+    private LocalDateTime updatedAt;
+
+    /**
+     * Default constructor.
+     */
+    public Package() {}
+
+    /**
+     * Constructor for creating a new package.
+     * 
+     * @param request The PackageRequestModel containing the package data
+     * @param createdUser The user creating the package
+     */
+    public Package(PackageRequestModel request, String createdUser) {
+        validateRequest(request);
+        validateUser(createdUser);
+        
+        setFieldsFromRequest(request);
+        this.createdUser = createdUser;
+        this.modifiedUser = createdUser;
+    }
+
+    /**
+     * Constructor for updating an existing package.
+     * 
+     * @param request The PackageRequestModel containing the updated package data
+     * @param modifiedUser The user modifying the package
+     * @param existingPackage The existing package entity
+     */
+    public Package(PackageRequestModel request, String modifiedUser, Package existingPackage) {
+        validateRequest(request);
+        validateUser(modifiedUser);
+        
+        this.packageId = existingPackage.getPackageId();
+        this.createdUser = existingPackage.getCreatedUser();
+        this.createdAt = existingPackage.getCreatedAt();
+        
+        setFieldsFromRequest(request);
+        this.modifiedUser = modifiedUser;
+    }
+
+    /**
+     * Validates the request model.
+     * 
+     * @param request The PackageRequestModel to validate
+     * @throws BadRequestException if validation fails
+     */
+    private void validateRequest(PackageRequestModel request) {
+        if (request == null) {
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidRequest);
+        }
+        if (request.getPackageName() == null || request.getPackageName().trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidPackageName);
+        }
+        if (request.getLength() == null || request.getLength() <= 0) {
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidLength);
+        }
+        if (request.getBreadth() == null || request.getBreadth() <= 0) {
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidBreadth);
+        }
+        if (request.getHeight() == null || request.getHeight() <= 0) {
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidHeight);
+        }
+        if (request.getMaxWeight() == null || request.getMaxWeight().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidMaxWeight);
+        }
+        if (request.getStandardCapacity() == null || request.getStandardCapacity() <= 0) {
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidStandardCapacity);
+        }
+        if (request.getPricePerUnit() == null || request.getPricePerUnit().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidPricePerUnit);
+        }
+        if (request.getPackageType() == null || request.getPackageType().trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidPackageType);
+        }
+        if (request.getClientId() == null) {
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidClientId);
+        }
+    }
+
+    /**
+     * Validates the user parameter.
+     * 
+     * @param user The user to validate
+     * @throws BadRequestException if validation fails
+     */
+    private void validateUser(String user) {
+        if (user == null || user.trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+        }
+    }
+
+    /**
+     * Sets fields from the request model.
+     * 
+     * @param request The PackageRequestModel to extract fields from
+     */
+    private void setFieldsFromRequest(PackageRequestModel request) {
+        this.packageName = request.getPackageName().trim();
+        this.length = request.getLength();
+        this.breadth = request.getBreadth();
+        this.height = request.getHeight();
+        this.maxWeight = request.getMaxWeight();
+        this.standardCapacity = request.getStandardCapacity();
+        this.pricePerUnit = request.getPricePerUnit();
+        this.packageType = request.getPackageType().trim();
+        this.clientId = request.getClientId();
+        this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : Boolean.FALSE;
+    }
+}

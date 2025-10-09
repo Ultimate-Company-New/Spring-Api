@@ -1,0 +1,265 @@
+package com.example.SpringApi.Models.DatabaseModels;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import com.example.SpringApi.Models.RequestModels.ProductRequestModel;
+import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.ErrorMessages;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+/**
+ * JPA Entity for the Product table.
+ * 
+ * This entity represents a product in the system with detailed information
+ * including pricing, dimensions, and category associations.
+ * 
+ * @author SpringApi Team
+ * @version 1.0
+ * @since 2024-01-15
+ */
+@Getter
+@Setter
+@Entity
+@Table(name = "`Product`")
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "productId", nullable = false)
+    private Long productId;
+
+    @Column(name = "title", nullable = false, length = 500)
+    private String title;
+
+    @Column(name = "descriptionHtml", nullable = false, columnDefinition = "TEXT")
+    private String descriptionHtml;
+
+    @Column(name = "length", precision = 8, scale = 2)
+    private BigDecimal length;
+
+    @Column(name = "brand", nullable = false)
+    private String brand;
+
+    @Column(name = "color", length = 100)
+    private String color;
+
+    @Column(name = "colorLabel", nullable = false, length = 100)
+    private String colorLabel;
+
+    @Column(name = "isDeleted", nullable = false)
+    private Boolean isDeleted;
+
+    @Column(name = "condition", nullable = false, length = 100)
+    private String condition;
+
+    @Column(name = "countryOfManufacture", nullable = false, length = 100)
+    private String countryOfManufacture;
+
+    @Column(name = "model")
+    private String model;
+
+    @Column(name = "itemModified", nullable = false)
+    private Boolean itemModified;
+
+    @Column(name = "upc", length = 50)
+    private String upc;
+
+    @Column(name = "modificationHtml", columnDefinition = "TEXT")
+    private String modificationHtml;
+
+    @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
+
+    @Column(name = "discount", nullable = false, precision = 10, scale = 2)
+    private BigDecimal discount;
+
+    @Column(name = "isDiscountPercent", nullable = false)
+    private Boolean isDiscountPercent;
+
+    @Column(name = "returnsAllowed", nullable = false)
+    private Boolean returnsAllowed;
+
+    @Column(name = "breadth", precision = 8, scale = 2)
+    private BigDecimal breadth;
+
+    @Column(name = "height", precision = 8, scale = 2)
+    private BigDecimal height;
+
+    @Column(name = "weightKgs", precision = 8, scale = 3)
+    private BigDecimal weightKgs;
+
+    @Column(name = "categoryId", nullable = false)
+    private Long categoryId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoryId", insertable = false, updatable = false)
+    private ProductCategory category;
+
+    @Column(name = "clientId", nullable = false)
+    private Long clientId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "clientId", insertable = false, updatable = false)
+    private Client client;
+
+    @Column(name = "pickupLocationId", nullable = false)
+    private Long pickupLocationId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pickupLocationId", insertable = false, updatable = false)
+    private PickupLocation pickupLocation;
+
+    @Column(name = "createdUser", nullable = false)
+    private String createdUser;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "createdUser", referencedColumnName = "loginName", insertable = false, updatable = false)
+    private User createdByUser;
+
+    @Column(name = "modifiedUser", nullable = false)
+    private String modifiedUser;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "modifiedUser", referencedColumnName = "loginName", insertable = false, updatable = false)
+    private User modifiedByUser;
+
+    @CreationTimestamp
+    @Column(name = "createdAt", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updatedAt", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
+
+    /**
+     * Default constructor.
+     */
+    public Product() {}
+
+    /**
+     * Constructor for creating a new product.
+     * 
+     * @param request The ProductRequestModel containing the product data
+     * @param createdUser The user creating the product
+     */
+    public Product(ProductRequestModel request, String createdUser) {
+        validateRequest(request);
+        validateUser(createdUser);
+        
+        setFieldsFromRequest(request);
+        this.createdUser = createdUser;
+        this.modifiedUser = createdUser;
+    }
+
+    /**
+     * Constructor for updating an existing product.
+     * 
+     * @param request The ProductRequestModel containing the updated product data
+     * @param modifiedUser The user modifying the product
+     * @param existingProduct The existing product entity
+     */
+    public Product(ProductRequestModel request, String modifiedUser, Product existingProduct) {
+        validateRequest(request);
+        validateUser(modifiedUser);
+        
+        this.productId = existingProduct.getProductId();
+        this.createdUser = existingProduct.getCreatedUser();
+        this.createdAt = existingProduct.getCreatedAt();
+        
+        setFieldsFromRequest(request);
+        this.modifiedUser = modifiedUser;
+    }
+
+    /**
+     * Validates the request model.
+     * 
+     * @param request The ProductRequestModel to validate
+     * @throws BadRequestException if validation fails
+     */
+    private void validateRequest(ProductRequestModel request) {
+        if (request == null) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidRequest);
+        }
+        if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidTitle);
+        }
+        if (request.getDescriptionHtml() == null || request.getDescriptionHtml().trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidDescription);
+        }
+        if (request.getBrand() == null || request.getBrand().trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidBrand);
+        }
+        if (request.getColorLabel() == null || request.getColorLabel().trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidColorLabel);
+        }
+        if (request.getCondition() == null || request.getCondition().trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidCondition);
+        }
+        if (request.getCountryOfManufacture() == null || request.getCountryOfManufacture().trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidCountryOfManufacture);
+        }
+        if (request.getPrice() == null || request.getPrice().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidPrice);
+        }
+        if (request.getCategoryId() == null) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidCategoryId);
+        }
+        if (request.getClientId() == null) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidClientId);
+        }
+        if (request.getPickupLocationId() == null || request.getPickupLocationId() == 0) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidPickupLocationId);
+        }
+    }
+
+    /**
+     * Validates the user parameter.
+     * 
+     * @param user The user to validate
+     * @throws BadRequestException if validation fails
+     */
+    private void validateUser(String user) {
+        if (user == null || user.trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+        }
+    }
+
+    /**
+     * Sets fields from the request model.
+     * 
+     * @param request The ProductRequestModel to extract fields from
+     */
+    private void setFieldsFromRequest(ProductRequestModel request) {
+        this.title = request.getTitle().trim();
+        this.descriptionHtml = request.getDescriptionHtml().trim();
+        this.length = request.getLength();
+        this.brand = request.getBrand().trim();
+        this.color = request.getColor() != null ? request.getColor().trim() : null;
+        this.colorLabel = request.getColorLabel().trim();
+        this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : Boolean.FALSE;
+        this.condition = request.getCondition().trim();
+        this.countryOfManufacture = request.getCountryOfManufacture().trim();
+        this.model = request.getModel() != null ? request.getModel().trim() : null;
+        this.itemModified = request.getItemModified() != null ? request.getItemModified() : Boolean.FALSE;
+        this.upc = request.getUpc() != null ? request.getUpc().trim() : null;
+        this.modificationHtml = request.getModificationHtml() != null ? request.getModificationHtml().trim() : null;
+        this.price = request.getPrice();
+        this.discount = request.getDiscount() != null ? request.getDiscount() : BigDecimal.ZERO;
+        this.isDiscountPercent = request.getIsDiscountPercent() != null ? request.getIsDiscountPercent() : Boolean.FALSE;
+        this.returnsAllowed = request.getReturnsAllowed() != null ? request.getReturnsAllowed() : Boolean.FALSE;
+        this.breadth = request.getBreadth();
+        this.height = request.getHeight();
+        this.weightKgs = request.getWeightKgs();
+        this.categoryId = request.getCategoryId();
+        this.clientId = request.getClientId();
+        this.pickupLocationId = request.getPickupLocationId();
+        this.notes = request.getNotes() != null ? request.getNotes().trim() : null;
+    }
+}

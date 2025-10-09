@@ -1,0 +1,4 @@
+docker build --no-cache -t spring-api .
+docker stop uc-dev-api
+docker rm uc-dev-api
+docker run -d --name uc-dev-api -p 8080:8080 spring-api
