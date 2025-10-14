@@ -69,7 +69,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
                          ClientService clientService,
                          Environment environment,
                          HttpServletRequest request) {
-        super(request);
+        super();
         this.productRepository = productRepository;
         this.userLogService = userLogService;
         this.productCategoryRepository = productCategoryRepository;

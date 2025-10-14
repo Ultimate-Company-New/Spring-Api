@@ -77,35 +77,6 @@ public class UserController {
     }
 
     /**
-     * Retrieves all users in the system.
-     * 
-     * This endpoint fetches all users from the database. The response includes
-     * a list of UserResponseModel objects, each containing complete user
-     * information.
-     * 
-     * @return ResponseEntity containing List of UserResponseModel or ErrorResponseModel
-     */
-    @GetMapping("/" + ApiRoutes.UsersSubRoute.FETCH_ALL_USERS_IN_SYSTEM)
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_USER_PERMISSION +"')")
-    public ResponseEntity<?> getAllUsers() {
-        try {
-            return ResponseEntity.ok(userService.getAllUsers());
-        } catch (BadRequestException bre) {
-            logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
-        } catch (NotFoundException nfe) {
-            logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
-        } catch (UnauthorizedException ue) {
-            logger.error(ue);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
-        } catch (Exception e) {
-            logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
-        }
-    }
-
-    /**
      * Retrieves a user by their email address.
      * 
      * This endpoint fetches a user from the database using the provided email.
@@ -205,42 +176,14 @@ public class UserController {
      * If the user is currently deleted (isDeleted = true), it will be restored.
      * 
      * @param id The unique identifier of the user to toggle
-     * @return ResponseEntity containing the toggle result or ErrorResponseModel
+     * @return ResponseEntity with no content on success or ErrorResponseModel
      */
     @DeleteMapping("/" + ApiRoutes.UsersSubRoute.TOGGLE_USER + "/{id}")
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.DELETE_USER_PERMISSION +"')")
     public ResponseEntity<?> toggleUser(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(userService.toggleUser(id));
-        } catch (BadRequestException bre) {
-            logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
-        } catch (NotFoundException nfe) {
-            logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
-        } catch (UnauthorizedException ue) {
-            logger.error(ue);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
-        } catch (Exception e) {
-            logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
-        }
-    }
-
-    /**
-     * Retrieves all users mapped to the current carrier.
-     * Fetches all users associated with the current carrier (tenant/client) context. Optionally includes
-     * users marked as deleted, depending on the {@code includeDeleted} parameter. Returns user details such as
-     * user ID, name, role, and other metadata. Used for administrative or management purposes.
-     *
-     * @param includeDeleted If true, includes users marked as deleted; otherwise, only active users are returned.
-     * @return List of {@link UserResponseModel} for all users in the carrier.
-     */
-    @GetMapping("/" + ApiRoutes.UsersSubRoute.FETCH_USERS_IN_CARRIER)
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_USER_PERMISSION +"')")
-    public ResponseEntity<?> fetchUsersInCarrier(@RequestParam boolean includeDeleted) {
-        try {
-            return ResponseEntity.ok(userService.fetchUsersInCarrier(includeDeleted));
+            userService.toggleUser(id);
+            return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));

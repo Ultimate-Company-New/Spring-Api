@@ -88,6 +88,10 @@ public class User {
     @Column(name = "addressId")
     private Long addressId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "addressId", insertable = false, updatable = false)
+    private Address primaryAddress;
+
     @Column(name = "profilePicture")
     private String profilePicture;
 

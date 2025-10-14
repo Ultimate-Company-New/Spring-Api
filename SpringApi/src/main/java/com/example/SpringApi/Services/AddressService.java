@@ -39,7 +39,7 @@ public class AddressService extends BaseService implements IAddressSubTranslator
     public AddressService(HttpServletRequest request,
                         UserLogService userLogService,
                         AddressRepository addressRepository) {
-        super(request);
+        super();
         this.userLogService = userLogService;
         this.addressRepository = addressRepository;
     }

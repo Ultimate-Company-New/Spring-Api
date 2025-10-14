@@ -53,7 +53,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         UserLogService userLogService,
         PackagePickupLocationMappingRepository packagePickupLocationMappingRepository,
         HttpServletRequest request) {
-        super(request);
+        super();
         this.packageRepository = packageRepository;
         this.userLogService = userLogService;
         this.packagePickupLocationMappingRepository = packagePickupLocationMappingRepository;

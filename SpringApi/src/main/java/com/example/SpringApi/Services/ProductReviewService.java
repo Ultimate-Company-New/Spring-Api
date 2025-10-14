@@ -45,7 +45,7 @@ public class ProductReviewService extends BaseService implements IProductReviewS
     public ProductReviewService(ProductReviewRepository productReviewRepository,
                                UserLogService userLogService,
                                HttpServletRequest request) {
-        super(request);
+        super();
         this.productReviewRepository = productReviewRepository;
         this.userLogService = userLogService;
     }

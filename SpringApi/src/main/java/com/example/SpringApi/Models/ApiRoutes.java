@@ -89,7 +89,6 @@ public class ApiRoutes {
         public static final String GET_USER_BY_EMAIL = "getUserByEmail";
         public static final String CREATE_USER = "createUser";
         public static final String UPDATE_USER = "updateUser";
-        public static final String GET_ALL_USERS = "getAllUsers";
     }
 
 
@@ -296,7 +295,6 @@ public class ApiRoutes {
         public static final String TOGGLE_USER = "toggleUser";
         public static final String UPDATE_USER = "updateUser";
         public static final String FETCH_ALL_USERS_IN_SYSTEM = "fetchAllUsersInSystem";
-        public static final String FETCH_USERS_IN_CARRIER = "fetchUsersInCarrier";
         public static final String GET_USER_BY_EMAIL = "getUserByEmail";
         public static final String GET_USER_BY_ID = "getUserById";
         public static final String GOOGLE_SIGN_IN = "googleSignIn";

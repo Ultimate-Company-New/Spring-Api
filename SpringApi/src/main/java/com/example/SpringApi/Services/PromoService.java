@@ -41,7 +41,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   @Autowired
   public PromoService(
       PromoRepository promoRepository, UserLogService userLogService, HttpServletRequest request) {
-    super(request);
+    super();
     this.promoRepository = promoRepository;
     this.userLogService = userLogService;
   }

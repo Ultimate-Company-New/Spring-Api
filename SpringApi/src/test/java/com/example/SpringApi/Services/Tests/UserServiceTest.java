@@ -36,7 +36,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-
 import java.time.LocalDate;
 import java.util.*;
 
@@ -182,10 +181,9 @@ class UserServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         
         // Act
-        Boolean result = userService.toggleUser(TEST_USER_ID);
+        userService.toggleUser(TEST_USER_ID);
         
         // Assert
-        assertTrue(result);
         assertTrue(testUser.getIsDeleted());
         verify(userRepository, times(1)).findById(TEST_USER_ID);
         verify(userRepository, times(1)).save(testUser);
@@ -608,113 +606,8 @@ class UserServiceTest {
 
     // ==================== Get All Users Tests ====================
     
-    /**
-     * Test successful retrieval of all users.
-     * Verifies that all users are returned with their permissions.
-     */
-    @Test
-    @DisplayName("Get All Users - Success - Should return all users")
-    void getAllUsers_Success() {
-        // Arrange
-        UserRequestModel user2Request = new UserRequestModel();
-        user2Request.setUserId(2L);
-        user2Request.setLoginName("user2");
-        user2Request.setEmail("user2@example.com");
-        user2Request.setFirstName("User");
-        user2Request.setLastName("Two");
-        user2Request.setPhone("0987654321");
-        user2Request.setRole("User");
-        user2Request.setDob(LocalDate.of(1992, 5, 15));
-        user2Request.setPassword("hashed-password2");
-        user2Request.setSalt("test-salt2");
-        user2Request.setApiKey("test-api-key2");
-        user2Request.setToken("test-token2");
-        
-        User user2 = new User(user2Request, CREATED_USER);
-        user2.setUserId(2L);
-        
-        List<User> users = Arrays.asList(testUser, user2);
-        
-        when(userRepository.findAll()).thenReturn(users);
-        when(userRepository.findUserPermissions(anyLong())).thenReturn(new ArrayList<>());
-        
-        // Act
-        List<UserResponseModel> result = userService.getAllUsers();
-        
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        verify(userRepository, times(1)).findAll();
-        verify(userRepository, times(2)).findUserPermissions(anyLong());
-    }
-    
-    /**
-     * Test get all users when no users exist.
-     * Verifies that empty list is returned.
-     */
-    @Test
-    @DisplayName("Get All Users - Success - Empty list")
-    void getAllUsers_EmptyList_ReturnsEmptyList() {
-        // Arrange
-        when(userRepository.findAll()).thenReturn(new ArrayList<>());
-        
-        // Act
-        List<UserResponseModel> result = userService.getAllUsers();
-        
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-        verify(userRepository, times(1)).findAll();
-    }
-
     // ==================== Fetch Users In Carrier Tests ====================
     
-    /**
-     * Test successful retrieval of users in carrier.
-     * Verifies that users are filtered by client ID.
-     */
-    @Test
-    @DisplayName("Fetch Users In Carrier - Success - Should return carrier users")
-    void fetchUsersInCarrier_Success() {
-        // Arrange
-        List<User> users = Arrays.asList(testUser);
-        
-        when(userRepository.findAllWithIncludeDeletedInCarrier(false, TEST_CLIENT_ID)).thenReturn(users);
-        when(userRepository.findUserPermissions(anyLong())).thenReturn(new ArrayList<>());
-        
-        // Act
-        List<UserResponseModel> result = userService.fetchUsersInCarrier(false);
-        
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        verify(userRepository, times(1)).findAllWithIncludeDeletedInCarrier(false, TEST_CLIENT_ID);
-    }
-    
-    /**
-     * Test fetch users in carrier including deleted.
-     * Verifies that deleted users are included when flag is true.
-     */
-    @Test
-    @DisplayName("Fetch Users In Carrier - Success - Include deleted users")
-    void fetchUsersInCarrier_IncludeDeleted_Success() {
-        // Arrange
-        testUser.setIsDeleted(true);
-        List<User> users = Arrays.asList(testUser);
-        
-        when(userRepository.findAllWithIncludeDeletedInCarrier(true, TEST_CLIENT_ID)).thenReturn(users);
-        when(userRepository.findUserPermissions(anyLong())).thenReturn(new ArrayList<>());
-        
-        // Act
-        List<UserResponseModel> result = userService.fetchUsersInCarrier(true);
-        
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertTrue(result.get(0).getIsDeleted());
-        verify(userRepository, times(1)).findAllWithIncludeDeletedInCarrier(true, TEST_CLIENT_ID);
-    }
-
     // ==================== Fetch Users In Batches Tests ====================
     
     /**

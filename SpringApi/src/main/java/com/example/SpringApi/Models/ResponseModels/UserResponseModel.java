@@ -46,6 +46,8 @@ public class UserResponseModel {
     private LocalDateTime updatedAt;
     private String notes;
     private List<UserPermissionInfo> permissions;
+    private AddressResponseModel address;
+    private List<UserGroupResponseModel> userGroups;
     
     /**
      * Default constructor.

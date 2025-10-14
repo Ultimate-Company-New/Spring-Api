@@ -34,7 +34,7 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
     
     @Autowired
     public TodoService(TodoRepository todoRepository, UserLogService userLogService, HttpServletRequest request) {
-        super(request);
+        super();
         this.todoRepository = todoRepository;
         this.userLogService = userLogService;
     }

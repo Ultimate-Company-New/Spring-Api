@@ -47,7 +47,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
                         ClientRepository clientRepository,
                         GoogleCredRepository googleCredRepository,
                         Environment environment) {
-        super(request);
+        super();
         this.userLogService = userLogService;
         this.clientRepository = clientRepository;
         this.googleCredRepository = googleCredRepository;

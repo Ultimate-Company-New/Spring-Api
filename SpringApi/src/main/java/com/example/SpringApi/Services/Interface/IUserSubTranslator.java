@@ -28,10 +28,9 @@ public interface IUserSubTranslator {
      * If the user is currently deleted (isDeleted = true), it will be restored.
      * 
      * @param id The unique identifier of the user to toggle
-     * @return true if the operation was successful, false if the user was not found
      * @throws IllegalArgumentException if the provided ID is null or invalid
      */
-    Boolean toggleUser(long id);
+    void toggleUser(long id);
 
     /**
      * Retrieves a single user by its unique identifier.
@@ -86,28 +85,6 @@ public interface IUserSubTranslator {
      * @throws IllegalArgumentException if the user parameter is null
      */
     void updateUser(UserRequestModel user);
-
-    /**
-     * Retrieves all users in the system.
-     * 
-     * This method fetches all users from the database. The method returns
-     * a list of UserResponseModel objects, each containing complete user
-     * information. Returns an empty list if no users are found.
-     * 
-     * @return List of UserResponseModel objects for all users
-     */
-    List<UserResponseModel> getAllUsers();
-
-    /**
-     * Retrieves all users mapped to the current carrier.
-     * Fetches all users associated with the current carrier (tenant/client) context. Optionally includes
-     * users marked as deleted, depending on the {@code includeDeleted} parameter. Returns user details such as
-     * user ID, name, role, and other metadata. Used for administrative or management purposes.
-     *
-     * @param includeDeleted If true, includes users marked as deleted; otherwise, only active users are returned.
-     * @return List of {@link UserResponseModel} for all users in the carrier.
-     */
-    List<UserResponseModel> fetchUsersInCarrier(boolean includeDeleted);
 
     /**
      * Retrieves users in the carrier in paginated batches with advanced filtering and sorting.

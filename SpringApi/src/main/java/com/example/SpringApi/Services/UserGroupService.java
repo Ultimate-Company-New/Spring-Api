@@ -49,7 +49,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
                            UserGroupRepository userGroupRepository,
                            UserGroupUserMapRepository userGroupUserMapRepository,
                            UserRepository userRepository) {
-        super(request);
+        super();
         this.userLogService = userLogService;
         this.userGroupRepository = userGroupRepository;
         this.userGroupUserMapRepository = userGroupUserMapRepository;

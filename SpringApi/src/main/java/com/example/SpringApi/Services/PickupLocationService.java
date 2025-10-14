@@ -60,7 +60,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                                 UserLogService userLogService,
                                 ClientService clientService,
                                 HttpServletRequest request) {
-        super(request);
+        super();
         this.pickupLocationRepository = pickupLocationRepository;
         this.addressRepository = addressRepository;
         this.userLogService = userLogService;
@@ -75,7 +75,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                                 ClientService clientService,
                                 ShippingHelper shippingHelper,
                                 HttpServletRequest request) {
-        super(request);
+        super();
         this.pickupLocationRepository = pickupLocationRepository;
         this.addressRepository = addressRepository;
         this.userLogService = userLogService;

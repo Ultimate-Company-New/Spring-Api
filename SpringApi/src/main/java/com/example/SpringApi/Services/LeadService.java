@@ -49,7 +49,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         AddressRepository addressRepository,
         UserLogService userLogService,
         HttpServletRequest request) {
-        super(request);
+        super();
         this.leadRepository = leadRepository;
         this.addressRepository = addressRepository;
         this.userLogService = userLogService;

@@ -26,7 +26,7 @@ public class UserLogService extends BaseService implements IUserLogSubTranslator
     @Autowired
     public UserLogService(UserLogRepository userLogRepository,
                                HttpServletRequest request){
-        super(request);
+        super();
         this.userLogRepository = userLogRepository;
     }
 

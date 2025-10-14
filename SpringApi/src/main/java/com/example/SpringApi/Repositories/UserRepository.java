@@ -30,6 +30,23 @@ public interface UserRepository extends JpaRepository<User, Long> {
         "WHEN 'dob' THEN CONCAT(u.dob, '') " +
         "WHEN 'phone' THEN CONCAT(u.phone, '') " +
         "WHEN 'address' THEN CONCAT(COALESCE(a.streetAddress, ''), ' ', COALESCE(a.streetAddress2, ''), ' ', COALESCE(a.streetAddress3, ''), ' ', COALESCE(a.city, ''), ' ', COALESCE(a.state, ''), ' ', COALESCE(a.postalCode, ''), ' ', COALESCE(a.country, '')) " +
+        "WHEN 'datePasswordChanges' THEN CONCAT(u.datePasswordChanges, '') " +
+        "WHEN 'loginAttempts' THEN CONCAT(u.loginAttempts, '') " +
+        "WHEN 'isDeleted' THEN CONCAT(u.isDeleted, '') " +
+        "WHEN 'locked' THEN CONCAT(u.locked, '') " +
+        "WHEN 'emailConfirmed' THEN CONCAT(u.emailConfirmed, '') " +
+        "WHEN 'token' THEN u.token " +
+        "WHEN 'isGuest' THEN CONCAT(u.isGuest, '') " +
+        "WHEN 'apiKey' THEN u.apiKey " +
+        "WHEN 'email' THEN u.email " +
+        "WHEN 'addressId' THEN CONCAT(u.addressId, '') " +
+        "WHEN 'profilePicture' THEN u.profilePicture " +
+        "WHEN 'lastLoginAt' THEN CONCAT(u.lastLoginAt, '') " +
+        "WHEN 'createdAt' THEN CONCAT(u.createdAt, '') " +
+        "WHEN 'createdUser' THEN u.createdUser " +
+        "WHEN 'updatedAt' THEN CONCAT(u.updatedAt, '') " +
+        "WHEN 'modifiedUser' THEN u.modifiedUser " +
+        "WHEN 'notes' THEN u.notes " +
         "ELSE '' END) LIKE " +
         "(CASE :condition " +
         "WHEN 'contains' THEN CONCAT('%', :filterExpr, '%') " +
@@ -65,4 +82,45 @@ public interface UserRepository extends JpaRepository<User, Long> {
            "JOIN ucp.permission p " +
            "WHERE ucp.user.userId = :userId")
     List<Object[]> findUserPermissions(@Param("userId") Long userId);
+
+    @Query("SELECT DISTINCT ug FROM UserGroup ug " +
+           "JOIN UserGroupUserMap ugum ON ug.groupId = ugum.groupId " +
+           "WHERE ugum.userId = :userId AND ug.isDeleted = false")
+    List<com.example.SpringApi.Models.DatabaseModels.UserGroup> findUserGroups(@Param("userId") Long userId);
+
+    /**
+     * Optimized query to fetch user with all related data in ONE single database call.
+     * Uses LEFT JOIN FETCH to eagerly load address, permissions, and user groups.
+     * This reduces database calls from 4 to 1, fetching:
+     * - User details
+     * - Primary address (via addressId)
+     * - All permissions through UserClientPermissionMapping and Permission
+     * - All user groups through UserGroupUserMap and UserGroup
+     */
+    @Query("SELECT DISTINCT u FROM User u " +
+           "LEFT JOIN FETCH u.primaryAddress " +
+           "LEFT JOIN FETCH u.userClientPermissionMappings ucpm " +
+           "LEFT JOIN FETCH ucpm.permission p " +
+           "LEFT JOIN FETCH u.userGroupMappings ugm " +
+           "LEFT JOIN FETCH ugm.userGroup ug " +
+           "WHERE u.userId = :userId")
+    Optional<User> findByIdWithAllRelations(@Param("userId") Long userId);
+
+    /**
+     * Optimized query to fetch user by email with all related data in ONE single database call.
+     * Uses LEFT JOIN FETCH to eagerly load address, permissions, and user groups.
+     * This reduces database calls from 4 to 1, fetching:
+     * - User details
+     * - Primary address (via addressId)
+     * - All permissions through UserClientPermissionMapping and Permission
+     * - All user groups through UserGroupUserMap and UserGroup
+     */
+    @Query("SELECT DISTINCT u FROM User u " +
+           "LEFT JOIN FETCH u.primaryAddress " +
+           "LEFT JOIN FETCH u.userClientPermissionMappings ucpm " +
+           "LEFT JOIN FETCH ucpm.permission p " +
+           "LEFT JOIN FETCH u.userGroupMappings ugm " +
+           "LEFT JOIN FETCH ugm.userGroup ug " +
+           "WHERE u.email = :email")
+    Optional<User> findByEmailWithAllRelations(@Param("email") String email);
 }

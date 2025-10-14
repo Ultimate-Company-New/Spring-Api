@@ -178,6 +178,15 @@ public class SuccessMessages {
         public static final String CreateTicket = "Successfully created ticket.";
     }
 
+    public static class UserSuccessMessages {
+        // standard success messages
+        public static final String CreateUser = "Successfully created user.";
+        public static final String UpdateUser = "Successfully updated user.";
+        public static final String ToggleUser = "Successfully toggled user.";
+        public static final String GetUser = "Successfully got user details.";
+        public static final String GetUsers = "Successfully got users.";
+    }
+
     public static class UserGridPreferenceSuccessMessages {
         // standard success messages
         public static final String UpdateUserGridPreference = "Successfully updated user grid preferences.";

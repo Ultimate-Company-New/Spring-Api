@@ -12,6 +12,8 @@ import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.UserResponseModel;
+import com.example.SpringApi.Models.ResponseModels.AddressResponseModel;
+import com.example.SpringApi.Models.ResponseModels.UserGroupResponseModel;
 import com.example.SpringApi.Repositories.AddressRepository;
 import com.example.SpringApi.Repositories.ClientRepository;
 import com.example.SpringApi.Repositories.GoogleCredRepository;
@@ -26,6 +28,7 @@ import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Helpers.EmailTemplates;
 import com.example.SpringApi.Helpers.FirebaseHelper;
 import com.example.SpringApi.Helpers.PasswordHelper;
+import com.example.SpringApi.SuccessMessages;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -64,7 +67,6 @@ public class UserService extends BaseService implements IUserSubTranslator {
     
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
-    private final UserClientPermissionMappingRepository userClientPermissionMappingRepository;
     private final UserGroupUserMapRepository userGroupUserMapRepository;
     private final UserClientMappingRepository userClientMappingRepository;
     private final GoogleCredRepository googleCredRepository;
@@ -76,7 +78,6 @@ public class UserService extends BaseService implements IUserSubTranslator {
     @Autowired
     public UserService(UserRepository userRepository, 
                       AddressRepository addressRepository,
-                      UserClientPermissionMappingRepository userClientPermissionMappingRepository,
                       UserGroupUserMapRepository userGroupUserMapRepository,
                       UserClientMappingRepository userClientMappingRepository,
                       GoogleCredRepository googleCredRepository,
@@ -85,10 +86,9 @@ public class UserService extends BaseService implements IUserSubTranslator {
                       UserLogService userLogService,
                       ClientService clientService,
                       HttpServletRequest request) {
-        super(request);
+        super();
         this.userRepository = userRepository;
         this.addressRepository = addressRepository;
-        this.userClientPermissionMappingRepository = userClientPermissionMappingRepository;
         this.userGroupUserMapRepository = userGroupUserMapRepository;
         this.userClientMappingRepository = userClientMappingRepository;
         this.googleCredRepository = googleCredRepository;
@@ -110,7 +110,9 @@ public class UserService extends BaseService implements IUserSubTranslator {
      * @throws IllegalArgumentException if the provided ID is null or invalid
      */
     @Override
-    public Boolean toggleUser(long id) {
+    public void toggleUser(long id) {
+        // Ensure the user belongs to the logged-in client
+        validateUserBelongsToClient(id);
         User user = userRepository.findById(id)
             .orElseThrow(() -> new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId));
         
@@ -118,7 +120,9 @@ public class UserService extends BaseService implements IUserSubTranslator {
         user.setModifiedUser(getUser());
         userRepository.save(user);
         
-        return true;
+        // Log user toggle operation
+        userLogService.logData(getUser(), SuccessMessages.UserSuccessMessages.ToggleUser + " " + user.getUserId() + " deletion status to " + user.getIsDeleted(),
+                ApiRoutes.UserSubRoute.TOGGLE_USER);
     }
 
     /**
@@ -135,11 +139,40 @@ public class UserService extends BaseService implements IUserSubTranslator {
      */
     @Override
     public UserResponseModel getUserById(long id) {
-        User user = userRepository.findById(id)
+        // Ensure the user belongs to the logged-in client
+        validateUserBelongsToClient(id);
+
+        // Fetch user with ALL relations in a SINGLE database call
+        // This includes: user data, primary address, permissions, and user groups
+        User user = userRepository.findByIdWithAllRelations(id)
             .orElseThrow(() -> new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId));
         
         UserResponseModel response = new UserResponseModel(user);
-        response.setPermissions(getUserPermissions(id));
+        
+        // Use eagerly-loaded primary address (no additional database call)
+        if (user.getPrimaryAddress() != null) {
+            response.setAddress(new AddressResponseModel(user.getPrimaryAddress()));
+        }
+        
+        // Extract permissions from eagerly-loaded data (no additional database call)
+        List<UserResponseModel.UserPermissionInfo> permissions = user.getUserClientPermissionMappings().stream()
+            .map(ucpm -> new UserResponseModel.UserPermissionInfo(
+                ucpm.getPermission().getPermissionId(),
+                ucpm.getPermission().getPermissionName(),
+                ucpm.getPermission().getPermissionCode(),
+                ucpm.getPermission().getDescription(),
+                ucpm.getPermission().getCategory()
+            ))
+            .toList();
+        response.setPermissions(permissions);
+        
+        // Extract user groups from eagerly-loaded data (no additional database call)
+        List<UserGroupResponseModel> userGroupResponseModels = user.getUserGroupMappings().stream()
+            .map(ugm -> new UserGroupResponseModel(ugm.getUserGroup()))
+            .filter(ug -> !ug.getIsDeleted()) // Filter out deleted groups
+            .toList();
+        response.setUserGroups(userGroupResponseModels);
+        
         return response;
     }
 
@@ -156,11 +189,40 @@ public class UserService extends BaseService implements IUserSubTranslator {
      */
     @Override
     public UserResponseModel getUserByEmail(String email) {
-        User user = userRepository.findByEmail(email)
+        // Ensure the user belongs to the logged-in client
+        validateUserBelongsToClient(email);
+
+        // Fetch user with ALL relations in a SINGLE database call
+        // This includes: user data, primary address, permissions, and user groups
+        User user = userRepository.findByEmailWithAllRelations(email)
             .orElseThrow(() -> new NotFoundException(ErrorMessages.UserErrorMessages.InvalidEmail));
         
         UserResponseModel response = new UserResponseModel(user);
-        response.setPermissions(getUserPermissions(user.getUserId()));
+        
+        // Use eagerly-loaded primary address (no additional database call)
+        if (user.getPrimaryAddress() != null) {
+            response.setAddress(new AddressResponseModel(user.getPrimaryAddress()));
+        }
+        
+        // Extract permissions from eagerly-loaded data (no additional database call)
+        List<UserResponseModel.UserPermissionInfo> permissions = user.getUserClientPermissionMappings().stream()
+            .map(ucpm -> new UserResponseModel.UserPermissionInfo(
+                ucpm.getPermission().getPermissionId(),
+                ucpm.getPermission().getPermissionName(),
+                ucpm.getPermission().getPermissionCode(),
+                ucpm.getPermission().getDescription(),
+                ucpm.getPermission().getCategory()
+            ))
+            .toList();
+        response.setPermissions(permissions);
+        
+        // Extract user groups from eagerly-loaded data (no additional database call)
+        List<UserGroupResponseModel> userGroupResponseModels = user.getUserGroupMappings().stream()
+            .map(ugm -> new UserGroupResponseModel(ugm.getUserGroup()))
+            .filter(ug -> !ug.getIsDeleted()) // Filter out deleted groups
+            .toList();
+        response.setUserGroups(userGroupResponseModels);
+        
         return response;
     }
 
@@ -304,7 +366,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         }
         
         // 10. Log user creation
-        userLogService.logData(getUser(), "Successfully created user " + savedUser.getUserId(),
+        userLogService.logData(getUser(), SuccessMessages.UserSuccessMessages.CreateUser + " " + savedUser.getUserId(),
                 ApiRoutes.UserSubRoute.CREATE_USER);
     }
 
@@ -324,6 +386,9 @@ public class UserService extends BaseService implements IUserSubTranslator {
     @Override
     @Transactional
     public void updateUser(UserRequestModel user) {
+        // Ensure the user belongs to the logged-in client
+        validateUserBelongsToClient(user.getUserId());
+
         User existingUser = userRepository.findById(user.getUserId())
             .orElseThrow(() -> new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId));
 
@@ -426,49 +491,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         User savedUser = userRepository.save(updatedUser);
 
         // 7. User log
-        userLogService.logData(getUser(), "Successfully updated user " + savedUser.getUserId(), ApiRoutes.UserSubRoute.UPDATE_USER);
-    }
-
-    /**
-     * Retrieves all users in the system.
-     * 
-     * This method fetches all users from the database. The method returns
-     * a list of UserResponseModel objects, each containing complete user
-     * information including permissions. Returns an empty list if no users are found.
-     * 
-     * @return List of UserResponseModel objects for all users
-     */
-    @Override
-    public List<UserResponseModel> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        return users.stream()
-            .map(user -> {
-                UserResponseModel response = new UserResponseModel(user);
-                response.setPermissions(getUserPermissions(user.getUserId()));
-                return response;
-            })
-            .toList();
-    }
-
-    /**
-     * Retrieves all users mapped to the current carrier.
-     * Fetches all users associated with the current carrier (tenant/client) context. Optionally includes
-     * users marked as deleted, depending on the {@code includeDeleted} parameter. Returns user details such as
-     * user ID, name, role, and other metadata. Used for administrative or management purposes.
-     *
-     * @param includeDeleted If true, includes users marked as deleted; otherwise, only active users are returned.
-     * @return List of {@link UserResponseModel} for all users in the carrier.
-     */
-    @Override
-    public List<UserResponseModel> fetchUsersInCarrier(boolean includeDeleted) {
-        List<User> users = userRepository.findAllWithIncludeDeletedInCarrier(includeDeleted, getClientId());
-        return users.stream()
-            .map(user -> {
-                UserResponseModel response = new UserResponseModel(user);
-                response.setPermissions(getUserPermissions(user.getUserId()));
-                return response;
-            })
-            .toList();
+        userLogService.logData(getUser(), SuccessMessages.UserSuccessMessages.UpdateUser + " " + savedUser.getUserId(), ApiRoutes.UserSubRoute.UPDATE_USER);
     }
 
     /**
@@ -488,7 +511,12 @@ public class UserService extends BaseService implements IUserSubTranslator {
             Set<String> validColumns = new HashSet<>(Arrays.asList(
                 "userId",
                 "firstName", "lastName", "loginName",
-                "role", "dob", "phone", "address"));
+                "role", "dob", "phone", "address",
+                "datePasswordChanges", "loginAttempts", "isDeleted",
+                "locked", "emailConfirmed", "token", "isGuest",
+                "apiKey", "email", "addressId", "profilePicture",
+                "lastLoginAt", "createdAt", "createdUser",
+                "updatedAt", "modifiedUser", "notes"));
 
             if(!validColumns.contains(userRequestModel.getColumnName())){
                 throw new BadRequestException(
@@ -521,28 +549,4 @@ public class UserService extends BaseService implements IUserSubTranslator {
         paginationBaseResponseModel.setTotalDataCount(users.getTotalElements());
         return paginationBaseResponseModel;
     }
-
-    //#region
-    /**
-     * Helper method to fetch user permissions.
-     * 
-     * This method retrieves the permissions associated with a given user ID
-     * and maps them into a list of UserPermissionInfo objects for easy consumption.
-     * 
-     * @param userId The user ID to fetch permissions for
-     * @return List of UserPermissionInfo objects
-     */
-    private List<UserResponseModel.UserPermissionInfo> getUserPermissions(Long userId) {
-        List<Object[]> permissionData = userRepository.findUserPermissions(userId);
-        return permissionData.stream()
-            .map(row -> new UserResponseModel.UserPermissionInfo(
-                (Long) row[0],      // permissionId
-                (String) row[1],    // permissionName
-                (String) row[2],    // permissionCode
-                (String) row[3],    // description
-                (String) row[4]     // category
-            ))
-            .toList();
-    }
-    //#endregion
 }
