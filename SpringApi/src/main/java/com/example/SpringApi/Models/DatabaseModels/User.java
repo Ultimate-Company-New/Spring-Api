@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.UpdateTimestamp;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import com.example.SpringApi.ErrorMessages;
@@ -11,7 +13,7 @@ import com.example.SpringApi.Exceptions.BadRequestException;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Set;
 
 /**
  * JPA Entity representing the User table.
@@ -85,10 +87,6 @@ public class User {
     @Column(name = "addressId")
     private Long addressId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "addressId", insertable = false, updatable = false)
-    private Address primaryAddress;
-
     @Column(name = "profilePicture")
     private String profilePicture;
 
@@ -122,27 +120,32 @@ public class User {
 
     // Relationships
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Address> addresses;
+    @Fetch(FetchMode.SUBSELECT)
+    private Set<Address> addresses;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<UserClientMapping> userClientMappings;
+    @Fetch(FetchMode.SUBSELECT)
+    private Set<UserClientMapping> userClientMappings;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<UserGroupUserMap> userGroupMappings;
+    @Fetch(FetchMode.SUBSELECT)
+    private Set<UserGroupUserMap> userGroupMappings;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<UserClientPermissionMapping> userClientPermissionMappings;
+    @Fetch(FetchMode.SUBSELECT)
+    private Set<UserClientPermissionMapping> userClientPermissionMappings;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<UserGridPreference> userGridPreferences;
+    private Set<UserGridPreference> userGridPreferences;
 
     @ManyToMany
     @JoinTable(
         name = "`UserGroupUserMap`",
         joinColumns = @JoinColumn(name = "userId"),
         inverseJoinColumns = @JoinColumn(name = "groupId")
-    )
-    private List<UserGroup> userGroups;
+    )  
+    @Fetch(FetchMode.SUBSELECT)
+    private Set<UserGroup> userGroups;
 
     /**
      * Default no-argument constructor required by JPA/Hibernate.

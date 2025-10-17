@@ -153,7 +153,7 @@ class UserServiceTest {
         testUser.setUserId(TEST_USER_ID);
         
         // Initialize required collections for eager loading tests
-        List<UserClientPermissionMapping> permissionMappings = new ArrayList<>();
+        Set<UserClientPermissionMapping> permissionMappings = new HashSet<>();
         
         // Create test permissions
         Permission permission1 = new Permission();
@@ -187,7 +187,7 @@ class UserServiceTest {
         permissionMappings.add(mapping2);
         
         testUser.setUserClientPermissionMappings(permissionMappings);
-        testUser.setUserGroupMappings(new ArrayList<>());
+        testUser.setUserGroupMappings(new HashSet<>());
         
         // Mock Authorization header for JWT authentication
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
@@ -215,7 +215,7 @@ class UserServiceTest {
     @DisplayName("Toggle User - Success - Should toggle isDeleted flag")
     void toggleUser_Success() {
         // Arrange
-        when(userRepository.findByIdWithAllRelations(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+        when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(testUser);
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         
         // Act
@@ -223,7 +223,7 @@ class UserServiceTest {
         
         // Assert
         assertTrue(testUser.getIsDeleted());
-        verify(userRepository, times(1)).findByIdWithAllRelations(TEST_USER_ID);
+        verify(userRepository, times(1)).findByIdWithAllRelations(eq(TEST_USER_ID), anyLong());
         verify(userRepository, times(1)).save(testUser);
     }
     
@@ -235,7 +235,7 @@ class UserServiceTest {
     @DisplayName("Toggle User - Failure - User not found")
     void toggleUser_UserNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(userRepository.findByIdWithAllRelations(TEST_USER_ID)).thenReturn(Optional.empty());
+        when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(null);
         
         // Act & Assert
         NotFoundException exception = assertThrows(
@@ -244,7 +244,7 @@ class UserServiceTest {
         );
         
         assertEquals(ErrorMessages.UserErrorMessages.InvalidId, exception.getMessage());
-        verify(userRepository, times(1)).findByIdWithAllRelations(TEST_USER_ID);
+        verify(userRepository, times(1)).findByIdWithAllRelations(eq(TEST_USER_ID), anyLong());
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -263,7 +263,7 @@ class UserServiceTest {
             new Object[]{2L, "Create Users", "CREATE_USER", "Permission to create users", "User Management"}
         );
         
-        when(userRepository.findByIdWithAllRelations(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+        when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(testUser);
         
         // Act
         UserResponseModel result = userService.getUserById(TEST_USER_ID);
@@ -277,7 +277,7 @@ class UserServiceTest {
         assertEquals(2, result.getPermissions().size());
         assertEquals("View Users", result.getPermissions().get(0).getPermissionName());
         
-        verify(userRepository, times(1)).findByIdWithAllRelations(TEST_USER_ID);
+        verify(userRepository, times(1)).findByIdWithAllRelations(eq(TEST_USER_ID), anyLong());
         // Permissions are now loaded eagerly with findByIdWithAllRelations, no separate call needed
     }
     
@@ -289,7 +289,7 @@ class UserServiceTest {
     @DisplayName("Get User By ID - Failure - User not found")
     void getUserById_UserNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(userRepository.findByIdWithAllRelations(TEST_USER_ID)).thenReturn(Optional.empty());
+        when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(null);
         
         // Act & Assert
         NotFoundException exception = assertThrows(
@@ -298,8 +298,7 @@ class UserServiceTest {
         );
         
         assertEquals(ErrorMessages.UserErrorMessages.InvalidId, exception.getMessage());
-        verify(userRepository, times(1)).findByIdWithAllRelations(TEST_USER_ID);
-        verify(userRepository, never()).findUserPermissions(anyLong());
+        verify(userRepository, times(1)).findByIdWithAllRelations(eq(TEST_USER_ID), anyLong());
     }
 
     // ==================== Get User By Email Tests ====================
@@ -312,7 +311,7 @@ class UserServiceTest {
     @DisplayName("Get User By Email - Success - Should return user")
     void getUserByEmail_Success() {
         // Arrange
-        when(userRepository.findByEmailWithAllRelations(TEST_EMAIL)).thenReturn(Optional.of(testUser));
+        when(userRepository.findByEmailWithAllRelations(eq(TEST_EMAIL), anyLong())).thenReturn(testUser);
         
         // Act
         UserResponseModel result = userService.getUserByEmail(TEST_EMAIL);
@@ -322,8 +321,8 @@ class UserServiceTest {
         assertEquals(TEST_EMAIL, result.getEmail());
         assertEquals(TEST_USER_ID, result.getUserId());
         
-        verify(userRepository, times(1)).findByEmailWithAllRelations(TEST_EMAIL);
-        // Permissions are now loaded eagerly with findByIdWithAllRelations, no separate call needed
+        verify(userRepository, times(1)).findByEmailWithAllRelations(eq(TEST_EMAIL), anyLong());
+        // Permissions are now loaded eagerly with findByEmailWithAllRelations, no separate call needed
     }
     
     /**
@@ -334,7 +333,7 @@ class UserServiceTest {
     @DisplayName("Get User By Email - Failure - Email not found")
     void getUserByEmail_EmailNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(userRepository.findByEmailWithAllRelations(TEST_EMAIL)).thenReturn(Optional.empty());
+        when(userRepository.findByEmailWithAllRelations(eq(TEST_EMAIL), anyLong())).thenReturn(null);
         
         // Act & Assert
         NotFoundException exception = assertThrows(
@@ -343,7 +342,7 @@ class UserServiceTest {
         );
         
         assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail, exception.getMessage());
-        verify(userRepository, times(1)).findByEmailWithAllRelations(TEST_EMAIL);
+        verify(userRepository, times(1)).findByEmailWithAllRelations(eq(TEST_EMAIL), anyLong());
     }
 
     // ==================== Create User Tests ====================
@@ -366,7 +365,7 @@ class UserServiceTest {
             CREATED_USER
         );
         
-        when(userRepository.findByEmailWithAllRelations(TEST_EMAIL)).thenReturn(Optional.empty());
+        when(userRepository.findByLoginName(TEST_EMAIL)).thenReturn(null);
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         when(userClientPermissionMappingRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
         when(userClientMappingRepository.save(any(UserClientMapping.class))).thenReturn(userClientMapping);
@@ -404,7 +403,7 @@ class UserServiceTest {
                     
                     // Act & Assert
                     assertDoesNotThrow(() -> userService.createUser(testUserRequest));
-                    verify(userRepository, times(1)).findByEmailWithAllRelations(TEST_EMAIL);
+                    verify(userRepository, times(1)).findByLoginName(TEST_EMAIL);
                     verify(userRepository, times(1)).save(any(User.class));
                     verify(userClientPermissionMappingRepository, times(1)).saveAll(anyList());
                     verify(userClientMappingRepository, times(1)).save(any(UserClientMapping.class));
@@ -421,7 +420,7 @@ class UserServiceTest {
     @DisplayName("Create User - Failure - Duplicate email")
     void createUser_DuplicateEmail_ThrowsBadRequestException() {
         // Arrange
-        when(userRepository.findByEmailWithAllRelations(TEST_EMAIL)).thenReturn(Optional.of(testUser));
+        when(userRepository.findByLoginName(TEST_EMAIL)).thenReturn(testUser);
         
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -430,7 +429,7 @@ class UserServiceTest {
         );
         
         assertTrue(exception.getMessage().contains("Email already exists"));
-        verify(userRepository, times(1)).findByEmailWithAllRelations(TEST_EMAIL);
+        verify(userRepository, times(1)).findByLoginName(TEST_EMAIL);
         verify(userRepository, never()).save(any(User.class));
     }
     
@@ -446,7 +445,7 @@ class UserServiceTest {
         User savedUser = new User(testUserRequest, CREATED_USER);
         savedUser.setUserId(TEST_USER_ID);
         
-        when(userRepository.findByEmailWithAllRelations(TEST_EMAIL)).thenReturn(Optional.empty());
+        when(userRepository.findByLoginName(TEST_EMAIL)).thenReturn(null);
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         
         // Act & Assert
@@ -456,7 +455,7 @@ class UserServiceTest {
         );
         
         assertEquals("At least one permission mapping is required for the user.", exception.getMessage());
-        verify(userRepository, times(1)).findByEmailWithAllRelations(TEST_EMAIL);
+        verify(userRepository, times(1)).findByLoginName(TEST_EMAIL);
     }
 
     /**
@@ -471,7 +470,7 @@ class UserServiceTest {
         User savedUser = new User(testUserRequest, CREATED_USER);
         savedUser.setUserId(TEST_USER_ID);
         
-        when(userRepository.findByEmailWithAllRelations(TEST_EMAIL)).thenReturn(Optional.empty());
+        when(userRepository.findByLoginName(TEST_EMAIL)).thenReturn(null);
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         
         // Act & Assert
@@ -496,7 +495,7 @@ class UserServiceTest {
         testUserRequest.setFirstName("Updated");
         testUserRequest.setLastName("Name");
         
-        when(userRepository.findByIdWithAllRelations(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+        when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(testUser);
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         when(userClientPermissionMappingRepository.findByUserIdAndClientId(anyLong(), anyLong()))
             .thenReturn(new ArrayList<>());
@@ -518,7 +517,7 @@ class UserServiceTest {
             
             // Act & Assert
             assertDoesNotThrow(() -> userService.updateUser(testUserRequest));
-            verify(userRepository, times(1)).findByIdWithAllRelations(TEST_USER_ID);
+            verify(userRepository, times(1)).findByIdWithAllRelations(eq(TEST_USER_ID), anyLong());
             verify(userRepository, times(1)).save(any(User.class));
             verify(userClientPermissionMappingRepository, times(1)).saveAll(anyList());
         }
@@ -532,7 +531,7 @@ class UserServiceTest {
     @DisplayName("Update User - Failure - User not found")
     void updateUser_UserNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(userRepository.findByIdWithAllRelations(TEST_USER_ID)).thenReturn(Optional.empty());
+        when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(null);
         
         // Act & Assert
         NotFoundException exception = assertThrows(
@@ -541,7 +540,7 @@ class UserServiceTest {
         );
         
         assertEquals(ErrorMessages.UserErrorMessages.InvalidId, exception.getMessage());
-        verify(userRepository, times(1)).findByIdWithAllRelations(TEST_USER_ID);
+        verify(userRepository, times(1)).findByIdWithAllRelations(eq(TEST_USER_ID), anyLong());
         verify(userRepository, never()).save(any(User.class));
     }
     
@@ -555,7 +554,7 @@ class UserServiceTest {
         // Arrange
         testUserRequest.setEmail("newemail@example.com");
         
-        when(userRepository.findByIdWithAllRelations(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+        when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(testUser);
         
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -564,7 +563,7 @@ class UserServiceTest {
         );
         
         assertEquals("User email cannot be changed.", exception.getMessage());
-        verify(userRepository, times(1)).findByIdWithAllRelations(TEST_USER_ID);
+        verify(userRepository, times(1)).findByIdWithAllRelations(eq(TEST_USER_ID), anyLong());
         verify(userRepository, never()).save(any(User.class));
     }
     
@@ -578,7 +577,7 @@ class UserServiceTest {
         // Arrange
         testUserRequest.setPermissionIds(null);
         
-        when(userRepository.findByIdWithAllRelations(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+        when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(testUser);
         
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -587,7 +586,7 @@ class UserServiceTest {
         );
         
         assertEquals("At least one permission mapping is required for the user.", exception.getMessage());
-        verify(userRepository, times(1)).findByIdWithAllRelations(TEST_USER_ID);
+        verify(userRepository, times(1)).findByIdWithAllRelations(eq(TEST_USER_ID), anyLong());
     }
     
     /**
@@ -611,7 +610,7 @@ class UserServiceTest {
         existingAddress.setAddressId(1L);
         testUser.setAddressId(1L);
         
-        when(userRepository.findByIdWithAllRelations(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+        when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(testUser);
         when(addressRepository.findById(1L)).thenReturn(Optional.of(existingAddress));
         when(addressRepository.save(any(Address.class))).thenReturn(existingAddress);
         when(userRepository.save(any(User.class))).thenReturn(testUser);

@@ -1,7 +1,6 @@
 package com.example.SpringApi.Repositories;
 
 import com.example.SpringApi.Models.DatabaseModels.User;
-import com.example.SpringApi.Models.DatabaseModels.UserGroup;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,11 +10,14 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
+    /**
+     * Paginated query for users with filtering and sorting.
+     * Used by: UserService.fetchAllUsersInSystem
+     */
     @Query("select u from User u " +
         "join UserClientMapping ucm on u.userId = ucm.userId " +
         "left join Address a on u.addressId = a.addressId " +
@@ -67,61 +69,42 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     User findByLoginName(String loginName);
 
-    Optional<User> findByEmail(String email);
-
-    @Query("SELECT u FROM User u WHERE u.loginName IN :loginNames")
-    List<User> findByLoginNames(@Param("loginNames") List<String> loginNames);
-
-    @Query(value = "SELECT u from User u where (:includeDeleted = true or u.isDeleted = true)")
-    List<User> findAllWithIncludeDeleted(@Param("includeDeleted") boolean includeDeleted);
-
-    @Query(value = "SELECT u from User u JOIN UserClientMapping ucm on u.userId = ucm.userId where ucm.clientId = :carrierId and (:includeDeleted = true or u.isDeleted = false)")
-    List<User> findAllWithIncludeDeletedInCarrier(@Param("includeDeleted") boolean includeDeleted, @Param("carrierId")long carrierId);
-
-    @Query("SELECT p.permissionId, p.permissionName, p.permissionCode, p.description, p.category " +
-           "FROM UserClientPermissionMapping ucp " +
-           "JOIN ucp.permission p " +
-           "WHERE ucp.user.userId = :userId")
-    List<Object[]> findUserPermissions(@Param("userId") Long userId);
-
-    @Query("SELECT DISTINCT ug FROM UserGroup ug " +
-           "JOIN UserGroupUserMap ugum ON ug.groupId = ugum.groupId " +
-           "WHERE ugum.userId = :userId AND ug.isDeleted = false")
-    List<UserGroup> findUserGroups(@Param("userId") Long userId);
-
     /**
-     * Optimized query to fetch user with all related data in ONE single database call.
-     * Uses LEFT JOIN FETCH to eagerly load address, permissions, and user groups.
-     * This reduces database calls from 4 to 1, fetching:
-     * - User details
-     * - Primary address (via addressId)
-     * - All permissions through UserClientPermissionMapping and Permission
-     * - All user groups through UserGroupUserMap and UserGroup
+     * Optimized query to fetch user with client-specific data by userId.
+     * Filters permissions and usergroups by clientId.
+     * Addresses are user-specific (not filtered by client).
+     * Used by: UserService (getUserById, updateUser, toggleUser)
      */
     @Query("SELECT DISTINCT u FROM User u " +
-           "LEFT JOIN FETCH u.primaryAddress " +
+           "LEFT JOIN FETCH u.addresses " +
            "LEFT JOIN FETCH u.userClientPermissionMappings ucpm " +
            "LEFT JOIN FETCH ucpm.permission p " +
            "LEFT JOIN FETCH u.userGroupMappings ugm " +
            "LEFT JOIN FETCH ugm.userGroup ug " +
-           "WHERE u.userId = :userId")
-    Optional<User> findByIdWithAllRelations(@Param("userId") Long userId);
+           "WHERE u.userId = :userId " +
+           "AND (ucpm.clientId = :clientId OR ucpm.clientId IS NULL) " +
+           "AND (ug.clientId = :clientId OR ug.clientId IS NULL)")
+    User findByIdWithAllRelations(@Param("userId") Long userId, @Param("clientId") Long clientId);
 
     /**
-     * Optimized query to fetch user by email with all related data in ONE single database call.
-     * Uses LEFT JOIN FETCH to eagerly load address, permissions, and user groups.
-     * This reduces database calls from 4 to 1, fetching:
-     * - User details
-     * - Primary address (via addressId)
-     * - All permissions through UserClientPermissionMapping and Permission
-     * - All user groups through UserGroupUserMap and UserGroup
+     * SUPER OPTIMIZED: Fetches user by email with client-specific data.
+     * Filters permissions and usergroups by clientId in ONE query.
+     * Addresses are user-specific (not filtered by client).
+     * 
+     * Query fetches:
+     * - User data
+     * - All addresses for the user
+     * - Permissions ONLY for the specified clientId
+     * - User groups ONLY for the specified clientId
      */
     @Query("SELECT DISTINCT u FROM User u " +
-           "LEFT JOIN FETCH u.primaryAddress " +
+           "LEFT JOIN FETCH u.addresses " +
            "LEFT JOIN FETCH u.userClientPermissionMappings ucpm " +
            "LEFT JOIN FETCH ucpm.permission p " +
            "LEFT JOIN FETCH u.userGroupMappings ugm " +
            "LEFT JOIN FETCH ugm.userGroup ug " +
-           "WHERE u.email = :email")
-    Optional<User> findByEmailWithAllRelations(@Param("email") String email);
+           "WHERE u.email = :email " +
+           "AND (ucpm.clientId = :clientId OR ucpm.clientId IS NULL) " +
+           "AND (ug.clientId = :clientId OR ug.clientId IS NULL)")
+    User findByEmailWithAllRelations(@Param("email") String email, @Param("clientId") Long clientId);
 }

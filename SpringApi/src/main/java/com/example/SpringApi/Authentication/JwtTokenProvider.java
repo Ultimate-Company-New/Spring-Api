@@ -1,6 +1,8 @@
 package com.example.SpringApi.Authentication;
 
 import io.jsonwebtoken.Claims;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.example.SpringApi.Helpers.PasswordHelper;
@@ -14,8 +16,21 @@ import static io.jsonwebtoken.Jwts.*;
 
 @Component
 public class JwtTokenProvider {
-    private static final String DEFAULT_API_KEY = "defaultKey";
+    private final Environment env;
     private static final String ISSUER_URL = "https://localhost:4433/";
+    
+    @Autowired
+    public JwtTokenProvider(Environment env) {
+        this.env = env;
+    }
+    
+    private String getJwtSecretKey() {
+        String key = env.getProperty("JWT_TOKEN");
+        if (key == null) {
+            throw new RuntimeException("JWT_TOKEN property not found in application properties");
+        }
+        return key;
+    }
     
     // public String generateToken(WebTemplateCarrierMapping webTemplateCarrierMapping) {
     //     Date now = new Date();
@@ -60,13 +75,13 @@ public class JwtTokenProvider {
                 .claim("clientId", clientId)
                 .claim("permissionIds", permissionIds)
                 .expiration(expiryDate)
-                .signWith(PasswordHelper.getSecretKey(apiKey))
+                .signWith(PasswordHelper.getSecretKey(getJwtSecretKey()))
                 .compact();
     }
 
     public String getUserNameFromToken(String token){
         Claims claims = parser()
-            .verifyWith(PasswordHelper.getSecretKey(DEFAULT_API_KEY))
+            .verifyWith(PasswordHelper.getSecretKey(getJwtSecretKey()))
             .build()
             .parseSignedClaims(token)
             .getPayload();
@@ -76,7 +91,7 @@ public class JwtTokenProvider {
 
     public Long getUserIdFromToken(String token) {
         Claims claims = parser()
-            .verifyWith(PasswordHelper.getSecretKey(DEFAULT_API_KEY))
+            .verifyWith(PasswordHelper.getSecretKey(getJwtSecretKey()))
             .build()
             .parseSignedClaims(token)
             .getPayload();
@@ -92,7 +107,7 @@ public class JwtTokenProvider {
      */
     public Long getClientIdFromToken(String token) {
         Claims claims = parser()
-            .verifyWith(PasswordHelper.getSecretKey(DEFAULT_API_KEY))
+            .verifyWith(PasswordHelper.getSecretKey(getJwtSecretKey()))
             .build()
             .parseSignedClaims(token)
             .getPayload();
@@ -117,7 +132,7 @@ public class JwtTokenProvider {
      */
     public Map<Long, List<Long>> getClientPermissionMapFromToken(String token) {
         Claims claims = parser()
-            .verifyWith(PasswordHelper.getSecretKey(DEFAULT_API_KEY))
+            .verifyWith(PasswordHelper.getSecretKey(getJwtSecretKey()))
             .build()
             .parseSignedClaims(token)
             .getPayload();
@@ -149,7 +164,7 @@ public class JwtTokenProvider {
 
     public List<Long> getUserPermissionIds(String token){
     Claims claims = parser()
-        .verifyWith(PasswordHelper.getSecretKey(DEFAULT_API_KEY))
+        .verifyWith(PasswordHelper.getSecretKey(getJwtSecretKey()))
         .build()
         .parseSignedClaims(token)
         .getPayload();
@@ -177,7 +192,7 @@ public class JwtTokenProvider {
 
     public boolean validateToken(String token, String userName) {
         try {
-            parser().verifyWith(PasswordHelper.getSecretKey(DEFAULT_API_KEY)).build().parseSignedClaims(token);
+            parser().verifyWith(PasswordHelper.getSecretKey(getJwtSecretKey())).build().parseSignedClaims(token);
             if(!userName.equals(getUserNameFromToken(token))){
                 return false;
             }

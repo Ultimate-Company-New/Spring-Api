@@ -29,8 +29,14 @@ public class UserGroup {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "isActive", nullable = false)
+    private Boolean isActive;
+
     @Column(name = "isDeleted", nullable = false)
     private Boolean isDeleted;
+
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
 
     @Column(name = "createdUser", nullable = false)
     private String createdUser;
@@ -69,7 +75,8 @@ public class UserGroup {
         setFieldsFromRequest(request);
         this.createdUser = createdUser;
         this.modifiedUser = createdUser;  // When creating, modified user is same as created user
-        this.isDeleted = false;  // New groups are always active
+        this.isActive = true;  // New groups are always active
+        this.isDeleted = false;  // New groups are not deleted
     }
 
     // Constructor for updating existing user group
@@ -81,7 +88,9 @@ public class UserGroup {
         this.groupId = existingUserGroup.getGroupId();
         this.createdUser = existingUserGroup.getCreatedUser();
         this.createdAt = existingUserGroup.getCreatedAt();
+        this.isActive = existingUserGroup.getIsActive();
         this.isDeleted = existingUserGroup.getIsDeleted();
+        this.notes = existingUserGroup.getNotes();
         
         setFieldsFromRequest(request);
         this.modifiedUser = modifiedUser;  // When updating, use the provided modified user

@@ -12,8 +12,6 @@ import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.UserResponseModel;
-import com.example.SpringApi.Models.ResponseModels.AddressResponseModel;
-import com.example.SpringApi.Models.ResponseModels.UserGroupResponseModel;
 import com.example.SpringApi.Repositories.AddressRepository;
 import com.example.SpringApi.Repositories.ClientRepository;
 import com.example.SpringApi.Repositories.GoogleCredRepository;
@@ -114,7 +112,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
      */
     @Override
     public void toggleUser(long id) {
-        User user = userRepository.findByIdWithAllRelations(id)
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId));
         
         user.setIsDeleted(!user.getIsDeleted());
@@ -140,38 +138,14 @@ public class UserService extends BaseService implements IUserSubTranslator {
      */
     @Override
     public UserResponseModel getUserById(long id) {
-        // Fetch user with ALL relations in a SINGLE database call
-        // This includes: user data, primary address, permissions, and user groups
-        User user = userRepository.findByIdWithAllRelations(id)
-            .orElseThrow(() -> new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId));
-        
-        UserResponseModel response = new UserResponseModel(user);
-        
-        // Use eagerly-loaded primary address (no additional database call)
-        if (user.getPrimaryAddress() != null) {
-            response.setAddress(new AddressResponseModel(user.getPrimaryAddress()));
+        // Fetch user with ALL relations in a SINGLE database call (filtered by clientId)
+        // This includes: user data, addresses, permissions (for this client), and user groups (for this client)
+        User user = userRepository.findByIdWithAllRelations(id, getClientId());
+        if (user == null) {
+            throw new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId);
         }
         
-        // Extract permissions from eagerly-loaded data (no additional database call)
-        List<UserResponseModel.UserPermissionInfo> permissions = user.getUserClientPermissionMappings().stream()
-            .map(ucpm -> new UserResponseModel.UserPermissionInfo(
-                ucpm.getPermission().getPermissionId(),
-                ucpm.getPermission().getPermissionName(),
-                ucpm.getPermission().getPermissionCode(),
-                ucpm.getPermission().getDescription(),
-                ucpm.getPermission().getCategory()
-            ))
-            .toList();
-        response.setPermissions(permissions);
-        
-        // Extract user groups from eagerly-loaded data (no additional database call)
-        List<UserGroupResponseModel> userGroupResponseModels = user.getUserGroupMappings().stream()
-            .map(ugm -> new UserGroupResponseModel(ugm.getUserGroup()))
-            .filter(ug -> !ug.getIsDeleted()) // Filter out deleted groups
-            .toList();
-        response.setUserGroups(userGroupResponseModels);
-        
-        return response;
+        return new UserResponseModel(user);
     }
 
     /**
@@ -187,38 +161,14 @@ public class UserService extends BaseService implements IUserSubTranslator {
      */
     @Override
     public UserResponseModel getUserByEmail(String email) {
-        // Fetch user with ALL relations in a SINGLE database call
-        // This includes: user data, primary address, permissions, and user groups
-        User user = userRepository.findByEmailWithAllRelations(email)
-            .orElseThrow(() -> new NotFoundException(ErrorMessages.UserErrorMessages.InvalidEmail));
-        
-        UserResponseModel response = new UserResponseModel(user);
-        
-        // Use eagerly-loaded primary address (no additional database call)
-        if (user.getPrimaryAddress() != null) {
-            response.setAddress(new AddressResponseModel(user.getPrimaryAddress()));
+        // Fetch user with ALL relations in ONE query (filtered by clientId)
+        // Permissions and usergroups are filtered by current client session
+        User user = userRepository.findByEmailWithAllRelations(email, getClientId());
+        if (user == null) {
+            throw new NotFoundException(ErrorMessages.UserErrorMessages.InvalidEmail);
         }
         
-        // Extract permissions from eagerly-loaded data (no additional database call)
-        List<UserResponseModel.UserPermissionInfo> permissions = user.getUserClientPermissionMappings().stream()
-            .map(ucpm -> new UserResponseModel.UserPermissionInfo(
-                ucpm.getPermission().getPermissionId(),
-                ucpm.getPermission().getPermissionName(),
-                ucpm.getPermission().getPermissionCode(),
-                ucpm.getPermission().getDescription(),
-                ucpm.getPermission().getCategory()
-            ))
-            .toList();
-        response.setPermissions(permissions);
-        
-        // Extract user groups from eagerly-loaded data (no additional database call)
-        List<UserGroupResponseModel> userGroupResponseModels = user.getUserGroupMappings().stream()
-            .map(ugm -> new UserGroupResponseModel(ugm.getUserGroup()))
-            .filter(ug -> !ug.getIsDeleted()) // Filter out deleted groups
-            .toList();
-        response.setUserGroups(userGroupResponseModels);
-        
-        return response;
+        return new UserResponseModel(user);
     }
 
     /**
@@ -238,7 +188,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
     @Transactional
     public void createUser(UserRequestModel userRequestModel) {
         // 1. Check if user email already exists
-        if (userRepository.findByEmailWithAllRelations(userRequestModel.getEmail()).isPresent()) {
+        if (userRepository.findByLoginName(userRequestModel.getEmail()) != null) {
             throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidEmail + " - Email already exists");
         }
         
@@ -381,8 +331,10 @@ public class UserService extends BaseService implements IUserSubTranslator {
     @Override
     @Transactional
     public void updateUser(UserRequestModel user) {
-        User existingUser = userRepository.findByIdWithAllRelations(user.getUserId())
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId));
+        User existingUser = userRepository.findByIdWithAllRelations(user.getUserId(), getClientId());
+        if (existingUser == null) {
+            throw new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId);
+        }
 
         // 1. Email cannot be changed
         if (!existingUser.getEmail().equals(user.getEmail())) {

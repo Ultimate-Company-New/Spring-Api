@@ -20,7 +20,8 @@ import java.util.Map;
 
 @Service
 public class BaseService {
-    private final JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    protected JwtTokenProvider jwtTokenProvider;
     protected static final String CURRENT_ENVIRONMENT = "Local";    
     
     @Autowired
@@ -29,7 +30,7 @@ public class BaseService {
     protected UserRepository userRepository;
 
     public BaseService(){
-        this.jwtTokenProvider = new JwtTokenProvider();
+        // Default constructor for Spring
     }
 
     public String getUser() {

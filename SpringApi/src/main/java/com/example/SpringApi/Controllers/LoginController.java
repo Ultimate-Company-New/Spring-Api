@@ -151,13 +151,13 @@ public class LoginController {
 
     /**
      * Endpoint to generate a JWT token for an authenticated user.
-     * Accepts a GET request with login name and API key.
+     * Accepts a POST request with login name and API key.
      * Returns a JWT token with permissions, or appropriate error status on failure.
      *
      * @param loginRequestModel The request body containing login name and API key.
      * @return ResponseEntity with JWT token on success, or error response on failure.
      */
-    @GetMapping("/" + ApiRoutes.LoginSubRoute.GET_TOKEN)
+    @PostMapping("/" + ApiRoutes.LoginSubRoute.GET_TOKEN)
     public ResponseEntity<?> getToken(@RequestBody LoginRequestModel loginRequestModel) {
         try {
             return ResponseEntity.ok(loginService.getToken(loginRequestModel));

@@ -4,6 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import com.example.SpringApi.Authentication.JwtTokenProvider;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -11,10 +15,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class ContextualLogger {
+@Component
+public class ContextualLogger implements ApplicationContextAware {
     private static final String REQUEST_BODY_KEY = "requestBody";
     private final Logger logger;
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+    private static ApplicationContext applicationContext;
+
+    @Override
+    public void setApplicationContext(ApplicationContext context) throws BeansException {
+        applicationContext = context;
+    }
 
     // Use a factory method to get the instance for the current class
     public static ContextualLogger getLogger(Class<?> clazz) {
@@ -126,8 +137,10 @@ public class ContextualLogger {
                 String bearerToken = request.getHeader("Authorization");
                 if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
                     String token = bearerToken.substring(7);
-                    JwtTokenProvider jwtTokenProvider = new JwtTokenProvider();
-                    return jwtTokenProvider.getUserNameFromToken(token);
+                    if (applicationContext != null) {
+                        JwtTokenProvider jwtTokenProvider = applicationContext.getBean(JwtTokenProvider.class);
+                        return jwtTokenProvider.getUserNameFromToken(token);
+                    }
                 }
             }
         } catch (Exception e) {

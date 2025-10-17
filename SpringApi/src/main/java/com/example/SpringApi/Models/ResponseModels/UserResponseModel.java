@@ -7,6 +7,7 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Response model for User operations.
@@ -46,7 +47,7 @@ public class UserResponseModel {
     private LocalDateTime updatedAt;
     private String notes;
     private List<UserPermissionInfo> permissions;
-    private AddressResponseModel address;
+    private List<AddressResponseModel> addresses;
     private List<UserGroupResponseModel> userGroups;
     
     /**
@@ -56,6 +57,7 @@ public class UserResponseModel {
     
     /**
      * Constructor that populates fields from a User entity.
+     * Automatically populates address, permissions, and userGroups if available.
      * 
      * @param user The User entity to populate from
      */
@@ -83,6 +85,35 @@ public class UserResponseModel {
             this.createdAt = user.getCreatedAt();
             this.updatedAt = user.getUpdatedAt();
             this.notes = user.getNotes();
+            
+            // Auto-populate address from addresses collection
+            if (user.getAddresses() != null && !user.getAddresses().isEmpty()) {
+                // Find primary address or use first non-deleted address
+                this.addresses = user.getAddresses().stream()
+                    .map(address -> new AddressResponseModel(address))
+                    .collect(Collectors.toList());
+            }
+            
+            // Auto-populate permissions if available
+            if (user.getUserClientPermissionMappings() != null && !user.getUserClientPermissionMappings().isEmpty()) {
+                this.permissions = user.getUserClientPermissionMappings().stream()
+                    .map(ucpm -> new UserPermissionInfo(
+                        ucpm.getPermission().getPermissionId(),
+                        ucpm.getPermission().getPermissionName(),
+                        ucpm.getPermission().getPermissionCode(),
+                        ucpm.getPermission().getDescription(),
+                        ucpm.getPermission().getCategory()
+                    ))
+                    .collect(Collectors.toList());
+            }
+            
+            // Auto-populate userGroups if available
+            if (user.getUserGroupMappings() != null && !user.getUserGroupMappings().isEmpty()) {
+                this.userGroups = user.getUserGroupMappings().stream()
+                    .filter(ugm -> !ugm.getUserGroup().getIsDeleted())
+                    .map(ugm -> new UserGroupResponseModel(ugm.getUserGroup()))
+                    .collect(Collectors.toList());
+            }
         }
     }
     
