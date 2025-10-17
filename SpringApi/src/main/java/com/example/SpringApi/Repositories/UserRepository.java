@@ -82,8 +82,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
            "LEFT JOIN FETCH u.userGroupMappings ugm " +
            "LEFT JOIN FETCH ugm.userGroup ug " +
            "WHERE u.userId = :userId " +
-           "AND (ucpm.clientId = :clientId OR ucpm.clientId IS NULL) " +
-           "AND (ug.clientId = :clientId OR ug.clientId IS NULL)")
+           "AND (ucpm IS NULL OR ucpm.clientId = :clientId) " +
+           "AND (ugm IS NULL OR ug.clientId = :clientId)")
     User findByIdWithAllRelations(@Param("userId") Long userId, @Param("clientId") Long clientId);
 
     /**
@@ -104,7 +104,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
            "LEFT JOIN FETCH u.userGroupMappings ugm " +
            "LEFT JOIN FETCH ugm.userGroup ug " +
            "WHERE u.email = :email " +
-           "AND (ucpm.clientId = :clientId OR ucpm.clientId IS NULL) " +
-           "AND (ug.clientId = :clientId OR ug.clientId IS NULL)")
+           "AND (ucpm IS NULL OR ucpm.clientId = :clientId) " +
+           "AND (ugm IS NULL OR ug.clientId = :clientId)")
     User findByEmailWithAllRelations(@Param("email") String email, @Param("clientId") Long clientId);
 }

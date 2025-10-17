@@ -138,15 +138,6 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<UserGridPreference> userGridPreferences;
 
-    @ManyToMany
-    @JoinTable(
-        name = "`UserGroupUserMap`",
-        joinColumns = @JoinColumn(name = "userId"),
-        inverseJoinColumns = @JoinColumn(name = "groupId")
-    )  
-    @Fetch(FetchMode.SUBSELECT)
-    private Set<UserGroup> userGroups;
-
     /**
      * Default no-argument constructor required by JPA/Hibernate.
      */
