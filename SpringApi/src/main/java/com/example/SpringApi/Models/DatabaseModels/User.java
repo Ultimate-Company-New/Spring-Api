@@ -79,9 +79,6 @@ public class User {
     @Column(name = "isGuest", nullable = false)
     private Boolean isGuest;
 
-    @Column(name = "apiKey", nullable = false)
-    private String apiKey;
-
     @Column(name = "email")
     private String email;
 
@@ -272,7 +269,6 @@ public class User {
         this.token = request.getToken();
         this.dob = request.getDob();
         this.isGuest = request.getIsGuest() != null ? request.getIsGuest() : Boolean.FALSE;
-        this.apiKey = request.getApiKey();
         this.email = request.getEmail();
         this.addressId = request.getAddressId();
         this.profilePicture = request.getProfilePicture();

@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserClientMappingRepository extends JpaRepository<UserClientMapping, Long> {
@@ -15,6 +16,23 @@ public interface UserClientMappingRepository extends JpaRepository<UserClientMap
     @Query("SELECT u FROM UserClientMapping u WHERE u.userId IN :userIds AND u.clientId = :clientId")
     List<UserClientMapping> findByUserIdsAndClientId(@Param("userIds") List<Long> userIds,
                                                        @Param("clientId") Long clientId);
+    
+    /**
+     * Finds a UserClientMapping by userId and clientId.
+     * 
+     * @param userId The user ID
+     * @param clientId The client ID
+     * @return Optional containing the mapping if found
+     */
+    Optional<UserClientMapping> findByUserIdAndClientId(Long userId, Long clientId);
+    
+    /**
+     * Finds a UserClientMapping by apiKey.
+     * 
+     * @param apiKey The API key
+     * @return Optional containing the mapping if found
+     */
+    Optional<UserClientMapping> findByApiKey(String apiKey);
 }
 
 

@@ -26,25 +26,19 @@ public class Authorization{
 
     private final HttpServletRequest request;
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserRepository userRepository;
     private final PermissionRepository permissionRepository;
-    private final ClientRepository clientRepository;
     private final UserClientMappingRepository userClientMappingRepository;
 
     @Autowired
     public Authorization(HttpServletRequest request,
                         JwtTokenProvider jwtTokenProvider,
-                        UserRepository userRepository,
                         PermissionRepository permissionRepository,
-                        ClientRepository clientRepository,
                         UserClientMappingRepository userClientMappingRepository
     ){
         this.request = request;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.userRepository = userRepository;
         this.permissionRepository = permissionRepository;
         this.userClientMappingRepository = userClientMappingRepository;
-        this.clientRepository = clientRepository;
     }
 
     private String getJwtFromRequest() {
@@ -62,20 +56,6 @@ public class Authorization{
         Long userId = jwtTokenProvider.getUserIdFromToken(token);
         Long clientId = jwtTokenProvider.getClientIdFromToken(token);
         if (userId == null || clientId == null) {
-            logger.error(permissionException);
-            throw permissionException;
-        }
-
-        // Check if user exists
-        Optional<User> user = userRepository.findById(userId);
-        if(!user.isPresent()) {
-            logger.error(permissionException);
-            throw permissionException;
-        }
-
-        // Check client exists
-        Optional<Client> client = clientRepository.findById(clientId);  
-        if(!client.isPresent()) {
             logger.error(permissionException);
             throw permissionException;
         }

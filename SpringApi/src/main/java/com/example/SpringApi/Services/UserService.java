@@ -69,6 +69,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
     private final AddressRepository addressRepository;
     private final UserGroupUserMapRepository userGroupUserMapRepository;
     private final UserClientMappingRepository userClientMappingRepository;
+    private final UserClientPermissionMappingRepository userClientPermissionMappingRepository;
     private final GoogleCredRepository googleCredRepository;
     private final ClientRepository clientRepository;
     private final Environment environment;
@@ -80,6 +81,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
                       AddressRepository addressRepository,
                       UserGroupUserMapRepository userGroupUserMapRepository,
                       UserClientMappingRepository userClientMappingRepository,
+                      UserClientPermissionMappingRepository userClientPermissionMappingRepository,
                       GoogleCredRepository googleCredRepository,
                       ClientRepository clientRepository,
                       Environment environment,
@@ -91,6 +93,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         this.addressRepository = addressRepository;
         this.userGroupUserMapRepository = userGroupUserMapRepository;
         this.userClientMappingRepository = userClientMappingRepository;
+        this.userClientPermissionMappingRepository = userClientPermissionMappingRepository;
         this.googleCredRepository = googleCredRepository;
         this.clientRepository = clientRepository;
         this.environment = environment;
@@ -111,10 +114,8 @@ public class UserService extends BaseService implements IUserSubTranslator {
      */
     @Override
     public void toggleUser(long id) {
-        // Ensure the user belongs to the logged-in client
-        validateUserBelongsToClient(id);
-        User user = userRepository.findById(id)
-            .orElseThrow(() -> new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId));
+        User user = userRepository.findByIdWithAllRelations(id)
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId));
         
         user.setIsDeleted(!user.getIsDeleted());
         user.setModifiedUser(getUser());
@@ -139,9 +140,6 @@ public class UserService extends BaseService implements IUserSubTranslator {
      */
     @Override
     public UserResponseModel getUserById(long id) {
-        // Ensure the user belongs to the logged-in client
-        validateUserBelongsToClient(id);
-
         // Fetch user with ALL relations in a SINGLE database call
         // This includes: user data, primary address, permissions, and user groups
         User user = userRepository.findByIdWithAllRelations(id)
@@ -189,9 +187,6 @@ public class UserService extends BaseService implements IUserSubTranslator {
      */
     @Override
     public UserResponseModel getUserByEmail(String email) {
-        // Ensure the user belongs to the logged-in client
-        validateUserBelongsToClient(email);
-
         // Fetch user with ALL relations in a SINGLE database call
         // This includes: user data, primary address, permissions, and user groups
         User user = userRepository.findByEmailWithAllRelations(email)
@@ -243,7 +238,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
     @Transactional
     public void createUser(UserRequestModel userRequestModel) {
         // 1. Check if user email already exists
-        if (userRepository.findByEmail(userRequestModel.getEmail()).isPresent()) {
+        if (userRepository.findByEmailWithAllRelations(userRequestModel.getEmail()).isPresent()) {
             throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidEmail + " - Email already exists");
         }
         
@@ -386,11 +381,8 @@ public class UserService extends BaseService implements IUserSubTranslator {
     @Override
     @Transactional
     public void updateUser(UserRequestModel user) {
-        // Ensure the user belongs to the logged-in client
-        validateUserBelongsToClient(user.getUserId());
-
-        User existingUser = userRepository.findById(user.getUserId())
-            .orElseThrow(() -> new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId));
+        User existingUser = userRepository.findByIdWithAllRelations(user.getUserId())
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId));
 
         // 1. Email cannot be changed
         if (!existingUser.getEmail().equals(user.getEmail())) {

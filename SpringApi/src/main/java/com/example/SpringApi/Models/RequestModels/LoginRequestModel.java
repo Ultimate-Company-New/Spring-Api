@@ -9,6 +9,7 @@ public class LoginRequestModel {
     private Long userId;
     private String loginName;
     private String password;
+    private Long clientId;
     private String apiKey;
     private String token;
     private String phone;

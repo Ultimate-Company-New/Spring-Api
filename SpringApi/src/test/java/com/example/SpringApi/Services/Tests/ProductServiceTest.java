@@ -92,7 +92,7 @@ class ProductServiceTest {
 
     private static final Long TEST_PRODUCT_ID = 1L;
     private static final Long TEST_CATEGORY_ID = 2L;
-    private static final Long TEST_CLIENT_ID = 100L;
+    private static final Long TEST_CLIENT_ID = 1L;
     private static final Long TEST_PICKUP_LOCATION_ID = 3L;
     private static final Long TEST_GOOGLE_CRED_ID = 1L;
     private static final String TEST_TITLE = "Test Product";

@@ -74,7 +74,6 @@ public class UserResponseModel {
             this.emailConfirmed = user.getEmailConfirmed();
             this.dob = user.getDob();
             this.isGuest = user.getIsGuest();
-            this.apiKey = user.getApiKey();
             this.email = user.getEmail();
             this.addressId = user.getAddressId();
             this.profilePicture = user.getProfilePicture();

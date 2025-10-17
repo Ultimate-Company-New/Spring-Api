@@ -2,9 +2,8 @@ package com.example.SpringApi.Services;
 
 import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.SuccessMessages;
-import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.DatabaseModels.User;
+import com.example.SpringApi.Models.DatabaseModels.UserClientMapping;
 import com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping;
 import com.example.SpringApi.Models.DatabaseModels.Client;
 import com.example.SpringApi.Models.DatabaseModels.GoogleCred;
@@ -13,6 +12,7 @@ import com.example.SpringApi.Helpers.EmailTemplates;
 import com.example.SpringApi.Models.RequestModels.LoginRequestModel;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import com.example.SpringApi.Repositories.ClientRepository;
+import com.example.SpringApi.Repositories.UserClientMappingRepository;
 import com.example.SpringApi.Repositories.UserClientPermissionMappingRepository;
 import com.example.SpringApi.Repositories.UserRepository;
 import com.example.SpringApi.Services.Interface.ILoginSubTranslator;
@@ -37,6 +37,7 @@ import java.util.*;
 @Service
 public class LoginService implements ILoginSubTranslator {
     private final UserRepository userRepository;
+    private final UserClientMappingRepository userClientMappingRepository;
     private final UserClientPermissionMappingRepository userClientPermissionMappingRepository;
     private final ClientRepository clientRepository;
     private final JwtTokenProvider jwtTokenProvider;
@@ -44,11 +45,13 @@ public class LoginService implements ILoginSubTranslator {
 
     @Autowired
     public LoginService(UserRepository userRepository,
+                             UserClientMappingRepository userClientMappingRepository,
                              UserClientPermissionMappingRepository userClientPermissionMappingRepository,
                              ClientRepository clientRepository,
                              JwtTokenProvider jwtTokenProvider,
                              Environment environment) {
         this.userRepository = userRepository;
+        this.userClientMappingRepository = userClientMappingRepository;
         this.userClientPermissionMappingRepository = userClientPermissionMappingRepository;
         this.clientRepository = clientRepository;
         this.jwtTokenProvider = jwtTokenProvider;
@@ -127,7 +130,28 @@ public class LoginService implements ILoginSubTranslator {
 
         // check if the password is correct
         if(PasswordHelper.checkPassword(loginRequestModel.getPassword(), user.getPassword(), user.getSalt())){
-            return jwtTokenProvider.generateToken(user, new ArrayList<>(), user.getApiKey());
+            // Validate clientId is provided
+            if (loginRequestModel.getClientId() == null) {
+                throw new BadRequestException("Client ID is required for login");
+            }
+            
+            // Get the UserClientMapping for this user and client to fetch the API key
+            UserClientMapping userClientMapping = userClientMappingRepository
+                .findByUserIdAndClientId(user.getUserId(), loginRequestModel.getClientId())
+                .orElseThrow(() -> new UnauthorizedException("User does not have access to the specified client"));
+            
+            // Get user's permissions for this specific client
+            List<UserClientPermissionMapping> userClientPermissionMappings = 
+                userClientPermissionMappingRepository.findClientPermissionMappingByUserId(user.getUserId());
+            
+            // Filter permissions for the specific client
+            List<Long> permissionIds = userClientPermissionMappings.stream()
+                .filter(mapping -> mapping.getClientId().equals(loginRequestModel.getClientId()))
+                .map(UserClientPermissionMapping::getPermissionId)
+                .toList();
+            
+            // Generate token with client-specific API key
+            return jwtTokenProvider.generateToken(user, permissionIds, loginRequestModel.getClientId(), userClientMapping.getApiKey());
         }
 
         // do the procedure for invalid login
@@ -169,7 +193,6 @@ public class LoginService implements ILoginSubTranslator {
         String[] saltAndHash = PasswordHelper.getHashedPasswordAndSalt(plainPassword);
         newUser.setSalt(saltAndHash[0]);
         newUser.setPassword(saltAndHash[1]);
-        newUser.setApiKey(PasswordHelper.getToken(newUser.getLoginName()));
         newUser.setToken(PasswordHelper.getToken(newUser.getLoginName()));
 
         User savedUser = userRepository.save(newUser);
@@ -182,7 +205,7 @@ public class LoginService implements ILoginSubTranslator {
         EmailTemplates emailTemplates = new EmailTemplates("Ultimate Company", client.getSupportEmail(), client.getSendGridApiKey(), environment, client, googleCred);
         emailTemplates.sendNewUserAccountConfirmation(savedUser.getUserId(), newUser.getToken(), newUser.getLoginName(), plainPassword);
 
-        return savedUser.getApiKey();
+        return "true";
     }
 
     /**
@@ -238,14 +261,20 @@ public class LoginService implements ILoginSubTranslator {
 
     /**
      * Generates a JWT token for an authenticated user based on their API key.
-     * Validates the login name and API key, retrieves the user, verifies the API key matches,
-     * fetches the user's client permissions, and generates a token with the permissions.
-     * Logs the token generation action.
+     * 
+     * This method:
+     * 1. Validates the login name and API key are provided
+     * 2. Finds the user by login name
+     * 3. Finds the UserClientMapping by API key
+     * 4. Verifies the API key belongs to the user (userId match)
+     * 5. Extracts the clientId from the mapping
+     * 6. Fetches user's permissions for that specific client
+     * 7. Generates a JWT token with client-specific permissions
      *
      * @param loginRequestModel The login request model containing the login name and API key.
-     * @return A JWT token string containing user permissions.
+     * @return A JWT token string containing user permissions for the client associated with the API key.
      * @throws BadRequestException If login name or API key is missing.
-     * @throws UnauthorizedException If the user is not found or the API key is invalid.
+     * @throws UnauthorizedException If the user is not found, API key is invalid, or API key doesn't belong to the user.
      */
     @Override
     public String getToken(LoginRequestModel loginRequestModel) {
@@ -260,19 +289,29 @@ public class LoginService implements ILoginSubTranslator {
             throw new UnauthorizedException(ErrorMessages.LoginErrorMessages.InvalidCredentials);
         }
 
-        // check if the apikey is valid -> valid api key gives user access to the spring api
-        if(!StringUtils.hasText(user.getApiKey()) || !Objects.equals(user.getApiKey(), loginRequestModel.getApiKey())) {
+        // Find the UserClientMapping by apiKey
+        UserClientMapping userClientMapping = userClientMappingRepository
+            .findByApiKey(loginRequestModel.getApiKey())
+            .orElseThrow(() -> new UnauthorizedException(ErrorMessages.LoginErrorMessages.InvalidCredentials));
+
+        // Verify that the apiKey belongs to the user requesting it
+        if(!userClientMapping.getUserId().equals(user.getUserId())) {
             throw new UnauthorizedException(ErrorMessages.LoginErrorMessages.InvalidCredentials);
         }
 
-        // Generate a Jwt token
-        List<UserClientPermissionMapping> userClientPermissionMapping = userClientPermissionMappingRepository.findClientPermissionMappingByUserId(user.getUserId());
-        List<Long> permissionIds = new ArrayList<>();
-        for(UserClientPermissionMapping mapping : userClientPermissionMapping){
-            permissionIds.add(mapping.getPermissionId());
-        }
+        // Get the clientId from the mapping
+        Long clientId = userClientMapping.getClientId();
 
-        String token = jwtTokenProvider.generateToken(user, permissionIds, loginRequestModel.getApiKey());
-        return token;
+        // Get user's permissions for this specific client
+        List<UserClientPermissionMapping> userClientPermissionMappings = 
+            userClientPermissionMappingRepository.findClientPermissionMappingByUserId(user.getUserId());
+        
+        // Filter permissions for the specific client
+        List<Long> permissionIds = userClientPermissionMappings.stream()
+            .filter(mapping -> mapping.getClientId().equals(clientId))
+            .map(UserClientPermissionMapping::getPermissionId)
+            .toList();
+
+        return jwtTokenProvider.generateToken(user, permissionIds, clientId, userClientMapping.getApiKey());
     }
 }

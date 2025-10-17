@@ -4,11 +4,13 @@ import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.DatabaseModels.Client;
 import com.example.SpringApi.Models.DatabaseModels.GoogleCred;
+import com.example.SpringApi.Models.DatabaseModels.UserClientMapping;
 import com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping;
 import com.example.SpringApi.Models.RequestModels.LoginRequestModel;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import com.example.SpringApi.Repositories.ClientRepository;
 import com.example.SpringApi.Repositories.GoogleCredRepository;
+import com.example.SpringApi.Repositories.UserClientMappingRepository;
 import com.example.SpringApi.Repositories.UserClientPermissionMappingRepository;
 import com.example.SpringApi.Repositories.UserRepository;
 import com.example.SpringApi.Services.LoginService;
@@ -64,6 +66,9 @@ class LoginServicesTest {
     private UserRepository userRepository;
     
     @Mock
+    private UserClientMappingRepository userClientMappingRepository;
+    
+    @Mock
     private UserClientPermissionMappingRepository userClientPermissionMappingRepository;
     
     @Mock
@@ -95,7 +100,9 @@ class LoginServicesTest {
     private LoginRequestModel testLoginRequest;
     private UserRequestModel testUserRequest;
     private Client testClient;
+    private UserClientMapping testUserClientMapping;
     private static final Long TEST_USER_ID = 1L;
+    private static final Long TEST_CLIENT_ID = 1L;
     private static final String TEST_LOGIN_NAME = "testuser";
     private static final String TEST_EMAIL = "test@example.com";
     private static final String TEST_PASSWORD = "password123";
@@ -122,7 +129,6 @@ class LoginServicesTest {
         testUser = new User(testUserRequest);
         testUser.setUserId(TEST_USER_ID);
         testUser.setToken(TEST_TOKEN);
-        testUser.setApiKey(TEST_API_KEY);
         testUser.setEmailConfirmed(true);
         testUser.setLocked(false);
         testUser.setLoginAttempts(5);
@@ -134,15 +140,23 @@ class LoginServicesTest {
         testLoginRequest.setUserId(TEST_USER_ID);
         testLoginRequest.setLoginName(TEST_LOGIN_NAME);
         testLoginRequest.setPassword(TEST_PASSWORD);
+        testLoginRequest.setClientId(TEST_CLIENT_ID);
         testLoginRequest.setToken(TEST_TOKEN);
         testLoginRequest.setApiKey(TEST_API_KEY);
         
         // Initialize test client
         testClient = new Client();
-        testClient.setClientId(1L);
+        testClient.setClientId(TEST_CLIENT_ID);
         testClient.setName("Test Client");
         testClient.setSupportEmail("support@test.com");
         testClient.setSendGridApiKey("test-sendgrid-key");
+        
+        // Initialize test UserClientMapping
+        testUserClientMapping = new UserClientMapping();
+        testUserClientMapping.setMappingId(1L);
+        testUserClientMapping.setUserId(TEST_USER_ID);
+        testUserClientMapping.setClientId(TEST_CLIENT_ID);
+        testUserClientMapping.setApiKey(TEST_API_KEY);
         
         // Initialize test GoogleCred
         GoogleCred testGoogleCred = new GoogleCred();
@@ -164,7 +178,6 @@ class LoginServicesTest {
         testUser.setEmailConfirmed(false);
         when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
         // Act
         assertDoesNotThrow(() -> loginService.confirmEmail(testLoginRequest));
@@ -172,7 +185,6 @@ class LoginServicesTest {
         // Assert
         verify(userRepository, times(1)).findById(TEST_USER_ID);
         verify(userRepository, times(1)).save(any(User.class));
-        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
     }
     
     /**
@@ -228,9 +240,19 @@ class LoginServicesTest {
     @DisplayName("Sign In - Success - Should return JWT token")
     void signIn_Success() {
         // Arrange
+        List<UserClientPermissionMapping> permissions = new ArrayList<>();
+        UserClientPermissionMapping permission = new UserClientPermissionMapping(
+            TEST_USER_ID, 1L, TEST_CLIENT_ID, "admin"
+        );
+        permissions.add(permission);
+        
         when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyString())).thenReturn("jwt-token-123");
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        when(userClientMappingRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID))
+            .thenReturn(Optional.of(testUserClientMapping));
+        when(userClientPermissionMappingRepository.findClientPermissionMappingByUserId(TEST_USER_ID))
+            .thenReturn(permissions);
+        when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyLong(), anyString()))
+            .thenReturn("jwt-token-123");
         
         // Mock PasswordHelper static method
         try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
@@ -243,8 +265,8 @@ class LoginServicesTest {
             // Assert
             assertEquals("jwt-token-123", result);
             verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-            // Note: signIn doesn't save the user, so no save verification
-            verify(jwtTokenProvider, times(1)).generateToken(any(User.class), anyList(), anyString());
+            verify(userClientMappingRepository, times(1)).findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID);
+            verify(jwtTokenProvider, times(1)).generateToken(any(User.class), anyList(), anyLong(), anyString());
         }
     }
     
@@ -404,15 +426,14 @@ class LoginServicesTest {
     
     /**
      * Test successful user sign-up.
-     * Verifies that new user is created and API key is returned.
+     * Verifies that new user is created and returns success.
      */
     @Test
-    @DisplayName("Sign Up - Success - Should create user and return API key")
+    @DisplayName("Sign Up - Success - Should create user and return success")
     void signUp_Success() {
         // Arrange
         User savedUser = new User(testUserRequest);
         savedUser.setUserId(TEST_USER_ID);
-        savedUser.setApiKey(TEST_API_KEY);
         
         when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(null);
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
@@ -433,7 +454,7 @@ class LoginServicesTest {
                 String result = loginService.signUp(testUserRequest);
                 
                 // Assert
-                assertEquals(TEST_API_KEY, result);
+                assertEquals("true", result);
                 verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
                 verify(userRepository, times(1)).save(any(User.class));
                 verify(clientRepository, times(1)).findAll();
@@ -478,7 +499,6 @@ class LoginServicesTest {
         when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
         lenient().when(emailTemplates.sendResetPasswordEmail(anyString(), anyString()))
             .thenReturn(true);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
         // Mock static PasswordHelper methods
         try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
@@ -499,7 +519,6 @@ class LoginServicesTest {
                 verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
                 // Note: resetPassword doesn't save the user, so no save verification
                 verify(clientRepository, times(1)).findFirstByOrderByClientIdAsc();
-                verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
             }
         }
     }
@@ -578,14 +597,14 @@ class LoginServicesTest {
         // Arrange
         List<UserClientPermissionMapping> permissions = new ArrayList<>();
         UserClientPermissionMapping permission = new UserClientPermissionMapping(
-            TEST_USER_ID, 1L, 1L, "admin"
+            TEST_USER_ID, 1L, TEST_CLIENT_ID, "admin"
         );
         permissions.add(permission);
         
         when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(userClientPermissionMappingRepository.findClientPermissionMappingByUserId(anyLong())).thenReturn(permissions);
-        when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyString())).thenReturn("jwt-token-123");
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        when(userClientMappingRepository.findByApiKey(TEST_API_KEY)).thenReturn(Optional.of(testUserClientMapping));
+        when(userClientPermissionMappingRepository.findClientPermissionMappingByUserId(TEST_USER_ID)).thenReturn(permissions);
+        when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyLong(), anyString())).thenReturn("jwt-token-123");
         
         // Act
         String result = loginService.getToken(testLoginRequest);
@@ -593,9 +612,9 @@ class LoginServicesTest {
         // Assert
         assertEquals("jwt-token-123", result);
         verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-        verify(userClientPermissionMappingRepository, times(1)).findClientPermissionMappingByUserId(anyLong());
-        verify(jwtTokenProvider, times(1)).generateToken(any(User.class), anyList(), anyString());
-        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
+        verify(userClientMappingRepository, times(1)).findByApiKey(TEST_API_KEY);
+        verify(userClientPermissionMappingRepository, times(1)).findClientPermissionMappingByUserId(TEST_USER_ID);
+        verify(jwtTokenProvider, times(1)).generateToken(any(User.class), anyList(), anyLong(), anyString());
     }
     
     /**
@@ -666,8 +685,8 @@ class LoginServicesTest {
     @DisplayName("Get Token - Failure - Invalid API key")
     void getToken_InvalidApiKey_ThrowsUnauthorizedException() {
         // Arrange
-        testUser.setApiKey("different-api-key");
         when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+        when(userClientMappingRepository.findByApiKey(TEST_API_KEY)).thenReturn(Optional.empty());
         
         // Act & Assert
         UnauthorizedException exception = assertThrows(
@@ -677,6 +696,35 @@ class LoginServicesTest {
         
         assertNotNull(exception.getMessage());
         verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-        verify(userClientPermissionMappingRepository, never()).findByUserIdAndClientId(anyLong(), anyLong());
+        verify(userClientMappingRepository, times(1)).findByApiKey(TEST_API_KEY);
+        verify(userClientPermissionMappingRepository, never()).findClientPermissionMappingByUserId(anyLong());
+    }
+    
+    /**
+     * Test get token with API key belonging to different user.
+     * Verifies that UnauthorizedException is thrown.
+     */
+    @Test
+    @DisplayName("Get Token - Failure - API key belongs to different user")
+    void getToken_ApiKeyBelongsToDifferentUser_ThrowsUnauthorizedException() {
+        // Arrange
+        UserClientMapping differentUserMapping = new UserClientMapping();
+        differentUserMapping.setUserId(999L); // Different user ID
+        differentUserMapping.setClientId(TEST_CLIENT_ID);
+        differentUserMapping.setApiKey(TEST_API_KEY);
+        
+        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+        when(userClientMappingRepository.findByApiKey(TEST_API_KEY)).thenReturn(Optional.of(differentUserMapping));
+        
+        // Act & Assert
+        UnauthorizedException exception = assertThrows(
+            UnauthorizedException.class,
+            () -> loginService.getToken(testLoginRequest)
+        );
+        
+        assertNotNull(exception.getMessage());
+        verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
+        verify(userClientMappingRepository, times(1)).findByApiKey(TEST_API_KEY);
+        verify(userClientPermissionMappingRepository, never()).findClientPermissionMappingByUserId(anyLong());
     }
 }

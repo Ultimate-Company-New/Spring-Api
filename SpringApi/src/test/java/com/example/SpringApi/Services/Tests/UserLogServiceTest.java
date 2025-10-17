@@ -164,21 +164,23 @@ class UserLogServiceTest {
      * Verifies that audit user ID is set to the log user ID when current user is null.
      */
     @Test
-    @DisplayName("Log Data - Failure - String user ID with no authentication throws UnauthorizedException")
-    void logData_Failure_StringUserWithEndpoint_NoAuthentication() {
+    @DisplayName("Log Data - Success - String user ID with no authentication uses default user")
+    void logData_Success_StringUserWithEndpoint_NoAuthentication() {
         // Arrange - Mock no authentication context and no Authorization header
         try (MockedStatic<SecurityContextHolder> mockStatic = mockStatic(SecurityContextHolder.class)) {
             SecurityContext mockSecurityContext = mock(SecurityContext.class);
             when(mockSecurityContext.getAuthentication()).thenReturn(null);
             mockStatic.when(SecurityContextHolder::getContext).thenReturn(mockSecurityContext);
             
-            // Remove Authorization header to trigger null scenario
+            // Remove Authorization header to trigger default user scenario
             lenient().when(request.getHeader("Authorization")).thenReturn(null);
             
-            // Act & Assert - This should now throw UnauthorizedException
-            assertThrows(UnauthorizedException.class, () -> {
-                userLogService.logData(String.valueOf(TEST_USER_ID), TEST_NEW_VALUE, TEST_ENDPOINT);
-            });
+            // Act - This should now succeed with default user "admin"
+            boolean result = userLogService.logData(String.valueOf(TEST_USER_ID), TEST_NEW_VALUE, TEST_ENDPOINT);
+            
+            // Assert
+            assertTrue(result);
+            verify(userLogRepository, times(1)).save(any(UserLog.class));
         }
     }
     
@@ -225,21 +227,23 @@ class UserLogServiceTest {
      * Verifies that audit user ID is set to the log user ID when current user is null.
      */
     @Test
-    @DisplayName("Log Data - Failure - Long user ID with no authentication throws UnauthorizedException")
-    void logData_Failure_LongUserWithEndpoint_NoAuthentication() {
+    @DisplayName("Log Data - Success - Long user ID with no authentication uses default user")
+    void logData_Success_LongUserWithEndpoint_NoAuthentication() {
         // Arrange - Mock no authentication context and no Authorization header
         try (MockedStatic<SecurityContextHolder> mockStatic = mockStatic(SecurityContextHolder.class)) {
             SecurityContext mockSecurityContext = mock(SecurityContext.class);
             when(mockSecurityContext.getAuthentication()).thenReturn(null);
             mockStatic.when(SecurityContextHolder::getContext).thenReturn(mockSecurityContext);
             
-            // Remove Authorization header to trigger null scenario
+            // Remove Authorization header to trigger default user scenario
             lenient().when(request.getHeader("Authorization")).thenReturn(null);
             
-            // Act & Assert - This should now throw UnauthorizedException
-            assertThrows(UnauthorizedException.class, () -> {
-                userLogService.logData(TEST_USER_ID, TEST_NEW_VALUE, TEST_ENDPOINT);
-            });
+            // Act - This should now succeed with default user "admin"
+            boolean result = userLogService.logData(TEST_USER_ID, TEST_NEW_VALUE, TEST_ENDPOINT);
+            
+            // Assert
+            assertTrue(result);
+            verify(userLogRepository, times(1)).save(any(UserLog.class));
         }
     }
 

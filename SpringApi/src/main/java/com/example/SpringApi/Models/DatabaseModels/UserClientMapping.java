@@ -24,6 +24,9 @@ public class UserClientMapping {
     @Column(name = "clientId", nullable = false)
     private Long clientId;
 
+    @Column(name = "apiKey", nullable = false, length = 500)
+    private String apiKey;
+
     @Column(name = "createdUser", nullable = false)
     private String createdUser;
 
@@ -66,17 +69,19 @@ public class UserClientMapping {
     }
 
     // Constructor for creation
-    public UserClientMapping(Long userId, Long clientId, String createdUser, String modifiedUser) {
+    public UserClientMapping(Long userId, Long clientId, String apiKey, String createdUser, String modifiedUser) {
         this.userId = userId;
         this.clientId = clientId;
+        this.apiKey = apiKey;
         this.createdUser = createdUser;
         this.modifiedUser = modifiedUser;
     }
 
     // Constructor for update (do not touch createdUser)
-    public UserClientMapping(Long userId, Long clientId, String modifiedUser) {
+    public UserClientMapping(Long userId, Long clientId, String apiKey, String modifiedUser) {
         this.userId = userId;
         this.clientId = clientId;
+        this.apiKey = apiKey;
         this.modifiedUser = modifiedUser;
     }
 }

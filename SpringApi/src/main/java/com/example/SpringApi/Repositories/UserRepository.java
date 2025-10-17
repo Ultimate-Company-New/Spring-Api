@@ -1,6 +1,8 @@
 package com.example.SpringApi.Repositories;
 
 import com.example.SpringApi.Models.DatabaseModels.User;
+import com.example.SpringApi.Models.DatabaseModels.UserGroup;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -37,7 +39,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
         "WHEN 'emailConfirmed' THEN CONCAT(u.emailConfirmed, '') " +
         "WHEN 'token' THEN u.token " +
         "WHEN 'isGuest' THEN CONCAT(u.isGuest, '') " +
-        "WHEN 'apiKey' THEN u.apiKey " +
         "WHEN 'email' THEN u.email " +
         "WHEN 'addressId' THEN CONCAT(u.addressId, '') " +
         "WHEN 'profilePicture' THEN u.profilePicture " +
@@ -86,7 +87,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT DISTINCT ug FROM UserGroup ug " +
            "JOIN UserGroupUserMap ugum ON ug.groupId = ugum.groupId " +
            "WHERE ugum.userId = :userId AND ug.isDeleted = false")
-    List<com.example.SpringApi.Models.DatabaseModels.UserGroup> findUserGroups(@Param("userId") Long userId);
+    List<UserGroup> findUserGroups(@Param("userId") Long userId);
 
     /**
      * Optimized query to fetch user with all related data in ONE single database call.

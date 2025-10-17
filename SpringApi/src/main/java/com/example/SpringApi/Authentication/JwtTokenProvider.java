@@ -8,6 +8,7 @@ import com.example.SpringApi.Models.DatabaseModels.User;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static io.jsonwebtoken.Jwts.*;
 
@@ -32,7 +33,18 @@ public class JwtTokenProvider {
     //             .compact();
     // }
 
-    public String generateToken(User user, List<Long> permissionIds, String apiKey) {
+    /**
+     * Generates a JWT token for a user with their client-permission mappings.
+     * 
+     * @param user The user entity
+     * @param clientPermissionMap Map of clientId to list of permissionIds for that client
+     * @param apiKey The API key for token signing
+     * @return JWT token string
+     */
+    public String generateToken(User user, 
+        List<Long> permissionIds, 
+        Long clientId,
+        String apiKey) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
@@ -45,6 +57,7 @@ public class JwtTokenProvider {
                 .claim("given_name", user.getFirstName())
                 .claim("last_name", user.getLastName())
                 .claim("role", user.getRole())
+                .claim("clientId", clientId)
                 .claim("permissionIds", permissionIds)
                 .expiration(expiryDate)
                 .signWith(PasswordHelper.getSecretKey(apiKey))
@@ -71,6 +84,12 @@ public class JwtTokenProvider {
         return Long.valueOf(claims.get("userId").toString());
     }
 
+    /**
+     * Gets the clientId the user belongs to from the JWT token.
+     * 
+     * @param token The JWT token
+     * @return The client ID
+     */
     public Long getClientIdFromToken(String token) {
         Claims claims = parser()
             .verifyWith(PasswordHelper.getSecretKey(DEFAULT_API_KEY))
@@ -78,7 +97,54 @@ public class JwtTokenProvider {
             .parseSignedClaims(token)
             .getPayload();
 
-        return Long.valueOf(claims.get("carrierId").toString());
+        Object clientIdObj = claims.get("clientId");
+        if (clientIdObj == null) {
+            return null;
+        }
+        
+        if (clientIdObj instanceof Number) {
+            return ((Number) clientIdObj).longValue();
+        } else {
+            return Long.valueOf(clientIdObj.toString());
+        }
+    }
+
+    /**
+     * Gets the client-permission map from the JWT token.
+     * 
+     * @param token The JWT token
+     * @return Map of clientId to list of permissionIds
+     */
+    public Map<Long, List<Long>> getClientPermissionMapFromToken(String token) {
+        Claims claims = parser()
+            .verifyWith(PasswordHelper.getSecretKey(DEFAULT_API_KEY))
+            .build()
+            .parseSignedClaims(token)
+            .getPayload();
+
+        Map<String, Object> rawMap = (Map<String, Object>) claims.get("clientPermissionMap");
+        if (rawMap == null || rawMap.isEmpty()) {
+            return Map.of();
+        }
+        
+        Map<Long, List<Long>> result = new java.util.HashMap<>();
+        for (Map.Entry<String, Object> entry : rawMap.entrySet()) {
+            Long clientId = Long.valueOf(entry.getKey());
+            List<Long> permissionIds = new java.util.ArrayList<>();
+            
+            if (entry.getValue() instanceof List<?>) {
+                List<?> rawList = (List<?>) entry.getValue();
+                for (Object item : rawList) {
+                    if (item instanceof Number) {
+                        permissionIds.add(((Number) item).longValue());
+                    } else {
+                        permissionIds.add(Long.valueOf(item.toString()));
+                    }
+                }
+            }
+            result.put(clientId, permissionIds);
+        }
+        return result;
     }
 
     public List<Long> getUserPermissionIds(String token){
