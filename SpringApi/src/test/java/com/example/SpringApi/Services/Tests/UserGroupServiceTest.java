@@ -6,6 +6,7 @@ import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.RequestModels.UserGroupRequestModel;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import com.example.SpringApi.Models.ResponseModels.UserGroupResponseModel;
+import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Repositories.UserGroupRepository;
 import com.example.SpringApi.Repositories.UserGroupUserMapRepository;
 import com.example.SpringApi.Repositories.UserRepository;
@@ -22,6 +23,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -380,141 +384,133 @@ class UserGroupServiceTest {
         verify(userGroupRepository, never()).findById(anyLong());
     }
 
-    // ==================== Get All User Groups Tests ====================
+    // ==================== Fetch User Groups In Batches Tests ====================
     
     /**
-     * Test successful retrieval of all user groups.
-     * Verifies that all user groups are returned.
+     * Test successful retrieval of user groups in batches.
+     * Verifies that paginated user groups are returned correctly.
      */
     @Test
-    @DisplayName("Get All User Groups - Success - Should return all groups")
-    void getAllUserGroup_Success() {
+    @DisplayName("Fetch User Groups In Batches - Success - Returns paginated groups")
+    void fetchUserGroupsInClientInBatches_Success() {
         // Arrange
-        UserGroup secondGroup = new UserGroup(testUserGroupRequest, CREATED_USER);
-        secondGroup.setGroupId(2L);
-        secondGroup.setGroupName("Second Group");
+        testUserGroupRequest.setStart(0);
+        testUserGroupRequest.setEnd(10);
+        testUserGroupRequest.setColumnName("name");
+        testUserGroupRequest.setCondition("contains");
+        testUserGroupRequest.setFilterExpr("");
+        testUserGroupRequest.setIncludeDeleted(false);
         
-        List<UserGroup> userGroups = Arrays.asList(testUserGroup, secondGroup);
-        when(userGroupRepository.findAll()).thenReturn(userGroups);
-        
-        // Act
-        List<UserGroupResponseModel> result = userGroupService.getAllUserGroup();
-        
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(TEST_GROUP_ID, result.get(0).getGroupId());
-        assertEquals(TEST_GROUP_NAME, result.get(0).getGroupName());
-        assertEquals(2L, result.get(1).getGroupId());
-        assertEquals("Second Group", result.get(1).getGroupName());
-        
-        verify(userGroupRepository, times(1)).findAll();
-    }
-    
-    /**
-     * Test get all user groups when no groups exist.
-     * Verifies that empty list is returned.
-     */
-    @Test
-    @DisplayName("Get All User Groups - Success - Empty list")
-    void getAllUserGroup_EmptyList_ReturnsEmptyList() {
-        // Arrange
-        when(userGroupRepository.findAll()).thenReturn(new ArrayList<>());
-        
-        // Act
-        List<UserGroupResponseModel> result = userGroupService.getAllUserGroup();
-        
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-        verify(userGroupRepository, times(1)).findAll();
-    }
-
-    // ==================== Get User Groups By Client ID Tests ====================
-    
-    /**
-     * Test successful retrieval of user groups by client ID.
-     * Verifies that user groups are filtered by client ID.
-     */
-    @Test
-    @DisplayName("Get User Groups By Client ID - Success - Should return client groups")
-    void getUserGroupByClientId_Success() {
-        // Arrange
         List<UserGroup> userGroups = Arrays.asList(testUserGroup);
-        when(userGroupRepository.findByClientId(TEST_CLIENT_ID)).thenReturn(userGroups);
+        Page<UserGroup> userGroupPage = new PageImpl<>(userGroups, PageRequest.of(0, 10), 1);
+        
+        when(userGroupRepository.findPaginatedUserGroups(
+            eq(TEST_CLIENT_ID), isNull(), anyString(), eq("contains"), anyString(), eq(false), any(PageRequest.class)
+        )).thenReturn(userGroupPage);
         
         // Act
-        List<UserGroupResponseModel> result = userGroupService.getUserGroupByClientId(TEST_CLIENT_ID);
+        PaginationBaseResponseModel<UserGroupResponseModel> result = userGroupService.fetchUserGroupsInClientInBatches(testUserGroupRequest);
         
         // Assert
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(TEST_GROUP_ID, result.get(0).getGroupId());
-        assertEquals(TEST_CLIENT_ID, result.get(0).getClientId());
-        
-        verify(userGroupRepository, times(1)).findByClientId(TEST_CLIENT_ID);
+        assertEquals(1, result.getData().size());
+        assertEquals(1L, result.getTotalDataCount());
+        assertEquals(TEST_GROUP_ID, result.getData().get(0).getGroupId());
+        assertEquals(TEST_GROUP_NAME, result.getData().get(0).getGroupName());
+        verify(userGroupRepository, times(1)).findPaginatedUserGroups(
+            eq(TEST_CLIENT_ID), isNull(), anyString(), eq("contains"), anyString(), eq(false), any(PageRequest.class)
+        );
     }
     
     /**
-     * Test get user groups by client ID when no groups exist for client.
-     * Verifies that empty list is returned.
+     * Test pagination with invalid column name.
+     * Verifies that BadRequestException is thrown for invalid column.
      */
     @Test
-    @DisplayName("Get User Groups By Client ID - Success - Empty list for client")
-    void getUserGroupByClientId_EmptyList_ReturnsEmptyList() {
+    @DisplayName("Fetch User Groups In Batches - Failure - Invalid column name")
+    void fetchUserGroupsInClientInBatches_InvalidColumn_ThrowsBadRequestException() {
         // Arrange
-        when(userGroupRepository.findByClientId(TEST_CLIENT_ID)).thenReturn(new ArrayList<>());
+        testUserGroupRequest.setStart(0);
+        testUserGroupRequest.setEnd(10);
+        testUserGroupRequest.setColumnName("invalidColumn");
         
-        // Act
-        List<UserGroupResponseModel> result = userGroupService.getUserGroupByClientId(TEST_CLIENT_ID);
+        // Act & Assert
+        BadRequestException exception = assertThrows(
+            BadRequestException.class,
+            () -> userGroupService.fetchUserGroupsInClientInBatches(testUserGroupRequest)
+        );
         
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-        verify(userGroupRepository, times(1)).findByClientId(TEST_CLIENT_ID);
-    }
-
-    // ==================== Get Active User Groups Tests ====================
-    
-    /**
-     * Test successful retrieval of active user groups.
-     * Verifies that only active (non-deleted) user groups are returned.
-     */
-    @Test
-    @DisplayName("Get Active User Groups - Success - Should return only active groups")
-    void getActiveUserGroup_Success() {
-        // Arrange
-        List<UserGroup> activeGroups = Arrays.asList(testUserGroup);
-        when(userGroupRepository.findByIsDeletedFalse()).thenReturn(activeGroups);
-        
-        // Act
-        List<UserGroupResponseModel> result = userGroupService.getActiveUserGroup();
-        
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(TEST_GROUP_ID, result.get(0).getGroupId());
-        assertFalse(result.get(0).getIsDeleted());
-        
-        verify(userGroupRepository, times(1)).findByIsDeletedFalse();
+        assertTrue(exception.getMessage().contains(ErrorMessages.InvalidColumn));
+        verify(userGroupRepository, never()).findPaginatedUserGroups(
+            anyLong(), anyList(), anyString(), anyString(), anyString(), anyBoolean(), any(PageRequest.class)
+        );
     }
     
     /**
-     * Test get active user groups when no active groups exist.
-     * Verifies that empty list is returned when all groups are deleted.
+     * Test pagination with filtering.
+     * Verifies that filter expressions are correctly applied.
      */
     @Test
-    @DisplayName("Get Active User Groups - Success - Empty list when no active groups")
-    void getActiveUserGroup_EmptyList_ReturnsEmptyList() {
+    @DisplayName("Fetch User Groups In Batches - Success - With filter")
+    void fetchUserGroupsInClientInBatches_WithFilter_Success() {
         // Arrange
-        when(userGroupRepository.findByIsDeletedFalse()).thenReturn(new ArrayList<>());
+        testUserGroupRequest.setStart(0);
+        testUserGroupRequest.setEnd(10);
+        testUserGroupRequest.setColumnName("description");
+        testUserGroupRequest.setCondition("contains");
+        testUserGroupRequest.setFilterExpr("Admin");
+        testUserGroupRequest.setIncludeDeleted(false);
+        
+        List<UserGroup> userGroups = Arrays.asList(testUserGroup);
+        Page<UserGroup> userGroupPage = new PageImpl<>(userGroups, PageRequest.of(0, 10), 1);
+        
+        when(userGroupRepository.findPaginatedUserGroups(
+            eq(TEST_CLIENT_ID), isNull(), eq("description"), eq("contains"), eq("Admin"), eq(false), any(PageRequest.class)
+        )).thenReturn(userGroupPage);
         
         // Act
-        List<UserGroupResponseModel> result = userGroupService.getActiveUserGroup();
+        PaginationBaseResponseModel<UserGroupResponseModel> result = userGroupService.fetchUserGroupsInClientInBatches(testUserGroupRequest);
         
         // Assert
         assertNotNull(result);
-        assertTrue(result.isEmpty());
-        verify(userGroupRepository, times(1)).findByIsDeletedFalse();
+        assertEquals(1, result.getData().size());
+        verify(userGroupRepository, times(1)).findPaginatedUserGroups(
+            eq(TEST_CLIENT_ID), isNull(), eq("description"), eq("contains"), eq("Admin"), eq(false), any(PageRequest.class)
+        );
+    }
+    
+    /**
+     * Test pagination with selected group IDs.
+     * Verifies that specific group IDs are filtered correctly.
+     */
+    @Test
+    @DisplayName("Fetch User Groups In Batches - Success - With selected group IDs")
+    void fetchUserGroupsInClientInBatches_WithSelectedGroups_Success() {
+        // Arrange
+        testUserGroupRequest.setStart(0);
+        testUserGroupRequest.setEnd(10);
+        testUserGroupRequest.setColumnName("name");
+        testUserGroupRequest.setCondition("contains");
+        testUserGroupRequest.setFilterExpr("");
+        testUserGroupRequest.setIncludeDeleted(false);
+        testUserGroupRequest.setSelectedGroupIds(Arrays.asList(TEST_GROUP_ID, 2L, 3L));
+        
+        List<UserGroup> userGroups = Arrays.asList(testUserGroup);
+        Page<UserGroup> userGroupPage = new PageImpl<>(userGroups, PageRequest.of(0, 10), 1);
+        
+        when(userGroupRepository.findPaginatedUserGroups(
+            eq(TEST_CLIENT_ID), eq(Arrays.asList(TEST_GROUP_ID, 2L, 3L)), anyString(), eq("contains"), anyString(), eq(false), any(PageRequest.class)
+        )).thenReturn(userGroupPage);
+        
+        // Act
+        PaginationBaseResponseModel<UserGroupResponseModel> result = userGroupService.fetchUserGroupsInClientInBatches(testUserGroupRequest);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        assertEquals(1L, result.getTotalDataCount());
+        verify(userGroupRepository, times(1)).findPaginatedUserGroups(
+            eq(TEST_CLIENT_ID), eq(Arrays.asList(TEST_GROUP_ID, 2L, 3L)), anyString(), eq("contains"), anyString(), eq(false), any(PageRequest.class)
+        );
     }
 }

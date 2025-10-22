@@ -1,10 +1,10 @@
 package com.example.SpringApi.Services.Interface;
 
 import com.example.SpringApi.Models.ResponseModels.UserGroupResponseModel;
+import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.RequestModels.UserGroupRequestModel;
-import java.util.List;
 
 /**
  * Interface for UserGroup-related business operations.
@@ -79,37 +79,21 @@ public interface IUserGroupSubTranslator {
     void updateUserGroup(UserGroupRequestModel userGroup);
 
     /**
-     * Retrieves all user groups in the system.
+     * Retrieves user groups for a client with pagination, filtering, and sorting.
      * 
-     * This method fetches all user groups from the database regardless of status.
-     * The method returns a list of UserGroupResponseModel objects, each containing
-     * complete group information. Returns an empty list if no groups are found.
+     * This method fetches user groups with support for:
+     * - Column-based filtering (groupName, description)
+     * - Various filter conditions (contains, equals, startsWith, endsWith, isEmpty, isNotEmpty)
+     * - Pagination with configurable page size
+     * - Optional inclusion of deleted groups
+     * - Optional filtering by specific group IDs
      * 
-     * @return List of UserGroupResponseModel objects for all user groups
+     * Valid columns for filtering: "userGroupId", "name", "description"
+     * 
+     * @param userGroupRequestModel The request model containing filter criteria and pagination settings
+     * @return PaginationBaseResponseModel containing the filtered and paginated user groups
+     * @throws BadRequestException if an invalid column name is provided
+     * @throws IllegalArgumentException if the userGroupRequestModel parameter is null
      */
-    List<UserGroupResponseModel> getAllUserGroup();
-
-    /**
-     * Retrieves all user groups associated with a specific client.
-     * 
-     * This method fetches all user groups where the clientId matches the provided parameter.
-     * The method returns a list of UserGroupResponseModel objects, each containing
-     * complete group information. Returns an empty list if no groups are found.
-     * 
-     * @param id The unique identifier of the client
-     * @return List of UserGroupResponseModel objects for the client
-     * @throws IllegalArgumentException if the provided ID is null or invalid
-     */
-    List<UserGroupResponseModel> getUserGroupByClientId(long id);
-
-    /**
-     * Retrieves all active user groups in the system.
-     * 
-     * This method fetches all user groups where isDeleted is false.
-     * The method returns a list of UserGroupResponseModel objects for active groups only.
-     * Returns an empty list if no active groups are found.
-     * 
-     * @return List of UserGroupResponseModel objects for active user groups
-     */
-    List<UserGroupResponseModel> getActiveUserGroup();
+    PaginationBaseResponseModel<UserGroupResponseModel> fetchUserGroupsInClientInBatches(UserGroupRequestModel userGroupRequestModel);
 }

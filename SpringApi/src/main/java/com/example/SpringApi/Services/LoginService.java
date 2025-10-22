@@ -151,7 +151,7 @@ public class LoginService implements ILoginSubTranslator {
                 .toList();
             
             // Generate token with client-specific API key
-            return jwtTokenProvider.generateToken(user, permissionIds, loginRequestModel.getClientId(), userClientMapping.getApiKey());
+            return jwtTokenProvider.generateToken(user, permissionIds, loginRequestModel.getClientId());
         }
 
         // do the procedure for invalid login
@@ -312,6 +312,6 @@ public class LoginService implements ILoginSubTranslator {
             .map(UserClientPermissionMapping::getPermissionId)
             .toList();
 
-        return jwtTokenProvider.generateToken(user, permissionIds, clientId, userClientMapping.getApiKey());
+        return jwtTokenProvider.generateToken(user, permissionIds, clientId);
     }
 }

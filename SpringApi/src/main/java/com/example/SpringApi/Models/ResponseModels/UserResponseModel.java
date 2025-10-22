@@ -107,11 +107,11 @@ public class UserResponseModel {
                     .collect(Collectors.toList());
             }
             
-            // Auto-populate userGroups if available
+            // Auto-populate userGroups if available (without users to avoid circular reference)
             if (user.getUserGroupMappings() != null && !user.getUserGroupMappings().isEmpty()) {
                 this.userGroups = user.getUserGroupMappings().stream()
                     .filter(ugm -> !ugm.getUserGroup().getIsDeleted())
-                    .map(ugm -> new UserGroupResponseModel(ugm.getUserGroup()))
+                    .map(ugm -> new UserGroupResponseModel(ugm.getUserGroup(), false))
                     .collect(Collectors.toList());
             }
         }

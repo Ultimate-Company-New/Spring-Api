@@ -30,7 +30,6 @@ import com.example.SpringApi.SuccessMessages;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -469,28 +468,41 @@ public class UserService extends BaseService implements IUserSubTranslator {
             }
         }
 
-        Page<User> users = userRepository.findPaginatedUsers(
+        int start = userRequestModel.getStart();
+        int end = userRequestModel.getEnd();
+        int limit = end - start;
+        
+        // Create custom Pageable with exact OFFSET and LIMIT for database-level pagination
+        // Spring's PageRequest.of(page, size) uses: OFFSET = page * size, LIMIT = size
+        // For arbitrary offsets (e.g., start=5, end=15), we need OFFSET=5, LIMIT=10
+        // Solution: Override getOffset() to return the exact start position
+        org.springframework.data.domain.Pageable pageable = new org.springframework.data.domain.PageRequest(0, limit, Sort.by("userId").descending()) {
+            @Override
+            public long getOffset() {
+                return start;
+            }
+        };
+
+        Page<User> page = userRepository.findPaginatedUsers(
             getClientId(),
             userRequestModel.getSelectedUserIds(),
             userRequestModel.getColumnName(),
             userRequestModel.getCondition(),
             userRequestModel.getFilterExpr(),
             userRequestModel.isIncludeDeleted(),
-            PageRequest.of(
-                userRequestModel.getStart() / (userRequestModel.getEnd() - userRequestModel.getStart()),
-                userRequestModel.getEnd() - userRequestModel.getStart(),
-                Sort.by("userId").descending())
+            pageable
         );
 
         PaginationBaseResponseModel<UserResponseModel> paginationBaseResponseModel = new PaginationBaseResponseModel<>();
         List<UserResponseModel> userResponseModels = new ArrayList<>();
-        for (User user : users.getContent()) {
+        for (User user : page.getContent()) {
             UserResponseModel userResponseModel = new UserResponseModel(user);
             userResponseModels.add(userResponseModel);
         }
         
+        // Return the actual count of users in this page, not the total count
         paginationBaseResponseModel.setData(userResponseModels);
-        paginationBaseResponseModel.setTotalDataCount(users.getTotalElements());
+        paginationBaseResponseModel.setTotalDataCount(userResponseModels.size());
         return paginationBaseResponseModel;
     }
 }

@@ -251,7 +251,7 @@ class LoginServicesTest {
             .thenReturn(Optional.of(testUserClientMapping));
         when(userClientPermissionMappingRepository.findClientPermissionMappingByUserId(TEST_USER_ID))
             .thenReturn(permissions);
-        when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyLong(), anyString()))
+        when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyLong()))
             .thenReturn("jwt-token-123");
         
         // Mock PasswordHelper static method
@@ -266,7 +266,7 @@ class LoginServicesTest {
             assertEquals("jwt-token-123", result);
             verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
             verify(userClientMappingRepository, times(1)).findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID);
-            verify(jwtTokenProvider, times(1)).generateToken(any(User.class), anyList(), anyLong(), anyString());
+            verify(jwtTokenProvider, times(1)).generateToken(any(User.class), anyList(), anyLong());
         }
     }
     
@@ -604,7 +604,7 @@ class LoginServicesTest {
         when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
         when(userClientMappingRepository.findByApiKey(TEST_API_KEY)).thenReturn(Optional.of(testUserClientMapping));
         when(userClientPermissionMappingRepository.findClientPermissionMappingByUserId(TEST_USER_ID)).thenReturn(permissions);
-        when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyLong(), anyString())).thenReturn("jwt-token-123");
+        when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyLong())).thenReturn("jwt-token-123");
         
         // Act
         String result = loginService.getToken(testLoginRequest);
@@ -614,7 +614,7 @@ class LoginServicesTest {
         verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
         verify(userClientMappingRepository, times(1)).findByApiKey(TEST_API_KEY);
         verify(userClientPermissionMappingRepository, times(1)).findClientPermissionMappingByUserId(TEST_USER_ID);
-        verify(jwtTokenProvider, times(1)).generateToken(any(User.class), anyList(), anyLong(), anyString());
+        verify(jwtTokenProvider, times(1)).generateToken(any(User.class), anyList(), anyLong());
     }
     
     /**

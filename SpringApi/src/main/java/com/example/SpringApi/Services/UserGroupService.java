@@ -7,21 +7,22 @@ import jakarta.servlet.http.HttpServletRequest;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.DatabaseModels.UserGroup;
 import com.example.SpringApi.Models.DatabaseModels.UserGroupUserMap;
-import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.RequestModels.UserGroupRequestModel;
 import com.example.SpringApi.Models.ResponseModels.UserGroupResponseModel;
-import com.example.SpringApi.Models.ResponseModels.UserResponseModel;
 import com.example.SpringApi.Repositories.UserGroupRepository;
 import com.example.SpringApi.Repositories.UserGroupUserMapRepository;
 import com.example.SpringApi.Repositories.UserRepository;
 import com.example.SpringApi.Services.Interface.IUserGroupSubTranslator;
+import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import com.example.SpringApi.Exceptions.NotFoundException;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Service class for managing UserGroup-related business operations.
@@ -95,23 +96,12 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
      */
     @Override
     public UserGroupResponseModel getUserGroupDetailsById(long groupId) {
-        Optional<UserGroup> userGroup = userGroupRepository.findById(groupId);
-        if (userGroup.isPresent()) {
-            UserGroupResponseModel responseModel = new UserGroupResponseModel(userGroup.get());
-            
-            // Get all users in this group
-            List<UserGroupUserMap> userMappings = userGroupUserMapRepository.findByGroupId(groupId);
-            List<UserResponseModel> users = new ArrayList<>();
-            
-            for (UserGroupUserMap mapping : userMappings) {
-                Optional<User> user = userRepository.findById(mapping.getUserId());
-                if (user.isPresent()) {
-                    users.add(new UserResponseModel(user.get()));
-                }
-            }
-            
-            responseModel.setUsers(users);
-            return responseModel;
+        // Fetch user group with ALL users in ONE query using JOIN FETCH
+        UserGroup userGroup = userGroupRepository.findByIdWithUsers(groupId);
+        
+        if (userGroup != null) {
+            // UserGroupResponseModel constructor auto-populates users from userMappings
+            return new UserGroupResponseModel(userGroup);
         } else {
             throw new NotFoundException(ErrorMessages.UserGroupErrorMessages.InvalidId);
         }
@@ -207,66 +197,56 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
     }
 
     /**
-     * Retrieves all user groups in the system.
+     * Retrieves user groups for a client with pagination, filtering, and sorting.
      * 
-     * This method fetches all user groups from the database regardless of status.
-     * The method returns a list of UserGroupResponseModel objects, each containing
-     * complete group information. Returns an empty list if no groups are found.
+     * This method fetches user groups with support for:
+     * - Column-based filtering (groupName, description)
+     * - Various filter conditions (contains, equals, startsWith, endsWith, isEmpty, isNotEmpty)
+     * - Pagination with configurable page size
+     * - Optional inclusion of deleted groups
+     * - Optional filtering by specific group IDs
      * 
-     * @return List of UserGroupResponseModel objects for all user groups
+     * Valid columns for filtering: "userGroupId", "name", "description"
+     * 
+     * @param userGroupRequestModel The request model containing filter criteria and pagination settings
+     * @return PaginationBaseResponseModel containing the filtered and paginated user groups
+     * @throws BadRequestException if an invalid column name is provided
      */
     @Override
-    public List<UserGroupResponseModel> getAllUserGroup() {
-        List<UserGroup> UserGroup = userGroupRepository.findAll();
-        List<UserGroupResponseModel> responseModels = new ArrayList<>();
-        
-        for (UserGroup userGroup : UserGroup) {
-            responseModels.add(new UserGroupResponseModel(userGroup));
-        }
-        
-        return responseModels;
-    }
+    public PaginationBaseResponseModel<UserGroupResponseModel> fetchUserGroupsInClientInBatches(UserGroupRequestModel userGroupRequestModel) {
+        // Validate the column names
+        if (StringUtils.hasText(userGroupRequestModel.getColumnName())) {
+            Set<String> validColumns = new HashSet<>(Arrays.asList("userGroupId", "name", "description"));
 
-    /**
-     * Retrieves all user groups associated with a specific client.
-     * 
-     * This method fetches all user groups where the clientId matches the provided parameter.
-     * The method returns a list of UserGroupResponseModel objects, each containing
-     * complete group information. Returns an empty list if no groups are found.
-     * 
-     * @param clientId The unique identifier of the client
-     * @return List of UserGroupResponseModel objects for the client
-     */
-    @Override
-    public List<UserGroupResponseModel> getUserGroupByClientId(long clientId) {
-        List<UserGroup> UserGroup = userGroupRepository.findByClientId(clientId);
-        List<UserGroupResponseModel> responseModels = new ArrayList<>();
-        
-        for (UserGroup userGroup : UserGroup) {
-            responseModels.add(new UserGroupResponseModel(userGroup));
+            if (!validColumns.contains(userGroupRequestModel.getColumnName())) {
+                throw new BadRequestException(
+                    ErrorMessages.InvalidColumn + String.join(",", validColumns)
+                );
+            }
         }
-        
-        return responseModels;
-    }
 
-    /**
-     * Retrieves all active user groups in the system.
-     * 
-     * This method fetches all user groups where isDeleted is false.
-     * The method returns a list of UserGroupResponseModel objects for active groups only.
-     * Returns an empty list if no active groups are found.
-     * 
-     * @return List of UserGroupResponseModel objects for active user groups
-     */
-    @Override
-    public List<UserGroupResponseModel> getActiveUserGroup() {
-        List<UserGroup> UserGroup = userGroupRepository.findByIsDeletedFalse();
-        List<UserGroupResponseModel> responseModels = new ArrayList<>();
-        
-        for (UserGroup userGroup : UserGroup) {
-            responseModels.add(new UserGroupResponseModel(userGroup));
+        Page<UserGroup> userGroups = userGroupRepository.findPaginatedUserGroups(
+            getClientId(),
+            userGroupRequestModel.getSelectedGroupIds(),
+            userGroupRequestModel.getColumnName(),
+            userGroupRequestModel.getCondition(),
+            userGroupRequestModel.getFilterExpr(),
+            userGroupRequestModel.isIncludeDeleted(),
+            PageRequest.of(
+                userGroupRequestModel.getStart() / (userGroupRequestModel.getEnd() - userGroupRequestModel.getStart()),
+                userGroupRequestModel.getEnd() - userGroupRequestModel.getStart(),
+                Sort.by("groupId").descending())
+        );
+
+        PaginationBaseResponseModel<UserGroupResponseModel> paginationBaseResponseModel = new PaginationBaseResponseModel<>();
+        List<UserGroupResponseModel> userGroupResponseModels = new ArrayList<>();
+        for (UserGroup userGroup : userGroups.getContent()) {
+            UserGroupResponseModel userGroupResponseModel = new UserGroupResponseModel(userGroup);
+            userGroupResponseModels.add(userGroupResponseModel);
         }
-        
-        return responseModels;
+
+        paginationBaseResponseModel.setData(userGroupResponseModels);
+        paginationBaseResponseModel.setTotalDataCount(userGroups.getTotalElements());
+        return paginationBaseResponseModel;
     }
 }

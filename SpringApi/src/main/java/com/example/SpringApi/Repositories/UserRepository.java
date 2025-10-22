@@ -16,14 +16,22 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     /**
      * Paginated query for users with filtering and sorting.
+     * Fetches all related entities (addresses, permissions, user groups) with client filtering.
      * Used by: UserService.fetchAllUsersInSystem
      */
-    @Query("select u from User u " +
-        "join UserClientMapping ucm on u.userId = ucm.userId " +
-        "left join Address a on u.addressId = a.addressId " +
-        "where ucm.clientId = :carrierId " +
-        "and (:selectedUsers IS NULL OR u.userId IN (:selectedUsers)) " +
-        "and (:includeDeleted = true OR u.isDeleted = false) " +
+    @Query("SELECT DISTINCT u FROM User u " +
+        "JOIN UserClientMapping ucm ON u.userId = ucm.userId " +
+        "LEFT JOIN FETCH u.addresses " +
+        "LEFT JOIN FETCH u.userClientPermissionMappings ucpm " +
+        "LEFT JOIN FETCH ucpm.permission p " +
+        "LEFT JOIN FETCH u.userGroupMappings ugm " +
+        "LEFT JOIN FETCH ugm.userGroup ug " +
+        "LEFT JOIN Address a ON u.addressId = a.addressId " +
+        "WHERE ucm.clientId = :carrierId " +
+        "AND (ucpm IS NULL OR ucpm.clientId = :carrierId) " +
+        "AND (ugm IS NULL OR ug.clientId = :carrierId) " +
+        "AND (:selectedUsers IS NULL OR u.userId IN (:selectedUsers)) " +
+        "AND (:includeDeleted = true OR u.isDeleted = false) " +
         "AND (COALESCE(:filterExpr, '') = '' OR " +
         "(CASE :columnName " +
         "WHEN 'userId' THEN CONCAT(u.userId, '') " +

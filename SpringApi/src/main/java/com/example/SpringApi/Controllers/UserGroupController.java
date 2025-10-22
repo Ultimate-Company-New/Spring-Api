@@ -68,6 +68,36 @@ public class UserGroupController {
     }
 
     /**
+     * Retrieves user groups in batches with pagination, filtering, and sorting.
+     * 
+     * This endpoint fetches user groups for the current client with support for:
+     * - Column-based filtering (groupName, description)
+     * - Various filter conditions (contains, equals, startsWith, endsWith, isEmpty, isNotEmpty)
+     * - Pagination with configurable page size
+     * - Optional inclusion of deleted groups
+     * 
+     * Valid columns: "userGroupId", "name", "description"
+     * Requires VIEW_GROUPS_PERMISSION.
+     * 
+     * @param userGroupRequestModel The request model containing filter criteria and pagination settings
+     * @return ResponseEntity containing PaginationBaseResponseModel with user groups or ErrorResponseModel
+     */
+    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_GROUPS_PERMISSION +"')")
+    @PostMapping("/" + ApiRoutes.UserGroupSubRoute.GET_USER_GROUPS_IN_BATCHES)
+    public ResponseEntity<?> getUserGroupsInBatches(@RequestBody UserGroupRequestModel userGroupRequestModel) {
+        try {
+            return ResponseEntity.ok(userGroupService.fetchUserGroupsInClientInBatches(userGroupRequestModel));
+        } catch (BadRequestException bre) {
+            logger.error(bre);
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (Exception e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, ErrorMessages.ServerError, HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+
+    /**
      * Creates a new user group in the system.
      * 
      * This endpoint validates the provided user group data, creates a new UserGroup entity,

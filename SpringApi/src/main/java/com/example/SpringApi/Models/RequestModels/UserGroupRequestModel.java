@@ -7,15 +7,15 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UserGroupRequestModel {
+public class UserGroupRequestModel extends PaginationBaseRequestModel {
     
     private Long groupId;
     private Long clientId;
-    private boolean includeDeleted;
     
     private String groupName;
     private String description;
     private Boolean isDeleted;
 
     private List<Long> userIds;
+    private List<Long> selectedGroupIds;
 }

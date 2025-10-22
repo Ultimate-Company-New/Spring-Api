@@ -30,6 +30,9 @@ import java.util.concurrent.Executor;
 
 				// scan the datasource beans
 				"com.example.SpringApi.DataSource",
+
+				// scan the exception handlers
+				"com.example.SpringApi.Exceptions",
 		}
 		)
 @EntityScan(basePackages =

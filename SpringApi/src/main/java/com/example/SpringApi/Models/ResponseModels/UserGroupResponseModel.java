@@ -31,6 +31,11 @@ public class UserGroupResponseModel {
     
     // Constructor that takes UserGroups entity and populates response fields
     public UserGroupResponseModel(UserGroup userGroup) {
+        this(userGroup, true);
+    }
+    
+    // Constructor that takes UserGroups entity and optionally populates users
+    public UserGroupResponseModel(UserGroup userGroup, boolean includeUsers) {
         this();
         if (userGroup != null) {
             this.groupId = userGroup.getGroupId();
@@ -42,6 +47,16 @@ public class UserGroupResponseModel {
             this.modifiedUser = userGroup.getModifiedUser();
             this.createdAt = userGroup.getCreatedAt();
             this.updatedAt = userGroup.getUpdatedAt();
+            
+            // Auto-populate users from mappings if available and requested
+            if (includeUsers && userGroup.getUserMappings() != null && !userGroup.getUserMappings().isEmpty()) {
+                this.users = new ArrayList<>();
+                for (var mapping : userGroup.getUserMappings()) {
+                    if (mapping.getUser() != null) {
+                        this.users.add(new UserResponseModel(mapping.getUser()));
+                    }
+                }
+            }
         }
     }
     

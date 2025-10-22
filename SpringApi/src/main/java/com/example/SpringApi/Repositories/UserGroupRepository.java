@@ -2,7 +2,6 @@ package com.example.SpringApi.Repositories;
 
 import com.example.SpringApi.Models.DatabaseModels.UserGroup;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -56,85 +55,46 @@ public interface UserGroupRepository extends JpaRepository<UserGroup, Long> {
     List<Long> getUserGroupIdsFromUserId(@Param("userId") long userId);
 
     /**
-     * Finds user groups with optional filtering and pagination support.
-     * Returns user groups along with their member count.
+     * Finds a user group by ID with all user mappings and users loaded in a single query.
+     * This uses JOIN FETCH to eagerly load all related data to avoid N+1 query problem.
      * 
-     * @param columnName The column name to filter on
-     * @param condition The filter condition (contains, equals, startsWith, endsWith, isEmpty, isNotEmpty)
-     * @param filterExpr The filter expression/value
-     * @param includeDeleted Whether to include deleted groups
-     * @return List of Object arrays containing [UserGroups, member count]
+     * @param groupId The unique identifier of the user group
+     * @return UserGroup entity with users loaded, or null if not found
      */
-    @Query("SELECT ug, COUNT(ugm.userId) " +
-            "FROM UserGroup ug " +
-            "LEFT JOIN UserGroupUserMap ugm ON ug.groupId = ugm.groupId " +
-            "WHERE (:includeDeleted = true OR ug.isDeleted = false) " +
-            "AND (COALESCE(:filterExpr, '') = '' OR " +
-            "(CASE :columnName " +
-            "WHEN 'groupId' THEN CONCAT(ug.groupId, '') " +
-            "WHEN 'groupName' THEN CONCAT(ug.groupName, '') " +
-            "WHEN 'description' THEN CONCAT(ug.description, '') " +
-            "ELSE '' END) LIKE " +
-            "(CASE :condition " +
-            "WHEN 'contains' THEN CONCAT('%', :filterExpr, '%') " +
-            "WHEN 'equals' THEN :filterExpr " +
-            "WHEN 'startsWith' THEN CONCAT(:filterExpr, '%') " +
-            "WHEN 'endsWith' THEN CONCAT('%', :filterExpr) " +
-            "WHEN 'isEmpty' THEN '' " +
-            "WHEN 'isNotEmpty' THEN '%' " +
-            "ELSE '' END)) " +
-            "GROUP BY ug")
-    List<Object[]> findUserGroups(@Param("columnName") String columnName,
-                                   @Param("condition") String condition,
-                                   @Param("filterExpr") String filterExpr,
-                                   @Param("includeDeleted") boolean includeDeleted);
+    @Query("SELECT DISTINCT ug FROM UserGroup ug " +
+           "LEFT JOIN FETCH ug.userMappings ugm " +
+           "LEFT JOIN FETCH ugm.user " +
+           "WHERE ug.groupId = :groupId")
+    UserGroup findByIdWithUsers(@Param("groupId") Long groupId);
 
     /**
-     * Finds user groups with pagination, filtering, and custom sorting.
-     * Allows prioritizing specific group IDs in the results.
-     * 
-     * @param columnName The column name to filter on
-     * @param condition The filter condition
-     * @param filterExpr The filter expression/value
-     * @param includeDeleted Whether to include deleted groups
-     * @param groupIds List of group IDs to prioritize in sorting
-     * @param pageable Pagination information
-     * @return Page of Object arrays containing [UserGroups, member count]
+     * Paginated query for user groups with filtering and sorting.
+     * Filters by client ID and supports various filter conditions.
+     * Used by: UserGroupService.fetchUserGroupsInClientInBatches
      */
-    default Page<Object[]> findPaginatedUserGroups(String columnName,
-                                                    String condition,
-                                                    String filterExpr,
-                                                    boolean includeDeleted,
-                                                    List<Long> groupIds,
-                                                    Pageable pageable) {
-        // Fetch sorted data
-        List<Object[]> data = findUserGroups(columnName, condition, filterExpr, includeDeleted);
-        data.sort((obj1, obj2) -> {
-            UserGroup group1 = (UserGroup) obj1[0];
-            UserGroup group2 = (UserGroup) obj2[0];
-
-            // Check if group1's groupId is present in groupIds
-            boolean group1InGroupIds = groupIds != null && !groupIds.isEmpty() && groupIds.contains(group1.getGroupId());
-            // Check if group2's groupId is present in groupIds
-            boolean group2InGroupIds = groupIds != null && !groupIds.isEmpty() && groupIds.contains(group2.getGroupId());
-
-            // If group1 is in groupIds but group2 is not, group1 should come before group2
-            if (group1InGroupIds && !group2InGroupIds) {
-                return -1;
-            }
-            // If group2 is in groupIds but group1 is not, group2 should come before group1
-            else if (!group1InGroupIds && group2InGroupIds) {
-                return 1;
-            }
-            // If both groups are in groupIds or both are not, compare their groupIds
-            else {
-                return Long.compare(group2.getGroupId(), group1.getGroupId());
-            }
-        });
-
-        // Apply pagination to the sorted data
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), data.size());
-        return new PageImpl<>(data.subList(start, end), pageable, data.size());
-    }
+    @Query("SELECT ug FROM UserGroup ug " +
+        "WHERE ug.clientId = :clientId " +
+        "AND (:selectedGroups IS NULL OR ug.groupId IN (:selectedGroups)) " +
+        "AND (:includeDeleted = true OR ug.isDeleted = false) " +
+        "AND (COALESCE(:filterExpr, '') = '' OR " +
+        "(CASE :columnName " +
+        "WHEN 'userGroupId' THEN CONCAT(ug.groupId, '') " +
+        "WHEN 'name' THEN CONCAT(ug.groupName, '') " +
+        "WHEN 'description' THEN CONCAT(ug.description, '') " +
+        "ELSE '' END) LIKE " +
+        "(CASE :condition " +
+        "WHEN 'contains' THEN CONCAT('%', :filterExpr, '%') " +
+        "WHEN 'equals' THEN :filterExpr " +
+        "WHEN 'startsWith' THEN CONCAT(:filterExpr, '%') " +
+        "WHEN 'endsWith' THEN CONCAT('%', :filterExpr) " +
+        "WHEN 'isEmpty' THEN '' " +
+        "WHEN 'isNotEmpty' THEN '%' " +
+        "ELSE '' END))")
+    Page<UserGroup> findPaginatedUserGroups(@Param("clientId") long clientId,
+                                             @Param("selectedGroups") List<Long> selectedGroups,
+                                             @Param("columnName") String columnName,
+                                             @Param("condition") String condition,
+                                             @Param("filterExpr") String filterExpr,
+                                             @Param("includeDeleted") boolean includeDeleted,
+                                             Pageable pageable);
 }
