@@ -98,12 +98,13 @@ public class Package {
      * @param request The PackageRequestModel containing the package data
      * @param createdUser The user creating the package
      */
-    public Package(PackageRequestModel request, String createdUser) {
+    public Package(PackageRequestModel request, String createdUser, long clientId) {
         validateRequest(request);
         validateUser(createdUser);
         
         setFieldsFromRequest(request);
         this.createdUser = createdUser;
+        this.clientId = clientId;
         this.modifiedUser = createdUser;
     }
 
@@ -163,6 +164,17 @@ public class Package {
         if (request.getClientId() == null) {
             throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidClientId);
         }
+        
+        // Validate address is required
+        if (request.getAddress() == null) {
+            throw new BadRequestException("Address is required for package validation");
+        }
+        
+        // Validate address for pickup location
+        if (request.getAddress() != null) {
+            // Use Address model validation by creating a temporary instance
+            new Address(request.getAddress(), "temp");
+        }
     }
 
     /**
@@ -176,6 +188,8 @@ public class Package {
             throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
         }
     }
+
+
 
     /**
      * Sets fields from the request model.

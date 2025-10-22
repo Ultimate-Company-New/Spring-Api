@@ -7,12 +7,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import java.util.List;
 
 @Repository
 public interface PackageRepository extends JpaRepository<Package, Long> {
+        
+    @Query("SELECT p FROM Package p WHERE p.clientId = :clientId AND p.isDeleted = false")
+    List<Package> findByClientIdAndIsDeletedFalse(@Param("clientId") Long clientId);
 
     @Query("select p from Package p " +
-            "where (:includeDeleted = true OR p.isDeleted = false) " +
+            "where p.clientId = :clientId " +
+            "and (:includeDeleted = true OR p.isDeleted = false) " +
             "and (COALESCE(:filterExpr, '') = '' OR " +
             "(CASE :columnName " +
             "WHEN 'packageId' THEN CONCAT(p.packageId, '') " +
@@ -27,9 +32,13 @@ public interface PackageRepository extends JpaRepository<Package, Long> {
             "WHEN 'isEmpty' THEN '' " +
             "WHEN 'isNotEmpty' THEN '%' " +
             "ELSE '' END))")
-    Page<Package> findPaginatedPackages(@Param("columnName") String columnName,
+    Page<Package> findPaginatedPackages(@Param("clientId") Long clientId,
+                                       @Param("columnName") String columnName,
                                        @Param("condition") String condition,
                                        @Param("filterExpr") String filterExpr,
                                        @Param("includeDeleted") boolean includeDeleted,
                                        Pageable pageable);
+
+    @Query("select p from Package p where p.packageId = :packageId and p.clientId = :clientId")
+    Package findByPackageIdAndClientId(@Param("packageId") Long packageId, @Param("clientId") Long clientId);
 }

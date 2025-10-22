@@ -20,6 +20,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -65,6 +66,7 @@ class PromoServiceTest {
     @Mock
     private HttpServletRequest request;
 
+    @Spy
     @InjectMocks
     private PromoService promoService;
 
@@ -95,7 +97,7 @@ class PromoServiceTest {
         testPromoRequest.setClientId(TEST_CLIENT_ID);
 
         // Initialize test promo using constructor
-        testPromo = new Promo(testPromoRequest, CREATED_USER);
+        testPromo = new Promo(testPromoRequest, CREATED_USER, TEST_CLIENT_ID);
         testPromo.setPromoId(TEST_PROMO_ID); // Set ID manually since constructor doesn't set it
         testPromo.setCreatedAt(LocalDateTime.now());
         testPromo.setUpdatedAt(LocalDateTime.now());
@@ -108,6 +110,9 @@ class PromoServiceTest {
         testPaginationRequest.setCondition("equals");
         testPaginationRequest.setFilterExpr(TEST_PROMO_CODE);
         testPaginationRequest.setIncludeDeleted(false);
+        
+        // Mock getClientId() to return TEST_CLIENT_ID for multi-tenant filtering
+        lenient().doReturn(TEST_CLIENT_ID).when(promoService).getClientId();
     }
 
     // ==================== Get Promos In Batches Tests ====================
@@ -123,7 +128,7 @@ class PromoServiceTest {
         List<Promo> promoList = Arrays.asList(testPromo);
         Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 1);
         when(promoRepository.findPaginatedPromos(
-            eq(TEST_VALID_COLUMN), eq("equals"), eq(TEST_PROMO_CODE), eq(false),
+            eq(TEST_CLIENT_ID), eq(TEST_VALID_COLUMN), eq("equals"), eq(TEST_PROMO_CODE), eq(false),
             any(PageRequest.class))).thenReturn(promoPage);
 
         // Act
@@ -135,7 +140,7 @@ class PromoServiceTest {
         assertEquals(1, result.getTotalDataCount());
         assertEquals(testPromo, result.getData().get(0));
         verify(promoRepository).findPaginatedPromos(
-            eq(TEST_VALID_COLUMN), eq("equals"), eq(TEST_PROMO_CODE), eq(false),
+            eq(TEST_CLIENT_ID), eq(TEST_VALID_COLUMN), eq("equals"), eq(TEST_PROMO_CODE), eq(false),
             any(PageRequest.class));
     }
 
@@ -168,7 +173,7 @@ class PromoServiceTest {
         List<Promo> promoList = Arrays.asList(testPromo);
         Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 1);
         when(promoRepository.findPaginatedPromos(
-            eq(null), eq("equals"), eq(TEST_PROMO_CODE), eq(false),
+            eq(TEST_CLIENT_ID), eq(null), eq("equals"), eq(TEST_PROMO_CODE), eq(false),
             any(PageRequest.class))).thenReturn(promoPage);
 
         // Act
@@ -178,7 +183,7 @@ class PromoServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getData().size());
         verify(promoRepository).findPaginatedPromos(
-            eq(null), eq("equals"), eq(TEST_PROMO_CODE), eq(false),
+            eq(TEST_CLIENT_ID), eq(null), eq("equals"), eq(TEST_PROMO_CODE), eq(false),
             any(PageRequest.class));
     }
 
@@ -193,7 +198,7 @@ class PromoServiceTest {
         List<Promo> emptyList = new ArrayList<>();
         Page<Promo> emptyPage = new PageImpl<>(emptyList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 0);
         when(promoRepository.findPaginatedPromos(
-            eq(TEST_VALID_COLUMN), eq("equals"), eq(TEST_PROMO_CODE), eq(false),
+            eq(TEST_CLIENT_ID), eq(TEST_VALID_COLUMN), eq("equals"), eq(TEST_PROMO_CODE), eq(false),
             any(PageRequest.class))).thenReturn(emptyPage);
 
         // Act
@@ -215,12 +220,11 @@ class PromoServiceTest {
     @DisplayName("Create Promo - Success - Should create and save promo with logging")
     void createPromo_Success() {
         // Arrange
-        PromoService spyPromoService = spy(promoService);
-        doReturn(CREATED_USER).when(spyPromoService).getUser();
+        lenient().doReturn(CREATED_USER).when(promoService).getUser();
         when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
 
         // Act
-        spyPromoService.createPromo(testPromoRequest);
+        promoService.createPromo(testPromoRequest);
 
         // Assert
         verify(promoRepository).save(any(Promo.class));
@@ -238,13 +242,12 @@ class PromoServiceTest {
     @DisplayName("Create Promo - Failure - Null request model throws BadRequestException")
     void createPromo_NullRequestModel_ThrowsBadRequestException() {
         // Arrange
-        PromoService spyPromoService = spy(promoService);
-        doReturn(CREATED_USER).when(spyPromoService).getUser();
+        lenient().doReturn(CREATED_USER).when(promoService).getUser();
         PromoRequestModel nullRequest = null;
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            spyPromoService.createPromo(nullRequest);
+            promoService.createPromo(nullRequest);
         });
         assertEquals(ErrorMessages.PromoErrorMessages.InvalidRequest, exception.getMessage());
     }
@@ -257,13 +260,12 @@ class PromoServiceTest {
     @DisplayName("Create Promo - Failure - Empty promo code throws BadRequestException")
     void createPromo_EmptyPromoCode_ThrowsBadRequestException() {
         // Arrange
-        PromoService spyPromoService = spy(promoService);
-        doReturn(CREATED_USER).when(spyPromoService).getUser();
+        lenient().doReturn(CREATED_USER).when(promoService).getUser();
         testPromoRequest.setPromoCode("");
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            spyPromoService.createPromo(testPromoRequest);
+            promoService.createPromo(testPromoRequest);
         });
         assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, exception.getMessage());
     }
@@ -278,7 +280,7 @@ class PromoServiceTest {
     @DisplayName("Get Promo Details By ID - Success - Should return promo details")
     void getPromoDetailsById_Success() {
         // Arrange
-        when(promoRepository.findById(TEST_PROMO_ID)).thenReturn(Optional.of(testPromo));
+        when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testPromo));
 
         // Act
         PromoResponseModel result = promoService.getPromoDetailsById(TEST_PROMO_ID);
@@ -287,7 +289,7 @@ class PromoServiceTest {
         assertNotNull(result);
         assertEquals(TEST_PROMO_ID, result.getPromoId());
         assertEquals(TEST_PROMO_CODE, result.getPromoCode());
-        verify(promoRepository).findById(TEST_PROMO_ID);
+        verify(promoRepository).findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID);
     }
 
     /**
@@ -298,14 +300,14 @@ class PromoServiceTest {
     @DisplayName("Get Promo Details By ID - Failure - Promo not found")
     void getPromoDetailsById_PromoNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(promoRepository.findById(TEST_PROMO_ID)).thenReturn(Optional.empty());
+        when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID)).thenReturn(Optional.empty());
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             promoService.getPromoDetailsById(TEST_PROMO_ID);
         });
         assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, exception.getMessage());
-        verify(promoRepository).findById(TEST_PROMO_ID);
+        verify(promoRepository).findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID);
     }
 
     /**
@@ -317,14 +319,14 @@ class PromoServiceTest {
     void getPromoDetailsById_ZeroId_Success() {
         // Arrange
         Long zeroId = 0L;
-        when(promoRepository.findById(zeroId)).thenReturn(Optional.of(testPromo));
+        when(promoRepository.findByPromoIdAndClientId(zeroId, TEST_CLIENT_ID)).thenReturn(Optional.of(testPromo));
 
         // Act
         PromoResponseModel result = promoService.getPromoDetailsById(zeroId);
 
         // Assert
         assertNotNull(result);
-        verify(promoRepository).findById(zeroId);
+        verify(promoRepository).findByPromoIdAndClientId(zeroId, TEST_CLIENT_ID);
     }
 
     /**
@@ -336,14 +338,14 @@ class PromoServiceTest {
     void getPromoDetailsById_NegativeId_Success() {
         // Arrange
         Long negativeId = -1L;
-        when(promoRepository.findById(negativeId)).thenReturn(Optional.of(testPromo));
+        when(promoRepository.findByPromoIdAndClientId(negativeId, TEST_CLIENT_ID)).thenReturn(Optional.of(testPromo));
 
         // Act
         PromoResponseModel result = promoService.getPromoDetailsById(negativeId);
 
         // Assert
         assertNotNull(result);
-        verify(promoRepository).findById(negativeId);
+        verify(promoRepository).findByPromoIdAndClientId(negativeId, TEST_CLIENT_ID);
     }
 
     // ==================== Toggle Promo Tests ====================
@@ -356,17 +358,16 @@ class PromoServiceTest {
     @DisplayName("Toggle Promo - Success - Should toggle isDeleted flag and log")
     void togglePromo_Success() {
         // Arrange
-        PromoService spyPromoService = spy(promoService);
-        doReturn(CREATED_USER).when(spyPromoService).getUser();
-        when(promoRepository.findById(TEST_PROMO_ID)).thenReturn(Optional.of(testPromo));
+        lenient().doReturn(CREATED_USER).when(promoService).getUser();
+        when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testPromo));
         when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
 
         // Act
-        spyPromoService.togglePromo(TEST_PROMO_ID);
+        promoService.togglePromo(TEST_PROMO_ID);
 
         // Assert
         assertTrue(testPromo.getIsDeleted()); // Should be toggled from false to true
-        verify(promoRepository).findById(TEST_PROMO_ID);
+        verify(promoRepository).findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID);
         verify(promoRepository).save(testPromo);
         verify(userLogService).logData(
             eq(CREATED_USER),
@@ -382,14 +383,14 @@ class PromoServiceTest {
     @DisplayName("Toggle Promo - Failure - Promo not found")
     void togglePromo_PromoNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(promoRepository.findById(TEST_PROMO_ID)).thenReturn(Optional.empty());
+        when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID)).thenReturn(Optional.empty());
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             promoService.togglePromo(TEST_PROMO_ID);
         });
         assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, exception.getMessage());
-        verify(promoRepository).findById(TEST_PROMO_ID);
+        verify(promoRepository).findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID);
         verify(promoRepository, never()).save(any(Promo.class));
         verify(userLogService, never()).logData(any(), any(), any());
     }
@@ -403,7 +404,7 @@ class PromoServiceTest {
     void togglePromo_ZeroId_ThrowsNotFoundException() {
         // Arrange
         Long zeroId = 0L;
-        when(promoRepository.findById(zeroId)).thenReturn(Optional.empty());
+        when(promoRepository.findByPromoIdAndClientId(zeroId, TEST_CLIENT_ID)).thenReturn(Optional.empty());
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
@@ -421,7 +422,7 @@ class PromoServiceTest {
     void togglePromo_NegativeId_ThrowsNotFoundException() {
         // Arrange
         Long negativeId = -1L;
-        when(promoRepository.findById(negativeId)).thenReturn(Optional.empty());
+        when(promoRepository.findByPromoIdAndClientId(negativeId, TEST_CLIENT_ID)).thenReturn(Optional.empty());
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
@@ -440,7 +441,7 @@ class PromoServiceTest {
     @DisplayName("Get Promo Details By Name - Success - Should return promo details")
     void getPromoDetailsByName_Success() {
         // Arrange
-        when(promoRepository.findByPromoCode(TEST_PROMO_CODE)).thenReturn(Optional.of(testPromo));
+        when(promoRepository.findByPromoCodeAndClientId(TEST_PROMO_CODE, TEST_CLIENT_ID)).thenReturn(Optional.of(testPromo));
 
         // Act
         PromoResponseModel result = promoService.getPromoDetailsByName(TEST_PROMO_CODE);
@@ -449,7 +450,7 @@ class PromoServiceTest {
         assertNotNull(result);
         assertEquals(TEST_PROMO_CODE, result.getPromoCode());
         assertEquals(TEST_PROMO_ID, result.getPromoId());
-        verify(promoRepository).findByPromoCode(TEST_PROMO_CODE);
+        verify(promoRepository).findByPromoCodeAndClientId(TEST_PROMO_CODE, TEST_CLIENT_ID);
     }
 
     /**
@@ -461,14 +462,14 @@ class PromoServiceTest {
     void getPromoDetailsByName_PromoCodeNotFound_ThrowsNotFoundException() {
         // Arrange
         String nonExistentCode = "NONEXISTENT";
-        when(promoRepository.findByPromoCode(nonExistentCode)).thenReturn(Optional.empty());
+        when(promoRepository.findByPromoCodeAndClientId(nonExistentCode, TEST_CLIENT_ID)).thenReturn(Optional.empty());
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             promoService.getPromoDetailsByName(nonExistentCode);
         });
         assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, exception.getMessage());
-        verify(promoRepository).findByPromoCode(nonExistentCode);
+        verify(promoRepository).findByPromoCodeAndClientId(nonExistentCode, TEST_CLIENT_ID);
     }
 
     /**
@@ -480,7 +481,7 @@ class PromoServiceTest {
     void getPromoDetailsByName_NullPromoCode_ThrowsNotFoundException() {
         // Arrange
         String nullCode = null;
-        when(promoRepository.findByPromoCode(nullCode)).thenReturn(Optional.empty());
+        when(promoRepository.findByPromoCodeAndClientId(nullCode, TEST_CLIENT_ID)).thenReturn(Optional.empty());
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
@@ -498,7 +499,7 @@ class PromoServiceTest {
     void getPromoDetailsByName_EmptyPromoCode_ThrowsNotFoundException() {
         // Arrange
         String emptyCode = "";
-        when(promoRepository.findByPromoCode(emptyCode)).thenReturn(Optional.empty());
+        when(promoRepository.findByPromoCodeAndClientId(emptyCode, TEST_CLIENT_ID)).thenReturn(Optional.empty());
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
@@ -516,13 +517,13 @@ class PromoServiceTest {
     void getPromoDetailsByName_WhitespacePromoCode_Success() {
         // Arrange
         String whitespaceCode = "   ";
-        when(promoRepository.findByPromoCode(whitespaceCode)).thenReturn(Optional.of(testPromo));
+        when(promoRepository.findByPromoCodeAndClientId(whitespaceCode, TEST_CLIENT_ID)).thenReturn(Optional.of(testPromo));
 
         // Act
         PromoResponseModel result = promoService.getPromoDetailsByName(whitespaceCode);
 
         // Assert
         assertNotNull(result);
-        verify(promoRepository).findByPromoCode(whitespaceCode);
+        verify(promoRepository).findByPromoCodeAndClientId(whitespaceCode, TEST_CLIENT_ID);
     }
 }

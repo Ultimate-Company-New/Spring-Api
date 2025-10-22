@@ -111,8 +111,10 @@ public class UserService extends BaseService implements IUserSubTranslator {
      */
     @Override
     public void toggleUser(long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId));
+        User user = userRepository.findByIdWithAllRelations(id, getClientId());
+        if (user == null) {
+            throw new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId);
+        }
         
         user.setIsDeleted(!user.getIsDeleted());
         user.setModifiedUser(getUser());

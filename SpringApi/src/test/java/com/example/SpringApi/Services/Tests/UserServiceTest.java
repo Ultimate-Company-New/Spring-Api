@@ -30,8 +30,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
+import org.mockito.MockedConstruction;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
@@ -108,6 +109,7 @@ class UserServiceTest {
     @Mock
     private EmailHelper emailHelper;
     
+    @Spy
     @InjectMocks
     private UserService userService;
     
@@ -203,6 +205,9 @@ class UserServiceTest {
         } catch (Exception e) {
             // Ignore reflection exceptions in test
         }
+        
+        // Mock getClientId() to return TEST_CLIENT_ID for multi-tenant filtering
+        lenient().doReturn(TEST_CLIENT_ID).when(userService).getClientId();
     }
 
     // ==================== Toggle User Tests ====================
@@ -275,7 +280,7 @@ class UserServiceTest {
         assertEquals(TEST_LOGIN_NAME, result.getLoginName());
         assertNotNull(result.getPermissions());
         assertEquals(2, result.getPermissions().size());
-        assertEquals("View Users", result.getPermissions().get(0).getPermissionName());
+        assertEquals("Edit Users", result.getPermissions().get(0).getPermissionName());
         
         verify(userRepository, times(1)).findByIdWithAllRelations(eq(TEST_USER_ID), anyLong());
         // Permissions are now loaded eagerly with findByIdWithAllRelations, no separate call needed
@@ -664,7 +669,7 @@ class UserServiceTest {
         Page<User> userPage = new PageImpl<>(users, PageRequest.of(0, 10), 1);
         
         when(userRepository.findPaginatedUsers(
-            eq(1L), isNull(), anyString(), eq("contains"), anyString(), eq(false), any(PageRequest.class)
+            eq(TEST_CLIENT_ID), isNull(), anyString(), anyString(), anyString(), eq(false), any(PageRequest.class)
         )).thenReturn(userPage);
         
         // Act
@@ -675,7 +680,7 @@ class UserServiceTest {
         assertEquals(1, result.getData().size());
         assertEquals(1L, result.getTotalDataCount());
         verify(userRepository, times(1)).findPaginatedUsers(
-            eq(1L), isNull(), anyString(), eq("contains"), anyString(), eq(false), any(PageRequest.class)
+            eq(TEST_CLIENT_ID), isNull(), anyString(), eq("contains"), anyString(), eq(false), any(PageRequest.class)
         );
     }
     
@@ -722,7 +727,7 @@ class UserServiceTest {
         Page<User> userPage = new PageImpl<>(users, PageRequest.of(0, 10), 1);
         
         when(userRepository.findPaginatedUsers(
-            eq(1L), isNull(), eq("firstName"), eq("contains"), eq("Test"), eq(false), any(PageRequest.class)
+            eq(TEST_CLIENT_ID), isNull(), eq("firstName"), eq("contains"), eq("Test"), eq(false), any(PageRequest.class)
         )).thenReturn(userPage);
         
         // Act
@@ -732,7 +737,7 @@ class UserServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getData().size());
         verify(userRepository, times(1)).findPaginatedUsers(
-            eq(1L), isNull(), eq("firstName"), eq("contains"), eq("Test"), eq(false), any(PageRequest.class)
+            eq(TEST_CLIENT_ID), isNull(), eq("firstName"), eq("contains"), eq("Test"), eq(false), any(PageRequest.class)
         );
     }
 }

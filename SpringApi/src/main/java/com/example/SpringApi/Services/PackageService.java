@@ -2,7 +2,6 @@ package com.example.SpringApi.Services;
 
 import com.example.SpringApi.Models.DatabaseModels.Package;
 import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
-import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
@@ -89,6 +88,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
 
                         // Execute paginated query with filtering
         Page<Package> result = packageRepository.findPaginatedPackages(
+            getClientId(),
             paginationBaseRequestModel.getColumnName(),
             paginationBaseRequestModel.getCondition(),
             paginationBaseRequestModel.getFilterExpr(),
@@ -114,8 +114,10 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      */
     @Override
     public PackageResponseModel getPackageById(Long packageId) {
-        Package packageEntity = packageRepository.findById(packageId)
-            .orElseThrow(() -> new NotFoundException(ErrorMessages.PackageErrorMessages.InvalidId));
+        Package packageEntity = packageRepository.findByPackageIdAndClientId(packageId, getClientId());
+        if (packageEntity == null) {
+            throw new NotFoundException(ErrorMessages.PackageErrorMessages.InvalidId);
+        }
         return new PackageResponseModel(packageEntity);
     }
 
@@ -126,7 +128,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      */
     @Override
     public List<PackageResponseModel> getAllPackagesInSystem() {
-        List<Package> packages = packageRepository.findAll();
+        List<Package> packages = packageRepository.findByClientIdAndIsDeletedFalse(getClientId());
         return packages.stream()
             .map(PackageResponseModel::new)
             .collect(java.util.stream.Collectors.toList());
@@ -139,8 +141,10 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      */
     @Override
     public void togglePackage(Long packageId) {
-        Package packageEntity = packageRepository.findById(packageId)
-            .orElseThrow(() -> new NotFoundException(ErrorMessages.PackageErrorMessages.InvalidId));
+        Package packageEntity = packageRepository.findByPackageIdAndClientId(packageId, getClientId());
+        if (packageEntity == null) {
+            throw new NotFoundException(ErrorMessages.PackageErrorMessages.InvalidId);
+        }
 
         // Toggle the deleted status (active/inactive)
         packageEntity.setIsDeleted(!packageEntity.getIsDeleted());
@@ -162,31 +166,19 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      */
     @Override
     public void updatePackage(PackageRequestModel packageRequest) {
-        // Validate address for pickup location
-        validateAddress(packageRequest.getAddress());
-        
-        Package existingPackage = packageRepository.findById(packageRequest.getPackageId())
-            .orElseThrow(() -> new NotFoundException(ErrorMessages.PackageErrorMessages.InvalidId));
+        Package existingPackage = packageRepository.findByPackageIdAndClientId(packageRequest.getPackageId(), getClientId());
+        if (existingPackage == null) {
+            throw new NotFoundException(ErrorMessages.PackageErrorMessages.InvalidId);
+        }
 
-        // Update the existing package with new data
-        existingPackage.setPackageName(packageRequest.getPackageName());
-        existingPackage.setLength(packageRequest.getLength());
-        existingPackage.setBreadth(packageRequest.getBreadth());
-        existingPackage.setHeight(packageRequest.getHeight());
-        existingPackage.setMaxWeight(packageRequest.getMaxWeight());
-        existingPackage.setStandardCapacity(packageRequest.getStandardCapacity());
-        existingPackage.setPricePerUnit(packageRequest.getPricePerUnit());
-        existingPackage.setPackageType(packageRequest.getPackageType());
-        existingPackage.setClientId(packageRequest.getClientId());
-        existingPackage.setIsDeleted(packageRequest.getIsDeleted());
-        existingPackage.setModifiedUser(getUser());
-        
-        Package savedPackage = packageRepository.save(existingPackage);
+        // Create updated package using the constructor
+        Package updatedPackage = new Package(packageRequest, getUser(), existingPackage);
+        packageRepository.save(updatedPackage);
 
         // Logging
         userLogService.logData(
             getUser(),
-            SuccessMessages.PackagesSuccessMessages.UpdatePackage + savedPackage.getPackageId(),
+            SuccessMessages.PackagesSuccessMessages.UpdatePackage + updatedPackage.getPackageId(),
             ApiRoutes.PackageSubRoute.UPDATE_PACKAGE);
     }
 
@@ -197,25 +189,8 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      */
     @Override
     public void createPackage(PackageRequestModel packageRequest) {
-        // Validate address for pickup location
-        validateAddress(packageRequest.getAddress());
-        
-        // Create a new package entity
-        Package newPackage = new Package();
-        newPackage.setPackageName(packageRequest.getPackageName());
-        newPackage.setLength(packageRequest.getLength());
-        newPackage.setBreadth(packageRequest.getBreadth());
-        newPackage.setHeight(packageRequest.getHeight());
-        newPackage.setMaxWeight(packageRequest.getMaxWeight());
-        newPackage.setStandardCapacity(packageRequest.getStandardCapacity());
-        newPackage.setPricePerUnit(packageRequest.getPricePerUnit());
-        newPackage.setPackageType(packageRequest.getPackageType());
-        newPackage.setClientId(packageRequest.getClientId());
-        newPackage.setIsDeleted(packageRequest.getIsDeleted() != null ? packageRequest.getIsDeleted() : Boolean.FALSE);
-        newPackage.setCreatedUser(getUser());
-        newPackage.setModifiedUser(getUser());
-        
-        Package savedPackage = packageRepository.save(newPackage);
+        // Create new package using the constructor
+        Package savedPackage =packageRepository.save(new Package(packageRequest, getUser(), getClientId()));
 
         // Logging
         userLogService.logData(
@@ -232,39 +207,9 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      */
     @Override
     public List<PackageResponseModel> getPackagesByPickupLocationId(Long pickupLocationId) {
-        List<PackagePickupLocationMapping> mappings = packagePickupLocationMappingRepository.findByPickupLocationId(pickupLocationId);
+        List<PackagePickupLocationMapping> mappings = packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(pickupLocationId, getClientId());
         return mappings.stream()
             .map(mapping -> new PackageResponseModel(mapping.getPackageEntity()))
             .collect(Collectors.toList());
-    }
-
-    /**
-     * Validates the address for pickup location requirements.
-     *
-     * @param address The address to validate
-     */
-    private void validateAddress(AddressRequestModel address) {
-        if (address == null) {
-            throw new BadRequestException("Address is required for package validation");
-        }
-        
-        // Validate required address fields
-        if (address.getStreetAddress() == null || address.getStreetAddress().trim().isEmpty()) {
-            throw new BadRequestException("Street address is required");
-        }
-        
-        if (address.getCity() == null || address.getCity().trim().isEmpty()) {
-            throw new BadRequestException("City is required");
-        }
-        
-        if (address.getState() == null || address.getState().trim().isEmpty()) {
-            throw new BadRequestException("State is required");
-        }
-        
-        if (address.getPostalCode() == null || address.getPostalCode().trim().isEmpty()) {
-            throw new BadRequestException("Postal code is required");
-        }
-        
-        // Additional validation can be added here as needed
     }
 }

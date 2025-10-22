@@ -90,7 +90,7 @@ public class Promo {
      * @param request The PromoRequestModel containing promo data
      * @param createdUser The username of the user creating this record
      */
-    public Promo(PromoRequestModel request, String createdUser) {
+    public Promo(PromoRequestModel request, String createdUser, long clientId) {
         validateRequest(request);
         validateUser(createdUser);
         
@@ -98,8 +98,9 @@ public class Promo {
         this.createdUser = createdUser;
         this.modifiedUser = createdUser;  // When creating, modified user is same as created user
         this.notes = "Created Via SpringApi";
-    } 
-    
+        this.clientId = clientId;
+    }
+
     /**
      * Validates the request model for required fields and constraints.
      * 

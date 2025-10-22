@@ -74,6 +74,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
 
     Page<Promo> promos =
         promoRepository.findPaginatedPromos(
+            getClientId(),
             paginationBaseRequestModel.getColumnName(),
             paginationBaseRequestModel.getCondition(),
             paginationBaseRequestModel.getFilterExpr(),
@@ -95,7 +96,8 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
    */
   @Override
   public void createPromo(PromoRequestModel promoRequestModel) {
-    promoRepository.save(new Promo(promoRequestModel, getUser()));
+    // Ensure clientId is set from current context for multi-tenant isolation
+    promoRepository.save(new Promo(promoRequestModel, getUser(), getClientId()));
     userLogService.logData(
         getUser(),
         SuccessMessages.PromoSuccessMessages.CreatePromo + promoRequestModel.getPromoCode(),
@@ -112,7 +114,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   public PromoResponseModel getPromoDetailsById(long id) {
     Promo promo =
         promoRepository
-            .findById(id)
+            .findByPromoIdAndClientId(id, getClientId())
             .orElseThrow(() -> new NotFoundException(ErrorMessages.PromoErrorMessages.InvalidId));
     return new PromoResponseModel(promo);
   }
@@ -127,7 +129,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   public void togglePromo(long id) {
     Promo promo =
         promoRepository
-            .findById(id)
+            .findByPromoIdAndClientId(id, getClientId())
             .orElseThrow(() -> new NotFoundException(ErrorMessages.PromoErrorMessages.InvalidId));
 
     // Toggle the isDeleted flag
@@ -154,7 +156,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   public PromoResponseModel getPromoDetailsByName(String promoCode) {
     Promo promo =
         promoRepository
-            .findByPromoCode(promoCode)
+            .findByPromoCodeAndClientId(promoCode, getClientId())
             .orElseThrow(
                 () -> new NotFoundException(ErrorMessages.PromoErrorMessages.InvalidPromoCode));
     return new PromoResponseModel(promo);

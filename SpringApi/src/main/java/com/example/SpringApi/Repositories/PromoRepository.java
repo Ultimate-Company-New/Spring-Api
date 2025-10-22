@@ -14,7 +14,8 @@ import java.util.Optional;
 public interface PromoRepository extends JpaRepository<Promo, Long> {
 
     @Query("SELECT p FROM Promo p " +
-           "WHERE (:includeDeleted = true OR p.isDeleted = false) " +
+           "WHERE p.clientId = :clientId " +
+           "AND (:includeDeleted = true OR p.isDeleted = false) " +
            "AND (COALESCE(:filterExpr, '') = '' OR " +
            "(CASE :columnName " +
            "WHEN 'promoId' THEN CONCAT(p.promoId, '') " +
@@ -30,11 +31,18 @@ public interface PromoRepository extends JpaRepository<Promo, Long> {
            "WHEN 'isEmpty' THEN '' " +
            "WHEN 'isNotEmpty' THEN '%' " +
            "ELSE '' END))")
-    Page<Promo> findPaginatedPromos(@Param("columnName") String columnName,
+    Page<Promo> findPaginatedPromos(@Param("clientId") Long clientId,
+                                    @Param("columnName") String columnName,
                                     @Param("condition") String condition,
                                     @Param("filterExpr") String filterExpr,
                                     @Param("includeDeleted") boolean includeDeleted,
                                     Pageable pageable);
 
     Optional<Promo> findByPromoCode(String promoCode);
+
+    @Query("SELECT p FROM Promo p WHERE p.promoCode = :promoCode AND p.clientId = :clientId")
+    Optional<Promo> findByPromoCodeAndClientId(@Param("promoCode") String promoCode, @Param("clientId") Long clientId);
+
+    @Query("SELECT p FROM Promo p WHERE p.promoId = :promoId AND p.clientId = :clientId")
+    Optional<Promo> findByPromoIdAndClientId(@Param("promoId") Long promoId, @Param("clientId") Long clientId);
 }

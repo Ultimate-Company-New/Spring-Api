@@ -33,7 +33,6 @@ import org.springframework.data.domain.Sort;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -147,6 +146,8 @@ class PackageServiceTest {
         testAddress.setCity(TEST_CITY);
         testAddress.setState(TEST_STATE);
         testAddress.setPostalCode(TEST_POSTAL_CODE);
+        testAddress.setCountry("USA");
+        testAddress.setAddressType("HOME");
         testPackageRequest.setAddress(testAddress);
 
         // Initialize test pagination request
@@ -190,7 +191,7 @@ class PackageServiceTest {
         Page<Package> packagePage = new PageImpl<>(packageList, PageRequest.of(0, 10, Sort.by("packageId")), 1);
 
         when(packageRepository.findPaginatedPackages(
-            eq("packageId"), eq("equals"), eq("1"), eq(false), any(Pageable.class)
+            eq(TEST_CLIENT_ID), eq("packageId"), eq("equals"), eq("1"), eq(false), any(Pageable.class)
         )).thenReturn(packagePage);
 
         // Act
@@ -210,7 +211,7 @@ class PackageServiceTest {
         Page<Package> emptyPage = new PageImpl<>(Arrays.asList(), PageRequest.of(0, 10, Sort.by("packageId")), 0);
 
         when(packageRepository.findPaginatedPackages(
-            eq("packageId"), eq("equals"), eq("1"), eq(false), any(Pageable.class)
+            eq(TEST_CLIENT_ID), eq("packageId"), eq("equals"), eq("1"), eq(false), any(Pageable.class)
         )).thenReturn(emptyPage);
 
         // Act
@@ -241,7 +242,7 @@ class PackageServiceTest {
     @DisplayName("getPackageById - Success: Valid package ID")
     void testGetPackageById_Success() {
         // Arrange
-        when(packageRepository.findById(TEST_PACKAGE_ID)).thenReturn(Optional.of(testPackage));
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
 
         // Act
         PackageResponseModel result = packageService.getPackageById(TEST_PACKAGE_ID);
@@ -256,7 +257,7 @@ class PackageServiceTest {
     @DisplayName("getPackageById - Failure: Package not found")
     void testGetPackageById_NotFound() {
         // Arrange
-        when(packageRepository.findById(TEST_PACKAGE_ID)).thenReturn(Optional.empty());
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
@@ -272,7 +273,7 @@ class PackageServiceTest {
     void testGetAllPackagesInSystem_Success() {
         // Arrange
         List<Package> packageList = Arrays.asList(testPackage);
-        when(packageRepository.findAll()).thenReturn(packageList);
+        when(packageRepository.findByClientIdAndIsDeletedFalse(TEST_CLIENT_ID)).thenReturn(packageList);
 
         // Act
         List<PackageResponseModel> result = packageService.getAllPackagesInSystem();
@@ -289,14 +290,14 @@ class PackageServiceTest {
     @DisplayName("togglePackage - Success: Toggle package status")
     void testTogglePackage_Success() {
         // Arrange
-        when(packageRepository.findById(TEST_PACKAGE_ID)).thenReturn(Optional.of(testPackage));
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
         when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
 
         // Act
         assertDoesNotThrow(() -> packageService.togglePackage(TEST_PACKAGE_ID));
 
         // Assert
-        verify(packageRepository, times(1)).findById(TEST_PACKAGE_ID);
+        verify(packageRepository, times(1)).findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID);
         verify(packageRepository, times(1)).save(testPackage);
         verify(userLogService, times(1)).logData(
             eq(CREATED_USER),
@@ -309,7 +310,7 @@ class PackageServiceTest {
     @DisplayName("togglePackage - Failure: Package not found")
     void testTogglePackage_NotFound() {
         // Arrange
-        when(packageRepository.findById(TEST_PACKAGE_ID)).thenReturn(Optional.empty());
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
@@ -325,14 +326,14 @@ class PackageServiceTest {
     @DisplayName("updatePackage - Success: Valid update request")
     void testUpdatePackage_Success() {
         // Arrange
-        when(packageRepository.findById(TEST_PACKAGE_ID)).thenReturn(Optional.of(testPackage));
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
         when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
 
         // Act
         assertDoesNotThrow(() -> packageService.updatePackage(testPackageRequest));
 
         // Assert
-        verify(packageRepository, times(1)).findById(TEST_PACKAGE_ID);
+        verify(packageRepository, times(1)).findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID);
         verify(packageRepository, times(1)).save(any(Package.class));
         verify(userLogService, times(1)).logData(
             eq(CREATED_USER),
@@ -345,7 +346,7 @@ class PackageServiceTest {
     @DisplayName("updatePackage - Failure: Package not found")
     void testUpdatePackage_NotFound() {
         // Arrange
-        when(packageRepository.findById(TEST_PACKAGE_ID)).thenReturn(Optional.empty());
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
@@ -359,6 +360,7 @@ class PackageServiceTest {
     @DisplayName("updatePackage - Failure: Null address")
     void testUpdatePackage_NullAddress() {
         // Arrange
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
         testPackageRequest.setAddress(null);
 
         // Act & Assert
@@ -372,6 +374,7 @@ class PackageServiceTest {
     @DisplayName("updatePackage - Failure: Missing street address")
     void testUpdatePackage_MissingStreetAddress() {
         // Arrange
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
         testAddress.setStreetAddress(null);
         testPackageRequest.setAddress(testAddress);
 
@@ -379,13 +382,14 @@ class PackageServiceTest {
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> packageService.updatePackage(testPackageRequest));
 
-        assertEquals("Street address is required", exception.getMessage());
+        assertEquals("Address line 1 is required.", exception.getMessage());
     }
 
     @Test
     @DisplayName("updatePackage - Failure: Missing city")
     void testUpdatePackage_MissingCity() {
         // Arrange
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
         testAddress.setCity(null);
         testPackageRequest.setAddress(testAddress);
 
@@ -393,13 +397,14 @@ class PackageServiceTest {
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> packageService.updatePackage(testPackageRequest));
 
-        assertEquals("City is required", exception.getMessage());
+        assertEquals("City is required.", exception.getMessage());
     }
 
     @Test
     @DisplayName("updatePackage - Failure: Missing state")
     void testUpdatePackage_MissingState() {
         // Arrange
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
         testAddress.setState(null);
         testPackageRequest.setAddress(testAddress);
 
@@ -407,13 +412,14 @@ class PackageServiceTest {
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> packageService.updatePackage(testPackageRequest));
 
-        assertEquals("State is required", exception.getMessage());
+        assertEquals("State is required.", exception.getMessage());
     }
 
     @Test
     @DisplayName("updatePackage - Failure: Missing postal code")
     void testUpdatePackage_MissingPostalCode() {
         // Arrange
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
         testAddress.setPostalCode(null);
         testPackageRequest.setAddress(testAddress);
 
@@ -421,7 +427,7 @@ class PackageServiceTest {
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> packageService.updatePackage(testPackageRequest));
 
-        assertEquals("Postal code is required", exception.getMessage());
+        assertEquals("Zip Code is required.", exception.getMessage());
     }
 
     // ==================== createPackage Tests ====================
@@ -468,7 +474,7 @@ class PackageServiceTest {
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> packageService.createPackage(testPackageRequest));
 
-        assertEquals("Street address is required", exception.getMessage());
+        assertEquals("Address line 1 is required.", exception.getMessage());
     }
 
     // ==================== getPackagesByPickupLocationId Tests ====================
@@ -478,7 +484,7 @@ class PackageServiceTest {
     void testGetPackagesByPickupLocationId_Success() {
         // Arrange
         List<PackagePickupLocationMapping> mappings = Arrays.asList(testMapping);
-        when(packagePickupLocationMappingRepository.findByPickupLocationId(TEST_PICKUP_LOCATION_ID))
+        when(packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
             .thenReturn(mappings);
 
         // Act
@@ -494,7 +500,7 @@ class PackageServiceTest {
     @DisplayName("getPackagesByPickupLocationId - Success: Empty result")
     void testGetPackagesByPickupLocationId_EmptyResult() {
         // Arrange
-        when(packagePickupLocationMappingRepository.findByPickupLocationId(TEST_PICKUP_LOCATION_ID))
+        when(packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
             .thenReturn(Arrays.asList());
 
         // Act

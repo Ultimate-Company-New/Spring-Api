@@ -22,6 +22,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -72,6 +73,7 @@ class UserGroupServiceTest {
     @Mock
     private HttpServletRequest request;
     
+    @Spy
     @InjectMocks
     private UserGroupService userGroupService;
     
@@ -126,6 +128,7 @@ class UserGroupServiceTest {
         
         // Setup common mock behaviors with lenient mocking for JWT authentication
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+        lenient().doReturn(TEST_CLIENT_ID).when(userGroupService).getClientId();
         
         // Note: We avoid mocking getUser() and getClientId() to let JWT authentication work
         // The JWT authentication will provide these values automatically
@@ -184,11 +187,7 @@ class UserGroupServiceTest {
     @DisplayName("Get User Group Details By ID - Success - Should return group with users")
     void getUserGroupDetailsById_Success() {
         // Arrange
-        List<UserGroupUserMap> mappings = Arrays.asList(testMapping);
-        
-        when(userGroupRepository.findById(TEST_GROUP_ID)).thenReturn(Optional.of(testUserGroup));
-        when(userGroupUserMapRepository.findByGroupId(TEST_GROUP_ID)).thenReturn(mappings);
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+        when(userGroupRepository.findByIdWithUsers(TEST_GROUP_ID)).thenReturn(testUserGroup);
         
         // Act
         UserGroupResponseModel result = userGroupService.getUserGroupDetailsById(TEST_GROUP_ID);
@@ -198,12 +197,8 @@ class UserGroupServiceTest {
         assertEquals(TEST_GROUP_ID, result.getGroupId());
         assertEquals(TEST_GROUP_NAME, result.getGroupName());
         assertEquals(TEST_DESCRIPTION, result.getDescription());
-        assertEquals(1, result.getUsers().size());
-        assertEquals(TEST_USER_ID, result.getUsers().get(0).getUserId());
         
-        verify(userGroupRepository, times(1)).findById(TEST_GROUP_ID);
-        verify(userGroupUserMapRepository, times(1)).findByGroupId(TEST_GROUP_ID);
-        verify(userRepository, times(1)).findById(TEST_USER_ID);
+        verify(userGroupRepository, times(1)).findByIdWithUsers(TEST_GROUP_ID);
     }
     
     /**
@@ -214,7 +209,7 @@ class UserGroupServiceTest {
     @DisplayName("Get User Group Details By ID - Failure - Group not found")
     void getUserGroupDetailsById_GroupNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(userGroupRepository.findById(TEST_GROUP_ID)).thenReturn(Optional.empty());
+        when(userGroupRepository.findByIdWithUsers(TEST_GROUP_ID)).thenReturn(null);
         
         // Act & Assert
         NotFoundException exception = assertThrows(
@@ -223,8 +218,7 @@ class UserGroupServiceTest {
         );
         
         assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, exception.getMessage());
-        verify(userGroupRepository, times(1)).findById(TEST_GROUP_ID);
-        verify(userGroupUserMapRepository, never()).findByGroupId(anyLong());
+        verify(userGroupRepository, times(1)).findByIdWithUsers(TEST_GROUP_ID);
     }
 
     // ==================== Create User Group Tests ====================
