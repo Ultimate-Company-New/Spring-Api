@@ -158,6 +158,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
      */
     @Override
     public void updateClient(ClientRequestModel clientRequest) {
+        // TODO: We need to add code to update the client logo
         Optional<Client> existingClient = clientRepository.findById(clientRequest.getClientId());
         if (existingClient.isPresent()) {
             Client client = new Client(clientRequest, getUser(), existingClient.get());
@@ -167,27 +168,6 @@ public class ClientService extends BaseService implements IClientSubTranslator {
         } else {
             throw new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId);
         }
-    }
-
-    /**
-     * Retrieves all clients in the system.
-     * 
-     * This method fetches all clients from the database. The method returns
-     * a list of ClientResponseModel objects, each containing complete client
-     * information. Returns an empty list if no clients are found.
-     * 
-     * @return List of ClientResponseModel objects for all clients
-     */
-    @Override
-    public List<ClientResponseModel> getAllClients() {
-        List<Client> clients = clientRepository.findAll();
-        List<ClientResponseModel> responseModels = new ArrayList<>();
-        
-        for (Client client : clients) {
-            responseModels.add(new ClientResponseModel(client));
-        }
-        
-        return responseModels;
     }
 
     /**

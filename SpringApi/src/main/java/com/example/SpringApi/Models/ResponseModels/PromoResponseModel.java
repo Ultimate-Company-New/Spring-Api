@@ -34,9 +34,6 @@ public class PromoResponseModel {
     private String modifiedUser;
     private String notes;
     
-    // Related entities
-    private Client client;
-    
     // Additional computed fields
     private String discountDisplay;
     private Boolean isActive;
@@ -61,10 +58,7 @@ public class PromoResponseModel {
             this.updatedAt = promo.getUpdatedAt();
             this.modifiedUser = promo.getModifiedUser();
             this.notes = promo.getNotes();
-            
-            // Set related entities if loaded
-            this.client = promo.getClient();
-            
+                        
             // Compute additional fields
             this.isActive = !this.isDeleted;
             this.promoType = this.isPercent ? "Percentage" : "Fixed Amount";

@@ -355,56 +355,6 @@ class ClientServiceTest {
         verify(clientRepository, never()).save(any(Client.class));
     }
 
-    // ==================== Get All Clients Tests ====================
-    
-    /**
-     * Test successful retrieval of all clients.
-     * Verifies that all clients are returned.
-     */
-    @Test
-    @DisplayName("Get All Clients - Success - Should return all clients")
-    void getAllClients_Success() {
-        // Arrange
-        Client secondClient = new Client(testClientRequest, CREATED_USER);
-        secondClient.setClientId(2L);
-        secondClient.setName("Second Client");
-        
-        List<Client> clients = Arrays.asList(testClient, secondClient);
-        when(clientRepository.findAll()).thenReturn(clients);
-        
-        // Act
-        List<ClientResponseModel> result = clientService.getAllClients();
-        
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(TEST_CLIENT_ID, result.get(0).getClientId());
-        assertEquals(TEST_CLIENT_NAME, result.get(0).getName());
-        assertEquals(2L, result.get(1).getClientId());
-        assertEquals("Second Client", result.get(1).getName());
-        
-        verify(clientRepository, times(1)).findAll();
-    }
-    
-    /**
-     * Test get all clients when no clients exist.
-     * Verifies that empty list is returned.
-     */
-    @Test
-    @DisplayName("Get All Clients - Success - Empty list")
-    void getAllClients_EmptyList_ReturnsEmptyList() {
-        // Arrange
-        when(clientRepository.findAll()).thenReturn(new ArrayList<>());
-        
-        // Act
-        List<ClientResponseModel> result = clientService.getAllClients();
-        
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-        verify(clientRepository, times(1)).findAll();
-    }
-
     // ==================== Get Clients By User Tests ====================
     
     /**

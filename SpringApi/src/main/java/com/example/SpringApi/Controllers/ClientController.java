@@ -67,33 +67,6 @@ public class ClientController {
     }
 
     /**
-     * Retrieves all clients in the system.
-     * 
-     * This endpoint fetches all clients from the database. The response contains
-     * a list of ClientResponseModel objects, each with complete client information.
-     * Returns an empty list if no clients are found. Requires VIEW_CLIENT_PERMISSION.
-     * 
-     * @return ResponseEntity containing List<ClientResponseModel> or ErrorResponseModel
-     */
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_CLIENT_PERMISSION +"')")
-    @GetMapping("/" + ApiRoutes.ClientSubRoute.GET_CLIENTS)
-    public ResponseEntity<?> getAllClients() {
-        try {
-            return ResponseEntity.ok(clientService.getAllClients());
-        } catch (BadRequestException bre) {
-            logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
-        } catch (NotFoundException nfe) {
-            logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
-        } catch (Exception e) {
-            logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
-        }
-    }
-
-    /**
      * Retrieves all clients mapped to the current user.
      * 
      * This endpoint fetches all clients where the current user has a mapping

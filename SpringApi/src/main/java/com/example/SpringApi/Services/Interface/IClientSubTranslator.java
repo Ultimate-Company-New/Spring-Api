@@ -72,17 +72,6 @@ public interface IClientSubTranslator {
     void updateClient(ClientRequestModel client);
 
     /**
-     * Retrieves all clients in the system.
-     * 
-     * This method fetches all clients from the database. The method returns
-     * a list of ClientResponseModel objects, each containing complete client
-     * information. Returns an empty list if no clients are found.
-     * 
-     * @return List of ClientResponseModel objects for all clients
-     */
-    List<ClientResponseModel> getAllClients();
-
-    /**
      * Retrieves all clients mapped to the current user.
      * 
      * This method fetches all clients where the current user has a mapping
