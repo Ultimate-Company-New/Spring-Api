@@ -1,5 +1,7 @@
 package com.example.SpringApi.Models.DatabaseModels;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -59,28 +61,16 @@ public class Promo {
     @Column(name = "createdUser", nullable = false, length = 255)
     private String createdUser;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "createdUser", referencedColumnName = "loginName", insertable = false, updatable = false)
-    private User createdByUser;
-
     @UpdateTimestamp
     @Column(name = "updatedAt", nullable = false)
     private LocalDateTime updatedAt;
 
     @Column(name = "modifiedUser", nullable = false, length = 255)
     private String modifiedUser;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "modifiedUser", referencedColumnName = "loginName", insertable = false, updatable = false)
-    private User modifiedByUser;
     
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
-    
-    // Relations
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "clientId", insertable = false, updatable = false)
-    private Client client;
+
     
     public Promo() {}
     
@@ -97,7 +87,6 @@ public class Promo {
         setFieldsFromRequest(request);
         this.createdUser = createdUser;
         this.modifiedUser = createdUser;  // When creating, modified user is same as created user
-        this.notes = "Created Via SpringApi";
         this.clientId = clientId;
     }
 
@@ -169,6 +158,7 @@ public class Promo {
         this.discountValue = request.getDiscountValue();
         this.promoCode = request.getPromoCode().trim().toUpperCase(); // Standardize to uppercase
         this.clientId = request.getClientId();
+        this.notes = request.getNotes() != null ? request.getNotes().trim() : "Created Via SpringApi";
     }
     
     /**

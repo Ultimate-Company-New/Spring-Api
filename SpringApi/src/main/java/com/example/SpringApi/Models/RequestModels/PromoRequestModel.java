@@ -25,4 +25,5 @@ public class PromoRequestModel extends PaginationBaseRequestModel {
     private BigDecimal discountValue;
     private String promoCode;
     private Long clientId;
+    private String notes;
 }

@@ -20,11 +20,10 @@ import com.example.SpringApi.SuccessMessages;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Set;
@@ -89,15 +88,23 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             throw new BadRequestException("Invalid column name for filtering: " + paginationBaseRequestModel.getColumnName());
         }
         
-        // Calculate page number from start and pageSize
-        int pageNumber = paginationBaseRequestModel.getStart() / paginationBaseRequestModel.getPageSize();
+        int start = paginationBaseRequestModel.getStart();
+        int end = paginationBaseRequestModel.getEnd();
+        int limit = end - start;
         
-        // Create pageable with basic sorting
-        Sort sort = Sort.by(Sort.Direction.ASC, "packageId");
-        Pageable pageable = PageRequest.of(pageNumber, paginationBaseRequestModel.getPageSize(), sort);
-
-                        // Execute paginated query with filtering
-        Page<Package> result = packageRepository.findPaginatedPackages(
+        // Create custom Pageable with exact OFFSET and LIMIT for database-level pagination
+        // Spring's PageRequest.of(page, size) uses: OFFSET = page * size, LIMIT = size
+        // For arbitrary offsets (e.g., start=5, end=15), we need OFFSET=5, LIMIT=10
+        // Solution: Override getOffset() to return the exact start position
+        org.springframework.data.domain.Pageable pageable = new org.springframework.data.domain.PageRequest(0, limit, Sort.by("packageId").descending()) {
+            @Override
+            public long getOffset() {
+                return start;
+            }
+        };
+        
+        // Execute paginated query with filtering - Page object handles count automatically
+        Page<Package> page = packageRepository.findPaginatedPackages(
             getClientId(),
             paginationBaseRequestModel.getColumnName(),
             paginationBaseRequestModel.getCondition(),
@@ -108,10 +115,15 @@ public class PackageService extends BaseService implements IPackageSubTranslator
 
         // Convert Package entities to PackageResponseModel
         PaginationBaseResponseModel<PackageResponseModel> response = new PaginationBaseResponseModel<>();
-        response.setData(result.getContent().stream()
-            .map(PackageResponseModel::new)
-            .collect(Collectors.toList()));
-        response.setTotalDataCount(result.getTotalElements());
+        List<PackageResponseModel> packageResponseModels = new ArrayList<>();
+        for (Package pkg : page.getContent()) {
+            PackageResponseModel packageResponseModel = new PackageResponseModel(pkg);
+            packageResponseModels.add(packageResponseModel);
+        }
+        
+        // Set the total count of all filtered records
+        response.setData(packageResponseModels);
+        response.setTotalDataCount(page.getTotalElements());
 
         return response;
     }    

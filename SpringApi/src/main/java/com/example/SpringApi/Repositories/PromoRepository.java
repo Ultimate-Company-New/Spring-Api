@@ -22,6 +22,13 @@ public interface PromoRepository extends JpaRepository<Promo, Long> {
            "WHEN 'promoCode' THEN CONCAT(p.promoCode, '') " +
            "WHEN 'description' THEN CONCAT(p.description, '') " +
            "WHEN 'discountValue' THEN CONCAT(p.discountValue, '') " +
+           "WHEN 'isPercent' THEN CONCAT(p.isPercent, '') " +
+           "WHEN 'isDeleted' THEN CONCAT(p.isDeleted, '') " +
+           "WHEN 'createdUser' THEN CONCAT(p.createdUser, '') " +
+           "WHEN 'modifiedUser' THEN CONCAT(p.modifiedUser, '') " +
+           "WHEN 'createdAt' THEN CONCAT(p.createdAt, '') " +
+           "WHEN 'updatedAt' THEN CONCAT(p.updatedAt, '') " +
+           "WHEN 'notes' THEN CONCAT(p.notes, '') " +
            "ELSE '' END) LIKE " +
            "(CASE :condition " +
            "WHEN 'contains' THEN CONCAT('%', :filterExpr, '%') " +

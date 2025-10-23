@@ -15,10 +15,10 @@ public interface PackageRepository extends JpaRepository<Package, Long> {
     @Query("SELECT p FROM Package p WHERE p.clientId = :clientId AND p.isDeleted = false")
     List<Package> findByClientIdAndIsDeletedFalse(@Param("clientId") Long clientId);
 
-    @Query("select p from Package p " +
-            "where p.clientId = :clientId " +
-            "and (:includeDeleted = true OR p.isDeleted = false) " +
-            "and (COALESCE(:filterExpr, '') = '' OR " +
+    @Query("SELECT p FROM Package p " +
+            "WHERE p.clientId = :clientId " +
+            "AND (:includeDeleted = true OR p.isDeleted = false) " +
+            "AND (COALESCE(:filterExpr, '') = '' OR " +
             "(CASE :columnName " +
             "WHEN 'packageId' THEN CONCAT(p.packageId, '') " +
             "WHEN 'packageName' THEN CONCAT(p.packageName, '') " +
@@ -29,6 +29,8 @@ public interface PackageRepository extends JpaRepository<Package, Long> {
             "WHEN 'pricePerUnit' THEN CONCAT(p.pricePerUnit, '') " +
             "WHEN 'createdUser' THEN CONCAT(p.createdUser, '') " +
             "WHEN 'modifiedUser' THEN CONCAT(p.modifiedUser, '') " +
+            "WHEN 'createdAt' THEN CONCAT(p.createdAt, '') " +
+            "WHEN 'updatedAt' THEN CONCAT(p.updatedAt, '') " +
             "WHEN 'notes' THEN CONCAT(p.notes, '') " +
             "WHEN 'isDeleted' THEN CONCAT(p.isDeleted, '') " +
             "ELSE '' END) LIKE " +

@@ -57,7 +57,8 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
       PaginationBaseRequestModel paginationBaseRequestModel) {
     // Valid columns for filtering
     Set<String> validColumns =
-        new HashSet<>(Arrays.asList("promoId", "promoCode", "description", "discountValue"));
+        new HashSet<>(Arrays.asList("promoId", "promoCode", "description", "discountValue", 
+            "isPercent", "isDeleted", "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes"));
 
     // Validate column name
     if (paginationBaseRequestModel.getColumnName() != null
@@ -66,24 +67,36 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
           "Invalid column name: " + paginationBaseRequestModel.getColumnName());
     }
 
-    // Calculate page number and size
-    int pageSize = paginationBaseRequestModel.getEnd() - paginationBaseRequestModel.getStart();
-    int pageNumber = paginationBaseRequestModel.getStart() / pageSize;
+    // Calculate page size and offset
+    int start = paginationBaseRequestModel.getStart();
+    int end = paginationBaseRequestModel.getEnd();
+    int pageSize = end - start;
 
-    PageRequest pageRequest = PageRequest.of(pageNumber, pageSize, Sort.by("promoId").descending());
+    // Validate page size
+    if (pageSize <= 0) {
+      throw new BadRequestException("Invalid pagination: end must be greater than start");
+    }
 
-    Page<Promo> promos =
+    // Create custom Pageable with proper offset handling
+    org.springframework.data.domain.Pageable pageable = new org.springframework.data.domain.PageRequest(0, pageSize, Sort.by("promoId").descending()) {
+      @Override
+      public long getOffset() {
+        return start;
+      }
+    };
+
+    Page<Promo> page =
         promoRepository.findPaginatedPromos(
             getClientId(),
             paginationBaseRequestModel.getColumnName(),
             paginationBaseRequestModel.getCondition(),
             paginationBaseRequestModel.getFilterExpr(),
             paginationBaseRequestModel.isIncludeDeleted(),
-            pageRequest);
+            pageable);
 
     PaginationBaseResponseModel<Promo> response = new PaginationBaseResponseModel<>();
-    response.setData(promos.getContent());
-    response.setTotalDataCount(promos.getTotalElements());
+    response.setData(page.getContent());
+    response.setTotalDataCount(page.getTotalElements());
 
     return response;
   }
