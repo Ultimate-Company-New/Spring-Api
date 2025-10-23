@@ -15,7 +15,8 @@ public interface LeadRepository extends JpaRepository<Lead, Long> {
            "LEFT JOIN FETCH l.address a " +
            "LEFT JOIN FETCH l.createdByUser " +
            "LEFT JOIN FETCH l.assignedAgent " +
-           "WHERE (:includeDeleted = true OR l.isDeleted = false) " +
+           "WHERE l.clientId = :clientId " +
+           "AND (:includeDeleted = true OR l.isDeleted = false) " +
            "AND (COALESCE(:filterExpr, '') = '' OR " +
            "(CASE :columnName " +
            "WHEN 'leadId' THEN CONCAT(l.leadId, '') " +
@@ -28,6 +29,15 @@ public interface LeadRepository extends JpaRepository<Lead, Long> {
            "WHEN 'companySize' THEN CONCAT(l.companySize, '') " +
            "WHEN 'title' THEN CONCAT(l.title, '') " +
            "WHEN 'leadStatus' THEN CONCAT(l.leadStatus, '') " +
+           "WHEN 'company' THEN CONCAT(l.company, '') " +
+           "WHEN 'annualRevenue' THEN CONCAT(l.annualRevenue, '') " +
+           "WHEN 'fax' THEN CONCAT(l.fax, '') " +
+           "WHEN 'isDeleted' THEN CONCAT(l.isDeleted, '') " +
+           "WHEN 'createdUser' THEN CONCAT(l.createdUser, '') " +
+           "WHEN 'modifiedUser' THEN CONCAT(l.modifiedUser, '') " +
+           "WHEN 'createdAt' THEN CONCAT(l.createdAt, '') " +
+           "WHEN 'updatedAt' THEN CONCAT(l.updatedAt, '') " +
+           "WHEN 'notes' THEN CONCAT(l.notes, '') " +
            "ELSE '' END) LIKE " +
            "(CASE :condition " +
            "WHEN 'contains' THEN CONCAT('%', :filterExpr, '%') " +
@@ -37,7 +47,8 @@ public interface LeadRepository extends JpaRepository<Lead, Long> {
            "WHEN 'isEmpty' THEN '' " +
            "WHEN 'isNotEmpty' THEN '%' " +
            "ELSE '' END))")
-    Page<Lead> findPaginatedLeads(@Param("columnName") String columnName,
+    Page<Lead> findPaginatedLeads(@Param("clientId") Long clientId,
+                                  @Param("columnName") String columnName,
                                   @Param("condition") String condition,
                                   @Param("filterExpr") String filterExpr,
                                   @Param("includeDeleted") boolean includeDeleted,
@@ -47,13 +58,13 @@ public interface LeadRepository extends JpaRepository<Lead, Long> {
            "LEFT JOIN FETCH l.address " +
            "LEFT JOIN FETCH l.createdByUser " +
            "LEFT JOIN FETCH l.assignedAgent " +
-           "WHERE l.leadId = :leadId")
-    Lead findLeadWithDetailsById(@Param("leadId") Long leadId);
+           "WHERE l.leadId = :leadId AND l.clientId = :clientId")
+    Lead findLeadWithDetailsById(@Param("leadId") Long leadId, @Param("clientId") Long clientId);
 
     @Query("SELECT l FROM Lead l " +
            "LEFT JOIN FETCH l.address " +
            "LEFT JOIN FETCH l.createdByUser " +
            "LEFT JOIN FETCH l.assignedAgent " +
-           "WHERE l.email = :email")
-    Lead findLeadWithDetailsByEmail(@Param("email") String email);
+           "WHERE l.email = :email AND l.clientId = :clientId")
+    Lead findLeadWithDetailsByEmail(@Param("email") String email, @Param("clientId") Long clientId);
 }

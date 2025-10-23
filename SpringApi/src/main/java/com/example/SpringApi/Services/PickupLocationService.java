@@ -109,26 +109,40 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
      */
     @Override
     public PaginationBaseResponseModel<PickupLocationResponseModel> getPickupLocationsInBatches(PaginationBaseRequestModel paginationBaseRequestModel) {
+        // Valid columns for filtering
         Set<String> validColumns = new HashSet<>(Arrays.asList(
-            "pickupLocationId",
-            "locationName",
-            "address"
+            "pickupLocationId", "locationName", "address", "isDeleted", 
+            "shipRocketPickupLocationId", "createdBy", "modifiedBy", 
+            "createdAt", "updatedAt", "notes"
         ));
 
+        // Validate column name
         if (paginationBaseRequestModel.getColumnName() != null &&
             !validColumns.contains(paginationBaseRequestModel.getColumnName())) {
             throw new BadRequestException("Invalid column name for filtering: " + paginationBaseRequestModel.getColumnName());
         }
 
-        // Calculate page number from start and pageSize
-        int pageNumber = paginationBaseRequestModel.getStart() / paginationBaseRequestModel.getPageSize();
+        // Calculate page size and offset
+        int start = paginationBaseRequestModel.getStart();
+        int end = paginationBaseRequestModel.getEnd();
+        int pageSize = end - start;
 
-        // Create pageable with basic sorting
-        Sort sort = Sort.by(Sort.Direction.ASC, "pickupLocationId");
-        Pageable pageable = PageRequest.of(pageNumber, paginationBaseRequestModel.getPageSize(), sort);
+        // Validate page size
+        if (pageSize <= 0) {
+            throw new BadRequestException("Invalid pagination: end must be greater than start");
+        }
 
-        // Execute paginated query with filtering
-        Page<Object[]> result = pickupLocationRepository.findPaginatedPickupLocations(
+        // Create custom Pageable with proper offset handling
+        Pageable pageable = new PageRequest(0, pageSize, Sort.by("pickupLocationId").descending()) {
+            @Override
+            public long getOffset() {
+                return start;
+            }
+        };
+
+        // Execute paginated query with filtering and clientId
+        Page<PickupLocation> result = pickupLocationRepository.findPaginatedPickupLocations(
+            getClientId(),
             paginationBaseRequestModel.getColumnName(),
             paginationBaseRequestModel.getCondition(),
             paginationBaseRequestModel.getFilterExpr(),
@@ -136,15 +150,10 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
             pageable
         );
 
-        // Convert Object[] results to PickupLocationResponseModel
+        // Convert PickupLocation results to PickupLocationResponseModel
         PaginationBaseResponseModel<PickupLocationResponseModel> response = new PaginationBaseResponseModel<>();
         response.setData(result.getContent().stream()
-            .map(objects -> {
-                PickupLocation pickupLocation = (PickupLocation) objects[0];
-                Address address = (Address) objects[1];
-                PickupLocationResponseModel responseModel = new PickupLocationResponseModel(pickupLocation, address);
-                return responseModel;
-            })
+            .map(pickupLocation -> new PickupLocationResponseModel(pickupLocation))
             .collect(Collectors.toList()));
         response.setTotalDataCount(result.getTotalElements());
 
@@ -163,12 +172,12 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
      */
     @Override
     public PickupLocationResponseModel getPickupLocationById(long pickupLocationId) {
-        PickupLocation pickupLocation = pickupLocationRepository.findPickupLocationById(pickupLocationId);
+        PickupLocation pickupLocation = pickupLocationRepository.findPickupLocationByIdAndClientId(pickupLocationId, getClientId());
         if (pickupLocation == null) {
             throw new NotFoundException(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, pickupLocationId));
         }
         
-        return new PickupLocationResponseModel(pickupLocation, pickupLocation.getAddress());
+        return new PickupLocationResponseModel(pickupLocation);
     }
 
     /**
@@ -226,8 +235,11 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
     @Transactional
     public void updatePickupLocation(PickupLocationRequestModel pickupLocationRequestModel) throws Exception {
         // Get the existing pickup location
-        PickupLocation existingPickupLocation = pickupLocationRepository.findById(pickupLocationRequestModel.getPickupLocationId())
-            .orElseThrow(() -> new NotFoundException(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, pickupLocationRequestModel.getPickupLocationId())));
+        PickupLocation existingPickupLocation = pickupLocationRepository.findPickupLocationByIdAndClientId(
+            pickupLocationRequestModel.getPickupLocationId(), getClientId());
+        if (existingPickupLocation == null) {
+            throw new NotFoundException(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, pickupLocationRequestModel.getPickupLocationId()));
+        }
         
         // Update the address if provided
         if (pickupLocationRequestModel.getAddress() != null) {
@@ -240,11 +252,16 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         
         // Update the pickup location
         PickupLocation updatedPickupLocation = new PickupLocation(pickupLocationRequestModel, getUser(), existingPickupLocation);
-        pickupLocationRepository.save(updatedPickupLocation);
         
-        // Update in ShipRocket
+        // Update in ShipRocket first to get the ShipRocket ID
         ShippingHelper shippingHelper = getShippingHelper();
-        shippingHelper.addPickupLocation(updatedPickupLocation);
+        AddPickupLocationResponseModel addPickupLocationResponse = shippingHelper.addPickupLocation(updatedPickupLocation);
+        
+        // Set the ShipRocket ID from the response
+        updatedPickupLocation.setShipRocketPickupLocationId(addPickupLocationResponse.getPickup_id());
+        
+        // Save the updated pickup location with ShipRocket ID to database
+        pickupLocationRepository.save(updatedPickupLocation);
         
         // Log the update
         userLogService.logData(getUserId(), SuccessMessages.PickupLocationSuccessMessages.UpdatePickupLocation + " " + updatedPickupLocation.getPickupLocationId(), ApiRoutes.PickupLocationsSubRoute.UPDATE_PICKUP_LOCATION);
@@ -263,8 +280,10 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
      */
     @Override
     public void togglePickupLocation(long pickupLocationId) {
-        PickupLocation pickupLocation = pickupLocationRepository.findById(pickupLocationId)
-            .orElseThrow(() -> new NotFoundException(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, pickupLocationId)));
+        PickupLocation pickupLocation = pickupLocationRepository.findPickupLocationByIdAndClientId(pickupLocationId, getClientId());
+        if (pickupLocation == null) {
+            throw new NotFoundException(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, pickupLocationId));
+        }
         
         pickupLocation.setIsDeleted(!pickupLocation.getIsDeleted());
         pickupLocation.setModifiedBy(getUser());
@@ -286,10 +305,10 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
      */
     @Override
     public List<PickupLocationResponseModel> getAllPickupLocations(boolean includeDeleted) {
-        List<PickupLocation> pickupLocations = pickupLocationRepository.findAllWithAddresses(includeDeleted);
+        List<PickupLocation> pickupLocations = pickupLocationRepository.findAllWithAddressesByClientId(getClientId(), includeDeleted);
         
         return pickupLocations.stream()
-            .map(pickupLocation -> new PickupLocationResponseModel(pickupLocation, pickupLocation.getAddress()))
+            .map(pickupLocation -> new PickupLocationResponseModel(pickupLocation))
             .collect(Collectors.toList());
     }
 }

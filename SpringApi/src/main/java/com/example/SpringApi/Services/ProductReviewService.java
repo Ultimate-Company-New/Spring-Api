@@ -22,7 +22,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -84,16 +86,47 @@ public class ProductReviewService extends BaseService implements IProductReviewS
      */
     @Override
     public PaginationBaseResponseModel<ProductReviewResponseModel> getProductReviewsInBatchesGivenProductId(PaginationBaseRequestModel paginationBaseRequestModel, long id) { 
-        // Calculate page number and size
-        int pageSize = paginationBaseRequestModel.getEnd() - paginationBaseRequestModel.getStart();
-        int pageNumber = paginationBaseRequestModel.getStart() / pageSize;
+        // Valid columns for filtering
+        Set<String> validColumns = new HashSet<>(Arrays.asList(
+            "reviewId", "ratings", "score", "isDeleted", "review", "userId",
+            "productId", "parentId", "createdUser", "modifiedUser", "createdAt",
+            "updatedAt", "notes"
+        ));
 
-        // Create pageable with default sorting (most recent first)
-        Sort sort = Sort.by("createdAt").descending();
-        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+        // Validate column name if provided
+        if (paginationBaseRequestModel.getColumnName() != null 
+            && !validColumns.contains(paginationBaseRequestModel.getColumnName())) {
+            throw new BadRequestException(
+                "Invalid column name: " + paginationBaseRequestModel.getColumnName());
+        }
 
-        // Get paginated reviews for the product (excluding deleted reviews)
-        Page<ProductReview> reviewPage = productReviewRepository.findByProductIdAndIsDeletedFalse(id, pageable);
+        // Calculate page size and offset
+        int start = paginationBaseRequestModel.getStart();
+        int end = paginationBaseRequestModel.getEnd();
+        int pageSize = end - start;
+
+        // Validate page size
+        if (pageSize <= 0) {
+            throw new BadRequestException("Invalid pagination: end must be greater than start");
+        }
+
+        // Create custom Pageable with proper offset handling
+        Pageable pageable = new PageRequest(0, pageSize, Sort.by("reviewId").descending()) {
+            @Override
+            public long getOffset() {
+                return start;
+            }
+        };
+
+        // Get paginated reviews for the product with filtering
+        Page<ProductReview> reviewPage = productReviewRepository.findPaginatedProductReviews(
+            getClientId(),
+            paginationBaseRequestModel.getColumnName(),
+            paginationBaseRequestModel.getCondition(),
+            paginationBaseRequestModel.getFilterExpr(),
+            paginationBaseRequestModel.isIncludeDeleted(),
+            pageable
+        );
 
         // Convert to response models
         PaginationBaseResponseModel<ProductReviewResponseModel> response = new PaginationBaseResponseModel<>();
@@ -105,7 +138,7 @@ public class ProductReviewService extends BaseService implements IProductReviewS
         return response;
     }
     
-        /**
+    /**
      * Toggles the deleted status of a product review (soft delete/restore).
      * 
      * This method toggles the deleted flag of a product review without permanently
@@ -118,13 +151,11 @@ public class ProductReviewService extends BaseService implements IProductReviewS
     @Override
     @Transactional
     public void toggleProductReview(long id) {
-        // Find the review
-        Optional<ProductReview> reviewOptional = productReviewRepository.findById(id);
-        if (reviewOptional.isEmpty()) {
+        // Find the review filtered by clientId
+        ProductReview review = productReviewRepository.findByReviewIdAndClientId(id, getClientId());
+        if (review == null) {
             throw new NotFoundException(ErrorMessages.ProductReviewErrorMessages.NotFound);
         }
-        
-        ProductReview review = reviewOptional.get();
         
         // Toggle the deleted status
         boolean newDeletedStatus = !review.getIsDeleted();
@@ -156,13 +187,11 @@ public class ProductReviewService extends BaseService implements IProductReviewS
     @Override
     @Transactional
     public void setProductReviewScore(long id, boolean increaseScore) {
-        // Find the review
-        Optional<ProductReview> reviewOptional = productReviewRepository.findById(id);
-        if (reviewOptional.isEmpty()) {
+        // Find the review filtered by clientId
+        ProductReview review = productReviewRepository.findByReviewIdAndClientId(id, getClientId());
+        if (review == null) {
             throw new NotFoundException(ErrorMessages.ProductReviewErrorMessages.NotFound);
         }
-        
-        ProductReview review = reviewOptional.get();
         
         // Update the score
         int currentScore = review.getScore() != null ? review.getScore() : 0;

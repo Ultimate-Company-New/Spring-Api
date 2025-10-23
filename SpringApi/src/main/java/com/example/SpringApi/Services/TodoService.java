@@ -49,9 +49,10 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
     public void addTodo(TodoRequestModel todoRequestModel) {
         String authenticatedUser = getUser();
         Todo todo = new Todo(todoRequestModel, authenticatedUser);
+        Todo savedTodo = todoRepository.save(todo);
         userLogService.logData(
             getUserId(),
-            SuccessMessages.TodoSuccessMessages.InsertTodo + " " + todoRepository.save(todo).getTodoId(),
+            SuccessMessages.TodoSuccessMessages.InsertTodo + " " + savedTodo.getTodoId(),
             ApiRoutes.TodoSubRoute.ADD_ITEM
         );
     }

@@ -272,13 +272,13 @@ public class ProductService extends BaseService implements IProductSubTranslator
         }
         
         // Find existing product
-        Optional<Product> existingProductOpt = productRepository.findById(productRequestModel.getProductId());
-        if (existingProductOpt.isEmpty()) {
+        Product existingProduct = productRepository.findByIdWithRelatedEntities(productRequestModel.getProductId(), getClientId());
+        if (existingProduct == null) {
             throw new NotFoundException(String.format(ErrorMessages.ProductErrorMessages.ER013, productRequestModel.getProductId()));
         }
         
         // Create updated product using constructor (validations are handled in the constructor)
-        Product updatedProduct = new Product(productRequestModel, getUser(), existingProductOpt.get());
+        Product updatedProduct = new Product(productRequestModel, getUser(), existingProduct);
         
         // Save the updated product
         productRepository.save(updatedProduct);
@@ -305,12 +305,10 @@ public class ProductService extends BaseService implements IProductSubTranslator
     @Transactional
     public void toggleDeleteProduct(long id) {
         // Find the product
-        Optional<Product> productOpt = productRepository.findById(id);
-        if (productOpt.isEmpty()) {
+        Product product = productRepository.findByIdWithRelatedEntities(id, getClientId());
+        if (product == null) {
             throw new NotFoundException(String.format(ErrorMessages.ProductErrorMessages.ER013, id));
         }
-        
-        Product product = productOpt.get();
         
         // Toggle the deleted status
         product.setIsDeleted(!product.getIsDeleted());
@@ -338,12 +336,10 @@ public class ProductService extends BaseService implements IProductSubTranslator
     @Transactional
     public void toggleReturnProduct(long id) {
         // Find the product
-        Optional<Product> productOpt = productRepository.findById(id);
-        if (productOpt.isEmpty()) {
+        Product product = productRepository.findByIdWithRelatedEntities(id, getClientId());
+        if (product == null) {
             throw new NotFoundException(String.format(ErrorMessages.ProductErrorMessages.ER013, id));
         }
-        
-        Product product = productOpt.get();
         
         // Toggle the returns allowed status
         product.setReturnsAllowed(!product.getReturnsAllowed());
@@ -371,12 +367,10 @@ public class ProductService extends BaseService implements IProductSubTranslator
     @Override
     public ProductResponseModel getProductDetailsById(long id) {
         // Find the product with all related entities
-        Optional<Product> productOpt = productRepository.findByIdWithRelatedEntities(id);
-        if (productOpt.isEmpty()) {
+        Product product = productRepository.findByIdWithRelatedEntities(id, getClientId());
+        if (product == null) {
             throw new NotFoundException(String.format(ErrorMessages.ProductErrorMessages.ER013, id));
         }
-        
-        Product product = productOpt.get();
         
         // Convert to response model
         return new ProductResponseModel(product);
@@ -395,30 +389,44 @@ public class ProductService extends BaseService implements IProductSubTranslator
      */
     @Override
     public PaginationBaseResponseModel<ProductResponseModel> getProductInBatches(PaginationBaseRequestModel paginationBaseRequestModel) {
-        // Validate the column name if provided
-        if (paginationBaseRequestModel.getColumnName() != null && !paginationBaseRequestModel.getColumnName().trim().isEmpty()) {
-            Set<String> validColumns = new HashSet<>(Arrays.asList(
-                "productId",
-                "title", "type", "upc", "price",
-                "discount", "availableStock", "dimensions"));
-            
-            if (!validColumns.contains(paginationBaseRequestModel.getColumnName())) {
-                throw new BadRequestException(
-                    ErrorMessages.InvalidColumn + String.join(",", validColumns)
-                );
-            }
+        // Valid columns for filtering
+        Set<String> validColumns = new HashSet<>(Arrays.asList(
+            "productId", "title", "descriptionHtml", "brand", "color", "colorLabel",
+            "condition", "countryOfManufacture", "model", "upc", "modificationHtml",
+            "price", "discount", "isDiscountPercent", "returnsAllowed", "length",
+            "breadth", "height", "weightKgs", "categoryId", "pickupLocationId",
+            "isDeleted", "itemModified", "createdUser", "modifiedUser", "createdAt",
+            "updatedAt", "notes"
+        ));
+
+        // Validate column name if provided
+        if (paginationBaseRequestModel.getColumnName() != null 
+            && !validColumns.contains(paginationBaseRequestModel.getColumnName())) {
+            throw new BadRequestException(
+                "Invalid column name: " + paginationBaseRequestModel.getColumnName());
         }
 
-        // Calculate page number and size
-        int pageSize = paginationBaseRequestModel.getEnd() - paginationBaseRequestModel.getStart();
-        int pageNumber = paginationBaseRequestModel.getStart() / pageSize;
+        // Calculate page size and offset
+        int start = paginationBaseRequestModel.getStart();
+        int end = paginationBaseRequestModel.getEnd();
+        int pageSize = end - start;
 
-        // Create pageable with default sorting (most recent first)
-        Sort sort = Sort.by("createdAt").descending();
-        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+        // Validate page size
+        if (pageSize <= 0) {
+            throw new BadRequestException("Invalid pagination: end must be greater than start");
+        }
+
+        // Create custom Pageable with proper offset handling
+        Pageable pageable = new PageRequest(0, pageSize, Sort.by("productId").descending()) {
+            @Override
+            public long getOffset() {
+                return start;
+            }
+        };
 
         // Get paginated products with filtering
         Page<Product> productPage = productRepository.findPaginatedProducts(
+            getClientId(),
             paginationBaseRequestModel.getColumnName(),
             paginationBaseRequestModel.getCondition(),
             paginationBaseRequestModel.getFilterExpr(),

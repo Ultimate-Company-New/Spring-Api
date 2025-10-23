@@ -3,10 +3,8 @@ package com.example.SpringApi.Services;
 import com.example.SpringApi.Models.DatabaseModels.Lead;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.DatabaseModels.Address;
-import com.example.SpringApi.Models.ResponseModels.AddressResponseModel;
 import com.example.SpringApi.Models.ResponseModels.LeadResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.UserResponseModel;
 import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
 import com.example.SpringApi.Repositories.LeadRepository;
 import com.example.SpringApi.Services.Interface.ILeadSubTranslator;
@@ -64,28 +62,41 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      */
     @Override
     public PaginationBaseResponseModel<LeadResponseModel> getLeadsInBatches(LeadRequestModel leadRequestModel) {
-        // Validate column name - required field
-        Set<String> VALID_COLUMN_NAMES = Set.of(
+        // Valid columns for filtering
+        Set<String> validColumns = Set.of(
             "leadId", "firstName", "lastName", "email", "address", "website",
-            "phone", "companySize", "title", "leadAssignedTo", "leadCreatedBy", "leadStatus"
+            "phone", "companySize", "title", "leadStatus", "company", "annualRevenue",
+            "fax", "isDeleted", "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes"
         );
 
-        if (leadRequestModel.getColumnName() == null || leadRequestModel.getColumnName().trim().isEmpty()) {
-            throw new BadRequestException("Column name is required and cannot be empty");
+        // Validate column name if provided
+        if (leadRequestModel.getColumnName() != null 
+            && !validColumns.contains(leadRequestModel.getColumnName())) {
+            throw new BadRequestException(
+                "Invalid column name: " + leadRequestModel.getColumnName());
         }
         
-        if (!VALID_COLUMN_NAMES.contains(leadRequestModel.getColumnName())) {
-            throw new BadRequestException("Invalid column name: " + leadRequestModel.getColumnName() + ". Valid columns are: " + VALID_COLUMN_NAMES);
+        // Calculate page size and offset
+        int start = leadRequestModel.getStart();
+        int end = leadRequestModel.getEnd();
+        int pageSize = end - start;
+
+        // Validate page size
+        if (pageSize <= 0) {
+            throw new BadRequestException("Invalid pagination: end must be greater than start");
         }
+
+        // Create custom Pageable with proper offset handling
+        Pageable pageable = new PageRequest(0, pageSize, Sort.by("leadId").descending()) {
+            @Override
+            public long getOffset() {
+                return start;
+            }
+        };
         
-        // Create pageable with sorting
-        Sort sort = Sort.by(Sort.Direction.fromString(leadRequestModel.getSortDirection() != null ? 
-                        leadRequestModel.getSortDirection() : "ASC"), 
-                        leadRequestModel.getSortBy() != null ? leadRequestModel.getSortBy() : "leadId");
-        Pageable pageable = PageRequest.of(leadRequestModel.getPageNumber() - 1, leadRequestModel.getPageSize(), sort);
-        
-                // Execute paginated query
-        Page<Lead> result = leadRepository.findPaginatedLeads(
+        // Execute paginated query with clientId filter
+        Page<Lead> page = leadRepository.findPaginatedLeads(
+            getClientId(),
             leadRequestModel.getColumnName(),
             leadRequestModel.getCondition(),
             leadRequestModel.getFilterExpr(),
@@ -95,17 +106,10 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         
         // Convert Lead entities to LeadResponseModel (relationships already loaded)
         PaginationBaseResponseModel<LeadResponseModel> response = new PaginationBaseResponseModel<>();
-        response.setData(result.getContent().stream()
-            .map(lead -> {
-                LeadResponseModel responseModel = new LeadResponseModel(lead);
-                responseModel.setAddress(lead.getAddress() != null ? new AddressResponseModel(lead.getAddress()) : null);
-                responseModel.setCreatedByUser(lead.getCreatedByUser() != null ? new UserResponseModel(lead.getCreatedByUser()) : null);
-                responseModel.setAssignedAgent(lead.getAssignedAgent() != null ? new UserResponseModel(lead.getAssignedAgent()) : null);
-                
-                return responseModel;
-            })
+        response.setData(page.getContent().stream()
+            .map(LeadResponseModel::new)
             .toList());
-        response.setTotalDataCount(result.getTotalElements());
+        response.setTotalDataCount(page.getTotalElements());
         
         return response;
     }    
@@ -118,17 +122,12 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      */
     @Override
     public LeadResponseModel getLeadDetailsById(Long leadId) {
-        Lead lead = leadRepository.findLeadWithDetailsById(leadId);
+        Lead lead = leadRepository.findLeadWithDetailsById(leadId, getClientId());
         if (lead == null) {
             throw new NotFoundException(ErrorMessages.LEAD_NOT_FOUND);
         }
         
-        LeadResponseModel responseModel = new LeadResponseModel(lead);
-        responseModel.setAddress(lead.getAddress() != null ? new AddressResponseModel(lead.getAddress()) : null);
-        responseModel.setCreatedByUser(lead.getCreatedByUser() != null ? new UserResponseModel(lead.getCreatedByUser()) : null);
-        responseModel.setAssignedAgent(lead.getAssignedAgent() != null ? new UserResponseModel(lead.getAssignedAgent()) : null);
-        
-        return responseModel;
+        return new LeadResponseModel(lead);
     }
     
     /**
@@ -139,25 +138,18 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      */
     @Override
     public LeadResponseModel getLeadDetailsByEmail(String email) {
-        Lead lead = leadRepository.findLeadWithDetailsByEmail(email);
+        Lead lead = leadRepository.findLeadWithDetailsByEmail(email, getClientId());
         if (lead == null) {
             throw new NotFoundException(ErrorMessages.LEAD_NOT_FOUND);
         }
         
-        LeadResponseModel responseModel = new LeadResponseModel(lead);
-        responseModel.setAddress(lead.getAddress() != null ? new AddressResponseModel(lead.getAddress()) : null);
-        responseModel.setCreatedByUser(lead.getCreatedByUser() != null ? new UserResponseModel(lead.getCreatedByUser()) : null);
-        responseModel.setAssignedAgent(lead.getAssignedAgent() != null ? new UserResponseModel(lead.getAssignedAgent()) : null);
-        
-        return responseModel;
+        return new LeadResponseModel(lead);
     }
     
     /**
      * Creates a new lead in the system.
      * 
      * @param leadRequestModel The lead data to create
-     * @param createdUser The username of the user creating the lead
-     * @return The created Lead entity
      */
     @Override
     public void createLead(LeadRequestModel leadRequestModel) {
@@ -186,8 +178,11 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      */
     @Override
     public void updateLead(Long leadId, LeadRequestModel leadRequestModel) {
-        Lead existingLead = leadRepository.findById(leadId)
-            .orElseThrow(() -> new NotFoundException(ErrorMessages.LEAD_NOT_FOUND));
+        Lead existingLead = leadRepository.findLeadWithDetailsById(leadId, getClientId());
+        if (existingLead == null) {
+            throw new NotFoundException(ErrorMessages.LEAD_NOT_FOUND);
+        }
+          
         
         // Use the Lead constructor that handles validation and field mapping for updates
         Lead updatedLead = new Lead(leadRequestModel, getUser(), existingLead);
@@ -211,8 +206,10 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      */
     @Override
     public void toggleLead(Long leadId) {
-        Lead lead = leadRepository.findById(leadId)
-            .orElseThrow(() -> new NotFoundException(ErrorMessages.LEAD_NOT_FOUND));
+        Lead lead = leadRepository.findLeadWithDetailsById(leadId, getClientId());
+        if (lead == null) {
+            throw new NotFoundException(ErrorMessages.LEAD_NOT_FOUND);
+        }
         
         // Toggle the deleted status (active/inactive)
         lead.setIsDeleted(!lead.getIsDeleted());
@@ -220,7 +217,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         
         leadRepository.save(lead);
 
-         // Logging
+        // Logging
         userLogService.logData(
             getUserId(),
             SuccessMessages.LeadSuccessMessages.ToggleLead + lead.getLeadId(),
