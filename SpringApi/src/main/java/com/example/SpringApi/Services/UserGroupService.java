@@ -74,7 +74,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
         if (userGroup.isPresent()) {
             userGroup.get().setIsDeleted(!userGroup.get().getIsDeleted());
             userGroupRepository.save(userGroup.get());
-            userLogService.logData(getUser(), 
+            userLogService.logData(getUserId(), 
                 SuccessMessages.UserGroupSuccessMessages.ToggleGroup + " " + userGroup.get().getGroupId(),
                 ApiRoutes.UserGroupSubRoute.TOGGLE_USER_GROUP);
         } else {
@@ -143,7 +143,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
         }
         userGroupUserMapRepository.saveAll(mappings);
         
-        userLogService.logData(getUser(), 
+        userLogService.logData(getUserId(), 
             SuccessMessages.UserGroupSuccessMessages.InsertGroup + " " + savedGroup.getGroupId(),
             ApiRoutes.UserGroupSubRoute.CREATE_USER_GROUP);
     }
@@ -188,7 +188,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
             }
             userGroupUserMapRepository.saveAll(mappings);
             
-            userLogService.logData(getUser(), 
+            userLogService.logData(getUserId(), 
                 SuccessMessages.UserGroupSuccessMessages.UpdateGroup + " " + updatedGroup.getGroupId(),
                 ApiRoutes.UserGroupSubRoute.UPDATE_USER_GROUP);
         } else {

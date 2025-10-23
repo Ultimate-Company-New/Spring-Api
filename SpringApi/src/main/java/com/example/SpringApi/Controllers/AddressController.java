@@ -106,7 +106,7 @@ public class AddressController {
      */
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_ADDRESS_PERMISSION +"')")
     @GetMapping("/" + ApiRoutes.AddressSubRoute.GET_ADDRESS_BY_CLIENT_ID + "/{clientId}")
-    public ResponseEntity<?> getAddressesByClientId(@PathVariable Long clientId) {
+    public ResponseEntity<?> getAddressByClientId(@PathVariable Long clientId) {
         try {
             return ResponseEntity.ok(addressService.getAddressByClientId(clientId));
         } catch (BadRequestException bre) {

@@ -7,7 +7,6 @@ import com.example.SpringApi.Models.ResponseModels.UserLogsResponseModel;
 import com.example.SpringApi.Repositories.UserLogRepository;
 import com.example.SpringApi.Services.Interface.IUserLogSubTranslator;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,49 +23,42 @@ public class UserLogService extends BaseService implements IUserLogSubTranslator
     private final UserLogRepository userLogRepository;
 
     @Autowired
-    public UserLogService(UserLogRepository userLogRepository,
-                               HttpServletRequest request){
+    public UserLogService(UserLogRepository userLogRepository){
         super();
         this.userLogRepository = userLogRepository;
     }
 
     @Override
-    public Boolean logData(String user, String change, String oldValue, String newValue) {
-        try {
-            long userId = Long.parseLong(user);
-            UserLog userLog = new UserLog(userId, change, oldValue, newValue);
-            userLogRepository.save(userLog);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
+    public Boolean logData(long userId, String action, String oldValue, String newValue) {
+        // Create log entry with action as the change and description combining old/new values
+        String description = oldValue != null && newValue != null ? 
+            "Changed from '" + oldValue + "' to '" + newValue + "'" : 
+            (newValue != null ? "Set to '" + newValue + "'" : "Cleared value");
+  
+        UserLog userLog = new UserLog(userId, getClientId(), action, description, newValue, oldValue, getUser());
+        userLogRepository.save(userLog);
+        return true;    
     }
 
-    @Override
-    public Boolean logData(String user, String newValue, String endPoint) {
-        try {
-            long userId = Long.parseLong(user);
-            UserLog userLog = new UserLog(userId, endPoint, null, newValue);
-            Long auditUserId = getUserId();
-            if(auditUserId != null){
-                userLog.setAuditUserId(auditUserId);
-            }
-            // If auditUserId is null, leave it as null (no authentication)
-            userLogRepository.save(userLog);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-    
+
+    /**
+     * Logs user activity data with endpoint and description information.
+     * Creates a log entry with the endpoint as the action and the provided value as description.
+     * Automatically includes client context and audit user information.
+     *
+     * @param userId The ID of the user performing the action
+     * @param newValue The description or new value to be logged
+     * @param endPoint The API endpoint or action being performed
+     * @return Boolean indicating success (always true for this implementation)
+     */
     @Override
     public Boolean logData(long userId, String newValue, String endPoint) {
-        UserLog userLog = new UserLog(userId, endPoint, null, newValue);
-        Long auditUserId = getUserId();
-        if(auditUserId != null){
-            userLog.setAuditUserId(auditUserId);
-        }
-        // If auditUserId is null, leave it as null (no authentication)
+        // Create description based on the new value provided
+        String description = newValue != null ? 
+            "Action performed on endpoint: " + endPoint : 
+            "Action performed on endpoint added new value: " + newValue;
+        
+        UserLog userLog = new UserLog(userId, getClientId(), endPoint, description, newValue, getUser());
         userLogRepository.save(userLog);
         return true;
     }
@@ -81,7 +73,7 @@ public class UserLogService extends BaseService implements IUserLogSubTranslator
     public PaginationBaseResponseModel<UserLogsResponseModel> fetchUserLogsInBatches(UserLogsRequestModel getUserLogsRequestModel) {
         // validate the column names
         if(StringUtils.hasText(getUserLogsRequestModel.getColumnName())){
-            Set<String> validColumns = new HashSet<>(Arrays.asList("change", "oldValue", "newValue"));
+            Set<String> validColumns = new HashSet<>(Arrays.asList("action", "description", "logLevel"));
 
             if(!validColumns.contains(getUserLogsRequestModel.getColumnName())){
                 throw new IllegalArgumentException("Invalid column name: " + getUserLogsRequestModel.getColumnName());

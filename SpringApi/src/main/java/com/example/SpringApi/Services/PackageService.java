@@ -70,8 +70,18 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         // Validate column name
         Set<String> validColumns = new HashSet<>(Arrays.asList(
             "packageId",
+            "packageName",
             "dimensions",
-            "quantity"
+            "standardCapacity",
+            "packageType",
+            "maxWeight",
+            "pricePerUnit",
+            "createdUser",
+            "modifiedUser",
+            "createdAt",
+            "updatedAt",
+            "notes",
+            "isDeleted"
         ));
         
         if (paginationBaseRequestModel.getColumnName() != null && 
@@ -154,7 +164,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
 
         // Logging
         userLogService.logData(
-            getUser(),
+            getUserId(),
             SuccessMessages.PackagesSuccessMessages.TogglePackage + packageEntity.getPackageId(),
             ApiRoutes.PackageSubRoute.TOGGLE_PACKAGE);
     }
@@ -177,7 +187,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
 
         // Logging
         userLogService.logData(
-            getUser(),
+            getUserId(),
             SuccessMessages.PackagesSuccessMessages.UpdatePackage + updatedPackage.getPackageId(),
             ApiRoutes.PackageSubRoute.UPDATE_PACKAGE);
     }
@@ -194,7 +204,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
 
         // Logging
         userLogService.logData(
-            getUser(),
+            getUserId(),
             SuccessMessages.PackagesSuccessMessages.InsertPackage + savedPackage.getPackageId(),
             ApiRoutes.PackageSubRoute.CREATE_PACKAGE);
     }

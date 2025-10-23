@@ -17,14 +17,25 @@ import java.time.LocalDateTime;
 @Setter
 public class UserLogsResponseModel {
     private long logId;
-    private String change;
-    private String oldValue;
-    private String newValue;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private String notes;
-    private Long auditUserId;
     private long userId;
+    private Long clientId;
+    private String action;
+    private String description;
+    private String ipAddress;
+    private String userAgent;
+    private String sessionId;
+    private String logLevel;
+    private LocalDateTime createdAt;
+    private String createdUser;
+    private LocalDateTime updatedAt;
+    private String modifiedUser;
+    private String notes;
+    
+    // Legacy fields for backward compatibility
+    private Long auditUserId;
+    private String change;
+    private String newValue;
+    private String oldValue;
 
     /**
      * Default constructor.
@@ -39,13 +50,24 @@ public class UserLogsResponseModel {
      */
     public UserLogsResponseModel(com.example.SpringApi.Models.DatabaseModels.UserLog userLog) {
         this.logId = userLog.getLogId();
-        this.change = userLog.getChange();
-        this.oldValue = userLog.getOldValue();
-        this.newValue = userLog.getNewValue();
-        this.createdAt = userLog.getCreatedAt();
-        this.updatedAt = userLog.getUpdatedAt();
-        this.notes = userLog.getNotes();
-        this.auditUserId = userLog.getAuditUserId();
         this.userId = userLog.getUserId();
+        this.clientId = userLog.getClientId();
+        this.action = userLog.getAction();
+        this.description = userLog.getDescription();
+        this.ipAddress = userLog.getIpAddress();
+        this.userAgent = userLog.getUserAgent();
+        this.sessionId = userLog.getSessionId();
+        this.logLevel = userLog.getLogLevel();
+        this.createdAt = userLog.getCreatedAt();
+        this.createdUser = userLog.getCreatedUser();
+        this.updatedAt = userLog.getUpdatedAt();
+        this.modifiedUser = userLog.getModifiedUser();
+        this.notes = userLog.getNotes();
+        
+        // Legacy fields
+        this.auditUserId = userLog.getAuditUserId();
+        this.change = userLog.getChange();
+        this.newValue = userLog.getNewValue();
+        this.oldValue = userLog.getOldValue();
     }
 }

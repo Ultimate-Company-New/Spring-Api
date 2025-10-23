@@ -50,7 +50,7 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
         String authenticatedUser = getUser();
         Todo todo = new Todo(todoRequestModel, authenticatedUser);
         userLogService.logData(
-            authenticatedUser,
+            getUserId(),
             SuccessMessages.TodoSuccessMessages.InsertTodo + " " + todoRepository.save(todo).getTodoId(),
             ApiRoutes.TodoSubRoute.ADD_ITEM
         );
@@ -76,7 +76,7 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
         
         Todo updatedTodo = new Todo(todoRequestModel, authenticatedUser, todoToUpdate);
         userLogService.logData(
-            authenticatedUser,
+            getUserId(),
             SuccessMessages.TodoSuccessMessages.UpdateTodo + " " + todoRepository.save(updatedTodo).getTodoId(),
             ApiRoutes.TodoSubRoute.UPDATE_ITEM
         );
@@ -105,7 +105,7 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
         
         // Log the operation
         userLogService.logData(
-            getUser(),
+            getUserId(),
             SuccessMessages.TodoSuccessMessages.DeleteTodo + " " + id,
             ApiRoutes.TodoSubRoute.DELETE_ITEM
         );
@@ -138,7 +138,7 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
         
         // Log the operation
         userLogService.logData(
-            authenticatedUser,
+            getUserId(),
             SuccessMessages.TodoSuccessMessages.ToggleTodo + " " + id,
             ApiRoutes.TodoSubRoute.TOGGLE_DONE
         );
@@ -160,7 +160,7 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
         
         // Log the operation
         userLogService.logData(
-            getUser(),
+            getUserId(),
             SuccessMessages.TodoSuccessMessages.GetTodoItems,
             ApiRoutes.TodoSubRoute.GET_ITEMS
         );

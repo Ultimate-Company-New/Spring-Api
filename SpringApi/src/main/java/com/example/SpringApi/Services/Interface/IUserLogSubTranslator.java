@@ -26,17 +26,7 @@ public interface IUserLogSubTranslator {
      * @param newValue The new value after change
      * @return true if logging was successful, false otherwise
      */
-    Boolean logData(String user, String change, String oldValue, String newValue);
-
-    /**
-     * Logs user data with endpoint information.
-     *
-     * @param user The user identifier as string
-     * @param newValue The new value
-     * @param endPoint The endpoint accessed
-     * @return true if logging was successful, false otherwise
-     */
-    Boolean logData(String user, String newValue, String endPoint);
+    Boolean logData(long user, String change, String oldValue, String newValue);
 
     /**
      * Logs user data with endpoint information using user ID.
@@ -51,7 +41,7 @@ public interface IUserLogSubTranslator {
     /**
      * Retrieves user logs in paginated batches based on filtering criteria.
      *
-     * @param getUserLogsRequestModel The request model containing filtering and pagination parameters
+     * @param userLogsRequestModel The request model containing filtering and pagination parameters
      * @return PaginationBaseResponseModel containing the user logs
      */
     PaginationBaseResponseModel<UserLogsResponseModel> fetchUserLogsInBatches(UserLogsRequestModel userLogsRequestModel);

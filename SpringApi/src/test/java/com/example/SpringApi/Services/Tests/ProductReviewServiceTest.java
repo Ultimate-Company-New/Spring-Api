@@ -18,6 +18,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -64,6 +65,7 @@ class ProductReviewServiceTest {
     @Mock
     private HttpServletRequest request;
 
+    @Spy
     @InjectMocks
     private ProductReviewService productReviewService;
 
@@ -106,8 +108,9 @@ class ProductReviewServiceTest {
         // Mock Authorization header for JWT authentication
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
 
-        // Mock getUserId() method (assuming it returns TEST_USER_ID)
-        // Note: This would need to be adjusted based on actual BaseService implementation
+        // Mock getUserId() and getUser() methods
+        lenient().when(productReviewService.getUserId()).thenReturn(TEST_USER_ID);
+        lenient().when(productReviewService.getUser()).thenReturn(TEST_USER);
     }
 
     // ==================== Insert Product Review Tests ====================
@@ -128,7 +131,7 @@ class ProductReviewServiceTest {
         // Assert
         verify(productReviewRepository, times(1)).save(any(ProductReview.class));
         verify(userLogService, times(1)).logData(
-            eq(1L),
+            eq(TEST_USER_ID.longValue()),
             eq("Successfully inserted product review. null"),
             eq("insertProductReview")
         );
@@ -401,7 +404,7 @@ class ProductReviewServiceTest {
         verify(productReviewRepository, times(1)).save(testProductReview);
         verify(productReviewRepository, times(1)).markAllDescendantsAsDeleted(TEST_REVIEW_ID, "admin");
         verify(userLogService, times(1)).logData(
-            eq(1L),
+            eq(TEST_USER_ID.longValue()),
             eq("Successfully toggled product review. 1"),
             eq("toggleProductReview")
         );
@@ -428,7 +431,7 @@ class ProductReviewServiceTest {
         verify(productReviewRepository, times(1)).save(testProductReview);
         verify(productReviewRepository, never()).markAllDescendantsAsDeleted(any(), any());
         verify(userLogService, times(1)).logData(
-            eq(1L),
+            eq(TEST_USER_ID.longValue()),
             eq("Successfully toggled product review. 1"),
             eq("toggleProductReview")
         );
@@ -479,7 +482,7 @@ class ProductReviewServiceTest {
         verify(productReviewRepository, times(1)).findById(TEST_REVIEW_ID);
         verify(productReviewRepository, times(1)).save(testProductReview);
         verify(userLogService, times(1)).logData(
-            eq(1L),
+            eq(TEST_USER_ID.longValue()),
             eq("Successfully updated the review Score. 1"),
             eq("setProductReviewScore")
         );
@@ -505,7 +508,7 @@ class ProductReviewServiceTest {
         verify(productReviewRepository, times(1)).findById(TEST_REVIEW_ID);
         verify(productReviewRepository, times(1)).save(testProductReview);
         verify(userLogService, times(1)).logData(
-            eq(1L),
+            eq(TEST_USER_ID.longValue()),
             eq("Successfully updated the review Score. 1"),
             eq("setProductReviewScore")
         );
@@ -531,7 +534,7 @@ class ProductReviewServiceTest {
         verify(productReviewRepository, times(1)).findById(TEST_REVIEW_ID);
         verify(productReviewRepository, times(1)).save(testProductReview);
         verify(userLogService, times(1)).logData(
-            eq(1L),
+            eq(TEST_USER_ID.longValue()),
             eq("Successfully updated the review Score. 1"),
             eq("setProductReviewScore")
         );
@@ -557,7 +560,7 @@ class ProductReviewServiceTest {
         verify(productReviewRepository, times(1)).findById(TEST_REVIEW_ID);
         verify(productReviewRepository, times(1)).save(testProductReview);
         verify(userLogService, times(1)).logData(
-            eq(1L),
+            eq(TEST_USER_ID.longValue()),
             eq("Successfully updated the review Score. 1"),
             eq("setProductReviewScore")
         );

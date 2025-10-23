@@ -121,7 +121,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         userRepository.save(user);
         
         // Log user toggle operation
-        userLogService.logData(getUser(), SuccessMessages.UserSuccessMessages.ToggleUser + " " + user.getUserId() + " deletion status to " + user.getIsDeleted(),
+        userLogService.logData(getUserId(), SuccessMessages.UserSuccessMessages.ToggleUser + " " + user.getUserId() + " deletion status to " + user.getIsDeleted(),
                 ApiRoutes.UserSubRoute.TOGGLE_USER);
     }
 
@@ -312,7 +312,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         }
         
         // 10. Log user creation
-        userLogService.logData(getUser(), SuccessMessages.UserSuccessMessages.CreateUser + " " + savedUser.getUserId(),
+        userLogService.logData(getUserId(), SuccessMessages.UserSuccessMessages.CreateUser + " " + savedUser.getUserId(),
                 ApiRoutes.UserSubRoute.CREATE_USER);
     }
 
@@ -436,7 +436,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         User savedUser = userRepository.save(updatedUser);
 
         // 7. User log
-        userLogService.logData(getUser(), SuccessMessages.UserSuccessMessages.UpdateUser + " " + savedUser.getUserId(), ApiRoutes.UserSubRoute.UPDATE_USER);
+        userLogService.logData(getUserId(), SuccessMessages.UserSuccessMessages.UpdateUser + " " + savedUser.getUserId(), ApiRoutes.UserSubRoute.UPDATE_USER);
     }
 
     /**

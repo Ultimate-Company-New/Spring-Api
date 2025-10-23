@@ -34,6 +34,7 @@ public class PackageResponseModel {
     private String modifiedUser;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String notes;
 
     /**
      * Constructor that creates a response model from a Package entity.
@@ -57,6 +58,7 @@ public class PackageResponseModel {
             this.modifiedUser = packageEntity.getModifiedUser();
             this.createdAt = packageEntity.getCreatedAt();
             this.updatedAt = packageEntity.getUpdatedAt();
+            this.notes = packageEntity.getNotes();
         }
     }
 }

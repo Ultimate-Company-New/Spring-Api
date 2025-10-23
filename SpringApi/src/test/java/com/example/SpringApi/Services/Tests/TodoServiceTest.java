@@ -78,10 +78,6 @@ class TodoServiceTest {
      */
     @BeforeEach
     void setUp() {
-        // Mock BaseService methods to return valid values by default
-        lenient().doReturn(CREATED_USER).when(todoService).getUser();
-        lenient().doReturn(TEST_USER_ID).when(todoService).getUserId();
-
         // Initialize valid request
         validRequest = new TodoRequestModel();
         validRequest.setTodoId(TEST_TODO_ID);
@@ -104,7 +100,8 @@ class TodoServiceTest {
     @Test
     @DisplayName("Should successfully add new todo item")
     void testAddTodo_Success() {
-        doReturn(CREATED_USER).when(todoService).getUser();
+        lenient().when(todoService.getUser()).thenReturn(CREATED_USER);
+        lenient().when(todoService.getUserId()).thenReturn(TEST_USER_ID);
 
         TodoRequestModel request = new TodoRequestModel();
         request.setTask("Test Todo");
@@ -120,7 +117,7 @@ class TodoServiceTest {
 
         verify(todoRepository).save(any(Todo.class));
         verify(userLogService).logData(
-            eq(CREATED_USER),
+            eq(TEST_USER_ID.longValue()),
             eq(SuccessMessages.TodoSuccessMessages.InsertTodo + " " + savedTodo.getTodoId()),
             eq(ApiRoutes.TodoSubRoute.ADD_ITEM)
         );
@@ -245,7 +242,7 @@ class TodoServiceTest {
     @Test
     @DisplayName("Should throw BadRequestException when getUser returns null")
     void testAddTodo_NullUser() {
-        doThrow(new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser)).when(todoService).getUser();
+        lenient().when(todoService.getUser()).thenThrow(new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser));
 
         TodoRequestModel request = new TodoRequestModel();
         request.setTask(TEST_TASK);
@@ -264,7 +261,7 @@ class TodoServiceTest {
     @Test
     @DisplayName("Should throw BadRequestException when getUser returns empty string")
     void testAddTodo_EmptyUser() {
-        doThrow(new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser)).when(todoService).getUser();
+        lenient().when(todoService.getUser()).thenThrow(new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser));
 
         TodoRequestModel request = new TodoRequestModel();
         request.setTask(TEST_TASK);
@@ -285,7 +282,8 @@ class TodoServiceTest {
     @Test
     @DisplayName("Should successfully update existing todo item")
     void testUpdateTodo_Success() {
-        doReturn(CREATED_USER).when(todoService).getUser();
+        lenient().when(todoService.getUser()).thenReturn(CREATED_USER);
+        lenient().when(todoService.getUserId()).thenReturn(TEST_USER_ID);
 
         TodoRequestModel request = new TodoRequestModel();
         request.setTodoId(TEST_TODO_ID);
@@ -303,7 +301,7 @@ class TodoServiceTest {
         verify(todoRepository).findById(TEST_TODO_ID);
         verify(todoRepository).save(any(Todo.class));
         verify(userLogService).logData(
-            eq(CREATED_USER),
+            eq(TEST_USER_ID.longValue()),
             eq(SuccessMessages.TodoSuccessMessages.UpdateTodo + " " + TEST_TODO_ID),
             eq(ApiRoutes.TodoSubRoute.UPDATE_ITEM)
         );
@@ -363,6 +361,8 @@ class TodoServiceTest {
     @Test
     @DisplayName("Should throw NotFoundException when updating non-existent todo")
     void testUpdateTodo_NotFound() {
+        doReturn(TEST_USER_ID).when(todoService).getUserId();
+
         TodoRequestModel request = new TodoRequestModel();
         request.setTodoId(TEST_TODO_ID);
         request.setTask("Updated Todo");
@@ -386,6 +386,8 @@ class TodoServiceTest {
     @Test
     @DisplayName("Should throw BadRequestException when updating with null task")
     void testUpdateTodo_NullTask() {
+        doReturn(TEST_USER_ID).when(todoService).getUserId();
+
         TodoRequestModel request = new TodoRequestModel();
         request.setTodoId(TEST_TODO_ID);
         request.setTask(null);
@@ -406,6 +408,8 @@ class TodoServiceTest {
     @Test
     @DisplayName("Should throw BadRequestException when updating with empty task")
     void testUpdateTodo_EmptyTask() {
+        doReturn(TEST_USER_ID).when(todoService).getUserId();
+
         TodoRequestModel request = new TodoRequestModel();
         request.setTodoId(TEST_TODO_ID);
         request.setTask("");
@@ -426,6 +430,8 @@ class TodoServiceTest {
     @Test
     @DisplayName("Should throw BadRequestException when updating with whitespace-only task")
     void testUpdateTodo_WhitespaceTask() {
+        doReturn(TEST_USER_ID).when(todoService).getUserId();
+
         TodoRequestModel request = new TodoRequestModel();
         request.setTodoId(TEST_TODO_ID);
         request.setTask("   ");
@@ -446,6 +452,8 @@ class TodoServiceTest {
     @Test
     @DisplayName("Should throw BadRequestException when updating with task too long")
     void testUpdateTodo_TaskTooLong() {
+        doReturn(TEST_USER_ID).when(todoService).getUserId();
+
         TodoRequestModel request = new TodoRequestModel();
         request.setTodoId(TEST_TODO_ID);
         request.setTask(LONG_TASK);
@@ -466,6 +474,8 @@ class TodoServiceTest {
     @Test
     @DisplayName("Should throw BadRequestException when updating with null userId")
     void testUpdateTodo_NullUserId() {
+        doReturn(TEST_USER_ID).when(todoService).getUserId();
+
         TodoRequestModel request = new TodoRequestModel();
         request.setTodoId(TEST_TODO_ID);
         request.setTask(TEST_TASK);
@@ -486,6 +496,8 @@ class TodoServiceTest {
     @Test
     @DisplayName("Should throw BadRequestException when updating with invalid userId")
     void testUpdateTodo_InvalidUserId() {
+        doReturn(TEST_USER_ID).when(todoService).getUserId();
+
         TodoRequestModel request = new TodoRequestModel();
         request.setTodoId(TEST_TODO_ID);
         request.setTask(TEST_TASK);
@@ -507,6 +519,7 @@ class TodoServiceTest {
     @DisplayName("Should throw BadRequestException when updating with null user")
     void testUpdateTodo_NullUser() {
         doThrow(new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser)).when(todoService).getUser();
+        doReturn(TEST_USER_ID).when(todoService).getUserId();
 
         TodoRequestModel request = new TodoRequestModel();
         request.setTodoId(TEST_TODO_ID);
@@ -527,6 +540,7 @@ class TodoServiceTest {
     @DisplayName("Should throw BadRequestException when updating with empty user")
     void testUpdateTodo_EmptyUser() {
         doThrow(new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser)).when(todoService).getUser();
+        doReturn(TEST_USER_ID).when(todoService).getUserId();
 
         TodoRequestModel request = new TodoRequestModel();
         request.setTodoId(TEST_TODO_ID);
@@ -548,6 +562,8 @@ class TodoServiceTest {
     @Test
     @DisplayName("Should successfully delete a todo item")
     void testDeleteTodo_Success() {
+        lenient().when(todoService.getUserId()).thenReturn(TEST_USER_ID);
+
         when(todoRepository.existsById(TEST_TODO_ID)).thenReturn(true);
 
         assertDoesNotThrow(() -> todoService.deleteTodo(TEST_TODO_ID));
@@ -555,7 +571,7 @@ class TodoServiceTest {
         verify(todoRepository).existsById(TEST_TODO_ID);
         verify(todoRepository).deleteById(TEST_TODO_ID);
         verify(userLogService).logData(
-            eq(CREATED_USER),
+            eq(TEST_USER_ID.longValue()),
             contains(SuccessMessages.TodoSuccessMessages.DeleteTodo),
             eq(ApiRoutes.TodoSubRoute.DELETE_ITEM)
         );
@@ -567,6 +583,8 @@ class TodoServiceTest {
     @Test
     @DisplayName("Should throw BadRequestException when deleting with invalid id")
     void testDeleteTodo_InvalidId() {
+        doReturn(TEST_USER_ID).when(todoService).getUserId();
+
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             todoService.deleteTodo(0L);
         });
@@ -582,6 +600,8 @@ class TodoServiceTest {
     @Test
     @DisplayName("Should throw NotFoundException when deleting non-existent todo")
     void testDeleteTodo_NotFound() {
+        doReturn(TEST_USER_ID).when(todoService).getUserId();
+
         when(todoRepository.existsById(TEST_TODO_ID)).thenReturn(false);
 
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
@@ -602,6 +622,8 @@ class TodoServiceTest {
     @DisplayName("Should successfully toggle todo completion status from false to true")
     void testToggleTodo_Success_FalseToTrue() {
         doReturn(CREATED_USER).when(todoService).getUser();
+        doReturn(TEST_USER_ID).when(todoService).getUserId();
+
         when(todoRepository.findById(TEST_TODO_ID)).thenReturn(Optional.of(testTodo));
 
         assertDoesNotThrow(() -> todoService.toggleTodo(TEST_TODO_ID));
@@ -610,7 +632,7 @@ class TodoServiceTest {
         verify(todoRepository).save(testTodo);
         assertTrue(testTodo.getIsDone());
         verify(userLogService).logData(
-            eq(CREATED_USER),
+            eq(TEST_USER_ID.longValue()),
             contains(SuccessMessages.TodoSuccessMessages.ToggleTodo),
             eq(ApiRoutes.TodoSubRoute.TOGGLE_DONE)
         );
@@ -623,6 +645,8 @@ class TodoServiceTest {
     @DisplayName("Should successfully toggle todo completion status from true to false")
     void testToggleTodo_Success_TrueToFalse() {
         doReturn(CREATED_USER).when(todoService).getUser();
+        doReturn(TEST_USER_ID).when(todoService).getUserId();
+
         testTodo.setIsDone(true); // Start as true
         when(todoRepository.findById(TEST_TODO_ID)).thenReturn(Optional.of(testTodo));
 
@@ -632,7 +656,7 @@ class TodoServiceTest {
         verify(todoRepository).save(testTodo);
         assertFalse(testTodo.getIsDone());
         verify(userLogService).logData(
-            eq(CREATED_USER),
+            eq(TEST_USER_ID.longValue()),
             contains(SuccessMessages.TodoSuccessMessages.ToggleTodo),
             eq(ApiRoutes.TodoSubRoute.TOGGLE_DONE)
         );
@@ -644,6 +668,8 @@ class TodoServiceTest {
     @Test
     @DisplayName("Should throw BadRequestException when toggling with invalid id")
     void testToggleTodo_InvalidId() {
+        doReturn(TEST_USER_ID).when(todoService).getUserId();
+
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             todoService.toggleTodo(-1L);
         });
@@ -659,6 +685,8 @@ class TodoServiceTest {
     @Test
     @DisplayName("Should throw NotFoundException when toggling non-existent todo")
     void testToggleTodo_NotFound() {
+        doReturn(TEST_USER_ID).when(todoService).getUserId();
+
         when(todoRepository.findById(TEST_TODO_ID)).thenReturn(Optional.empty());
 
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
@@ -696,7 +724,7 @@ class TodoServiceTest {
 
         verify(todoRepository).findAllByUserId(TEST_USER_ID);
         verify(userLogService).logData(
-            eq(CREATED_USER),
+            eq(TEST_USER_ID.longValue()),
             eq(SuccessMessages.TodoSuccessMessages.GetTodoItems),
             eq(ApiRoutes.TodoSubRoute.GET_ITEMS)
         );
@@ -718,19 +746,19 @@ class TodoServiceTest {
         assertTrue(result.isEmpty());
         verify(todoRepository).findAllByUserId(TEST_USER_ID);
         verify(userLogService).logData(
-            eq(CREATED_USER),
+            eq(TEST_USER_ID.longValue()),
             eq(SuccessMessages.TodoSuccessMessages.GetTodoItems),
             eq(ApiRoutes.TodoSubRoute.GET_ITEMS)
         );
     }
 
     /**
-     * Test retrieval with null user from getUser().
+     * Test retrieval with null user from getUserId().
      */
     @Test
-    @DisplayName("Should throw BadRequestException when getUser returns null during getTodoItems")
+    @DisplayName("Should throw BadRequestException when getUserId returns null during getTodoItems")
     void testGetTodoItems_NullUser() {
-        doThrow(new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser)).when(todoService).getUser();
+        doThrow(new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser)).when(todoService).getUserId();
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             todoService.getTodoItems();
@@ -739,12 +767,12 @@ class TodoServiceTest {
     }
 
     /**
-     * Test retrieval with empty user from getUser().
+     * Test retrieval with empty user from getUserId().
      */
     @Test
-    @DisplayName("Should throw BadRequestException when getUser returns empty string during getTodoItems")
+    @DisplayName("Should throw BadRequestException when getUserId returns null during getTodoItems")
     void testGetTodoItems_EmptyUser() {
-        doThrow(new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser)).when(todoService).getUser();
+        doThrow(new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser)).when(todoService).getUserId();
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             todoService.getTodoItems();

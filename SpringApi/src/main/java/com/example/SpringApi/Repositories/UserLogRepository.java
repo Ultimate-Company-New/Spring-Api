@@ -12,13 +12,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserLogRepository extends JpaRepository<UserLog, Long> {
 
-    @Query("select ul from UserLog ul join UserClientMapping ucm on ul.userId = ucm.userId " +
-            "where ul.userId = :userId and ucm.clientId = :clientId " +
+    @Query("select ul from UserLog ul " +
+            "where ul.userId = :userId and ul.clientId = :clientId " +
             "AND (COALESCE(:filterExpr, '') = '' OR " +
             "(CASE :columnName " +
-            "WHEN 'change' THEN CONCAT(ul.change, '') " +
-            "WHEN 'oldValue' THEN CONCAT(ul.oldValue, '') " +
-            "WHEN 'newValue' THEN CONCAT(ul.newValue, '') " +
+            "WHEN 'action' THEN CONCAT(ul.action, '') " +
+            "WHEN 'description' THEN CONCAT(ul.description, '') " +
+            "WHEN 'logLevel' THEN CONCAT(ul.logLevel, '') " +
             "ELSE '' END) LIKE " +
             "(CASE :condition " +
             "WHEN 'contains' THEN CONCAT('%', :filterExpr, '%') " +

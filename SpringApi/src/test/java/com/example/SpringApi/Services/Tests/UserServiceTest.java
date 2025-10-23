@@ -384,7 +384,7 @@ class UserServiceTest {
         clientResponse.setSendGridApiKey("test-key");
         when(clientService.getClientById(anyLong())).thenReturn(clientResponse);
         
-        when(userLogService.logData(anyString(), anyString(), anyString())).thenReturn(true);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
         // Mock static PasswordHelper methods to prevent actual password generation
         try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
@@ -512,7 +512,7 @@ class UserServiceTest {
         clientResponse.setName("Test Client");
         when(clientService.getClientById(anyLong())).thenReturn(clientResponse);
         
-        when(userLogService.logData(anyString(), anyString(), anyString())).thenReturn(true);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
         // Mock FirebaseHelper constructor to prevent external calls
         try (MockedConstruction<FirebaseHelper> firebaseHelperMock = mockConstruction(FirebaseHelper.class,
@@ -629,7 +629,7 @@ class UserServiceTest {
         clientResponse.setName("Test Client");
         when(clientService.getClientById(anyLong())).thenReturn(clientResponse);
         
-        when(userLogService.logData(anyString(), anyString(), anyString())).thenReturn(true);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
         // Mock FirebaseHelper constructor to prevent external calls
         try (MockedConstruction<FirebaseHelper> firebaseHelperMock = mockConstruction(FirebaseHelper.class,

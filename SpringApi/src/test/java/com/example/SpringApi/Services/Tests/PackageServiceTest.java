@@ -84,6 +84,7 @@ class PackageServiceTest {
     private static final Long TEST_PACKAGE_ID = 1L;
     private static final Long TEST_PICKUP_LOCATION_ID = 2L;
     private static final Long TEST_CLIENT_ID = 100L;
+    private static final Long TEST_USER_ID = 1L;
     private static final String TEST_PACKAGE_NAME = "Test Package";
     private static final String TEST_PACKAGE_TYPE = "Box";
     private static final String CREATED_USER = "testuser";
@@ -100,6 +101,7 @@ class PackageServiceTest {
     void setUp() {
         // Mock BaseService methods
         lenient().doReturn(CREATED_USER).when(packageService).getUser();
+        lenient().doReturn(TEST_USER_ID).when(packageService).getUserId();
         lenient().doReturn(TEST_CLIENT_ID).when(packageService).getClientId();
 
         // Initialize test data
@@ -300,7 +302,7 @@ class PackageServiceTest {
         verify(packageRepository, times(1)).findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID);
         verify(packageRepository, times(1)).save(testPackage);
         verify(userLogService, times(1)).logData(
-            eq(CREATED_USER),
+            eq(TEST_USER_ID),
             contains("Successfully toggled package status"),
             eq(ApiRoutes.PackageSubRoute.TOGGLE_PACKAGE)
         );
@@ -336,7 +338,7 @@ class PackageServiceTest {
         verify(packageRepository, times(1)).findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID);
         verify(packageRepository, times(1)).save(any(Package.class));
         verify(userLogService, times(1)).logData(
-            eq(CREATED_USER),
+            eq(TEST_USER_ID),
             contains("Successfully updated package"),
             eq(ApiRoutes.PackageSubRoute.UPDATE_PACKAGE)
         );
@@ -444,7 +446,7 @@ class PackageServiceTest {
         // Assert
         verify(packageRepository, times(1)).save(any(Package.class));
         verify(userLogService, times(1)).logData(
-            eq(CREATED_USER),
+            eq(TEST_USER_ID),
             contains("Successfully inserted package"),
             eq(ApiRoutes.PackageSubRoute.CREATE_PACKAGE)
         );

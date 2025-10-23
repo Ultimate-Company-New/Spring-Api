@@ -359,7 +359,7 @@ class LeadServiceTest {
         // Arrange
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
         when(leadRepository.save(any(Lead.class))).thenReturn(testLead);
-        when(userLogService.logData(anyString(), anyString(), anyString())).thenReturn(true);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
         // Act
         leadService.createLead(testLeadRequest);
@@ -367,7 +367,7 @@ class LeadServiceTest {
         // Assert
         verify(addressRepository).save(any(Address.class));
         verify(leadRepository).save(any(Lead.class));
-        verify(userLogService).logData(eq(CREATED_USER), anyString(), eq("createLead"));
+        verify(userLogService).logData(eq(TEST_CREATED_BY_ID), anyString(), eq("createLead"));
     }
 
     /**
@@ -654,7 +654,7 @@ class LeadServiceTest {
         when(leadRepository.findById(TEST_LEAD_ID)).thenReturn(Optional.of(testLead));
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
         when(leadRepository.save(any(Lead.class))).thenReturn(testLead);
-        when(userLogService.logData(anyString(), anyString(), anyString())).thenReturn(true);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
         // Act
         leadService.updateLead(TEST_LEAD_ID, testLeadRequest);
@@ -663,7 +663,7 @@ class LeadServiceTest {
         verify(leadRepository).findById(TEST_LEAD_ID);
         verify(addressRepository).save(any(Address.class));
         verify(leadRepository).save(any(Lead.class));
-        verify(userLogService).logData(eq(CREATED_USER), anyString(), eq("updateLead"));
+        verify(userLogService).logData(eq(TEST_CREATED_BY_ID), anyString(), eq("updateLead"));
     }
 
     /**
@@ -710,7 +710,7 @@ class LeadServiceTest {
         // Arrange
         when(leadRepository.findById(TEST_LEAD_ID)).thenReturn(Optional.of(testLead));
         when(leadRepository.save(any(Lead.class))).thenReturn(testLead);
-        when(userLogService.logData(anyString(), anyString(), anyString())).thenReturn(true);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
         // Act
         leadService.toggleLead(TEST_LEAD_ID);
@@ -718,7 +718,7 @@ class LeadServiceTest {
         // Assert
         verify(leadRepository).findById(TEST_LEAD_ID);
         verify(leadRepository).save(testLead);
-        verify(userLogService).logData(eq(CREATED_USER), anyString(), eq("toggleLead"));
+        verify(userLogService).logData(eq(TEST_CREATED_BY_ID), anyString(), eq("toggleLead"));
         // Note: The toggle logic inverts the current isDeleted state
     }
 

@@ -21,8 +21,16 @@ public interface PackageRepository extends JpaRepository<Package, Long> {
             "and (COALESCE(:filterExpr, '') = '' OR " +
             "(CASE :columnName " +
             "WHEN 'packageId' THEN CONCAT(p.packageId, '') " +
-            "WHEN 'dimensions' THEN CONCAT(p.length, ' ', p.breadth, ' ', p.height) " +
+            "WHEN 'packageName' THEN CONCAT(p.packageName, '') " +
+            "WHEN 'dimensions' THEN CONCAT(p.length, ' x ', p.breadth, ' x ', p.height) " +
             "WHEN 'standardCapacity' THEN CONCAT(p.standardCapacity, '') " +
+            "WHEN 'packageType' THEN CONCAT(p.packageType, '') " +
+            "WHEN 'maxWeight' THEN CONCAT(p.maxWeight, '') " +
+            "WHEN 'pricePerUnit' THEN CONCAT(p.pricePerUnit, '') " +
+            "WHEN 'createdUser' THEN CONCAT(p.createdUser, '') " +
+            "WHEN 'modifiedUser' THEN CONCAT(p.modifiedUser, '') " +
+            "WHEN 'notes' THEN CONCAT(p.notes, '') " +
+            "WHEN 'isDeleted' THEN CONCAT(p.isDeleted, '') " +
             "ELSE '' END) LIKE " +
             "(CASE :condition " +
             "WHEN 'contains' THEN CONCAT('%', :filterExpr, '%') " +

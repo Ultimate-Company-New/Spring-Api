@@ -87,6 +87,9 @@ public class Package {
     @Column(name = "updatedAt", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "notes")
+    private String notes;
+
     /**
      * Default constructor.
      */
@@ -170,11 +173,7 @@ public class Package {
             throw new BadRequestException("Address is required for package validation");
         }
         
-        // Validate address for pickup location
-        if (request.getAddress() != null) {
-            // Use Address model validation by creating a temporary instance
-            new Address(request.getAddress(), "temp");
-        }
+        new Address(request.getAddress(), "temp");
     }
 
     /**
@@ -207,5 +206,6 @@ public class Package {
         this.packageType = request.getPackageType().trim();
         this.clientId = request.getClientId();
         this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : Boolean.FALSE;
+        this.notes = request.getNotes();
     }
 }

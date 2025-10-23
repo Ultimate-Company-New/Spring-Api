@@ -172,7 +172,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
 
         // Logging
         userLogService.logData(
-            getUser(),
+            getUserId(),
             SuccessMessages.LeadSuccessMessages.InsertLead + savedLead.getLeadId(),
             ApiRoutes.LeadsSubRoute.CREATE_LEAD);
     }
@@ -198,7 +198,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
 
         // Logging
         userLogService.logData(
-            getUser(),
+            getUserId(),
             SuccessMessages.LeadSuccessMessages.UpdateLead + updatedLead.getLeadId(),
             ApiRoutes.LeadsSubRoute.UPDATE_LEAD);
     }
@@ -222,7 +222,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
 
          // Logging
         userLogService.logData(
-            getUser(),
+            getUserId(),
             SuccessMessages.LeadSuccessMessages.ToggleLead + lead.getLeadId(),
             ApiRoutes.LeadsSubRoute.TOGGLE_LEAD);
     }

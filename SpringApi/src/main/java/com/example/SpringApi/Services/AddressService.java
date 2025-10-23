@@ -61,7 +61,7 @@ public class AddressService extends BaseService implements IAddressSubTranslator
         if (address.isPresent()) {
             address.get().setIsDeleted(!address.get().getIsDeleted());
             addressRepository.save(address.get());
-            userLogService.logData(getUser(), SuccessMessages.AddressSuccessMessages.ToggleAddress + " " + address.get().getAddressId(),
+            userLogService.logData(getUserId(), SuccessMessages.AddressSuccessMessages.ToggleAddress + " " + address.get().getAddressId(),
                     ApiRoutes.AddressSubRoute.TOGGLE_ADDRESS);
         } else {
             throw new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound);
@@ -103,7 +103,7 @@ public class AddressService extends BaseService implements IAddressSubTranslator
     public void insertAddress(AddressRequestModel addressRequest) {
         Address address = new Address(addressRequest, getUser());
         Address savedAddress = addressRepository.save(address);
-        userLogService.logData(getUser(), SuccessMessages.AddressSuccessMessages.InsertAddress + " " + savedAddress.getAddressId(),
+        userLogService.logData(getUserId(), SuccessMessages.AddressSuccessMessages.InsertAddress + " " + savedAddress.getAddressId(),
             ApiRoutes.AddressSubRoute.INSERT_ADDRESS);
     }
 
@@ -124,7 +124,7 @@ public class AddressService extends BaseService implements IAddressSubTranslator
         if (existingAddress.isPresent()) {
             Address address = new Address(addressRequest, getUser(), existingAddress.get());
             Address updatedAddress = addressRepository.save(address);
-            userLogService.logData(getUser(), SuccessMessages.AddressSuccessMessages.UpdateAddress + " " + updatedAddress.getAddressId(),
+            userLogService.logData(getUserId(), SuccessMessages.AddressSuccessMessages.UpdateAddress + " " + updatedAddress.getAddressId(),
                     ApiRoutes.AddressSubRoute.UPDATE_ADDRESS);
         } else {
             throw new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound);
@@ -143,7 +143,7 @@ public class AddressService extends BaseService implements IAddressSubTranslator
      */
     @Override
     public List<AddressResponseModel> getAddressByUserId(long userId) {
-        List<Address> addresses = addressRepository.findByUserId(userId);
+        List<Address> addresses = addressRepository.findByUserIdAndIsDeletedOrderByAddressIdDesc(userId, false);
         List<AddressResponseModel> responseModels = new ArrayList<>();
         
         for (Address address : addresses) {
@@ -156,16 +156,17 @@ public class AddressService extends BaseService implements IAddressSubTranslator
     /**
      * Retrieves all addresses associated with a specific client.
      * 
-     * This method fetches all addresses where the clientId matches the provided parameter.
-     * The method returns a list of AddressResponseModel objects, each containing
+     * This method fetches all addresses where the clientId matches the provided parameter
+     * and isDeleted is false (only active addresses). The results are ordered by addressId
+     * in descending order. The method returns a list of AddressResponseModel objects, each containing
      * complete address information. Returns an empty list if no addresses are found.
      * 
      * @param clientId The unique identifier of the client
-     * @return List of AddressResponseModel objects for the client
+     * @return List of AddressResponseModel objects for the client (non-deleted only, sorted by addressId desc)
      */
     @Override
     public List<AddressResponseModel> getAddressByClientId(long clientId) {
-        List<Address> addresses = addressRepository.findByClientId(clientId);
+        List<Address> addresses = addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(clientId, false);
         List<AddressResponseModel> responseModels = new ArrayList<>();
         
         for (Address address : addresses) {

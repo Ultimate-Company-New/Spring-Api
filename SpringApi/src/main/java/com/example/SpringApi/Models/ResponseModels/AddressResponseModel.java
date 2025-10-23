@@ -3,6 +3,7 @@ package com.example.SpringApi.Models.ResponseModels;
 import com.example.SpringApi.Models.DatabaseModels.Address;
 import lombok.Getter;
 import lombok.Setter;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -24,8 +25,11 @@ public class AddressResponseModel {
     private String country;
     private Boolean isPrimary;
     private Boolean isDeleted;
+    private LocalDateTime createdAt;
     private String createdUser;
+    private LocalDateTime updatedAt;
     private String modifiedUser;
+    private String notes;
     
     // Default constructor
     public AddressResponseModel() {}
@@ -49,6 +53,11 @@ public class AddressResponseModel {
             this.country = address.getCountry();
             this.isPrimary = address.getIsPrimary();
             this.isDeleted = address.getIsDeleted();
+            this.createdAt = address.getCreatedAt();
+            this.createdUser = address.getCreatedUser();
+            this.updatedAt = address.getUpdatedAt();
+            this.modifiedUser = address.getModifiedUser();
+            this.notes = address.getNotes();
         }
     }
 }

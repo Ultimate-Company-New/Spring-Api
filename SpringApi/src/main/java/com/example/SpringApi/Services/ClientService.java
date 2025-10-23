@@ -1,6 +1,7 @@
 package com.example.SpringApi.Services;
 
 import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.SuccessMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Models.DatabaseModels.GoogleCred;
@@ -71,8 +72,8 @@ public class ClientService extends BaseService implements IClientSubTranslator {
         if (client.isPresent()) {
             client.get().setIsDeleted(!client.get().getIsDeleted());
             clientRepository.save(client.get());
-            userLogService.logData(getUser(), SuccessMessages.ClientSuccessMessages.ToggleClient + " " + client.get().getClientId(),
-                    "toggleClient");
+            userLogService.logData(getUserId(), SuccessMessages.ClientSuccessMessages.ToggleClient + " " + client.get().getClientId(),
+                    ApiRoutes.ClientSubRoute.TOGGLE_CLIENT);
         } else {
             throw new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId);
         }
@@ -141,7 +142,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
             }
         }
         
-        userLogService.logData(getUser(), SuccessMessages.ClientSuccessMessages.CreateClient + " " + savedClient.getClientId(),
+        userLogService.logData(getUserId(), SuccessMessages.ClientSuccessMessages.CreateClient + " " + savedClient.getClientId(),
             "createClient");
     }
 
@@ -163,7 +164,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
         if (existingClient.isPresent()) {
             Client client = new Client(clientRequest, getUser(), existingClient.get());
             Client updatedClient = clientRepository.save(client);
-            userLogService.logData(getUser(), SuccessMessages.ClientSuccessMessages.UpdateClient + " " + updatedClient.getClientId(),
+            userLogService.logData(getUserId(), SuccessMessages.ClientSuccessMessages.UpdateClient + " " + updatedClient.getClientId(),
                     "updateClient");
         } else {
             throw new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId);

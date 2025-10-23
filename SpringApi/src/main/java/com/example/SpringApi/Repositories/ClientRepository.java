@@ -22,10 +22,7 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
                                               @Param("filteredText") String filteredText,
                                               Pageable pageable);
 
-    @Query(value = "SELECT COUNT(c) FROM Client c JOIN UserClientMapping ucm ON c.clientId = ucm.clientId WHERE c.isDeleted = false AND ucm.userId = :userId AND c.name LIKE CONCAT('%', :filteredText, '%')")
-    long countByUserIdAndNameContains(@Param("userId") Long userId, @Param("filteredText") String filteredText);
-
-    @Query(value = "SELECT c FROM Client c JOIN UserClientMapping ucm ON c.clientId = ucm.clientId WHERE c.isDeleted = false AND ucm.userId = :userId")
+    @Query(value = "SELECT c FROM Client c JOIN UserClientMapping ucm ON c.clientId = ucm.clientId WHERE c.isDeleted = false AND ucm.userId = :userId order by c.clientId desc")
     List<Client> findByUserId(@Param("userId") Long userId);
 
     @Query(value = "SELECT c FROM Client c LEFT JOIN FETCH c.googleCred WHERE c.isDeleted = false ORDER BY c.clientId ASC LIMIT 1")

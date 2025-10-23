@@ -116,7 +116,7 @@ class AddressServiceTest {
         // Arrange
         when(addressRepository.findById(TEST_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyString(), anyString(), anyString())).thenReturn(true);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
         // Act & Assert
         assertDoesNotThrow(() -> addressService.toggleAddress(TEST_ADDRESS_ID));
@@ -124,7 +124,7 @@ class AddressServiceTest {
         // Verify
         verify(addressRepository, times(1)).findById(TEST_ADDRESS_ID);
         verify(addressRepository, times(1)).save(any(Address.class));
-        verify(userLogService, times(1)).logData(anyString(), anyString(), anyString());
+        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
     }
     
     /**
@@ -146,7 +146,7 @@ class AddressServiceTest {
         assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
         verify(addressRepository, times(1)).findById(TEST_ADDRESS_ID);
         verify(addressRepository, never()).save(any(Address.class));
-        verify(userLogService, never()).logData(anyString(), anyString(), anyString());
+        verify(userLogService, never()).logData(anyLong(), anyString(), anyString());
     }
 
     // ==================== Get Address By ID Tests ====================
@@ -212,14 +212,14 @@ class AddressServiceTest {
     void insertAddress_Success() {
         // Arrange
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyString(), anyString(), anyString())).thenReturn(true);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         
         // Verify
         verify(addressRepository, times(1)).save(any(Address.class));
-        verify(userLogService, times(1)).logData(anyString(), anyString(), anyString());
+        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
     }
 
     // ==================== Update Address Tests ====================
@@ -238,7 +238,7 @@ class AddressServiceTest {
         
         when(addressRepository.findById(TEST_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyString(), anyString(), anyString())).thenReturn(true);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
         // Act & Assert
         assertDoesNotThrow(() -> addressService.updateAddress(testAddressRequest));
@@ -246,7 +246,7 @@ class AddressServiceTest {
         // Verify
         verify(addressRepository, times(1)).findById(TEST_ADDRESS_ID);
         verify(addressRepository, times(1)).save(any(Address.class));
-        verify(userLogService, times(1)).logData(anyString(), anyString(), anyString());
+        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
     }
     
     /**
@@ -285,7 +285,7 @@ class AddressServiceTest {
         secondAddress.setAddressType("Work");
         
         List<Address> addresses = Arrays.asList(testAddress, secondAddress);
-        when(addressRepository.findByUserId(TEST_USER_ID)).thenReturn(addresses);
+        when(addressRepository.findByUserIdAndIsDeletedOrderByAddressIdDesc(TEST_USER_ID, false)).thenReturn(addresses);
         
         // Act
         List<AddressResponseModel> result = addressService.getAddressByUserId(TEST_USER_ID);
@@ -298,7 +298,7 @@ class AddressServiceTest {
         assertEquals(2L, result.get(1).getAddressId());
         assertEquals("Work", result.get(1).getAddressType());
         
-        verify(addressRepository, times(1)).findByUserId(TEST_USER_ID);
+        verify(addressRepository, times(1)).findByUserIdAndIsDeletedOrderByAddressIdDesc(TEST_USER_ID, false);
     }
     
     /**
@@ -309,7 +309,7 @@ class AddressServiceTest {
     @DisplayName("Get Address By User ID - Success - Empty list")
     void getAddressByUserId_EmptyList_ReturnsEmptyList() {
         // Arrange
-        when(addressRepository.findByUserId(TEST_USER_ID)).thenReturn(new ArrayList<>());
+        when(addressRepository.findByUserIdAndIsDeletedOrderByAddressIdDesc(TEST_USER_ID, false)).thenReturn(new ArrayList<>());
         
         // Act
         List<AddressResponseModel> result = addressService.getAddressByUserId(TEST_USER_ID);
@@ -317,7 +317,7 @@ class AddressServiceTest {
         // Assert
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        verify(addressRepository, times(1)).findByUserId(TEST_USER_ID);
+        verify(addressRepository, times(1)).findByUserIdAndIsDeletedOrderByAddressIdDesc(TEST_USER_ID, false);
     }
 
     // ==================== Get Address By Client ID Tests ====================
@@ -335,7 +335,7 @@ class AddressServiceTest {
         secondAddress.setAddressType("Billing");
         
         List<Address> addresses = Arrays.asList(testAddress, secondAddress);
-        when(addressRepository.findByClientId(TEST_CLIENT_ID)).thenReturn(addresses);
+        when(addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(TEST_CLIENT_ID, false)).thenReturn(addresses);
         
         // Act
         List<AddressResponseModel> result = addressService.getAddressByClientId(TEST_CLIENT_ID);
@@ -350,7 +350,7 @@ class AddressServiceTest {
         assertEquals(TEST_CLIENT_ID, result.get(1).getClientId());
         assertEquals("Billing", result.get(1).getAddressType());
         
-        verify(addressRepository, times(1)).findByClientId(TEST_CLIENT_ID);
+        verify(addressRepository, times(1)).findByClientIdAndIsDeletedOrderByAddressIdDesc(TEST_CLIENT_ID, false);
     }
     
     /**
@@ -361,7 +361,7 @@ class AddressServiceTest {
     @DisplayName("Get Address By Client ID - Success - Empty list")
     void getAddressByClientId_EmptyList_ReturnsEmptyList() {
         // Arrange
-        when(addressRepository.findByClientId(TEST_CLIENT_ID)).thenReturn(new ArrayList<>());
+        when(addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(TEST_CLIENT_ID, false)).thenReturn(new ArrayList<>());
         
         // Act
         List<AddressResponseModel> result = addressService.getAddressByClientId(TEST_CLIENT_ID);
@@ -369,7 +369,7 @@ class AddressServiceTest {
         // Assert
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        verify(addressRepository, times(1)).findByClientId(TEST_CLIENT_ID);
+        verify(addressRepository, times(1)).findByClientIdAndIsDeletedOrderByAddressIdDesc(TEST_CLIENT_ID, false);
     }
     
     /**
@@ -415,7 +415,7 @@ class AddressServiceTest {
         billingAddress.setAddressType("Billing");
         
         List<Address> addresses = Arrays.asList(homeAddress, workAddress, billingAddress);
-        when(addressRepository.findByClientId(TEST_CLIENT_ID)).thenReturn(addresses);
+        when(addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(TEST_CLIENT_ID, false)).thenReturn(addresses);
         
         // Act
         List<AddressResponseModel> result = addressService.getAddressByClientId(TEST_CLIENT_ID);
@@ -435,6 +435,6 @@ class AddressServiceTest {
         assertTrue(addressTypes.contains("Work"));
         assertTrue(addressTypes.contains("Billing"));
         
-        verify(addressRepository, times(1)).findByClientId(TEST_CLIENT_ID);
+        verify(addressRepository, times(1)).findByClientIdAndIsDeletedOrderByAddressIdDesc(TEST_CLIENT_ID, false);
     }
 }

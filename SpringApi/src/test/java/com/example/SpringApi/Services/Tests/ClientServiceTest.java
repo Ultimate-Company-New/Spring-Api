@@ -130,13 +130,13 @@ class ClientServiceTest {
         // Arrange
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(clientRepository.save(any(Client.class))).thenReturn(testClient);
-        when(userLogService.logData(anyString(), anyString(), anyString())).thenReturn(true);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
         // Act & Assert
         assertDoesNotThrow(() -> clientService.toggleClient(TEST_CLIENT_ID));
         verify(clientRepository, times(1)).findById(TEST_CLIENT_ID);
         verify(clientRepository, times(1)).save(any(Client.class));
-        verify(userLogService, times(1)).logData(anyString(), anyString(), anyString());
+        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
     }
     
     /**
@@ -158,7 +158,7 @@ class ClientServiceTest {
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, exception.getMessage());
         verify(clientRepository, times(1)).findById(TEST_CLIENT_ID);
         verify(clientRepository, never()).save(any(Client.class));
-        verify(userLogService, never()).logData(anyString(), anyString(), anyString());
+        verify(userLogService, never()).logData(anyLong(), anyString(), anyString());
     }
 
     // ==================== Get Client By ID Tests ====================
@@ -218,12 +218,12 @@ class ClientServiceTest {
     void createClient_Success_WithoutLogo() {
         // Arrange
         when(clientRepository.save(any(Client.class))).thenReturn(testClient);
-        when(userLogService.logData(anyString(), anyString(), anyString())).thenReturn(true);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
         // Act & Assert
         assertDoesNotThrow(() -> clientService.createClient(testClientRequest));
         verify(clientRepository, times(1)).save(any(Client.class));
-        verify(userLogService, times(1)).logData(anyString(), anyString(), anyString());
+        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
         verify(googleCredRepository, never()).findById(anyLong());
     }
     
@@ -240,7 +240,7 @@ class ClientServiceTest {
         when(clientRepository.save(any(Client.class))).thenReturn(testClient);
         when(googleCredRepository.findById(TEST_GOOGLE_CRED_ID)).thenReturn(Optional.of(testGoogleCred));
         when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
-        when(userLogService.logData(anyString(), anyString(), anyString())).thenReturn(true);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
         try (MockedConstruction<FirebaseHelper> firebaseHelperMock = mockConstruction(FirebaseHelper.class,
                 (mock, context) -> {
@@ -251,7 +251,7 @@ class ClientServiceTest {
             assertDoesNotThrow(() -> clientService.createClient(testClientRequest));
             verify(clientRepository, times(1)).save(any(Client.class));
             verify(googleCredRepository, times(1)).findById(TEST_GOOGLE_CRED_ID);
-            verify(userLogService, times(1)).logData(anyString(), anyString(), anyString());
+            verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
         }
     }
     
@@ -325,13 +325,13 @@ class ClientServiceTest {
         
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(clientRepository.save(any(Client.class))).thenReturn(testClient);
-        when(userLogService.logData(anyString(), anyString(), anyString())).thenReturn(true);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
         // Act & Assert
         assertDoesNotThrow(() -> clientService.updateClient(testClientRequest));
         verify(clientRepository, times(1)).findById(TEST_CLIENT_ID);
         verify(clientRepository, times(1)).save(any(Client.class));
-        verify(userLogService, times(1)).logData(anyString(), anyString(), anyString());
+        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
     }
     
     /**

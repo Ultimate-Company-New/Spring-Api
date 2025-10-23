@@ -99,7 +99,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
     // Ensure clientId is set from current context for multi-tenant isolation
     promoRepository.save(new Promo(promoRequestModel, getUser(), getClientId()));
     userLogService.logData(
-        getUser(),
+        getUserId(),
         SuccessMessages.PromoSuccessMessages.CreatePromo + promoRequestModel.getPromoCode(),
         ApiRoutes.PromosSubRoute.CREATE_PROMO);
   }
@@ -141,7 +141,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
 
     // Log the operation
     userLogService.logData(
-        getUser(),
+        getUserId(),
         SuccessMessages.PromoSuccessMessages.ToggledPromo + id,
         ApiRoutes.PromosSubRoute.TOGGLE_PROMO);
   }

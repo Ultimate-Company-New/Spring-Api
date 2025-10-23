@@ -75,6 +75,7 @@ class PromoServiceTest {
     private PaginationBaseRequestModel testPaginationRequest;
     private static final Long TEST_PROMO_ID = 1L;
     private static final Long TEST_CLIENT_ID = 100L;
+    private static final Long TEST_USER_ID = 1L;
     private static final String TEST_PROMO_CODE = "TEST10";
     private static final String TEST_DESCRIPTION = "Test promo description";
     private static final String TEST_INVALID_COLUMN = "invalidColumn";
@@ -113,6 +114,7 @@ class PromoServiceTest {
         
         // Mock getClientId() to return TEST_CLIENT_ID for multi-tenant filtering
         lenient().doReturn(TEST_CLIENT_ID).when(promoService).getClientId();
+        lenient().doReturn(TEST_USER_ID).when(promoService).getUserId();
     }
 
     // ==================== Get Promos In Batches Tests ====================
@@ -229,7 +231,7 @@ class PromoServiceTest {
         // Assert
         verify(promoRepository).save(any(Promo.class));
         verify(userLogService).logData(
-            eq(CREATED_USER),
+            eq(TEST_USER_ID),
             eq(SuccessMessages.PromoSuccessMessages.CreatePromo + TEST_PROMO_CODE),
             eq(ApiRoutes.PromosSubRoute.CREATE_PROMO));
     }
@@ -370,7 +372,7 @@ class PromoServiceTest {
         verify(promoRepository).findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID);
         verify(promoRepository).save(testPromo);
         verify(userLogService).logData(
-            eq(CREATED_USER),
+            eq(TEST_USER_ID),
             eq(SuccessMessages.PromoSuccessMessages.ToggledPromo + TEST_PROMO_ID),
             eq(ApiRoutes.PromosSubRoute.TOGGLE_PROMO));
     }

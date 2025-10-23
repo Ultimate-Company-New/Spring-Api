@@ -146,13 +146,13 @@ class UserGroupServiceTest {
         // Arrange
         when(userGroupRepository.findById(TEST_GROUP_ID)).thenReturn(Optional.of(testUserGroup));
         when(userGroupRepository.save(any(UserGroup.class))).thenReturn(testUserGroup);
-        when(userLogService.logData(anyString(), anyString(), anyString())).thenReturn(true);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
         // Act & Assert
         assertDoesNotThrow(() -> userGroupService.toggleUserGroup(TEST_GROUP_ID));
         verify(userGroupRepository, times(1)).findById(TEST_GROUP_ID);
         verify(userGroupRepository, times(1)).save(any(UserGroup.class));
-        verify(userLogService, times(1)).logData(anyString(), anyString(), anyString());
+        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
     }
     
     /**
@@ -174,7 +174,7 @@ class UserGroupServiceTest {
         assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, exception.getMessage());
         verify(userGroupRepository, times(1)).findById(TEST_GROUP_ID);
         verify(userGroupRepository, never()).save(any(UserGroup.class));
-        verify(userLogService, never()).logData(anyString(), anyString(), anyString());
+        verify(userLogService, never()).logData(anyLong(), anyString(), anyString());
     }
 
     // ==================== Get User Group Details By ID Tests ====================
@@ -234,14 +234,14 @@ class UserGroupServiceTest {
         when(userGroupRepository.findByGroupName(TEST_GROUP_NAME)).thenReturn(null);
         when(userGroupRepository.save(any(UserGroup.class))).thenReturn(testUserGroup);
         when(userGroupUserMapRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
-        when(userLogService.logData(anyString(), anyString(), anyString())).thenReturn(true);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
         // Act & Assert
         assertDoesNotThrow(() -> userGroupService.createUserGroup(testUserGroupRequest));
         verify(userGroupRepository, times(1)).findByGroupName(TEST_GROUP_NAME);
         verify(userGroupRepository, times(1)).save(any(UserGroup.class));
         verify(userGroupUserMapRepository, times(1)).saveAll(anyList());
-        verify(userLogService, times(1)).logData(anyString(), anyString(), anyString());
+        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
     }
     
     /**
@@ -325,7 +325,7 @@ class UserGroupServiceTest {
         when(userGroupUserMapRepository.findByGroupId(TEST_GROUP_ID)).thenReturn(existingMappings);
         doNothing().when(userGroupUserMapRepository).deleteAll(anyList());
         when(userGroupUserMapRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
-        when(userLogService.logData(anyString(), anyString(), anyString())).thenReturn(true);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
         // Act & Assert
         assertDoesNotThrow(() -> userGroupService.updateUserGroup(testUserGroupRequest));
@@ -334,7 +334,7 @@ class UserGroupServiceTest {
         verify(userGroupUserMapRepository, times(1)).findByGroupId(TEST_GROUP_ID);
         verify(userGroupUserMapRepository, times(1)).deleteAll(anyList());
         verify(userGroupUserMapRepository, times(1)).saveAll(anyList());
-        verify(userLogService, times(1)).logData(anyString(), anyString(), anyString());
+        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
     }
     
     /**

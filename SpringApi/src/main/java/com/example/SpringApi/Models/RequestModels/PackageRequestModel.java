@@ -29,4 +29,5 @@ public class PackageRequestModel {
     private Long clientId;
     private Boolean isDeleted;
     private AddressRequestModel address;
+    private String notes;
 }
