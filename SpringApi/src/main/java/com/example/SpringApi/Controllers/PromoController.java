@@ -75,8 +75,7 @@ public class PromoController {
      * discount value, promo code, and associated client information.
      * Requires INSERT_PROMOS_PERMISSION to access.
      * 
-     * @param promo The promo to create
-     * @return ResponseEntity containing the ID of the newly created promo or error
+-     * @return ResponseEntity containing the ID of the newly created promo or error
      */
     @PutMapping("/" + ApiRoutes.PromosSubRoute.CREATE_PROMO)
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.INSERT_PROMOS_PERMISSION +"')")

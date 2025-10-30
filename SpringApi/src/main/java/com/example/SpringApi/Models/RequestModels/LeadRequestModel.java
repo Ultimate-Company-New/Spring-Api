@@ -34,6 +34,7 @@ public class LeadRequestModel extends PaginationBaseRequestModel {
     private Long addressId;
     private Long createdById;
     private Long assignedAgentId;
+    private String notes;
     
     // Pagination fields
     private int pageNumber;

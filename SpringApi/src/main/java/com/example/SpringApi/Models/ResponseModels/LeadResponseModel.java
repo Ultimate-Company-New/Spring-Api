@@ -44,7 +44,6 @@ public class LeadResponseModel {
     private String notes;
     
     // Related entities
-    private Client client;
     private AddressResponseModel address;
     private UserResponseModel createdByUser;
     private UserResponseModel assignedAgent;
@@ -89,7 +88,6 @@ public class LeadResponseModel {
             this.notes = lead.getNotes();
             
             // Set related entities if loaded
-            this.client = lead.getClient();
             this.address = lead.getAddress() != null ? new AddressResponseModel(lead.getAddress()) : null;
             this.createdByUser = lead.getCreatedByUser() != null ? new UserResponseModel(lead.getCreatedByUser()) : null;
             this.assignedAgent = lead.getAssignedAgent() != null ? new UserResponseModel(lead.getAssignedAgent()) : null;
@@ -125,33 +123,6 @@ public class LeadResponseModel {
         return sb.toString();
     }
     
-    /**
-     * Builds a formatted full address string.
-     * 
-     * @return Formatted address string
-     */
-    private String buildFullAddress() {
-        if (this.address != null) {
-            StringBuilder sb = new StringBuilder();
-            if (this.address.getStreetAddress() != null) {
-                sb.append(this.address.getStreetAddress());
-            }
-            if (this.address.getCity() != null) {
-                if (sb.length() > 0) sb.append(", ");
-                sb.append(this.address.getCity());
-            }
-            if (this.address.getState() != null) {
-                if (sb.length() > 0) sb.append(", ");
-                sb.append(this.address.getState());
-            }
-            if (this.address.getPostalCode() != null) {
-                if (sb.length() > 0) sb.append(" ");
-                sb.append(this.address.getPostalCode());
-            }
-            return sb.toString();
-        }
-        return "No address";
-    }
     
     /**
      * Gets a color code based on lead status for UI display.

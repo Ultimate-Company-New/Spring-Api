@@ -303,6 +303,7 @@ public class Lead {
         this.addressId = request.getAddressId();
         this.createdById = request.getCreatedById();
         this.assignedAgentId = request.getAssignedAgentId();
+        this.notes = request.getNotes() != null ? request.getNotes().trim() : "Created From Spring API";
     }
     
     /**

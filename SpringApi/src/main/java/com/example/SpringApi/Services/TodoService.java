@@ -48,7 +48,7 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
     @Override
     public void addTodo(TodoRequestModel todoRequestModel) {
         String authenticatedUser = getUser();
-        Todo todo = new Todo(todoRequestModel, authenticatedUser);
+        Todo todo = new Todo(todoRequestModel, authenticatedUser, getUserId());
         Todo savedTodo = todoRepository.save(todo);
         userLogService.logData(
             getUserId(),
@@ -75,7 +75,7 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
         Todo todoToUpdate = todoRepository.findById(todoRequestModel.getTodoId())
             .orElseThrow(() -> new NotFoundException(ErrorMessages.TodoErrorMessages.InvalidId));
         
-        Todo updatedTodo = new Todo(todoRequestModel, authenticatedUser, todoToUpdate);
+        Todo updatedTodo = new Todo(todoRequestModel, authenticatedUser, todoToUpdate, getUserId());
         userLogService.logData(
             getUserId(),
             SuccessMessages.TodoSuccessMessages.UpdateTodo + " " + todoRepository.save(updatedTodo).getTodoId(),

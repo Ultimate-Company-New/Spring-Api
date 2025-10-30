@@ -5,20 +5,17 @@ import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Logging.ContextualLogger;
 import jakarta.servlet.http.HttpServletRequest;
 
-import com.example.SpringApi.Models.DatabaseModels.Client;
 import com.example.SpringApi.Models.DatabaseModels.Permission;
-import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.DatabaseModels.UserClientMapping;
-import com.example.SpringApi.Repositories.ClientRepository;
 import com.example.SpringApi.Repositories.PermissionRepository;
 import com.example.SpringApi.Repositories.UserClientMappingRepository;
-import com.example.SpringApi.Repositories.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service("customAuthorization")
 public class Authorization{
@@ -70,6 +67,9 @@ public class Authorization{
 
     public boolean hasAuthority(String userPermission) {
         validateToken();
+        if(userPermission == null || userPermission.isEmpty()) {
+            return true;
+        }
         List<Long> permissionIds = jwtTokenProvider.getUserPermissionIds(getJwtFromRequest());  
         boolean isUserAuthorized = isAllowed(userPermission, permissionIds);
         if(!isUserAuthorized) {
@@ -83,17 +83,16 @@ public class Authorization{
     public boolean isAllowed(String userPermission, List<Long> permissionIds) {
         if (permissionIds != null && !permissionIds.isEmpty()) {
             List<Permission> permissions = permissionRepository.findAllById(permissionIds);
-            Set<String> userPermissionCodes = new HashSet<>();
-            for (Permission p : permissions) {
-                userPermissionCodes.add(p.getPermissionCode());
-            }
+            SortedSet<String> userPermissionCodes = permissions.stream()
+                    .map(Permission::getPermissionCode)
+                    .collect(Collectors.toCollection(TreeSet::new));
             String[] requiredPermissions = userPermission.split(",");
             for (String perm : requiredPermissions) {
-                if (userPermissionCodes.contains(perm.trim())) {
-                    return true;
+                if (!userPermissionCodes.contains(perm.trim())) {
+                    return false;
                 }
             }
         }
-        return false;
+        return true;
     }
 }

@@ -24,7 +24,7 @@ public class ApiRoutes {
         public static final String LOGIN = "Login";
         public static final String EVENT = "Event";
         public static final String PERMISSION = "Permission";
-        public static final String TODO = "ToDo";
+        public static final String TODO = "Todo";
         public static final String SUPPORT = "Support";
         public static final String LEAD = "Lead";
         public static final String PURCHASE_ORDER = "PurchaseOrder";

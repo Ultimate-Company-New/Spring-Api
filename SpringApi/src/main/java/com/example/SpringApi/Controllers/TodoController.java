@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * REST Controller for Todo operations.
- * 
+ *
  * This controller handles all HTTP requests related to todo management
  * including creating, reading, updating, deleting, and managing todo items.
  * All endpoints require token validation for access.
- * 
+ *
  * @author SpringApi Team
  * @version 1.0
  * @since 2024-01-15
@@ -40,15 +40,14 @@ public class TodoController {
 
     /**
      * Adds a new todo item.
-     * 
+     *
      * This endpoint creates a new todo item for the authenticated user.
      * The todo object should contain the task description and other relevant details.
-     * 
-     * @param todo The todo item to add
+     *
      * @return ResponseEntity containing the ID of the newly created todo item or error
      */
     @PutMapping("/" + ApiRoutes.TodoSubRoute.ADD_ITEM)
-    @PreAuthorize("@customAuthorization.validateToken()")
+    @PreAuthorize("@customAuthorization.hasAuthority(null)")
     public ResponseEntity<?> addItem(@RequestBody TodoRequestModel todoRequest) {
         try {
             todoService.addTodo(todoRequest);
@@ -75,7 +74,7 @@ public class TodoController {
      * @return ResponseEntity containing success status or error
      */
     @PostMapping("/" + ApiRoutes.TodoSubRoute.UPDATE_ITEM)
-    @PreAuthorize("@customAuthorization.validateToken()")
+    @PreAuthorize("@customAuthorization.hasAuthority(null)")
     public ResponseEntity<?> updateItem(@RequestBody TodoRequestModel todoRequest) {
         try {
             todoService.updateTodo(todoRequest);
@@ -105,7 +104,7 @@ public class TodoController {
      * @return ResponseEntity containing success status or error
      */
     @DeleteMapping("/" + ApiRoutes.TodoSubRoute.DELETE_ITEM)
-    @PreAuthorize("@customAuthorization.validateToken()")
+    @PreAuthorize("@customAuthorization.hasAuthority(null)")
     public ResponseEntity<?> deleteItem(@RequestParam long id) {
         try {
             todoService.deleteTodo(id);
@@ -135,7 +134,7 @@ public class TodoController {
      * @return ResponseEntity containing success status or error
      */
     @DeleteMapping("/" + ApiRoutes.TodoSubRoute.TOGGLE_DONE)
-    @PreAuthorize("@customAuthorization.validateToken()")
+    @PreAuthorize("@customAuthorization.hasAuthority(null)")
     public ResponseEntity<?> toggleTodo(@RequestParam long id) {
         try {
             todoService.toggleTodo(id);
@@ -164,7 +163,7 @@ public class TodoController {
      * @return ResponseEntity containing list of todo items or error
      */
     @GetMapping("/" + ApiRoutes.TodoSubRoute.GET_ITEMS)
-    @PreAuthorize("@customAuthorization.validateToken()")
+    @PreAuthorize("@customAuthorization.hasAuthority(null)")
     public ResponseEntity<?> getTodoItems() {
         try {
             return ResponseEntity.ok(todoService.getTodoItems());

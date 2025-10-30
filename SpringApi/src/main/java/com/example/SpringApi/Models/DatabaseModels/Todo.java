@@ -77,11 +77,11 @@ public class Todo {
      * @param request The TodoRequestModel containing todo data
      * @param createdUser The username of the user creating this record
      */
-    public Todo(TodoRequestModel request, String createdUser) {
+    public Todo(TodoRequestModel request, String createdUser, long userId) {
         validateRequest(request);
         validateUser(createdUser);
         
-        setFieldsFromRequest(request);
+        setFieldsFromRequest(request, userId);
         this.createdUser = createdUser;
         this.modifiedUser = createdUser;  // When creating, modified user is same as created user
         this.notes = "Created Via SpringApi";
@@ -94,7 +94,7 @@ public class Todo {
      * @param modifiedUser The username of the user modifying this record
      * @param existingTodo The existing todo entity to be updated
      */
-    public Todo(TodoRequestModel request, String modifiedUser, Todo existingTodo) {
+    public Todo(TodoRequestModel request, String modifiedUser, Todo existingTodo, long userId) {
         validateRequest(request);
         validateUser(modifiedUser);
         
@@ -105,7 +105,7 @@ public class Todo {
         this.notes = "Updated via SpringApi";
         
         // Update with new values
-        setFieldsFromRequest(request);
+        setFieldsFromRequest(request, userId);
         this.modifiedUser = modifiedUser;
     }
     
@@ -127,11 +127,6 @@ public class Todo {
         if (request.getTask().trim().length() > 500) {
             throw new BadRequestException(ErrorMessages.TodoErrorMessages.TaskTooLong);
         }
-        
-        // Validate user ID (required, > 0)
-        if (request.getUserId() == null || request.getUserId() <= 0) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidId);
-        }
     }
     
     /**
@@ -151,9 +146,9 @@ public class Todo {
      * 
      * @param request The TodoRequestModel to extract fields from
      */
-    private void setFieldsFromRequest(TodoRequestModel request) {
+    private void setFieldsFromRequest(TodoRequestModel request, long userId) {
         this.task = request.getTask().trim();
         this.isDone = request.getIsDone() != null ? request.getIsDone() : false;
-        this.userId = request.getUserId();
+        this.userId = userId;
     }
 }

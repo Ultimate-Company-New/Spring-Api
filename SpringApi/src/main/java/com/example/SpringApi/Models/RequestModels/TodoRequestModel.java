@@ -20,5 +20,4 @@ public class TodoRequestModel extends PaginationBaseRequestModel {
     private Long todoId;
     private String task;
     private Boolean isDone;
-    private Long userId;
 }

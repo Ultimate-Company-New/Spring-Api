@@ -182,8 +182,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         if (existingLead == null) {
             throw new NotFoundException(ErrorMessages.LEAD_NOT_FOUND);
         }
-          
-        
+
         // Use the Lead constructor that handles validation and field mapping for updates
         Lead updatedLead = new Lead(leadRequestModel, getUser(), existingLead);
         Address savedAddress = addressRepository.save(new Address(leadRequestModel.getAddress(), getUser(), existingLead.getAddress()));

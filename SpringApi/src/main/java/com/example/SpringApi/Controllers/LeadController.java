@@ -45,7 +45,7 @@ public class LeadController {
      * @return ResponseEntity containing paginated lead data
      */
     @PostMapping("/" + ApiRoutes.LeadsSubRoute.GET_LEADS_IN_BATCHES)
-    @PreAuthorize("hasAuthority('" + Authorizations.VIEW_LEADS_PERMISSION + "')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.VIEW_LEADS_PERMISSION + "')")
     public ResponseEntity<?> getLeadsInBatches(
             @RequestBody LeadRequestModel leadRequestModel) {
         try {
@@ -77,7 +77,7 @@ public class LeadController {
      * @return ResponseEntity containing the lead details
      */
     @GetMapping("/" + ApiRoutes.LeadsSubRoute.GET_LEAD_DETAILS_BY_ID + "/{leadId}")
-    @PreAuthorize("hasAuthority('" + Authorizations.VIEW_LEADS_PERMISSION + "')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.VIEW_LEADS_PERMISSION + "')")
     public ResponseEntity<?> getLeadDetailsById(@PathVariable Long leadId) {
         try {
             return ResponseEntity.ok(leadService.getLeadDetailsById(leadId));
@@ -108,7 +108,7 @@ public class LeadController {
      * @return ResponseEntity containing the lead details
      */
     @GetMapping("/" + ApiRoutes.LeadsSubRoute.GET_LEAD_DETAILS_BY_EMAIL + "/{email}")
-    @PreAuthorize("hasAuthority('" + Authorizations.VIEW_LEADS_PERMISSION + "')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.VIEW_LEADS_PERMISSION + "')")
     public ResponseEntity<?> getLeadDetailsByEmail(@PathVariable String email) {
         try {
             return ResponseEntity.ok(leadService.getLeadDetailsByEmail(email));
@@ -139,7 +139,7 @@ public class LeadController {
      * @return ResponseEntity containing the created lead
      */
     @PutMapping("/" + ApiRoutes.LeadsSubRoute.CREATE_LEAD)
-    @PreAuthorize("hasAuthority('" + Authorizations.INSERT_LEADS_PERMISSION + "')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.INSERT_LEADS_PERMISSION + "')")
     public ResponseEntity<?> createLead(@RequestBody LeadRequestModel leadRequestModel) {
         try {
             leadService.createLead(leadRequestModel);
@@ -168,7 +168,7 @@ public class LeadController {
      * @return ResponseEntity containing the updated lead
      */
     @PostMapping("/" + ApiRoutes.LeadsSubRoute.UPDATE_LEAD + "/{leadId}")
-    @PreAuthorize("hasAuthority('" + Authorizations.UPDATE_LEADS_PERMISSION + "')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.UPDATE_LEADS_PERMISSION + "')")
     public ResponseEntity<?> updateLead(@PathVariable Long leadId,
                                           @RequestBody LeadRequestModel leadRequestModel) {
         try {
@@ -201,7 +201,7 @@ public class LeadController {
      * @return ResponseEntity containing the updated lead
      */
     @DeleteMapping("/" + ApiRoutes.LeadsSubRoute.TOGGLE_LEAD + "/{leadId}")
-    @PreAuthorize("hasAuthority('" + Authorizations.TOGGLE_LEADS_PERMISSION + "')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.TOGGLE_LEADS_PERMISSION + "')")
     public ResponseEntity<?> toggleLead(@PathVariable Long leadId) {
         try {
             leadService.toggleLead(leadId);

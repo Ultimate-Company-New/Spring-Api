@@ -1,6 +1,7 @@
 package com.example.SpringApi.Models;
 
 public class Authorizations {
+
     // Roles
     public static final String ADMIN_ROLE = "Admin";
     public static final String MANAGER_ROLE = "Manager";
