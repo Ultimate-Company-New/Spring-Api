@@ -103,9 +103,9 @@ public class TodoController {
      * @param id The ID of the todo item to delete
      * @return ResponseEntity containing success status or error
      */
-    @DeleteMapping("/" + ApiRoutes.TodoSubRoute.DELETE_ITEM)
+    @DeleteMapping("/" + ApiRoutes.TodoSubRoute.DELETE_ITEM + "/{id}")
     @PreAuthorize("@customAuthorization.hasAuthority(null)")
-    public ResponseEntity<?> deleteItem(@RequestParam long id) {
+    public ResponseEntity<?> deleteItem(@PathVariable long id) {
         try {
             todoService.deleteTodo(id);
             return ResponseEntity.ok().build();
@@ -133,9 +133,9 @@ public class TodoController {
      * @param id The ID of the todo item to toggle
      * @return ResponseEntity containing success status or error
      */
-    @DeleteMapping("/" + ApiRoutes.TodoSubRoute.TOGGLE_DONE)
+    @DeleteMapping("/" + ApiRoutes.TodoSubRoute.TOGGLE_DONE + "/{id}")
     @PreAuthorize("@customAuthorization.hasAuthority(null)")
-    public ResponseEntity<?> toggleTodo(@RequestParam long id) {
+    public ResponseEntity<?> toggleTodo(@PathVariable long id) {
         try {
             todoService.toggleTodo(id);
             return ResponseEntity.ok().build();

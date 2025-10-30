@@ -105,9 +105,9 @@ public class PromoController {
      * @param id The ID of the promo to retrieve
      * @return ResponseEntity containing promo details or error
      */
-    @GetMapping("/" + ApiRoutes.PromosSubRoute.GET_PROMO_DETAILS_BY_ID)
+    @GetMapping("/" + ApiRoutes.PromosSubRoute.GET_PROMO_DETAILS_BY_ID + "/{id}")
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_PROMOS_PERMISSION +"')")
-    public ResponseEntity<?> getPromoDetailsById(@RequestParam long id) {
+    public ResponseEntity<?> getPromoDetailsById(@PathVariable long id) {
         try {
             return ResponseEntity.ok(promoService.getPromoDetailsById(id));
         } catch (BadRequestException bre) {
@@ -135,9 +135,9 @@ public class PromoController {
      * @param id The ID of the promo to toggle
      * @return ResponseEntity containing success status or error
      */
-    @DeleteMapping("/" + ApiRoutes.PromosSubRoute.TOGGLE_PROMO)
+    @DeleteMapping("/" + ApiRoutes.PromosSubRoute.TOGGLE_PROMO + "/{id}")
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.DELETE_PROMOS_PERMISSION +"')")
-    public ResponseEntity<?> togglePromo(@RequestParam long id) {
+    public ResponseEntity<?> togglePromo(@PathVariable long id) {
         try {
             promoService.togglePromo(id);
             return ResponseEntity.ok().build();
@@ -166,9 +166,9 @@ public class PromoController {
      * @param promoCode The promotional code to search for
      * @return ResponseEntity containing promo details or error
      */
-    @GetMapping("/" + ApiRoutes.PromosSubRoute.GET_PROMO_DETAILS_BY_NAME)
+    @GetMapping("/" + ApiRoutes.PromosSubRoute.GET_PROMO_DETAILS_BY_NAME + "/{promoCode}")
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_PROMOS_PERMISSION +"')")
-    public ResponseEntity<?> getPromoDetailsByName(@RequestParam String promoCode) {
+    public ResponseEntity<?> getPromoDetailsByName(@PathVariable String promoCode) {
         try {
             return ResponseEntity.ok(promoService.getPromoDetailsByName(promoCode));
         } catch (BadRequestException bre) {

@@ -57,11 +57,9 @@ public class Todo {
     private LocalDateTime updatedAt;
 
     @Column(name = "modifiedUser", nullable = false, length = 255)
-    private String modifiedUser;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "modifiedUser", referencedColumnName = "loginName", insertable = false, updatable = false)
-    private User modifiedByUser;    @Column(name = "notes", columnDefinition = "TEXT")
+    private String modifiedUser;  
+    
+    @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
     
     // Relations

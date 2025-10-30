@@ -74,8 +74,8 @@ public class PackageController {
      * @return ResponseEntity containing the package response data
      */
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_PACKAGES_PERMISSION +"')")
-    @GetMapping(ApiRoutes.PackageSubRoute.GET_PACKAGE_BY_ID)
-    public ResponseEntity<?> getPackageById(@RequestParam long id) {
+    @GetMapping(ApiRoutes.PackageSubRoute.GET_PACKAGE_BY_ID + "/{id}")
+    public ResponseEntity<?> getPackageById(@PathVariable long id) {
         try {
             PackageResponseModel packageResponse = packageService.getPackageById(id);
             return ResponseEntity.ok(packageResponse);
@@ -127,8 +127,8 @@ public class PackageController {
      * @return ResponseEntity containing list of packages available at the pickup location
      */
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_PACKAGES_PERMISSION +"')")
-    @GetMapping(ApiRoutes.PackageSubRoute.GET_PACKAGES_BY_PICKUP_LOCATION_ID)
-    public ResponseEntity<?> getPackagesByPickupLocationId(@RequestParam Long pickupLocationId) {
+    @GetMapping(ApiRoutes.PackageSubRoute.GET_PACKAGES_BY_PICKUP_LOCATION_ID + "/{pickupLocationId}")
+    public ResponseEntity<?> getPackagesByPickupLocationId(@PathVariable Long pickupLocationId) {
         try {
             List<PackageResponseModel> packages = packageService.getPackagesByPickupLocationId(pickupLocationId);
             return ResponseEntity.ok(packages);
@@ -154,8 +154,8 @@ public class PackageController {
      * @return ResponseEntity containing success status
      */
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.TOGGLE_PACKAGES_PERMISSION +"')")
-    @DeleteMapping(ApiRoutes.PackageSubRoute.TOGGLE_PACKAGE)
-    public ResponseEntity<?> togglePackage(@RequestParam long id) {
+    @DeleteMapping(ApiRoutes.PackageSubRoute.TOGGLE_PACKAGE + "/{id}")
+    public ResponseEntity<?> togglePackage(@PathVariable long id) {
         try {
             packageService.togglePackage(id);
             return ResponseEntity.ok("Package status toggled successfully");

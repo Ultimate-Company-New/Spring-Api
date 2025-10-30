@@ -1,7 +1,6 @@
 package com.example.SpringApi.Models.ResponseModels;
 
 import com.example.SpringApi.Models.DatabaseModels.Todo;
-import com.example.SpringApi.Models.DatabaseModels.User;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
@@ -30,9 +29,6 @@ public class TodoResponseModel {
     private String modifiedUser;
     private String notes;
     
-    // Related entities
-    private User user;
-    
     // Additional computed fields
     private String taskPreview;
     private String statusText;
@@ -54,10 +50,7 @@ public class TodoResponseModel {
             this.updatedAt = todo.getUpdatedAt();
             this.modifiedUser = todo.getModifiedUser();
             this.notes = todo.getNotes();
-            
-            // Set related entities if loaded
-            this.user = todo.getUser();
-            
+                        
             // Compute additional fields
             this.taskPreview = buildTaskPreview();
             this.statusText = this.isDone ? "Completed" : "Pending";

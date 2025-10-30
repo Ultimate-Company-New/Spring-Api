@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface TodoRepository extends JpaRepository<Todo, Long> {
-    List<Todo> findAllByUserId(Long userId);
+    List<Todo> findAllByUserIdOrderByTodoIdDesc(Long userId);
 }

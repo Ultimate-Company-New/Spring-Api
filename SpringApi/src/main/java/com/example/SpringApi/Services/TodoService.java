@@ -152,7 +152,7 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
      */
     @Override
     public List<TodoResponseModel> getTodoItems() {
-        List<Todo> todos = todoRepository.findAllByUserId(getUserId());
+        List<Todo> todos = todoRepository.findAllByUserIdOrderByTodoIdDesc(getUserId());
         
         // Convert to response models
         List<TodoResponseModel> responseModels = todos.stream()
