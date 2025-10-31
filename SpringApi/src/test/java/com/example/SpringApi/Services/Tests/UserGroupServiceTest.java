@@ -97,13 +97,12 @@ class UserGroupServiceTest {
         // Initialize test user group request model
         testUserGroupRequest = new UserGroupRequestModel();
         testUserGroupRequest.setGroupId(TEST_GROUP_ID);
-        testUserGroupRequest.setClientId(TEST_CLIENT_ID);
         testUserGroupRequest.setGroupName(TEST_GROUP_NAME);
         testUserGroupRequest.setDescription(TEST_DESCRIPTION);
         testUserGroupRequest.setUserIds(Arrays.asList(TEST_USER_ID, 2L, 3L));
         
         // Initialize test user group using constructor
-        testUserGroup = new UserGroup(testUserGroupRequest, CREATED_USER);
+        testUserGroup = new UserGroup(testUserGroupRequest, CREATED_USER, TEST_CLIENT_ID);
         testUserGroup.setGroupId(TEST_GROUP_ID);
         testUserGroup.setIsDeleted(false);
         testUserGroup.setCreatedAt(LocalDateTime.now());

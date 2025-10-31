@@ -8,6 +8,7 @@ import java.util.List;
 @Getter
 @Setter
 public class PaginationBaseRequestModel {
+    private Long id;
     private int start;
     private int end;
     private String condition;

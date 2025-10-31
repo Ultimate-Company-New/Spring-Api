@@ -59,35 +59,18 @@ public interface IMessageSubTranslator {
     MessageResponseModel getMessageDetailsById(long id);
     
     /**
-     * Gets list of user IDs that are targeted by a specific message.
+     * Retrieves messages for a specific user in paginated batches.
      * 
-     * @param id The ID of the message
-     * @return List of user IDs
+     * @param paginationBaseRequestModel The pagination parameters
+     * @return Paginated response containing message data with read status
      */
-    List<Long> getUsersInMessages(long id);
-    
-    /**
-     * Gets list of user group IDs that are targeted by a specific message.
-     * 
-     * @param id The ID of the message
-     * @return List of user group IDs
-     */
-    List<Long> getUserGroupsInMessage(long id);
-    
-    /**
-     * Retrieves all messages for a specific user.
-     * 
-     * @param id The user ID
-     * @return List of messages for the user
-     */
-    List<MessageResponseModel> getMessagesByUserId(long id);
+    PaginationBaseResponseModel<MessageResponseModel> getMessagesByUserId(PaginationBaseRequestModel paginationBaseRequestModel);
     
     /**
      * Marks a message as read for a specific user.
      * 
      * @param userId The ID of the user
      * @param messageId The ID of the message
-     * @return True if operation was successful, false otherwise
      */
-    Boolean setMessageReadByUserIdAndMessageId(long userId, long messageId);
+    void setMessageReadByUserIdAndMessageId(long userId, long messageId);
 }

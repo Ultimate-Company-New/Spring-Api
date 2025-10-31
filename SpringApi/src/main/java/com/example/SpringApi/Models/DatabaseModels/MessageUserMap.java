@@ -75,5 +75,23 @@ public class MessageUserMap {
     public MessageUserMap() {
         // Default constructor for JPA
     }
+    
+    /**
+     * Constructor for creating a new MessageUserMap.
+     * 
+     * @param messageId The message ID
+     * @param userId The user ID
+     * @param recipientType The recipient type (TO, CC, BCC)
+     * @param createdUser The username creating this record
+     * @param notes Optional notes
+     */
+    public MessageUserMap(Long messageId, Long userId, String recipientType, String createdUser, String notes) {
+        this.messageId = messageId;
+        this.userId = userId;
+        this.recipientType = recipientType;
+        this.createdUser = createdUser;
+        this.modifiedUser = createdUser;
+        this.notes = notes;
+    }
 }
 

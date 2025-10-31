@@ -58,6 +58,9 @@ public class MessageController {
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (NotFoundException nfe) {
+            logger.error(nfe);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException uae) {
             logger.error(uae);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
@@ -86,6 +89,9 @@ public class MessageController {
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (NotFoundException nfe) {
+            logger.error(nfe);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException uae) {
             logger.error(uae);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
@@ -133,14 +139,14 @@ public class MessageController {
      * archiving or restoring the message without permanent deletion.
      * Requires DELETE_MESSAGES_PERMISSION to access.
      * 
-     * @param id The ID of the message to toggle
+     * @param paginationBaseRequestModel The request containing message ID
      * @return ResponseEntity containing success status or error
      */
     @DeleteMapping("/" + ApiRoutes.MessagesSubRoute.TOGGLE_MESSAGE)
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.DELETE_MESSAGES_PERMISSION +"')")
-    public ResponseEntity<?> toggleMessage(@RequestParam long id) {
+    public ResponseEntity<?> toggleMessage(@RequestBody PaginationBaseRequestModel paginationBaseRequestModel) {
         try {
-            messageService.toggleMessage(id);
+            messageService.toggleMessage(paginationBaseRequestModel.getId());
             return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
@@ -164,14 +170,14 @@ public class MessageController {
      * content, targeting information, scheduling, and distribution status.
      * Requires VIEW_MESSAGES_PERMISSION to access.
      * 
-     * @param id The ID of the message to retrieve
+     * @param paginationBaseRequestModel The request containing message ID
      * @return ResponseEntity containing message details or error
      */
-    @GetMapping("/" + ApiRoutes.MessagesSubRoute.GET_MESSAGE_DETAILS_BY_ID)
+    @PostMapping("/" + ApiRoutes.MessagesSubRoute.GET_MESSAGE_DETAILS_BY_ID)
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_MESSAGES_PERMISSION +"')")
-    public ResponseEntity<?> getMessageDetailsById(@RequestParam long id) {
+    public ResponseEntity<?> getMessageDetailsById(@RequestBody PaginationBaseRequestModel paginationBaseRequestModel) {
         try {
-            return ResponseEntity.ok(messageService.getMessageDetailsById(id));
+            return ResponseEntity.ok(messageService.getMessageDetailsById(paginationBaseRequestModel.getId()));
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
@@ -188,80 +194,21 @@ public class MessageController {
     }
 
     /**
-     * Gets list of user IDs that are targeted by a specific message.
+     * Retrieves messages for a specific user in paginated batches.
      * 
-     * This endpoint returns the list of individual users who are set to receive
-     * the specified message, useful for reviewing message distribution.
-     * Requires VIEW_MESSAGES_PERMISSION to access.
-     * 
-     * @param id The ID of the message
-     * @return ResponseEntity containing list of user IDs or error
-     */
-    @GetMapping("/" + ApiRoutes.MessagesSubRoute.GET_USERS_IN_MESSAGE)
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_MESSAGES_PERMISSION +"')")
-    public ResponseEntity<?> getUsersInMessages(@RequestParam long id) {
-        try {
-            return ResponseEntity.ok(messageService.getUsersInMessages(id));
-        } catch (BadRequestException bre) {
-            logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
-        } catch (NotFoundException nfe) {
-            logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
-        } catch (UnauthorizedException uae) {
-            logger.error(uae);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
-        } catch (Exception e) {
-            logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
-        }
-    }
-
-    /**
-     * Gets list of user group IDs that are targeted by a specific message.
-     * 
-     * This endpoint returns the list of user groups that are set to receive
-     * the specified message, useful for reviewing message distribution scope.
-     * Requires VIEW_MESSAGES_PERMISSION to access.
-     * 
-     * @param id The ID of the message
-     * @return ResponseEntity containing list of user group IDs or error
-     */
-    @GetMapping("/" + ApiRoutes.MessagesSubRoute.GET_USER_GROUPS_IN_MESSAGE)
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_MESSAGES_PERMISSION +"')")
-    public ResponseEntity<?> getUserGroupsInMessage(@RequestParam long id) {
-        try {
-            return ResponseEntity.ok(messageService.getUserGroupsInMessage(id));
-        } catch (BadRequestException bre) {
-            logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
-        } catch (NotFoundException nfe) {
-            logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
-        } catch (UnauthorizedException uae) {
-            logger.error(uae);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
-        } catch (Exception e) {
-            logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
-        }
-    }
-
-    /**
-     * Retrieves all messages for a specific user.
-     * 
-     * This endpoint returns all messages that have been sent to or are visible
+     * This endpoint returns messages that have been sent to or are visible
      * to the specified user, including both direct messages and group messages.
+     * Returns unread messages first, then read messages, ordered by messageId DESC.
      * Requires VIEW_MESSAGES_PERMISSION to access.
      * 
-     * @param id The user ID
-     * @return ResponseEntity containing list of messages for the user or error
+     * @param paginationBaseRequestModel The pagination parameters (id=userId, start, end)
+     * @return ResponseEntity containing paginated list of messages with read status or error
      */
-    @GetMapping("/" + ApiRoutes.MessagesSubRoute.GET_MESSAGES_BY_USER_ID)
+    @PostMapping("/" + ApiRoutes.MessagesSubRoute.GET_MESSAGES_BY_USER_ID)
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_MESSAGES_PERMISSION +"')")
-    public ResponseEntity<?> getMessagesByUserId(@RequestParam long id) {
+    public ResponseEntity<?> getMessagesByUserId(@RequestBody PaginationBaseRequestModel paginationBaseRequestModel) {
         try {
-            return ResponseEntity.ok(messageService.getMessagesByUserId(id));
+            return ResponseEntity.ok(messageService.getMessagesByUserId(paginationBaseRequestModel));
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
@@ -284,15 +231,18 @@ public class MessageController {
      * status for tracking purposes and potentially affecting message visibility.
      * Requires VIEW_MESSAGES_PERMISSION to access.
      * 
-     * @param userId The ID of the user
-     * @param messageId The ID of the message
+     * @param messageRequestModel The request containing userId and messageId
      * @return ResponseEntity containing success status or error
      */
     @PostMapping("/" + ApiRoutes.MessagesSubRoute.SET_MESSAGE_READ_BY_USER_ID_AND_MESSAGE_ID)
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_MESSAGES_PERMISSION +"')")
-    public ResponseEntity<?> setMessageReadByUserIdAndMessageId(@RequestParam long userId, @RequestParam long messageId) {
+    public ResponseEntity<?> setMessageReadByUserIdAndMessageId(@RequestBody MessageRequestModel messageRequestModel) {
         try {
-            return ResponseEntity.ok(messageService.setMessageReadByUserIdAndMessageId(userId, messageId));
+            messageService.setMessageReadByUserIdAndMessageId(
+                messageRequestModel.getCreatedByUserId(), 
+                messageRequestModel.getMessageId()
+            );
+            return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));

@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -115,4 +116,36 @@ public interface UserRepository extends JpaRepository<User, Long> {
            "AND (ucpm IS NULL OR ucpm.clientId = :clientId) " +
            "AND (ugm IS NULL OR ug.clientId = :clientId)")
     User findByEmailWithAllRelations(@Param("email") String email, @Param("clientId") Long clientId);
+
+    @Query("SELECT u FROM User u " +
+           "JOIN UserClientMapping ucm ON u.userId = ucm.userId " +
+           "WHERE u.userId = :userId AND ucm.clientId = :clientId")
+    Optional<User> findByUserIdAndClientId(@Param("userId") Long userId, @Param("clientId") Long clientId);
+
+    /**
+     * Fetches all user emails in a client by user IDs and group IDs.
+     * Only returns emails from non-deleted users who belong to non-deleted groups.
+     * Combines direct user targeting and group-based targeting in a single query.
+     * 
+     * @param clientId The client ID
+     * @param userIds List of user IDs (can be null or empty)
+     * @param groupIds List of group IDs (can be null or empty)
+     * @return List of distinct email addresses
+     */
+    @Query("SELECT DISTINCT u.email FROM User u " +
+           "JOIN UserClientMapping ucm ON u.userId = ucm.userId " +
+           "LEFT JOIN UserGroupUserMap ugm ON u.userId = ugm.userId " +
+           "LEFT JOIN UserGroup ug ON ugm.groupId = ug.groupId " +
+           "WHERE ucm.clientId = :clientId " +
+           "AND u.isDeleted = false " +
+           "AND u.email IS NOT NULL " +
+           "AND TRIM(u.email) <> '' " +
+           "AND (" +
+           "  (u.userId IN :userIds) " +
+           "  OR " +
+           "  (ugm.groupId IN :groupIds AND (ug.isDeleted = false OR ug.isDeleted IS NULL))" +
+           ")")
+    List<String> findAllUserEmailsByClientAndUserIdsAndGroupIds(@Param("clientId") Long clientId,
+                                                                  @Param("userIds") List<Long> userIds,
+                                                                  @Param("groupIds") List<Long> groupIds);
 }

@@ -394,7 +394,7 @@ class PromoServiceTest {
         assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, exception.getMessage());
         verify(promoRepository).findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID);
         verify(promoRepository, never()).save(any(Promo.class));
-        verify(userLogService, never()).logData(any(), any(), any());
+        verify(userLogService, never()).logData(anyLong(), any(), any());
     }
 
     /**

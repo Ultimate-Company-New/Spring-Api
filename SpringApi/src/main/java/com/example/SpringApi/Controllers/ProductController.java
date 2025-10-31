@@ -111,8 +111,8 @@ public class ProductController {
      * @return ResponseEntity indicating success or error
      */
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.DELETE_PRODUCTS_PERMISSION +"')")
-    @DeleteMapping("/" + ApiRoutes.ProductsSubRoute.TOGGLE_DELETE_PRODUCT)
-    public ResponseEntity<?> toggleDeleteProduct(@RequestParam long id) {
+    @DeleteMapping("/" + ApiRoutes.ProductsSubRoute.TOGGLE_DELETE_PRODUCT + "/{id}")
+    public ResponseEntity<?> toggleDeleteProduct(@PathVariable long id) {
         try {
             productService.toggleDeleteProduct(id);
             return ResponseEntity.ok().build();
@@ -142,8 +142,8 @@ public class ProductController {
      * @return ResponseEntity indicating success or error
      */
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.TOGGLE_PRODUCT_RETURNS_PERMISSION +"')")
-    @DeleteMapping("/" + ApiRoutes.ProductsSubRoute.TOGGLE_RETURN_PRODUCT)
-    public ResponseEntity<?> toggleReturnProduct(@RequestParam long id) {
+    @DeleteMapping("/" + ApiRoutes.ProductsSubRoute.TOGGLE_RETURN_PRODUCT + "/{id}")
+    public ResponseEntity<?> toggleReturnProduct(@PathVariable long id) {
         try {
             productService.toggleReturnProduct(id);
             return ResponseEntity.ok().build();
@@ -173,8 +173,8 @@ public class ProductController {
      * @return ResponseEntity containing product details or error
      */
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_PRODUCTS_PERMISSION +"')")
-    @GetMapping("/" + ApiRoutes.ProductsSubRoute.GET_PRODUCT_DETAILS_BY_ID)
-    public ResponseEntity<?> getProductDetailsById(@RequestParam long id) {
+    @GetMapping("/" + ApiRoutes.ProductsSubRoute.GET_PRODUCT_DETAILS_BY_ID + "/{id}")
+    public ResponseEntity<?> getProductDetailsById(@PathVariable long id) {
         try {
             return ResponseEntity.ok(productService.getProductDetailsById(id));
         } catch (BadRequestException bre) {

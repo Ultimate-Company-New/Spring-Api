@@ -286,7 +286,7 @@ class ProductServiceTest {
     @DisplayName("editProduct - Success: Valid product update")
     void testEditProduct_Success() {
         // Arrange
-        when(productRepository.findById(TEST_PRODUCT_ID)).thenReturn(Optional.of(testProduct));
+        when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(testProduct);
 
         try (MockedConstruction<FirebaseHelper> firebaseHelperMock = mockConstruction(FirebaseHelper.class,
                 (mock, context) -> {
@@ -297,7 +297,7 @@ class ProductServiceTest {
             // Act & Assert
             assertDoesNotThrow(() -> productService.editProduct(testProductRequest));
 
-            verify(productRepository, times(1)).findById(TEST_PRODUCT_ID);
+            verify(productRepository, times(1)).findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID);
             verify(productRepository, times(1)).save(any(Product.class));
             verify(userLogService, times(1)).logData(eq(1L), anyString(), eq("editProduct"));
         }
@@ -314,14 +314,14 @@ class ProductServiceTest {
             () -> productService.editProduct(testProductRequest));
 
         assertEquals(ErrorMessages.ProductErrorMessages.InvalidId, exception.getMessage());
-        verify(productRepository, never()).findById(any());
+        verify(productRepository, never()).findByIdWithRelatedEntities(anyLong(), anyLong());
     }
 
     @Test
     @DisplayName("editProduct - Failure: Product not found")
     void testEditProduct_ProductNotFound() {
         // Arrange
-        when(productRepository.findById(TEST_PRODUCT_ID)).thenReturn(Optional.empty());
+        lenient().when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
@@ -338,13 +338,13 @@ class ProductServiceTest {
     void testToggleDeleteProduct_Success() {
         // Arrange
         testProduct.setIsDeleted(false);
-        when(productRepository.findById(TEST_PRODUCT_ID)).thenReturn(Optional.of(testProduct));
+        when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(testProduct);
 
         // Act
         assertDoesNotThrow(() -> productService.toggleDeleteProduct(TEST_PRODUCT_ID));
 
         // Assert
-        verify(productRepository, times(1)).findById(TEST_PRODUCT_ID);
+        verify(productRepository, times(1)).findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID);
         verify(productRepository, times(1)).save(testProduct);
         verify(userLogService, times(1)).logData(eq(1L), anyString(), anyString());
         assertTrue(testProduct.getIsDeleted());
@@ -355,7 +355,7 @@ class ProductServiceTest {
     void testToggleDeleteProduct_Success_Undelete() {
         // Arrange
         testProduct.setIsDeleted(true);
-        when(productRepository.findById(TEST_PRODUCT_ID)).thenReturn(Optional.of(testProduct));
+        when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(testProduct);
 
         // Act
         assertDoesNotThrow(() -> productService.toggleDeleteProduct(TEST_PRODUCT_ID));
@@ -368,7 +368,7 @@ class ProductServiceTest {
     @DisplayName("toggleDeleteProduct - Failure: Product not found")
     void testToggleDeleteProduct_ProductNotFound() {
         // Arrange
-        when(productRepository.findById(TEST_PRODUCT_ID)).thenReturn(Optional.empty());
+        lenient().when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
@@ -385,13 +385,13 @@ class ProductServiceTest {
     void testToggleReturnProduct_Success() {
         // Arrange
         testProduct.setReturnsAllowed(true);
-        when(productRepository.findById(TEST_PRODUCT_ID)).thenReturn(Optional.of(testProduct));
+        when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(testProduct);
 
         // Act
         assertDoesNotThrow(() -> productService.toggleReturnProduct(TEST_PRODUCT_ID));
 
         // Assert
-        verify(productRepository, times(1)).findById(TEST_PRODUCT_ID);
+        verify(productRepository, times(1)).findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID);
         verify(productRepository, times(1)).save(testProduct);
         verify(userLogService, times(1)).logData(eq(1L), anyString(), anyString());
         assertFalse(testProduct.getReturnsAllowed());
@@ -401,7 +401,7 @@ class ProductServiceTest {
     @DisplayName("toggleReturnProduct - Failure: Product not found")
     void testToggleReturnProduct_ProductNotFound() {
         // Arrange
-        when(productRepository.findById(TEST_PRODUCT_ID)).thenReturn(Optional.empty());
+        lenient().when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
@@ -417,7 +417,7 @@ class ProductServiceTest {
     @DisplayName("getProductDetailsById - Success: Product found with related entities")
     void testGetProductDetailsById_Success() {
         // Arrange
-        when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID)).thenReturn(Optional.of(testProduct));
+        when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(testProduct);
 
         // Act
         ProductResponseModel result = productService.getProductDetailsById(TEST_PRODUCT_ID);
@@ -428,14 +428,14 @@ class ProductServiceTest {
         assertEquals(TEST_TITLE, result.getTitle());
         assertEquals(testCategory, result.getCategory());
         assertEquals(testPickupLocation, result.getPickupLocation());
-        verify(productRepository, times(1)).findByIdWithRelatedEntities(TEST_PRODUCT_ID);
+        verify(productRepository, times(1)).findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID);
     }
 
     @Test
     @DisplayName("getProductDetailsById - Failure: Product not found")
     void testGetProductDetailsById_ProductNotFound() {
         // Arrange
-        when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID)).thenReturn(Optional.empty());
+        when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
@@ -462,7 +462,7 @@ class ProductServiceTest {
         Page<Product> productPage = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
 
         when(productRepository.findPaginatedProducts(
-            eq("title"), eq("contains"), eq("Test"), eq(false), isNull(), any(Pageable.class)
+            eq(TEST_CLIENT_ID), eq("title"), eq("contains"), eq("Test"), eq(false), isNull(), any(Pageable.class)
         )).thenReturn(productPage);
 
         // Act
@@ -504,7 +504,7 @@ class ProductServiceTest {
         Page<Product> productPage = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
 
         when(productRepository.findPaginatedProducts(
-            isNull(), isNull(), isNull(), eq(false), anySet(), any(Pageable.class)
+            eq(TEST_CLIENT_ID), isNull(), isNull(), isNull(), eq(false), anySet(), any(Pageable.class)
         )).thenReturn(productPage);
 
         // Act
@@ -528,7 +528,7 @@ class ProductServiceTest {
         Page<Product> productPage = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
 
         when(productRepository.findPaginatedProducts(
-            isNull(), isNull(), isNull(), eq(true), isNull(), any(Pageable.class)
+            eq(TEST_CLIENT_ID), isNull(), isNull(), isNull(), eq(true), isNull(), any(Pageable.class)
         )).thenReturn(productPage);
 
         // Act

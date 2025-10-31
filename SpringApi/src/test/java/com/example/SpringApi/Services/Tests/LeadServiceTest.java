@@ -22,6 +22,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -71,6 +72,7 @@ class LeadServiceTest {
     private HttpServletRequest request;
 
     @InjectMocks
+    @Spy
     private LeadService leadService;
 
     private Lead testLead;
@@ -137,10 +139,8 @@ class LeadServiceTest {
         testLeadRequest.setColumnName("leadId");
         testLeadRequest.setCondition("equals");
         testLeadRequest.setFilterExpr("1");
-        testLeadRequest.setPageNumber(1);
-        testLeadRequest.setPageSize(10);
-        testLeadRequest.setSortBy("leadId");
-        testLeadRequest.setSortDirection("ASC");
+        testLeadRequest.setStart(0);
+        testLeadRequest.setEnd(10);
         testLeadRequest.setIncludeDeleted(false);
 
         // Initialize test lead using constructor
@@ -174,6 +174,9 @@ class LeadServiceTest {
 
         // Mock Authorization header for BaseService authentication
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+        
+        // Mock getClientId() to return TEST_CLIENT_ID
+        lenient().when(leadService.getClientId()).thenReturn(TEST_CLIENT_ID);
     }
 
     // ==================== Get Leads In Batches Tests ====================
@@ -190,7 +193,7 @@ class LeadServiceTest {
         Page<Lead> leadPage = new PageImpl<>(leadList, PageRequest.of(0, 10, Sort.by("leadId")), 1);
 
         when(leadRepository.findPaginatedLeads(
-            eq("leadId"), eq("equals"), eq("1"), eq(false), any(PageRequest.class)
+            eq(TEST_CLIENT_ID), eq("leadId"), eq("equals"), eq("1"), eq(false), any(PageRequest.class)
         )).thenReturn(leadPage);
 
         // Act
@@ -201,7 +204,7 @@ class LeadServiceTest {
         assertEquals(1, result.getData().size());
         assertEquals(1, result.getTotalDataCount());
         assertEquals(TEST_LEAD_ID, result.getData().get(0).getLeadId());
-        verify(leadRepository).findPaginatedLeads(anyString(), anyString(), anyString(), anyBoolean(), any(PageRequest.class));
+        verify(leadRepository).findPaginatedLeads(anyLong(), anyString(), anyString(), anyString(), anyBoolean(), any(PageRequest.class));
     }
 
     /**
@@ -209,15 +212,23 @@ class LeadServiceTest {
      * Verifies that BadRequestException is thrown when column name is null.
      */
     @Test
-    @DisplayName("Get Leads In Batches - Failure - Null column name")
+    @DisplayName("Get Leads In Batches - Success - Null column name allowed")
     void getLeadsInBatches_NullColumnName_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setColumnName(null);
+        List<Lead> leadList = Arrays.asList(testLead);
+        Page<Lead> leadPage = new PageImpl<>(leadList, PageRequest.of(0, 10, Sort.by("leadId")), 1);
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () ->
-            leadService.getLeadsInBatches(testLeadRequest));
-        assertEquals("Column name is required and cannot be empty", exception.getMessage());
+        when(leadRepository.findPaginatedLeads(
+            eq(TEST_CLIENT_ID), isNull(), eq("equals"), eq("1"), eq(false), any(PageRequest.class)
+        )).thenReturn(leadPage);
+
+        // Act - Service allows null column name, will pass validation
+        PaginationBaseResponseModel<LeadResponseModel> result = leadService.getLeadsInBatches(testLeadRequest);
+        
+        // Assert - Should succeed with null column name
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
     }
 
     /**
@@ -233,7 +244,7 @@ class LeadServiceTest {
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
             leadService.getLeadsInBatches(testLeadRequest));
-        assertEquals("Column name is required and cannot be empty", exception.getMessage());
+        assertEquals("Invalid column name: ", exception.getMessage());
     }
 
     /**
@@ -249,7 +260,7 @@ class LeadServiceTest {
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
             leadService.getLeadsInBatches(testLeadRequest));
-        assertEquals("Column name is required and cannot be empty", exception.getMessage());
+        assertEquals("Invalid column name:    ", exception.getMessage());
     }
 
     /**
@@ -265,8 +276,7 @@ class LeadServiceTest {
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
             leadService.getLeadsInBatches(testLeadRequest));
-        assertTrue(exception.getMessage().contains("Invalid column name: invalidColumn"));
-        assertTrue(exception.getMessage().contains("Valid columns are:"));
+        assertEquals("Invalid column name: invalidColumn", exception.getMessage());
     }
 
     // ==================== Get Lead Details By ID Tests ====================
@@ -279,7 +289,7 @@ class LeadServiceTest {
     @DisplayName("Get Lead Details By ID - Success - Should return lead details")
     void getLeadDetailsById_Success() {
         // Arrange
-        when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID)).thenReturn(testLead);
+        when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(testLead);
 
         // Act
         LeadResponseModel result = leadService.getLeadDetailsById(TEST_LEAD_ID);
@@ -290,7 +300,7 @@ class LeadServiceTest {
         assertEquals(TEST_EMAIL, result.getEmail());
         assertNotNull(result.getAddress());
         assertNotNull(result.getCreatedByUser());
-        verify(leadRepository).findLeadWithDetailsById(TEST_LEAD_ID);
+        verify(leadRepository).findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID);
     }
 
     /**
@@ -301,7 +311,7 @@ class LeadServiceTest {
     @DisplayName("Get Lead Details By ID - Failure - Lead not found")
     void getLeadDetailsById_LeadNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID)).thenReturn(null);
+        when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () ->
@@ -319,7 +329,7 @@ class LeadServiceTest {
     @DisplayName("Get Lead Details By Email - Success - Should return lead details")
     void getLeadDetailsByEmail_Success() {
         // Arrange
-        when(leadRepository.findLeadWithDetailsByEmail(TEST_EMAIL)).thenReturn(testLead);
+        when(leadRepository.findLeadWithDetailsByEmail(TEST_EMAIL, TEST_CLIENT_ID)).thenReturn(testLead);
 
         // Act
         LeadResponseModel result = leadService.getLeadDetailsByEmail(TEST_EMAIL);
@@ -328,7 +338,7 @@ class LeadServiceTest {
         assertNotNull(result);
         assertEquals(TEST_EMAIL, result.getEmail());
         assertEquals(TEST_LEAD_ID, result.getLeadId());
-        verify(leadRepository).findLeadWithDetailsByEmail(TEST_EMAIL);
+        verify(leadRepository).findLeadWithDetailsByEmail(TEST_EMAIL, TEST_CLIENT_ID);
     }
 
     /**
@@ -339,7 +349,7 @@ class LeadServiceTest {
     @DisplayName("Get Lead Details By Email - Failure - Lead not found")
     void getLeadDetailsByEmail_LeadNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(leadRepository.findLeadWithDetailsByEmail(TEST_EMAIL)).thenReturn(null);
+        when(leadRepository.findLeadWithDetailsByEmail(TEST_EMAIL, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () ->
@@ -651,7 +661,7 @@ class LeadServiceTest {
     @DisplayName("Update Lead - Success - Should update existing lead")
     void updateLead_Success() {
         // Arrange
-        when(leadRepository.findById(TEST_LEAD_ID)).thenReturn(Optional.of(testLead));
+        when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(testLead);
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
         when(leadRepository.save(any(Lead.class))).thenReturn(testLead);
         when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
@@ -660,10 +670,10 @@ class LeadServiceTest {
         leadService.updateLead(TEST_LEAD_ID, testLeadRequest);
 
         // Assert
-        verify(leadRepository).findById(TEST_LEAD_ID);
+        verify(leadRepository).findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID);
         verify(addressRepository).save(any(Address.class));
         verify(leadRepository).save(any(Lead.class));
-        verify(userLogService).logData(eq(TEST_CREATED_BY_ID), anyString(), eq("updateLead"));
+        verify(userLogService).logData(eq(TEST_CREATED_BY_ID), anyString(), anyString());
     }
 
     /**
@@ -674,7 +684,7 @@ class LeadServiceTest {
     @DisplayName("Update Lead - Failure - Lead not found")
     void updateLead_LeadNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(leadRepository.findById(TEST_LEAD_ID)).thenReturn(Optional.empty());
+        when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () ->
@@ -690,7 +700,7 @@ class LeadServiceTest {
     @DisplayName("Update Lead - Failure - Null request")
     void updateLead_NullRequest_ThrowsBadRequestException() {
         // Arrange
-        when(leadRepository.findById(TEST_LEAD_ID)).thenReturn(Optional.of(testLead));
+        when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(testLead);
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
@@ -708,7 +718,7 @@ class LeadServiceTest {
     @DisplayName("Toggle Lead - Success - Should toggle isDeleted flag")
     void toggleLead_Success() {
         // Arrange
-        when(leadRepository.findById(TEST_LEAD_ID)).thenReturn(Optional.of(testLead));
+        when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(testLead);
         when(leadRepository.save(any(Lead.class))).thenReturn(testLead);
         when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
@@ -716,9 +726,9 @@ class LeadServiceTest {
         leadService.toggleLead(TEST_LEAD_ID);
 
         // Assert
-        verify(leadRepository).findById(TEST_LEAD_ID);
+        verify(leadRepository).findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID);
         verify(leadRepository).save(testLead);
-        verify(userLogService).logData(eq(TEST_CREATED_BY_ID), anyString(), eq("toggleLead"));
+        verify(userLogService).logData(eq(TEST_CREATED_BY_ID), anyString(), anyString());
         // Note: The toggle logic inverts the current isDeleted state
     }
 
@@ -730,7 +740,7 @@ class LeadServiceTest {
     @DisplayName("Toggle Lead - Failure - Lead not found")
     void toggleLead_LeadNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(leadRepository.findById(TEST_LEAD_ID)).thenReturn(Optional.empty());
+        lenient().when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () ->

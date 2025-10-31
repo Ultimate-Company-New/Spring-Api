@@ -180,6 +180,9 @@ public class ErrorMessages {
         public static final String ER006 = "Message description markdown cannot be empty";
         public static final String ER007 = "Message description html cannot be empty";
         public static final String ER008 = "Atleast one user/usergroup needs to be present in the message.";
+        public static final String ER009 = "Cannot schedule email in the past. Publish date must be in the future.";
+        public static final String ER010 = "Cannot schedule email beyond 72 hours. SendGrid only allows scheduling within a 72-hour window from now (UTC timezone).";
+        public static final String ER011 = "Cannot edit message. The scheduled email has already been sent (publish date has passed).";
     }
 
     public static class WebTemplatesErrorMessages{

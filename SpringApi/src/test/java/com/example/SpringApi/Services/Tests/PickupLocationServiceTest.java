@@ -27,6 +27,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -81,6 +82,7 @@ class PickupLocationServiceTest {
     private HttpServletRequest request;
 
     @InjectMocks
+    @Spy
     private PickupLocationService pickupLocationService;
 
     private PickupLocation testPickupLocation;
@@ -148,6 +150,9 @@ class PickupLocationServiceTest {
 
         // Mock Authorization header
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+        
+        // Mock getClientId() to return TEST_CLIENT_ID
+        lenient().when(pickupLocationService.getClientId()).thenReturn(TEST_CLIENT_ID);
     }
 
     // ==================== Get Pickup Location By ID Tests ====================
@@ -160,7 +165,7 @@ class PickupLocationServiceTest {
     @DisplayName("Get Pickup Location By ID - Success")
     void getPickupLocationById_Success() {
         // Arrange
-        when(pickupLocationRepository.findPickupLocationById(TEST_PICKUP_LOCATION_ID)).thenReturn(testPickupLocation);
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(testPickupLocation);
 
         // Act
         PickupLocationResponseModel result = pickupLocationService.getPickupLocationById(TEST_PICKUP_LOCATION_ID);
@@ -169,7 +174,7 @@ class PickupLocationServiceTest {
         assertNotNull(result);
         assertEquals(TEST_PICKUP_LOCATION_ID, result.getPickupLocationId());
         assertEquals(TEST_ADDRESS_NICKNAME, result.getAddressNickName());
-        verify(pickupLocationRepository, times(1)).findPickupLocationById(TEST_PICKUP_LOCATION_ID);
+        verify(pickupLocationRepository, times(1)).findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
     }
 
     /**
@@ -180,13 +185,13 @@ class PickupLocationServiceTest {
     @DisplayName("Get Pickup Location By ID - Not Found")
     void getPickupLocationById_NotFound_ThrowsNotFoundException() {
         // Arrange
-        when(pickupLocationRepository.findPickupLocationById(TEST_PICKUP_LOCATION_ID)).thenReturn(null);
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
             () -> pickupLocationService.getPickupLocationById(TEST_PICKUP_LOCATION_ID));
         assertTrue(exception.getMessage().contains(String.valueOf(TEST_PICKUP_LOCATION_ID)));
-        verify(pickupLocationRepository, times(1)).findPickupLocationById(TEST_PICKUP_LOCATION_ID);
+        verify(pickupLocationRepository, times(1)).findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
     }
 
     // ==================== Get Pickup Locations In Batches Tests ====================
@@ -201,18 +206,17 @@ class PickupLocationServiceTest {
         // Arrange
         PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
         paginationRequest.setStart(0);
-        paginationRequest.setPageSize(10);
+        paginationRequest.setEnd(10);
         paginationRequest.setColumnName("pickupLocationId");
         paginationRequest.setCondition("equals");
         paginationRequest.setFilterExpr("1");
         paginationRequest.setIncludeDeleted(false);
 
-        Object[] resultData = {testPickupLocation, testAddress};
-        List<Object[]> dataList = Collections.singletonList(resultData);
-        Page<Object[]> pageResult = new PageImpl<>(dataList, PageRequest.of(0, 10), 1);
+        List<PickupLocation> dataList = Collections.singletonList(testPickupLocation);
+        Page<PickupLocation> pageResult = new PageImpl<>(dataList, PageRequest.of(0, 10), 1);
 
         when(pickupLocationRepository.findPaginatedPickupLocations(
-            eq("pickupLocationId"), eq("equals"), eq("1"), eq(false), any(Pageable.class)))
+            eq(TEST_CLIENT_ID), eq("pickupLocationId"), eq("equals"), eq("1"), eq(false), any(Pageable.class)))
             .thenReturn(pageResult);
 
         // Act
@@ -223,7 +227,7 @@ class PickupLocationServiceTest {
         assertEquals(1, result.getData().size());
         assertEquals(1, result.getTotalDataCount());
         verify(pickupLocationRepository, times(1)).findPaginatedPickupLocations(
-            eq("pickupLocationId"), eq("equals"), eq("1"), eq(false), any(Pageable.class));
+            eq(TEST_CLIENT_ID), eq("pickupLocationId"), eq("equals"), eq("1"), eq(false), any(Pageable.class));
     }
 
     /**
@@ -292,7 +296,7 @@ class PickupLocationServiceTest {
         verify(pickupLocationRepository, times(1)).save(any(PickupLocation.class)); // Only initial save
         verify(shippingHelper, times(1)).addPickupLocation(any(PickupLocation.class));
         // Logging should not occur due to rollback
-        verify(userLogService, never()).logData(any(), any(), any());
+        verify(userLogService, never()).logData(anyLong(), any(), any());
     }
 
     // ==================== Update Pickup Location Tests ====================
@@ -308,7 +312,7 @@ class PickupLocationServiceTest {
         PickupLocation existingPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER);
         existingPickupLocation.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
 
-        when(pickupLocationRepository.findById(TEST_PICKUP_LOCATION_ID)).thenReturn(Optional.of(existingPickupLocation));
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(existingPickupLocation);
         when(addressRepository.findById(TEST_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
         when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
@@ -318,7 +322,7 @@ class PickupLocationServiceTest {
         pickupLocationService.updatePickupLocation(testPickupLocationRequest);
 
         // Assert
-        verify(pickupLocationRepository, times(1)).findById(TEST_PICKUP_LOCATION_ID);
+        verify(pickupLocationRepository, times(1)).findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
         verify(addressRepository, times(1)).findById(TEST_ADDRESS_ID);
         verify(addressRepository, times(1)).save(any(Address.class));
         verify(pickupLocationRepository, times(1)).save(any(PickupLocation.class));
@@ -337,13 +341,13 @@ class PickupLocationServiceTest {
     @DisplayName("Update Pickup Location - Pickup Location Not Found")
     void updatePickupLocation_PickupLocationNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(pickupLocationRepository.findById(TEST_PICKUP_LOCATION_ID)).thenReturn(Optional.empty());
+        lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
             () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
         assertTrue(exception.getMessage().contains(String.valueOf(TEST_PICKUP_LOCATION_ID)));
-        verify(pickupLocationRepository, times(1)).findById(TEST_PICKUP_LOCATION_ID);
+        verify(pickupLocationRepository, times(1)).findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
     }
 
     /**
@@ -357,7 +361,7 @@ class PickupLocationServiceTest {
         PickupLocation existingPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER);
         existingPickupLocation.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
 
-        when(pickupLocationRepository.findById(TEST_PICKUP_LOCATION_ID)).thenReturn(Optional.of(existingPickupLocation));
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(existingPickupLocation);
         when(addressRepository.findById(TEST_ADDRESS_ID)).thenReturn(Optional.empty());
 
         // Act & Assert
@@ -378,7 +382,7 @@ class PickupLocationServiceTest {
         PickupLocation existingPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER);
         existingPickupLocation.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
 
-        when(pickupLocationRepository.findById(TEST_PICKUP_LOCATION_ID)).thenReturn(Optional.of(existingPickupLocation));
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(existingPickupLocation);
         when(addressRepository.findById(TEST_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
         when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
@@ -394,7 +398,7 @@ class PickupLocationServiceTest {
         verify(pickupLocationRepository, times(1)).save(any(PickupLocation.class));
         verify(shippingHelper, times(1)).addPickupLocation(any(PickupLocation.class));
         // Logging should not occur due to rollback
-        verify(userLogService, never()).logData(any(), any(), any());
+        verify(userLogService, never()).logData(anyLong(), any(), any());
     }
 
     // ==================== Toggle Pickup Location Tests ====================
@@ -407,7 +411,7 @@ class PickupLocationServiceTest {
     @DisplayName("Toggle Pickup Location - Success")
     void togglePickupLocation_Success() {
         // Arrange
-        when(pickupLocationRepository.findById(TEST_PICKUP_LOCATION_ID)).thenReturn(Optional.of(testPickupLocation));
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(testPickupLocation);
         when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
 
         // Act
@@ -415,7 +419,7 @@ class PickupLocationServiceTest {
 
         // Assert
         assertTrue(testPickupLocation.getIsDeleted());
-        verify(pickupLocationRepository, times(1)).findById(TEST_PICKUP_LOCATION_ID);
+        verify(pickupLocationRepository, times(1)).findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
         verify(pickupLocationRepository, times(1)).save(testPickupLocation);
         verify(userLogService, times(1)).logData(
             anyLong(),
@@ -431,13 +435,13 @@ class PickupLocationServiceTest {
     @DisplayName("Toggle Pickup Location - Not Found")
     void togglePickupLocation_NotFound_ThrowsNotFoundException() {
         // Arrange
-        when(pickupLocationRepository.findById(TEST_PICKUP_LOCATION_ID)).thenReturn(Optional.empty());
+        lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
             () -> pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID));
         assertTrue(exception.getMessage().contains(String.valueOf(TEST_PICKUP_LOCATION_ID)));
-        verify(pickupLocationRepository, times(1)).findById(TEST_PICKUP_LOCATION_ID);
+        verify(pickupLocationRepository, times(1)).findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
     }
 
     // ==================== Get All Pickup Locations Tests ====================
@@ -451,7 +455,7 @@ class PickupLocationServiceTest {
     void getAllPickupLocations_IncludeDeleted_Success() {
         // Arrange
         List<PickupLocation> pickupLocations = Arrays.asList(testPickupLocation);
-        when(pickupLocationRepository.findAllWithAddresses(true)).thenReturn(pickupLocations);
+        when(pickupLocationRepository.findAllWithAddressesByClientId(TEST_CLIENT_ID, true)).thenReturn(pickupLocations);
 
         // Act
         List<PickupLocationResponseModel> result = pickupLocationService.getAllPickupLocations(true);
@@ -460,7 +464,7 @@ class PickupLocationServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(TEST_PICKUP_LOCATION_ID, result.get(0).getPickupLocationId());
-        verify(pickupLocationRepository, times(1)).findAllWithAddresses(true);
+        verify(pickupLocationRepository, times(1)).findAllWithAddressesByClientId(TEST_CLIENT_ID, true);
     }
 
     /**
@@ -473,7 +477,7 @@ class PickupLocationServiceTest {
         // Arrange
         testPickupLocation.setIsDeleted(false);
         List<PickupLocation> pickupLocations = Arrays.asList(testPickupLocation);
-        when(pickupLocationRepository.findAllWithAddresses(false)).thenReturn(pickupLocations);
+        when(pickupLocationRepository.findAllWithAddressesByClientId(TEST_CLIENT_ID, false)).thenReturn(pickupLocations);
 
         // Act
         List<PickupLocationResponseModel> result = pickupLocationService.getAllPickupLocations(false);
@@ -481,6 +485,6 @@ class PickupLocationServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(pickupLocationRepository, times(1)).findAllWithAddresses(false);
+        verify(pickupLocationRepository, times(1)).findAllWithAddressesByClientId(TEST_CLIENT_ID, false);
     }
 }

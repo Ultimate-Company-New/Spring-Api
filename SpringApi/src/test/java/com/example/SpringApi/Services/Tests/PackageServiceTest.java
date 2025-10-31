@@ -159,7 +159,7 @@ class PackageServiceTest {
         testPaginationRequest.setFilterExpr("1");
         testPaginationRequest.setIncludeDeleted(false);
         testPaginationRequest.setStart(0);
-        testPaginationRequest.setPageSize(10);
+        testPaginationRequest.setEnd(10);
     }
 
     /**

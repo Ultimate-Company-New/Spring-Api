@@ -72,5 +72,21 @@ public class MessageUserGroupMap {
     public MessageUserGroupMap() {
         // Default constructor for JPA
     }
+    
+    /**
+     * Constructor for creating a new MessageUserGroupMap.
+     * 
+     * @param messageId The message ID
+     * @param groupId The group ID
+     * @param createdUser The username creating this record
+     * @param notes Optional notes
+     */
+    public MessageUserGroupMap(Long messageId, Long groupId, String createdUser, String notes) {
+        this.messageId = messageId;
+        this.groupId = groupId;
+        this.createdUser = createdUser;
+        this.modifiedUser = createdUser;
+        this.notes = notes;
+    }
 }
 

@@ -7,7 +7,10 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import com.example.SpringApi.Models.RequestModels.MessageRequestModel;
 import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.ErrorMessages;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * JPA Entity for the Messages table.
@@ -22,13 +25,16 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "`Messages`")
+@Table(name = "`Message`")
 public class Message {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "messageId", nullable = false)
     private Long messageId;
+    
+    @Column(name = "clientId", nullable = false)
+    private Long clientId;
     
     @Column(name = "title", nullable = false, length = 500)
     private String title;
@@ -56,25 +62,26 @@ public class Message {
     @Column(name = "createdAt", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
+    @Column(name = "createdUser", nullable = false, length = 255)
+    private String createdUser;
+
     @UpdateTimestamp
     @Column(name = "updatedAt", nullable = false)
     private LocalDateTime updatedAt;
     
+    @Column(name = "modifiedUser", nullable = false, length = 255)
+    private String modifiedUser;
+
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
-    
-    @Column(name = "auditUserId")
-    private Long auditUserId;
-    
-    // Relations
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "createdByUserId", insertable = false, updatable = false)
-    private User createdByUser;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "auditUserId", insertable = false, updatable = false)
-    private User auditUser;
-    
+
+    // Relationships
+    @OneToMany(mappedBy = "message", fetch = FetchType.LAZY)
+    private List<MessageUserMap> messageUserMaps = new ArrayList<>();
+
+    @OneToMany(mappedBy = "message", fetch = FetchType.LAZY)
+    private List<MessageUserGroupMap> messageUserGroupMaps = new ArrayList<>();
+
     public Message() {}
     
     /**
@@ -82,14 +89,18 @@ public class Message {
      * 
      * @param request The MessageRequestModel containing message data
      * @param createdByUserId The ID of the user creating this record
+     * @param createdUser The login name of the user creating this record
+     * @param clientId The client ID this message belongs to
      */
-    public Message(MessageRequestModel request, Long createdByUserId) {
+    public Message(MessageRequestModel request, Long createdByUserId, String createdUser, Long clientId) {
         validateRequest(request);
         validateUserId(createdByUserId);
-        
+
         setFieldsFromRequest(request);
+        this.clientId = clientId;
         this.createdByUserId = createdByUserId;
-        this.auditUserId = createdByUserId;  // When creating, audit user is same as created user
+        this.createdUser = createdUser;
+        this.modifiedUser = createdUser;
     }
     
     /**
@@ -110,7 +121,6 @@ public class Message {
         
         // Update with new values
         setFieldsFromRequest(request);
-        this.auditUserId = auditUserId;
     }
     
     /**
@@ -126,15 +136,23 @@ public class Message {
         
         // Validate title (required, length > 0, max 500 chars)
         if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
-            throw new BadRequestException("Message title is required");
+            throw new BadRequestException(ErrorMessages.MessagesErrorMessages.ER003);
         }
         if (request.getTitle().trim().length() > 500) {
-            throw new BadRequestException("Message title is too long");
+            throw new BadRequestException("Message title is too long (max 500 characters)");
         }
         
         // Validate description HTML (required, length > 0)
         if (request.getDescriptionHtml() == null || request.getDescriptionHtml().trim().isEmpty()) {
-            throw new BadRequestException("Message description is required");
+            throw new BadRequestException(ErrorMessages.MessagesErrorMessages.ER007);
+        }
+        
+        // Validate that at least one userId or groupId is provided
+        boolean hasUserIds = request.getUserIds() != null && !request.getUserIds().isEmpty();
+        boolean hasGroupIds = request.getUserGroupIds() != null && !request.getUserGroupIds().isEmpty();
+        
+        if (!hasUserIds && !hasGroupIds) {
+            throw new BadRequestException(ErrorMessages.MessagesErrorMessages.ER008);
         }
     }
     

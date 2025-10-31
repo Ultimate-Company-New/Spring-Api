@@ -76,6 +76,7 @@ class ProductReviewServiceTest {
     private static final Long TEST_REVIEW_ID = 1L;
     private static final Long TEST_PRODUCT_ID = 100L;
     private static final Long TEST_USER_ID = 200L;
+    private static final Long TEST_CLIENT_ID = 1L;
     private static final String TEST_USER = "testuser";
     private static final BigDecimal TEST_RATING = new BigDecimal("4.5");
     private static final String TEST_REVIEW_TEXT = "Great product!";
@@ -108,9 +109,10 @@ class ProductReviewServiceTest {
         // Mock Authorization header for JWT authentication
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
 
-        // Mock getUserId() and getUser() methods
+        // Mock getUserId(), getUser(), and getClientId() methods
         lenient().when(productReviewService.getUserId()).thenReturn(TEST_USER_ID);
         lenient().when(productReviewService.getUser()).thenReturn(TEST_USER);
+        lenient().when(productReviewService.getClientId()).thenReturn(TEST_CLIENT_ID);
     }
 
     // ==================== Insert Product Review Tests ====================
@@ -152,7 +154,7 @@ class ProductReviewServiceTest {
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.InvalidId, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
-        verify(userLogService, never()).logData(any(), any(), any());
+        verify(userLogService, never()).logData(anyLong(), any(), any());
     }
 
     /**
@@ -173,7 +175,7 @@ class ProductReviewServiceTest {
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
-        verify(userLogService, never()).logData(any(), any(), any());
+        verify(userLogService, never()).logData(anyLong(), any(), any());
     }
 
     /**
@@ -194,7 +196,7 @@ class ProductReviewServiceTest {
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
-        verify(userLogService, never()).logData(any(), any(), any());
+        verify(userLogService, never()).logData(anyLong(), any(), any());
     }
 
     /**
@@ -215,7 +217,7 @@ class ProductReviewServiceTest {
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER002, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
-        verify(userLogService, never()).logData(any(), any(), any());
+        verify(userLogService, never()).logData(anyLong(), any(), any());
     }
 
     /**
@@ -236,7 +238,7 @@ class ProductReviewServiceTest {
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER002, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
-        verify(userLogService, never()).logData(any(), any(), any());
+        verify(userLogService, never()).logData(anyLong(), any(), any());
     }
 
     /**
@@ -257,7 +259,7 @@ class ProductReviewServiceTest {
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER003, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
-        verify(userLogService, never()).logData(any(), any(), any());
+        verify(userLogService, never()).logData(anyLong(), any(), any());
     }
 
     /**
@@ -278,7 +280,7 @@ class ProductReviewServiceTest {
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER003, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
-        verify(userLogService, never()).logData(any(), any(), any());
+        verify(userLogService, never()).logData(anyLong(), any(), any());
     }
 
     /**
@@ -299,7 +301,7 @@ class ProductReviewServiceTest {
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
-        verify(userLogService, never()).logData(any(), any(), any());
+        verify(userLogService, never()).logData(anyLong(), any(), any());
     }
 
     /**
@@ -320,7 +322,7 @@ class ProductReviewServiceTest {
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
-        verify(userLogService, never()).logData(any(), any(), any());
+        verify(userLogService, never()).logData(anyLong(), any(), any());
     }
 
     // ==================== Get Product Reviews In Batches Tests ====================
@@ -336,7 +338,8 @@ class ProductReviewServiceTest {
         List<ProductReview> reviewList = Arrays.asList(testProductReview);
         Page<ProductReview> reviewPage = new PageImpl<>(reviewList, PageRequest.of(0, 10), 1);
 
-        when(productReviewRepository.findByProductIdAndIsDeletedFalse(eq(TEST_PRODUCT_ID), any(Pageable.class)))
+        when(productReviewRepository.findPaginatedProductReviews(
+            eq(TEST_CLIENT_ID), isNull(), isNull(), isNull(), eq(false), any(Pageable.class)))
             .thenReturn(reviewPage);
 
         // Act
@@ -351,7 +354,8 @@ class ProductReviewServiceTest {
         assertEquals(TEST_REVIEW_ID, result.getData().get(0).getReviewId());
         assertEquals(TEST_RATING, result.getData().get(0).getRatings());
 
-        verify(productReviewRepository, times(1)).findByProductIdAndIsDeletedFalse(eq(TEST_PRODUCT_ID), any(Pageable.class));
+        verify(productReviewRepository, times(1)).findPaginatedProductReviews(
+            eq(TEST_CLIENT_ID), isNull(), isNull(), isNull(), eq(false), any(Pageable.class));
     }
 
     /**
@@ -364,7 +368,8 @@ class ProductReviewServiceTest {
         // Arrange
         Page<ProductReview> emptyPage = new PageImpl<>(Arrays.asList(), PageRequest.of(0, 10), 0);
 
-        when(productReviewRepository.findByProductIdAndIsDeletedFalse(eq(TEST_PRODUCT_ID), any(Pageable.class)))
+        when(productReviewRepository.findPaginatedProductReviews(
+            eq(TEST_CLIENT_ID), isNull(), isNull(), isNull(), eq(false), any(Pageable.class)))
             .thenReturn(emptyPage);
 
         // Act
@@ -377,7 +382,8 @@ class ProductReviewServiceTest {
         assertEquals(0, result.getData().size());
         assertEquals(0L, result.getTotalDataCount());
 
-        verify(productReviewRepository, times(1)).findByProductIdAndIsDeletedFalse(eq(TEST_PRODUCT_ID), any(Pageable.class));
+        verify(productReviewRepository, times(1)).findPaginatedProductReviews(
+            eq(TEST_CLIENT_ID), isNull(), isNull(), isNull(), eq(false), any(Pageable.class));
     }
 
     // ==================== Toggle Product Review Tests ====================
@@ -391,18 +397,18 @@ class ProductReviewServiceTest {
     void toggleProductReview_Success_MarkAsDeleted() {
         // Arrange
         testProductReview.setIsDeleted(false);
-        when(productReviewRepository.findById(TEST_REVIEW_ID)).thenReturn(Optional.of(testProductReview));
+        when(productReviewRepository.findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID)).thenReturn(testProductReview);
         when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
-        when(productReviewRepository.markAllDescendantsAsDeleted(TEST_REVIEW_ID, "admin")).thenReturn(2);
+        when(productReviewRepository.markAllDescendantsAsDeleted(eq(TEST_REVIEW_ID), anyString())).thenReturn(2);
 
         // Act
         productReviewService.toggleProductReview(TEST_REVIEW_ID);
 
         // Assert
         assertTrue(testProductReview.getIsDeleted());
-        verify(productReviewRepository, times(1)).findById(TEST_REVIEW_ID);
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
         verify(productReviewRepository, times(1)).save(testProductReview);
-        verify(productReviewRepository, times(1)).markAllDescendantsAsDeleted(TEST_REVIEW_ID, "admin");
+        verify(productReviewRepository, times(1)).markAllDescendantsAsDeleted(eq(TEST_REVIEW_ID), anyString());
         verify(userLogService, times(1)).logData(
             eq(TEST_USER_ID.longValue()),
             eq("Successfully toggled product review. 1"),
@@ -419,7 +425,7 @@ class ProductReviewServiceTest {
     void toggleProductReview_Success_RestoreFromDeleted() {
         // Arrange
         testProductReview.setIsDeleted(true);
-        when(productReviewRepository.findById(TEST_REVIEW_ID)).thenReturn(Optional.of(testProductReview));
+        when(productReviewRepository.findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID)).thenReturn(testProductReview);
         when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
 
         // Act
@@ -427,7 +433,7 @@ class ProductReviewServiceTest {
 
         // Assert
         assertFalse(testProductReview.getIsDeleted());
-        verify(productReviewRepository, times(1)).findById(TEST_REVIEW_ID);
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
         verify(productReviewRepository, times(1)).save(testProductReview);
         verify(productReviewRepository, never()).markAllDescendantsAsDeleted(any(), any());
         verify(userLogService, times(1)).logData(
@@ -445,7 +451,7 @@ class ProductReviewServiceTest {
     @DisplayName("Toggle Product Review - Failure - Review not found")
     void toggleProductReview_ReviewNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(productReviewRepository.findById(TEST_REVIEW_ID)).thenReturn(Optional.empty());
+        lenient().when(productReviewRepository.findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(
@@ -454,10 +460,10 @@ class ProductReviewServiceTest {
         );
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, exception.getMessage());
-        verify(productReviewRepository, times(1)).findById(TEST_REVIEW_ID);
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
         verify(productReviewRepository, never()).save(any(ProductReview.class));
         verify(productReviewRepository, never()).markAllDescendantsAsDeleted(any(), any());
-        verify(userLogService, never()).logData(any(), any(), any());
+        verify(userLogService, never()).logData(anyLong(), any(), any());
     }
 
     // ==================== Set Product Review Score Tests ====================
@@ -471,7 +477,7 @@ class ProductReviewServiceTest {
     void setProductReviewScore_Success_IncreaseScore() {
         // Arrange
         testProductReview.setScore(3);
-        when(productReviewRepository.findById(TEST_REVIEW_ID)).thenReturn(Optional.of(testProductReview));
+        when(productReviewRepository.findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID)).thenReturn(testProductReview);
         when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
 
         // Act
@@ -479,7 +485,7 @@ class ProductReviewServiceTest {
 
         // Assert
         assertEquals(4, testProductReview.getScore());
-        verify(productReviewRepository, times(1)).findById(TEST_REVIEW_ID);
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
         verify(productReviewRepository, times(1)).save(testProductReview);
         verify(userLogService, times(1)).logData(
             eq(TEST_USER_ID.longValue()),
@@ -497,7 +503,7 @@ class ProductReviewServiceTest {
     void setProductReviewScore_Success_DecreaseScore() {
         // Arrange
         testProductReview.setScore(3);
-        when(productReviewRepository.findById(TEST_REVIEW_ID)).thenReturn(Optional.of(testProductReview));
+        when(productReviewRepository.findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID)).thenReturn(testProductReview);
         when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
 
         // Act
@@ -505,7 +511,7 @@ class ProductReviewServiceTest {
 
         // Assert
         assertEquals(2, testProductReview.getScore());
-        verify(productReviewRepository, times(1)).findById(TEST_REVIEW_ID);
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
         verify(productReviewRepository, times(1)).save(testProductReview);
         verify(userLogService, times(1)).logData(
             eq(TEST_USER_ID.longValue()),
@@ -523,7 +529,7 @@ class ProductReviewServiceTest {
     void setProductReviewScore_Success_DecreaseToZero() {
         // Arrange
         testProductReview.setScore(0);
-        when(productReviewRepository.findById(TEST_REVIEW_ID)).thenReturn(Optional.of(testProductReview));
+        when(productReviewRepository.findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID)).thenReturn(testProductReview);
         when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
 
         // Act
@@ -531,7 +537,7 @@ class ProductReviewServiceTest {
 
         // Assert
         assertEquals(0, testProductReview.getScore());
-        verify(productReviewRepository, times(1)).findById(TEST_REVIEW_ID);
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
         verify(productReviewRepository, times(1)).save(testProductReview);
         verify(userLogService, times(1)).logData(
             eq(TEST_USER_ID.longValue()),
@@ -549,7 +555,7 @@ class ProductReviewServiceTest {
     void setProductReviewScore_Success_NullScore() {
         // Arrange
         testProductReview.setScore(null);
-        when(productReviewRepository.findById(TEST_REVIEW_ID)).thenReturn(Optional.of(testProductReview));
+        when(productReviewRepository.findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID)).thenReturn(testProductReview);
         when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
 
         // Act
@@ -557,7 +563,7 @@ class ProductReviewServiceTest {
 
         // Assert
         assertEquals(1, testProductReview.getScore());
-        verify(productReviewRepository, times(1)).findById(TEST_REVIEW_ID);
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
         verify(productReviewRepository, times(1)).save(testProductReview);
         verify(userLogService, times(1)).logData(
             eq(TEST_USER_ID.longValue()),
@@ -574,7 +580,7 @@ class ProductReviewServiceTest {
     @DisplayName("Set Product Review Score - Failure - Review not found")
     void setProductReviewScore_ReviewNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(productReviewRepository.findById(TEST_REVIEW_ID)).thenReturn(Optional.empty());
+        lenient().when(productReviewRepository.findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(
@@ -583,8 +589,8 @@ class ProductReviewServiceTest {
         );
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, exception.getMessage());
-        verify(productReviewRepository, times(1)).findById(TEST_REVIEW_ID);
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
         verify(productReviewRepository, never()).save(any(ProductReview.class));
-        verify(userLogService, never()).logData(any(), any(), any());
+        verify(userLogService, never()).logData(anyLong(), any(), any());
     }
 }

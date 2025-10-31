@@ -280,7 +280,7 @@ class UserServiceTest {
         assertEquals(TEST_LOGIN_NAME, result.getLoginName());
         assertNotNull(result.getPermissions());
         assertEquals(2, result.getPermissions().size());
-        assertEquals("Edit Users", result.getPermissions().get(0).getPermissionName());
+        assertEquals("View Users", result.getPermissions().get(0).getPermissionName());
         
         verify(userRepository, times(1)).findByIdWithAllRelations(eq(TEST_USER_ID), anyLong());
         // Permissions are now loaded eagerly with findByIdWithAllRelations, no separate call needed

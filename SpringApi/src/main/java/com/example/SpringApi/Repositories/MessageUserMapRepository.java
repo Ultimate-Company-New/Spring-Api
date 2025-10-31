@@ -9,5 +9,12 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface MessageUserMapRepository extends JpaRepository<MessageUserMap, Long> {
+    
+    /**
+     * Deletes all MessageUserMap entries for a specific message.
+     * 
+     * @param messageId The message ID
+     */
+    void deleteByMessageId(Long messageId);
 }
 

@@ -1,0 +1,1725 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.example:SpringApi >------------------------
+[INFO] Building SpringApi 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[WARNING] The artifact org.hibernate:hibernate-core:jar:6.4.2.Final has been relocated to org.hibernate.orm:hibernate-core:jar:6.4.2.Final
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ SpringApi ---
+[INFO] Copying 5 resources from src/main/resources to target/classes
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.8.1:compile (default-compile) @ SpringApi ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ SpringApi ---
+[INFO] skip non existing resourceDirectory /Users/nahushraichura/Documents/Ultimate Company Repositories/Spring-Api/SpringApi/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.8.1:testCompile (default-testCompile) @ SpringApi ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 14 source files to /Users/nahushraichura/Documents/Ultimate Company Repositories/Spring-Api/SpringApi/target/test-classes
+[INFO] 
+[INFO] --- surefire:3.1.2:test (default-test) @ SpringApi ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.example.SpringApi.Services.Tests.MessageServiceTest
+WARNING: A Java agent has been loaded dynamically (/Users/nahushraichura/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.11/byte-buddy-agent-1.14.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[ERROR] Tests run: 21, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 4.151 s <<< FAILURE! -- in com.example.SpringApi.Services.Tests.MessageServiceTest
+[ERROR] com.example.SpringApi.Services.Tests.MessageServiceTest.testCreateMessage_EmailBeyond72Hours -- Time elapsed: 0.980 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <Cannot schedule email beyond 72 hours. SendGrid only allows scheduling within a 72-hour window from now (UTC timezone).> but was: <Failed to generate batch ID: Failed to generate batch ID: {"errors":[{"message":"The provided authorization grant is invalid, expired, or revoked","field":null,"help":null}]}>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:177)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1145)
+	at com.example.SpringApi.Services.Tests.MessageServiceTest.testCreateMessage_EmailBeyond72Hours(MessageServiceTest.java:279)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.example.SpringApi.Services.Tests.LeadServiceTest
+[ERROR] Tests run: 32, Failures: 4, Errors: 3, Skipped: 0, Time elapsed: 0.612 s <<< FAILURE! -- in com.example.SpringApi.Services.Tests.LeadServiceTest
+[ERROR] com.example.SpringApi.Services.Tests.LeadServiceTest.toggleLead_LeadNotFound_ThrowsNotFoundException -- Time elapsed: 0.012 s <<< ERROR!
+org.mockito.exceptions.misusing.UnnecessaryStubbingException: 
+
+Unnecessary stubbings detected.
+Clean & maintainable test code requires zero unnecessary code.
+Following stubbings are unnecessary (click to navigate to relevant line of code):
+  1. -> at com.example.SpringApi.Services.Tests.LeadServiceTest.toggleLead_LeadNotFound_ThrowsNotFoundException(LeadServiceTest.java:738)
+Please remove unnecessary stubbings or use 'lenient' strictness. More info: javadoc for UnnecessaryStubbingException class.
+	at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:192)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.LeadServiceTest.getLeadsInBatches_NullColumnName_ThrowsBadRequestException -- Time elapsed: 0.005 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <Column name is required and cannot be empty> but was: <Invalid pagination: end must be greater than start>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:177)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1145)
+	at com.example.SpringApi.Services.Tests.LeadServiceTest.getLeadsInBatches_NullColumnName_ThrowsBadRequestException(LeadServiceTest.java:225)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.LeadServiceTest.getLeadsInBatches_EmptyColumnName_ThrowsBadRequestException -- Time elapsed: 0.004 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <Column name is required and cannot be empty> but was: <Invalid column name: >
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:177)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1145)
+	at com.example.SpringApi.Services.Tests.LeadServiceTest.getLeadsInBatches_EmptyColumnName_ThrowsBadRequestException(LeadServiceTest.java:241)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.LeadServiceTest.getLeadsInBatches_WhitespaceColumnName_ThrowsBadRequestException -- Time elapsed: 0.008 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <Column name is required and cannot be empty> but was: <Invalid column name:    >
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:177)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1145)
+	at com.example.SpringApi.Services.Tests.LeadServiceTest.getLeadsInBatches_WhitespaceColumnName_ThrowsBadRequestException(LeadServiceTest.java:257)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.LeadServiceTest.getLeadsInBatches_Success -- Time elapsed: 0.006 s <<< ERROR!
+com.example.SpringApi.Exceptions.BadRequestException: Invalid pagination: end must be greater than start
+	at com.example.SpringApi.Services.LeadService.getLeadsInBatches(LeadService.java:86)
+	at com.example.SpringApi.Services.LeadService.getLeadsInBatches(LeadService.java:66)
+	at com.example.SpringApi.Services.Tests.LeadServiceTest.getLeadsInBatches_Success(LeadServiceTest.java:202)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.LeadServiceTest.toggleLead_Success -- Time elapsed: 0.008 s <<< ERROR!
+com.example.SpringApi.Exceptions.NotFoundException: Lead not found for the given ID.
+	at com.example.SpringApi.Services.LeadService.toggleLead(LeadService.java:210)
+	at com.example.SpringApi.Services.LeadService.toggleLead(LeadService.java:208)
+	at com.example.SpringApi.Services.Tests.LeadServiceTest.toggleLead_Success(LeadServiceTest.java:721)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.LeadServiceTest.getLeadsInBatches_InvalidColumnName_ThrowsBadRequestException -- Time elapsed: 0.005 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at com.example.SpringApi.Services.Tests.LeadServiceTest.getLeadsInBatches_InvalidColumnName_ThrowsBadRequestException(LeadServiceTest.java:274)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.example.SpringApi.Services.Tests.PromoServiceTest
+[ERROR] Tests run: 20, Failures: 0, Errors: 3, Skipped: 0, Time elapsed: 0.225 s <<< FAILURE! -- in com.example.SpringApi.Services.Tests.PromoServiceTest
+[ERROR] com.example.SpringApi.Services.Tests.PromoServiceTest.togglePromo_PromoNotFound_ThrowsNotFoundException -- Time elapsed: 0.006 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+	at com.example.SpringApi.Services.Tests.PromoServiceTest.togglePromo_PromoNotFound_ThrowsNotFoundException(PromoServiceTest.java:397)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.PromoServiceTest.togglePromo_Success -- Time elapsed: 0.004 s <<< ERROR!
+org.mockito.exceptions.misusing.UnfinishedVerificationException: 
+
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.PromoServiceTest.togglePromo_PromoNotFound_ThrowsNotFoundException(PromoServiceTest.java:397)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.PromoServiceTest.getPromoDetailsByName_Success -- Time elapsed: 0.002 s <<< ERROR!
+org.mockito.exceptions.misusing.InvalidUseOfMatchersException: 
+
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.PromoServiceTest.togglePromo_PromoNotFound_ThrowsNotFoundException(PromoServiceTest.java:397)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[INFO] Running com.example.SpringApi.Services.Tests.UserServiceTest
+[ERROR] Tests run: 18, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.986 s <<< FAILURE! -- in com.example.SpringApi.Services.Tests.UserServiceTest
+[ERROR] com.example.SpringApi.Services.Tests.UserServiceTest.getUserById_Success -- Time elapsed: 0.003 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <Edit Users> but was: <View Users>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:177)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1145)
+	at com.example.SpringApi.Services.Tests.UserServiceTest.getUserById_Success(UserServiceTest.java:283)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.example.SpringApi.Services.Tests.ProductServiceTest
+[ERROR] Tests run: 36, Failures: 4, Errors: 3, Skipped: 0, Time elapsed: 1.073 s <<< FAILURE! -- in com.example.SpringApi.Services.Tests.ProductServiceTest
+[ERROR] com.example.SpringApi.Services.Tests.ProductServiceTest.testToggleDeleteProduct_Success_Undelete -- Time elapsed: 0.012 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception thrown: com.example.SpringApi.Exceptions.NotFoundException: Product not found with ID: 1
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:152)
+	at org.junit.jupiter.api.AssertDoesNotThrow.createAssertionFailedError(AssertDoesNotThrow.java:84)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:53)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:36)
+	at org.junit.jupiter.api.Assertions.assertDoesNotThrow(Assertions.java:3168)
+	at com.example.SpringApi.Services.Tests.ProductServiceTest.testToggleDeleteProduct_Success_Undelete(ProductServiceTest.java:361)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: com.example.SpringApi.Exceptions.NotFoundException: Product not found with ID: 1
+	at com.example.SpringApi.Services.ProductService.toggleDeleteProduct(ProductService.java:310)
+	at com.example.SpringApi.Services.Tests.ProductServiceTest.lambda$testToggleDeleteProduct_Success_Undelete$15(ProductServiceTest.java:361)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:49)
+	... 6 more
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductServiceTest.testToggleReturnProduct_Success -- Time elapsed: 0.004 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception thrown: com.example.SpringApi.Exceptions.NotFoundException: Product not found with ID: 1
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:152)
+	at org.junit.jupiter.api.AssertDoesNotThrow.createAssertionFailedError(AssertDoesNotThrow.java:84)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:53)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:36)
+	at org.junit.jupiter.api.Assertions.assertDoesNotThrow(Assertions.java:3168)
+	at com.example.SpringApi.Services.Tests.ProductServiceTest.testToggleReturnProduct_Success(ProductServiceTest.java:391)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: com.example.SpringApi.Exceptions.NotFoundException: Product not found with ID: 1
+	at com.example.SpringApi.Services.ProductService.toggleReturnProduct(ProductService.java:341)
+	at com.example.SpringApi.Services.Tests.ProductServiceTest.lambda$testToggleReturnProduct_Success$17(ProductServiceTest.java:391)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:49)
+	... 6 more
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductServiceTest.testToggleDeleteProduct_Success -- Time elapsed: 0.004 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception thrown: com.example.SpringApi.Exceptions.NotFoundException: Product not found with ID: 1
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:152)
+	at org.junit.jupiter.api.AssertDoesNotThrow.createAssertionFailedError(AssertDoesNotThrow.java:84)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:53)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:36)
+	at org.junit.jupiter.api.Assertions.assertDoesNotThrow(Assertions.java:3168)
+	at com.example.SpringApi.Services.Tests.ProductServiceTest.testToggleDeleteProduct_Success(ProductServiceTest.java:344)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: com.example.SpringApi.Exceptions.NotFoundException: Product not found with ID: 1
+	at com.example.SpringApi.Services.ProductService.toggleDeleteProduct(ProductService.java:310)
+	at com.example.SpringApi.Services.Tests.ProductServiceTest.lambda$testToggleDeleteProduct_Success$14(ProductServiceTest.java:344)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:49)
+	... 6 more
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductServiceTest.testEditProduct_Success -- Time elapsed: 0.005 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception thrown: com.example.SpringApi.Exceptions.NotFoundException: Product not found with ID: 1
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:152)
+	at org.junit.jupiter.api.AssertDoesNotThrow.createAssertionFailedError(AssertDoesNotThrow.java:84)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:53)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:36)
+	at org.junit.jupiter.api.Assertions.assertDoesNotThrow(Assertions.java:3168)
+	at com.example.SpringApi.Services.Tests.ProductServiceTest.testEditProduct_Success(ProductServiceTest.java:298)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: com.example.SpringApi.Exceptions.NotFoundException: Product not found with ID: 1
+	at com.example.SpringApi.Services.ProductService.editProduct(ProductService.java:277)
+	at com.example.SpringApi.Services.Tests.ProductServiceTest.lambda$testEditProduct_Success$11(ProductServiceTest.java:298)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:49)
+	... 6 more
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductServiceTest.testToggleReturnProduct_ProductNotFound -- Time elapsed: 0.007 s <<< ERROR!
+org.mockito.exceptions.misusing.UnnecessaryStubbingException: 
+
+Unnecessary stubbings detected.
+Clean & maintainable test code requires zero unnecessary code.
+Following stubbings are unnecessary (click to navigate to relevant line of code):
+  1. -> at com.example.SpringApi.Services.Tests.ProductServiceTest.testToggleReturnProduct_ProductNotFound(ProductServiceTest.java:404)
+Please remove unnecessary stubbings or use 'lenient' strictness. More info: javadoc for UnnecessaryStubbingException class.
+	at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:192)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductServiceTest.testToggleDeleteProduct_ProductNotFound -- Time elapsed: 0.012 s <<< ERROR!
+org.mockito.exceptions.misusing.UnnecessaryStubbingException: 
+
+Unnecessary stubbings detected.
+Clean & maintainable test code requires zero unnecessary code.
+Following stubbings are unnecessary (click to navigate to relevant line of code):
+  1. -> at com.example.SpringApi.Services.Tests.ProductServiceTest.testToggleDeleteProduct_ProductNotFound(ProductServiceTest.java:371)
+Please remove unnecessary stubbings or use 'lenient' strictness. More info: javadoc for UnnecessaryStubbingException class.
+	at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:192)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductServiceTest.testEditProduct_ProductNotFound -- Time elapsed: 0.006 s <<< ERROR!
+org.mockito.exceptions.misusing.UnnecessaryStubbingException: 
+
+Unnecessary stubbings detected.
+Clean & maintainable test code requires zero unnecessary code.
+Following stubbings are unnecessary (click to navigate to relevant line of code):
+  1. -> at com.example.SpringApi.Services.Tests.ProductServiceTest.testEditProduct_ProductNotFound(ProductServiceTest.java:324)
+Please remove unnecessary stubbings or use 'lenient' strictness. More info: javadoc for UnnecessaryStubbingException class.
+	at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:192)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.example.SpringApi.Services.Tests.UserGroupServiceTest
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.162 s -- in com.example.SpringApi.Services.Tests.UserGroupServiceTest
+[INFO] Running com.example.SpringApi.Services.Tests.PickupLocationServiceTest
+[ERROR] Tests run: 14, Failures: 4, Errors: 6, Skipped: 0, Time elapsed: 0.164 s <<< FAILURE! -- in com.example.SpringApi.Services.Tests.PickupLocationServiceTest
+[ERROR] com.example.SpringApi.Services.Tests.PickupLocationServiceTest.updatePickupLocation_Success -- Time elapsed: 0.122 s <<< ERROR!
+com.example.SpringApi.Exceptions.NotFoundException: Pickup location not found with ID: 1
+	at com.example.SpringApi.Services.PickupLocationService.updatePickupLocation(PickupLocationService.java:241)
+	at com.example.SpringApi.Services.PickupLocationService.updatePickupLocation(PickupLocationService.java:238)
+	at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.updatePickupLocation_Success(PickupLocationServiceTest.java:322)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.PickupLocationServiceTest.getPickupLocationsInBatches_Success -- Time elapsed: 0.002 s <<< ERROR!
+com.example.SpringApi.Exceptions.BadRequestException: Invalid pagination: end must be greater than start
+	at com.example.SpringApi.Services.PickupLocationService.getPickupLocationsInBatches(PickupLocationService.java:132)
+	at com.example.SpringApi.Services.PickupLocationService.getPickupLocationsInBatches(PickupLocationService.java:113)
+	at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.getPickupLocationsInBatches_Success(PickupLocationServiceTest.java:223)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.PickupLocationServiceTest.togglePickupLocation_Success -- Time elapsed: 0.002 s <<< ERROR!
+com.example.SpringApi.Exceptions.NotFoundException: Pickup location not found with ID: 1
+	at com.example.SpringApi.Services.PickupLocationService.togglePickupLocation(PickupLocationService.java:285)
+	at com.example.SpringApi.Services.PickupLocationService.togglePickupLocation(PickupLocationService.java:283)
+	at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.togglePickupLocation_Success(PickupLocationServiceTest.java:418)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.PickupLocationServiceTest.togglePickupLocation_NotFound_ThrowsNotFoundException -- Time elapsed: 0.004 s <<< FAILURE!
+Wanted but not invoked:
+pickupLocationRepository.findById(1L);
+-> at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.togglePickupLocation_NotFound_ThrowsNotFoundException(PickupLocationServiceTest.java:444)
+
+However, there was exactly 1 interaction with this mock:
+pickupLocationRepository.findPickupLocationByIdAndClientId(
+    1L,
+    200L
+);
+-> at com.example.SpringApi.Services.PickupLocationService.togglePickupLocation(PickupLocationService.java:283)
+
+
+	at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.togglePickupLocation_NotFound_ThrowsNotFoundException(PickupLocationServiceTest.java:444)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.PickupLocationServiceTest.updatePickupLocation_AddressNotFound_ThrowsNotFoundException -- Time elapsed: 0.002 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <Address not found for the give Id.> but was: <Pickup location not found with ID: 1>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:177)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1145)
+	at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.updatePickupLocation_AddressNotFound_ThrowsNotFoundException(PickupLocationServiceTest.java:370)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.PickupLocationServiceTest.updatePickupLocation_PickupLocationNotFound_ThrowsNotFoundException -- Time elapsed: 0.002 s <<< FAILURE!
+Wanted but not invoked:
+pickupLocationRepository.findById(1L);
+-> at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.updatePickupLocation_PickupLocationNotFound_ThrowsNotFoundException(PickupLocationServiceTest.java:350)
+
+However, there was exactly 1 interaction with this mock:
+pickupLocationRepository.findPickupLocationByIdAndClientId(
+    1L,
+    200L
+);
+-> at com.example.SpringApi.Services.PickupLocationService.updatePickupLocation(PickupLocationService.java:238)
+
+
+	at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.updatePickupLocation_PickupLocationNotFound_ThrowsNotFoundException(PickupLocationServiceTest.java:350)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.PickupLocationServiceTest.updatePickupLocation_ShipRocketFailure_TransactionRollsBack -- Time elapsed: 0.002 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception type thrown, expected: <com.example.SpringApi.Exceptions.BadRequestException> but was: <com.example.SpringApi.Exceptions.NotFoundException>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:67)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:35)
+	at org.junit.jupiter.api.Assertions.assertThrows(Assertions.java:3115)
+	at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.updatePickupLocation_ShipRocketFailure_TransactionRollsBack(PickupLocationServiceTest.java:393)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: com.example.SpringApi.Exceptions.NotFoundException: Pickup location not found with ID: 1
+	at com.example.SpringApi.Services.PickupLocationService.updatePickupLocation(PickupLocationService.java:241)
+	at com.example.SpringApi.Services.PickupLocationService.updatePickupLocation(PickupLocationService.java:238)
+	at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.lambda$updatePickupLocation_ShipRocketFailure_TransactionRollsBack$5(PickupLocationServiceTest.java:394)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:53)
+	... 6 more
+
+[ERROR] com.example.SpringApi.Services.Tests.PickupLocationServiceTest.createPickupLocation_ShipRocketFailure_TransactionRollsBack -- Time elapsed: 0.003 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+	at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.createPickupLocation_ShipRocketFailure_TransactionRollsBack(PickupLocationServiceTest.java:299)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.PickupLocationServiceTest.getPickupLocationById_Success -- Time elapsed: 0.001 s <<< ERROR!
+org.mockito.exceptions.misusing.UnfinishedVerificationException: 
+
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.createPickupLocation_ShipRocketFailure_TransactionRollsBack(PickupLocationServiceTest.java:299)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.PickupLocationServiceTest.getPickupLocationsInBatches_InvalidColumn_ThrowsBadRequestException -- Time elapsed: 0.002 s <<< ERROR!
+org.mockito.exceptions.misusing.InvalidUseOfMatchersException: 
+
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.createPickupLocation_ShipRocketFailure_TransactionRollsBack(PickupLocationServiceTest.java:299)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[INFO] Running com.example.SpringApi.Services.Tests.ProductReviewServiceTest
+[ERROR] Tests run: 20, Failures: 0, Errors: 19, Skipped: 0, Time elapsed: 0.230 s <<< FAILURE! -- in com.example.SpringApi.Services.Tests.ProductReviewServiceTest
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_EmptyReviewText_ThrowsBadRequestException -- Time elapsed: 0.090 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+	at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_EmptyReviewText_ThrowsBadRequestException(ProductReviewServiceTest.java:241)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.toggleProductReview_ReviewNotFound_ThrowsNotFoundException -- Time elapsed: 0.001 s <<< ERROR!
+org.mockito.exceptions.misusing.UnfinishedVerificationException: 
+
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_EmptyReviewText_ThrowsBadRequestException(ProductReviewServiceTest.java:241)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.setProductReviewScore_Success_NullScore -- Time elapsed: 0.001 s <<< ERROR!
+org.mockito.exceptions.misusing.InvalidUseOfMatchersException: 
+
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_EmptyReviewText_ThrowsBadRequestException(ProductReviewServiceTest.java:241)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullReviewText_ThrowsBadRequestException -- Time elapsed: 0.002 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+	at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullReviewText_ThrowsBadRequestException(ProductReviewServiceTest.java:220)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.setProductReviewScore_Success_DecreaseToZero -- Time elapsed: 0 s <<< ERROR!
+org.mockito.exceptions.misusing.UnfinishedVerificationException: 
+
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullReviewText_ThrowsBadRequestException(ProductReviewServiceTest.java:220)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_ZeroUserId_ThrowsBadRequestException -- Time elapsed: 0 s <<< ERROR!
+org.mockito.exceptions.misusing.InvalidUseOfMatchersException: 
+
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullReviewText_ThrowsBadRequestException(ProductReviewServiceTest.java:220)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullUserId_ThrowsBadRequestException -- Time elapsed: 0.045 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+	at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullUserId_ThrowsBadRequestException(ProductReviewServiceTest.java:262)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullRequest_ThrowsBadRequestException -- Time elapsed: 0.010 s <<< ERROR!
+org.mockito.exceptions.misusing.UnfinishedVerificationException: 
+
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullUserId_ThrowsBadRequestException(ProductReviewServiceTest.java:262)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_Success -- Time elapsed: 0 s <<< ERROR!
+org.mockito.exceptions.misusing.InvalidUseOfMatchersException: 
+
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullUserId_ThrowsBadRequestException(ProductReviewServiceTest.java:262)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullProductId_ThrowsBadRequestException -- Time elapsed: 0.024 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+	at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullProductId_ThrowsBadRequestException(ProductReviewServiceTest.java:304)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.setProductReviewScore_Success_IncreaseScore -- Time elapsed: 0.001 s <<< ERROR!
+org.mockito.exceptions.misusing.UnfinishedVerificationException: 
+
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullProductId_ThrowsBadRequestException(ProductReviewServiceTest.java:304)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.toggleProductReview_Success_MarkAsDeleted -- Time elapsed: 0.001 s <<< ERROR!
+org.mockito.exceptions.misusing.InvalidUseOfMatchersException: 
+
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullProductId_ThrowsBadRequestException(ProductReviewServiceTest.java:304)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.setProductReviewScore_Success_DecreaseScore -- Time elapsed: 0.014 s <<< ERROR!
+com.example.SpringApi.Exceptions.NotFoundException: Product review not found.
+	at com.example.SpringApi.Services.ProductReviewService.setProductReviewScore(ProductReviewService.java:193)
+	at com.example.SpringApi.Services.ProductReviewService.setProductReviewScore(ProductReviewService.java:191)
+	at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.setProductReviewScore_Success_DecreaseScore(ProductReviewServiceTest.java:510)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_ZeroProductId_ThrowsBadRequestException -- Time elapsed: 0.003 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+	at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_ZeroProductId_ThrowsBadRequestException(ProductReviewServiceTest.java:325)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.toggleProductReview_Success_RestoreFromDeleted -- Time elapsed: 0.001 s <<< ERROR!
+org.mockito.exceptions.misusing.UnfinishedVerificationException: 
+
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_ZeroProductId_ThrowsBadRequestException(ProductReviewServiceTest.java:325)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.getProductReviewsInBatchesGivenProductId_Success -- Time elapsed: 0 s <<< ERROR!
+org.mockito.exceptions.misusing.InvalidUseOfMatchersException: 
+
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_ZeroProductId_ThrowsBadRequestException(ProductReviewServiceTest.java:325)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_InvalidRatings_ThrowsBadRequestException -- Time elapsed: 0.003 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+	at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_InvalidRatings_ThrowsBadRequestException(ProductReviewServiceTest.java:178)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.setProductReviewScore_ReviewNotFound_ThrowsNotFoundException -- Time elapsed: 0.001 s <<< ERROR!
+org.mockito.exceptions.misusing.UnfinishedVerificationException: 
+
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_InvalidRatings_ThrowsBadRequestException(ProductReviewServiceTest.java:178)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_RatingsTooHigh_ThrowsBadRequestException -- Time elapsed: 0.001 s <<< ERROR!
+org.mockito.exceptions.misusing.InvalidUseOfMatchersException: 
+
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_InvalidRatings_ThrowsBadRequestException(ProductReviewServiceTest.java:178)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[INFO] Running com.example.SpringApi.Services.Tests.AddressServiceTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.028 s -- in com.example.SpringApi.Services.Tests.AddressServiceTest
+[INFO] Running com.example.SpringApi.Services.Tests.TodoServiceTest
+[ERROR] Tests run: 34, Failures: 4, Errors: 13, Skipped: 0, Time elapsed: 0.196 s <<< FAILURE! -- in com.example.SpringApi.Services.Tests.TodoServiceTest
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_NullUserId -- Time elapsed: 0.003 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception type thrown, expected: <com.example.SpringApi.Exceptions.BadRequestException> but was: <java.lang.NullPointerException>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:67)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:35)
+	at org.junit.jupiter.api.Assertions.assertThrows(Assertions.java:3115)
+	at com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_NullUserId(TodoServiceTest.java:468)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: java.lang.NullPointerException: Cannot invoke "com.example.SpringApi.Models.DatabaseModels.Todo.getTodoId()" because the return value of "com.example.SpringApi.Repositories.TodoRepository.save(Object)" is null
+	at com.example.SpringApi.Services.TodoService.updateTodo(TodoService.java:81)
+	at com.example.SpringApi.Services.TodoService.updateTodo(TodoService.java:69)
+	at com.example.SpringApi.Services.Tests.TodoServiceTest.lambda$testUpdateTodo_NullUserId$19(TodoServiceTest.java:469)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:53)
+	... 6 more
+
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testToggleTodo_InvalidId -- Time elapsed: 0.002 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+	at com.example.SpringApi.Services.Tests.TodoServiceTest.testToggleTodo_InvalidId(TodoServiceTest.java:657)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_NullTask -- Time elapsed: 0 s <<< ERROR!
+org.mockito.exceptions.misusing.UnfinishedVerificationException: 
+
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.TodoServiceTest.testToggleTodo_InvalidId(TodoServiceTest.java:657)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_NullUser -- Time elapsed: 0.001 s <<< ERROR!
+org.mockito.exceptions.misusing.InvalidUseOfMatchersException: 
+
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.TodoServiceTest.testToggleTodo_InvalidId(TodoServiceTest.java:657)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testGetTodoItems_Success -- Time elapsed: 0.002 s <<< ERROR!
+org.mockito.exceptions.misusing.UnnecessaryStubbingException: 
+
+Unnecessary stubbings detected.
+Clean & maintainable test code requires zero unnecessary code.
+Following stubbings are unnecessary (click to navigate to relevant line of code):
+  1. -> at com.example.SpringApi.Services.Tests.TodoServiceTest.testGetTodoItems_Success(TodoServiceTest.java:687)
+Please remove unnecessary stubbings or use 'lenient' strictness. More info: javadoc for UnnecessaryStubbingException class.
+	at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:192)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testAddTodo_NullUserId -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception type thrown, expected: <com.example.SpringApi.Exceptions.BadRequestException> but was: <java.lang.NullPointerException>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:67)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:35)
+	at org.junit.jupiter.api.Assertions.assertThrows(Assertions.java:3115)
+	at com.example.SpringApi.Services.Tests.TodoServiceTest.testAddTodo_NullUserId(TodoServiceTest.java:209)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: java.lang.NullPointerException: Cannot invoke "com.example.SpringApi.Models.DatabaseModels.Todo.getTodoId()" because "savedTodo" is null
+	at com.example.SpringApi.Services.TodoService.addTodo(TodoService.java:55)
+	at com.example.SpringApi.Services.TodoService.addTodo(TodoService.java:50)
+	at com.example.SpringApi.Services.Tests.TodoServiceTest.lambda$testAddTodo_NullUserId$6(TodoServiceTest.java:210)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:53)
+	... 6 more
+
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testAddTodo_InvalidUserId -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception type thrown, expected: <com.example.SpringApi.Exceptions.BadRequestException> but was: <java.lang.NullPointerException>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:67)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:35)
+	at org.junit.jupiter.api.Assertions.assertThrows(Assertions.java:3115)
+	at com.example.SpringApi.Services.Tests.TodoServiceTest.testAddTodo_InvalidUserId(TodoServiceTest.java:225)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: java.lang.NullPointerException: Cannot invoke "com.example.SpringApi.Models.DatabaseModels.Todo.getTodoId()" because "savedTodo" is null
+	at com.example.SpringApi.Services.TodoService.addTodo(TodoService.java:55)
+	at com.example.SpringApi.Services.TodoService.addTodo(TodoService.java:50)
+	at com.example.SpringApi.Services.Tests.TodoServiceTest.lambda$testAddTodo_InvalidUserId$7(TodoServiceTest.java:226)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:53)
+	... 6 more
+
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testGetTodoItems_EmptyList -- Time elapsed: 0.001 s <<< ERROR!
+org.mockito.exceptions.misusing.UnnecessaryStubbingException: 
+
+Unnecessary stubbings detected.
+Clean & maintainable test code requires zero unnecessary code.
+Following stubbings are unnecessary (click to navigate to relevant line of code):
+  1. -> at com.example.SpringApi.Services.Tests.TodoServiceTest.testGetTodoItems_EmptyList(TodoServiceTest.java:717)
+Please remove unnecessary stubbings or use 'lenient' strictness. More info: javadoc for UnnecessaryStubbingException class.
+	at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:192)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_InvalidUserId -- Time elapsed: 0.002 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception type thrown, expected: <com.example.SpringApi.Exceptions.BadRequestException> but was: <java.lang.NullPointerException>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:67)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:35)
+	at org.junit.jupiter.api.Assertions.assertThrows(Assertions.java:3115)
+	at com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_InvalidUserId(TodoServiceTest.java:489)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+Caused by: java.lang.NullPointerException: Cannot invoke "com.example.SpringApi.Models.DatabaseModels.Todo.getTodoId()" because the return value of "com.example.SpringApi.Repositories.TodoRepository.save(Object)" is null
+	at com.example.SpringApi.Services.TodoService.updateTodo(TodoService.java:81)
+	at com.example.SpringApi.Services.TodoService.updateTodo(TodoService.java:69)
+	at com.example.SpringApi.Services.Tests.TodoServiceTest.lambda$testUpdateTodo_InvalidUserId$20(TodoServiceTest.java:490)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:53)
+	... 6 more
+
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testToggleTodo_NotFound -- Time elapsed: 0.001 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+	at com.example.SpringApi.Services.Tests.TodoServiceTest.testToggleTodo_NotFound(TodoServiceTest.java:676)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_TaskTooLong -- Time elapsed: 0 s <<< ERROR!
+org.mockito.exceptions.misusing.UnfinishedVerificationException: 
+
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.TodoServiceTest.testToggleTodo_NotFound(TodoServiceTest.java:676)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_EmptyTask -- Time elapsed: 0.001 s <<< ERROR!
+org.mockito.exceptions.misusing.InvalidUseOfMatchersException: 
+
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.TodoServiceTest.testToggleTodo_NotFound(TodoServiceTest.java:676)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_EmptyUser -- Time elapsed: 0.005 s <<< ERROR!
+org.mockito.exceptions.misusing.UnnecessaryStubbingException: 
+
+Unnecessary stubbings detected.
+Clean & maintainable test code requires zero unnecessary code.
+Following stubbings are unnecessary (click to navigate to relevant line of code):
+  1. -> at com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_EmptyUser(TodoServiceTest.java:522)
+Please remove unnecessary stubbings or use 'lenient' strictness. More info: javadoc for UnnecessaryStubbingException class.
+	at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:192)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testDeleteTodo_InvalidId -- Time elapsed: 0.002 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+	at com.example.SpringApi.Services.Tests.TodoServiceTest.testDeleteTodo_InvalidId(TodoServiceTest.java:572)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testDeleteTodo_NotFound -- Time elapsed: 0.002 s <<< ERROR!
+org.mockito.exceptions.misusing.UnfinishedVerificationException: 
+
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.TodoServiceTest.testDeleteTodo_InvalidId(TodoServiceTest.java:572)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testGetTodoItems_NullUser -- Time elapsed: 0.001 s <<< ERROR!
+org.mockito.exceptions.misusing.InvalidUseOfMatchersException: 
+
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.TodoServiceTest.testDeleteTodo_InvalidId(TodoServiceTest.java:572)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_NotFound -- Time elapsed: 0.001 s <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+	at com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_NotFound(TodoServiceTest.java:366)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.example.SpringApi.Services.Tests.UserLogServiceTest
+[ERROR] Tests run: 9, Failures: 0, Errors: 5, Skipped: 0, Time elapsed: 0.111 s <<< FAILURE! -- in com.example.SpringApi.Services.Tests.UserLogServiceTest
+[ERROR] com.example.SpringApi.Services.Tests.UserLogServiceTest.fetchUserLogsInBatches_InvalidColumnName_ThrowsException -- Time elapsed: 0.035 s <<< ERROR!
+org.mockito.exceptions.misusing.UnfinishedVerificationException: 
+
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_NotFound(TodoServiceTest.java:366)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.UserLogServiceTest.fetchUserLogsInBatches_ValidColumnNames_Success -- Time elapsed: 0 s <<< ERROR!
+org.mockito.exceptions.misusing.InvalidUseOfMatchersException: 
+
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_NotFound(TodoServiceTest.java:366)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+	at org.mockito.junit.jupiter.MockitoExtension.beforeEach(MockitoExtension.java:159)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	Suppressed: java.lang.NullPointerException: Cannot invoke "java.util.Set.forEach(java.util.function.Consumer)" because the return value of "org.junit.jupiter.api.extension.ExtensionContext$Store.remove(Object, java.lang.Class)" is null
+		at org.mockito.junit.jupiter.MockitoExtension.afterEach(MockitoExtension.java:190)
+		... 2 more
+
+[ERROR] com.example.SpringApi.Services.Tests.UserLogServiceTest.fetchUserLogsInBatches_Success -- Time elapsed: 0.002 s <<< ERROR!
+java.lang.IllegalArgumentException: Invalid column name: change
+	at com.example.SpringApi.Services.UserLogService.fetchUserLogsInBatches(UserLogService.java:79)
+	at com.example.SpringApi.Services.Tests.UserLogServiceTest.fetchUserLogsInBatches_Success(UserLogServiceTest.java:191)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.UserLogServiceTest.fetchUserLogsInBatches_MultipleResults_Success -- Time elapsed: 0.001 s <<< ERROR!
+java.lang.IllegalArgumentException: Invalid column name: change
+	at com.example.SpringApi.Services.UserLogService.fetchUserLogsInBatches(UserLogService.java:79)
+	at com.example.SpringApi.Services.Tests.UserLogServiceTest.fetchUserLogsInBatches_MultipleResults_Success(UserLogServiceTest.java:364)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.UserLogServiceTest.fetchUserLogsInBatches_EmptyResult_ReturnsEmptyPagination -- Time elapsed: 0.001 s <<< ERROR!
+java.lang.IllegalArgumentException: Invalid column name: change
+	at com.example.SpringApi.Services.UserLogService.fetchUserLogsInBatches(UserLogService.java:79)
+	at com.example.SpringApi.Services.Tests.UserLogServiceTest.fetchUserLogsInBatches_EmptyResult_ReturnsEmptyPagination(UserLogServiceTest.java:323)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running com.example.SpringApi.Services.Tests.ClientServiceTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.029 s -- in com.example.SpringApi.Services.Tests.ClientServiceTest
+[INFO] Running com.example.SpringApi.Services.Tests.PackageServiceTest
+[ERROR] Tests run: 20, Failures: 0, Errors: 2, Skipped: 0, Time elapsed: 0.161 s <<< FAILURE! -- in com.example.SpringApi.Services.Tests.PackageServiceTest
+[ERROR] com.example.SpringApi.Services.Tests.PackageServiceTest.testGetPackagesInBatches_EmptyResult -- Time elapsed: 0.001 s <<< ERROR!
+java.lang.IllegalArgumentException: Page size must not be less than one
+	at org.springframework.data.domain.AbstractPageRequest.<init>(AbstractPageRequest.java:50)
+	at org.springframework.data.domain.PageRequest.<init>(PageRequest.java:46)
+	at com.example.SpringApi.Services.PackageService$1.<init>(PackageService.java:99)
+	at com.example.SpringApi.Services.PackageService.getPackagesInBatches(PackageService.java:99)
+	at com.example.SpringApi.Services.PackageService.getPackagesInBatches(PackageService.java:70)
+	at com.example.SpringApi.Services.Tests.PackageServiceTest.testGetPackagesInBatches_EmptyResult(PackageServiceTest.java:220)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] com.example.SpringApi.Services.Tests.PackageServiceTest.testGetPackagesInBatches_Success -- Time elapsed: 0.001 s <<< ERROR!
+java.lang.IllegalArgumentException: Page size must not be less than one
+	at org.springframework.data.domain.AbstractPageRequest.<init>(AbstractPageRequest.java:50)
+	at org.springframework.data.domain.PageRequest.<init>(PageRequest.java:46)
+	at com.example.SpringApi.Services.PackageService$1.<init>(PackageService.java:99)
+	at com.example.SpringApi.Services.PackageService.getPackagesInBatches(PackageService.java:99)
+	at com.example.SpringApi.Services.PackageService.getPackagesInBatches(PackageService.java:70)
+	at com.example.SpringApi.Services.Tests.PackageServiceTest.testGetPackagesInBatches_Success(PackageServiceTest.java:200)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   LeadServiceTest.getLeadsInBatches_EmptyColumnName_ThrowsBadRequestException:241 expected: <Column name is required and cannot be empty> but was: <Invalid column name: >
+[ERROR]   LeadServiceTest.getLeadsInBatches_InvalidColumnName_ThrowsBadRequestException:274 expected: <true> but was: <false>
+[ERROR]   LeadServiceTest.getLeadsInBatches_NullColumnName_ThrowsBadRequestException:225 expected: <Column name is required and cannot be empty> but was: <Invalid pagination: end must be greater than start>
+[ERROR]   LeadServiceTest.getLeadsInBatches_WhitespaceColumnName_ThrowsBadRequestException:257 expected: <Column name is required and cannot be empty> but was: <Invalid column name:    >
+[ERROR]   MessageServiceTest.testCreateMessage_EmailBeyond72Hours:279 expected: <Cannot schedule email beyond 72 hours. SendGrid only allows scheduling within a 72-hour window from now (UTC timezone).> but was: <Failed to generate batch ID: Failed to generate batch ID: {"errors":[{"message":"The provided authorization grant is invalid, expired, or revoked","field":null,"help":null}]}>
+[ERROR]   PickupLocationServiceTest.togglePickupLocation_NotFound_ThrowsNotFoundException:444 
+Wanted but not invoked:
+pickupLocationRepository.findById(1L);
+-> at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.togglePickupLocation_NotFound_ThrowsNotFoundException(PickupLocationServiceTest.java:444)
+
+However, there was exactly 1 interaction with this mock:
+pickupLocationRepository.findPickupLocationByIdAndClientId(
+    1L,
+    200L
+);
+-> at com.example.SpringApi.Services.PickupLocationService.togglePickupLocation(PickupLocationService.java:283)
+
+
+[ERROR]   PickupLocationServiceTest.updatePickupLocation_AddressNotFound_ThrowsNotFoundException:370 expected: <Address not found for the give Id.> but was: <Pickup location not found with ID: 1>
+[ERROR]   PickupLocationServiceTest.updatePickupLocation_PickupLocationNotFound_ThrowsNotFoundException:350 
+Wanted but not invoked:
+pickupLocationRepository.findById(1L);
+-> at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.updatePickupLocation_PickupLocationNotFound_ThrowsNotFoundException(PickupLocationServiceTest.java:350)
+
+However, there was exactly 1 interaction with this mock:
+pickupLocationRepository.findPickupLocationByIdAndClientId(
+    1L,
+    200L
+);
+-> at com.example.SpringApi.Services.PickupLocationService.updatePickupLocation(PickupLocationService.java:238)
+
+
+[ERROR]   PickupLocationServiceTest.updatePickupLocation_ShipRocketFailure_TransactionRollsBack:393 Unexpected exception type thrown, expected: <com.example.SpringApi.Exceptions.BadRequestException> but was: <com.example.SpringApi.Exceptions.NotFoundException>
+[ERROR]   ProductServiceTest.testEditProduct_Success:298 Unexpected exception thrown: com.example.SpringApi.Exceptions.NotFoundException: Product not found with ID: 1
+[ERROR]   ProductServiceTest.testToggleDeleteProduct_Success:344 Unexpected exception thrown: com.example.SpringApi.Exceptions.NotFoundException: Product not found with ID: 1
+[ERROR]   ProductServiceTest.testToggleDeleteProduct_Success_Undelete:361 Unexpected exception thrown: com.example.SpringApi.Exceptions.NotFoundException: Product not found with ID: 1
+[ERROR]   ProductServiceTest.testToggleReturnProduct_Success:391 Unexpected exception thrown: com.example.SpringApi.Exceptions.NotFoundException: Product not found with ID: 1
+[ERROR]   TodoServiceTest.testAddTodo_InvalidUserId:225 Unexpected exception type thrown, expected: <com.example.SpringApi.Exceptions.BadRequestException> but was: <java.lang.NullPointerException>
+[ERROR]   TodoServiceTest.testAddTodo_NullUserId:209 Unexpected exception type thrown, expected: <com.example.SpringApi.Exceptions.BadRequestException> but was: <java.lang.NullPointerException>
+[ERROR]   TodoServiceTest.testUpdateTodo_InvalidUserId:489 Unexpected exception type thrown, expected: <com.example.SpringApi.Exceptions.BadRequestException> but was: <java.lang.NullPointerException>
+[ERROR]   TodoServiceTest.testUpdateTodo_NullUserId:468 Unexpected exception type thrown, expected: <com.example.SpringApi.Exceptions.BadRequestException> but was: <java.lang.NullPointerException>
+[ERROR]   UserServiceTest.getUserById_Success:283 expected: <Edit Users> but was: <View Users>
+[ERROR] Errors: 
+[ERROR]   LeadServiceTest.getLeadsInBatches_Success:202 » BadRequest Invalid pagination: end must be greater than start
+[ERROR]   LeadServiceTest.toggleLead_LeadNotFound_ThrowsNotFoundException » UnnecessaryStubbing 
+Unnecessary stubbings detected.
+Clean & maintainable test code requires zero unnecessary code.
+Following stubbings are unnecessary (click to navigate to relevant line of code):
+  1. -> at com.example.SpringApi.Services.Tests.LeadServiceTest.toggleLead_LeadNotFound_ThrowsNotFoundException(LeadServiceTest.java:738)
+Please remove unnecessary stubbings or use 'lenient' strictness. More info: javadoc for UnnecessaryStubbingException class.
+[ERROR]   LeadServiceTest.toggleLead_Success:721 » NotFound Lead not found for the given ID.
+[ERROR]   PackageServiceTest.testGetPackagesInBatches_EmptyResult:220 » IllegalArgument Page size must not be less than one
+[ERROR]   PackageServiceTest.testGetPackagesInBatches_Success:200 » IllegalArgument Page size must not be less than one
+[ERROR]   PickupLocationServiceTest.createPickupLocation_ShipRocketFailure_TransactionRollsBack:299 NullPointer Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+[ERROR]   PickupLocationServiceTest.getPickupLocationById_Success » UnfinishedVerification 
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.createPickupLocation_ShipRocketFailure_TransactionRollsBack(PickupLocationServiceTest.java:299)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   PickupLocationServiceTest.getPickupLocationsInBatches_InvalidColumn_ThrowsBadRequestException » InvalidUseOfMatchers 
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.PickupLocationServiceTest.createPickupLocation_ShipRocketFailure_TransactionRollsBack(PickupLocationServiceTest.java:299)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   PickupLocationServiceTest.getPickupLocationsInBatches_Success:223 » BadRequest Invalid pagination: end must be greater than start
+[ERROR]   PickupLocationServiceTest.togglePickupLocation_Success:418 » NotFound Pickup location not found with ID: 1
+[ERROR]   PickupLocationServiceTest.updatePickupLocation_Success:322 » NotFound Pickup location not found with ID: 1
+[ERROR]   ProductReviewServiceTest.getProductReviewsInBatchesGivenProductId_Success » InvalidUseOfMatchers 
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_ZeroProductId_ThrowsBadRequestException(ProductReviewServiceTest.java:325)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   ProductReviewServiceTest.insertProductReview_EmptyReviewText_ThrowsBadRequestException:241 NullPointer Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+[ERROR]   ProductReviewServiceTest.insertProductReview_InvalidRatings_ThrowsBadRequestException:178 NullPointer Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+[ERROR]   ProductReviewServiceTest.insertProductReview_NullProductId_ThrowsBadRequestException:304 NullPointer Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+[ERROR]   ProductReviewServiceTest.insertProductReview_NullRequest_ThrowsBadRequestException » UnfinishedVerification 
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullUserId_ThrowsBadRequestException(ProductReviewServiceTest.java:262)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   ProductReviewServiceTest.insertProductReview_NullReviewText_ThrowsBadRequestException:220 NullPointer Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+[ERROR]   ProductReviewServiceTest.insertProductReview_NullUserId_ThrowsBadRequestException:262 NullPointer Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+[ERROR]   ProductReviewServiceTest.insertProductReview_RatingsTooHigh_ThrowsBadRequestException » InvalidUseOfMatchers 
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_InvalidRatings_ThrowsBadRequestException(ProductReviewServiceTest.java:178)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   ProductReviewServiceTest.insertProductReview_Success » InvalidUseOfMatchers 
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullUserId_ThrowsBadRequestException(ProductReviewServiceTest.java:262)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   ProductReviewServiceTest.insertProductReview_ZeroProductId_ThrowsBadRequestException:325 NullPointer Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+[ERROR]   ProductReviewServiceTest.insertProductReview_ZeroUserId_ThrowsBadRequestException » InvalidUseOfMatchers 
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullReviewText_ThrowsBadRequestException(ProductReviewServiceTest.java:220)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   ProductReviewServiceTest.setProductReviewScore_ReviewNotFound_ThrowsNotFoundException » UnfinishedVerification 
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_InvalidRatings_ThrowsBadRequestException(ProductReviewServiceTest.java:178)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   ProductReviewServiceTest.setProductReviewScore_Success_DecreaseScore:510 » NotFound Product review not found.
+[ERROR]   ProductReviewServiceTest.setProductReviewScore_Success_DecreaseToZero » UnfinishedVerification 
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullReviewText_ThrowsBadRequestException(ProductReviewServiceTest.java:220)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   ProductReviewServiceTest.setProductReviewScore_Success_IncreaseScore » UnfinishedVerification 
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullProductId_ThrowsBadRequestException(ProductReviewServiceTest.java:304)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   ProductReviewServiceTest.setProductReviewScore_Success_NullScore » InvalidUseOfMatchers 
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_EmptyReviewText_ThrowsBadRequestException(ProductReviewServiceTest.java:241)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   ProductReviewServiceTest.toggleProductReview_ReviewNotFound_ThrowsNotFoundException » UnfinishedVerification 
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_EmptyReviewText_ThrowsBadRequestException(ProductReviewServiceTest.java:241)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   ProductReviewServiceTest.toggleProductReview_Success_MarkAsDeleted » InvalidUseOfMatchers 
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_NullProductId_ThrowsBadRequestException(ProductReviewServiceTest.java:304)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   ProductReviewServiceTest.toggleProductReview_Success_RestoreFromDeleted » UnfinishedVerification 
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.ProductReviewServiceTest.insertProductReview_ZeroProductId_ThrowsBadRequestException(ProductReviewServiceTest.java:325)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   ProductServiceTest.testEditProduct_ProductNotFound » UnnecessaryStubbing 
+Unnecessary stubbings detected.
+Clean & maintainable test code requires zero unnecessary code.
+Following stubbings are unnecessary (click to navigate to relevant line of code):
+  1. -> at com.example.SpringApi.Services.Tests.ProductServiceTest.testEditProduct_ProductNotFound(ProductServiceTest.java:324)
+Please remove unnecessary stubbings or use 'lenient' strictness. More info: javadoc for UnnecessaryStubbingException class.
+[ERROR]   ProductServiceTest.testToggleDeleteProduct_ProductNotFound » UnnecessaryStubbing 
+Unnecessary stubbings detected.
+Clean & maintainable test code requires zero unnecessary code.
+Following stubbings are unnecessary (click to navigate to relevant line of code):
+  1. -> at com.example.SpringApi.Services.Tests.ProductServiceTest.testToggleDeleteProduct_ProductNotFound(ProductServiceTest.java:371)
+Please remove unnecessary stubbings or use 'lenient' strictness. More info: javadoc for UnnecessaryStubbingException class.
+[ERROR]   ProductServiceTest.testToggleReturnProduct_ProductNotFound » UnnecessaryStubbing 
+Unnecessary stubbings detected.
+Clean & maintainable test code requires zero unnecessary code.
+Following stubbings are unnecessary (click to navigate to relevant line of code):
+  1. -> at com.example.SpringApi.Services.Tests.ProductServiceTest.testToggleReturnProduct_ProductNotFound(ProductServiceTest.java:404)
+Please remove unnecessary stubbings or use 'lenient' strictness. More info: javadoc for UnnecessaryStubbingException class.
+[ERROR]   PromoServiceTest.getPromoDetailsByName_Success » InvalidUseOfMatchers 
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.PromoServiceTest.togglePromo_PromoNotFound_ThrowsNotFoundException(PromoServiceTest.java:397)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   PromoServiceTest.togglePromo_PromoNotFound_ThrowsNotFoundException:397 NullPointer Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+[ERROR]   PromoServiceTest.togglePromo_Success » UnfinishedVerification 
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.PromoServiceTest.togglePromo_PromoNotFound_ThrowsNotFoundException(PromoServiceTest.java:397)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   TodoServiceTest.testDeleteTodo_InvalidId:572 NullPointer Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+[ERROR]   TodoServiceTest.testDeleteTodo_NotFound » UnfinishedVerification 
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.TodoServiceTest.testDeleteTodo_InvalidId(TodoServiceTest.java:572)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   TodoServiceTest.testGetTodoItems_EmptyList » UnnecessaryStubbing 
+Unnecessary stubbings detected.
+Clean & maintainable test code requires zero unnecessary code.
+Following stubbings are unnecessary (click to navigate to relevant line of code):
+  1. -> at com.example.SpringApi.Services.Tests.TodoServiceTest.testGetTodoItems_EmptyList(TodoServiceTest.java:717)
+Please remove unnecessary stubbings or use 'lenient' strictness. More info: javadoc for UnnecessaryStubbingException class.
+[ERROR]   TodoServiceTest.testGetTodoItems_NullUser » InvalidUseOfMatchers 
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.TodoServiceTest.testDeleteTodo_InvalidId(TodoServiceTest.java:572)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   TodoServiceTest.testGetTodoItems_Success » UnnecessaryStubbing 
+Unnecessary stubbings detected.
+Clean & maintainable test code requires zero unnecessary code.
+Following stubbings are unnecessary (click to navigate to relevant line of code):
+  1. -> at com.example.SpringApi.Services.Tests.TodoServiceTest.testGetTodoItems_Success(TodoServiceTest.java:687)
+Please remove unnecessary stubbings or use 'lenient' strictness. More info: javadoc for UnnecessaryStubbingException class.
+[ERROR]   TodoServiceTest.testToggleTodo_InvalidId:657 NullPointer Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+[ERROR]   TodoServiceTest.testToggleTodo_NotFound:676 NullPointer Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+[ERROR]   TodoServiceTest.testUpdateTodo_EmptyTask » InvalidUseOfMatchers 
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.TodoServiceTest.testToggleTodo_NotFound(TodoServiceTest.java:676)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   TodoServiceTest.testUpdateTodo_EmptyUser » UnnecessaryStubbing 
+Unnecessary stubbings detected.
+Clean & maintainable test code requires zero unnecessary code.
+Following stubbings are unnecessary (click to navigate to relevant line of code):
+  1. -> at com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_EmptyUser(TodoServiceTest.java:522)
+Please remove unnecessary stubbings or use 'lenient' strictness. More info: javadoc for UnnecessaryStubbingException class.
+[ERROR]   TodoServiceTest.testUpdateTodo_NotFound:366 NullPointer Cannot invoke "java.lang.Long.longValue()" because the return value of "org.mockito.Mockito.any()" is null
+[ERROR]   TodoServiceTest.testUpdateTodo_NullTask » UnfinishedVerification 
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.TodoServiceTest.testToggleTodo_InvalidId(TodoServiceTest.java:657)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   TodoServiceTest.testUpdateTodo_NullUser » InvalidUseOfMatchers 
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.TodoServiceTest.testToggleTodo_InvalidId(TodoServiceTest.java:657)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   TodoServiceTest.testUpdateTodo_TaskTooLong » UnfinishedVerification 
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.TodoServiceTest.testToggleTodo_NotFound(TodoServiceTest.java:676)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   UserLogServiceTest.fetchUserLogsInBatches_EmptyResult_ReturnsEmptyPagination:323 » IllegalArgument Invalid column name: change
+[ERROR]   UserLogServiceTest.fetchUserLogsInBatches_InvalidColumnName_ThrowsException » UnfinishedVerification 
+Missing method call for verify(mock) here:
+-> at com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_NotFound(TodoServiceTest.java:366)
+
+Example of correct verification:
+    verify(mock).doSomething()
+
+Also, this error might show up because you verify either of: final/private/equals()/hashCode() methods.
+Those methods *cannot* be stubbed/verified.
+Mocking methods declared on non-public parent classes is not supported.
+
+[ERROR]   UserLogServiceTest.fetchUserLogsInBatches_MultipleResults_Success:364 » IllegalArgument Invalid column name: change
+[ERROR]   UserLogServiceTest.fetchUserLogsInBatches_Success:191 » IllegalArgument Invalid column name: change
+[ERROR]   UserLogServiceTest.fetchUserLogsInBatches_ValidColumnNames_Success » InvalidUseOfMatchers 
+Misplaced or misused argument matcher detected here:
+
+-> at com.example.SpringApi.Services.Tests.TodoServiceTest.testUpdateTodo_NotFound(TodoServiceTest.java:366)
+
+You cannot use argument matchers outside of verification or stubbing.
+Examples of correct usage of argument matchers:
+    when(mock.get(anyInt())).thenReturn(null);
+    doThrow(new RuntimeException()).when(mock).someVoidMethod(any());
+    verify(mock).someMethod(contains("foo"))
+
+This message may appear after an NullPointerException if the last matcher is returning an object 
+like any() but the stubbed method signature expect a primitive argument, in this case,
+use primitive alternatives.
+    when(mock.get(any())); // bad use, will raise NPE
+    when(mock.get(anyInt())); // correct usage use
+
+Also, this error might show up because you use argument matchers with methods that cannot be mocked.
+Following methods *cannot* be stubbed/verified: final/private/equals()/hashCode().
+Mocking methods declared on non-public parent classes is not supported.
+
+[INFO] 
+[ERROR] Tests run: 263, Failures: 18, Errors: 54, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  19.072 s
+[INFO] Finished at: 2025-10-31T14:01:55-04:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.1.2:test (default-test) on project SpringApi: There are test failures.
+[ERROR] 
+[ERROR] Please refer to /Users/nahushraichura/Documents/Ultimate Company Repositories/Spring-Api/SpringApi/target/surefire-reports for the individual test results.
+[ERROR] Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

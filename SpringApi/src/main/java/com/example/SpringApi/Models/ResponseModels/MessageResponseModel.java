@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Response model for Message operations.
@@ -31,6 +32,8 @@ public class MessageResponseModel {
     private String sendgridEmailBatchId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String createdUser;
+    private String modifiedUser;
     private String notes;
     private Long auditUserId;
     
@@ -68,13 +71,24 @@ public class MessageResponseModel {
             this.sendgridEmailBatchId = message.getSendgridEmailBatchId();
             this.createdAt = message.getCreatedAt();
             this.updatedAt = message.getUpdatedAt();
+            this.createdUser = message.getCreatedUser();
+            this.modifiedUser = message.getModifiedUser();
             this.notes = message.getNotes();
-            this.auditUserId = message.getAuditUserId();
-            
-            // Set related entities if loaded
-            this.createdByUser = message.getCreatedByUser();
-            this.auditUser = message.getAuditUser();
-            
+
+            // Extract user IDs from MessageUserMap collection
+            if (message.getMessageUserMaps() != null && !message.getMessageUserMaps().isEmpty()) {
+                this.userIds = message.getMessageUserMaps().stream()
+                    .map(mum -> mum.getUserId())
+                    .collect(Collectors.toList());
+            }
+
+            // Extract group IDs from MessageUserGroupMap collection
+            if (message.getMessageUserGroupMaps() != null && !message.getMessageUserGroupMaps().isEmpty()) {
+                this.userGroupIds = message.getMessageUserGroupMaps().stream()
+                    .map(mugm -> mugm.getGroupId())
+                    .collect(Collectors.toList());
+            }
+
             // Compute additional fields
             this.titlePreview = buildTitlePreview();
             this.isPublished = this.publishDate != null && this.publishDate.isBefore(LocalDateTime.now());

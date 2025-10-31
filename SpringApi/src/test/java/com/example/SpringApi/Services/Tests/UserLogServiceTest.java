@@ -76,7 +76,7 @@ class UserLogServiceTest {
     @BeforeEach
     void setUp() {
         // Initialize test user log using constructor
-        testUserLog = new UserLog(TEST_USER_ID, TEST_CARRIER_ID, TEST_CHANGE, TEST_OLD_VALUE, TEST_NEW_VALUE);
+        testUserLog = new UserLog(TEST_USER_ID, TEST_CARRIER_ID, TEST_CHANGE, TEST_OLD_VALUE, TEST_NEW_VALUE, "admin");
         testUserLog.setLogId(1L);
         testUserLog.setCreatedAt(LocalDateTime.now());
         testUserLog.setUpdatedAt(LocalDateTime.now());
@@ -87,7 +87,7 @@ class UserLogServiceTest {
         testUserLogsRequest.setCarrierId(TEST_CARRIER_ID);
         testUserLogsRequest.setStart(0);
         testUserLogsRequest.setEnd(10);
-        testUserLogsRequest.setColumnName("change");
+        testUserLogsRequest.setColumnName("action");
         testUserLogsRequest.setCondition("equals");
         testUserLogsRequest.setFilterExpr("User Login");
         
@@ -181,7 +181,7 @@ class UserLogServiceTest {
         when(userLogRepository.findPaginatedUserLogs(
             eq(TEST_USER_ID),
             eq(TEST_CARRIER_ID),
-            eq("change"),
+            eq("action"),
             eq("equals"),
             eq("User Login"),
             any(PageRequest.class)
@@ -197,12 +197,12 @@ class UserLogServiceTest {
         assertEquals(1L, result.getData().get(0).getLogId());
         assertEquals(TEST_CHANGE, result.getData().get(0).getAction());
         assertEquals(TEST_OLD_VALUE, result.getData().get(0).getDescription());
-        assertEquals(TEST_NEW_VALUE, result.getData().get(0).getCreatedUser());
+        assertEquals("admin", result.getData().get(0).getCreatedUser());
         
         verify(userLogRepository, times(1)).findPaginatedUserLogs(
             eq(TEST_USER_ID),
             eq(TEST_CARRIER_ID),
-            eq("change"),
+            eq("action"),
             eq("equals"),
             eq("User Login"),
             any(PageRequest.class)
@@ -243,7 +243,7 @@ class UserLogServiceTest {
         when(userLogRepository.findPaginatedUserLogs(anyLong(), anyLong(), anyString(), anyString(), anyString(), any(PageRequest.class)))
             .thenReturn(page);
         
-        String[] validColumns = {"change", "oldValue", "newValue"};
+        String[] validColumns = {"action", "description", "logLevel"};
         
         for (String column : validColumns) {
             // Arrange
@@ -313,7 +313,7 @@ class UserLogServiceTest {
         when(userLogRepository.findPaginatedUserLogs(
             eq(TEST_USER_ID),
             eq(TEST_CARRIER_ID),
-            eq("change"),
+            eq("action"),
             eq("equals"),
             eq("User Login"),
             any(PageRequest.class)
@@ -330,7 +330,7 @@ class UserLogServiceTest {
         verify(userLogRepository, times(1)).findPaginatedUserLogs(
             eq(TEST_USER_ID),
             eq(TEST_CARRIER_ID),
-            eq("change"),
+            eq("action"),
             eq("equals"),
             eq("User Login"),
             any(PageRequest.class)
@@ -345,7 +345,7 @@ class UserLogServiceTest {
     @DisplayName("Fetch User Logs - Success - Multiple results")
     void fetchUserLogsInBatches_MultipleResults_Success() {
         // Arrange
-        UserLog secondLog = new UserLog(TEST_USER_ID, TEST_CARRIER_ID, "User Logout", null, "logout_success");
+        UserLog secondLog = new UserLog(TEST_USER_ID, TEST_CARRIER_ID, "User Logout", null, "logout_success", "admin");
         secondLog.setLogId(2L);
         
         List<UserLog> userLogs = Arrays.asList(testUserLog, secondLog);
@@ -354,7 +354,7 @@ class UserLogServiceTest {
         when(userLogRepository.findPaginatedUserLogs(
             eq(TEST_USER_ID),
             eq(TEST_CARRIER_ID),
-            eq("change"),
+            eq("action"),
             eq("equals"),
             eq("User Login"),
             any(PageRequest.class)
@@ -375,7 +375,7 @@ class UserLogServiceTest {
         verify(userLogRepository, times(1)).findPaginatedUserLogs(
             eq(TEST_USER_ID),
             eq(TEST_CARRIER_ID),
-            eq("change"),
+            eq("action"),
             eq("equals"),
             eq("User Login"),
             any(PageRequest.class)

@@ -69,8 +69,9 @@ public class SuccessMessages {
         public static final String InsertMessage = "Successfully inserted message.";
         public static final String UpdateMessage = "Successfully updated message.";
         public static final String GetMessages = "Successfully got messages.";
-        public static final String ToggleMessage = "Successfully got messages.";
+        public static final String ToggleMessage = "Successfully toggled message.";
         public static final String GotMessageDetails = "Successfully got message details.";
+        public static final String SetMessageRead = "Successfully marked message as read.";
     }
 
     public static class WebTemplatesSuccessMessages{

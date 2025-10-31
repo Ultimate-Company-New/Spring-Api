@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * JPA Entity for the MessageUserReadMap table.
- * Tracks when users read messages for read receipts.
+ * Tracks which users have read which messages.
  * 
  * @author SpringApi Team
  * @version 1.0
@@ -44,6 +44,10 @@ public class MessageUserReadMap {
     @Column(name = "readAt", nullable = false)
     private LocalDateTime readAt;
     
+    @CreationTimestamp
+    @Column(name = "createdAt", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
     @Column(name = "createdUser", nullable = false)
     private String createdUser;
     
@@ -51,20 +55,16 @@ public class MessageUserReadMap {
     @JoinColumn(name = "createdUser", referencedColumnName = "loginName", insertable = false, updatable = false)
     private User createdByUser;
     
+    @UpdateTimestamp
+    @Column(name = "updatedAt", nullable = false)
+    private LocalDateTime updatedAt;
+    
     @Column(name = "modifiedUser", nullable = false)
     private String modifiedUser;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "modifiedUser", referencedColumnName = "loginName", insertable = false, updatable = false)
     private User modifiedByUser;
-    
-    @CreationTimestamp
-    @Column(name = "createdAt", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-    
-    @UpdateTimestamp
-    @Column(name = "updatedAt", nullable = false)
-    private LocalDateTime updatedAt;
     
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
@@ -75,5 +75,19 @@ public class MessageUserReadMap {
     public MessageUserReadMap() {
         // Default constructor for JPA
     }
+    
+    /**
+     * Constructor for creating a new MessageUserReadMap record.
+     * 
+     * @param messageId The message ID
+     * @param userId The user ID
+     * @param createdUser The username creating this record
+     */
+    public MessageUserReadMap(Long messageId, Long userId, String createdUser) {
+        this.messageId = messageId;
+        this.userId = userId;
+        this.readAt = LocalDateTime.now();
+        this.createdUser = createdUser;
+        this.modifiedUser = createdUser;
+    }
 }
-
