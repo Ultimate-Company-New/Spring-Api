@@ -4,6 +4,7 @@ import com.example.SpringApi.Models.DatabaseModels.ProductReview;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -50,6 +51,7 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, Lo
            "AND pr.productId IN (SELECT p.productId FROM Product p WHERE p.clientId = :clientId)")
     ProductReview findByReviewIdAndClientId(@Param("reviewId") Long reviewId, @Param("clientId") Long clientId);
 
+    @Modifying
     @Query("UPDATE ProductReview pr SET pr.isDeleted = true, pr.modifiedUser = :user WHERE pr.reviewId = :reviewId OR pr.parentId = :reviewId")
     int markAllDescendantsAsDeleted(@Param("reviewId") Long reviewId, @Param("user") String user);
 }

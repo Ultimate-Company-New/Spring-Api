@@ -50,7 +50,7 @@ public class ProductReviewController {
      * @param productReviewRequestModel The product review to create
      * @return ResponseEntity indicating success or error
      */
-    @PreAuthorize("@customAuthorization.validateToken()")
+    @PreAuthorize("@customAuthorization.hasAuthority(null)")
     @PutMapping("/" + ApiRoutes.ProductReviewSubRoute.INSERT_PRODUCT_REVIEW)
     public ResponseEntity<?> insertProductReview(@RequestBody ProductReviewRequestModel productReviewRequestModel) {
         try {
@@ -79,7 +79,7 @@ public class ProductReviewController {
      * @param id The product ID to retrieve reviews for
      * @return ResponseEntity containing paginated product review data or error
      */
-    @PreAuthorize("@customAuthorization.validateToken()")
+    @PreAuthorize("@customAuthorization.hasAuthority(null)")
     @PostMapping("/" + ApiRoutes.ProductReviewSubRoute.GET_PRODUCT_REVIEWS_IN_BATCHES_GIVEN_PRODUCT_ID)
     public ResponseEntity<?> getProductReviewsGivenProductId(@RequestBody PaginationBaseRequestModel paginationBaseRequestModel, @RequestParam long id) {
         try {
@@ -106,7 +106,7 @@ public class ProductReviewController {
      * @param id The ID of the product review to toggle
      * @return ResponseEntity indicating success or error
      */
-    @PreAuthorize("@customAuthorization.validateToken()")
+    @PreAuthorize("@customAuthorization.hasAuthority(null)")
     @DeleteMapping("/" + ApiRoutes.ProductReviewSubRoute.TOGGLE_PRODUCT_REVIEW)
     public ResponseEntity<?> toggleProductReview(@RequestParam long id) {
         try {
@@ -138,7 +138,7 @@ public class ProductReviewController {
      * @param increaseScore True to increase score, false to decrease
      * @return ResponseEntity indicating success or error
      */
-    @PreAuthorize("@customAuthorization.validateToken()")
+    @PreAuthorize("@customAuthorization.hasAuthority(null)")
     @PostMapping("/" + ApiRoutes.ProductReviewSubRoute.SET_PRODUCT_REVIEW_SCORE)
     public ResponseEntity<?> setProductReviewScore(@RequestParam long id, @RequestParam boolean increaseScore) {
         try {
