@@ -142,11 +142,11 @@ public class MessageController {
      * @param paginationBaseRequestModel The request containing message ID
      * @return ResponseEntity containing success status or error
      */
-    @DeleteMapping("/" + ApiRoutes.MessagesSubRoute.TOGGLE_MESSAGE)
+    @DeleteMapping("/" + ApiRoutes.MessagesSubRoute.TOGGLE_MESSAGE + "/{id}")
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.DELETE_MESSAGES_PERMISSION +"')")
-    public ResponseEntity<?> toggleMessage(@RequestBody PaginationBaseRequestModel paginationBaseRequestModel) {
+    public ResponseEntity<?> toggleMessage(@PathVariable Long id) {
         try {
-            messageService.toggleMessage(paginationBaseRequestModel.getId());
+            messageService.toggleMessage(id);
             return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
@@ -234,14 +234,11 @@ public class MessageController {
      * @param messageRequestModel The request containing userId and messageId
      * @return ResponseEntity containing success status or error
      */
-    @PostMapping("/" + ApiRoutes.MessagesSubRoute.SET_MESSAGE_READ_BY_USER_ID_AND_MESSAGE_ID)
+    @PostMapping("/" + ApiRoutes.MessagesSubRoute.SET_MESSAGE_READ_BY_USER_ID_AND_MESSAGE_ID + "/{userId}/{messageId}")
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_MESSAGES_PERMISSION +"')")
-    public ResponseEntity<?> setMessageReadByUserIdAndMessageId(@RequestBody MessageRequestModel messageRequestModel) {
+    public ResponseEntity<?> setMessageReadByUserIdAndMessageId(@PathVariable Long userId, @PathVariable Long messageId) {
         try {
-            messageService.setMessageReadByUserIdAndMessageId(
-                messageRequestModel.getCreatedByUserId(), 
-                messageRequestModel.getMessageId()
-            );
+            messageService.setMessageReadByUserIdAndMessageId(userId, messageId);
             return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);

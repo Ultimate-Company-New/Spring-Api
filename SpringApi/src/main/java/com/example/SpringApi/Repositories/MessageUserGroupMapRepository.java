@@ -2,7 +2,9 @@ package com.example.SpringApi.Repositories;
 
 import com.example.SpringApi.Models.DatabaseModels.MessageUserGroupMap;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Repository interface for MessageUserGroupMap entity operations.
@@ -15,6 +17,8 @@ public interface MessageUserGroupMapRepository extends JpaRepository<MessageUser
      * 
      * @param messageId The message ID
      */
+    @Modifying
+    @Transactional
     void deleteByMessageId(Long messageId);
 }
 

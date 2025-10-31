@@ -27,8 +27,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
            "WHEN 'title' THEN CONCAT(m.title, '') " +
            "WHEN 'publishDate' THEN CONCAT(m.publishDate, '') " +
            "WHEN 'descriptionHtml' THEN CONCAT(m.descriptionHtml, '') " +
-           "WHEN 'sendAsEmail' THEN CONCAT(m.sendAsEmail, '') " +
-           "WHEN 'isDeleted' THEN CONCAT(m.isDeleted, '') " +
+           "WHEN 'sendAsEmail' THEN CASE WHEN m.sendAsEmail = true THEN 'true' ELSE 'false' END " +
+           "WHEN 'isDeleted' THEN CASE WHEN m.isDeleted = true THEN 'true' ELSE 'false' END " +
            "WHEN 'createdByUserId' THEN CONCAT(m.createdByUserId, '') " +
            "WHEN 'sendgridEmailBatchId' THEN CONCAT(m.sendgridEmailBatchId, '') " +
            "WHEN 'createdAt' THEN CONCAT(m.createdAt, '') " +
@@ -74,6 +74,9 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @Query("SELECT m FROM Message m WHERE m.messageId = :messageId AND m.clientId = :clientId AND m.isDeleted = false")
     Optional<Message> findByMessageIdAndClientId(@Param("messageId") Long messageId, @Param("clientId") Long clientId);
+
+    @Query("SELECT m FROM Message m WHERE m.messageId = :messageId AND m.clientId = :clientId")
+    Optional<Message> findByMessageIdAndClientIdIncludingDeleted(@Param("messageId") Long messageId, @Param("clientId") Long clientId);
 
     @Query("SELECT DISTINCT m FROM Message m " +
            "LEFT JOIN m.messageUserMaps mum " +

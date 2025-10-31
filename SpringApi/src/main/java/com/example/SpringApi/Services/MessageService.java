@@ -335,6 +335,10 @@ public class MessageService extends BaseService implements IMessageSubTranslator
         messageUserMapRepository.deleteByMessageId(savedMessage.getMessageId());
         messageUserGroupMapRepository.deleteByMessageId(savedMessage.getMessageId());
         
+        // Flush to ensure deletes are executed before inserts
+        messageUserMapRepository.flush();
+        messageUserGroupMapRepository.flush();
+        
         // Create new MessageUserMap entries for targeted users
         if (messageRequestModel.getUserIds() != null && !messageRequestModel.getUserIds().isEmpty()) {
             for (Long userId : messageRequestModel.getUserIds()) {
@@ -411,8 +415,8 @@ public class MessageService extends BaseService implements IMessageSubTranslator
      */
     @Override
     public void toggleMessage(long id) {
-        // Validate message exists and belongs to current client
-        Optional<Message> messageOptional = messageRepository.findByMessageIdAndClientId(id, getClientId());
+        // Validate message exists and belongs to current client (including deleted messages)
+        Optional<Message> messageOptional = messageRepository.findByMessageIdAndClientIdIncludingDeleted(id, getClientId());
         if (messageOptional.isEmpty()) {
             throw new NotFoundException(ErrorMessages.MessagesErrorMessages.InvalidId);
         }
