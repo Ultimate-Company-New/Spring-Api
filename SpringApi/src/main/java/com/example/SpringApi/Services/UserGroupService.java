@@ -3,7 +3,6 @@ package com.example.SpringApi.Services;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.SuccessMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
-import jakarta.servlet.http.HttpServletRequest;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.DatabaseModels.UserGroup;
 import com.example.SpringApi.Models.DatabaseModels.UserGroupUserMap;
