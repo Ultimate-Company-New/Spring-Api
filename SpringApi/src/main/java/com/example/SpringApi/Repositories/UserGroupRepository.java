@@ -30,8 +30,9 @@ public interface UserGroupRepository extends JpaRepository<UserGroup, Long> {
      */
     @Query("SELECT DISTINCT ug FROM UserGroup ug " +
            "LEFT JOIN FETCH ug.userMappings ugm " +
-           "LEFT JOIN FETCH ugm.user " +
-           "WHERE ug.groupId = :groupId")
+           "LEFT JOIN FETCH ugm.user u " +
+           "WHERE ug.groupId = :groupId " +
+           "ORDER BY u.userId DESC")
     UserGroup findByIdWithUsers(@Param("groupId") Long groupId);
 
     /**

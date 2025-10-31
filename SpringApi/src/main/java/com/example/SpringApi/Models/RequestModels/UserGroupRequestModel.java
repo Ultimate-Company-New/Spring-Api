@@ -10,8 +10,7 @@ import lombok.Setter;
 public class UserGroupRequestModel extends PaginationBaseRequestModel {
     
     private Long groupId;
-    private Long clientId;
-    
+
     private String groupName;
     private String description;
     private Boolean isDeleted;

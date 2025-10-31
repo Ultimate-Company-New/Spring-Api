@@ -17,6 +17,7 @@ import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -41,12 +42,10 @@ import java.util.*;
 public class UserGroupService extends BaseService implements IUserGroupSubTranslator {
     private final UserGroupRepository userGroupRepository;
     private final UserGroupUserMapRepository userGroupUserMapRepository;
-    private final UserRepository userRepository;
     private final UserLogService userLogService;
 
     @Autowired
-    public UserGroupService(HttpServletRequest request,
-                           UserLogService userLogService,
+    public UserGroupService(UserLogService userLogService,
                            UserGroupRepository userGroupRepository,
                            UserGroupUserMapRepository userGroupUserMapRepository,
                            UserRepository userRepository) {
@@ -120,19 +119,14 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
      */
     @Override
     public void createUserGroup(UserGroupRequestModel userGroupRequest) {
-        // Validate that at least one user is provided
-        if (userGroupRequest.getUserIds() == null || userGroupRequest.getUserIds().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.ER004);
-        }
-        
+        // Create and save the user group
+        UserGroup userGroup = new UserGroup(userGroupRequest, getUser(), getClientId());
+
         // Check if group name already exists
-        UserGroup existingGroup = userGroupRepository.findByGroupName(userGroupRequest.getGroupName().trim());
+        UserGroup existingGroup = userGroupRepository.findByGroupName(userGroup.getGroupName());
         if (existingGroup != null) {
             throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.GroupNameExists);
         }
-        
-        // Create and save the user group
-        UserGroup userGroup = new UserGroup(userGroupRequest, getUser());
         UserGroup savedGroup = userGroupRepository.save(userGroup);
         
         // Create user-group mappings
@@ -170,8 +164,14 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
         
         Optional<UserGroup> existingGroup = userGroupRepository.findById(userGroupRequest.getGroupId());
         if (existingGroup.isPresent()) {
+            // Check if the new group name already exists for a different group
+            UserGroup groupWithSameName = userGroupRepository.findByGroupName(userGroupRequest.getGroupName());
+            if (groupWithSameName != null && !groupWithSameName.getGroupId().equals(userGroupRequest.getGroupId())) {
+                throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.GroupNameExists);
+            }
+            
             // Update the user group
-            UserGroup userGroup = new UserGroup(userGroupRequest, getUser(), existingGroup.get());
+            UserGroup userGroup = new UserGroup(userGroupRequest, getUser(), existingGroup.get(), getClientId());
             UserGroup updatedGroup = userGroupRepository.save(userGroup);
             
             // Delete existing user-group mappings
@@ -225,6 +225,26 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
             }
         }
 
+        // Validate page size
+        int start = userGroupRequestModel.getStart();
+        int end = userGroupRequestModel.getEnd();
+        int pageSize = end - start;
+        
+        if (pageSize <= 0) {
+            throw new BadRequestException("Invalid pagination: end must be greater than start");
+        }
+
+        // Create custom Pageable with exact OFFSET and LIMIT for database-level pagination
+        // Spring's PageRequest.of(page, size) uses: OFFSET = page * size, LIMIT = size
+        // For arbitrary offsets (e.g., start=5, end=15), we need OFFSET=5, LIMIT=10
+        // Solution: Override getOffset() to return the exact start position
+        Pageable pageable = new PageRequest(0, pageSize, Sort.by("groupId").descending()) {
+            @Override
+            public long getOffset() {
+                return start;
+            }
+        };
+
         Page<UserGroup> userGroups = userGroupRepository.findPaginatedUserGroups(
             getClientId(),
             userGroupRequestModel.getSelectedGroupIds(),
@@ -232,10 +252,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
             userGroupRequestModel.getCondition(),
             userGroupRequestModel.getFilterExpr(),
             userGroupRequestModel.isIncludeDeleted(),
-            PageRequest.of(
-                userGroupRequestModel.getStart() / (userGroupRequestModel.getEnd() - userGroupRequestModel.getStart()),
-                userGroupRequestModel.getEnd() - userGroupRequestModel.getStart(),
-                Sort.by("groupId").descending())
+            pageable
         );
 
         PaginationBaseResponseModel<UserGroupResponseModel> paginationBaseResponseModel = new PaginationBaseResponseModel<>();

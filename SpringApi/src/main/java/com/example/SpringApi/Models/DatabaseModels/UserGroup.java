@@ -73,11 +73,11 @@ public class UserGroup {
     public UserGroup() {}
 
     // Constructor for creating new user group
-    public UserGroup(UserGroupRequestModel request, String createdUser) {
+    public UserGroup(UserGroupRequestModel request, String createdUser, long clientId) {
         validateRequest(request);
         validateUser(createdUser);
         
-        setFieldsFromRequest(request);
+        setFieldsFromRequest(request, clientId);
         this.createdUser = createdUser;
         this.modifiedUser = createdUser;  // When creating, modified user is same as created user
         this.isActive = true;  // New groups are always active
@@ -85,7 +85,7 @@ public class UserGroup {
     }
 
     // Constructor for updating existing user group
-    public UserGroup(UserGroupRequestModel request, String modifiedUser, UserGroup existingUserGroup) {
+    public UserGroup(UserGroupRequestModel request, String modifiedUser, UserGroup existingUserGroup, long clientId) {
         validateRequest(request);
         validateUser(modifiedUser);
         
@@ -97,18 +97,13 @@ public class UserGroup {
         this.isDeleted = existingUserGroup.getIsDeleted();
         this.notes = existingUserGroup.getNotes();
         
-        setFieldsFromRequest(request);
+        setFieldsFromRequest(request, clientId);
         this.modifiedUser = modifiedUser;  // When updating, use the provided modified user
     }
 
     private void validateRequest(UserGroupRequestModel request) {
         if (request == null) {
             throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.ER001);
-        }
-        
-        // Validate client ID (required, must be positive)
-        if (request.getClientId() == null || request.getClientId() <= 0) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidId);
         }
         
         // Validate group name (required, length > 0)
@@ -125,6 +120,10 @@ public class UserGroup {
         if (request.getGroupName().trim().length() > 100) {
             throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.GroupNameExists);
         }
+
+        if (request.getUserIds() == null || request.getUserIds().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.ER004);
+        }
     }
 
     private void validateUser(String user) {
@@ -133,8 +132,8 @@ public class UserGroup {
         }
     }
 
-    private void setFieldsFromRequest(UserGroupRequestModel request) {
-        this.clientId = request.getClientId();
+    private void setFieldsFromRequest(UserGroupRequestModel request, long clientId) {
+        this.clientId = clientId;
         this.groupName = request.getGroupName().trim();
         this.description = request.getDescription() != null ? request.getDescription().trim() : null;
     }

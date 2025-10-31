@@ -107,8 +107,8 @@ public class UserGroupController {
      * @param userGroupRequest The UserGroupRequestModel containing the group data to create
      * @return ResponseEntity containing the ID of the created user group or ErrorResponseModel
      */
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.INSERT_GROUPS_PERMISSION +"')")
     @PutMapping("/" + ApiRoutes.UserGroupSubRoute.CREATE_USER_GROUP)
+    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.INSERT_GROUPS_PERMISSION +"')")
     public ResponseEntity<?> createUserGroup(@RequestBody UserGroupRequestModel userGroupRequest) {
         try {
             userGroupService.createUserGroup(userGroupRequest);
@@ -174,6 +174,9 @@ public class UserGroupController {
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (NotFoundException nfe) {
+            logger.error(nfe);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, ErrorMessages.ServerError, HttpStatus.INTERNAL_SERVER_ERROR.value()));

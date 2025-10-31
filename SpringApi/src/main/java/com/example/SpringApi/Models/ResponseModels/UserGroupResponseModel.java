@@ -18,6 +18,7 @@ public class UserGroupResponseModel {
     private Boolean isDeleted;
     private String createdUser;
     private String modifiedUser;
+    private String notes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
@@ -47,6 +48,7 @@ public class UserGroupResponseModel {
             this.modifiedUser = userGroup.getModifiedUser();
             this.createdAt = userGroup.getCreatedAt();
             this.updatedAt = userGroup.getUpdatedAt();
+            this.notes = userGroup.getNotes();
             
             // Auto-populate users from mappings if available and requested
             if (includeUsers && userGroup.getUserMappings() != null && !userGroup.getUserMappings().isEmpty()) {
@@ -56,13 +58,9 @@ public class UserGroupResponseModel {
                         this.users.add(new UserResponseModel(mapping.getUser()));
                     }
                 }
+                // Sort users by userId in descending order to ensure consistent ordering
+                this.users.sort((u1, u2) -> Long.compare(u2.getUserId(), u1.getUserId()));
             }
         }
-    }
-    
-    // Constructor with user list
-    public UserGroupResponseModel(UserGroup userGroup, List<UserResponseModel> users) {
-        this(userGroup);
-        this.users = users != null ? users : new ArrayList<>();
     }
 }
