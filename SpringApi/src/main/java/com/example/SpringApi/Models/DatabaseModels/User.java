@@ -89,6 +89,9 @@ public class User {
 
     @Column(name = "profilePicture")
     private String profilePicture;
+    
+    @Column(name = "profilePictureDeleteHash")
+    private String profilePictureDeleteHash;
 
     @Column(name = "lastLoginAt")
     private LocalDateTime lastLoginAt;
@@ -192,6 +195,22 @@ public class User {
         
         setFieldsFromRequest(request);
         this.modifiedUser = modifiedUser;  // When updating, use the provided modified user
+        
+        // Preserve fields from existing user that should not be changed via updateUser
+        this.password = existingUser.getPassword();
+        this.salt = existingUser.getSalt();
+        this.token = existingUser.getToken();
+        this.profilePictureDeleteHash = existingUser.getProfilePictureDeleteHash();
+        
+        // Preserve profile picture URL from existing user (may have been updated during profile picture upload)
+        if (existingUser.getProfilePicture() != null) {
+            this.profilePicture = existingUser.getProfilePicture();
+        }
+        
+        // Preserve addressId from existing user if it was set during address update
+        if (existingUser.getAddressId() != null) {
+            this.addressId = existingUser.getAddressId();
+        }
     }
 
     /**

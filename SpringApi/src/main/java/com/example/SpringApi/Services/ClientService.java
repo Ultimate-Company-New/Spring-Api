@@ -3,10 +3,10 @@ package com.example.SpringApi.Services;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.SuccessMessages;
+import com.example.SpringApi.Constants.ImageLocationConstants;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Models.DatabaseModels.GoogleCred;
 import org.springframework.core.env.Environment;
-import jakarta.servlet.http.HttpServletRequest;
 import com.example.SpringApi.Models.DatabaseModels.Client;
 import com.example.SpringApi.Models.RequestModels.ClientRequestModel;
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
@@ -14,14 +14,15 @@ import com.example.SpringApi.Repositories.ClientRepository;
 import com.example.SpringApi.Repositories.GoogleCredRepository;
 import com.example.SpringApi.Services.Interface.IClientSubTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Helpers.FirebaseHelper;
+import com.example.SpringApi.Helpers.ImgbbHelper;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
-import java.io.File;
 
 /**
  * Service class for managing Client-related business operations.
@@ -41,13 +42,15 @@ public class ClientService extends BaseService implements IClientSubTranslator {
     private final UserLogService userLogService;
     private final GoogleCredRepository googleCredRepository;
     private final Environment environment;
+    
+    @Value("${imageLocation:firebase}")
+    private String imageLocation;
 
     @Autowired
-    public ClientService(HttpServletRequest request,
-                        UserLogService userLogService,
-                        ClientRepository clientRepository,
-                        GoogleCredRepository googleCredRepository,
-                        Environment environment) {
+    public ClientService(UserLogService userLogService,
+                         ClientRepository clientRepository,
+                         GoogleCredRepository googleCredRepository,
+                         Environment environment) {
         super();
         this.userLogService = userLogService;
         this.clientRepository = clientRepository;
@@ -72,8 +75,10 @@ public class ClientService extends BaseService implements IClientSubTranslator {
         if (client.isPresent()) {
             client.get().setIsDeleted(!client.get().getIsDeleted());
             clientRepository.save(client.get());
-            userLogService.logData(getUserId(), SuccessMessages.ClientSuccessMessages.ToggleClient + " " + client.get().getClientId(),
-                    ApiRoutes.ClientSubRoute.TOGGLE_CLIENT);
+            userLogService.logData(
+                getUserId(),
+                SuccessMessages.ClientSuccessMessages.ToggleClient + " " + client.get().getClientId(),
+                ApiRoutes.ClientSubRoute.TOGGLE_CLIENT);
         } else {
             throw new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId);
         }
@@ -120,30 +125,69 @@ public class ClientService extends BaseService implements IClientSubTranslator {
                 !clientRequest.getLogoBase64().isEmpty() &&
                 !clientRequest.getLogoBase64().isBlank()) {
             
-            // Get GoogleCred for the client
-            Optional<GoogleCred> googleCred = googleCredRepository.findById(savedClient.getGoogleCredId());
+            String environmentName = environment.getActiveProfiles().length > 0
+                ? environment.getActiveProfiles()[0]
+                : "default";
             
-            if (googleCred.isPresent()) {
-                String filePath = savedClient.getName() + " - " + savedClient.getClientId()
-                        + File.separator
-                        + (environment.getActiveProfiles().length > 0 ? environment.getActiveProfiles()[0] : "default")
-                        + File.separator
-                        + "Logo.png";
-
-                // Create FirebaseHelper with GoogleCred object
-                GoogleCred googleCredData = googleCred.get();
-                FirebaseHelper firebaseHelper = new FirebaseHelper(googleCredData);
-                boolean isSuccess = firebaseHelper.uploadFileToFirebase(clientRequest.getLogoBase64(), filePath);
-                if (!isSuccess) {
-                    throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidLogoUpload);
+            boolean isSuccess = false;
+            
+            // Use ImgBB or Firebase based on configuration
+            if (ImageLocationConstants.IMGBB.equalsIgnoreCase(imageLocation)) {
+                // Validate ImgBB API key is configured
+                if (savedClient.getImgbbApiKey() == null || savedClient.getImgbbApiKey().trim().isEmpty()) {
+                    throw new BadRequestException("ImgBB API key is not configured for this client");
+                }
+                
+                // Generate custom filename for ImgBB
+                String customFileName = ImgbbHelper.generateCustomFileNameForClientLogo(environmentName, savedClient.getName());
+                
+                ImgbbHelper imgbbHelper = new ImgbbHelper(savedClient.getImgbbApiKey());
+                ImgbbHelper.ImgbbUploadResponse uploadResponse = imgbbHelper.uploadFileToImgbb(
+                    clientRequest.getLogoBase64(),
+                    customFileName
+                );
+                
+                if (uploadResponse != null && uploadResponse.getUrl() != null) {
+                    // Save both the logo URL and delete hash to the database
+                    savedClient.setLogoUrl(uploadResponse.getUrl());
+                    savedClient.setLogoDeleteHash(uploadResponse.getDeleteHash());
+                    clientRepository.save(savedClient);
+                    isSuccess = true;
+                } else {
+                    isSuccess = false;
+                }
+            } else if (ImageLocationConstants.FIREBASE.equalsIgnoreCase(imageLocation)) {
+                String filePath = FirebaseHelper.getClientLogoPath(
+                    environmentName,
+                    savedClient.getName(),
+                    savedClient.getClientId()
+                );
+                // Get GoogleCred for Firebase
+                Optional<GoogleCred> googleCred = googleCredRepository.findById(savedClient.getGoogleCredId());
+                
+                if (googleCred.isPresent()) {
+                    GoogleCred googleCredData = googleCred.get();
+                    FirebaseHelper firebaseHelper = new FirebaseHelper(googleCredData);
+                    isSuccess = firebaseHelper.uploadFileToFirebase(
+                        clientRequest.getLogoBase64(),
+                        filePath
+                    );
+                } else {
+                    throw new BadRequestException(ErrorMessages.UserErrorMessages.ER011);
                 }
             } else {
-                throw new BadRequestException(ErrorMessages.UserErrorMessages.ER011);
+                throw new BadRequestException("Invalid imageLocation configuration: " + imageLocation);
+            }
+
+            if (!isSuccess) {
+                throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidLogoUpload);
             }
         }
         
-        userLogService.logData(getUserId(), SuccessMessages.ClientSuccessMessages.CreateClient + " " + savedClient.getClientId(),
-            "createClient");
+        userLogService.logData(
+            getUserId(),
+            SuccessMessages.ClientSuccessMessages.CreateClient + " " + savedClient.getClientId(),
+            ApiRoutes.ClientSubRoute.CREATE_CLIENT);
     }
 
     /**
@@ -159,13 +203,112 @@ public class ClientService extends BaseService implements IClientSubTranslator {
      */
     @Override
     public void updateClient(ClientRequestModel clientRequest) {
-        // TODO: We need to add code to update the client logo
         Optional<Client> existingClient = clientRepository.findById(clientRequest.getClientId());
         if (existingClient.isPresent()) {
             Client client = new Client(clientRequest, getUser(), existingClient.get());
             Client updatedClient = clientRepository.save(client);
-            userLogService.logData(getUserId(), SuccessMessages.ClientSuccessMessages.UpdateClient + " " + updatedClient.getClientId(),
-                    "updateClient");
+
+            String environmentName = environment.getActiveProfiles().length > 0
+                ? environment.getActiveProfiles()[0]
+                : "default";
+
+            // Use ImgBB or Firebase based on configuration
+            if (ImageLocationConstants.IMGBB.equalsIgnoreCase(imageLocation)) {
+                // ImgBB-based logo management
+                // Validate ImgBB API key is configured
+                if (updatedClient.getImgbbApiKey() == null || updatedClient.getImgbbApiKey().trim().isEmpty()) {
+                    throw new BadRequestException("ImgBB API key is not configured for this client");
+                }
+                
+                ImgbbHelper imgbbHelper = new ImgbbHelper(updatedClient.getImgbbApiKey());
+                
+                // Handle logo update based on request
+                if (clientRequest.getLogoBase64() == null ||
+                    clientRequest.getLogoBase64().isEmpty() ||
+                    clientRequest.getLogoBase64().isBlank()) {
+                    // If no logo in request, delete the old logo from ImgBB and clear from database
+                    if (updatedClient.getLogoDeleteHash() != null && !updatedClient.getLogoDeleteHash().isEmpty()) {
+                        imgbbHelper.deleteImage(updatedClient.getLogoDeleteHash());
+                    }
+                    updatedClient.setLogoUrl(null);
+                    updatedClient.setLogoDeleteHash(null);
+                    clientRepository.save(updatedClient);
+                } else {
+                    // Delete old logo from ImgBB before uploading new one
+                    if (updatedClient.getLogoDeleteHash() != null && !updatedClient.getLogoDeleteHash().isEmpty()) {
+                        imgbbHelper.deleteImage(updatedClient.getLogoDeleteHash());
+                    }
+                    
+                    // Generate custom filename for ImgBB
+                    String customFileName = ImgbbHelper.generateCustomFileNameForClientLogo(environmentName, updatedClient.getName());
+                    
+                    // Upload new logo to ImgBB
+                    ImgbbHelper.ImgbbUploadResponse uploadResponse = imgbbHelper.uploadFileToImgbb(
+                        clientRequest.getLogoBase64(),
+                        customFileName
+                    );
+
+                    if (uploadResponse != null && uploadResponse.getUrl() != null) {
+                        // Save both the new logo URL and delete hash to the database
+                        updatedClient.setLogoUrl(uploadResponse.getUrl());
+                        updatedClient.setLogoDeleteHash(uploadResponse.getDeleteHash());
+                        clientRepository.save(updatedClient);
+                    } else {
+                        throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidLogoUpload);
+                    }
+                }
+            } else if (ImageLocationConstants.FIREBASE.equalsIgnoreCase(imageLocation)) {
+                String filePath = FirebaseHelper.getClientLogoPath(
+                    environmentName,
+                    updatedClient.getName(),
+                    updatedClient.getClientId()
+                );
+                // Firebase-based logo management
+                Optional<GoogleCred> googleCred = googleCredRepository.findById(updatedClient.getGoogleCredId());
+
+                if (googleCred.isPresent()) {
+                    GoogleCred googleCredData = googleCred.get();
+                    FirebaseHelper firebaseHelper = new FirebaseHelper(googleCredData);
+
+                    // Check if logo exists on Firebase
+                    byte[] existingLogo = firebaseHelper.downloadFileAsBytesFromFirebase(filePath);
+                    boolean logoExists = existingLogo != null;
+
+                    // Handle logo update based on request
+                    if (clientRequest.getLogoBase64() == null ||
+                        clientRequest.getLogoBase64().isEmpty() ||
+                        clientRequest.getLogoBase64().isBlank()) {
+                        // If no logo in request and logo exists, delete it
+                        if (logoExists) {
+                            firebaseHelper.deleteFile(filePath);
+                        }
+                    } else {
+                        // If logo exists, delete it first before uploading new one
+                        if (logoExists) {
+                            firebaseHelper.deleteFile(filePath);
+                        }
+
+                        // Upload new logo
+                        boolean isSuccess = firebaseHelper.uploadFileToFirebase(
+                            clientRequest.getLogoBase64(),
+                            filePath
+                        );
+
+                        if (!isSuccess) {
+                            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidLogoUpload);
+                        }
+                    }
+                } else {
+                    throw new BadRequestException(ErrorMessages.UserErrorMessages.ER011);
+                }
+            } else {
+                throw new BadRequestException("Invalid imageLocation configuration: " + imageLocation);
+            }
+
+            userLogService.logData(
+                getUserId(),
+                SuccessMessages.ClientSuccessMessages.UpdateClient + " " + updatedClient.getClientId(),
+                ApiRoutes.ClientSubRoute.UPDATE_CLIENT);
         } else {
             throw new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId);
         }

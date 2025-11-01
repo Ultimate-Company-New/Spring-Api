@@ -186,6 +186,7 @@ public class SuccessMessages {
         public static final String ToggleUser = "Successfully toggled user.";
         public static final String GetUser = "Successfully got user details.";
         public static final String GetUsers = "Successfully got users.";
+        public static final String EmailConfirmed = "Successfully confirmed email.";
     }
 
     public static class UserGridPreferenceSuccessMessages {

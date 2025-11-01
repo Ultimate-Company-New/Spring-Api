@@ -1,9 +1,11 @@
 package com.example.SpringApi.Repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.SpringApi.Models.DatabaseModels.UserGroupUserMap;
 
@@ -30,4 +32,14 @@ public interface UserGroupUserMapRepository extends JpaRepository<UserGroupUserM
      * @return List of UserGroupUserMap entities for the user
      */
     List<UserGroupUserMap> findByUserId(Long userId);
+    
+    /**
+     * Deletes all user-group mappings for a specific user.
+     * 
+     * @param userId The unique identifier of the user
+     */
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM UserGroupUserMap ugm WHERE ugm.userId = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
 }

@@ -89,6 +89,7 @@ public class ApiRoutes {
         public static final String GET_USER_BY_EMAIL = "getUserByEmail";
         public static final String CREATE_USER = "createUser";
         public static final String UPDATE_USER = "updateUser";
+        public static final String CONFIRM_EMAIL = "confirmEmail";
     }
 
 

@@ -1,5 +1,6 @@
 package com.example.SpringApi.Controllers;
 
+import com.example.SpringApi.Services.Interface.IUserSubTranslator;
 import com.example.SpringApi.Services.UserService;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.ApiRoutes;
@@ -37,7 +38,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/" + ApiRoutes.ApiControllerNames.USER)
 public class UserController {
     
-    private final UserService userService;
+    private final IUserSubTranslator userService;
     private final ContextualLogger logger;
     
     @Autowired
@@ -214,6 +215,37 @@ public class UserController {
     public ResponseEntity<?> fetchUsersInCarrierInBatches(@RequestBody UserRequestModel userRequestModel) {
         try {
             return ResponseEntity.ok(userService.fetchUsersInCarrierInBatches(userRequestModel));
+        } catch (BadRequestException bre) {
+            logger.error(bre);
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (NotFoundException nfe) {
+            logger.error(nfe);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (UnauthorizedException ue) {
+            logger.error(ue);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+        } catch (Exception e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+
+    /**
+     * Confirms user email using userId and token from email link.
+     * This is a PUBLIC endpoint (no authentication required) as users haven't logged in yet.
+     * 
+     * @param userId User ID from the email link (path variable)
+     * @param token Verification token from the email link (query parameter to avoid URL encoding issues with bcrypt)
+     * @return Success message or error response
+     */
+    @PostMapping(ApiRoutes.UserSubRoute.CONFIRM_EMAIL + "/{userId}")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<?> confirmEmail(
+            @PathVariable Long userId,
+            @RequestParam String token) {
+        try {
+            userService.confirmEmail(userId, token);
+            return ResponseEntity.ok("Email confirmed successfully");
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));

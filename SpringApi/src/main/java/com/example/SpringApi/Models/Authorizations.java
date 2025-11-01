@@ -11,7 +11,7 @@ public class Authorizations {
     public static final String VIEW_USER_PERMISSION = "ViewUser";
     public static final String UPDATE_USER_PERMISSION = "UpdateUser";
     public static final String DELETE_USER_PERMISSION = "DeleteUser";
-    public static final String CREATE_USER_PERMISSION = "CreateUser";
+    public static final String CREATE_USER_PERMISSION = "InsertUser";
 
     // UserLogPermissions
     public static final String VIEW_LOGS_PERMISSION = "ViewLogs";

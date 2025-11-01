@@ -1,14 +1,11 @@
 package com.example.SpringApi.Helpers;
 
 import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.DatabaseModels.GoogleCred;
 import com.example.SpringApi.Models.RequestModels.SendEmailRequest;
-import com.sendgrid.helpers.mail.objects.Attachments;
 import org.springframework.core.env.Environment;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -18,17 +15,14 @@ public class EmailTemplates {
     private final EmailHelper emailHelper;
     private final Environment environment;
     private final Client client;
-    private final GoogleCred googleCred;
 
     public EmailTemplates(String senderName,
                           String fromAddress,
                           String sendgridApiKey,
                           Environment environment,
-                          Client client,
-                          GoogleCred googleCred) {
+                          Client client) {
         this.environment = environment;
         this.client = client;
-        this.googleCred = googleCred;
         this.emailHelper = new EmailHelper(fromAddress, senderName, sendgridApiKey);
     }
 
@@ -58,18 +52,18 @@ public class EmailTemplates {
             }
         }
 
-        // Fetch the logo from Firebase and encode it as Base64
-        String profile = environment.getActiveProfiles().length > 0 ? environment.getActiveProfiles()[0] : "default";
-        FirebaseHelper firebaseHelper = new FirebaseHelper(googleCred);
-        String filePath = client.getName() + " - " + client.getClientId() + "/" + profile + "/Logo.png";
-        byte[] logoBytes = firebaseHelper.downloadFileAsBytesFromFirebase(filePath);
-        String companyLogoBase64 = Base64.getEncoder().encodeToString(logoBytes);
+        // Use logo URL from client (no need to fetch from Firebase)
+        String companyLogoUrl = client.getLogoUrl();
+        String logoHtml = (companyLogoUrl != null && !companyLogoUrl.isEmpty()) 
+            ? String.format("<img src=\"%s\" alt=\"Company Logo\" style=\"width: 300px; height: 200px; margin-bottom: 20px;\">", 
+                companyLogoUrl)
+            : "";
 
         String emailTemplate = String.format(
                 """
                 <div style="font-family: Arial, sans-serif; color: #333;">
                     <header style="padding: 10px; text-align: center; background-color: #f3f4f6;">
-                        <img src="cid:companyLogo" alt="Company Logo" style="width: 300px; height: 200px; margin-bottom: 20px;">
+                        %s
                         <h2>Import Report for %s</h2>
                     </header>
                     <main style="padding: 20px;">
@@ -93,6 +87,7 @@ public class EmailTemplates {
                     </footer>
                 </div>
                 """,
+                logoHtml,
                 importType,
                 status,
                 errors != null && !errors.isEmpty() ? "<p>Details of errors are listed below:</p>" : "",
@@ -100,11 +95,17 @@ public class EmailTemplates {
         );
 
         String plainText = String.format(
-                "Import Report for %s\n\n" +
-                        "%s\n\n" +
-                        "%s\n\n" +
-                        "Error Details:\n%s\n\n" +
-                        "Thank you for choosing us!",
+                """
+                        Import Report for %s
+                        
+                        %s
+                        
+                        %s
+                        
+                        Error Details:
+                        %s
+                        
+                        Thank you for choosing us!""",
                 importType,
                 status,
                 errors != null && !errors.isEmpty() ? "Details of errors are listed below:" : "",
@@ -122,31 +123,8 @@ public class EmailTemplates {
         sendEmailRequest.setHtmlContent(emailTemplate);
         sendEmailRequest.setPlainTextContent(plainText);
 
-        // Add attachment to the request
-        List<Attachments> attachments = new ArrayList<>();
-
-        // Create an attachment for the company logo
-        Attachments logoAttachment = new Attachments();
-        logoAttachment.setFilename("logo.png");
-        logoAttachment.setContent(companyLogoBase64);
-        logoAttachment.setType("image/png");
-        logoAttachment.setDisposition("inline");
-        logoAttachment.setContentId("companyLogo"); // Reference in HTML
-        attachments.add(logoAttachment);
-
-        // Create and add the excel attachment
-        // Note: Excel attachment generation not available in this module
-        // if(errors != null && !errors.isEmpty()) {
-        //     byte[] excelAttachmentData = generateExcelFileForBulkImportErrors(errors);
-        //     Attachments excelAttachment = new Attachments();
-        //     excelAttachment.setFilename("ImportReport.xlsx");
-        //     excelAttachment.setContent(Base64.getEncoder().encodeToString(excelAttachmentData));
-        //     excelAttachment.setType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        //     excelAttachment.setDisposition("attachment");
-        //     attachments.add(excelAttachment);
-        // }
-
-        sendEmailRequest.setAttachments(attachments);
+        // No need for logo attachment since we're using logo URL directly in HTML
+        // Excel attachment generation can be added here if needed in the future
 
         // Send the account confirmation email using email helper
         return emailHelper.sendEmail(sendEmailRequest);
@@ -161,26 +139,29 @@ public class EmailTemplates {
         String profile = environment.getActiveProfiles().length > 0 ? environment.getActiveProfiles()[0] : "default";
         String apiUrl = environment.getProperty("app.url." + profile);
 
-        // Generate the confirmation account link
+        // Generate the confirmation account link (POST endpoint with query parameter for token)
+        // Using query parameter to avoid URL encoding issues with bcrypt tokens containing '/'
         String confirmAccountLink = String.format(
-                "%s/confirmEmail?UserId=%s&Token=%s",
+                "%s/api/User/confirmEmail/%s?token=%s",
                 apiUrl,
                 userId,
                 java.net.URLEncoder.encode(userToken, java.nio.charset.StandardCharsets.UTF_8)
         );
 
-        // Fetch the logo from Firebase and encode it as Base64
-        FirebaseHelper firebaseHelper = new FirebaseHelper(googleCred);
-        String filePath = client.getName() + " - " + client.getClientId() + "/" + profile + "/Logo.png";
-        byte[] logoBytes = firebaseHelper.downloadFileAsBytesFromFirebase(filePath);
-        String companyLogoBase64 = Base64.getEncoder().encodeToString(logoBytes);
+        // Use logo URL from client (no need to fetch from Firebase)
+        String companyLogoUrl = client.getLogoUrl();
 
-        // Create the email template with inline image reference (cid)
+        // Create the email template with logo URL (if available)
+        String logoHtml = (companyLogoUrl != null && !companyLogoUrl.isEmpty()) 
+            ? String.format("<img src=\"%s\" alt=\"%s Logo\" style=\"width: 300px; height: 200px; margin-bottom: 20px;\">", 
+                companyLogoUrl, client.getName())
+            : "";
+        
         String emailTemplate = String.format(
                 """
                 <div style="font-family: Arial, sans-serif; color: #333;">
                     <header style="padding: 10px; text-align: center; background-color: #f3f4f6;">
-                        <img src="cid:companyLogo" alt="%s Logo" style="width: 300px; height: 200px; margin-bottom: 20px;">
+                        %s
                         <h2>Welcome to %s</h2>
                     </header>
                     <main style="padding: 20px;">
@@ -201,7 +182,7 @@ public class EmailTemplates {
                     </footer>
                 </div>
                 """,
-                client.getName(),
+                logoHtml,
                 client.getName(),
                 confirmAccountLink,
                 confirmAccountLink,
@@ -214,9 +195,13 @@ public class EmailTemplates {
 
         // Plain text fallback content
         String plainText = String.format(
-                "Please click on the link below to confirm your email account:\n%s\n\n" +
-                        "Your temporary password is: %s\n\n" +
-                        "Thank you for choosing %s!",
+                """
+                        Please click on the link below to confirm your email account:
+                        %s
+                        
+                        Your temporary password is: %s
+                        
+                        Thank you for choosing %s!""",
                 confirmAccountLink, temporaryPassword, client.getName()
         );
 
@@ -227,18 +212,7 @@ public class EmailTemplates {
         sendEmailRequest.setHtmlContent(emailTemplate);
         sendEmailRequest.setPlainTextContent(plainText);
 
-        // Create an attachment for the company logo
-        Attachments logoAttachment = new Attachments();
-        logoAttachment.setFilename("logo.png");
-        logoAttachment.setContent(companyLogoBase64);
-        logoAttachment.setType("image/png");
-        logoAttachment.setDisposition("inline");
-        logoAttachment.setContentId("companyLogo"); // Reference in HTML
-
-        // Add attachment to the request
-        List<Attachments> attachments = new ArrayList<>();
-        attachments.add(logoAttachment);
-        sendEmailRequest.setAttachments(attachments);
+        // No need for attachments since we're using logo URL directly in HTML
 
         // Send the account confirmation email using email helper
         return emailHelper.sendEmail(sendEmailRequest);
@@ -283,7 +257,7 @@ public class EmailTemplates {
                 <p style='color: #777;'>If you did not request a new password, please contact our support team immediately.</p>
               </div>
               <footer style='text-align: center; padding: 10px 0; background-color: #333; color: white; border-top: 1px solid #ddd;'>
-                <p>&copy; """ + java.time.Year.now() + """ 
+                <p>&copy;""" + java.time.Year.now() + """ 
                 Ultimate Company. All rights reserved.</p>
                 <p>Mumbai Maharashtra</p>
               </footer>

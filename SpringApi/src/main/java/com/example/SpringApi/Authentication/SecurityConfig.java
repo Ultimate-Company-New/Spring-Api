@@ -30,6 +30,8 @@ public class SecurityConfig {
                 .requestMatchers("/").permitAll()
                 // Allow unauthenticated access to login endpoints
                 .requestMatchers("/api/Login/**").permitAll()
+                // Allow unauthenticated access to email confirmation endpoint
+                .requestMatchers("/api/User/confirmEmail/**").permitAll()
                 // All other requests must be authenticated
                 .anyRequest().authenticated()
             )

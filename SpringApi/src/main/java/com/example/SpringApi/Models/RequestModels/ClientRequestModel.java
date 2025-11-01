@@ -28,6 +28,7 @@ public class ClientRequestModel {
     private String sendgridSenderName;
     private String razorpayApiKey;
     private String razorpayApiSecret;
+    private String imgbbApiKey;
     private String shipRocketEmail;
     private String shipRocketPassword;
     private String jiraUserName;

@@ -97,4 +97,20 @@ public interface IUserSubTranslator {
      * @return {@link PaginationBaseResponseModel} of {@link UserResponseModel} for the requested batch.
      */
     PaginationBaseResponseModel<UserResponseModel> fetchUsersInCarrierInBatches(UserRequestModel userRequestModel);
+
+    /**
+     * Confirms a user's email address using the verification token.
+     * This is a public endpoint (no authentication required) as users haven't logged in yet.
+     * 
+     * The method:
+     * 1. Validates that the user exists
+     * 2. Verifies the provided token matches the user's stored token
+     * 3. Sets emailConfirmed to true
+     * 
+     * @param userId The unique identifier of the user
+     * @param token The verification token from the email link
+     * @throws NotFoundException if no user exists with the given ID
+     * @throws BadRequestException if the token is invalid or expired
+     */
+    void confirmEmail(Long userId, String token);
 }

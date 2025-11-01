@@ -740,4 +740,161 @@ class UserServiceTest {
             eq(TEST_CLIENT_ID), isNull(), eq("firstName"), eq("contains"), eq("Test"), eq(false), any(PageRequest.class)
         );
     }
+
+    // ==================== Confirm Email Tests ====================
+    
+    /**
+     * Test successful email confirmation.
+     * Verifies that user's email is confirmed when valid userId and token are provided.
+     */
+    @Test
+    @DisplayName("Confirm Email - Success - Should confirm email with valid token")
+    void confirmEmail_Success() {
+        // Arrange
+        User userToConfirm = new User(testUserRequest, CREATED_USER);
+        userToConfirm.setUserId(TEST_USER_ID);
+        userToConfirm.setToken("valid-token");
+        userToConfirm.setEmailConfirmed(false);
+        
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(userToConfirm));
+        when(userRepository.save(any(User.class))).thenReturn(userToConfirm);
+        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        
+        // Act
+        assertDoesNotThrow(() -> userService.confirmEmail(TEST_USER_ID, "valid-token"));
+        
+        // Assert
+        assertTrue(userToConfirm.getEmailConfirmed());
+        verify(userRepository, times(1)).findById(TEST_USER_ID);
+        verify(userRepository, times(1)).save(userToConfirm);
+    }
+    
+    /**
+     * Test email confirmation with non-existent user.
+     * Verifies that NotFoundException is thrown when user is not found.
+     */
+    @Test
+    @DisplayName("Confirm Email - Failure - User not found")
+    void confirmEmail_UserNotFound_ThrowsNotFoundException() {
+        // Arrange
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.empty());
+        
+        // Act & Assert
+        NotFoundException exception = assertThrows(
+            NotFoundException.class,
+            () -> userService.confirmEmail(TEST_USER_ID, "valid-token")
+        );
+        
+        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, exception.getMessage());
+        verify(userRepository, times(1)).findById(TEST_USER_ID);
+        verify(userRepository, never()).save(any(User.class));
+        verify(userLogService, never()).logData(anyLong(), anyString(), anyString());
+    }
+    
+    /**
+     * Test email confirmation with null token on user.
+     * Verifies that BadRequestException is thrown when user's token is null.
+     */
+    @Test
+    @DisplayName("Confirm Email - Failure - User token is null")
+    void confirmEmail_NullToken_ThrowsBadRequestException() {
+        // Arrange
+        User userWithNullToken = new User(testUserRequest, CREATED_USER);
+        userWithNullToken.setUserId(TEST_USER_ID);
+        userWithNullToken.setToken(null);
+        userWithNullToken.setEmailConfirmed(false);
+        
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(userWithNullToken));
+        
+        // Act & Assert
+        BadRequestException exception = assertThrows(
+            BadRequestException.class,
+            () -> userService.confirmEmail(TEST_USER_ID, "any-token")
+        );
+        
+        assertEquals("Invalid or expired verification token", exception.getMessage());
+        verify(userRepository, times(1)).findById(TEST_USER_ID);
+        verify(userRepository, never()).save(any(User.class));
+        verify(userLogService, never()).logData(anyLong(), anyString(), anyString());
+    }
+    
+    /**
+     * Test email confirmation with mismatched token.
+     * Verifies that BadRequestException is thrown when token doesn't match.
+     */
+    @Test
+    @DisplayName("Confirm Email - Failure - Token mismatch")
+    void confirmEmail_TokenMismatch_ThrowsBadRequestException() {
+        // Arrange
+        User userWithDifferentToken = new User(testUserRequest, CREATED_USER);
+        userWithDifferentToken.setUserId(TEST_USER_ID);
+        userWithDifferentToken.setToken("correct-token");
+        userWithDifferentToken.setEmailConfirmed(false);
+        
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(userWithDifferentToken));
+        
+        // Act & Assert
+        BadRequestException exception = assertThrows(
+            BadRequestException.class,
+            () -> userService.confirmEmail(TEST_USER_ID, "wrong-token")
+        );
+        
+        assertEquals("Invalid or expired verification token", exception.getMessage());
+        verify(userRepository, times(1)).findById(TEST_USER_ID);
+        verify(userRepository, never()).save(any(User.class));
+        verify(userLogService, never()).logData(anyLong(), anyString(), anyString());
+    }
+    
+    /**
+     * Test email confirmation when email is already confirmed.
+     * Verifies that BadRequestException is thrown when email is already confirmed.
+     */
+    @Test
+    @DisplayName("Confirm Email - Failure - Email already confirmed")
+    void confirmEmail_AlreadyConfirmed_ThrowsBadRequestException() {
+        // Arrange
+        User alreadyConfirmedUser = new User(testUserRequest, CREATED_USER);
+        alreadyConfirmedUser.setUserId(TEST_USER_ID);
+        alreadyConfirmedUser.setToken("valid-token");
+        alreadyConfirmedUser.setEmailConfirmed(true);
+        
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(alreadyConfirmedUser));
+        
+        // Act & Assert
+        BadRequestException exception = assertThrows(
+            BadRequestException.class,
+            () -> userService.confirmEmail(TEST_USER_ID, "valid-token")
+        );
+        
+        assertEquals("Email is already confirmed", exception.getMessage());
+        verify(userRepository, times(1)).findById(TEST_USER_ID);
+        verify(userRepository, never()).save(any(User.class));
+        verify(userLogService, never()).logData(anyLong(), anyString(), anyString());
+    }
+    
+    /**
+     * Test email confirmation when emailConfirmed is null (treated as false).
+     * Verifies that email confirmation succeeds when emailConfirmed is null.
+     */
+    @Test
+    @DisplayName("Confirm Email - Success - Email confirmed is null (treated as false)")
+    void confirmEmail_NullEmailConfirmed_Success() {
+        // Arrange
+        User userWithNullConfirmed = new User(testUserRequest, CREATED_USER);
+        userWithNullConfirmed.setUserId(TEST_USER_ID);
+        userWithNullConfirmed.setToken("valid-token");
+        userWithNullConfirmed.setEmailConfirmed(null); // Null means not confirmed
+        
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(userWithNullConfirmed));
+        when(userRepository.save(any(User.class))).thenReturn(userWithNullConfirmed);
+        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        
+        // Act
+        assertDoesNotThrow(() -> userService.confirmEmail(TEST_USER_ID, "valid-token"));
+        
+        // Assert
+        assertTrue(userWithNullConfirmed.getEmailConfirmed());
+        verify(userRepository, times(1)).findById(TEST_USER_ID);
+        verify(userRepository, times(1)).save(userWithNullConfirmed);
+    }
 }

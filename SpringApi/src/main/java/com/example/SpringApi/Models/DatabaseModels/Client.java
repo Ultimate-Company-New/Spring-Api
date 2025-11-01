@@ -63,6 +63,15 @@ public class Client {
     @Column(name = "razorpayApiSecret")
     private String razorpayApiSecret;
 
+    @Column(name = "imgbbApiKey")
+    private String imgbbApiKey;
+
+    @Column(name = "logoUrl", length = 500)
+    private String logoUrl;
+    
+    @Column(name = "logoDeleteHash", length = 500)
+    private String logoDeleteHash;
+
     @Column(name = "shipRocketEmail")
     private String shipRocketEmail;
 
@@ -227,6 +236,7 @@ public class Client {
         this.sendgridSenderName = request.getSendgridSenderName().trim();
         this.razorpayApiKey = request.getRazorpayApiKey() != null ? request.getRazorpayApiKey().trim() : null;
         this.razorpayApiSecret = request.getRazorpayApiSecret() != null ? request.getRazorpayApiSecret().trim() : null;
+        this.imgbbApiKey = request.getImgbbApiKey() != null ? request.getImgbbApiKey().trim() : null;
         this.shipRocketEmail = request.getShipRocketEmail() != null ? request.getShipRocketEmail().trim() : null;
         this.shipRocketPassword = request.getShipRocketPassword() != null ? request.getShipRocketPassword().trim() : null;
         this.jiraUserName = request.getJiraUserName() != null ? request.getJiraUserName().trim() : null;

@@ -202,7 +202,7 @@ public class LoginService implements ILoginSubTranslator {
         }
         Client client = clients.get(0);
         GoogleCred googleCred = client.getGoogleCred();
-        EmailTemplates emailTemplates = new EmailTemplates("Ultimate Company", client.getSupportEmail(), client.getSendGridApiKey(), environment, client, googleCred);
+        EmailTemplates emailTemplates = new EmailTemplates("Ultimate Company", client.getSupportEmail(), client.getSendGridApiKey(), environment, client);
         emailTemplates.sendNewUserAccountConfirmation(savedUser.getUserId(), newUser.getToken(), newUser.getLoginName(), plainPassword);
 
         return "true";
@@ -244,7 +244,7 @@ public class LoginService implements ILoginSubTranslator {
                 throw new RuntimeException("No client configuration found");
             }
             GoogleCred googleCred = client.getGoogleCred();
-            EmailTemplates emailTemplates = new EmailTemplates("Ultimate Company", client.getSupportEmail(), client.getSendGridApiKey(), environment, client, googleCred);
+            EmailTemplates emailTemplates = new EmailTemplates("Ultimate Company", client.getSupportEmail(), client.getSendGridApiKey(), environment, client);
             boolean emailSent = emailTemplates.sendResetPasswordEmail(user.getLoginName(), randomPassword);
             
             // Verify that the email was sent successfully and contains the password

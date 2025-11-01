@@ -25,10 +25,13 @@ import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Helpers.EmailTemplates;
 import com.example.SpringApi.Helpers.FirebaseHelper;
+import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Helpers.PasswordHelper;
 import com.example.SpringApi.SuccessMessages;
+import com.example.SpringApi.Constants.ImageLocationConstants;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -72,6 +75,9 @@ public class UserService extends BaseService implements IUserSubTranslator {
     private final Environment environment;
     private final UserLogService userLogService;
     private final ClientService clientService;
+    
+    @Value("${imageLocation:firebase}")
+    private String imageLocation;
     
     @Autowired
     public UserService(UserRepository userRepository, 
@@ -207,6 +213,14 @@ public class UserService extends BaseService implements IUserSubTranslator {
         
         // 4. Create address if provided
         if (userRequestModel.getAddress() != null) {
+            // Set userId and clientId on the address request model if not already set
+            if (userRequestModel.getAddress().getUserId() == null) {
+                userRequestModel.getAddress().setUserId(savedUser.getUserId());
+            }
+            if (userRequestModel.getAddress().getClientId() == null) {
+                userRequestModel.getAddress().setClientId(getClientId());
+            }
+            
             Address address = new Address(userRequestModel.getAddress(), getUser());
             Address savedAddress = addressRepository.save(address);
             savedUser.setAddressId(savedAddress.getAddressId());
@@ -247,8 +261,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         UserClientMapping userClientMapping = new UserClientMapping(
             savedUser.getUserId(),
             getClientId(),
-            getUser(),
-            getUser()
+            userRequestModel.getApiKey(), getUser(), getUser()
         );
         userClientMappingRepository.save(userClientMapping);
         
@@ -257,36 +270,83 @@ public class UserService extends BaseService implements IUserSubTranslator {
                 !userRequestModel.getProfilePictureBase64().isEmpty() &&
                 !userRequestModel.getProfilePictureBase64().isBlank()) {
             
-            // Get client details to access GoogleCred
+            // Get client details
             Long clientId = getClientId();
-            Optional<GoogleCred> googleCred = googleCredRepository.findById(clientId);
             ClientResponseModel clientDetails = clientService.getClientById(clientId);
+            String environmentName = environment.getActiveProfiles().length > 0
+                ? environment.getActiveProfiles()[0]
+                : "default";
+            
+            boolean isSuccess;
+            
+            // Use ImgBB or Firebase based on configuration
+            if (ImageLocationConstants.IMGBB.equalsIgnoreCase(imageLocation)) {
+                // Validate ImgBB API key is configured
+                Client client = clientRepository.findById(clientId)
+                    .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
+                    
+                if (client.getImgbbApiKey() == null || client.getImgbbApiKey().trim().isEmpty()) {
+                    throw new BadRequestException("ImgBB API key is not configured for this client");
+                }
+                
+                // Generate custom filename for ImgBB
+                String customFileName = ImgbbHelper.generateCustomFileNameForUserProfile(
+                    environmentName, 
+                    clientDetails.getName(), 
+                    savedUser.getUserId()
+                );
+                
+                ImgbbHelper imgbbHelper = new ImgbbHelper(client.getImgbbApiKey());
+                ImgbbHelper.ImgbbUploadResponse uploadResponse = imgbbHelper.uploadFileToImgbb(
+                    userRequestModel.getProfilePictureBase64(),
+                    customFileName
+                );
+                
+                if (uploadResponse != null && uploadResponse.getUrl() != null) {
+                    // Save both the profile picture URL and delete hash to the user
+                    savedUser.setProfilePicture(uploadResponse.getUrl());
+                    savedUser.setProfilePictureDeleteHash(uploadResponse.getDeleteHash());
+                    userRepository.save(savedUser);
+                    isSuccess = true;
+                } else {
+                    isSuccess = false;
+                }
+                
+            }
+            else if (ImageLocationConstants.FIREBASE.equalsIgnoreCase(imageLocation)) {
+                Optional<GoogleCred> googleCred = googleCredRepository.findById(clientId);
 
-            if (googleCred.isPresent()) {
-                String filePath = clientDetails.getName() + " - " + clientId
-                        + File.separator
-                        + (environment.getActiveProfiles().length > 0 ? environment.getActiveProfiles()[0] : "default")
-                        + File.separator
-                        + "UserProfiles"
-                        + File.separator
-                        + savedUser.getUserId() + "-" + savedUser.getLastName() + ".png";
+                if (googleCred.isPresent()) {
+                    String filePath = clientDetails.getName() + " - " + clientId
+                            + File.separator
+                            + environmentName
+                            + File.separator
+                            + "UserProfiles"
+                            + File.separator
+                            + savedUser.getUserId() + "-" + savedUser.getLastName() + ".png";
 
-                // Create FirebaseHelper with GoogleCred object
-                GoogleCred googleCredData = googleCred.get();
-                FirebaseHelper firebaseHelper = new FirebaseHelper(googleCredData);
-                boolean isSuccess = firebaseHelper.uploadFileToFirebase(userRequestModel.getProfilePictureBase64(), filePath);
-                if (!isSuccess) {
-                    throw new BadRequestException(ErrorMessages.UserErrorMessages.ER010);
+                    // Create FirebaseHelper with GoogleCred object
+                    GoogleCred googleCredData = googleCred.get();
+                    FirebaseHelper firebaseHelper = new FirebaseHelper(googleCredData);
+                    isSuccess = firebaseHelper.uploadFileToFirebase(
+                        userRequestModel.getProfilePictureBase64(), 
+                        filePath
+                    );
+                } else {
+                    throw new BadRequestException(ErrorMessages.UserErrorMessages.ER011);
                 }
             } else {
-                throw new BadRequestException(ErrorMessages.UserErrorMessages.ER011);
+                throw new BadRequestException("Invalid imageLocation configuration: " + imageLocation);
+            }
+            
+            if (!isSuccess) {
+                throw new BadRequestException(ErrorMessages.UserErrorMessages.ER010);
             }
         }
         
         // 9. Send account confirmation email
         Long clientId = getClientId();
         ClientResponseModel clientDetails = clientService.getClientById(clientId);
-        Optional<GoogleCred> googleCred = googleCredRepository.findById(clientId);
         Client client = clientRepository.findById(clientId).get();
 
         EmailTemplates emailTemplates = new EmailTemplates(
@@ -294,8 +354,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
                 clientDetails.getSendGridEmailAddress(),
                 clientDetails.getSendGridApiKey(),
                 environment,
-                client,
-                googleCred.get());
+                client);
         
         try {
             boolean sendAccountConfirmationEmailResponse = emailTemplates.sendNewUserAccountConfirmation(
@@ -344,6 +403,14 @@ public class UserService extends BaseService implements IUserSubTranslator {
 
         // 2. Update address
        if (user.getAddress() != null) {
+            // Set userId and clientId on the address request model if not already set
+            if (user.getAddress().getUserId() == null) {
+                user.getAddress().setUserId(existingUser.getUserId());
+            }
+            if (user.getAddress().getClientId() == null) {
+                user.getAddress().setClientId(getClientId());
+            }
+            
             if (existingUser.getAddressId() != null) {
                 Address existingAddress = addressRepository.findById(existingUser.getAddressId())
                     .orElse(null);
@@ -355,11 +422,15 @@ public class UserService extends BaseService implements IUserSubTranslator {
                     Address newAddress = new Address(user.getAddress(), getUser());
                     Address savedAddress = addressRepository.save(newAddress);
                     existingUser.setAddressId(savedAddress.getAddressId());
+                    // Save user to persist the addressId
+                    userRepository.save(existingUser);
                 }
             } else {
                 Address newAddress = new Address(user.getAddress(), getUser());
                 Address savedAddress = addressRepository.save(newAddress);
                 existingUser.setAddressId(savedAddress.getAddressId());
+                // Save user to persist the addressId
+                userRepository.save(existingUser);
             }
         }
 
@@ -367,11 +438,9 @@ public class UserService extends BaseService implements IUserSubTranslator {
         if (user.getPermissionIds() == null || user.getPermissionIds().isEmpty()) {
             throw new BadRequestException("At least one permission mapping is required for the user.");
         }
-        // Remove all existing permission mappings for this user and client
-        List<UserClientPermissionMapping> existingPerms = userClientPermissionMappingRepository.findByUserIdAndClientId(existingUser.getUserId(), getClientId());
-        if (existingPerms != null && !existingPerms.isEmpty()) {
-            userClientPermissionMappingRepository.deleteAll(existingPerms);
-        }
+        // Remove all existing permission mappings for this user and client using custom delete query
+        userClientPermissionMappingRepository.deleteByUserIdAndClientId(existingUser.getUserId(), getClientId());
+        
         // Add new permission mappings
         List<UserClientPermissionMapping> newPerms = new ArrayList<>();
         for (Long permissionId : user.getPermissionIds()) {
@@ -379,16 +448,15 @@ public class UserService extends BaseService implements IUserSubTranslator {
                 existingUser.getUserId(),
                 getClientId(),
                 permissionId,
+                getUser(),
                 getUser()
             ));
         }
         userClientPermissionMappingRepository.saveAll(newPerms);
 
         // 4. Update group mappings (remove all, add new if any)
-        List<UserGroupUserMap> existingGroups = userGroupUserMapRepository.findByUserId(existingUser.getUserId());
-        if (existingGroups != null && !existingGroups.isEmpty()) {
-            userGroupUserMapRepository.deleteAll(existingGroups);
-        }
+        userGroupUserMapRepository.deleteByUserId(existingUser.getUserId());
+        
         if (user.getSelectedGroupIds() != null && !user.getSelectedGroupIds().isEmpty()) {
             List<UserGroupUserMap> newGroups = new ArrayList<>();
             for (Long groupId : user.getSelectedGroupIds()) {
@@ -402,33 +470,100 @@ public class UserService extends BaseService implements IUserSubTranslator {
         }
 
         // 5. Profile picture handling
-        // If profile picture is coming in, delete old and upload new
-        boolean hasNewProfilePic = user.getProfilePictureBase64() != null && !user.getProfilePictureBase64().isEmpty() && !user.getProfilePictureBase64().isBlank();
+        boolean hasNewProfilePic = user.getProfilePictureBase64() != null && 
+                                   !user.getProfilePictureBase64().isEmpty() && 
+                                   !user.getProfilePictureBase64().isBlank();
         Long clientId = getClientId();
-        Optional<GoogleCred> googleCred = googleCredRepository.findById(clientId);
         ClientResponseModel clientDetails = clientService.getClientById(clientId);
-        String filePath = null;
-        if (googleCred.isPresent()) {
-            filePath = clientDetails.getName() + " - " + clientId
-                    + File.separator
-                    + (environment.getActiveProfiles().length > 0 ? environment.getActiveProfiles()[0] : "default")
-                    + File.separator
-                    + "UserProfiles"
-                    + File.separator
-                    + existingUser.getUserId() + "-" + existingUser.getLastName() + ".png";
-            GoogleCred googleCredData = googleCred.get();
-            FirebaseHelper firebaseHelper = new FirebaseHelper(googleCredData);
-            if (hasNewProfilePic) {
-                // Delete old profile pic if exists
-                firebaseHelper.deleteFile(filePath);
-                boolean isSuccess = firebaseHelper.uploadFileToFirebase(user.getProfilePictureBase64(), filePath);
-                if (!isSuccess) {
+        String environmentName = environment.getActiveProfiles().length > 0
+            ? environment.getActiveProfiles()[0]
+            : "default";
+        
+        // Use ImgBB or Firebase based on configuration
+        if (ImageLocationConstants.IMGBB.equalsIgnoreCase(imageLocation)) {
+            // ImgBB-based profile picture management
+            Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
+                
+            if (client.getImgbbApiKey() == null || client.getImgbbApiKey().trim().isEmpty()) {
+                throw new BadRequestException("ImgBB API key is not configured for this client");
+            }
+            
+            ImgbbHelper imgbbHelper = new ImgbbHelper(client.getImgbbApiKey());
+            
+            // Handle profile picture update based on request
+            if (!hasNewProfilePic) {
+                // If no profile picture in request, delete the old picture from ImgBB and clear from database
+                if (existingUser.getProfilePictureDeleteHash() != null && !existingUser.getProfilePictureDeleteHash().isEmpty()) {
+                    imgbbHelper.deleteImage(existingUser.getProfilePictureDeleteHash());
+                }
+                existingUser.setProfilePicture(null);
+                existingUser.setProfilePictureDeleteHash(null);
+                userRepository.save(existingUser);
+            } else {
+                // Delete old profile picture from ImgBB before uploading new one
+                if (existingUser.getProfilePictureDeleteHash() != null && !existingUser.getProfilePictureDeleteHash().isEmpty()) {
+                    imgbbHelper.deleteImage(existingUser.getProfilePictureDeleteHash());
+                }
+                
+                // Generate custom filename for ImgBB
+                String customFileName = ImgbbHelper.generateCustomFileNameForUserProfile(
+                    environmentName,
+                    clientDetails.getName(),
+                    existingUser.getUserId()
+                );
+                
+                // Upload new profile picture to ImgBB
+                ImgbbHelper.ImgbbUploadResponse uploadResponse = imgbbHelper.uploadFileToImgbb(
+                    user.getProfilePictureBase64(),
+                    customFileName
+                );
+                
+                if (uploadResponse != null && uploadResponse.getUrl() != null) {
+                    // Save both the new profile picture URL and delete hash to the database
+                    existingUser.setProfilePicture(uploadResponse.getUrl());
+                    existingUser.setProfilePictureDeleteHash(uploadResponse.getDeleteHash());
+                    userRepository.save(existingUser);
+                } else {
                     throw new BadRequestException(ErrorMessages.UserErrorMessages.ER010);
                 }
-            } else {
-                // No new profile pic, delete existing if exists
-                firebaseHelper.deleteFile(filePath);
             }
+            
+        } else if (ImageLocationConstants.FIREBASE.equalsIgnoreCase(imageLocation)) {
+            // Firebase-based profile picture management
+            Optional<GoogleCred> googleCred = googleCredRepository.findById(clientId);
+            
+            if (googleCred.isPresent()) {
+                String filePath = clientDetails.getName() + " - " + clientId
+                        + File.separator
+                        + environmentName
+                        + File.separator
+                        + "UserProfiles"
+                        + File.separator
+                        + existingUser.getUserId() + "-" + existingUser.getLastName() + ".png";
+                        
+                GoogleCred googleCredData = googleCred.get();
+                FirebaseHelper firebaseHelper = new FirebaseHelper(googleCredData);
+                
+                if (hasNewProfilePic) {
+                    // Delete old profile pic if exists
+                    firebaseHelper.deleteFile(filePath);
+                    boolean isSuccess = firebaseHelper.uploadFileToFirebase(
+                        user.getProfilePictureBase64(), 
+                        filePath
+                    );
+                    if (!isSuccess) {
+                        throw new BadRequestException(ErrorMessages.UserErrorMessages.ER010);
+                    }
+                } else {
+                    // No new profile pic, delete existing if exists
+                    firebaseHelper.deleteFile(filePath);
+                }
+            } else {
+                throw new BadRequestException(ErrorMessages.UserErrorMessages.ER011);
+            }
+        } else {
+            throw new BadRequestException("Invalid imageLocation configuration: " + imageLocation);
         }
 
         // 6. Update user fields (except email)
@@ -502,9 +637,40 @@ public class UserService extends BaseService implements IUserSubTranslator {
             userResponseModels.add(userResponseModel);
         }
         
-        // Return the actual count of users in this page, not the total count
+        // Return the total count of all matching users, not just the current page
         paginationBaseResponseModel.setData(userResponseModels);
-        paginationBaseResponseModel.setTotalDataCount(userResponseModels.size());
+        paginationBaseResponseModel.setTotalDataCount(page.getTotalElements());
         return paginationBaseResponseModel;
+    }
+
+    /**
+     * Confirms a user's email address using the verification token.
+     * This is a public endpoint (no authentication required) as users haven't logged in yet.
+     */
+    @Override
+    public void confirmEmail(Long userId, String token) {
+        // 1. Validate that user exists (without client check since this is a public endpoint)
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            throw new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId);
+        }
+
+        User user = userOptional.get();
+
+        // 2. Verify the token matches
+        if (user.getToken() == null || !user.getToken().equals(token)) {
+            throw new BadRequestException("Invalid or expired verification token");
+        }
+
+        // 3. Check if email is already confirmed
+        if (user.getEmailConfirmed() != null && user.getEmailConfirmed()) {
+            throw new BadRequestException("Email is already confirmed");
+        }
+
+        // 4. Set emailConfirmed to true
+        user.setEmailConfirmed(true);
+        userRepository.save(user);
+
+        // Note: Skipping user log for this public endpoint as there's no authenticated user context
     }
 }

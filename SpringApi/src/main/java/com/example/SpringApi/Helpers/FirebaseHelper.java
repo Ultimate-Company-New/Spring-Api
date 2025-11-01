@@ -116,4 +116,16 @@ public class FirebaseHelper {
             blob.delete();
         }
     }
+
+    /**
+     * Generates the Firebase storage path for a client logo.
+     *
+     * @param environmentName The environment name (e.g., "development", "production")
+     * @param clientName The name of the client
+     * @param clientId The unique identifier of the client
+     * @return The file path in Firebase storage
+     */
+    public static String getClientLogoPath(String environmentName, String clientName, Long clientId) {
+        return clientName + "-" + clientId + "/" + environmentName + "/Logo.png";
+    }
 }

@@ -88,9 +88,10 @@ public class UserResponseModel {
             
             // Auto-populate address from addresses collection
             if (user.getAddresses() != null && !user.getAddresses().isEmpty()) {
-                // Find primary address or use first non-deleted address
+                // Map addresses and sort by addressId descending to match AddressRepository ordering
                 this.addresses = user.getAddresses().stream()
                     .map(address -> new AddressResponseModel(address))
+                    .sorted((a1, a2) -> Long.compare(a2.getAddressId(), a1.getAddressId()))
                     .collect(Collectors.toList());
             }
             
