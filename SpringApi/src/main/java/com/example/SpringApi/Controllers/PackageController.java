@@ -95,32 +95,6 @@ public class PackageController {
     }
 
     /**
-     * Retrieves all packages in the system.
-     *
-     * @return ResponseEntity containing list of all package response models
-     */
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_PACKAGES_PERMISSION +"')")
-    @GetMapping(ApiRoutes.PackageSubRoute.GET_ALL_PACKAGES_IN_SYSTEM)
-    public ResponseEntity<?> getAllPackagesInSystem() {
-        try {
-            List<PackageResponseModel> packages = packageService.getAllPackagesInSystem();
-            return ResponseEntity.ok(packages);
-        } catch (BadRequestException e) {
-            logger.error(e);
-            return ResponseEntity.badRequest()
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(), HttpStatus.BAD_REQUEST.value()));
-        } catch (NotFoundException e) {
-            logger.error(e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(), HttpStatus.NOT_FOUND.value()));
-        } catch (Exception e) {
-            logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
-        }
-    }
-
-    /**
      * Retrieves all packages available at a specific pickup location.
      *
      * @param pickupLocationId The unique identifier of the pickup location

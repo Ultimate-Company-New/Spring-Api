@@ -12,6 +12,6 @@ import java.util.List;
 public interface PackagePickupLocationMappingRepository extends JpaRepository<PackagePickupLocationMapping, Long> {
     List<PackagePickupLocationMapping> findByPickupLocationId(Long pickupLocationId);
 
-    @Query("select m from PackagePickupLocationMapping m join m.packageEntity p where m.pickupLocationId = :pickupLocationId and p.clientId = :clientId")
+    @Query("select m from PackagePickupLocationMapping m join m.packageEntity p where m.pickupLocationId = :pickupLocationId and p.clientId = :clientId order by p.packageId desc")
     List<PackagePickupLocationMapping> findByPickupLocationIdAndClientId(@Param("pickupLocationId") Long pickupLocationId, @Param("clientId") Long clientId);
 }

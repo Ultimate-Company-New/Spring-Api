@@ -15,10 +15,10 @@ import com.example.SpringApi.SuccessMessages;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -67,6 +67,16 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
           "Invalid column name: " + paginationBaseRequestModel.getColumnName());
     }
 
+    // Validate condition if provided
+    if (paginationBaseRequestModel.getCondition() != null && !paginationBaseRequestModel.getCondition().isEmpty()) {
+      Set<String> validConditions = new HashSet<>(Arrays.asList(
+          "equals", "contains", "startsWith", "endsWith", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"
+      ));
+      if (!validConditions.contains(paginationBaseRequestModel.getCondition())) {
+        throw new BadRequestException("Invalid condition for filtering: " + paginationBaseRequestModel.getCondition());
+      }
+    }
+
     // Calculate page size and offset
     int start = paginationBaseRequestModel.getStart();
     int end = paginationBaseRequestModel.getEnd();
@@ -106,11 +116,22 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
    *
    * @param promoRequestModel The promo request model containing promo data
    * @throws NotFoundException if required dependencies are not found
+   * @throws BadRequestException if promo code already exists
    */
   @Override
   public void createPromo(PromoRequestModel promoRequestModel) {
+    // Check for duplicate promo code
+      Promo promo = new Promo(promoRequestModel, getUser(), getClientId());
+
+      Optional<Promo> existingPromo = promoRepository.findByPromoCodeAndClientId(
+        promoRequestModel.getPromoCode().toUpperCase(), getClientId());
+
+      if (existingPromo.isPresent()) {
+      throw new BadRequestException(ErrorMessages.PromoErrorMessages.DuplicateName);
+    }
+    
     // Ensure clientId is set from current context for multi-tenant isolation
-    promoRepository.save(new Promo(promoRequestModel, getUser(), getClientId()));
+    promoRepository.save(promo);
     userLogService.logData(
         getUserId(),
         SuccessMessages.PromoSuccessMessages.CreatePromo + promoRequestModel.getPromoCode(),
@@ -161,17 +182,26 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
 
   /**
    * Retrieves promo details by promo code.
+   * Promo code lookup is case-insensitive (converted to uppercase).
    *
    * @param promoCode The promo code to search for
    * @return The promo details as response model
+   * @throws BadRequestException if promo code is null or empty
+   * @throws NotFoundException if promo code is not found
    */
   @Override
   public PromoResponseModel getPromoDetailsByName(String promoCode) {
+    // Validate promo code is not null or empty
+    if (promoCode == null || promoCode.trim().isEmpty()) {
+      throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidPromoCode);
+    }
+    
+    // Convert to uppercase for case-insensitive lookup
     Promo promo =
         promoRepository
-            .findByPromoCodeAndClientId(promoCode, getClientId())
+            .findByPromoCodeAndClientId(promoCode.toUpperCase(), getClientId())
             .orElseThrow(
-                () -> new NotFoundException(ErrorMessages.PromoErrorMessages.InvalidPromoCode));
+                () -> new NotFoundException(ErrorMessages.PromoErrorMessages.InvalidName));
     return new PromoResponseModel(promo);
   }
 }

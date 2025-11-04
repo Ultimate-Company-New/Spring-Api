@@ -30,11 +30,12 @@ public class ImgbbHelper {
     
     /**
      * Generates a custom filename for client logo ImgBB uploads.
-     * Format: <environment>-<clientName>-<date>-Logo.png
+     * Format: <environment>-<clientName>-<date>-Logo
+     * Note: Extension is NOT included as ImgBB adds it automatically based on image type
      * 
      * @param environment The environment name (e.g., "localhost", "production")
      * @param clientName The client name (spaces replaced with underscores)
-     * @return The formatted filename
+     * @return The formatted filename (without extension)
      */
     public static String generateCustomFileNameForClientLogo(String environment, String clientName) {
         // Replace spaces with underscores in client name
@@ -44,19 +45,20 @@ public class ImgbbHelper {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM_dd_yyyy_HH_mm_ss");
         String formattedDate = dateFormat.format(new Date());
         
-        // Construct filename
-        return environment + "-" + sanitizedClientName + "-" + formattedDate + "-Logo.png";
+        // Construct filename (no extension - ImgBB adds it automatically)
+        return environment + "-" + sanitizedClientName + "-" + formattedDate + "-Logo";
     }
     
     /**
      * Generates a custom filename for user profile picture ImgBB uploads.
-     * Format: <environment>-<clientName><userId>_<timestamp>-UserProfile.png
-     * Example: localhost-My_Company_123_11_01_2024_03_45_30_PM-UserProfile.png
+     * Format: <environment>-<clientName><userId>_<timestamp>-UserProfile
+     * Example: localhost-My_Company_123_11_01_2024_03_45_30_PM-UserProfile
+     * Note: Extension is NOT included as ImgBB adds it automatically based on image type
      * 
      * @param environment The environment name (e.g., "localhost", "production")
      * @param clientName The client name (spaces replaced with underscores)
      * @param userId The user ID
-     * @return The formatted filename
+     * @return The formatted filename (without extension)
      */
     public static String generateCustomFileNameForUserProfile(String environment, String clientName, Long userId) {
         // Replace spaces with underscores in client name
@@ -66,8 +68,32 @@ public class ImgbbHelper {
         SimpleDateFormat dateFormat = new SimpleDateFormat("MM_dd_yyyy_hh_mm_ss_a");
         String timestamp = dateFormat.format(new Date());
         
-        // Construct filename: <environment>-<clientName><userId>_<timestamp>-UserProfile.png
-        return environment + "-" + sanitizedClientName + userId + "_" + timestamp + "-UserProfile.png";
+        // Construct filename (no extension - ImgBB adds it automatically)
+        return environment + "-" + sanitizedClientName + userId + "_" + timestamp + "-UserProfile";
+    }
+    
+    /**
+     * Generates a custom filename for product image ImgBB uploads.
+     * Format: <environment>-<clientName><productId>_<timestamp>-<imageName>
+     * Example: localhost-My_Company_456_11_01_2024_03_45_30_PM-main
+     * Note: Extension is NOT included as ImgBB adds it automatically based on image type
+     * 
+     * @param environment The environment name (e.g., "localhost", "production")
+     * @param clientName The client name (spaces replaced with underscores)
+     * @param productId The product ID
+     * @param imageName The image name (e.g., "main", "front", "back", "top", "bottom", "left", "right", "details", "defect", "additional_1", "additional_2", "additional_3")
+     * @return The formatted filename (without extension)
+     */
+    public static String generateCustomFileNameForProductImage(String environment, String clientName, Long productId, String imageName) {
+        // Replace spaces with underscores in client name
+        String sanitizedClientName = clientName.replaceAll("\\s+", "_");
+        
+        // Format timestamp as MM_dd_yyyy_hh_mm_ss_a (with AM/PM)
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM_dd_yyyy_hh_mm_ss_a");
+        String timestamp = dateFormat.format(new Date());
+        
+        // Construct filename (no extension - ImgBB adds it automatically)
+        return environment + "-" + sanitizedClientName + productId + "_" + timestamp + "-" + imageName;
     }
 
 
@@ -113,10 +139,15 @@ public class ImgbbHelper {
      */
     public ImgbbUploadResponse uploadFileToImgbb(String imageBase64, String filePath) {        
         if (imageBase64 == null || imageBase64.isEmpty()) {
+            System.err.println("ImgBB upload failed: imageBase64 is null or empty");
             return null;
         }
 
         try {
+            // Log the first 50 characters of base64 for debugging
+            String base64Preview = imageBase64.length() > 50 ? imageBase64.substring(0, 50) + "..." : imageBase64;
+            System.out.println("ImgBB upload attempt - fileName: " + filePath + ", base64 length: " + imageBase64.length() + ", preview: " + base64Preview);
+            
             // Build the POST request payload with name parameter
             String postParameters = "image=" + URLEncoder.encode(imageBase64, StandardCharsets.UTF_8);
             
@@ -127,6 +158,7 @@ public class ImgbbHelper {
 
             // Construct the full API URL including the key
             String fullUrlString = IMGBB_UPLOAD_URL + "?key=" + imgbbApiKey;
+            System.out.println("ImgBB API URL: " + IMGBB_UPLOAD_URL + "?key=" + (imgbbApiKey != null && !imgbbApiKey.isEmpty() ? "***" : "MISSING"));
             URL url = new URL(fullUrlString);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
@@ -152,10 +184,15 @@ public class ImgbbHelper {
                 String deleteHash = extractDeleteHashFromJson(jsonResponse);
                 return new ImgbbUploadResponse(imageUrl, deleteHash);
             } else {
+                // Log error response for debugging
+                String errorResponse = getResponseContent(connection.getErrorStream());
+                System.err.println("ImgBB upload failed with status " + responseCode + ": " + errorResponse);
                 return null;
             }
 
         } catch (IOException e) {
+            System.err.println("ImgBB upload IOException: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }

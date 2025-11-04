@@ -114,9 +114,15 @@ public class ClientService extends BaseService implements IClientSubTranslator {
      * for audit purposes.
      * 
      * @param clientRequest The ClientRequestModel containing the client data to insert
+     * @throws BadRequestException if a client with the same name already exists
      */
     @Override
     public void createClient(ClientRequestModel clientRequest) {
+        // Check for duplicate name
+        if (clientRepository.existsByName(clientRequest.getName())) {
+            throw new BadRequestException("A client with the name '" + clientRequest.getName() + "' already exists.");
+        }
+        
         Client client = new Client(clientRequest, getUser());
         Client savedClient = clientRepository.save(client);
         
@@ -200,11 +206,18 @@ public class ClientService extends BaseService implements IClientSubTranslator {
      * 
      * @param clientRequest The ClientRequestModel containing the updated client data
      * @throws NotFoundException if no client exists with the given ID
+     * @throws BadRequestException if the new name conflicts with another existing client
      */
     @Override
     public void updateClient(ClientRequestModel clientRequest) {
         Optional<Client> existingClient = clientRepository.findById(clientRequest.getClientId());
         if (existingClient.isPresent()) {
+            // Check for duplicate name (excluding the current client)
+            Optional<Client> duplicateClient = clientRepository.findByName(clientRequest.getName());
+            if (duplicateClient.isPresent() && !duplicateClient.get().getClientId().equals(clientRequest.getClientId())) {
+                throw new BadRequestException("A client with the name '" + clientRequest.getName() + "' already exists.");
+            }
+            
             Client client = new Client(clientRequest, getUser(), existingClient.get());
             Client updatedClient = clientRepository.save(client);
 
@@ -215,12 +228,6 @@ public class ClientService extends BaseService implements IClientSubTranslator {
             // Use ImgBB or Firebase based on configuration
             if (ImageLocationConstants.IMGBB.equalsIgnoreCase(imageLocation)) {
                 // ImgBB-based logo management
-                // Validate ImgBB API key is configured
-                if (updatedClient.getImgbbApiKey() == null || updatedClient.getImgbbApiKey().trim().isEmpty()) {
-                    throw new BadRequestException("ImgBB API key is not configured for this client");
-                }
-                
-                ImgbbHelper imgbbHelper = new ImgbbHelper(updatedClient.getImgbbApiKey());
                 
                 // Handle logo update based on request
                 if (clientRequest.getLogoBase64() == null ||
@@ -228,12 +235,24 @@ public class ClientService extends BaseService implements IClientSubTranslator {
                     clientRequest.getLogoBase64().isBlank()) {
                     // If no logo in request, delete the old logo from ImgBB and clear from database
                     if (updatedClient.getLogoDeleteHash() != null && !updatedClient.getLogoDeleteHash().isEmpty()) {
+                        // Validate ImgBB API key only when we need to delete
+                        if (updatedClient.getImgbbApiKey() == null || updatedClient.getImgbbApiKey().trim().isEmpty()) {
+                            throw new BadRequestException("ImgBB API key is not configured for this client");
+                        }
+                        ImgbbHelper imgbbHelper = new ImgbbHelper(updatedClient.getImgbbApiKey());
                         imgbbHelper.deleteImage(updatedClient.getLogoDeleteHash());
                     }
                     updatedClient.setLogoUrl(null);
                     updatedClient.setLogoDeleteHash(null);
                     clientRepository.save(updatedClient);
                 } else {
+                    // Validate ImgBB API key before uploading
+                    if (updatedClient.getImgbbApiKey() == null || updatedClient.getImgbbApiKey().trim().isEmpty()) {
+                        throw new BadRequestException("ImgBB API key is not configured for this client");
+                    }
+                    
+                    ImgbbHelper imgbbHelper = new ImgbbHelper(updatedClient.getImgbbApiKey());
+                    
                     // Delete old logo from ImgBB before uploading new one
                     if (updatedClient.getLogoDeleteHash() != null && !updatedClient.getLogoDeleteHash().isEmpty()) {
                         imgbbHelper.deleteImage(updatedClient.getLogoDeleteHash());

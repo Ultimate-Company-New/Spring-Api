@@ -6,9 +6,13 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.DatabaseModels.Address;
+import com.example.SpringApi.Models.DatabaseModels.Client;
+import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.ResponseModels.AddressResponseModel;
 import com.example.SpringApi.Repositories.AddressRepository;
+import com.example.SpringApi.Repositories.ClientRepository;
+import com.example.SpringApi.Repositories.UserRepository;
 import com.example.SpringApi.Services.Interface.IAddressSubTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,15 +37,21 @@ import java.util.ArrayList;
 @Service
 public class AddressService extends BaseService implements IAddressSubTranslator {
     private final AddressRepository addressRepository;
+    private final ClientRepository clientRepository;
+    private final UserRepository userRepository;
     private final UserLogService userLogService;
 
     @Autowired
     public AddressService(HttpServletRequest request,
                         UserLogService userLogService,
-                        AddressRepository addressRepository) {
+                        AddressRepository addressRepository,
+                        ClientRepository clientRepository,
+                        UserRepository userRepository) {
         super();
         this.userLogService = userLogService;
         this.addressRepository = addressRepository;
+        this.clientRepository = clientRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -134,15 +144,27 @@ public class AddressService extends BaseService implements IAddressSubTranslator
     /**
      * Retrieves all addresses associated with a specific user.
      * 
-     * This method fetches all addresses where the userId matches the provided parameter.
-     * The method returns a list of AddressResponseModel objects, each containing
-     * complete address information. Returns an empty list if no addresses are found.
+     * This method first validates that the user exists and is not deleted.
+     * Then fetches all addresses where the userId matches the provided parameter
+     * and isDeleted is false (only active addresses). The results are ordered by addressId
+     * in descending order. The method returns a list of AddressResponseModel objects, each containing
+     * complete address information. Returns an empty list if no addresses are found for a valid user.
      * 
      * @param userId The unique identifier of the user
-     * @return List of AddressResponseModel objects for the user
+     * @return List of AddressResponseModel objects for the user (non-deleted only, sorted by addressId desc)
+     * @throws NotFoundException if the user does not exist or is deleted
      */
     @Override
     public List<AddressResponseModel> getAddressByUserId(long userId) {
+        // Validate that user exists and is not deleted
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound);
+        }
+        if (user.get().getIsDeleted()) {
+            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound);
+        }
+        
         List<Address> addresses = addressRepository.findByUserIdAndIsDeletedOrderByAddressIdDesc(userId, false);
         List<AddressResponseModel> responseModels = new ArrayList<>();
         
@@ -156,16 +178,27 @@ public class AddressService extends BaseService implements IAddressSubTranslator
     /**
      * Retrieves all addresses associated with a specific client.
      * 
-     * This method fetches all addresses where the clientId matches the provided parameter
+     * This method first validates that the client exists and is not deleted.
+     * Then fetches all addresses where the clientId matches the provided parameter
      * and isDeleted is false (only active addresses). The results are ordered by addressId
      * in descending order. The method returns a list of AddressResponseModel objects, each containing
-     * complete address information. Returns an empty list if no addresses are found.
+     * complete address information. Returns an empty list if no addresses are found for a valid client.
      * 
      * @param clientId The unique identifier of the client
      * @return List of AddressResponseModel objects for the client (non-deleted only, sorted by addressId desc)
+     * @throws NotFoundException if the client does not exist or is deleted
      */
     @Override
     public List<AddressResponseModel> getAddressByClientId(long clientId) {
+        // Validate that client exists and is not deleted
+        Optional<Client> client = clientRepository.findById(clientId);
+        if (client.isEmpty()) {
+            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound);
+        }
+        if (client.get().getIsDeleted()) {
+            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound);
+        }
+        
         List<Address> addresses = addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(clientId, false);
         List<AddressResponseModel> responseModels = new ArrayList<>();
         

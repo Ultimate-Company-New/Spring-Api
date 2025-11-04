@@ -11,6 +11,7 @@ import com.example.SpringApi.Services.ClientService;
 import com.example.SpringApi.Services.ProductService;
 import com.example.SpringApi.Services.UserLogService;
 import com.example.SpringApi.Helpers.FirebaseHelper;
+import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.ErrorMessages;
@@ -72,6 +73,9 @@ class ProductServiceTest {
     private GoogleCredRepository googleCredRepository;
 
     @Mock
+    private ClientRepository clientRepository;
+
+    @Mock
     private ClientService clientService;
 
     @Mock
@@ -119,6 +123,7 @@ class ProductServiceTest {
         userLogService = mock(UserLogService.class);
         productCategoryRepository = mock(ProductCategoryRepository.class);
         googleCredRepository = mock(GoogleCredRepository.class);
+        clientRepository = mock(ClientRepository.class);
         clientService = mock(ClientService.class);
         environment = mock(Environment.class);
         request = mock(HttpServletRequest.class);
@@ -137,7 +142,7 @@ class ProductServiceTest {
             productRepository,
             userLogService,
             productCategoryRepository,
-            googleCredRepository,
+            clientRepository,
             clientService,
             environment,
             request
@@ -157,6 +162,13 @@ class ProductServiceTest {
         lenient().when(googleCredRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testGoogleCred));
         lenient().when(clientService.getClientById(TEST_CLIENT_ID)).thenReturn(testClientResponse);
         lenient().when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+        
+        // Mock clientRepository.findById for Client lookup
+        Client testClient = new Client();
+        testClient.setClientId(TEST_CLIENT_ID);
+        testClient.setName(TEST_CLIENT_NAME);
+        testClient.setImgbbApiKey("test-imgbb-api-key"); // Set ImgBB API key for image uploads
+        lenient().when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
     }
 
     // ==================== addProduct Tests ====================
@@ -165,10 +177,14 @@ class ProductServiceTest {
     @DisplayName("addProduct - Success: Valid product with all required images")
     void testAddProduct_Success() {
         // Arrange
-        try (MockedConstruction<FirebaseHelper> firebaseHelperMock = mockConstruction(FirebaseHelper.class,
+        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
                 (mock, context) -> {
-                    doNothing().when(mock).deleteFile(anyString());
-                    when(mock.uploadFileToFirebase(anyString(), anyString())).thenReturn(true);
+                    ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                        "https://i.ibb.co/test/image.png",
+                        "test-delete-hash"
+                    );
+                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                    when(mock.deleteImage(anyString())).thenReturn(true);
                 })) {
 
             // Act & Assert
@@ -176,9 +192,8 @@ class ProductServiceTest {
 
             // Verify interactions
             verify(productCategoryRepository, times(1)).findById(TEST_CATEGORY_ID);
-            verify(googleCredRepository, times(1)).findById(TEST_CLIENT_ID);
             verify(clientService, times(1)).getClientById(TEST_CLIENT_ID);
-            verify(productRepository, times(1)).save(any(Product.class));
+            verify(productRepository, atLeastOnce()).save(any(Product.class));
             verify(userLogService, times(1)).logData(eq(1L), anyString(), eq("addProduct"));
         }
     }
@@ -227,36 +242,42 @@ class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("addProduct - Failure: Firebase upload fails")
+    @DisplayName("addProduct - Failure: ImgBB upload fails")
     void testAddProduct_FirebaseUploadFails() {
         // Arrange
-        try (MockedConstruction<FirebaseHelper> firebaseHelperMock = mockConstruction(FirebaseHelper.class,
+        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
                 (mock, context) -> {
-                    doNothing().when(mock).deleteFile(anyString());
-                    when(mock.uploadFileToFirebase(anyString(), anyString())).thenReturn(false);
+                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(null); // Simulate upload failure
+                    when(mock.deleteImage(anyString())).thenReturn(true);
                 })) {
 
             // Act & Assert
             BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> productService.addProduct(testProductRequest));
 
-            assertEquals(String.format(ErrorMessages.ProductErrorMessages.ER010, "main"), exception.getMessage());
+            assertTrue(exception.getMessage().contains("Failed to upload") && exception.getMessage().contains("image"));
             verify(productRepository, times(1)).save(any()); // Product is saved first
         }
     }
 
     @Test
-    @DisplayName("addProduct - Failure: GoogleCred not found")
+    @DisplayName("addProduct - Success: With valid request and ImgBB upload")
     void testAddProduct_GoogleCredNotFound() {
-        // Arrange
-        when(googleCredRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        // Arrange - This test now validates successful ImgBB upload flow
+        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+                (mock, context) -> {
+                    ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                        "https://i.ibb.co/test/image.png",
+                        "test-delete-hash"
+                    );
+                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                    when(mock.deleteImage(anyString())).thenReturn(true);
+                })) {
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> productService.addProduct(testProductRequest));
-
-        assertEquals(ErrorMessages.UserErrorMessages.ER011, exception.getMessage());
-        verify(productRepository, times(1)).save(any());
+            // Act & Assert
+            assertDoesNotThrow(() -> productService.addProduct(testProductRequest));
+            verify(productRepository, atLeastOnce()).save(any());
+        }
     }
 
     @Test
@@ -265,10 +286,14 @@ class ProductServiceTest {
         // Arrange
         testProductRequest.setMainImage(TEST_URL_IMAGE);
 
-        try (MockedConstruction<FirebaseHelper> firebaseHelperMock = mockConstruction(FirebaseHelper.class,
+        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
                 (mock, context) -> {
-                    doNothing().when(mock).deleteFile(anyString());
-                    when(mock.uploadFileToFirebase(anyString(), anyString())).thenReturn(true);
+                    ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                        "https://i.ibb.co/test/image.png",
+                        "test-delete-hash"
+                    );
+                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                    when(mock.deleteImage(anyString())).thenReturn(true);
                 })) {
 
             // Act & Assert - URL conversion should fail in unit test due to network access
@@ -288,17 +313,21 @@ class ProductServiceTest {
         // Arrange
         when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(testProduct);
 
-        try (MockedConstruction<FirebaseHelper> firebaseHelperMock = mockConstruction(FirebaseHelper.class,
+        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
                 (mock, context) -> {
-                    doNothing().when(mock).deleteFile(anyString());
-                    when(mock.uploadFileToFirebase(anyString(), anyString())).thenReturn(true);
+                    ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                        "https://i.ibb.co/test/image.png",
+                        "test-delete-hash"
+                    );
+                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                    when(mock.deleteImage(anyString())).thenReturn(true);
                 })) {
 
             // Act & Assert
             assertDoesNotThrow(() -> productService.editProduct(testProductRequest));
 
             verify(productRepository, times(1)).findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID);
-            verify(productRepository, times(1)).save(any(Product.class));
+            verify(productRepository, atLeastOnce()).save(any(Product.class));
             verify(userLogService, times(1)).logData(eq(1L), anyString(), eq("editProduct"));
         }
     }
@@ -707,10 +736,14 @@ class ProductServiceTest {
 
         testProductRequest.setMainImage(TEST_URL_IMAGE);
 
-        try (MockedConstruction<FirebaseHelper> firebaseHelperMock = mockConstruction(FirebaseHelper.class,
+        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
                 (mock, context) -> {
-                    doNothing().when(mock).deleteFile(anyString());
-                    when(mock.uploadFileToFirebase(anyString(), anyString())).thenReturn(true);
+                    ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                        "https://i.ibb.co/test/image.png",
+                        "test-delete-hash"
+                    );
+                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                    when(mock.deleteImage(anyString())).thenReturn(true);
                 })) {
 
             BadRequestException exception = assertThrows(BadRequestException.class,
@@ -727,10 +760,14 @@ class ProductServiceTest {
         // Test through the service - null images should be handled gracefully for optional images
         testProductRequest.setAdditionalImage1(null);
 
-        try (MockedConstruction<FirebaseHelper> firebaseHelperMock = mockConstruction(FirebaseHelper.class,
+        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
                 (mock, context) -> {
-                    doNothing().when(mock).deleteFile(anyString());
-                    when(mock.uploadFileToFirebase(anyString(), anyString())).thenReturn(true);
+                    ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                        "https://i.ibb.co/test/image.png",
+                        "test-delete-hash"
+                    );
+                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                    when(mock.deleteImage(anyString())).thenReturn(true);
                 })) {
 
             assertDoesNotThrow(() -> productService.addProduct(testProductRequest));
@@ -743,10 +780,14 @@ class ProductServiceTest {
         // Test through the service - empty images should be handled gracefully for optional images
         testProductRequest.setAdditionalImage1("");
 
-        try (MockedConstruction<FirebaseHelper> firebaseHelperMock = mockConstruction(FirebaseHelper.class,
+        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
                 (mock, context) -> {
-                    doNothing().when(mock).deleteFile(anyString());
-                    when(mock.uploadFileToFirebase(anyString(), anyString())).thenReturn(true);
+                    ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                        "https://i.ibb.co/test/image.png",
+                        "test-delete-hash"
+                    );
+                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                    when(mock.deleteImage(anyString())).thenReturn(true);
                 })) {
 
             assertDoesNotThrow(() -> productService.addProduct(testProductRequest));

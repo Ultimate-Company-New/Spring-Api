@@ -86,6 +86,10 @@ public class AddressController {
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (NotFoundException nfe) {
+            logger.error(nfe);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -112,6 +116,10 @@ public class AddressController {
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (NotFoundException nfe) {
+            logger.error(nfe);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

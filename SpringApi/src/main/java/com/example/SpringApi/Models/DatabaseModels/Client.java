@@ -54,7 +54,7 @@ public class Client {
     @Column(name = "website", nullable = false)
     private String website;
 
-    @Column(name = "sendgridSenderName", nullable = false)
+    @Column(name = "sendgridSenderName")
     private String sendgridSenderName;
 
     @Column(name = "razorpayApiKey")
@@ -169,7 +169,7 @@ public class Client {
      * @param existingClient The existing client entity
      */
     public Client(ClientRequestModel request, String modifiedUser, Client existingClient) {
-        validateRequest(request);
+        validateUpdateRequest(request);
         validateUser(modifiedUser);
         
         // Copy existing values that shouldn't change
@@ -179,10 +179,59 @@ public class Client {
         
         setFieldsFromRequest(request);
         this.modifiedUser = modifiedUser;  // When updating, use the provided modified user
+        
+        // Preserve existing values if not provided in request
+        // This allows partial updates without requiring all fields
+        if (request.getSendgridSenderName() == null) {
+            this.sendgridSenderName = existingClient.getSendgridSenderName();
+        }
+        if (request.getGoogleCredId() == null) {
+            this.googleCredId = existingClient.getGoogleCredId();
+        }
+        if (request.getImgbbApiKey() == null) {
+            this.imgbbApiKey = existingClient.getImgbbApiKey();
+        }
+        if (request.getSendGridApiKey() == null) {
+            this.sendGridApiKey = existingClient.getSendGridApiKey();
+        }
+        if (request.getSendGridEmailAddress() == null) {
+            this.sendGridEmailAddress = existingClient.getSendGridEmailAddress();
+        }
+        if (request.getRazorpayApiKey() == null) {
+            this.razorpayApiKey = existingClient.getRazorpayApiKey();
+        }
+        if (request.getRazorpayApiSecret() == null) {
+            this.razorpayApiSecret = existingClient.getRazorpayApiSecret();
+        }
+        if (request.getShipRocketEmail() == null) {
+            this.shipRocketEmail = existingClient.getShipRocketEmail();
+        }
+        if (request.getShipRocketPassword() == null) {
+            this.shipRocketPassword = existingClient.getShipRocketPassword();
+        }
+        if (request.getJiraUserName() == null) {
+            this.jiraUserName = existingClient.getJiraUserName();
+        }
+        if (request.getJiraPassword() == null) {
+            this.jiraPassword = existingClient.getJiraPassword();
+        }
+        if (request.getJiraProjectUrl() == null) {
+            this.jiraProjectUrl = existingClient.getJiraProjectUrl();
+        }
+        if (request.getJiraProjectKey() == null) {
+            this.jiraProjectKey = existingClient.getJiraProjectKey();
+        }
+        if (request.getIssueTypes() == null) {
+            this.issueTypes = existingClient.getIssueTypes();
+        }
+        if (request.getNotes() == null) {
+            this.notes = existingClient.getNotes();
+        }
     }
 
     /**
-     * Validates the request model.
+     * Validates the request model for creating a new client.
+     * All required fields must be present for creation.
      * 
      * @param request The ClientRequestModel to validate
      * @throws BadRequestException if validation fails
@@ -203,10 +252,40 @@ public class Client {
         if (request.getWebsite() == null || request.getWebsite().trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidWebsite);
         }
-        if (request.getSendgridSenderName() == null || request.getSendgridSenderName().trim().isEmpty()) {
+    }
+
+    /**
+     * Validates the request model for updating an existing client.
+     * Core fields (name, description, supportEmail, website) are required.
+     * Other fields like sendgridSenderName and googleCredId are optional (preserved from existing if not provided).
+     * 
+     * @param request The ClientRequestModel to validate
+     * @throws BadRequestException if validation fails
+     */
+    private void validateUpdateRequest(ClientRequestModel request) {
+        if (request == null) {
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidRequest);
+        }
+        // Validate core required fields
+        if (request.getName() == null || request.getName().trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidName);
+        }
+        if (request.getDescription() == null || request.getDescription().trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidDescription);
+        }
+        if (request.getSupportEmail() == null || request.getSupportEmail().trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidSupportEmail);
+        }
+        if (request.getWebsite() == null || request.getWebsite().trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidWebsite);
+        }
+        // sendgridSenderName and googleCredId are optional in updates
+        // Validate that if sendgridSenderName is provided, it's not empty
+        if (request.getSendgridSenderName() != null && request.getSendgridSenderName().trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidSendgridSenderName);
         }
     }
+
 
     /**
      * Validates the user parameter.
@@ -222,18 +301,19 @@ public class Client {
 
     /**
      * Sets fields from the request model.
+     * Handles null values for optional fields.
      * 
      * @param request The ClientRequestModel to extract fields from
      */
     private void setFieldsFromRequest(ClientRequestModel request) {
-        this.name = request.getName().trim();
-        this.description = request.getDescription().trim();
+        this.name = request.getName() != null ? request.getName().trim() : null;
+        this.description = request.getDescription() != null ? request.getDescription().trim() : null;
         this.sendGridApiKey = request.getSendGridApiKey() != null ? request.getSendGridApiKey().trim() : null;
         this.sendGridEmailAddress = request.getSendGridEmailAddress() != null ? request.getSendGridEmailAddress().trim() : null;
         this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : Boolean.FALSE; // Default false if null
-        this.supportEmail = request.getSupportEmail().trim();
-        this.website = request.getWebsite().trim();
-        this.sendgridSenderName = request.getSendgridSenderName().trim();
+        this.supportEmail = request.getSupportEmail() != null ? request.getSupportEmail().trim() : null;
+        this.website = request.getWebsite() != null ? request.getWebsite().trim() : null;
+        this.sendgridSenderName = request.getSendgridSenderName() != null ? request.getSendgridSenderName().trim() : null;
         this.razorpayApiKey = request.getRazorpayApiKey() != null ? request.getRazorpayApiKey().trim() : null;
         this.razorpayApiSecret = request.getRazorpayApiSecret() != null ? request.getRazorpayApiSecret().trim() : null;
         this.imgbbApiKey = request.getImgbbApiKey() != null ? request.getImgbbApiKey().trim() : null;

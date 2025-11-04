@@ -3,6 +3,7 @@ package com.example.SpringApi.Repositories;
 import com.example.SpringApi.Models.DatabaseModels.Client;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +14,22 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ClientRepository extends JpaRepository<Client, Long> {
+    
+    /**
+     * Check if a client with the given name exists.
+     * 
+     * @param name The client name to check
+     * @return true if a client with this name exists, false otherwise
+     */
+    boolean existsByName(String name);
+    
+    /**
+     * Find a client by name.
+     * 
+     * @param name The client name to search for
+     * @return Optional containing the client if found
+     */
+    Optional<Client> findByName(String name);
     @Query(value = "SELECT c FROM Client c JOIN UserClientMapping ucm " +
             "ON c.clientId = ucm.clientId " +
             "WHERE c.isDeleted = false " +

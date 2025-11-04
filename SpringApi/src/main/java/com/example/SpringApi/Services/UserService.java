@@ -586,6 +586,15 @@ public class UserService extends BaseService implements IUserSubTranslator {
      */
     @Override
     public PaginationBaseResponseModel<UserResponseModel> fetchUsersInCarrierInBatches(UserRequestModel userRequestModel) {
+        // Validate pagination parameters
+        int start = userRequestModel.getStart();
+        int end = userRequestModel.getEnd();
+        int limit = end - start;
+        
+        if (limit <= 0) {
+            throw new BadRequestException("Invalid pagination: end must be greater than start");
+        }
+        
         // validate the column names
         if(StringUtils.hasText(userRequestModel.getColumnName())){
             Set<String> validColumns = new HashSet<>(Arrays.asList(
@@ -604,10 +613,6 @@ public class UserService extends BaseService implements IUserSubTranslator {
                 );
             }
         }
-
-        int start = userRequestModel.getStart();
-        int end = userRequestModel.getEnd();
-        int limit = end - start;
         
         // Create custom Pageable with exact OFFSET and LIMIT for database-level pagination
         // Spring's PageRequest.of(page, size) uses: OFFSET = page * size, LIMIT = size

@@ -1,7 +1,7 @@
 package com.example.SpringApi.Models.ResponseModels;
 
 import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
-import com.example.SpringApi.Models.DatabaseModels.Client;
+import org.hibernate.Hibernate;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
@@ -34,7 +34,7 @@ public class PickupLocationResponseModel {
     
     // Related entities
     private AddressResponseModel address;
-    private Client client;
+    private ClientResponseModel client;
     
     // Additional computed fields
     private Boolean isActive;
@@ -59,10 +59,12 @@ public class PickupLocationResponseModel {
             this.notes = pickupLocation.getNotes();
             
             // Set related entities if loaded
-            if (pickupLocation.getAddress() != null) {
+            if (pickupLocation.getAddress() != null && Hibernate.isInitialized(pickupLocation.getAddress())) {
                 this.address = new AddressResponseModel(pickupLocation.getAddress());
             }
-            this.client = pickupLocation.getClient();
+            if (pickupLocation.getClient() != null && Hibernate.isInitialized(pickupLocation.getClient())) {
+                this.client = new ClientResponseModel(pickupLocation.getClient());
+            }
             
             // Compute additional fields
             this.isActive = !this.isDeleted;

@@ -85,12 +85,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * Used by: UserService (getUserById, updateUser, toggleUser)
      */
     @Query("SELECT DISTINCT u FROM User u " +
+           "JOIN UserClientMapping ucm ON u.userId = ucm.userId " +
            "LEFT JOIN FETCH u.addresses " +
            "LEFT JOIN FETCH u.userClientPermissionMappings ucpm " +
            "LEFT JOIN FETCH ucpm.permission p " +
            "LEFT JOIN FETCH u.userGroupMappings ugm " +
            "LEFT JOIN FETCH ugm.userGroup ug " +
            "WHERE u.userId = :userId " +
+           "AND ucm.clientId = :clientId " +
            "AND (ucpm IS NULL OR ucpm.clientId = :clientId) " +
            "AND (ugm IS NULL OR ug.clientId = :clientId)")
     User findByIdWithAllRelations(@Param("userId") Long userId, @Param("clientId") Long clientId);
@@ -101,18 +103,20 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * Addresses are user-specific (not filtered by client).
      * 
      * Query fetches:
-     * - User data
+     * - User data (ONLY if user is mapped to the specified clientId)
      * - All addresses for the user
      * - Permissions ONLY for the specified clientId
      * - User groups ONLY for the specified clientId
      */
     @Query("SELECT DISTINCT u FROM User u " +
+           "JOIN UserClientMapping ucm ON u.userId = ucm.userId " +
            "LEFT JOIN FETCH u.addresses " +
            "LEFT JOIN FETCH u.userClientPermissionMappings ucpm " +
            "LEFT JOIN FETCH ucpm.permission p " +
            "LEFT JOIN FETCH u.userGroupMappings ugm " +
            "LEFT JOIN FETCH ugm.userGroup ug " +
            "WHERE u.email = :email " +
+           "AND ucm.clientId = :clientId " +
            "AND (ucpm IS NULL OR ucpm.clientId = :clientId) " +
            "AND (ugm IS NULL OR ug.clientId = :clientId)")
     User findByEmailWithAllRelations(@Param("email") String email, @Param("clientId") Long clientId);

@@ -65,8 +65,6 @@ public interface IClientSubTranslator {
      * and createdAt. Only the modifiedUser and updatedAt fields are updated.
      * 
      * @param client The ClientRequestModel containing the updated client data
-     * @throws NotFoundException if no client exists with the given ID
-     * @throws BadRequestException if the client data is invalid or incomplete
      * @throws IllegalArgumentException if the client parameter is null
      */
     void updateClient(ClientRequestModel client);

@@ -44,17 +44,20 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     private final PackageRepository packageRepository;
     private final UserLogService userLogService;
     private final PackagePickupLocationMappingRepository packagePickupLocationMappingRepository;
+    private final com.example.SpringApi.Repositories.PickupLocationRepository pickupLocationRepository;
 
     @Autowired
     public PackageService(
         PackageRepository packageRepository,
         UserLogService userLogService,
         PackagePickupLocationMappingRepository packagePickupLocationMappingRepository,
+        com.example.SpringApi.Repositories.PickupLocationRepository pickupLocationRepository,
         HttpServletRequest request) {
         super();
         this.packageRepository = packageRepository;
         this.userLogService = userLogService;
         this.packagePickupLocationMappingRepository = packagePickupLocationMappingRepository;
+        this.pickupLocationRepository = pickupLocationRepository;
     }
 
     /**
@@ -66,6 +69,22 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      */
     @Override
     public PaginationBaseResponseModel<PackageResponseModel> getPackagesInBatches(PaginationBaseRequestModel paginationBaseRequestModel) {
+        // Validate pagination parameters
+        int start = paginationBaseRequestModel.getStart();
+        int end = paginationBaseRequestModel.getEnd();
+        
+        if (start < 0) {
+            throw new BadRequestException("Start index cannot be negative");
+        }
+        
+        if (end <= 0) {
+            throw new BadRequestException("End index must be greater than 0");
+        }
+        
+        if (start >= end) {
+            throw new BadRequestException("Start index must be less than end index");
+        }
+        
         // Validate column name
         Set<String> validColumns = new HashSet<>(Arrays.asList(
             "packageId",
@@ -88,8 +107,23 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             throw new BadRequestException("Invalid column name for filtering: " + paginationBaseRequestModel.getColumnName());
         }
         
-        int start = paginationBaseRequestModel.getStart();
-        int end = paginationBaseRequestModel.getEnd();
+        // Validate condition
+        if (paginationBaseRequestModel.getCondition() != null && !paginationBaseRequestModel.getCondition().isEmpty()) {
+            Set<String> validConditions = new HashSet<>(Arrays.asList(
+                "equals",
+                "contains",
+                "startsWith",
+                "endsWith",
+                "greaterThan",
+                "lessThan",
+                "greaterThanOrEqual",
+                "lessThanOrEqual"
+            ));
+            
+            if (!validConditions.contains(paginationBaseRequestModel.getCondition())) {
+                throw new BadRequestException("Invalid condition for filtering: " + paginationBaseRequestModel.getCondition());
+            }
+        }
         int limit = end - start;
         
         // Create custom Pageable with exact OFFSET and LIMIT for database-level pagination
@@ -144,16 +178,16 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     }
 
     /**
-     * Retrieves all packages in the system.
+     * Retrieves all packages in the system for the current client.
      *
      * @return List of all PackageResponseModel entities in the system
      */
     @Override
     public List<PackageResponseModel> getAllPackagesInSystem() {
-        List<Package> packages = packageRepository.findByClientIdAndIsDeletedFalse(getClientId());
-        return packages.stream()
+        return packageRepository.findAll().stream()
+            .filter(pkg -> pkg.getClientId().equals(getClientId()))
             .map(PackageResponseModel::new)
-            .collect(java.util.stream.Collectors.toList());
+            .collect(Collectors.toList());
     }
 
     /**
@@ -226,9 +260,15 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      *
      * @param pickupLocationId The unique identifier of the pickup location
      * @return List of PackageResponseModel entities available at the pickup location
+     * @throws NotFoundException if the pickup location is not found
      */
     @Override
     public List<PackageResponseModel> getPackagesByPickupLocationId(Long pickupLocationId) {
+        // Validate that the pickup location exists
+        if (pickupLocationRepository.countByPickupLocationIdAndClientId(pickupLocationId, getClientId()) == 0) {
+            throw new NotFoundException(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, pickupLocationId));
+        }
+        
         List<PackagePickupLocationMapping> mappings = packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(pickupLocationId, getClientId());
         return mappings.stream()
             .map(mapping -> new PackageResponseModel(mapping.getPackageEntity()))

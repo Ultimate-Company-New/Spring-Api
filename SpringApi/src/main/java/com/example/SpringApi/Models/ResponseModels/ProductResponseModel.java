@@ -1,9 +1,7 @@
 package com.example.SpringApi.Models.ResponseModels;
 
 import com.example.SpringApi.Models.DatabaseModels.Product;
-import com.example.SpringApi.Models.DatabaseModels.ProductCategory;
-import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
-import com.example.SpringApi.Models.DatabaseModels.Address;
+import org.hibernate.Hibernate;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -47,6 +45,23 @@ public class ProductResponseModel {
     private Long categoryId;
     private Long clientId;
     private Long pickupLocationId;
+    
+    // Product Images (Required - stored on ImgBB)
+    private String mainImageUrl;
+    private String topImageUrl;
+    private String bottomImageUrl;
+    private String frontImageUrl;
+    private String backImageUrl;
+    private String rightImageUrl;
+    private String leftImageUrl;
+    private String detailsImageUrl;
+    
+    // Product Images (Optional - stored on ImgBB)
+    private String defectImageUrl;
+    private String additionalImage1Url;
+    private String additionalImage2Url;
+    private String additionalImage3Url;
+    
     private String createdUser;
     private String modifiedUser;
     private LocalDateTime createdAt;
@@ -54,9 +69,9 @@ public class ProductResponseModel {
     private String notes;
     
     // Related entities
-    private ProductCategory category;
-    private PickupLocation pickupLocation;
-    private Address pickupLocationAddress;
+    private ProductCategoryResponseModel category;
+    private PickupLocationResponseModel pickupLocation;
+    private AddressResponseModel pickupLocationAddress;
     
     /**
      * Default constructor.
@@ -94,17 +109,39 @@ public class ProductResponseModel {
             this.categoryId = product.getCategoryId();
             this.clientId = product.getClientId();
             this.pickupLocationId = product.getPickupLocationId();
+            
+            // Populate image URLs
+            this.mainImageUrl = product.getMainImageUrl();
+            this.topImageUrl = product.getTopImageUrl();
+            this.bottomImageUrl = product.getBottomImageUrl();
+            this.frontImageUrl = product.getFrontImageUrl();
+            this.backImageUrl = product.getBackImageUrl();
+            this.rightImageUrl = product.getRightImageUrl();
+            this.leftImageUrl = product.getLeftImageUrl();
+            this.detailsImageUrl = product.getDetailsImageUrl();
+            this.defectImageUrl = product.getDefectImageUrl();
+            this.additionalImage1Url = product.getAdditionalImage1Url();
+            this.additionalImage2Url = product.getAdditionalImage2Url();
+            this.additionalImage3Url = product.getAdditionalImage3Url();
+            
             this.createdUser = product.getCreatedUser();
             this.modifiedUser = product.getModifiedUser();
             this.createdAt = product.getCreatedAt();
             this.updatedAt = product.getUpdatedAt();
             this.notes = product.getNotes();
             
-            // Populate related entities
-            this.category = product.getCategory();
-            this.pickupLocation = product.getPickupLocation();
-            if (this.pickupLocation != null) {
-                this.pickupLocationAddress = this.pickupLocation.getAddress();
+            // Populate related entities with safe DTOs
+            if (product.getCategory() != null && Hibernate.isInitialized(product.getCategory())) {
+                this.category = new ProductCategoryResponseModel(product.getCategory());
+            }
+
+            if (product.getPickupLocation() != null && Hibernate.isInitialized(product.getPickupLocation())) {
+                this.pickupLocation = new PickupLocationResponseModel(product.getPickupLocation());
+
+                if (product.getPickupLocation().getAddress() != null
+                        && Hibernate.isInitialized(product.getPickupLocation().getAddress())) {
+                    this.pickupLocationAddress = new AddressResponseModel(product.getPickupLocation().getAddress());
+                }
             }
         }
     }

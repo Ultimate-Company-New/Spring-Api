@@ -293,8 +293,8 @@ public class ErrorMessages {
         public static final String ER007 = "Product category id should be present";
         public static final String ER008 = "Product category not found with ID: %s";
         public static final String ER009 = "Required image '%s' is missing";
-        public static final String ER010 = "Failed to upload %s image to Firebase";
-        public static final String ER011 = "Failed to upload additional image %d to Firebase";
+        public static final String ER010 = "Failed to upload %s image to ImgBB";
+        public static final String ER011 = "Failed to upload additional image %d to ImgBB";
         public static final String ER012 = "Failed to process image from URL: %s";
         public static final String ER013 = "Product not found with ID: %d";
         public static final String ER014 = "Product IDs list cannot be null or empty";

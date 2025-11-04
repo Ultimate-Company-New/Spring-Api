@@ -53,7 +53,7 @@ public class Product {
     @Column(name = "isDeleted", nullable = false)
     private Boolean isDeleted;
 
-    @Column(name = "condition", nullable = false, length = 100)
+    @Column(name = "`condition`", nullable = false, length = 100)
     private String condition;
 
     @Column(name = "countryOfManufacture", nullable = false, length = 100)
@@ -106,6 +106,80 @@ public class Product {
     @JoinColumn(name = "clientId", insertable = false, updatable = false)
     private Client client;
 
+    // Product Images (Required - stored on ImgBB)
+    @Column(name = "mainImageUrl", nullable = false, length = 500)
+    private String mainImageUrl;
+
+    @Column(name = "mainImageDeleteHash", nullable = false, length = 500)
+    private String mainImageDeleteHash;
+
+    @Column(name = "topImageUrl", nullable = false, length = 500)
+    private String topImageUrl;
+
+    @Column(name = "topImageDeleteHash", nullable = false, length = 500)
+    private String topImageDeleteHash;
+
+    @Column(name = "bottomImageUrl", nullable = false, length = 500)
+    private String bottomImageUrl;
+
+    @Column(name = "bottomImageDeleteHash", nullable = false, length = 500)
+    private String bottomImageDeleteHash;
+
+    @Column(name = "frontImageUrl", nullable = false, length = 500)
+    private String frontImageUrl;
+
+    @Column(name = "frontImageDeleteHash", nullable = false, length = 500)
+    private String frontImageDeleteHash;
+
+    @Column(name = "backImageUrl", nullable = false, length = 500)
+    private String backImageUrl;
+
+    @Column(name = "backImageDeleteHash", nullable = false, length = 500)
+    private String backImageDeleteHash;
+
+    @Column(name = "rightImageUrl", nullable = false, length = 500)
+    private String rightImageUrl;
+
+    @Column(name = "rightImageDeleteHash", nullable = false, length = 500)
+    private String rightImageDeleteHash;
+
+    @Column(name = "leftImageUrl", nullable = false, length = 500)
+    private String leftImageUrl;
+
+    @Column(name = "leftImageDeleteHash", nullable = false, length = 500)
+    private String leftImageDeleteHash;
+
+    @Column(name = "detailsImageUrl", nullable = false, length = 500)
+    private String detailsImageUrl;
+
+    @Column(name = "detailsImageDeleteHash", nullable = false, length = 500)
+    private String detailsImageDeleteHash;
+
+    // Product Images (Optional - stored on ImgBB)
+    @Column(name = "defectImageUrl", length = 500)
+    private String defectImageUrl;
+
+    @Column(name = "defectImageDeleteHash", length = 500)
+    private String defectImageDeleteHash;
+
+    @Column(name = "additionalImage1Url", length = 500)
+    private String additionalImage1Url;
+
+    @Column(name = "additionalImage1DeleteHash", length = 500)
+    private String additionalImage1DeleteHash;
+
+    @Column(name = "additionalImage2Url", length = 500)
+    private String additionalImage2Url;
+
+    @Column(name = "additionalImage2DeleteHash", length = 500)
+    private String additionalImage2DeleteHash;
+
+    @Column(name = "additionalImage3Url", length = 500)
+    private String additionalImage3Url;
+
+    @Column(name = "additionalImage3DeleteHash", length = 500)
+    private String additionalImage3DeleteHash;
+
     @Column(name = "pickupLocationId", nullable = false)
     private Long pickupLocationId;
 
@@ -156,6 +230,25 @@ public class Product {
         setFieldsFromRequest(request);
         this.createdUser = createdUser;
         this.modifiedUser = createdUser;
+        
+        // Initialize required image fields with placeholder values
+        // These will be updated when images are uploaded in processAndUploadProductImages
+        this.mainImageUrl = "";
+        this.mainImageDeleteHash = "";
+        this.topImageUrl = "";
+        this.topImageDeleteHash = "";
+        this.bottomImageUrl = "";
+        this.bottomImageDeleteHash = "";
+        this.frontImageUrl = "";
+        this.frontImageDeleteHash = "";
+        this.backImageUrl = "";
+        this.backImageDeleteHash = "";
+        this.rightImageUrl = "";
+        this.rightImageDeleteHash = "";
+        this.leftImageUrl = "";
+        this.leftImageDeleteHash = "";
+        this.detailsImageUrl = "";
+        this.detailsImageDeleteHash = "";
     }
 
     /**
@@ -175,6 +268,32 @@ public class Product {
         
         setFieldsFromRequest(request);
         this.modifiedUser = modifiedUser;
+
+        // Preserve existing image URLs and delete hashes so update workflows can detect unchanged images
+        this.mainImageUrl = existingProduct.getMainImageUrl();
+        this.mainImageDeleteHash = existingProduct.getMainImageDeleteHash();
+        this.topImageUrl = existingProduct.getTopImageUrl();
+        this.topImageDeleteHash = existingProduct.getTopImageDeleteHash();
+        this.bottomImageUrl = existingProduct.getBottomImageUrl();
+        this.bottomImageDeleteHash = existingProduct.getBottomImageDeleteHash();
+        this.frontImageUrl = existingProduct.getFrontImageUrl();
+        this.frontImageDeleteHash = existingProduct.getFrontImageDeleteHash();
+        this.backImageUrl = existingProduct.getBackImageUrl();
+        this.backImageDeleteHash = existingProduct.getBackImageDeleteHash();
+        this.rightImageUrl = existingProduct.getRightImageUrl();
+        this.rightImageDeleteHash = existingProduct.getRightImageDeleteHash();
+        this.leftImageUrl = existingProduct.getLeftImageUrl();
+        this.leftImageDeleteHash = existingProduct.getLeftImageDeleteHash();
+        this.detailsImageUrl = existingProduct.getDetailsImageUrl();
+        this.detailsImageDeleteHash = existingProduct.getDetailsImageDeleteHash();
+        this.defectImageUrl = existingProduct.getDefectImageUrl();
+        this.defectImageDeleteHash = existingProduct.getDefectImageDeleteHash();
+        this.additionalImage1Url = existingProduct.getAdditionalImage1Url();
+        this.additionalImage1DeleteHash = existingProduct.getAdditionalImage1DeleteHash();
+        this.additionalImage2Url = existingProduct.getAdditionalImage2Url();
+        this.additionalImage2DeleteHash = existingProduct.getAdditionalImage2DeleteHash();
+        this.additionalImage3Url = existingProduct.getAdditionalImage3Url();
+        this.additionalImage3DeleteHash = existingProduct.getAdditionalImage3DeleteHash();
     }
 
     /**

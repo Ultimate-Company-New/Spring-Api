@@ -29,6 +29,9 @@ public interface PickupLocationRepository extends JpaRepository<PickupLocation, 
     @Query("SELECT p FROM PickupLocation p JOIN FETCH p.address WHERE p.pickupLocationId = :pickupLocationId AND p.clientId = :clientId")
     PickupLocation findPickupLocationByIdAndClientId(@Param("pickupLocationId") Long pickupLocationId, @Param("clientId") Long clientId);
 
+    @Query("SELECT COUNT(p.pickupLocationId) FROM PickupLocation p WHERE p.pickupLocationId = :pickupLocationId AND p.clientId = :clientId")
+    long countByPickupLocationIdAndClientId(@Param("pickupLocationId") Long pickupLocationId, @Param("clientId") Long clientId);
+
     @Query("SELECT p FROM PickupLocation p JOIN FETCH p.address WHERE p.clientId = :clientId AND (:includeDeleted = true OR p.isDeleted = false)")
     List<PickupLocation> findAllWithAddressesByClientId(@Param("clientId") Long clientId, @Param("includeDeleted") boolean includeDeleted);
 
