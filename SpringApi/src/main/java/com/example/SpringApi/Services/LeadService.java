@@ -178,8 +178,13 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      */
     @Override
     public void updateLead(Long leadId, LeadRequestModel leadRequestModel) {
-        Lead existingLead = leadRepository.findLeadWithDetailsById(leadId, getClientId());
+        Lead existingLead = leadRepository.findLeadWithDetailsByIdIncludingDeleted(leadId, getClientId());
         if (existingLead == null) {
+            throw new NotFoundException(ErrorMessages.LEAD_NOT_FOUND);
+        }
+        
+        // Don't allow updating deleted leads
+        if (existingLead.getIsDeleted()) {
             throw new NotFoundException(ErrorMessages.LEAD_NOT_FOUND);
         }
 
@@ -205,7 +210,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      */
     @Override
     public void toggleLead(Long leadId) {
-        Lead lead = leadRepository.findLeadWithDetailsById(leadId, getClientId());
+        Lead lead = leadRepository.findLeadWithDetailsByIdIncludingDeleted(leadId, getClientId());
         if (lead == null) {
             throw new NotFoundException(ErrorMessages.LEAD_NOT_FOUND);
         }

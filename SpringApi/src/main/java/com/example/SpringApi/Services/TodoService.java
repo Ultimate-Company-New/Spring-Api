@@ -66,7 +66,7 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
      */
     @Override
     public void updateTodo(TodoRequestModel todoRequestModel) {
-        if (todoRequestModel == null || todoRequestModel.getTodoId() == null || todoRequestModel.getTodoId() <= 0) {
+        if (todoRequestModel == null || todoRequestModel.getTodoId() == null) {
             throw new BadRequestException(ErrorMessages.TodoErrorMessages.InvalidId);
         }
         
@@ -88,14 +88,9 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
      * 
      * @param id The ID of the todo item to delete
      * @throws NotFoundException if the todo item is not found
-     * @throws BadRequestException if the ID is invalid
      */
     @Override
     public void deleteTodo(long id) {
-        if (id <= 0) {
-            throw new BadRequestException(ErrorMessages.TodoErrorMessages.InvalidId);
-        }
-        
         // Check if todo exists
         if (!todoRepository.existsById(id)) {
             throw new NotFoundException(ErrorMessages.TodoErrorMessages.InvalidId);
@@ -117,14 +112,9 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
      * 
      * @param id The ID of the todo item to toggle
      * @throws NotFoundException if the todo item is not found
-     * @throws BadRequestException if the ID is invalid
      */
     @Override
     public void toggleTodo(long id) {
-        if (id <= 0) {
-            throw new BadRequestException(ErrorMessages.TodoErrorMessages.InvalidId);
-        }
-        
         String authenticatedUser = getUser();
         
         Todo todo = todoRepository.findById(id)

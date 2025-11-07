@@ -119,7 +119,17 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         // Validate column name
         if (paginationBaseRequestModel.getColumnName() != null &&
             !validColumns.contains(paginationBaseRequestModel.getColumnName())) {
-            throw new BadRequestException("Invalid column name for filtering: " + paginationBaseRequestModel.getColumnName());
+            throw new BadRequestException("Invalid column name: " + paginationBaseRequestModel.getColumnName());
+        }
+
+        // Validate condition if provided
+        if (paginationBaseRequestModel.getCondition() != null && !paginationBaseRequestModel.getCondition().isEmpty()) {
+            Set<String> validConditions = new HashSet<>(Arrays.asList(
+                "equals", "contains", "startsWith", "endsWith", "isEmpty", "isNotEmpty"
+            ));
+            if (!validConditions.contains(paginationBaseRequestModel.getCondition())) {
+                throw new BadRequestException("Invalid condition for filtering: " + paginationBaseRequestModel.getCondition());
+            }
         }
 
         // Calculate page size and offset
@@ -291,24 +301,5 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         
         // Log the toggle action
         userLogService.logData(getUserId(), SuccessMessages.PickupLocationSuccessMessages.TogglePickupLocation + " " + pickupLocation.getPickupLocationId(), ApiRoutes.PickupLocationsSubRoute.TOGGLE_PICKUP_LOCATION);
-    }
-
-    /**
-     * Retrieves all pickup locations for the current client.
-     * 
-     * This method returns all pickup locations associated with the current client context.
-     * Can optionally include deleted records based on the includeDeleted parameter.
-     * Each pickup location includes its associated address information.
-     * 
-     * @param includeDeleted Whether to include deleted pickup locations in the result
-     * @return List of pickup locations with their address information
-     */
-    @Override
-    public List<PickupLocationResponseModel> getAllPickupLocations(boolean includeDeleted) {
-        List<PickupLocation> pickupLocations = pickupLocationRepository.findAllWithAddressesByClientId(getClientId(), includeDeleted);
-        
-        return pickupLocations.stream()
-            .map(pickupLocation -> new PickupLocationResponseModel(pickupLocation))
-            .collect(Collectors.toList());
     }
 }

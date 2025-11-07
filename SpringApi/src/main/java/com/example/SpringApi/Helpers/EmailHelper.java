@@ -99,22 +99,12 @@ public class EmailHelper {
 
         if (request.getSendAt() != null) {
             mail.setSendAt(request.getSendAt().toEpochSecond(ZoneOffset.UTC));
-
-            try {
-                // Check if the batch ID is valid
-                Request httpRequest = new Request();
-                httpRequest.setMethod(Method.GET);
-                httpRequest.setEndpoint("mail/batch/" + request.getBatchId());
-                com.sendgrid.Response response = sendGridClient.api(httpRequest);
-
-                int statusCode = response.getStatusCode();
-                if (statusCode <= 200 || statusCode > 300) {
-                    throw new BadRequestException(ErrorMessages.EmailErrorMessages.InvalidBatchId);
-                }
+            
+            // Set the batch ID for scheduled sending
+            // Note: Newly generated batch IDs don't exist in SendGrid until first use,
+            // so we don't validate them. SendGrid will validate when the email is sent.
+            if (request.getBatchId() != null) {
                 mail.setBatchId(request.getBatchId());
-            }
-            catch (IOException e){
-                throw new BadRequestException(ErrorMessages.EmailErrorMessages.ER001 + ": " + e.getMessage());
             }
         }
 
@@ -159,7 +149,10 @@ public class EmailHelper {
             // POST /mail/batch
             Request httpRequest = new Request();
             httpRequest.setMethod(Method.POST);
-            httpRequest.setEndpoint("mail/send");
+            httpRequest.setEndpoint("mail/batch");
+            
+            // Set Content-Type header as required by SendGrid API
+            httpRequest.addHeader("Content-Type", "application/json");
 
             // Send a POST request to the SendGrid API to generate a batch ID
             com.sendgrid.Response sendGridResponse = sendGridClient.api(httpRequest);

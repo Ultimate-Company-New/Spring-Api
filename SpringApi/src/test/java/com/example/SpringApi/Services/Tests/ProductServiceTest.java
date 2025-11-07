@@ -10,7 +10,6 @@ import com.example.SpringApi.Repositories.*;
 import com.example.SpringApi.Services.ClientService;
 import com.example.SpringApi.Services.ProductService;
 import com.example.SpringApi.Services.UserLogService;
-import com.example.SpringApi.Helpers.FirebaseHelper;
 import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;

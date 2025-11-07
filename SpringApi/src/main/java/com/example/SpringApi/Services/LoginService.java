@@ -6,11 +6,9 @@ import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.DatabaseModels.UserClientMapping;
 import com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping;
 import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.DatabaseModels.GoogleCred;
 import com.example.SpringApi.Helpers.EmailTemplates;
 
 import com.example.SpringApi.Models.RequestModels.LoginRequestModel;
-import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import com.example.SpringApi.Repositories.ClientRepository;
 import com.example.SpringApi.Repositories.UserClientMappingRepository;
 import com.example.SpringApi.Repositories.UserClientPermissionMappingRepository;
@@ -24,7 +22,6 @@ import com.example.SpringApi.Helpers.PasswordHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
@@ -61,20 +58,34 @@ public class LoginService implements ILoginSubTranslator {
     /**
      * Confirms the user's email address using the provided user ID and token.
      * This method verifies that the token matches the user's stored token and marks the email as confirmed.
-     * If the token is invalid or the user is not found, appropriate exceptions are thrown.
+     * After successful confirmation, the token is cleared from the database to prevent reuse.
+     * If the token is invalid, expired, or the user is not found, appropriate exceptions are thrown.
      *
      * @param loginRequestModel The login request model containing the user ID and token for email confirmation.
-     * @throws UnauthorizedException If the provided token does not match the user's stored token.
+     * @throws BadRequestException If the user ID is null or missing.
+     * @throws UnauthorizedException If the provided token does not match the user's stored token, token is missing, or token has been used.
      * @throws NotFoundException If the user with the specified ID is not found.
      */
     @Override
     public void confirmEmail(LoginRequestModel loginRequestModel) {
+        // Validate that userId is provided
+        if(loginRequestModel.getUserId() == null) {
+            throw new BadRequestException(ErrorMessages.LoginErrorMessages.InvalidId);
+        }
+        
         Optional<User> userResponse = userRepository.findById(loginRequestModel.getUserId());
         if(userResponse.isPresent())
         {
             User user = userResponse.get();
+            
+            // Check if token is null or empty (already used/expired)
+            if(user.getToken() == null || user.getToken().isEmpty() || user.getToken().isBlank()) {
+                throw new NotFoundException(ErrorMessages.LoginErrorMessages.InvalidToken);
+            }
+            
             if(user.getToken().equals(loginRequestModel.getToken())){
                 user.setEmailConfirmed(true);
+                user.setToken(null); // Clear the token after successful confirmation
                 userRepository.save(user);
             }
             else{
@@ -89,18 +100,17 @@ public class LoginService implements ILoginSubTranslator {
     /**
      * Authenticates a user by verifying their login name and password.
      * Performs several checks: validates input, checks if user exists, email is confirmed, account is not locked,
-     * password is set, and password matches. On successful authentication, generates and returns a JWT token.
+     * password is set, and password matches. On successful authentication, returns a list of clients the user has access to.
      * On failed attempts, decrements locked attempts and locks the account if attempts reach zero.
      *
      * @param loginRequestModel The login request model containing the login name and password.
-     * @return A JWT token string upon successful authentication.
+     * @return A list of ClientResponseModel containing logo, name, clientId, and apiKey for each client the user has access to.
      * @throws BadRequestException If login name or password is missing or invalid.
      * @throws NotFoundException If the user with the specified login name is not found.
      * @throws UnauthorizedException If email is not confirmed, account is locked, password is not set, or credentials are invalid.
      */
     @Override
-    @Transactional
-    public String signIn(LoginRequestModel loginRequestModel) {
+    public List<com.example.SpringApi.Models.ResponseModels.ClientResponseModel> signIn(LoginRequestModel loginRequestModel) {
         User user = userRepository.findByLoginName(loginRequestModel.getLoginName());
 
         if(!StringUtils.hasText(loginRequestModel.getLoginName())
@@ -124,34 +134,37 @@ public class LoginService implements ILoginSubTranslator {
         }
 
         // check if the user has a password
-        if(user.getPassword() == null || user.getPassword().isBlank() || user.getPassword().isEmpty()){
+        if(user.getPassword() == null || user.getPassword().isBlank()){
             throw new BadRequestException(ErrorMessages.LoginErrorMessages.ER016);
         }
 
         // check if the password is correct
         if(PasswordHelper.checkPassword(loginRequestModel.getPassword(), user.getPassword(), user.getSalt())){
-            // Validate clientId is provided
-            if (loginRequestModel.getClientId() == null) {
-                throw new BadRequestException("Client ID is required for login");
+            // Get all UserClientMappings for this user
+            List<UserClientMapping> userClientMappings = userClientMappingRepository.findByUserId(user.getUserId());
+            
+            // Build a list of ClientResponseModel with only logo, name, clientId, and apiKey
+            List<com.example.SpringApi.Models.ResponseModels.ClientResponseModel> clientResponseList = new ArrayList<>();
+            
+            for (UserClientMapping mapping : userClientMappings) {
+                // Get client details
+                Optional<Client> clientOpt = clientRepository.findById(mapping.getClientId());
+                if (clientOpt.isPresent()) {
+                    Client client = clientOpt.get();
+                    
+                    // Create a minimal ClientResponseModel with only required fields
+                    com.example.SpringApi.Models.ResponseModels.ClientResponseModel clientResponse = 
+                        new com.example.SpringApi.Models.ResponseModels.ClientResponseModel();
+                    clientResponse.setClientId(client.getClientId());
+                    clientResponse.setName(client.getName());
+                    clientResponse.setLogoUrl(client.getLogoUrl());
+                    clientResponse.setApiKey(mapping.getApiKey());
+                    
+                    clientResponseList.add(clientResponse);
+                }
             }
             
-            // Get the UserClientMapping for this user and client to fetch the API key
-            UserClientMapping userClientMapping = userClientMappingRepository
-                .findByUserIdAndClientId(user.getUserId(), loginRequestModel.getClientId())
-                .orElseThrow(() -> new UnauthorizedException("User does not have access to the specified client"));
-            
-            // Get user's permissions for this specific client
-            List<UserClientPermissionMapping> userClientPermissionMappings = 
-                userClientPermissionMappingRepository.findClientPermissionMappingByUserId(user.getUserId());
-            
-            // Filter permissions for the specific client
-            List<Long> permissionIds = userClientPermissionMappings.stream()
-                .filter(mapping -> mapping.getClientId().equals(loginRequestModel.getClientId()))
-                .map(UserClientPermissionMapping::getPermissionId)
-                .toList();
-            
-            // Generate token with client-specific API key
-            return jwtTokenProvider.generateToken(user, permissionIds, loginRequestModel.getClientId());
+            return clientResponseList;
         }
 
         // do the procedure for invalid login
@@ -168,50 +181,9 @@ public class LoginService implements ILoginSubTranslator {
     }
 
     /**
-     * Registers a new user in the system.
-     * Checks if a user with the same login name already exists. If not, creates a new user with hashed password,
-     * generates API key and token, saves the user, sends an account confirmation email, and returns the API key.
-     * The client is determined dynamically (currently hardcoded to the first client), and email templates use client-specific details.
-     *
-     * @param userRequestModel The user request model containing user details for registration.
-     * @return The generated API key for the new user.
-     * @throws BadRequestException If a user with the same login name already exists.
-     */
-    @Override
-    public String signUp(UserRequestModel userRequestModel) {
-        User newUser = new User(userRequestModel);
-
-        User user = userRepository.findByLoginName(newUser.getLoginName());
-
-        // if the user has an account already then they cant make an account with the same email
-        if(user != null) {
-            throw new BadRequestException(ErrorMessages.LoginErrorMessages.ER008);
-        }
-
-        // set the default user attributes
-        String plainPassword = newUser.getPassword();
-        String[] saltAndHash = PasswordHelper.getHashedPasswordAndSalt(plainPassword);
-        newUser.setSalt(saltAndHash[0]);
-        newUser.setPassword(saltAndHash[1]);
-        newUser.setToken(PasswordHelper.getToken(newUser.getLoginName()));
-
-        User savedUser = userRepository.save(newUser);
-        List<Client> clients = clientRepository.findAll();
-        if (clients.isEmpty()) {
-            throw new RuntimeException("No client configuration found");
-        }
-        Client client = clients.get(0);
-        GoogleCred googleCred = client.getGoogleCred();
-        EmailTemplates emailTemplates = new EmailTemplates("Ultimate Company", client.getSupportEmail(), client.getSendGridApiKey(), environment, client);
-        emailTemplates.sendNewUserAccountConfirmation(savedUser.getUserId(), newUser.getToken(), newUser.getLoginName(), plainPassword);
-
-        return "true";
-    }
-
-    /**
      * Resets the password for an existing user.
      * Validates the login name, checks if the user exists and has a password set.
-     * Generates a new random password, hashes it, updates the user record, resets locked attempts and unlocks the account,
+     * Generates a new random password, hashes it, updates the user record, unlocks the account, resets login attempts to 5,
      * sends a reset password email, and logs the action.
      * The client is determined dynamically (currently hardcoded to the first client).
      *
@@ -238,19 +210,39 @@ public class LoginService implements ILoginSubTranslator {
             user.setSalt(saltAndHash[0]);
             user.setPassword(saltAndHash[1]);
             user.setLocked(false);
+            user.setLoginAttempts(5); // Reset login attempts to 5
 
             Client client = clientRepository.findFirstByOrderByClientIdAsc();
             if (client == null) {
                 throw new RuntimeException("No client configuration found");
             }
-            GoogleCred googleCred = client.getGoogleCred();
-            EmailTemplates emailTemplates = new EmailTemplates("Ultimate Company", client.getSupportEmail(), client.getSendGridApiKey(), environment, client);
+            
+            // Get email configuration from properties - all are required
+            String senderEmail = environment.getProperty("email.sender.address");
+            String senderName = environment.getProperty("email.sender.name");
+            String sendGridApiKey = environment.getProperty("sendgrid.api.key");
+            
+            // Validate all required email configuration properties are present
+            if (senderEmail == null || senderEmail.trim().isEmpty()) {
+                throw new BadRequestException("Email sender address is not configured in properties");
+            }
+            if (senderName == null || senderName.trim().isEmpty()) {
+                throw new BadRequestException("Email sender name is not configured in properties");
+            }
+            if (sendGridApiKey == null || sendGridApiKey.trim().isEmpty()) {
+                throw new BadRequestException("SendGrid API key is not configured in properties");
+            }
+            
+            EmailTemplates emailTemplates = new EmailTemplates(senderName, senderEmail, sendGridApiKey, environment, client);
             boolean emailSent = emailTemplates.sendResetPasswordEmail(user.getLoginName(), randomPassword);
             
             // Verify that the email was sent successfully and contains the password
             if (!emailSent) {
                 throw new RuntimeException("Failed to send reset password email");
             }
+            
+            // Save the user with updated password, salt, locked status, and login attempts
+            userRepository.save(user);
 
             return true;
         }

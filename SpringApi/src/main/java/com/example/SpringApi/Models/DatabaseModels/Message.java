@@ -93,7 +93,7 @@ public class Message {
      * @param clientId The client ID this message belongs to
      */
     public Message(MessageRequestModel request, Long createdByUserId, String createdUser, Long clientId) {
-        validateRequest(request);
+        validateRequest(request, null); // null existingMessage for create
         validateUserId(createdByUserId);
 
         setFieldsFromRequest(request);
@@ -111,7 +111,7 @@ public class Message {
      * @param existingMessage The existing message entity to be updated
      */
     public Message(MessageRequestModel request, Long auditUserId, Message existingMessage) {
-        validateRequest(request);
+        validateRequest(request, existingMessage); // Pass existingMessage for update validation
         validateUserId(auditUserId);
         
         // Copy existing fields
@@ -127,9 +127,10 @@ public class Message {
      * Validates the request model for required fields and constraints.
      * 
      * @param request The MessageRequestModel to validate
+     * @param existingMessage The existing message (null for create, non-null for update)
      * @throws BadRequestException if validation fails
      */
-    private void validateRequest(MessageRequestModel request) {
+    private void validateRequest(MessageRequestModel request, Message existingMessage) {
         if (request == null) {
             throw new BadRequestException("Invalid message request");
         }
@@ -153,6 +154,71 @@ public class Message {
         
         if (!hasUserIds && !hasGroupIds) {
             throw new BadRequestException(ErrorMessages.MessagesErrorMessages.ER008);
+        }
+        
+        // Validate publishDate and sendAsEmail relationship
+        boolean requestSendAsEmail = request.getSendAsEmail() != null && request.getSendAsEmail();
+        LocalDateTime requestPublishDate = request.getPublishDate();
+        
+        // Rule: If publishDate is not null, sendAsEmail must be true
+        if (requestPublishDate != null && !requestSendAsEmail) {
+            throw new BadRequestException("If publish date is set, sendAsEmail must be true.");
+        }
+        
+        // UPDATE PATH VALIDATIONS (only if existingMessage is provided)
+        if (existingMessage != null) {
+            boolean existingSendAsEmail = Boolean.TRUE.equals(existingMessage.getSendAsEmail());
+            LocalDateTime existingPublishDate = existingMessage.getPublishDate();
+            
+            // Rule 1: If existing message has sendAsEmail=true, you cannot change it to false
+            if (existingSendAsEmail && !requestSendAsEmail) {
+                throw new BadRequestException("Cannot disable sendAsEmail once it has been enabled.");
+            }
+            
+            // Rule 2: If existing message has sendAsEmail=true, you cannot add/change publishDate
+            if (existingSendAsEmail && existingPublishDate == null && requestPublishDate != null) {
+                throw new BadRequestException("Cannot add publish date to a message that was already sent as email without scheduling.");
+            }
+            
+            // Rule 3: If existing message has both sendAsEmail=true AND publishDate set, 
+            // you cannot change/add publishDate or change sendAsEmail
+            if (existingSendAsEmail && existingPublishDate != null) {
+                // Cannot change publishDate
+                if (requestPublishDate != null && !requestPublishDate.equals(existingPublishDate)) {
+                    throw new BadRequestException("Cannot modify publish date for a scheduled email.");
+                }
+                // Cannot change sendAsEmail
+                if (!requestSendAsEmail) {
+                    throw new BadRequestException("Cannot disable sendAsEmail for a scheduled email.");
+                }
+            }
+        }
+        
+        // Validate publishDate constraints (if being set)
+        if (requestPublishDate != null) {
+            validatePublishDate(requestPublishDate);
+        }
+    }
+    
+    /**
+     * Validates the publish date constraints.
+     * 
+     * @param publishDate The publish date to validate
+     * @throws BadRequestException if validation fails
+     */
+    private void validatePublishDate(LocalDateTime publishDate) {
+        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC);
+        java.time.ZonedDateTime publishDateUtc = publishDate.atZone(java.time.ZoneOffset.UTC);
+        
+        // Cannot be in the past
+        long hoursDifference = java.time.temporal.ChronoUnit.HOURS.between(now, publishDateUtc);
+        if (hoursDifference < 0) {
+            throw new BadRequestException(ErrorMessages.MessagesErrorMessages.ER009);
+        }
+        
+        // Cannot be more than 72 hours in the future
+        if (hoursDifference > 72) {
+            throw new BadRequestException(ErrorMessages.MessagesErrorMessages.ER010);
         }
     }
     

@@ -219,11 +219,144 @@ public class EmailTemplates {
     }
 
     /**
-     * Sends a password reset email to the specified email address.
+     * Sends a message email with professional template including logo and footer.
+     * The message body HTML is rendered within the template.
+     *
+     * @param recipientEmails List of recipient email addresses
+     * @param messageTitle The title/subject of the message
+     * @param messageBodyHtml The HTML content of the message body
+     * @param sendAt Optional scheduled send time (null for immediate send)
+     * @param batchId Optional batch ID for scheduled emails
+     * @return true if email was sent successfully, false otherwise
+     */
+    public boolean sendMessageEmail(
+            List<String> recipientEmails,
+            String messageTitle,
+            String messageBodyHtml,
+            java.time.LocalDateTime sendAt,
+            String batchId) {
+        
+        // Use logo URL from client
+        String companyLogoUrl = client.getLogoUrl();
+        
+        // Create logo HTML if available
+        String logoHtml = (companyLogoUrl != null && !companyLogoUrl.isEmpty()) 
+            ? String.format("<img src=\"%s\" alt=\"%s Logo\" style=\"max-width: 300px; height: auto; margin-bottom: 20px;\">", 
+                companyLogoUrl, client.getName())
+            : "";
+        
+        // Create the professional email template with logo and footer
+        String emailTemplate = String.format(
+                """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>%s</title>
+                </head>
+                <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+                    <table width="100%%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5;">
+                        <tr>
+                            <td align="center" style="padding: 20px 0;">
+                                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <!-- Header -->
+                                    <tr>
+                                        <td style="padding: 30px 40px; text-align: center; background-color: #f3f4f6; border-radius: 8px 8px 0 0;">
+                                            %s
+                                            <h1 style="margin: 10px 0 0 0; color: #333; font-size: 24px; font-weight: bold;">%s</h1>
+                                        </td>
+                                    </tr>
+                                    <!-- Message Title -->
+                                    <tr>
+                                        <td style="padding: 20px 40px 10px 40px;">
+                                            <h2 style="margin: 0; color: #1f2937; font-size: 20px; font-weight: 600;">%s</h2>
+                                        </td>
+                                    </tr>
+                                    <!-- Message Body -->
+                                    <tr>
+                                        <td style="padding: 10px 40px 30px 40px; color: #4b5563; font-size: 14px; line-height: 1.6;">
+                                            %s
+                                        </td>
+                                    </tr>
+                                    <!-- Footer -->
+                                    <tr>
+                                        <td style="padding: 20px 40px; text-align: center; background-color: #f3f4f6; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
+                                            <p style="margin: 0 0 10px 0; font-size: 14px; color: #6b7280;">Thank you for choosing %s!</p>
+                                            <p style="margin: 0; font-size: 12px; color: #9ca3af;">
+                                                For support, contact us at <a href="mailto:%s" style="color: #3b82f6; text-decoration: none;">%s</a>
+                                            </p>
+                                            <p style="margin: 10px 0 0 0; font-size: 11px; color: #9ca3af;">
+                                                &copy; %s %s. All rights reserved.
+                                            </p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </body>
+                </html>
+                """,
+                messageTitle,
+                logoHtml,
+                client.getName(),
+                messageTitle,
+                messageBodyHtml,
+                client.getName(),
+                client.getSupportEmail(),
+                client.getSupportEmail(),
+                java.time.Year.now().getValue(),
+                client.getName()
+        );
+        
+        // Plain text fallback content (strip HTML tags)
+        String plainText = String.format(
+                """
+                %s
+                
+                %s
+                
+                %s
+                
+                Thank you for choosing %s!
+                For support, contact us at %s
+                """,
+                client.getName(),
+                messageTitle,
+                messageBodyHtml.replaceAll("<[^>]*>", ""),
+                client.getName(),
+                client.getSupportEmail()
+        );
+        
+        // Create SendEmailRequest object
+        SendEmailRequest sendEmailRequest = new SendEmailRequest();
+        sendEmailRequest.setToAddress(recipientEmails);
+        sendEmailRequest.setSubject(messageTitle);
+        sendEmailRequest.setHtmlContent(emailTemplate);
+        sendEmailRequest.setPlainTextContent(plainText);
+        
+        // Set scheduling parameters if provided
+        if (sendAt != null) {
+            sendEmailRequest.setSendAt(sendAt);
+        }
+        if (batchId != null) {
+            sendEmailRequest.setBatchId(batchId);
+        }
+        
+        // Send the email
+        return emailHelper.sendEmail(sendEmailRequest);
+    }
+
+    /**
+     * Sends a password reset email to the specified email address with a professional template.
+     * The email includes the company logo, a styled header, the new password, security instructions,
+     * and a branded footer with support information.
      *
      * @param email    The email address of the recipient.
      * @param password The new password for the user.
-     * @return A response indicating the success status and message.
+     * @return true if the email was sent successfully, false otherwise.
+     * @throws IllegalArgumentException if password is null or empty
      */
     public boolean sendResetPasswordEmail(String email, String password) {
         // Validate that password is provided
@@ -231,46 +364,153 @@ public class EmailTemplates {
             throw new IllegalArgumentException("Password cannot be null or empty");
         }
 
-        // Create a SendEmailRequest object with the necessary details
+        // Build the email body with professional HTML template
+        String emailBody = String.format("""
+                <div style="padding: 30px; background-color: #ffffff;">
+                    <h2 style="color: #2c3e50; margin-bottom: 20px; font-size: 24px; border-bottom: 2px solid #3498db; padding-bottom: 10px;">
+                        Password Reset Successful
+                    </h2>
+                    
+                    <p style="color: #34495e; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                        Your password has been successfully reset. Please use the new password below to sign in to your account.
+                    </p>
+                    
+                    <div style="background-color: #f8f9fa; border-left: 4px solid #3498db; padding: 20px; margin: 25px 0; border-radius: 4px;">
+                        <p style="color: #7f8c8d; font-size: 14px; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px;">
+                            Your New Password
+                        </p>
+                        <p style="color: #2c3e50; font-size: 20px; font-weight: bold; margin: 0; font-family: 'Courier New', monospace; word-break: break-all;">
+                            %s
+                        </p>
+                    </div>
+                    
+                    <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 15px; margin: 25px 0;">
+                        <p style="color: #856404; font-size: 14px; margin: 0; line-height: 1.6;">
+                            <strong>⚠️ Important Security Information:</strong><br/>
+                            • For your security, we strongly recommend changing this password after logging in.<br/>
+                            • If you did not request this password reset, please contact our support team immediately.<br/>
+                            • Never share your password with anyone.
+                        </p>
+                    </div>
+                    
+                    <p style="color: #34495e; font-size: 16px; line-height: 1.6; margin-top: 25px;">
+                        You can now sign in to your account using this new password. Once signed in, you can change it to something more memorable in your account settings.
+                    </p>
+                    
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                        <p style="color: #7f8c8d; font-size: 14px; line-height: 1.6;">
+                            Need assistance? Our support team is here to help!<br/>
+                            Contact us at <a href="mailto:%s" style="color: #3498db; text-decoration: none;">%s</a>
+                        </p>
+                    </div>
+                </div>
+                """,
+                password,
+                client.getSupportEmail(),
+                client.getSupportEmail()
+        );
+        
+        // Generate the full HTML template with logo, header, and footer
+        String emailTemplate = String.format("""
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Password Reset</title>
+                </head>
+                <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4;">
+                    <table role="presentation" style="width: 100%%; border-collapse: collapse; background-color: #f4f4f4;">
+                        <tr>
+                            <td align="center" style="padding: 40px 0;">
+                                <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border-radius: 8px; overflow: hidden;">
+                                    <!-- Header with Logo -->
+                                    <tr>
+                                        <td style="background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); padding: 40px; text-align: center;">
+                                            <img src="%s" alt="%s Logo" style="max-width: 180px; height: auto; margin-bottom: 15px;" />
+                                            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">
+                                                %s
+                                            </h1>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Main Content -->
+                                    <tr>
+                                        <td>
+                                            %s
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Footer -->
+                                    <tr>
+                                        <td style="background-color: #2c3e50; padding: 30px; text-align: center;">
+                                            <p style="color: #ecf0f1; font-size: 14px; margin: 0 0 10px 0;">
+                                                Thank you for choosing <strong>%s</strong>
+                                            </p>
+                                            <p style="color: #95a5a6; font-size: 12px; margin: 0 0 15px 0;">
+                                                For support and inquiries, contact us at:<br/>
+                                                <a href="mailto:%s" style="color: #3498db; text-decoration: none;">%s</a>
+                                            </p>
+                                            <p style="color: #7f8c8d; font-size: 11px; margin: 0;">
+                                                &copy; %d %s. All rights reserved.
+                                            </p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </body>
+                </html>
+                """,
+                client.getLogoUrl(),
+                client.getName(),
+                client.getName(),
+                emailBody,
+                client.getName(),
+                client.getSupportEmail(),
+                client.getSupportEmail(),
+                java.time.Year.now().getValue(),
+                client.getName()
+        );
+        
+        // Plain text fallback content (strip HTML tags)
+        String plainText = String.format("""
+                %s - Password Reset
+                
+                Your password has been successfully reset.
+                
+                Your New Password: %s
+                
+                IMPORTANT SECURITY INFORMATION:
+                - For your security, please change this password after logging in.
+                - If you did not request this password reset, contact support immediately.
+                - Never share your password with anyone.
+                
+                You can now sign in to your account using this new password.
+                
+                Thank you for choosing %s!
+                For support, contact us at %s
+                """,
+                client.getName(),
+                password,
+                client.getName(),
+                client.getSupportEmail()
+        );
+        
+        // Create SendEmailRequest object
         SendEmailRequest sendEmailRequest = new SendEmailRequest();
-        sendEmailRequest.setSubject("Password Reset");
         List<String> toAddresses = new ArrayList<>();
         toAddresses.add(email);
         sendEmailRequest.setToAddress(toAddresses);
-        sendEmailRequest.setPlainTextContent("Your New password is: " + password);
-        String htmlContent = """
-        <html>
-          <body style='font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;'>
-            <div style='max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);'>
-              <header style='text-align: center; padding: 20px 0;'>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.98 92.12" style='width: 150px; margin-bottom: 10px;'>
-                  <path d="M6.46 69.53c3.17 2.5 6.37 4.94 10.19 6.36 13.43 5 26 3.14 37.2-5.58A22.62 22.62 0 0 0 62.52 52c.09-15.33 0-30.65 0-46 0-3.81.25-4.16 4-3.33C79 5.47 87.64 14.76 87.88 27.38c.17 8.26.08 16.53 0 24.79a39.38 39.38 0 0 1-31.35 38.47c-10.38 2.29-20.47 2.18-30.31-2.12a44.12 44.12 0 0 1-20-17.6A3.08 3.08 0 0 1 6 70z" fill="#0bf"/>
-                  <path d="M0 23.1V3.46C0 .3.65-.42 3.62.2c12.16 2.55 21.27 11 21.7 24.33.25 7.74.11 15.5 0 23.26-.08 6.65 2.25 12 7.7 16 2 1.44 1.88 2.15-.37 3.16-7.94 3.54-20.48.89-26.83-7.16C1.79 54.67.3 48.77.1 42.48-.1 36 .06 29.56.06 23.1z" fill="#5592ff"/>
-                </svg>
-                <h1 style='color: #333;'>Ultimate Company</h1>
-              </header>
-              <div style='padding: 20px;'>
-                <h3 style='color: #333;'>Your new password is:</h3>
-                <p style='font-size: 18px; font-weight: bold; color: #555;'>""" + password + """
-                </p>
-                <p style='color: #777; margin-top: 20px;'>For your security, please change this password after logging in.</p>
-                <p style='color: #777;'>If you did not request a new password, please contact our support team immediately.</p>
-              </div>
-              <footer style='text-align: center; padding: 10px 0; background-color: #333; color: white; border-top: 1px solid #ddd;'>
-                <p>&copy;""" + java.time.Year.now() + """ 
-                Ultimate Company. All rights reserved.</p>
-                <p>Mumbai Maharashtra</p>
-              </footer>
-            </div>
-          </body>
-        </html>""";
+        sendEmailRequest.setSubject("Password Reset - " + client.getName());
+        sendEmailRequest.setHtmlContent(emailTemplate);
+        sendEmailRequest.setPlainTextContent(plainText);
 
         // Verify that the password is actually included in the HTML content
-        if (!htmlContent.contains(password)) {
+        if (!emailTemplate.contains(password)) {
             throw new IllegalStateException("Password is not properly included in the email HTML content");
         }
-
-        sendEmailRequest.setHtmlContent(htmlContent);
 
         // Send the reset password email using the email helper
         return emailHelper.sendEmail(sendEmailRequest);

@@ -22,6 +22,8 @@ public class ClientResponseModel {
     
     private Long clientId;
     private String name;
+    private String logoUrl;
+    private String apiKey;
     private String description;
     private String sendGridApiKey;
     private String sendGridEmailAddress;

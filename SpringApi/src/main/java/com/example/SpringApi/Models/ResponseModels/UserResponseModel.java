@@ -105,6 +105,7 @@ public class UserResponseModel {
                         ucpm.getPermission().getDescription(),
                         ucpm.getPermission().getCategory()
                     ))
+                    .sorted((p1, p2) -> Long.compare(p1.getPermissionId(), p2.getPermissionId()))
                     .collect(Collectors.toList());
             }
             
@@ -113,6 +114,7 @@ public class UserResponseModel {
                 this.userGroups = user.getUserGroupMappings().stream()
                     .filter(ugm -> !ugm.getUserGroup().getIsDeleted())
                     .map(ugm -> new UserGroupResponseModel(ugm.getUserGroup(), false))
+                    .sorted((g1, g2) -> Long.compare(g1.getGroupId(), g2.getGroupId())) // Sort by groupId ascending
                     .collect(Collectors.toList());
             }
         }

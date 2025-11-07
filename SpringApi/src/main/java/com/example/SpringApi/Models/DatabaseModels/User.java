@@ -72,7 +72,7 @@ public class User {
     @Column(name = "emailConfirmed", nullable = false)
     private Boolean emailConfirmed;
 
-    @Column(name = "token", nullable = false)
+    @Column(name = "token", nullable = true)
     private String token;
 
     @Column(name = "dob", nullable = false)

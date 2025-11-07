@@ -33,6 +33,14 @@ public interface UserClientMappingRepository extends JpaRepository<UserClientMap
      * @return Optional containing the mapping if found
      */
     Optional<UserClientMapping> findByApiKey(String apiKey);
+    
+    /**
+     * Finds all UserClientMappings for a given user ID.
+     * 
+     * @param userId The user ID
+     * @return List of UserClientMappings for the user
+     */
+    List<UserClientMapping> findByUserId(Long userId);
 }
 
 

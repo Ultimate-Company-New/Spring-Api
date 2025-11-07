@@ -224,6 +224,26 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
             }
         }
 
+        // Validate condition
+        if (userGroupRequestModel.getCondition() != null && !userGroupRequestModel.getCondition().isEmpty()) {
+            Set<String> validConditions = new HashSet<>(Arrays.asList(
+                "equals",
+                "contains",
+                "startsWith",
+                "endsWith",
+                "isEmpty",
+                "isNotEmpty",
+                "greaterThan",
+                "lessThan",
+                "greaterThanOrEqual",
+                "lessThanOrEqual"
+            ));
+            
+            if (!validConditions.contains(userGroupRequestModel.getCondition())) {
+                throw new BadRequestException("Invalid condition for filtering: " + userGroupRequestModel.getCondition());
+            }
+        }
+
         // Validate page size
         int start = userGroupRequestModel.getStart();
         int end = userGroupRequestModel.getEnd();

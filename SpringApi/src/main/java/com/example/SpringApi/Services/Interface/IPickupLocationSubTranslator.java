@@ -80,15 +80,4 @@ public interface IPickupLocationSubTranslator {
      * @throws NotFoundException if the pickup location is not found
      */
     void togglePickupLocation(long pickupLocationId);
-    
-    /**
-     * Retrieves all pickup locations for the current client.
-     * 
-     * This method returns all pickup locations associated with the current client context.
-     * Can optionally include deleted records based on the includeDeleted parameter.
-     * 
-     * @param includeDeleted Whether to include deleted pickup locations in the result
-     * @return List of pickup locations
-     */
-    List<PickupLocationResponseModel> getAllPickupLocations(boolean includeDeleted);
 }

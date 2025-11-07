@@ -262,12 +262,6 @@ class UserServiceTest {
     @Test
     @DisplayName("Get User By ID - Success - Should return user with permissions")
     void getUserById_Success() {
-        // Arrange
-        List<Object[]> permissionData = Arrays.asList(
-            new Object[]{1L, "View Users", "VIEW_USER", "Permission to view users", "User Management"},
-            new Object[]{2L, "Create Users", "CREATE_USER", "Permission to create users", "User Management"}
-        );
-        
         when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(testUser);
         
         // Act

@@ -11,9 +11,9 @@ import com.example.SpringApi.Models.DatabaseModels.MessageUserReadMap;
 import com.example.SpringApi.Models.DatabaseModels.MessageUserMap;
 import com.example.SpringApi.Models.DatabaseModels.MessageUserGroupMap;
 import com.example.SpringApi.Models.DatabaseModels.User;
-import com.example.SpringApi.Models.RequestModels.SendEmailRequest;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Helpers.EmailHelper;
+import com.example.SpringApi.Helpers.EmailTemplates;
 import com.example.SpringApi.Repositories.ClientRepository;
 import com.example.SpringApi.Repositories.MessageRepository;
 import com.example.SpringApi.Repositories.MessageUserReadMapRepository;
@@ -25,6 +25,7 @@ import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.SuccessMessages;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +34,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
@@ -56,6 +56,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
     private final MessageUserGroupMapRepository messageUserGroupMapRepository;
     private final ClientRepository clientRepository;
     private final UserLogService userLogService;
+    private final Environment environment;
 
     @Autowired
     public MessageService(MessageRepository messageRepository,
@@ -64,7 +65,8 @@ public class MessageService extends BaseService implements IMessageSubTranslator
                          MessageUserMapRepository messageUserMapRepository,
                          MessageUserGroupMapRepository messageUserGroupMapRepository,
                          ClientRepository clientRepository,
-                         UserLogService userLogService) {
+                         UserLogService userLogService,
+                         Environment environment) {
         super();
         this.messageRepository = messageRepository;
         this.userRepository = userRepository;
@@ -73,6 +75,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
         this.messageUserGroupMapRepository = messageUserGroupMapRepository;
         this.clientRepository = clientRepository;
         this.userLogService = userLogService;
+        this.environment = environment;
     }
 
     /**
@@ -156,21 +159,8 @@ public class MessageService extends BaseService implements IMessageSubTranslator
         // Use the Message constructor that handles validation and field mapping
         Message message = new Message(messageRequestModel, getUserId(), getUser(), getClientId());
         
-        // Validate and generate batch ID if sendAsEmail is true and save it
+        // Generate batch ID if sendAsEmail is true and publishDate is set
         if (Boolean.TRUE.equals(message.getSendAsEmail()) && message.getPublishDate() != null) {
-            // Validate that the scheduled time is within SendGrid's 72-hour window (UTC)
-            ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
-            ZonedDateTime publishDateUtc = message.getPublishDate().atZone(ZoneOffset.UTC);
-            long hoursDifference = ChronoUnit.HOURS.between(now, publishDateUtc);
-            
-            if (hoursDifference < 0) {
-                throw new BadRequestException(ErrorMessages.MessagesErrorMessages.ER009);
-            }
-            
-            if (hoursDifference > 72) {
-                throw new BadRequestException(ErrorMessages.MessagesErrorMessages.ER010);
-            }
-            
             EmailHelper emailHelper = new EmailHelper(
                 client.getSendGridEmailAddress(),
                 client.getSendgridSenderName(),
@@ -210,8 +200,8 @@ public class MessageService extends BaseService implements IMessageSubTranslator
             }
         }
         
-        // Schedule email if sendAsEmail is true
-        if (Boolean.TRUE.equals(savedMessage.getSendAsEmail()) && savedMessage.getPublishDate() != null) {
+        // Schedule or send email if sendAsEmail is true
+        if (Boolean.TRUE.equals(savedMessage.getSendAsEmail())) {
             // Fetch all recipient emails in a single query
             List<Long> userIds = messageRequestModel.getUserIds() != null ? messageRequestModel.getUserIds() : Collections.emptyList();
             List<Long> groupIds = messageRequestModel.getUserGroupIds() != null ? messageRequestModel.getUserGroupIds() : Collections.emptyList();
@@ -222,24 +212,23 @@ public class MessageService extends BaseService implements IMessageSubTranslator
             );
             
             if (!recipientEmails.isEmpty()) {
-                
-                EmailHelper emailHelper = new EmailHelper(
-                    client.getSendGridEmailAddress(),
+                // Use professional email template with logo and footer
+                EmailTemplates emailTemplates = new EmailTemplates(
                     client.getSendgridSenderName(),
-                    client.getSendGridApiKey()
+                    client.getSendGridEmailAddress(),
+                    client.getSendGridApiKey(),
+                    environment,
+                    client
                 );
                 
-                // Create email request
-                SendEmailRequest emailRequest = new SendEmailRequest();
-                emailRequest.setToAddress(recipientEmails);
-                emailRequest.setSubject(savedMessage.getTitle());
-                emailRequest.setHtmlContent(savedMessage.getDescriptionHtml());
-                emailRequest.setPlainTextContent(savedMessage.getDescriptionHtml().replaceAll("<[^>]*>", "")); // Strip HTML tags
-                emailRequest.setSendAt(savedMessage.getPublishDate());
-                emailRequest.setBatchId(savedMessage.getSendgridEmailBatchId());
-                
-                // Send/schedule the email
-                emailHelper.sendEmail(emailRequest);
+                // Send/schedule the email with professional template
+                emailTemplates.sendMessageEmail(
+                    recipientEmails,
+                    savedMessage.getTitle(),
+                    savedMessage.getDescriptionHtml(),
+                    savedMessage.getPublishDate(),
+                    savedMessage.getSendgridEmailBatchId()
+                );
             }
         }
         
@@ -268,12 +257,13 @@ public class MessageService extends BaseService implements IMessageSubTranslator
             getClientId()
         ).orElseThrow(() -> new NotFoundException(ErrorMessages.MessagesErrorMessages.InvalidId));
         
-        // Check if message can be edited (if email was sent, cannot edit)
+        // Check if message can be edited (if scheduled email has already been sent, cannot edit)
         if (Boolean.TRUE.equals(existingMessage.getSendAsEmail()) 
             && existingMessage.getPublishDate() != null) {
             ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
             ZonedDateTime publishDateUtc = existingMessage.getPublishDate().atZone(ZoneOffset.UTC);
             
+            // Only prevent editing if the scheduled time has passed
             if (now.isAfter(publishDateUtc)) {
                 throw new BadRequestException(ErrorMessages.MessagesErrorMessages.ER011);
             }
@@ -281,11 +271,11 @@ public class MessageService extends BaseService implements IMessageSubTranslator
         
         // Cancel old scheduled email if it exists and settings are changing
         if (existingMessage.getSendgridEmailBatchId() != null) {
-            // Check if email scheduling is being disabled or date is changing
+            // Check if email scheduling is being disabled or if we need to reschedule
             boolean emailSettingsChanged = !Boolean.TRUE.equals(messageRequestModel.getSendAsEmail())
-                || messageRequestModel.getPublishDate() == null
-                || !messageRequestModel.getPublishDate().equals(existingMessage.getPublishDate());
-            
+                || (messageRequestModel.getPublishDate() != null
+                    && !messageRequestModel.getPublishDate().equals(existingMessage.getPublishDate()));
+
             if (emailSettingsChanged) {
                 EmailHelper emailHelper = new EmailHelper(
                     client.getSendGridEmailAddress(),
@@ -296,27 +286,14 @@ public class MessageService extends BaseService implements IMessageSubTranslator
             }
         }
         
-        // Create updated message using constructor
+        // Create updated message using constructor (validation happens in constructor)
         Message updatedMessage = new Message(messageRequestModel, getUserId(), existingMessage);
         updatedMessage.setClientId(getClientId());
         updatedMessage.setModifiedUser(getUser());
         updatedMessage.setCreatedUser(existingMessage.getCreatedUser());
         
-        // Validate and generate new batch ID if sendAsEmail is true and publishDate is set
+        // Generate new batch ID if sendAsEmail is true and publishDate is set
         if (Boolean.TRUE.equals(updatedMessage.getSendAsEmail()) && updatedMessage.getPublishDate() != null) {
-            // Validate that the scheduled time is within SendGrid's 72-hour window (UTC)
-            ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
-            ZonedDateTime publishDateUtc = updatedMessage.getPublishDate().atZone(ZoneOffset.UTC);
-            long hoursDifference = ChronoUnit.HOURS.between(now, publishDateUtc);
-            
-            if (hoursDifference < 0) {
-                throw new BadRequestException(ErrorMessages.MessagesErrorMessages.ER009);
-            }
-            
-            if (hoursDifference > 72) {
-                throw new BadRequestException(ErrorMessages.MessagesErrorMessages.ER010);
-            }
-            
             EmailHelper emailHelper = new EmailHelper(
                 client.getSendGridEmailAddress(),
                 client.getSendgridSenderName(),
@@ -366,8 +343,8 @@ public class MessageService extends BaseService implements IMessageSubTranslator
             }
         }
         
-        // Schedule email if sendAsEmail is true
-        if (Boolean.TRUE.equals(savedMessage.getSendAsEmail()) && savedMessage.getPublishDate() != null) {
+        // Schedule or send email if sendAsEmail is true
+        if (Boolean.TRUE.equals(savedMessage.getSendAsEmail())) {
             // Fetch all recipient emails in a single query
             List<Long> userIds = messageRequestModel.getUserIds() != null ? messageRequestModel.getUserIds() : Collections.emptyList();
             List<Long> groupIds = messageRequestModel.getUserGroupIds() != null ? messageRequestModel.getUserGroupIds() : Collections.emptyList();
@@ -378,24 +355,23 @@ public class MessageService extends BaseService implements IMessageSubTranslator
             );
             
             if (!recipientEmails.isEmpty()) {
-                
-                EmailHelper emailHelper = new EmailHelper(
-                    client.getSendGridEmailAddress(),
+                // Use professional email template with logo and footer
+                EmailTemplates emailTemplates = new EmailTemplates(
                     client.getSendgridSenderName(),
-                    client.getSendGridApiKey()
+                    client.getSendGridEmailAddress(),
+                    client.getSendGridApiKey(),
+                    environment,
+                    client
                 );
                 
-                // Create email request
-                SendEmailRequest emailRequest = new SendEmailRequest();
-                emailRequest.setToAddress(recipientEmails);
-                emailRequest.setSubject(savedMessage.getTitle());
-                emailRequest.setHtmlContent(savedMessage.getDescriptionHtml());
-                emailRequest.setPlainTextContent(savedMessage.getDescriptionHtml().replaceAll("<[^>]*>", "")); // Strip HTML tags
-                emailRequest.setSendAt(savedMessage.getPublishDate());
-                emailRequest.setBatchId(savedMessage.getSendgridEmailBatchId());
-                
-                // Send/schedule the email
-                emailHelper.sendEmail(emailRequest);
+                // Send/schedule the email with professional template
+                emailTemplates.sendMessageEmail(
+                    recipientEmails,
+                    savedMessage.getTitle(),
+                    savedMessage.getDescriptionHtml(),
+                    savedMessage.getPublishDate(),
+                    savedMessage.getSendgridEmailBatchId()
+                );
             }
         }
         

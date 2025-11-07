@@ -5,7 +5,6 @@ import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
 import com.example.SpringApi.Services.Interface.ILoginSubTranslator;
 import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import com.example.SpringApi.Models.RequestModels.LoginRequestModel;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
@@ -45,6 +44,10 @@ public class LoginController {
         try {
             loginService.confirmEmail(loginRequestModel);
             return ResponseEntity.ok().build();
+        } catch (BadRequestException e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (UnauthorizedException e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -63,10 +66,11 @@ public class LoginController {
     /**
      * Endpoint for user sign-in.
      * Accepts a POST request with login credentials (login name and password).
-     * Returns a JWT token on successful authentication, or appropriate error status on failure.
+     * Returns a list of clients the user has access to (with logo, name, clientId, and apiKey for each),
+     * or appropriate error status on failure.
      *
      * @param loginRequestModel The request body containing login name and password.
-     * @return ResponseEntity with JWT token on success, or error response on failure.
+     * @return ResponseEntity with list of ClientResponseModel on success, or error response on failure.
      */
     @PostMapping("/" + ApiRoutes.LoginSubRoute.SIGN_IN)
     public ResponseEntity<?> signIn(@RequestBody LoginRequestModel loginRequestModel) {
@@ -84,33 +88,6 @@ public class LoginController {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
-        } catch (Exception e) {
-            logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
-        }
-    }
-
-    /**
-     * Endpoint for user sign-up.
-     * Accepts a PUT request with user registration details.
-     * Returns the generated API key on successful registration, or appropriate error status on failure.
-     *
-     * @param userRequestModel The request body containing user details for registration.
-     * @return ResponseEntity with API key on success, or error response on failure.
-     */
-    @PutMapping("/" + ApiRoutes.LoginSubRoute.SIGN_UP)
-    public ResponseEntity<?> signUp(@RequestBody UserRequestModel userRequestModel) {
-        try {
-            return ResponseEntity.ok(loginService.signUp(userRequestModel));
-        } catch (BadRequestException | IllegalArgumentException e) {
-            logger.error(e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.BAD_REQUEST.value()));
-        } catch (IllegalStateException e) {
-            logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

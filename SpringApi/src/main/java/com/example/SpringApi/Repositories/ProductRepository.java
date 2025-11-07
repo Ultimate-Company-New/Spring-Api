@@ -31,6 +31,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
            "LEFT JOIN FETCH p.createdByUser " +
            "WHERE p.clientId = :clientId " +
            "AND (:columnName IS NULL OR :columnName = '' OR " +
+           // Handle boolean fields - only support 'equals' condition
+           "(:columnName = 'isDiscountPercent' AND :condition = 'equals' AND ((:filterExpr = 'true' AND p.isDiscountPercent = true) OR (:filterExpr = 'false' AND p.isDiscountPercent = false))) OR " +
+           "(:columnName = 'returnsAllowed' AND :condition = 'equals' AND ((:filterExpr = 'true' AND p.returnsAllowed = true) OR (:filterExpr = 'false' AND p.returnsAllowed = false))) OR " +
+           "(:columnName = 'itemModified' AND :condition = 'equals' AND ((:filterExpr = 'true' AND p.itemModified = true) OR (:filterExpr = 'false' AND p.itemModified = false))) OR " +
+           "(:columnName = 'isDeleted' AND :condition = 'equals' AND ((:filterExpr = 'true' AND p.isDeleted = true) OR (:filterExpr = 'false' AND p.isDeleted = false))) OR " +
+           // For non-boolean fields, use LIKE
+           "(:columnName NOT IN ('isDiscountPercent', 'returnsAllowed', 'itemModified', 'isDeleted') AND " +
            "CASE :columnName " +
            "WHEN 'productId' THEN CAST(p.productId AS string) " +
            "WHEN 'title' THEN CONCAT(p.title, '') " +
@@ -45,16 +52,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
            "WHEN 'modificationHtml' THEN CONCAT(p.modificationHtml, '') " +
            "WHEN 'price' THEN CAST(p.price AS string) " +
            "WHEN 'discount' THEN CAST(p.discount AS string) " +
-           "WHEN 'isDiscountPercent' THEN CAST(p.isDiscountPercent AS string) " +
-           "WHEN 'returnsAllowed' THEN CAST(p.returnsAllowed AS string) " +
            "WHEN 'length' THEN CAST(p.length AS string) " +
            "WHEN 'breadth' THEN CAST(p.breadth AS string) " +
            "WHEN 'height' THEN CAST(p.height AS string) " +
            "WHEN 'weightKgs' THEN CAST(p.weightKgs AS string) " +
            "WHEN 'categoryId' THEN CAST(p.categoryId AS string) " +
            "WHEN 'pickupLocationId' THEN CAST(p.pickupLocationId AS string) " +
-           "WHEN 'isDeleted' THEN CAST(p.isDeleted AS string) " +
-           "WHEN 'itemModified' THEN CAST(p.itemModified AS string) " +
            "WHEN 'createdUser' THEN CONCAT(p.createdUser, '') " +
            "WHEN 'modifiedUser' THEN CONCAT(p.modifiedUser, '') " +
            "WHEN 'createdAt' THEN CAST(p.createdAt AS string) " +
@@ -68,7 +71,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
            "WHEN 'endsWith' THEN CONCAT('%', :filterExpr) " +
            "WHEN 'isEmpty' THEN '' " +
            "WHEN 'isNotEmpty' THEN '%' " +
-           "ELSE '' END)) " +
+           "ELSE '' END))) " +
            "AND (:selectedIds IS NULL OR p.productId IN (:selectedIds)) " +
            "AND (:includeDeleted = true OR p.isDeleted = false)")
     Page<Product> findPaginatedProducts(@Param("clientId") Long clientId,

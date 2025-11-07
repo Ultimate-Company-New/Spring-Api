@@ -8,11 +8,9 @@ import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Repositories.*;
 import com.example.SpringApi.Services.MessageService;
 import com.example.SpringApi.Services.UserLogService;
-import com.example.SpringApi.Helpers.EmailHelper;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.SuccessMessages;
 import com.example.SpringApi.Models.ApiRoutes;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,19 +20,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.Mock;
-import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.ArrayList;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -102,8 +96,7 @@ class MessageServiceTest {
     private static final String TEST_DESC_HTML = "<p>Test message description</p>";
     private static final String CREATED_USER = "testuser";
     private static final String TEST_EMAIL = "test@example.com";
-    private static final String BATCH_ID = "test-batch-id-123";
-
+    
     /**
      * Sets up test data before each test execution.
      * Initializes common test objects and configures mock behaviors.

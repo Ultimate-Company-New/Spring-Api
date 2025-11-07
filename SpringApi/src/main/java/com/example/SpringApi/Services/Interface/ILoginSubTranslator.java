@@ -1,12 +1,14 @@
 package com.example.SpringApi.Services.Interface;
 
 import com.example.SpringApi.Models.RequestModels.LoginRequestModel;
-import com.example.SpringApi.Models.RequestModels.UserRequestModel;
+import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
+
+import java.util.List;
 
 /**
- * Interface for login-related operations, defining the contract for user authentication,
- * registration, and management services. Implementations handle sign-in, sign-up,
- * password reset, email confirmation, and token generation.
+ * Interface for login-related operations, defining the contract for user authentication
+ * and management services. Implementations handle sign-in, password reset, 
+ * email confirmation, and token generation.
  */
 public interface ILoginSubTranslator {
     /**
@@ -23,28 +25,16 @@ public interface ILoginSubTranslator {
     /**
      * Authenticates a user by verifying their login name and password.
      * Performs several checks: validates input, checks if user exists, email is confirmed, account is not locked,
-     * password is set, and password matches. On successful authentication, generates and returns a JWT token.
+     * password is set, and password matches. On successful authentication, returns a list of clients the user has access to.
      * On failed attempts, decrements locked attempts and locks the account if attempts reach zero.
      *
      * @param loginRequestModel The login request model containing the login name and password.
-     * @return A JWT token string upon successful authentication.
+     * @return A list of ClientResponseModel containing logo, name, clientId, and apiKey for each client the user has access to.
      * @throws BadRequestException If login name or password is missing or invalid.
      * @throws NotFoundException If the user with the specified login name is not found.
      * @throws UnauthorizedException If email is not confirmed, account is locked, password is not set, or credentials are invalid.
      */
-    String signIn(LoginRequestModel loginRequestModel);
-
-    /**
-     * Registers a new user in the system.
-     * Checks if a user with the same login name already exists. If not, creates a new user with hashed password,
-     * generates API key and token, saves the user, sends an account confirmation email, and returns the API key.
-     * The client is determined dynamically (currently hardcoded to the first client), and email templates use client-specific details.
-     *
-     * @param userRequestModel The user request model containing user details for registration.
-     * @return The generated API key for the new user.
-     * @throws BadRequestException If a user with the same login name already exists.
-     */
-    String signUp(UserRequestModel userRequestModel);
+    List<ClientResponseModel> signIn(LoginRequestModel loginRequestModel);
 
     /**
      * Resets the password for an existing user.

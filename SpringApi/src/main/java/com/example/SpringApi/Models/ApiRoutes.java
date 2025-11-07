@@ -152,7 +152,6 @@ public class ApiRoutes {
         // Api + frontend Endpoints
         public static final String CONFIRM_EMAIL = "confirmEmail";
         public static final String SIGN_IN = "signIn";
-        public static final String SIGN_UP = "signUp";
         public static final String GOOGLE_SIGN_IN = "googleSignIn";
         public static final String RESET_PASSWORD = "resetPassword";
         public static final String GET_TOKEN = "getToken";
