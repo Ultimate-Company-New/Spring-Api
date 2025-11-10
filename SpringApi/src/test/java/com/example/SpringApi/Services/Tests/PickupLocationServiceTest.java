@@ -123,7 +123,6 @@ class PickupLocationServiceTest {
         testPickupLocationRequest = new PickupLocationRequestModel();
         testPickupLocationRequest.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
         testPickupLocationRequest.setAddressNickName(TEST_ADDRESS_NICKNAME);
-        testPickupLocationRequest.setClientId(TEST_CLIENT_ID);
         testPickupLocationRequest.setPickupLocationAddressId(TEST_ADDRESS_ID);
         testPickupLocationRequest.setShipRocketPickupLocationId(TEST_SHIPROCKET_ID);
         testPickupLocationRequest.setAddress(addressRequest);
@@ -134,7 +133,7 @@ class PickupLocationServiceTest {
         testAddress.setAddressId(TEST_ADDRESS_ID);
 
         // Initialize test pickup location
-        testPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER);
+        testPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER, TEST_CLIENT_ID);
         testPickupLocation.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
         testPickupLocation.setShipRocketPickupLocationId(TEST_SHIPROCKET_ID);
 
@@ -309,7 +308,7 @@ class PickupLocationServiceTest {
     @DisplayName("Update Pickup Location - Success")
     void updatePickupLocation_Success() throws Exception {
         // Arrange
-        PickupLocation existingPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER);
+        PickupLocation existingPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER, TEST_CLIENT_ID);
         existingPickupLocation.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
 
         when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(existingPickupLocation);
@@ -358,7 +357,7 @@ class PickupLocationServiceTest {
     @DisplayName("Update Pickup Location - Address Not Found")
     void updatePickupLocation_AddressNotFound_ThrowsNotFoundException() {
         // Arrange
-        PickupLocation existingPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER);
+        PickupLocation existingPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER, TEST_CLIENT_ID);
         existingPickupLocation.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
 
         when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(existingPickupLocation);
@@ -379,7 +378,7 @@ class PickupLocationServiceTest {
     @DisplayName("Update Pickup Location - ShipRocket API Failure")
     void updatePickupLocation_ShipRocketFailure_TransactionRollsBack() throws Exception {
         // Arrange
-        PickupLocation existingPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER);
+        PickupLocation existingPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER, TEST_CLIENT_ID);
         existingPickupLocation.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
 
         when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(existingPickupLocation);
@@ -444,47 +443,4 @@ class PickupLocationServiceTest {
         verify(pickupLocationRepository, times(1)).findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
     }
 
-    // ==================== Get All Pickup Locations Tests ====================
-
-    /**
-     * Test successful retrieval of all pickup locations including deleted.
-     * Verifies that addresses are fetched with pickup locations.
-     */
-    @Test
-    @DisplayName("Get All Pickup Locations - Include Deleted")
-    void getAllPickupLocations_IncludeDeleted_Success() {
-        // Arrange
-        List<PickupLocation> pickupLocations = Arrays.asList(testPickupLocation);
-        when(pickupLocationRepository.findAllWithAddressesByClientId(TEST_CLIENT_ID, true)).thenReturn(pickupLocations);
-
-        // Act
-        List<PickupLocationResponseModel> result = pickupLocationService.getAllPickupLocations(true);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(TEST_PICKUP_LOCATION_ID, result.get(0).getPickupLocationId());
-        verify(pickupLocationRepository, times(1)).findAllWithAddressesByClientId(TEST_CLIENT_ID, true);
-    }
-
-    /**
-     * Test successful retrieval of all non-deleted pickup locations.
-     * Verifies filtering of deleted records.
-     */
-    @Test
-    @DisplayName("Get All Pickup Locations - Exclude Deleted")
-    void getAllPickupLocations_ExcludeDeleted_Success() {
-        // Arrange
-        testPickupLocation.setIsDeleted(false);
-        List<PickupLocation> pickupLocations = Arrays.asList(testPickupLocation);
-        when(pickupLocationRepository.findAllWithAddressesByClientId(TEST_CLIENT_ID, false)).thenReturn(pickupLocations);
-
-        // Act
-        List<PickupLocationResponseModel> result = pickupLocationService.getAllPickupLocations(false);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        verify(pickupLocationRepository, times(1)).findAllWithAddressesByClientId(TEST_CLIENT_ID, false);
-    }
 }

@@ -20,7 +20,6 @@ public class PickupLocationRequestModel extends PaginationBaseRequestModel {
     private Long pickupLocationId;
     private String addressNickName;
     private Boolean isDeleted;
-    private Long clientId;
     private Long pickupLocationAddressId;
     private Long shipRocketPickupLocationId;
     private String notes;

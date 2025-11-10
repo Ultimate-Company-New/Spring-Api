@@ -155,6 +155,7 @@ public class ErrorMessages {
         public static final String ER004 = "Zip Code is required.";
         public static final String ER005 = "Country is required.";
         public static final String ER006 = "Invalid address type. Must be one of: HOME, WORK, BILLING, SHIPPING, OFFICE, WAREHOUSE.";
+        public static final String ER007 = "Invalid postal code. Must be a 5 or 6 digit number.";
 
     }
 

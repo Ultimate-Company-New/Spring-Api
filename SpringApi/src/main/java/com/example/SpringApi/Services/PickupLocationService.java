@@ -28,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Set;
 import java.util.HashSet;
@@ -213,7 +212,12 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         pickupLocationRequestModel.setPickupLocationAddressId(address.getAddressId());
         
         // Create the pickup location
-        PickupLocation pickupLocation = new PickupLocation(pickupLocationRequestModel, getUser());
+        PickupLocation pickupLocation = new PickupLocation(pickupLocationRequestModel, getUser(), getClientId());
+        
+        // Set the address on the pickup location for ShipRocket API call
+        // (The @ManyToOne relationship isn't loaded automatically)
+        pickupLocation.setAddress(address);
+        
         pickupLocation = pickupLocationRepository.save(pickupLocation);
         
         // Call ShipRocket to create pickup location
@@ -252,16 +256,25 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         }
         
         // Update the address if provided
+        Address updatedAddress = null;
         if (pickupLocationRequestModel.getAddress() != null) {
             Address existingAddress = addressRepository.findById(existingPickupLocation.getPickupLocationAddressId())
                 .orElseThrow(() -> new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound));
             
-            Address updatedAddress = new Address(pickupLocationRequestModel.getAddress(), getUser(), existingAddress);
-            addressRepository.save(updatedAddress);
+            updatedAddress = new Address(pickupLocationRequestModel.getAddress(), getUser(), existingAddress);
+            updatedAddress = addressRepository.save(updatedAddress);
+        } else {
+            // If address is not being updated, fetch the existing one for ShipRocket
+            updatedAddress = addressRepository.findById(existingPickupLocation.getPickupLocationAddressId())
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound));
         }
         
         // Update the pickup location
         PickupLocation updatedPickupLocation = new PickupLocation(pickupLocationRequestModel, getUser(), existingPickupLocation);
+        
+        // Set the address on the pickup location for ShipRocket API call
+        // (The @ManyToOne relationship isn't loaded automatically)
+        updatedPickupLocation.setAddress(updatedAddress);
         
         // Update in ShipRocket first to get the ShipRocket ID
         ShippingHelper shippingHelper = getShippingHelper();

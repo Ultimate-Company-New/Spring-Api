@@ -155,6 +155,9 @@ public class Address {
         if (request.getPostalCode() == null || request.getPostalCode().trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.AddressErrorMessages.ER004);
         }
+        if (!request.getPostalCode().matches("\\d{5,6}")) {
+            throw new BadRequestException(ErrorMessages.AddressErrorMessages.ER007);
+        }
         
         // Validate country (required, length > 0)
         if (request.getCountry() == null || request.getCountry().trim().isEmpty()) {

@@ -4,7 +4,6 @@ import com.example.SpringApi.Models.ResponseModels.PickupLocationResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import java.util.List;
 
 /**
  * Interface for PickupLocation-related business operations.

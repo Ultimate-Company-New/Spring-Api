@@ -55,7 +55,7 @@ public class PickupLocation {
     private String createdBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "createdBy", insertable = false, updatable = false)
+    @JoinColumn(name = "createdBy", referencedColumnName = "loginName", insertable = false, updatable = false)
     private User createdByUser;
 
     @UpdateTimestamp
@@ -66,8 +66,10 @@ public class PickupLocation {
     private String modifiedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "modifiedBy", insertable = false, updatable = false)
-    private User modifiedByUser;    @Column(name = "notes", columnDefinition = "TEXT")
+    @JoinColumn(name = "modifiedBy", referencedColumnName = "loginName", insertable = false, updatable = false)
+    private User modifiedByUser;    
+    
+    @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
     
     // Relations
@@ -87,13 +89,14 @@ public class PickupLocation {
      * @param request The PickupLocationRequestModel containing pickup location data
      * @param createdBy The username of the user creating this record
      */
-    public PickupLocation(PickupLocationRequestModel request, String createdBy) {
+    public PickupLocation(PickupLocationRequestModel request, String createdBy, Long clientId) {
         validateRequest(request);
         validateUser(createdBy);
         
         setFieldsFromRequest(request);
         this.createdBy = createdBy;
         this.modifiedBy = createdBy;  // When creating, modified user is same as created user
+        this.clientId = clientId;
     }
     
     /**
@@ -111,6 +114,7 @@ public class PickupLocation {
         this.pickupLocationId = existingPickupLocation.getPickupLocationId();
         this.createdAt = existingPickupLocation.getCreatedAt();
         this.createdBy = existingPickupLocation.getCreatedBy();
+        this.clientId = existingPickupLocation.getClientId();
         
         // Update with new values
         setFieldsFromRequest(request);
@@ -134,11 +138,6 @@ public class PickupLocation {
         }
         if (request.getAddressNickName().trim().length() > 255) {
             throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.AddressNickNameTooLong);
-        }
-        
-        // Validate client ID (required, > 0)
-        if (request.getClientId() == null || request.getClientId() <= 0) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidId);
         }
         
         // Validate pickup location address ID (required, > 0)
@@ -172,7 +171,6 @@ public class PickupLocation {
     private void setFieldsFromRequest(PickupLocationRequestModel request) {
         this.addressNickName = request.getAddressNickName().trim();
         this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : false;
-        this.clientId = request.getClientId();
         this.pickupLocationAddressId = request.getPickupLocationAddressId();
         this.shipRocketPickupLocationId = request.getShipRocketPickupLocationId();
         this.notes = request.getNotes() != null ? request.getNotes().trim() : null;
