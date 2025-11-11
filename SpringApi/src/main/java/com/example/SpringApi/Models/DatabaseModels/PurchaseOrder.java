@@ -5,12 +5,14 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
 import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * JPA Entity for the PurchaseOrder table.
@@ -26,13 +28,60 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "PurchaseOrder")
 public class PurchaseOrder {
+    
+    /**
+     * Enum for Purchase Order Status values.
+     */
+    public enum Status {
+        DRAFT("DRAFT"),
+        PENDING_APPROVAL("PENDING_APPROVAL"),
+        APPROVED("APPROVED"),
+        REJECTED("REJECTED"),
+        SENT_TO_VENDOR("SENT_TO_VENDOR"),
+        CONFIRMED_BY_VENDOR("CONFIRMED_BY_VENDOR"),
+        IN_TRANSIT("IN_TRANSIT"),
+        PARTIALLY_RECEIVED("PARTIALLY_RECEIVED"),
+        RECEIVED("RECEIVED"),
+        COMPLETED("COMPLETED"),
+        CANCELLED("CANCELLED"),
+        ON_HOLD("ON_HOLD");
+        
+        private final String value;
+        
+        Status(String value) {
+            this.value = value;
+        }
+        
+        public String getValue() {
+            return value;
+        }
+        
+        /**
+         * Check if a string value is a valid status.
+         * 
+         * @param value The string value to check
+         * @return true if valid, false otherwise
+         */
+        public static boolean isValid(String value) {
+            if (value == null) {
+                return false;
+            }
+            for (Status status : Status.values()) {
+                if (status.value.equals(value)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "purchaseOrderId", nullable = false)
     private Long purchaseOrderId;
 
-    @Column(name = "expectedShipmentDate")
-    private LocalDateTime expectedShipmentDate;
+    @Column(name = "expectedDeliveryDate")
+    private LocalDateTime expectedDeliveryDate;
 
     @Column(name = "vendorNumber", length = 100)
     private String vendorNumber;
@@ -40,23 +89,21 @@ public class PurchaseOrder {
     @Column(name = "isDeleted", nullable = false)
     private Boolean isDeleted;
 
-    @Column(name = "termsConditionsHtml", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "termsConditionsHtml", columnDefinition = "TEXT")
     private String termsConditionsHtml;
 
-    @Column(name = "orderReceipt", length = 500)
-    private String orderReceipt;
+    @Column(name = "purchaseOrderReceipt", length = 500)
+    private String purchaseOrderReceipt;
 
-    @Column(name = "orderStatus", nullable = false, length = 50)
-    private String orderStatus;
+    @Column(name = "purchaseOrderStatus", nullable = false, length = 50)
+    private String purchaseOrderStatus;
 
-    @Column(name = "paymentStatus", nullable = false, length = 50)
-    private String paymentStatus;
+    @Column(name = "paymentId")
+    private Long paymentId;
 
-    @Column(name = "totalAmount", nullable = false, precision = 10, scale = 2)
-    private BigDecimal totalAmount;
-
-    @Column(name = "amountPaid", nullable = false, precision = 10, scale = 2)
-    private BigDecimal amountPaid;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "paymentId", insertable = false, updatable = false)
+    private PaymentInfo paymentInfo;
 
     @Column(name = "clientId", nullable = false)
     private Long clientId;
@@ -65,12 +112,28 @@ public class PurchaseOrder {
     @JoinColumn(name = "clientId", insertable = false, updatable = false)
     private Client client;
 
+    @Column(name = "priority", nullable = false, length = 20)
+    private String priority;
+
     @Column(name = "approvedByUserId")
     private Long approvedByUserId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approvedByUserId", insertable = false, updatable = false)
     private User approvedByUser;
+
+    @Column(name = "approvedDate")
+    private LocalDateTime approvedDate;
+
+    @Column(name = "rejectedByUserId")
+    private Long rejectedByUserId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rejectedByUserId", insertable = false, updatable = false)
+    private User rejectedByUser;
+
+    @Column(name = "rejectedDate")
+    private LocalDateTime rejectedDate;
 
     @Column(name = "assignedLeadId", nullable = false)
     private Long assignedLeadId;
@@ -111,6 +174,13 @@ public class PurchaseOrder {
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
+    // Relationships - Collections
+    @OneToMany(mappedBy = "purchaseOrder", fetch = FetchType.LAZY)
+    private List<PurchaseOrderQuantityPriceMap> purchaseOrderQuantityPriceMaps = new ArrayList<>();
+
+    @Transient
+    private List<Resources> attachments = new ArrayList<>(); // Not persisted, populated manually
+
     /**
      * Default constructor.
      */
@@ -121,8 +191,12 @@ public class PurchaseOrder {
      * 
      * @param request The PurchaseOrderRequestModel containing the purchase order data
      * @param createdUser The user creating the purchase order
+     * @param clientId The client ID from the authenticated user's token
      */
-    public PurchaseOrder(PurchaseOrderRequestModel request, String createdUser) {
+    public PurchaseOrder(PurchaseOrderRequestModel request, String createdUser, Long clientId) {
+        // Set clientId from token (don't trust client-provided clientId)
+        request.setClientId(clientId);
+        
         validateRequest(request);
         validateUser(createdUser);
         
@@ -160,23 +234,36 @@ public class PurchaseOrder {
         if (request == null) {
             throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidRequest);
         }
-        if (request.getTermsConditionsHtml() == null || request.getTermsConditionsHtml().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidTermsConditions);
+        
+        // Validate max 30 attachments
+        if (request.getAttachments() != null && request.getAttachments().size() > 30) {
+            throw new BadRequestException("Maximum 30 attachments allowed per purchase order");
         }
-        if (request.getOrderStatus() == null || request.getOrderStatus().trim().isEmpty()) {
+        
+        // Validate that either purchaseOrderAddressId or address data is provided
+        if (request.getPurchaseOrderAddressId() == null && request.getAddress() == null) {
+            throw new BadRequestException("Either purchaseOrderAddressId or address data must be provided");
+        }
+        
+        // Validate that products list is provided and not empty
+        if (request.getProducts() == null || request.getProducts().isEmpty()) {
+            throw new BadRequestException("At least one product must be specified in products list");
+        }
+        
+        // termsConditionsHtml and vendorNumber are optional (can be null)
+        if (request.getPurchaseOrderStatus() == null || request.getPurchaseOrderStatus().trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidOrderStatus);
         }
-        if (request.getPaymentStatus() == null || request.getPaymentStatus().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidPaymentStatus);
+        // Validate purchaseOrderStatus values using enum
+        if (!Status.isValid(request.getPurchaseOrderStatus().trim())) {
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidOrderStatus);
         }
-        if (request.getTotalAmount() == null || request.getTotalAmount().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidTotalAmount);
+        if (request.getPriority() == null || request.getPriority().trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidPriority);
         }
-        if (request.getAmountPaid() == null || request.getAmountPaid().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidAmountPaid);
-        }
-        if (request.getAmountPaid().compareTo(request.getTotalAmount()) > 0) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AmountPaidExceedsTotal);
+        // Validate priority values
+        if (!request.getPriority().matches("LOW|MEDIUM|HIGH|URGENT")) {
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidPriority);
         }
         if (request.getClientId() == null) {
             throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidClientId);
@@ -207,19 +294,59 @@ public class PurchaseOrder {
      * @param request The PurchaseOrderRequestModel to extract fields from
      */
     private void setFieldsFromRequest(PurchaseOrderRequestModel request) {
-        this.expectedShipmentDate = request.getExpectedShipmentDate();
+        this.expectedDeliveryDate = request.getExpectedDeliveryDate();
         this.vendorNumber = request.getVendorNumber() != null ? request.getVendorNumber().trim() : null;
         this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : Boolean.FALSE;
-        this.termsConditionsHtml = request.getTermsConditionsHtml().trim();
-        this.orderReceipt = request.getOrderReceipt() != null ? request.getOrderReceipt().trim() : null;
-        this.orderStatus = request.getOrderStatus().trim();
-        this.paymentStatus = request.getPaymentStatus().trim();
-        this.totalAmount = request.getTotalAmount();
-        this.amountPaid = request.getAmountPaid();
+        this.termsConditionsHtml = request.getTermsConditionsHtml() != null ? request.getTermsConditionsHtml().trim() : null;
+        this.purchaseOrderReceipt = request.getPurchaseOrderReceipt() != null ? request.getPurchaseOrderReceipt().trim() : null;
+        this.purchaseOrderStatus = request.getPurchaseOrderStatus().trim();
+        this.priority = request.getPriority().trim();
+        this.paymentId = request.getPaymentId();
         this.clientId = request.getClientId();
         this.approvedByUserId = request.getApprovedByUserId();
+        this.approvedDate = request.getApprovedDate();
+        this.rejectedByUserId = request.getRejectedByUserId();
+        this.rejectedDate = request.getRejectedDate();
         this.assignedLeadId = request.getAssignedLeadId();
         this.purchaseOrderAddressId = request.getPurchaseOrderAddressId();
         this.notes = request.getNotes() != null ? request.getNotes().trim() : null;
+    }
+
+    /**
+     * Sets the approval fields for this purchase order.
+     * Also clears rejection fields since a PO can't be both approved and rejected.
+     * 
+     * @param modifiedByUser The user performing the approval
+     * @param approvedByUserId The ID of the user approving the purchase order
+     */
+    public void setApprovalFields(String modifiedByUser, Long approvedByUserId) {
+        this.approvedByUserId = approvedByUserId;
+        this.approvedDate = LocalDateTime.now(java.time.ZoneOffset.UTC);
+        
+        // Clear rejection fields when approving (a PO can't be both approved and rejected)
+        this.rejectedByUserId = null;
+        this.rejectedDate = null;
+        
+        // Update modified user
+        this.modifiedUser = modifiedByUser;
+    }
+
+    /**
+     * Sets the rejection fields for this purchase order.
+     * Also clears approval fields since a PO can't be both approved and rejected.
+     * 
+     * @param modifiedByUser The user performing the rejection
+     * @param rejectedByUserId The ID of the user rejecting the purchase order
+     */
+    public void setRejectionFields(String modifiedByUser, Long rejectedByUserId) {
+        this.rejectedByUserId = rejectedByUserId;
+        this.rejectedDate = LocalDateTime.now(java.time.ZoneOffset.UTC);
+        
+        // Clear approval fields when rejecting (a PO can't be both approved and rejected)
+        this.approvedByUserId = null;
+        this.approvedDate = null;
+        
+        // Update modified user
+        this.modifiedUser = modifiedByUser;
     }
 }

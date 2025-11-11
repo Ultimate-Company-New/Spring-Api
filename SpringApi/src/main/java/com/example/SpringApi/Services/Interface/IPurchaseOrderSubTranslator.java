@@ -99,6 +99,13 @@ public interface IPurchaseOrderSubTranslator {
     void approvedByPurchaseOrder(long id);
     
     /**
+     * Rejects a purchase order by ID.
+     * 
+     * @param id The ID of the purchase order to reject
+     */
+    void rejectedByPurchaseOrder(long id);
+    
+    /**
      * Generates a PDF document for a purchase order.
      * 
      * This method generates a formatted PDF document containing all purchase order
@@ -111,6 +118,7 @@ public interface IPurchaseOrderSubTranslator {
      * @throws UnauthorizedException if user is not authorized
      * @throws TemplateException if PDF template processing fails
      * @throws IOException if PDF generation fails
+     * @throws com.itextpdf.text.DocumentException if PDF document creation fails
      */
-    String getPurchaseOrderPDF(long id) throws TemplateException, IOException;
+    byte[] getPurchaseOrderPDF(long id) throws TemplateException, IOException, com.itextpdf.text.DocumentException;
 }

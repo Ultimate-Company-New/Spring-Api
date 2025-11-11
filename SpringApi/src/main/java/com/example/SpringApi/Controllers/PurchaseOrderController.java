@@ -13,7 +13,10 @@ import com.example.SpringApi.Exceptions.UnauthorizedException;
 import freemarker.template.TemplateException;
 import com.example.SpringApi.Logging.ContextualLogger;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -144,8 +147,8 @@ public class PurchaseOrderController {
      * @throws UnauthorizedException if user lacks VIEW_PURCHASE_ORDERS_PERMISSION
      */
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_PURCHASE_ORDERS_PERMISSION +"')")
-    @GetMapping(ApiRoutes.PurchaseOrderSubRoute.GET_PURCHASE_ORDER_BY_ID)
-    public ResponseEntity<?> getPurchaseOrderDetailsById(@RequestParam long id) {
+    @GetMapping(ApiRoutes.PurchaseOrderSubRoute.GET_PURCHASE_ORDER_BY_ID + "/{id}")
+    public ResponseEntity<?> getPurchaseOrderDetailsById(@PathVariable long id) {
         try {
             return ResponseEntity.ok(purchaseOrderService.getPurchaseOrderDetailsById(id));
         } catch (BadRequestException bre) {
@@ -176,8 +179,8 @@ public class PurchaseOrderController {
      * @throws UnauthorizedException if user lacks TOGGLE_PURCHASE_ORDERS_PERMISSION
      */
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.TOGGLE_PURCHASE_ORDERS_PERMISSION +"')")
-    @DeleteMapping(ApiRoutes.PurchaseOrderSubRoute.TOGGLE_PURCHASE_ORDER)
-    public ResponseEntity<?> togglePurchaseOrder(@RequestParam long id) {
+    @DeleteMapping(ApiRoutes.PurchaseOrderSubRoute.TOGGLE_PURCHASE_ORDER + "/{id}")
+    public ResponseEntity<?> togglePurchaseOrder(@PathVariable long id) {
         try {
             purchaseOrderService.togglePurchaseOrder(id);
             return ResponseEntity.ok().build();
@@ -209,10 +212,37 @@ public class PurchaseOrderController {
      * @throws UnauthorizedException if user lacks UPDATE_PURCHASE_ORDERS_PERMISSION
      */
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.UPDATE_PURCHASE_ORDERS_PERMISSION +"')")
-    @DeleteMapping(ApiRoutes.PurchaseOrderSubRoute.APPROVED_BY_PURCHASE_ORDER)
-    public ResponseEntity<?> approvedByPurchaseOrder(@RequestParam long id) {
+    @DeleteMapping(ApiRoutes.PurchaseOrderSubRoute.APPROVED_BY_PURCHASE_ORDER + "/{id}")
+    public ResponseEntity<?> approvedByPurchaseOrder(@PathVariable long id) {
         try {
             purchaseOrderService.approvedByPurchaseOrder(id);
+            return ResponseEntity.ok().build();
+        } catch (BadRequestException bre) {
+            logger.error(bre);
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (NotFoundException nfe) {
+            logger.error(nfe);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (UnauthorizedException uae) {
+            logger.error(uae);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+        } catch (Exception e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+
+    /**
+     * Rejects a purchase order by ID.
+     * 
+     * @param id The ID of the purchase order to reject
+     * @return ResponseEntity with status 200 if successful
+     */
+    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.UPDATE_PURCHASE_ORDERS_PERMISSION +"')")
+    @DeleteMapping(ApiRoutes.PurchaseOrderSubRoute.REJECTED_BY_PURCHASE_ORDER + "/{id}")
+    public ResponseEntity<?> rejectedByPurchaseOrder(@PathVariable long id) {
+        try {
+            purchaseOrderService.rejectedByPurchaseOrder(id);
             return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
@@ -236,7 +266,7 @@ public class PurchaseOrderController {
      * details including supplier information, line items, totals, and terms.
      * 
      * @param id The ID of the purchase order to generate PDF for
-     * @return ResponseEntity containing the PDF as a base64 encoded string
+     * @return ResponseEntity containing the PDF file as downloadable content
      * @throws BadRequestException if validation fails
      * @throws NotFoundException if the purchase order is not found
      * @throws UnauthorizedException if user lacks VIEW_PURCHASE_ORDERS_PERMISSION
@@ -244,10 +274,22 @@ public class PurchaseOrderController {
      * @throws IOException if PDF generation fails
      */
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_PURCHASE_ORDERS_PERMISSION +"')")
-    @GetMapping(ApiRoutes.PurchaseOrderSubRoute.GET_PURCHASE_ORDER_PDF)
-    public ResponseEntity<?> getPurchaseOrderPDF(@RequestParam long id) throws TemplateException, IOException {
+    @GetMapping(ApiRoutes.PurchaseOrderSubRoute.GET_PURCHASE_ORDER_PDF + "/{id}")
+    public ResponseEntity<?> getPurchaseOrderPDF(@PathVariable long id) throws TemplateException, IOException, com.itextpdf.text.DocumentException {
         try {
-            return ResponseEntity.ok(purchaseOrderService.getPurchaseOrderPDF(id));
+            byte[] pdfBytes = purchaseOrderService.getPurchaseOrderPDF(id);
+            
+            // Set headers for PDF download
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDisposition(
+                ContentDisposition.builder("attachment")
+                    .filename("PurchaseOrder_" + id + ".pdf")
+                    .build()
+            );
+            headers.setContentLength(pdfBytes.length);
+            
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));

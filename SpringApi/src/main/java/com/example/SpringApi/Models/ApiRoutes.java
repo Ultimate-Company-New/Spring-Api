@@ -345,6 +345,7 @@ public class ApiRoutes {
         public static final String UPDATE_PURCHASE_ORDER = "updatePurchaseOrder";
         public static final String TOGGLE_PURCHASE_ORDER = "togglePurchaseOrder";
         public static final String APPROVED_BY_PURCHASE_ORDER = "approvedByPurchaseOrder";
+        public static final String REJECTED_BY_PURCHASE_ORDER = "rejectedByPurchaseOrder";
         public static final String GET_PURCHASE_ORDER_PDF = "getPurchaseOrderPdf";
     }
 

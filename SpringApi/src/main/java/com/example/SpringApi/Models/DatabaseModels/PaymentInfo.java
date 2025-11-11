@@ -55,10 +55,10 @@ public class PaymentInfo {
     @Column(name = "pendingAmount", nullable = false, precision = 10, scale = 2)
     private BigDecimal pendingAmount;
 
-    @Column(name = "paymentMethod", nullable = false, length = 50)
+    @Column(name = "paymentMethod", nullable = true, length = 50)
     private String paymentMethod;
 
-    @Column(name = "paymentStatus", nullable = false, length = 50)
+    @Column(name = "paymentStatus", nullable = true, length = 50)
     private String paymentStatus;
 
     @Column(name = "paymentGateway", length = 100)
@@ -163,6 +163,136 @@ public class PaymentInfo {
     }
 
     /**
+     * Constructor for creating a new Payment Quotation from PurchaseOrderRequestModel.
+     * This calculates payment info from the products list in the request model.
+     * 
+     * Calculation logic:
+     * - subTotal: Sum of (pricePerUnit * quantity) for all products in request
+     * - tax: 18.5% of subTotal
+     * - deliveryFee: From request or default $50
+     * - packagingFee: From request or estimated based on total items
+     * - serviceFee: From request or default $25
+     * - discount: From request or default $0
+     * - total: subTotal + tax + deliveryFee + packagingFee + serviceFee - discount
+     * - pendingAmount: Same as total (nothing paid yet)
+     * 
+     * @param request The PurchaseOrderRequestModel containing product items and optional fee information
+     * @param createdUser The user creating the payment quotation
+     */
+    public PaymentInfo(com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel request, String createdUser) {
+        validateUser(createdUser);
+        
+        if (request == null || request.getProducts() == null || request.getProducts().isEmpty()) {
+            throw new BadRequestException("Purchase order must have at least one product for payment quotation");
+        }
+        
+        // Calculate payment fields from request
+        calculatePaymentFromRequest(request);
+        
+        // Set audit fields for new creation
+        this.createdUser = createdUser;
+        this.modifiedUser = createdUser;
+    }
+
+    /**
+     * Constructor for updating an existing Payment Quotation from PurchaseOrderRequestModel.
+     * This recalculates payment info from the products list in the request model.
+     * 
+     * @param request The PurchaseOrderRequestModel containing product items and optional fee information
+     * @param modifiedUser The user updating the payment quotation
+     * @param existingPaymentInfo The existing payment info to update
+     */
+    public PaymentInfo(com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel request, 
+                      String modifiedUser, 
+                      PaymentInfo existingPaymentInfo) {
+        validateUser(modifiedUser);
+        
+        if (request == null || request.getProducts() == null || request.getProducts().isEmpty()) {
+            throw new BadRequestException("Purchase order must have at least one product for payment quotation");
+        }
+        
+        // Calculate payment fields from request
+        calculatePaymentFromRequest(request);
+        
+        // Preserve existing audit fields and update modified user
+        this.paymentId = existingPaymentInfo.getPaymentId();
+        this.createdUser = existingPaymentInfo.getCreatedUser();
+        this.createdAt = existingPaymentInfo.getCreatedAt();
+        this.modifiedUser = modifiedUser;
+    }
+
+    /**
+     * Helper method to calculate payment fields from PurchaseOrderRequestModel.
+     * 
+     * @param request The PurchaseOrderRequestModel containing product items and fee information
+     */
+    private void calculatePaymentFromRequest(com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel request) {
+        // Calculate subTotal from product items in request
+        BigDecimal subTotal = BigDecimal.ZERO;
+        int totalItems = 0;
+        
+        for (com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem productItem : request.getProducts()) {
+            int quantity = productItem.getQuantity();
+            BigDecimal pricePerUnit = productItem.getPricePerUnit();
+            
+            totalItems += quantity;
+            subTotal = subTotal.add(pricePerUnit.multiply(new BigDecimal(quantity)));
+        }
+        
+        // Calculate tax (18.5% of subTotal)
+        BigDecimal tax = subTotal.multiply(new BigDecimal("0.185")).setScale(2, java.math.RoundingMode.HALF_UP);
+        
+        // Use fees from request if provided, otherwise use defaults
+        BigDecimal deliveryFee;
+        if (request.getDeliveryFee() != null) {
+            deliveryFee = request.getDeliveryFee();
+        } else {
+            deliveryFee = new BigDecimal("50.00"); // Default delivery fee
+        }
+        
+        BigDecimal serviceFee;
+        if (request.getServiceFee() != null) {
+            serviceFee = request.getServiceFee();
+        } else {
+            serviceFee = new BigDecimal("25.00"); // Default service fee
+        }
+        
+        BigDecimal packagingFee;
+        if (request.getPackagingFee() != null) {
+            packagingFee = request.getPackagingFee();
+        } else {
+            // Estimate packaging fee: 3 items per package, $2 per package
+            int estimatedPackages = (int) Math.ceil(totalItems / 3.0);
+            packagingFee = new BigDecimal(estimatedPackages * 2).setScale(2, java.math.RoundingMode.HALF_UP);
+        }
+        
+        BigDecimal discount;
+        if (request.getDiscount() != null) {
+            discount = request.getDiscount();
+        } else {
+            discount = BigDecimal.ZERO; // Default no discount
+        }
+        
+        // Calculate total
+        BigDecimal total = subTotal.add(tax).add(deliveryFee).add(packagingFee).add(serviceFee).subtract(discount);
+        
+        // Set all fields
+        this.total = total;
+        this.tax = tax;
+        this.serviceFee = serviceFee;
+        this.packagingFee = packagingFee;
+        this.discount = discount;
+        this.subTotal = subTotal;
+        this.deliveryFee = deliveryFee;
+        this.pendingAmount = total; // Nothing paid yet
+        this.paymentMethod = null; // No payment method selected yet for quotation
+        this.paymentStatus = null; // No payment status yet for quotation
+        this.paymentDate = LocalDateTime.now();
+        this.promoId = null; // No promo for quotations
+        this.notes = "Payment quotation auto-generated for Purchase Order";
+    }
+
+    /**
      * Validates the request model.
      * 
      * @param request The PaymentInfoRequestModel to validate
@@ -196,10 +326,11 @@ public class PaymentInfo {
         if (request.getPendingAmount() == null || request.getPendingAmount().compareTo(BigDecimal.ZERO) < 0) {
             throw new BadRequestException(ErrorMessages.PaymentInfoErrorMessages.InvalidPendingAmount);
         }
-        if (request.getPaymentMethod() == null || request.getPaymentMethod().trim().isEmpty()) {
+        // paymentMethod and paymentStatus are now nullable (for quotations)
+        if (request.getPaymentMethod() != null && request.getPaymentMethod().trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.PaymentInfoErrorMessages.InvalidPaymentMethod);
         }
-        if (request.getPaymentStatus() == null || request.getPaymentStatus().trim().isEmpty()) {
+        if (request.getPaymentStatus() != null && request.getPaymentStatus().trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.PaymentInfoErrorMessages.InvalidPaymentStatus);
         }
         if (request.getPaymentDate() == null) {

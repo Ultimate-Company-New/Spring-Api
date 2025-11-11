@@ -9,7 +9,7 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: white !important;
+            background-color: #f5f5f5;
         }
         .container {
             max-width: 800px;
@@ -24,16 +24,16 @@
             margin-bottom: 20px;
         }
         .header {
-            overflow: hidden; /* Clear floats */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
         }
-        .profile_picture {
-            float: left;
-            width: 220px;
-            height: 140px;
+        .company-logo {
+            width: 100px;
+            height: auto;
         }
         .company-info {
-            float: right;
             text-align: right;
         }
         .company-info h2 {
@@ -68,6 +68,22 @@
         .table th {
             background-color: #f2f2f2;
         }
+        .footer {
+            margin-top: 40px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f3f4f6;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
@@ -75,10 +91,20 @@
 
     <!-- Header -->
     <div class="header">
-        <div class="profile_picture"></div>
+        <div class="company-logo">
+            <#if companyLogo?has_content>
+                <img src="${companyLogo}" alt="${companyName} Logo" height="100" width="100"/>
+            <#else>
+                <div style="width: 100px; height: 100px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 5px;">
+                    <span style="font-size: 12px; color: #999;">No Logo</span>
+                </div>
+            </#if>
+        </div>
         <div class="company-info">
             <h2>${companyName}</h2>
-            <p>${website}</p>
+            <#if website?has_content>
+                <p>${website}</p>
+            </#if>
             <p>${fullAddress}</p>
         </div>
     </div><hr />
@@ -91,16 +117,26 @@
         <div class="section-title">Purchase Order Details</div>
         <div class="section-content">
             <p><strong>Purchase Order ID:</strong> ${purchaseOrder.purchaseOrderId}</p>
-            <p><strong>Expected Shipment Date:</strong> ${purchaseOrder.expectedShipmentDate}</p>
-            <p><strong>Vendor Number:</strong> ${purchaseOrder.vendorNumber}</p>
-            <p><strong>Terms and Conditions:</strong></p>
-            <div class="terms">
-                ${purchaseOrder.termsConditionsHtml}
-            </div>
-            <#if purchaseOrder.orderReceipt?has_content>
-                <p><strong>Order Receipt:</strong> ${purchaseOrder.orderReceipt}</p>
+            <#if purchaseOrder.expectedDeliveryDate??>
+                <p><strong>Expected Delivery Date:</strong> ${purchaseOrder.expectedDeliveryDate}</p>
             </#if>
-            <p><strong>Approved:</strong> ${purchaseOrder.approved?string('Yes', 'No')}</p>
+            <p><strong>Vendor Number:</strong> ${purchaseOrder.vendorNumber}</p>
+            <#if purchaseOrder.termsConditionsHtml?has_content>
+                <p><strong>Terms and Conditions:</strong></p>
+                <div class="terms">
+                    ${purchaseOrder.termsConditionsHtml}
+                </div>
+            </#if>
+            <#if purchaseOrder.purchaseOrderReceipt?has_content>
+                <p><strong>Purchase Order Receipt:</strong> ${purchaseOrder.purchaseOrderReceipt}</p>
+            </#if>
+            <p><strong>Status:</strong> ${purchaseOrder.purchaseOrderStatus}</p>
+            <p><strong>Priority:</strong> ${purchaseOrder.priority}</p>
+            <#if purchaseOrder.approvedByUserId??>
+                <p><strong>Approved:</strong> Yes</p>
+            <#else>
+                <p><strong>Approved:</strong> No</p>
+            </#if>
         </div>
     </div>
 
@@ -109,8 +145,9 @@
         <div class="section-title">Shipping Address</div>
         <div class="section-content address">
             <p>${shippingAddress.nameOnAddress}</p>
-            <p>${shippingAddress.line1}, ${shippingAddress.line2}</p>
-            <p>${shippingAddress.city}, ${shippingAddress.state}, ${shippingAddress.zipCode}</p>
+            <p>${shippingAddress.streetAddress}<#if shippingAddress.streetAddress2?has_content>, ${shippingAddress.streetAddress2}</#if></p>
+            <p>${shippingAddress.city}, ${shippingAddress.state}, ${shippingAddress.postalCode}</p>
+            <p>${shippingAddress.country}</p>
         </div>
     </div>
 
@@ -177,6 +214,18 @@
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p><strong>Thank you for choosing ${companyName}!</strong></p>
+        <#if supportEmail?has_content>
+            <p>For support and inquiries, contact us at: <a href="mailto:${supportEmail}">${supportEmail}</a></p>
+        </#if>
+        <#if website?has_content>
+            <p>Visit us at: <a href="${website}" target="_blank">${website}</a></p>
+        </#if>
+        <p>&copy; ${currentYear} ${companyName}. All rights reserved.</p>
     </div>
 </div>
 </body>

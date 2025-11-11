@@ -13,12 +13,12 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "`UserGroupUserMap`")
+@Table(name = "UserGroupUsersMap")
 public class UserGroupUserMap {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
+    @Column(name = "mappingId", nullable = false)
+    private Long mappingId;
 
     @Column(name = "userId", nullable = false)
     private Long userId;
@@ -81,7 +81,7 @@ public class UserGroupUserMap {
         validateUser(modifiedUser);
         
         // Copy existing values that shouldn't change
-        this.id = existingMapping.getId();
+        this.mappingId = existingMapping.getMappingId();
         this.createdUser = existingMapping.getCreatedUser();
         this.createdAt = existingMapping.getCreatedAt();
         

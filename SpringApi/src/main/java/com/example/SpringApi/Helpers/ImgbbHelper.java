@@ -95,6 +95,37 @@ public class ImgbbHelper {
         // Construct filename (no extension - ImgBB adds it automatically)
         return environment + "-" + sanitizedClientName + productId + "_" + timestamp + "-" + imageName;
     }
+    
+    /**
+     * Generates a custom filename for purchase order attachment ImgBB uploads.
+     * Format: <environment>-<clientName><purchaseOrderId>_<timestamp>-<attachmentName>
+     * Example: localhost-My_Company_789_11_01_2024_03_45_30_PM-Invoice_Document
+     * Note: Extension is NOT included as ImgBB adds it automatically based on file type
+     * 
+     * @param environment The environment name (e.g., "localhost", "production")
+     * @param clientName The client name (spaces replaced with underscores)
+     * @param purchaseOrderId The purchase order ID
+     * @param attachmentName The attachment name (from fileName field, sanitized)
+     * @return The formatted filename (without extension)
+     */
+    public static String generateCustomFileNameForPurchaseOrderAttachment(String environment, String clientName, Long purchaseOrderId, String attachmentName) {
+        // Replace spaces with underscores in client name
+        String sanitizedClientName = clientName.replaceAll("\\s+", "_");
+        
+        // Sanitize attachment name (remove extension and special characters)
+        String sanitizedAttachmentName = attachmentName;
+        if (attachmentName.contains(".")) {
+            sanitizedAttachmentName = attachmentName.substring(0, attachmentName.lastIndexOf("."));
+        }
+        sanitizedAttachmentName = sanitizedAttachmentName.replaceAll("[^a-zA-Z0-9_-]", "_");
+        
+        // Format timestamp as MM_dd_yyyy_hh_mm_ss_a (with AM/PM)
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM_dd_yyyy_hh_mm_ss_a");
+        String timestamp = dateFormat.format(new Date());
+        
+        // Construct filename (no extension - ImgBB adds it automatically)
+        return environment + "-" + sanitizedClientName + purchaseOrderId + "_" + timestamp + "-" + sanitizedAttachmentName;
+    }
 
 
     /**
@@ -330,5 +361,130 @@ public class ImgbbHelper {
             }
         }
         return null; // Delete hash not found
+    }
+    
+    /**
+     * Represents an attachment to be uploaded with its metadata.
+     */
+    public static class AttachmentUploadRequest {
+        private final String fileName;
+        private final String base64Data;
+        private final String notes;
+        
+        public AttachmentUploadRequest(String fileName, String base64Data, String notes) {
+            this.fileName = fileName;
+            this.base64Data = base64Data;
+            this.notes = notes;
+        }
+        
+        public String getFileName() {
+            return fileName;
+        }
+        
+        public String getBase64Data() {
+            return base64Data;
+        }
+        
+        public String getNotes() {
+            return notes;
+        }
+    }
+    
+    /**
+     * Represents the result of an uploaded attachment with URL, delete hash, and notes.
+     */
+    public static class AttachmentUploadResult {
+        private final String url;
+        private final String deleteHash;
+        private final String notes;
+        
+        public AttachmentUploadResult(String url, String deleteHash, String notes) {
+            this.url = url;
+            this.deleteHash = deleteHash;
+            this.notes = notes;
+        }
+        
+        public String getUrl() {
+            return url;
+        }
+        
+        public String getDeleteHash() {
+            return deleteHash;
+        }
+        
+        public String getNotes() {
+            return notes;
+        }
+    }
+    
+    /**
+     * Uploads multiple purchase order attachments to ImgBB in bulk.
+     * 
+     * @param attachments List of attachments to upload
+     * @param environment The environment name (e.g., "localhost", "production")
+     * @param clientName The client name
+     * @param purchaseOrderId The purchase order ID
+     * @return List of upload results containing URL, delete hash, and notes for each attachment
+     * @throws IOException if upload fails
+     */
+    public java.util.List<AttachmentUploadResult> uploadPurchaseOrderAttachments(
+            java.util.List<AttachmentUploadRequest> attachments,
+            String environment,
+            String clientName,
+            Long purchaseOrderId) throws IOException {
+        
+        java.util.List<AttachmentUploadResult> results = new java.util.ArrayList<>();
+        
+        for (AttachmentUploadRequest attachment : attachments) {
+            // Generate custom filename for ImgBB
+            String customFileName = generateCustomFileNameForPurchaseOrderAttachment(
+                environment,
+                clientName,
+                purchaseOrderId,
+                attachment.getFileName()
+            );
+            
+            // Upload to ImgBB with custom filename
+            ImgbbUploadResponse uploadResult = uploadFileToImgbb(attachment.getBase64Data(), customFileName);
+            
+            if (uploadResult != null && uploadResult.getUrl() != null) {
+                results.add(new AttachmentUploadResult(
+                    uploadResult.getUrl(),
+                    uploadResult.getDeleteHash(),
+                    attachment.getNotes()
+                ));
+            } else {
+                throw new IOException("Failed to upload attachment: " + attachment.getFileName());
+            }
+        }
+        
+        return results;
+    }
+    
+    /**
+     * Deletes multiple images from ImgBB using their delete hashes.
+     * Continues even if some deletions fail.
+     * 
+     * @param deleteHashes List of delete hashes to remove from ImgBB
+     * @return Number of successfully deleted images
+     */
+    public int deleteMultipleImages(java.util.List<String> deleteHashes) {
+        int successCount = 0;
+        
+        for (String deleteHash : deleteHashes) {
+            if (deleteHash != null && !deleteHash.trim().isEmpty()) {
+                try {
+                    boolean deleted = deleteImage(deleteHash);
+                    if (deleted) {
+                        successCount++;
+                    }
+                } catch (Exception e) {
+                    // Log error but continue with other deletions
+                    System.err.println("Failed to delete image from ImgBB: " + deleteHash + " - " + e.getMessage());
+                }
+            }
+        }
+        
+        return successCount;
     }
 }

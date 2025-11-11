@@ -344,8 +344,9 @@ public class ErrorMessages {
 
     public static class PurchaseOrderErrorMessages {
         // Standard error messages for purchase order operations
-        public static final String InvalidId = "Invalid purchase order id.";
+        public static final String InvalidId = "Invalid purchase order Id.";
         public static final String InvalidRequest = "Purchase order request cannot be null.";
+        public static final String InvalidVendorNumber = "Vendor number is required and cannot be empty.";
         public static final String InvalidTermsConditions = "Terms and conditions HTML is required and cannot be empty.";
         public static final String InvalidOrderStatus = "Order status is required and cannot be empty.";
         public static final String InvalidPaymentStatus = "Payment status is required and cannot be empty.";
@@ -353,8 +354,12 @@ public class ErrorMessages {
         public static final String InvalidAmountPaid = "Amount paid is required and must be greater than or equal to 0.";
         public static final String AmountPaidExceedsTotal = "Amount paid cannot exceed total amount.";
         public static final String InvalidClientId = "Purchase order client ID is required.";
+        public static final String InvalidLeadId = "Lead ID is required.";
         public static final String InvalidAssignedLeadId = "Assigned lead ID is required.";
         public static final String InvalidAddressId = "Purchase order address ID is required.";
+        public static final String InvalidPriority = "Priority is required and must be one of: LOW, MEDIUM, HIGH, URGENT.";
+        public static final String AlreadyApproved = "Purchase order is already approved.";
+        public static final String AlreadyRejected = "Purchase order is already rejected.";
 
         // additional error messages
         public static final String ER001 = "Expected shipment date should be greater than or equal to the current date.";

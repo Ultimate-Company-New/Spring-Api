@@ -145,6 +145,7 @@ public class SuccessMessages {
         public static final String GetPurchaseOrder = "Successfully retrieved purchase order details.";
         public static final String TogglePurchaseOrder = "Successfully toggled purchase order.";
         public static final String SetApprovedByPurchaseOrder = "Successfully updated the approved by user id for the given purchase order.";
+        public static final String SetRejectedByPurchaseOrder = "Successfully updated the rejected by user id for the given purchase order.";
         public static final String GetPurchaseOrderPdf = "Successfully retrieved purchase order pdf.";
     }
 

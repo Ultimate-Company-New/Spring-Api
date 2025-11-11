@@ -1,14 +1,61 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.Constants.EntityType;
+import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.Helpers.HTMLHelper;
+import com.example.SpringApi.Helpers.ImgbbHelper;
+import com.example.SpringApi.Helpers.PDFHelper;
+import com.example.SpringApi.Models.ApiRoutes;
+import com.itextpdf.text.DocumentException;
+import com.example.SpringApi.Models.DatabaseModels.Address;
+import com.example.SpringApi.Models.DatabaseModels.Client;
+import com.example.SpringApi.Models.DatabaseModels.Lead;
+import com.example.SpringApi.Models.DatabaseModels.PaymentInfo;
+import com.example.SpringApi.Models.DatabaseModels.Product;
+import com.example.SpringApi.Models.DatabaseModels.PurchaseOrder;
+import com.example.SpringApi.Models.DatabaseModels.PurchaseOrderQuantityPriceMap;
+import com.example.SpringApi.Models.DatabaseModels.Resources;
+import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PurchaseOrderResponseModel;
+import com.example.SpringApi.Repositories.AddressRepository;
+import com.example.SpringApi.Repositories.ClientRepository;
+import com.example.SpringApi.Repositories.LeadRepository;
+import com.example.SpringApi.Repositories.PaymentInfoRepository;
+import com.example.SpringApi.Repositories.PurchaseOrderRepository;
+import com.example.SpringApi.Repositories.PurchaseOrderQuantityPriceMapRepository;
+import com.example.SpringApi.Repositories.ResourcesRepository;
+import com.example.SpringApi.Repositories.UserRepository;
 import com.example.SpringApi.Services.Interface.IPurchaseOrderSubTranslator;
+import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.SuccessMessages;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Service implementation for PurchaseOrder operations.
@@ -21,7 +68,42 @@ import java.io.IOException;
  * @since 2024-01-15
  */
 @Service
-public class PurchaseOrderService implements IPurchaseOrderSubTranslator {
+public class PurchaseOrderService extends BaseService implements IPurchaseOrderSubTranslator {
+    
+    private final PurchaseOrderRepository purchaseOrderRepository;
+    private final PaymentInfoRepository paymentInfoRepository;
+    private final AddressRepository addressRepository;
+    private final UserRepository userRepository;
+    private final LeadRepository leadRepository;
+    private final ClientRepository clientRepository;
+    private final ResourcesRepository resourcesRepository;
+    private final PurchaseOrderQuantityPriceMapRepository purchaseOrderQuantityPriceMapRepository;
+    private final UserLogService userLogService;
+    private final Environment environment;
+    
+    @Autowired
+    public PurchaseOrderService(PurchaseOrderRepository purchaseOrderRepository,
+                               PaymentInfoRepository paymentInfoRepository,
+                               AddressRepository addressRepository,
+                               UserRepository userRepository,
+                               LeadRepository leadRepository,
+                               ClientRepository clientRepository,
+                               ResourcesRepository resourcesRepository,
+                               PurchaseOrderQuantityPriceMapRepository purchaseOrderQuantityPriceMapRepository,
+                               UserLogService userLogService,
+                               Environment environment) {
+        super();
+        this.purchaseOrderRepository = purchaseOrderRepository;
+        this.paymentInfoRepository = paymentInfoRepository;
+        this.addressRepository = addressRepository;
+        this.userRepository = userRepository;
+        this.leadRepository = leadRepository;
+        this.clientRepository = clientRepository;
+        this.resourcesRepository = resourcesRepository;
+        this.purchaseOrderQuantityPriceMapRepository = purchaseOrderQuantityPriceMapRepository;
+        this.userLogService = userLogService;
+        this.environment = environment;
+    }
     
     /**
      * Retrieves purchase orders in batches with pagination support.
@@ -29,15 +111,127 @@ public class PurchaseOrderService implements IPurchaseOrderSubTranslator {
      * This method returns a paginated list of purchase orders based on the provided
      * pagination parameters. It supports filtering and sorting options.
      * 
+     * Eagerly loads all related entities including:
+     * - Address (delivery/billing address)
+     * - PaymentInfo (payment details and quotation)
+     * - Created By User
+     * - Modified By User
+     * - Assigned Lead
+     * - Approved By User
+     * - Purchase Order Quantity Maps with Product Pickup Location Mappings, Products, and Pickup Locations
+     * 
+     * Advanced Filtering Capabilities:
+     * - selectedProductIds: Filter POs containing specific products
+     * - address: Filter by shipping address (combined street, city, state, postalCode, country)
+     * - All standard PO fields (status, amounts, dates, vendor info, etc.)
+     * 
      * @param paginationBaseRequestModel The pagination parameters including page size, number, filters, and sorting
-     * @return Paginated response containing purchase order data
+     * @return Paginated response containing purchase order data with all related entities
      * @throws BadRequestException if validation fails
-     * @throws UnauthorizedException if user is not authorized
      */
     @Override
     public PaginationBaseResponseModel<PurchaseOrderResponseModel> getPurchaseOrdersInBatches(PaginationBaseRequestModel paginationBaseRequestModel) {
-        // TODO: Implement logic to retrieve purchase orders in batches with pagination
-        throw new UnsupportedOperationException("Not implemented yet");
+        // Valid columns for filtering - includes PO fields and address field
+        Set<String> validColumns = Set.of(
+            // Purchase Order fields
+            "purchaseOrderId", "vendorNumber", "purchaseOrderStatus", "priority", "paymentId",
+            "expectedDeliveryDate", "createdAt", "updatedAt", "purchaseOrderReceipt", 
+            "termsConditionsHtml", "notes", "createdUser", "modifiedUser",
+            "approvedByUserId", "approvedDate", "rejectedByUserId", "rejectedDate",
+            
+            // Address field (for shipping address filtering)
+            "address",
+            
+            // Product filtering
+            "productIds"
+        );
+
+        // Validate column name if provided
+        if (paginationBaseRequestModel.getColumnName() != null
+            && !validColumns.contains(paginationBaseRequestModel.getColumnName())) {
+            throw new BadRequestException(
+                "Invalid column name: " + paginationBaseRequestModel.getColumnName());
+        }
+
+        // Validate condition if provided
+        Set<String> validConditions = Set.of("contains", "equals", "startsWith", "endsWith", "isEmpty", "isNotEmpty");
+        if (paginationBaseRequestModel.getCondition() != null
+            && !validConditions.contains(paginationBaseRequestModel.getCondition())) {
+            throw new BadRequestException(
+                "Invalid condition for filtering: " + paginationBaseRequestModel.getCondition());
+        }
+
+        // Calculate page size and offset
+        int start = paginationBaseRequestModel.getStart();
+        int end = paginationBaseRequestModel.getEnd();
+        int pageSize = end - start;
+
+        // Validate page size
+        if (pageSize <= 0) {
+            throw new BadRequestException("Invalid pagination: end must be greater than start");
+        }
+
+        // Create custom Pageable with proper offset handling
+        Pageable pageable = new PageRequest(0, pageSize, Sort.by("purchaseOrderId").descending()) {
+            @Override
+            public long getOffset() {
+                return start;
+            }
+        };
+
+        // Parse comma-separated productIds if columnName is "productIds"
+        List<Long> selectedProductIds = null;
+        if ("productIds".equals(paginationBaseRequestModel.getColumnName()) 
+            && paginationBaseRequestModel.getFilterExpr() != null 
+            && !paginationBaseRequestModel.getFilterExpr().trim().isEmpty()) {
+            try {
+                selectedProductIds = Arrays.stream(paginationBaseRequestModel.getFilterExpr().split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(Long::parseLong)
+                    .collect(Collectors.toList());
+                
+                // If list is empty after parsing, set to null for query
+                if (selectedProductIds.isEmpty()) {
+                    selectedProductIds = null;
+                }
+            } catch (NumberFormatException e) {
+                throw new BadRequestException("Invalid productIds format. Expected comma-separated numbers.");
+            }
+        }
+
+        // Execute paginated query with all LEFT JOIN FETCH
+        Page<PurchaseOrder> page = purchaseOrderRepository.findPaginatedPurchaseOrders(
+            getClientId(),
+            paginationBaseRequestModel.getColumnName(),
+            paginationBaseRequestModel.getCondition(),
+            paginationBaseRequestModel.getFilterExpr(),
+            paginationBaseRequestModel.isIncludeDeleted(),
+            selectedProductIds,
+            pageable
+        );
+
+        // Load resources (attachments) for all purchase orders in this page
+        if (!page.getContent().isEmpty()) {
+            // Load resources individually for each PO filtered by entityType
+            // TODO: Optimize with a bulk query using IN clause for multiple purchase order IDs
+            for (PurchaseOrder po : page.getContent()) {
+                List<Resources> poResources = resourcesRepository.findByEntityIdAndEntityType(
+                    po.getPurchaseOrderId(), EntityType.PURCHASE_ORDER);
+                po.setAttachments(poResources);
+            }
+        }
+
+        // Convert PurchaseOrder entities to PurchaseOrderResponseModel
+        List<PurchaseOrderResponseModel> purchaseOrderResponseModels = page.getContent().stream()
+            .map(PurchaseOrderResponseModel::new)
+            .toList();
+
+        PaginationBaseResponseModel<PurchaseOrderResponseModel> response = new PaginationBaseResponseModel<>();
+        response.setData(purchaseOrderResponseModels);
+        response.setTotalDataCount(page.getTotalElements());
+
+        return response;
     }
     
     /**
@@ -45,6 +239,15 @@ public class PurchaseOrderService implements IPurchaseOrderSubTranslator {
      * 
      * This method creates a new purchase order with the provided details including
      * supplier information, line items, and delivery details.
+     * All validations are performed in the PurchaseOrder entity constructor.
+     * 
+     * Flow:
+     * 1. Create Address (if address data provided) or use existing purchaseOrderAddressId
+     * 2. Create PurchaseOrder entity (without paymentId)
+     * 3. Save PurchaseOrder to get purchaseOrderId
+     * 4. Create PaymentInfo quotation from PurchaseOrder
+     * 5. Save PaymentInfo to get paymentId
+     * 6. Link paymentId to PurchaseOrder and update
      * 
      * @param purchaseOrderRequestModel The purchase order to create
      * @throws BadRequestException if validation fails
@@ -52,8 +255,48 @@ public class PurchaseOrderService implements IPurchaseOrderSubTranslator {
      */
     @Override
     public void createPurchaseOrder(PurchaseOrderRequestModel purchaseOrderRequestModel) {
-        // TODO: Implement logic to create a new purchase order
-        throw new UnsupportedOperationException("Not implemented yet");
+        // Step 1: Create the purchase order entity (validations are done in constructor)
+        PurchaseOrder purchaseOrder = new PurchaseOrder(purchaseOrderRequestModel, getUser(), getClientId());
+        
+        // Step 2: Create the address entity (validations are done in constructor)
+        Address address = new Address(purchaseOrderRequestModel.getAddress(), getUser());
+        addressRepository.save(address);
+        purchaseOrder.setPurchaseOrderAddressId(address.getAddressId());
+
+        // Step 3: Save the purchase order to database first (to get purchaseOrderId)
+        purchaseOrderRepository.save(purchaseOrder);
+
+        // Step 4: Create the purchase order quantity price map entities
+        List<PurchaseOrderQuantityPriceMap> purchaseOrderQuantityPriceMaps = PurchaseOrderQuantityPriceMap.createFromRequest(
+            purchaseOrderRequestModel,
+            purchaseOrder.getPurchaseOrderId()
+        );
+        purchaseOrderQuantityPriceMapRepository.saveAll(purchaseOrderQuantityPriceMaps);
+        
+        // Step 5: Create the payment info entity (calculate from request model products)
+        PaymentInfo paymentInfo = new PaymentInfo(purchaseOrderRequestModel, getUser());
+        paymentInfo = paymentInfoRepository.save(paymentInfo);
+        purchaseOrder.setPaymentId(paymentInfo.getPaymentId());
+
+        purchaseOrderRepository.save(purchaseOrder);
+        
+        // Step 6: Handle attachments if provided
+        if (purchaseOrderRequestModel.getAttachments() != null && 
+            !purchaseOrderRequestModel.getAttachments().isEmpty()) {
+            
+            uploadPurchaseOrderAttachments(
+                purchaseOrderRequestModel.getAttachments(),
+                purchaseOrder.getPurchaseOrderId()
+            );
+        }
+        
+        // Log the creation
+        userLogService.logData(
+            getUserId(),
+            SuccessMessages.PurchaseOrderSuccessMessages.InsertPurchaseOrder + " " + purchaseOrder.getPurchaseOrderId() + 
+            " with Address " + purchaseOrder.getPurchaseOrderAddressId() +
+            " and Payment Quotation " + paymentInfo.getPaymentId(),
+            ApiRoutes.PurchaseOrderSubRoute.CREATE_PURCHASE_ORDER);
     }
     
     /**
@@ -62,6 +305,14 @@ public class PurchaseOrderService implements IPurchaseOrderSubTranslator {
      * This method updates an existing purchase order's details including
      * supplier information, line items, and delivery details.
      * 
+     * Flow:
+     * 1. Fetch existing PurchaseOrder
+     * 2. Handle Address update if new address data provided
+     * 3. Update PurchaseOrder with new data
+     * 4. Save PurchaseOrder
+     * 5. If payment quotation exists, update it with recalculated amounts
+     * 6. If no payment quotation exists, create one
+     * 
      * @param purchaseOrderRequestModel The purchase order to update
      * @throws BadRequestException if validation fails
      * @throws NotFoundException if the purchase order is not found
@@ -69,26 +320,98 @@ public class PurchaseOrderService implements IPurchaseOrderSubTranslator {
      */
     @Override
     public void updatePurchaseOrder(PurchaseOrderRequestModel purchaseOrderRequestModel) {
-        // TODO: Implement logic to update an existing purchase order
-        throw new UnsupportedOperationException("Not implemented yet");
+        // Step 1: Update the purchase order entity
+        PurchaseOrder existingPurchaseOrder = purchaseOrderRepository.findByPurchaseOrderIdAndClientId(
+                purchaseOrderRequestModel.getPurchaseOrderId(), 
+                getClientId()
+            )
+            .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
+        PurchaseOrder updatedPurchaseOrder = new PurchaseOrder(
+            purchaseOrderRequestModel, 
+            getUser(), 
+            existingPurchaseOrder
+        ); 
+        purchaseOrderRepository.save(updatedPurchaseOrder);
+        
+        // Step 2: Handle Address update if new address data provided
+        Address existingAddress = addressRepository.findById(updatedPurchaseOrder.getPurchaseOrderAddressId())
+        .orElseThrow(() -> new NotFoundException(ErrorMessages.AddressErrorMessages.InvalidId));    
+        Address updatedAddress = new Address(purchaseOrderRequestModel.getAddress(), getUser(), existingAddress);
+        addressRepository.save(updatedAddress);
+
+        // Step 3: Update the purchase order quantity price map entities
+        purchaseOrderQuantityPriceMapRepository.deleteByPurchaseOrderId(updatedPurchaseOrder.getPurchaseOrderId());        
+        List<PurchaseOrderQuantityPriceMap> purchaseOrderQuantityPriceMaps = PurchaseOrderQuantityPriceMap.createFromRequest(
+            purchaseOrderRequestModel,
+            updatedPurchaseOrder.getPurchaseOrderId()
+        );
+        purchaseOrderQuantityPriceMapRepository.saveAll(purchaseOrderQuantityPriceMaps);
+        
+        // Step 4: Update or create payment quotation
+        PaymentInfo existingPaymentInfo = paymentInfoRepository.findById(updatedPurchaseOrder.getPaymentId())
+        .orElseThrow(() -> new NotFoundException(ErrorMessages.PaymentInfoErrorMessages.InvalidId));
+        PaymentInfo updatedPaymentInfo = new PaymentInfo(
+                purchaseOrderRequestModel, 
+                getUser(), 
+                existingPaymentInfo
+            );
+        paymentInfoRepository.save(updatedPaymentInfo);
+        
+        // Step 5: Update the Resources (attachments)
+        // Delete all existing resources from ImgBB and database, then create new ones
+        deleteExistingPurchaseOrderAttachments(updatedPurchaseOrder.getPurchaseOrderId());
+        
+        // Create new resources if attachments are provided
+        if (purchaseOrderRequestModel.getAttachments() != null && 
+            !purchaseOrderRequestModel.getAttachments().isEmpty()) {
+            
+            uploadPurchaseOrderAttachments(
+                purchaseOrderRequestModel.getAttachments(),
+                updatedPurchaseOrder.getPurchaseOrderId()
+            );
+        }
+        
+        // Log the update
+        userLogService.logData(
+            getUserId(),
+            SuccessMessages.PurchaseOrderSuccessMessages.UpdatePurchaseOrder + " " + updatedPurchaseOrder.getPurchaseOrderId(),
+            ApiRoutes.PurchaseOrderSubRoute.UPDATE_PURCHASE_ORDER);
     }
     
     /**
      * Retrieves detailed information about a specific purchase order by ID.
      * 
-     * This method returns comprehensive purchase order details including
-     * supplier information, line items, totals, and approval status.
+     * This method returns comprehensive purchase order details including all related entities:
+     * - Address (delivery/billing address)
+     * - PaymentInfo (payment details and quotation)
+     * - Created By User
+     * - Modified By User
+     * - Assigned Lead
+     * - Approved By User
+     * - Products with quantities and pickup locations
      * 
      * @param id The ID of the purchase order to retrieve
-     * @return The purchase order details
-     * @throws BadRequestException if validation fails
-     * @throws NotFoundException if the purchase order is not found
-     * @throws UnauthorizedException if user is not authorized
+     * @return The purchase order details with all relationships
+     * @throws NotFoundException if the purchase order is not found or doesn't belong to the current client
      */
     @Override
     public PurchaseOrderResponseModel getPurchaseOrderDetailsById(long id) {
-        // TODO: Implement logic to retrieve purchase order by ID
-        throw new UnsupportedOperationException("Not implemented yet");
+        // Fetch purchase order with all relationships and validate it belongs to current client
+        Optional<PurchaseOrder> purchaseOrderOptional = 
+            purchaseOrderRepository.findByPurchaseOrderIdAndClientIdWithAllRelations(id, getClientId());
+        
+        if (purchaseOrderOptional.isEmpty()) {
+            throw new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId);
+        }
+        
+        PurchaseOrder purchaseOrder = purchaseOrderOptional.get();
+        
+        // Load resources (attachments) for this purchase order filtered by entityType
+        List<Resources> resources = resourcesRepository.findByEntityIdAndEntityType(id, EntityType.PURCHASE_ORDER);
+        purchaseOrder.setAttachments(resources);
+        
+        // Convert to response model (constructor handles all mapping)
+        return new PurchaseOrderResponseModel(purchaseOrder);
     }
     
     /**
@@ -99,30 +422,108 @@ public class PurchaseOrderService implements IPurchaseOrderSubTranslator {
      * 
      * @param id The ID of the purchase order to toggle
      * @throws BadRequestException if validation fails
-     * @throws NotFoundException if the purchase order is not found
-     * @throws UnauthorizedException if user is not authorized
+     * @throws NotFoundException if the purchase order is not found or doesn't belong to the current client
      */
     @Override
     public void togglePurchaseOrder(long id) {
-        // TODO: Implement logic to toggle purchase order deleted status
-        throw new UnsupportedOperationException("Not implemented yet");
+        // Validate purchase order exists and belongs to current client
+        Optional<PurchaseOrder> purchaseOrderOptional = purchaseOrderRepository.findByPurchaseOrderIdAndClientId(id, getClientId());
+        if (purchaseOrderOptional.isEmpty()) {
+            throw new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId);
+        }
+        
+        PurchaseOrder purchaseOrder = purchaseOrderOptional.get();
+        
+        // Toggle the isDeleted flag
+        purchaseOrder.setIsDeleted(!purchaseOrder.getIsDeleted());
+        
+        // Update modified user
+        purchaseOrder.setModifiedUser(getUser());
+        
+        // Save the updated purchase order
+        purchaseOrderRepository.save(purchaseOrder);
+        
+        // Logging
+        userLogService.logData(
+            getUserId(),
+            SuccessMessages.PurchaseOrderSuccessMessages.TogglePurchaseOrder + " " + purchaseOrder.getPurchaseOrderId(),
+            ApiRoutes.PurchaseOrderSubRoute.TOGGLE_PURCHASE_ORDER);
     }
     
     /**
      * Approves a purchase order.
      * 
-     * This method marks a purchase order as approved, allowing it to proceed
-     * to the next stage in the procurement workflow.
+     * This method marks a purchase order as approved by setting the approvedByUserId
+     * to the current user's ID, allowing it to proceed to the next stage in the procurement workflow.
      * 
      * @param id The ID of the purchase order to approve
-     * @throws BadRequestException if validation fails
-     * @throws NotFoundException if the purchase order is not found
-     * @throws UnauthorizedException if user is not authorized
+     * @throws NotFoundException if the purchase order is not found or doesn't belong to the current client
+     * @throws BadRequestException if the purchase order is already approved
      */
     @Override
     public void approvedByPurchaseOrder(long id) {
-        // TODO: Implement logic to approve purchase order
-        throw new UnsupportedOperationException("Not implemented yet");
+        // Validate purchase order exists and belongs to current client
+        Optional<PurchaseOrder> purchaseOrderOptional = purchaseOrderRepository.findByPurchaseOrderIdAndClientId(id, getClientId());
+        if (purchaseOrderOptional.isEmpty()) {
+            throw new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId);
+        }
+        
+        PurchaseOrder purchaseOrder = purchaseOrderOptional.get();
+        
+        // Check if purchase order is already approved
+        if (purchaseOrder.getApprovedByUserId() != null) {
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AlreadyApproved);
+        }
+        
+        // Set approval fields (also clears rejection fields and updates modified user)
+        purchaseOrder.setApprovalFields(getUser(), getUserId());
+        
+        // Save the updated purchase order
+        purchaseOrderRepository.save(purchaseOrder);
+        
+        // Logging
+        userLogService.logData(
+            getUserId(),
+            SuccessMessages.PurchaseOrderSuccessMessages.SetApprovedByPurchaseOrder + " PO: " + purchaseOrder.getPurchaseOrderId(),
+            ApiRoutes.PurchaseOrderSubRoute.APPROVED_BY_PURCHASE_ORDER);
+    }
+    
+    /**
+     * Rejects a purchase order.
+     * 
+     * This method marks a purchase order as rejected by setting the rejectedByUserId
+     * to the current user's ID, preventing it from proceeding in the procurement workflow.
+     * 
+     * @param id The ID of the purchase order to reject
+     * @throws NotFoundException if the purchase order is not found or doesn't belong to the current client
+     * @throws BadRequestException if the purchase order is already rejected
+     */
+    @Override
+    public void rejectedByPurchaseOrder(long id) {
+        // Validate purchase order exists and belongs to current client
+        Optional<PurchaseOrder> purchaseOrderOptional = purchaseOrderRepository.findByPurchaseOrderIdAndClientId(id, getClientId());
+        if (purchaseOrderOptional.isEmpty()) {
+            throw new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId);
+        }
+        
+        PurchaseOrder purchaseOrder = purchaseOrderOptional.get();
+        
+        // Check if purchase order is already rejected
+        if (purchaseOrder.getRejectedByUserId() != null) {
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AlreadyRejected);
+        }
+        
+        // Set rejection fields (also clears approval fields and updates modified user)
+        purchaseOrder.setRejectionFields(getUser(), getUserId());
+        
+        // Save the updated purchase order
+        purchaseOrderRepository.save(purchaseOrder);
+        
+        // Logging
+        userLogService.logData(
+            getUserId(),
+            SuccessMessages.PurchaseOrderSuccessMessages.SetRejectedByPurchaseOrder + " PO: " + purchaseOrder.getPurchaseOrderId(),
+            ApiRoutes.PurchaseOrderSubRoute.REJECTED_BY_PURCHASE_ORDER);
     }
     
     /**
@@ -132,16 +533,335 @@ public class PurchaseOrderService implements IPurchaseOrderSubTranslator {
      * details including supplier information, line items, totals, and terms.
      * 
      * @param id The ID of the purchase order to generate PDF for
-     * @return The PDF as a base64 encoded string
+     * @return The PDF as a byte array
      * @throws BadRequestException if validation fails
      * @throws NotFoundException if the purchase order is not found
      * @throws UnauthorizedException if user is not authorized
      * @throws TemplateException if PDF template processing fails
      * @throws IOException if PDF generation fails
+     * @throws DocumentException if PDF document creation fails
      */
     @Override
-    public String getPurchaseOrderPDF(long id) throws TemplateException, IOException {
-        // TODO: Implement logic to generate PDF for purchase order
-        throw new UnsupportedOperationException("Not implemented yet");
+    public byte[] getPurchaseOrderPDF(long id) throws TemplateException, IOException, DocumentException {
+        // Fetch purchase order with all relationships
+        Optional<PurchaseOrder> purchaseOrderOptional = 
+            purchaseOrderRepository.findByPurchaseOrderIdAndClientIdWithAllRelations(id, getClientId());
+        
+        if (purchaseOrderOptional.isEmpty()) {
+            throw new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId);
+        }
+        
+        PurchaseOrder purchaseOrder = purchaseOrderOptional.get();
+        
+        // Fetch shipping address
+        Optional<Address> shippingAddressOptional = 
+            addressRepository.findById(purchaseOrder.getPurchaseOrderAddressId());
+        
+        if (shippingAddressOptional.isEmpty()) {
+            throw new NotFoundException(ErrorMessages.AddressErrorMessages.InvalidId);
+        }
+        
+        Address shippingAddress = shippingAddressOptional.get();
+        
+        // Fetch created by user
+        Optional<User> purchaseOrderCreatedByOptional = 
+            userRepository.findByUserIdAndClientId(getUserId(), getClientId());
+        
+        if (purchaseOrderCreatedByOptional.isEmpty()) {
+            throw new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId);
+        }
+        
+        User purchaseOrderCreatedBy = purchaseOrderCreatedByOptional.get();
+        
+        // Fetch approved by user (if approved)
+        User purchaseOrderApprovedBy = null;
+        if (purchaseOrder.getApprovedByUserId() != null) {
+            Optional<User> purchaseOrderApprovedByOptional = 
+                userRepository.findByUserIdAndClientId(purchaseOrder.getApprovedByUserId(), getClientId());
+            
+            if (purchaseOrderApprovedByOptional.isEmpty()) {
+                throw new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId);
+            }
+            
+            purchaseOrderApprovedBy = purchaseOrderApprovedByOptional.get();
+        }
+        
+        // Fetch lead
+        Lead lead = leadRepository.findLeadWithDetailsByIdIncludingDeleted(
+            purchaseOrder.getAssignedLeadId(), 
+            getClientId()
+        );
+        
+        if (lead == null) {
+            throw new NotFoundException(ErrorMessages.LeadsErrorMessages.InvalidId);
+        }
+        
+        // Fetch client details
+        Optional<Client> clientOptional = clientRepository.findById(getClientId());
+        
+        if (clientOptional.isEmpty()) {
+            throw new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId);
+        }
+        
+        Client client = clientOptional.get();
+        
+        // Get product quantity map
+        Map<Product, Integer> productQuantityMap = getProductQuantityMap(purchaseOrder);
+        
+        // Generate HTML from template
+        String htmlContent = formPurchaseOrderPdf(
+            client,
+            purchaseOrder,
+            shippingAddress,
+            purchaseOrderCreatedBy,
+            purchaseOrderApprovedBy,
+            lead,
+            productQuantityMap
+        );
+        
+        // Replace br tags for PDF compatibility
+        htmlContent = HTMLHelper.replaceBrTags(htmlContent);
+        
+        // Convert HTML to PDF
+        String logoFilePath = (environment.getActiveProfiles().length > 0 
+            ? environment.getActiveProfiles()[0] 
+            : "default") + "/" + client.getName() + "/Logo.png";
+        
+        byte[] pdfBytes = PDFHelper.convertPurchaseOrderHtmlToPdf(
+            client.getGoogleCred(),
+            logoFilePath,
+            htmlContent
+        );
+        
+        // Log the PDF generation
+        userLogService.logData(
+            getUserId(),
+            SuccessMessages.PurchaseOrderSuccessMessages.GetPurchaseOrderPdf + " " + id,
+            ApiRoutes.PurchaseOrderSubRoute.GET_PURCHASE_ORDER_PDF
+        );
+        
+        // Return PDF as byte array
+        return pdfBytes;
+    }
+    
+    /**
+     * Forms the HTML content for the purchase order PDF using FreeMarker template.
+     * 
+     * @param client The client (company) information
+     * @param purchaseOrder The purchase order entity
+     * @param shippingAddress The shipping address
+     * @param purchaseOrderCreatedBy The user who created the purchase order
+     * @param purchaseOrderApprovedBy The user who approved the purchase order (can be null)
+     * @param lead The lead associated with the purchase order
+     * @param productQuantityMap Map of products to quantities
+     * @return The HTML content as a string
+     * @throws IOException if template loading fails
+     * @throws TemplateException if template processing fails
+     */
+    private String formPurchaseOrderPdf(
+            Client client,
+            PurchaseOrder purchaseOrder,
+            Address shippingAddress,
+            User purchaseOrderCreatedBy,
+            User purchaseOrderApprovedBy,
+            Lead lead,
+            Map<Product, Integer> productQuantityMap) throws IOException, TemplateException {
+        
+        // Configure FreeMarker
+        Configuration cfg = new Configuration(Configuration.VERSION_2_3_32);
+        Path path = Paths.get("SpringApi", "src", "main", "resources", "InvoiceTemplates").toAbsolutePath();
+        cfg.setDirectoryForTemplateLoading(path.toFile());
+        
+        // Load template
+        Template template = cfg.getTemplate("PurchaseOrder.ftl");
+        
+        // Prepare template data
+        Map<String, Object> templateData = new HashMap<>();
+        
+        // Company information
+        templateData.put("companyName", client.getName());
+        templateData.put("website", client.getWebsite() != null ? client.getWebsite() : "");
+        templateData.put("fullAddress", client.getSendGridEmailAddress() != null 
+            ? client.getSendGridEmailAddress() 
+            : client.getSupportEmail());
+        templateData.put("supportEmail", client.getSupportEmail() != null ? client.getSupportEmail() : "");
+        
+        // Company logo URL (from ImgBB or other source)
+        templateData.put("companyLogo", client.getLogoUrl() != null ? client.getLogoUrl() : "");
+        
+        // Current year for footer
+        templateData.put("currentYear", java.time.Year.now().getValue());
+        
+        // Purchase order details
+        templateData.put("purchaseOrder", purchaseOrder);
+        templateData.put("shippingAddress", shippingAddress);
+        templateData.put("lead", lead);
+        templateData.put("purchaseOrderCreatedBy", purchaseOrderCreatedBy);
+        
+        // Approved by user (handle null case)
+        if (purchaseOrderApprovedBy != null) {
+            templateData.put("purchaseOrderApprovedBy", purchaseOrderApprovedBy);
+        } else {
+            // Create a placeholder user for template
+            User placeholderUser = new User();
+            placeholderUser.setFirstName("Not");
+            placeholderUser.setLastName("Approved");
+            placeholderUser.setLoginName("N/A");
+            placeholderUser.setRole("N/A");
+            placeholderUser.setPhone("N/A");
+            templateData.put("purchaseOrderApprovedBy", placeholderUser);
+        }
+        
+        // Product quantity map
+        templateData.put("purchaseOrdersProductQuantityMaps", productQuantityMap);
+        
+        // Process template
+        StringWriter out = new StringWriter();
+        template.process(templateData, out);
+        
+        return out.toString();
+    }
+    
+    /**
+     * Retrieves the product to quantity mapping for a purchase order.
+     * 
+     * @param purchaseOrder The purchase order entity
+     * @return Map of Product to quantity
+     */
+    private Map<Product, Integer> getProductQuantityMap(PurchaseOrder purchaseOrder) {
+        Map<Product, Integer> productQuantityMap = new LinkedHashMap<>();
+        
+        // Get all quantity price maps for this purchase order
+        List<PurchaseOrderQuantityPriceMap> quantityMaps = purchaseOrder.getPurchaseOrderQuantityPriceMaps();
+        
+        if (quantityMaps != null) {
+            for (PurchaseOrderQuantityPriceMap quantityMap : quantityMaps) {
+                // Get the product directly from the quantity map
+                if (quantityMap.getProduct() != null) {
+                    Product product = quantityMap.getProduct();
+                    Integer quantity = quantityMap.getQuantity();
+                    
+                    // Aggregate quantities if the same product appears multiple times
+                    productQuantityMap.merge(product, quantity, Integer::sum);
+                }
+            }
+        }
+        
+        return productQuantityMap;
+    }
+    
+    /**
+     * Helper method to upload purchase order attachments to ImgBB.
+     * 
+     * @param attachments List of attachments from request
+     * @param purchaseOrderId The purchase order ID
+     * @throws BadRequestException if ImgBB is not configured or upload fails
+     */
+    private void uploadPurchaseOrderAttachments(List<Map<String, Object>> attachments, Long purchaseOrderId) {
+        // Check image location from application properties
+        String imageLocation = environment.getProperty("image.location");
+        
+        if (!"imgbb".equalsIgnoreCase(imageLocation)) {
+            throw new BadRequestException("Image location is not configured to ImgBB. Cannot process attachments.");
+        }
+        
+        // Get client and validate ImgBB API key
+        Client client = clientRepository.findById(getClientId())
+            .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
+        String imgbbApiKey = client.getImgbbApiKey();
+        
+        if (imgbbApiKey == null || imgbbApiKey.trim().isEmpty()) {
+            throw new BadRequestException("ImgBB API key is not configured for this client");
+        }
+        
+        // Get environment name for custom file naming
+        String environmentName = environment.getActiveProfiles().length > 0 
+            ? environment.getActiveProfiles()[0] 
+            : "default";
+        
+        // Prepare attachment upload requests
+        List<ImgbbHelper.AttachmentUploadRequest> uploadRequests = new ArrayList<>();
+        for (Map<String, Object> attachment : attachments) {
+            String fileName = (String) attachment.get("fileName");
+            String base64Data = (String) attachment.get("data");
+            String notes = (String) attachment.get("notes");
+            
+            if (fileName == null || base64Data == null) {
+                throw new BadRequestException("Each attachment must have 'fileName' and 'data' fields");
+            }
+            
+            uploadRequests.add(new ImgbbHelper.AttachmentUploadRequest(fileName, base64Data, notes));
+        }
+        
+        // Upload all attachments using ImgbbHelper
+        ImgbbHelper imgbbHelper = new ImgbbHelper(imgbbApiKey);
+        List<ImgbbHelper.AttachmentUploadResult> uploadResults;
+        try {
+            uploadResults = imgbbHelper.uploadPurchaseOrderAttachments(
+                uploadRequests,
+                environmentName,
+                client.getName(),
+                purchaseOrderId
+            );
+        } catch (IOException e) {
+            throw new BadRequestException("Failed to upload attachments: " + e.getMessage());
+        }
+        
+        // Save resource records to database
+        for (ImgbbHelper.AttachmentUploadResult result : uploadResults) {
+            Resources resource = new Resources();
+            resource.setEntityId(purchaseOrderId);
+            resource.setEntityType(EntityType.PURCHASE_ORDER);
+            resource.setKey(result.getUrl()); // ImgBB URL in 'key' field
+            resource.setValue(result.getDeleteHash()); // Delete hash in 'value' field
+            resource.setNotes(result.getNotes());
+            
+            resourcesRepository.save(resource);
+        }
+    }
+    
+    /**
+     * Helper method to delete existing purchase order attachments from ImgBB and database.
+     * 
+     * @param purchaseOrderId The purchase order ID
+     */
+    private void deleteExistingPurchaseOrderAttachments(Long purchaseOrderId) {
+        // Fetch existing resources
+        List<Resources> existingResources = resourcesRepository.findByEntityIdAndEntityType(
+            purchaseOrderId, 
+            EntityType.PURCHASE_ORDER
+        );
+        
+        if (existingResources.isEmpty()) {
+            return; // Nothing to delete
+        }
+        
+        // Check if ImgBB is configured
+        String imageLocation = environment.getProperty("image.location");
+        if ("imgbb".equalsIgnoreCase(imageLocation)) {
+            // Get client for ImgBB API key
+            Client client = clientRepository.findById(getClientId())
+                .orElse(null);
+            
+            if (client != null) {
+                String imgbbApiKey = client.getImgbbApiKey();
+                
+                if (imgbbApiKey != null && !imgbbApiKey.trim().isEmpty()) {
+                    ImgbbHelper imgbbHelper = new ImgbbHelper(imgbbApiKey);
+                    
+                    // Collect delete hashes
+                    List<String> deleteHashes = existingResources.stream()
+                        .map(Resources::getValue)
+                        .filter(hash -> hash != null && !hash.trim().isEmpty())
+                        .collect(Collectors.toList());
+                    
+                    // Delete all from ImgBB
+                    imgbbHelper.deleteMultipleImages(deleteHashes);
+                }
+            }
+        }
+        
+        // Delete all existing resource records from database
+        resourcesRepository.deleteAll(existingResources);
     }
 }
