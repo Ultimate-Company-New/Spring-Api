@@ -3,6 +3,7 @@ package com.example.SpringApi.Models.RequestModels;
 import lombok.Getter;
 import lombok.Setter;
 import java.math.BigDecimal;
+import java.util.Map;
 
 /**
  * Request model for Product operations.
@@ -40,7 +41,16 @@ public class ProductRequestModel {
     private BigDecimal weightKgs;
     private Long categoryId;
     private Long clientId;
-    private Long pickupLocationId;
+    
+    /**
+     * Map of pickup location ID to available quantity at that location.
+     * Key: pickupLocationId
+     * Value: availableStock (quantity available at that pickup location)
+     * 
+     * A product can be available at multiple pickup locations with different quantities.
+     */
+    private Map<Long, Integer> pickupLocationQuantities;
+    
     private String notes;
     
     // Image fields

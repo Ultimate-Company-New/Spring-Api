@@ -299,6 +299,7 @@ public class ErrorMessages {
         public static final String ER012 = "Failed to process image from URL: %s";
         public static final String ER013 = "Product not found with ID: %d";
         public static final String ER014 = "Product IDs list cannot be null or empty";
+        public static final String NoPickupLocationsFound = "No pickup locations found for this product.";
     }
 
     public static class LeadsErrorMessages{
@@ -349,6 +350,7 @@ public class ErrorMessages {
         public static final String InvalidVendorNumber = "Vendor number is required and cannot be empty.";
         public static final String InvalidTermsConditions = "Terms and conditions HTML is required and cannot be empty.";
         public static final String InvalidOrderStatus = "Order status is required and cannot be empty.";
+        public static final String InvalidOrderStatusValue = "Invalid purchase order status.";
         public static final String InvalidPaymentStatus = "Payment status is required and cannot be empty.";
         public static final String InvalidTotalAmount = "Total amount is required and must be greater than or equal to 0.";
         public static final String InvalidAmountPaid = "Amount paid is required and must be greater than or equal to 0.";

@@ -1,5 +1,6 @@
 package com.example.SpringApi.Models.DatabaseModels;
 
+import com.example.SpringApi.Exceptions.BadRequestException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -7,6 +8,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * JPA Entity for the ProductPickupLocationMapping table.
@@ -89,4 +93,77 @@ public class ProductPickupLocationMapping {
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
+    
+    /**
+     * Default constructor.
+     */
+    public ProductPickupLocationMapping() {}
+    
+    /**
+     * Constructor for creating a new ProductPickupLocationMapping.
+     * 
+     * @param productId The product ID
+     * @param pickupLocationId The pickup location ID
+     * @param availableStock The available stock at this pickup location
+     * @param createdUser The user creating the mapping
+     * @throws BadRequestException if validation fails
+     */
+    public ProductPickupLocationMapping(Long productId, Long pickupLocationId, Integer availableStock, String createdUser) {
+        // Validate inputs
+        if (productId == null) {
+            throw new BadRequestException("Product ID cannot be null");
+        }
+        if (pickupLocationId == null) {
+            throw new BadRequestException("Pickup location ID cannot be null");
+        }
+        if (availableStock == null || availableStock <= 0) {
+            throw new BadRequestException(String.format("Available stock for pickup location %d must be positive", pickupLocationId));
+        }
+        if (createdUser == null || createdUser.trim().isEmpty()) {
+            throw new BadRequestException("Created user cannot be null or empty");
+        }
+        
+        this.productId = productId;
+        this.pickupLocationId = pickupLocationId;
+        this.availableStock = availableStock;
+        this.createdUser = createdUser;
+        this.modifiedUser = createdUser;
+        
+        // Set default values for required fields
+        this.itemAvailableFrom = LocalDateTime.now();
+        this.isActive = true;
+        this.lastStockUpdate = LocalDateTime.now();
+        this.minStockLevel = 0;
+        this.maxStockLevel = availableStock * 2; // Default to 2x current stock
+        this.reorderLevel = availableStock / 2; // Default to 50% of current stock
+    }
+    
+    /**
+     * Creates a list of ProductPickupLocationMapping entities from a map of pickup location IDs to quantities.
+     * 
+     * @param productId The product ID
+     * @param pickupLocationQuantities Map of pickup location ID to available stock
+     * @param createdUser The user creating the mappings
+     * @return List of ProductPickupLocationMapping entities
+     * @throws BadRequestException if validation fails
+     */
+    public static List<ProductPickupLocationMapping> createFromMap(Long productId, 
+                                                                    Map<Long, Integer> pickupLocationQuantities, 
+                                                                    String createdUser) {
+        if (pickupLocationQuantities == null || pickupLocationQuantities.isEmpty()) {
+            throw new BadRequestException("At least one pickup location with quantity must be provided");
+        }
+        
+        List<ProductPickupLocationMapping> mappings = new ArrayList<>();
+        for (Map.Entry<Long, Integer> entry : pickupLocationQuantities.entrySet()) {
+            mappings.add(new ProductPickupLocationMapping(
+                productId, 
+                entry.getKey(), 
+                entry.getValue(), 
+                createdUser
+            ));
+        }
+        
+        return mappings;
+    }
 }

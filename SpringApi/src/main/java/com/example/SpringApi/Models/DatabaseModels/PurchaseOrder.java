@@ -12,7 +12,9 @@ import com.example.SpringApi.ErrorMessages;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * JPA Entity for the PurchaseOrder table.
@@ -98,7 +100,7 @@ public class PurchaseOrder {
     @Column(name = "purchaseOrderStatus", nullable = false, length = 50)
     private String purchaseOrderStatus;
 
-    @Column(name = "paymentId")
+    @Column(name = "paymentId", nullable = false)
     private Long paymentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -176,7 +178,7 @@ public class PurchaseOrder {
 
     // Relationships - Collections
     @OneToMany(mappedBy = "purchaseOrder", fetch = FetchType.LAZY)
-    private List<PurchaseOrderQuantityPriceMap> purchaseOrderQuantityPriceMaps = new ArrayList<>();
+    private Set<PurchaseOrderQuantityPriceMap> purchaseOrderQuantityPriceMaps = new LinkedHashSet<>();
 
     @Transient
     private List<Resources> attachments = new ArrayList<>(); // Not persisted, populated manually
@@ -194,13 +196,10 @@ public class PurchaseOrder {
      * @param clientId The client ID from the authenticated user's token
      */
     public PurchaseOrder(PurchaseOrderRequestModel request, String createdUser, Long clientId) {
-        // Set clientId from token (don't trust client-provided clientId)
-        request.setClientId(clientId);
-        
         validateRequest(request);
         validateUser(createdUser);
         
-        setFieldsFromRequest(request);
+        setFieldsFromRequest(request, clientId);
         this.createdUser = createdUser;
         this.modifiedUser = createdUser;
     }
@@ -220,7 +219,15 @@ public class PurchaseOrder {
         this.createdUser = existingPurchaseOrder.getCreatedUser();
         this.createdAt = existingPurchaseOrder.getCreatedAt();
         
-        setFieldsFromRequest(request);
+        // Set clientId from existing purchase order (don't trust client-provided clientId)
+        setFieldsFromRequest(request, existingPurchaseOrder.getClientId());
+        
+        // Preserve paymentId from existing purchase order (payment is updated separately in service)
+        this.paymentId = existingPurchaseOrder.getPaymentId();
+        
+        // Preserve purchaseOrderAddressId from existing purchase order (address is updated separately in service)
+        this.purchaseOrderAddressId = existingPurchaseOrder.getPurchaseOrderAddressId();
+        
         this.modifiedUser = modifiedUser;
     }
 
@@ -256,7 +263,7 @@ public class PurchaseOrder {
         }
         // Validate purchaseOrderStatus values using enum
         if (!Status.isValid(request.getPurchaseOrderStatus().trim())) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidOrderStatus);
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidOrderStatusValue);
         }
         if (request.getPriority() == null || request.getPriority().trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidPriority);
@@ -265,14 +272,14 @@ public class PurchaseOrder {
         if (!request.getPriority().matches("LOW|MEDIUM|HIGH|URGENT")) {
             throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidPriority);
         }
-        if (request.getClientId() == null) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidClientId);
-        }
         if (request.getAssignedLeadId() == null) {
             throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidAssignedLeadId);
         }
-        if (request.getPurchaseOrderAddressId() == null) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidAddressId);
+      
+        // Validate address if provided (for new address creation)
+        if (request.getAddress() != null) {
+            Address tempAddress = new Address();
+            tempAddress.validateRequest(request.getAddress());
         }
     }
 
@@ -292,8 +299,9 @@ public class PurchaseOrder {
      * Sets fields from the request model.
      * 
      * @param request The PurchaseOrderRequestModel to extract fields from
+     * @param clientId The client ID from the authenticated user's token or existing purchase order
      */
-    private void setFieldsFromRequest(PurchaseOrderRequestModel request) {
+    private void setFieldsFromRequest(PurchaseOrderRequestModel request, Long clientId) {
         this.expectedDeliveryDate = request.getExpectedDeliveryDate();
         this.vendorNumber = request.getVendorNumber() != null ? request.getVendorNumber().trim() : null;
         this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : Boolean.FALSE;
@@ -302,7 +310,7 @@ public class PurchaseOrder {
         this.purchaseOrderStatus = request.getPurchaseOrderStatus().trim();
         this.priority = request.getPriority().trim();
         this.paymentId = request.getPaymentId();
-        this.clientId = request.getClientId();
+        this.clientId = clientId;
         this.approvedByUserId = request.getApprovedByUserId();
         this.approvedDate = request.getApprovedDate();
         this.rejectedByUserId = request.getRejectedByUserId();

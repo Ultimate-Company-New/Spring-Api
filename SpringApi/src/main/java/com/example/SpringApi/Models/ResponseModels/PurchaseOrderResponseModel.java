@@ -4,15 +4,12 @@ import lombok.Getter;
 import lombok.Setter;
 import com.example.SpringApi.Models.DatabaseModels.PurchaseOrder;
 import com.example.SpringApi.Models.DatabaseModels.PurchaseOrderQuantityPriceMap;
-import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
 import com.example.SpringApi.Models.DatabaseModels.Resources;
 import org.hibernate.Hibernate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Response model for PurchaseOrder operations.
@@ -52,7 +49,7 @@ public class PurchaseOrderResponseModel {
     private UserResponseModel modifiedByUser;
     private UserResponseModel approvedByUser;
     private UserResponseModel rejectedByUser;
-    private Map<ProductResponseModel, Integer> productToQuantityMap;
+    private List<PurchaseOrderProductItem> products;
     private List<ResourceResponseModel> attachments;
 
     /**
@@ -122,34 +119,30 @@ public class PurchaseOrderResponseModel {
             }
             
             // Initialize collections
-            this.productToQuantityMap = new HashMap<>();
+            this.products = new ArrayList<>();
             this.attachments = new ArrayList<>();
             
-            // Extract Products with Quantities and PickupLocations from PurchaseOrderQuantityPriceMaps
+            // Extract Products with Quantities from PurchaseOrderQuantityPriceMaps
+            // ProductResponseModel constructor will automatically load pickup locations with their stock quantities
             if (purchaseOrder.getPurchaseOrderQuantityPriceMaps() != null && 
                 !purchaseOrder.getPurchaseOrderQuantityPriceMaps().isEmpty()) {
                 
                 for (PurchaseOrderQuantityPriceMap quantityMap : purchaseOrder.getPurchaseOrderQuantityPriceMaps()) {
                     if (quantityMap.getProduct() != null) {
                         
-                        // Create ProductResponseModel with embedded PickupLocation information
+                        // Create ProductResponseModel which will include pickup location quantities
                         ProductResponseModel productResponse = new ProductResponseModel(
                             quantityMap.getProduct()
                         );
                         
-                        // Add PickupLocation to the ProductResponseModel (from Product entity)
-                        if (quantityMap.getProduct().getPickupLocation() != null) {
-                            PickupLocation pickupLocation = quantityMap.getProduct().getPickupLocation();
-                            if (Hibernate.isInitialized(pickupLocation)) {
-                                productResponse.setPickupLocation(new PickupLocationResponseModel(pickupLocation));
-                                if (pickupLocation.getAddress() != null && Hibernate.isInitialized(pickupLocation.getAddress())) {
-                                    productResponse.setPickupLocationAddress(new AddressResponseModel(pickupLocation.getAddress()));
-                                }
-                            }
-                        }
+                        // Create PurchaseOrderProductItem with product, price, and quantity
+                        PurchaseOrderProductItem productItem = new PurchaseOrderProductItem(
+                            productResponse,
+                            quantityMap.getPricePerQuantity(),
+                            quantityMap.getQuantity()
+                        );
                         
-                        // Map Product to its Quantity
-                        this.productToQuantityMap.put(productResponse, quantityMap.getQuantity());
+                        this.products.add(productItem);
                     }
                 }
             }

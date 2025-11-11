@@ -11,6 +11,8 @@ import com.example.SpringApi.ErrorMessages;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * JPA Entity for the Product table.
@@ -180,13 +182,6 @@ public class Product {
     @Column(name = "additionalImage3DeleteHash", length = 500)
     private String additionalImage3DeleteHash;
 
-    @Column(name = "pickupLocationId", nullable = false)
-    private Long pickupLocationId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pickupLocationId", insertable = false, updatable = false)
-    private PickupLocation pickupLocation;
-
     @Column(name = "createdUser", nullable = false)
     private String createdUser;
 
@@ -211,6 +206,9 @@ public class Product {
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    private Set<ProductPickupLocationMapping> productPickupLocationMappings = new HashSet<>();
 
     /**
      * Default constructor.
@@ -333,8 +331,8 @@ public class Product {
         if (request.getClientId() == null) {
             throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidClientId);
         }
-        if (request.getPickupLocationId() == null || request.getPickupLocationId() == 0) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidPickupLocationId);
+        if (request.getPickupLocationQuantities() == null || request.getPickupLocationQuantities().isEmpty()) {
+            throw new BadRequestException("At least one pickup location with quantity must be provided");
         }
     }
 
@@ -378,7 +376,6 @@ public class Product {
         this.weightKgs = request.getWeightKgs();
         this.categoryId = request.getCategoryId();
         this.clientId = request.getClientId();
-        this.pickupLocationId = request.getPickupLocationId();
         this.notes = request.getNotes() != null ? request.getNotes().trim() : null;
     }
 }

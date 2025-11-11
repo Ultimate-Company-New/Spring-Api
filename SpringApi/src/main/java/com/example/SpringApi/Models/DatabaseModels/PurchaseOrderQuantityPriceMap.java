@@ -7,6 +7,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * JPA Entity for the PurchaseOrderQuantityPriceMap table.
@@ -76,6 +77,33 @@ public class PurchaseOrderQuantityPriceMap {
         }
         
         return quantityPriceMaps;
+    }
+    
+    /**
+     * Equals method based on ID for proper Set behavior.
+     * Uses ID-based equality as recommended for JPA entities in collections.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PurchaseOrderQuantityPriceMap that = (PurchaseOrderQuantityPriceMap) o;
+        // If both have IDs, compare by ID. Otherwise, use object identity.
+        if (purchaseOrderQuantityPriceMapId != null && that.purchaseOrderQuantityPriceMapId != null) {
+            return Objects.equals(purchaseOrderQuantityPriceMapId, that.purchaseOrderQuantityPriceMapId);
+        }
+        return false;
+    }
+    
+    /**
+     * HashCode method based on ID for proper Set behavior.
+     * Uses ID-based hashing as recommended for JPA entities in collections.
+     */
+    @Override
+    public int hashCode() {
+        // Use a constant hash code for transient entities (before ID is assigned)
+        // This ensures the entity can be added to a Set before being persisted
+        return getClass().hashCode();
     }
 }
 

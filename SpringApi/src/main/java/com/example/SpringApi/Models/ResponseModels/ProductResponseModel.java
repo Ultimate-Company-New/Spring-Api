@@ -1,12 +1,17 @@
 package com.example.SpringApi.Models.ResponseModels;
 
+import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.DatabaseModels.Product;
+import com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping;
 import org.hibernate.Hibernate;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Response model for Product operations.
@@ -44,7 +49,6 @@ public class ProductResponseModel {
     private BigDecimal weightKgs;
     private Long categoryId;
     private Long clientId;
-    private Long pickupLocationId;
     
     // Product Images (Required - stored on ImgBB)
     private String mainImageUrl;
@@ -70,8 +74,9 @@ public class ProductResponseModel {
     
     // Related entities
     private ProductCategoryResponseModel category;
-    private PickupLocationResponseModel pickupLocation;
-    private AddressResponseModel pickupLocationAddress;
+    
+    // List of pickup locations with their available stock quantities
+    private List<ProductPickupLocationItem> pickupLocations;
     
     /**
      * Default constructor.
@@ -108,7 +113,6 @@ public class ProductResponseModel {
             this.weightKgs = product.getWeightKgs();
             this.categoryId = product.getCategoryId();
             this.clientId = product.getClientId();
-            this.pickupLocationId = product.getPickupLocationId();
             
             // Populate image URLs
             this.mainImageUrl = product.getMainImageUrl();
@@ -135,13 +139,30 @@ public class ProductResponseModel {
                 this.category = new ProductCategoryResponseModel(product.getCategory());
             }
 
-            if (product.getPickupLocation() != null && Hibernate.isInitialized(product.getPickupLocation())) {
-                this.pickupLocation = new PickupLocationResponseModel(product.getPickupLocation());
-
-                if (product.getPickupLocation().getAddress() != null
-                        && Hibernate.isInitialized(product.getPickupLocation().getAddress())) {
-                    this.pickupLocationAddress = new AddressResponseModel(product.getPickupLocation().getAddress());
+            // Populate pickup locations with their available stock from ProductPickupLocationMapping
+            this.pickupLocations = new ArrayList<>();
+            if (product.getProductPickupLocationMappings() != null && 
+                Hibernate.isInitialized(product.getProductPickupLocationMappings())) {
+                
+                for (ProductPickupLocationMapping mapping : product.getProductPickupLocationMappings()) {
+                    if (mapping.getPickupLocation() != null && 
+                        Hibernate.isInitialized(mapping.getPickupLocation())) {
+                        
+                        PickupLocationResponseModel pickupLocationResponse = 
+                            new PickupLocationResponseModel(mapping.getPickupLocation());
+                        
+                        // Create ProductPickupLocationItem with pickup location and available stock
+                        ProductPickupLocationItem pickupLocationItem = new ProductPickupLocationItem(
+                            pickupLocationResponse,
+                            mapping.getAvailableStock()
+                        );
+                        
+                        this.pickupLocations.add(pickupLocationItem);
+                    }
                 }
+            }
+            else{
+                throw new NotFoundException(ErrorMessages.ProductErrorMessages.NoPickupLocationsFound);
             }
         }
     }

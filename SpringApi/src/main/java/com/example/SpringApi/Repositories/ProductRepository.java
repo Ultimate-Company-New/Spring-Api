@@ -57,7 +57,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
            "WHEN 'height' THEN CAST(p.height AS string) " +
            "WHEN 'weightKgs' THEN CAST(p.weightKgs AS string) " +
            "WHEN 'categoryId' THEN CAST(p.categoryId AS string) " +
-           "WHEN 'pickupLocationId' THEN CAST(p.pickupLocationId AS string) " +
            "WHEN 'createdUser' THEN CONCAT(p.createdUser, '') " +
            "WHEN 'modifiedUser' THEN CONCAT(p.modifiedUser, '') " +
            "WHEN 'createdAt' THEN CAST(p.createdAt AS string) " +

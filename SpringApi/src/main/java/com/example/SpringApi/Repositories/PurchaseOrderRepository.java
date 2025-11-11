@@ -38,7 +38,10 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
      * - Modified By User
      * - Assigned Lead
      * - Approved By User
-     * - Purchase Order Quantity Maps with Products and Pickup Locations
+     * - Purchase Order Quantity Maps with Products and their Pickup Location Mappings
+     * 
+     * Note: Product.productPickupLocationMappings uses Set instead of List to avoid
+     * Hibernate's MultipleBagFetchException when fetching multiple collections.
      * 
      * @param purchaseOrderId The purchase order ID
      * @param clientId The client ID
@@ -54,10 +57,11 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
            "LEFT JOIN FETCH po.approvedByUser approver " +
            "LEFT JOIN FETCH po.rejectedByUser rejecter " +
            
-           // 2. Fetch Products with Quantities and their PickupLocations
+           // 2. Fetch Products with Quantities and their PickupLocation Mappings
            "LEFT JOIN FETCH po.purchaseOrderQuantityPriceMaps poqm " +
            "LEFT JOIN FETCH poqm.product prod " +
-           "LEFT JOIN FETCH prod.pickupLocation pkl " +
+           "LEFT JOIN FETCH prod.productPickupLocationMappings pplm " +
+           "LEFT JOIN FETCH pplm.pickupLocation pkl " +
            
            "WHERE po.purchaseOrderId = :purchaseOrderId " +
            "AND po.clientId = :clientId " +
@@ -71,7 +75,10 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
      * Data Structure:
      * 1. PurchaseOrder → Address (delivery/billing address)
      * 2. PurchaseOrder → PurchaseOrderQuantityPriceMaps → Product (with quantities)
-     *                                                    → PickupLocation (where each product is picked from)
+     *                                                    → ProductPickupLocationMappings → PickupLocation
+     * 
+     * Note: Product.productPickupLocationMappings uses Set instead of List to avoid
+     * Hibernate's MultipleBagFetchException when fetching multiple collections.
      * 
      * @param clientId The client ID to filter by
      * @param columnName The column name for filtering
@@ -92,10 +99,11 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
            "LEFT JOIN FETCH po.approvedByUser approver " +
            "LEFT JOIN FETCH po.rejectedByUser rejecter " +
            
-           // 2. Fetch Products with Quantities and their PickupLocations
+           // 2. Fetch Products with Quantities and their PickupLocation Mappings
            "LEFT JOIN FETCH po.purchaseOrderQuantityPriceMaps poqm " +
            "LEFT JOIN FETCH poqm.product prod " +
-           "LEFT JOIN FETCH prod.pickupLocation pkl " +
+           "LEFT JOIN FETCH prod.productPickupLocationMappings pplm " +
+           "LEFT JOIN FETCH pplm.pickupLocation pkl " +
            
            "WHERE po.clientId = :clientId " +
            "AND (:includeDeleted = true OR po.isDeleted = false) " +

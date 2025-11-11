@@ -6,8 +6,10 @@ import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.ProductRequestModel;
 import com.example.SpringApi.Models.DatabaseModels.Product;
+import com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping;
 import com.example.SpringApi.Repositories.ProductRepository;
 import com.example.SpringApi.Repositories.ProductCategoryRepository;
+import com.example.SpringApi.Repositories.ProductPickupLocationMappingRepository;
 import com.example.SpringApi.Repositories.ClientRepository;
 import com.example.SpringApi.Models.DatabaseModels.Client;
 import com.example.SpringApi.ErrorMessages;
@@ -30,6 +32,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -41,6 +44,7 @@ import java.io.InputStream;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Arrays;
+import java.util.Map;
 
 /**
  * Service implementation for Product operations.
@@ -55,6 +59,7 @@ import java.util.Arrays;
 public class ProductService extends BaseService implements IProductSubTranslator {
     
     private final ProductRepository productRepository;
+    private final ProductPickupLocationMappingRepository productPickupLocationMappingRepository;
     private final UserLogService userLogService;
     private final ProductCategoryRepository productCategoryRepository;
     private final ClientRepository clientRepository;
@@ -66,6 +71,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
     
     @Autowired
     public ProductService(ProductRepository productRepository,
+                         ProductPickupLocationMappingRepository productPickupLocationMappingRepository,
                          UserLogService userLogService,
                          ProductCategoryRepository productCategoryRepository,
                          ClientRepository clientRepository,
@@ -74,6 +80,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
                          HttpServletRequest request) {
         super();
         this.productRepository = productRepository;
+        this.productPickupLocationMappingRepository = productPickupLocationMappingRepository;
         this.userLogService = userLogService;
         this.productCategoryRepository = productCategoryRepository;
         this.clientRepository = clientRepository;
@@ -416,12 +423,33 @@ public class ProductService extends BaseService implements IProductSubTranslator
     }
     
     /**
+     * Creates pickup location mappings for a product.
+     * Uses batch insert for optimized database performance.
+     * 
+     * @param productId The product ID
+     * @param pickupLocationQuantities Map of pickup location ID to available quantity
+     * @throws BadRequestException if validation fails
+     */
+    private void createPickupLocationMappings(Long productId, Map<Long, Integer> pickupLocationQuantities) {
+        // Create all mappings using the static factory method (includes validation)
+        List<ProductPickupLocationMapping> mappings = ProductPickupLocationMapping.createFromMap(
+            productId, 
+            pickupLocationQuantities, 
+            getUser()
+        );
+        
+        // Save all mappings in a single batch operation for better performance
+        productPickupLocationMappingRepository.saveAll(mappings);
+    }
+    
+    /**
      * Adds a new product.
      * This method creates a new product with the provided details including
      * title, description, pricing, category, and other product attributes.
      * It validates the category existence, saves the product first to get the ID,
      * then handles multiple product images by processing URLs to base64 and 
-     * uploading them to ImgBB storage.
+     * uploading them to ImgBB storage. Finally, it creates pickup location mappings
+     * for the product based on the provided pickup location quantities.
      * 
      * @param productRequestModel The product to create
      * @throws BadRequestException if validation fails
@@ -440,11 +468,14 @@ public class ProductService extends BaseService implements IProductSubTranslator
             throw new NotFoundException(String.format(ErrorMessages.ProductErrorMessages.ER008, productRequestModel.getCategoryId()));
         }
         
-        // Create new product using constructor (validations are handled in the constructor)
+        // Create new product using constructor (validations including pickup location quantities are handled in the constructor)
         Product product = new Product(productRequestModel, getUser());
         
         // Save the product first to get the ID
         Product savedProduct = productRepository.save(product);
+        
+        // Create pickup location mappings
+        createPickupLocationMappings(savedProduct.getProductId(), productRequestModel.getPickupLocationQuantities());
         
         // Process and upload images to ImgBB using the saved product ID
         processAndUploadProductImages(productRequestModel, savedProduct, false);
@@ -458,6 +489,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
      * This method updates an existing product with the provided details.
      * All product fields can be updated except the product ID.
      * Deletes old images from ImgBB before uploading new ones.
+     * Updates pickup location mappings by deleting existing ones and creating new ones.
      * 
      * @param productRequestModel The product data to update
      * @throws BadRequestException if validation fails
@@ -477,11 +509,15 @@ public class ProductService extends BaseService implements IProductSubTranslator
             throw new NotFoundException(String.format(ErrorMessages.ProductErrorMessages.ER013, productRequestModel.getProductId()));
         }
         
-        // Create updated product using constructor (validations are handled in the constructor)
+        // Create updated product using constructor (validations including pickup location quantities are handled in the constructor)
         Product updatedProduct = new Product(productRequestModel, getUser(), existingProduct);
         
         // Save the updated product
         productRepository.save(updatedProduct);
+        
+        // Update pickup location mappings (delete existing and create new)
+        productPickupLocationMappingRepository.deleteByProductId(updatedProduct.getProductId());
+        createPickupLocationMappings(updatedProduct.getProductId(), productRequestModel.getPickupLocationQuantities());
         
         // Process and upload images to ImgBB using the updated product ID (delete old images first)
         processAndUploadProductImages(productRequestModel, updatedProduct, true);

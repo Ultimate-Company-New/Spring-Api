@@ -2,6 +2,7 @@ package com.example.SpringApi.Repositories;
 
 import com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -26,5 +27,14 @@ public interface ProductPickupLocationMappingRepository extends JpaRepository<Pr
            "JOIN FETCH pplm.pickupLocation pl " +
            "WHERE p.productId = :productId AND p.clientId = :clientId AND p.isDeleted = false")
     List<ProductPickupLocationMapping> findByProductIdAndClientId(@Param("productId") Long productId, @Param("clientId") Long clientId);
+    
+    /**
+     * Delete all ProductPickupLocationMappings by product ID.
+     * 
+     * @param productId The product ID
+     */
+    @Modifying
+    @Query("DELETE FROM ProductPickupLocationMapping pplm WHERE pplm.productId = :productId")
+    void deleteByProductId(@Param("productId") Long productId);
 }
 

@@ -131,7 +131,7 @@ public class Address {
         this.modifiedUser = modifiedUser;  // When updating, use the provided modified user
     }
     
-    private void validateRequest(AddressRequestModel request) {
+    public void validateRequest(AddressRequestModel request) {
         if (request == null) {
             throw new BadRequestException(ErrorMessages.AddressErrorMessages.ER001);
         }

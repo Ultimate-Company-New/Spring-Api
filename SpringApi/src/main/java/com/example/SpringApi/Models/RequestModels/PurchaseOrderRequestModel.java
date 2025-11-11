@@ -29,7 +29,6 @@ public class PurchaseOrderRequestModel {
     private String purchaseOrderStatus;
     private String priority; // Required: LOW, MEDIUM, HIGH, URGENT
     private Long paymentId;
-    private Long clientId;
     private Long approvedByUserId;
     private LocalDateTime approvedDate;
     private Long rejectedByUserId;
@@ -38,7 +37,7 @@ public class PurchaseOrderRequestModel {
     private Long purchaseOrderAddressId; // Optional: if provided, use existing address; if null, create from 'address' field
     private AddressRequestModel address; // Optional: address data for creating new address
     private List<PurchaseOrderProductItem> products; // Required: list of products with price and quantity
-    private List<Map<String, Object>> attachments; // Optional: max 30 attachments
+    private Map<String, String> attachments; // Optional: max 30 attachments (key: fileName, value: base64 data)
     private String notes;
     
     // Payment calculation fields (optional - if not provided, defaults will be used)

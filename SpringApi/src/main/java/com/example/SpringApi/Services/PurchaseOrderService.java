@@ -45,8 +45,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -214,7 +212,6 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         // Load resources (attachments) for all purchase orders in this page
         if (!page.getContent().isEmpty()) {
             // Load resources individually for each PO filtered by entityType
-            // TODO: Optimize with a bulk query using IN clause for multiple purchase order IDs
             for (PurchaseOrder po : page.getContent()) {
                 List<Resources> poResources = resourcesRepository.findByEntityIdAndEntityType(
                     po.getPurchaseOrderId(), EntityType.PURCHASE_ORDER);
@@ -263,22 +260,20 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         addressRepository.save(address);
         purchaseOrder.setPurchaseOrderAddressId(address.getAddressId());
 
-        // Step 3: Save the purchase order to database first (to get purchaseOrderId)
+        // Step 3: Create the payment info entity BEFORE saving purchase order (paymentId is non-nullable)
+        PaymentInfo paymentInfo = new PaymentInfo(purchaseOrderRequestModel, getUser());
+        paymentInfo = paymentInfoRepository.save(paymentInfo);
+        purchaseOrder.setPaymentId(paymentInfo.getPaymentId());
+
+        // Step 4: Save the purchase order to database (to get purchaseOrderId)
         purchaseOrderRepository.save(purchaseOrder);
 
-        // Step 4: Create the purchase order quantity price map entities
+        // Step 5: Create the purchase order quantity price map entities
         List<PurchaseOrderQuantityPriceMap> purchaseOrderQuantityPriceMaps = PurchaseOrderQuantityPriceMap.createFromRequest(
             purchaseOrderRequestModel,
             purchaseOrder.getPurchaseOrderId()
         );
         purchaseOrderQuantityPriceMapRepository.saveAll(purchaseOrderQuantityPriceMaps);
-        
-        // Step 5: Create the payment info entity (calculate from request model products)
-        PaymentInfo paymentInfo = new PaymentInfo(purchaseOrderRequestModel, getUser());
-        paymentInfo = paymentInfoRepository.save(paymentInfo);
-        purchaseOrder.setPaymentId(paymentInfo.getPaymentId());
-
-        purchaseOrderRepository.save(purchaseOrder);
         
         // Step 6: Handle attachments if provided
         if (purchaseOrderRequestModel.getAttachments() != null && 
@@ -340,12 +335,10 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         addressRepository.save(updatedAddress);
 
         // Step 3: Update the purchase order quantity price map entities
-        purchaseOrderQuantityPriceMapRepository.deleteByPurchaseOrderId(updatedPurchaseOrder.getPurchaseOrderId());        
-        List<PurchaseOrderQuantityPriceMap> purchaseOrderQuantityPriceMaps = PurchaseOrderQuantityPriceMap.createFromRequest(
-            purchaseOrderRequestModel,
-            updatedPurchaseOrder.getPurchaseOrderId()
+        updatePurchaseOrderQuantityPriceMaps(
+            updatedPurchaseOrder.getPurchaseOrderId(),
+            purchaseOrderRequestModel
         );
-        purchaseOrderQuantityPriceMapRepository.saveAll(purchaseOrderQuantityPriceMaps);
         
         // Step 4: Update or create payment quotation
         PaymentInfo existingPaymentInfo = paymentInfoRepository.findById(updatedPurchaseOrder.getPaymentId())
@@ -669,8 +662,11 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         
         // Configure FreeMarker
         Configuration cfg = new Configuration(Configuration.VERSION_2_3_32);
-        Path path = Paths.get("SpringApi", "src", "main", "resources", "InvoiceTemplates").toAbsolutePath();
-        cfg.setDirectoryForTemplateLoading(path.toFile());
+        cfg.setDefaultEncoding("UTF-8");
+        cfg.setClassLoaderForTemplateLoading(
+            Thread.currentThread().getContextClassLoader(),
+            "InvoiceTemplates"
+        );
         
         // Load template
         Template template = cfg.getTemplate("PurchaseOrder.ftl");
@@ -732,7 +728,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         Map<Product, Integer> productQuantityMap = new LinkedHashMap<>();
         
         // Get all quantity price maps for this purchase order
-        List<PurchaseOrderQuantityPriceMap> quantityMaps = purchaseOrder.getPurchaseOrderQuantityPriceMaps();
+        Set<PurchaseOrderQuantityPriceMap> quantityMaps = purchaseOrder.getPurchaseOrderQuantityPriceMaps();
         
         if (quantityMaps != null) {
             for (PurchaseOrderQuantityPriceMap quantityMap : quantityMaps) {
@@ -753,16 +749,17 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
     /**
      * Helper method to upload purchase order attachments to ImgBB.
      * 
-     * @param attachments List of attachments from request
+     * @param attachments Map of attachments (key: fileName, value: base64 data)
      * @param purchaseOrderId The purchase order ID
      * @throws BadRequestException if ImgBB is not configured or upload fails
      */
-    private void uploadPurchaseOrderAttachments(List<Map<String, Object>> attachments, Long purchaseOrderId) {
+    private void uploadPurchaseOrderAttachments(Map<String, String> attachments, Long purchaseOrderId) {
         // Check image location from application properties
-        String imageLocation = environment.getProperty("image.location");
+        String imageLocation = environment.getProperty("imageLocation");
         
+        // Only upload if ImgBB is configured, otherwise skip
         if (!"imgbb".equalsIgnoreCase(imageLocation)) {
-            throw new BadRequestException("Image location is not configured to ImgBB. Cannot process attachments.");
+            return;
         }
         
         // Get client and validate ImgBB API key
@@ -781,16 +778,16 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         
         // Prepare attachment upload requests
         List<ImgbbHelper.AttachmentUploadRequest> uploadRequests = new ArrayList<>();
-        for (Map<String, Object> attachment : attachments) {
-            String fileName = (String) attachment.get("fileName");
-            String base64Data = (String) attachment.get("data");
-            String notes = (String) attachment.get("notes");
+        for (Map.Entry<String, String> attachment : attachments.entrySet()) {
+            String fileName = attachment.getKey();
+            String base64Data = attachment.getValue();
             
-            if (fileName == null || base64Data == null) {
-                throw new BadRequestException("Each attachment must have 'fileName' and 'data' fields");
+            if (fileName == null || fileName.trim().isEmpty() || base64Data == null || base64Data.trim().isEmpty()) {
+                throw new BadRequestException("Each attachment must have a valid fileName (key) and base64 data (value)");
             }
             
-            uploadRequests.add(new ImgbbHelper.AttachmentUploadRequest(fileName, base64Data, notes));
+            // No notes field in the new structure
+            uploadRequests.add(new ImgbbHelper.AttachmentUploadRequest(fileName, base64Data, null));
         }
         
         // Upload all attachments using ImgbbHelper
@@ -837,7 +834,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         }
         
         // Check if ImgBB is configured
-        String imageLocation = environment.getProperty("image.location");
+        String imageLocation = environment.getProperty("imageLocation");
         if ("imgbb".equalsIgnoreCase(imageLocation)) {
             // Get client for ImgBB API key
             Client client = clientRepository.findById(getClientId())
@@ -863,5 +860,58 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         
         // Delete all existing resource records from database
         resourcesRepository.deleteAll(existingResources);
+    }
+    
+    /**
+     * Updates purchase order quantity price mappings by updating existing records,
+     * deleting excess records, or inserting new records as needed.
+     * 
+     * This approach avoids trigger errors and duplicate entry constraints by:
+     * - Updating existing records with new values
+     * - Deleting only excess records (if existing > new)
+     * - Inserting only additional records (if existing < new)
+     * 
+     * @param purchaseOrderId The purchase order ID
+     * @param request The purchase order request model with new product data
+     */
+    private void updatePurchaseOrderQuantityPriceMaps(Long purchaseOrderId, PurchaseOrderRequestModel request) {
+        // Get existing mappings
+        List<PurchaseOrderQuantityPriceMap> existingMappings = 
+            purchaseOrderQuantityPriceMapRepository.findByPurchaseOrderId(purchaseOrderId);
+        
+        // Create new mappings from the request
+        List<PurchaseOrderQuantityPriceMap> newMappings = PurchaseOrderQuantityPriceMap.createFromRequest(
+            request,
+            purchaseOrderId
+        );
+        
+        int existingCount = existingMappings.size();
+        int newCount = newMappings.size();
+        int minCount = Math.min(existingCount, newCount);
+        
+        // Step 1: Update existing records with new values (up to minCount)
+        for (int i = 0; i < minCount; i++) {
+            PurchaseOrderQuantityPriceMap existing = existingMappings.get(i);
+            PurchaseOrderQuantityPriceMap newMapping = newMappings.get(i);
+            
+            // Update the existing record with new values
+            existing.setProductId(newMapping.getProductId());
+            existing.setQuantity(newMapping.getQuantity());
+            existing.setPricePerQuantity(newMapping.getPricePerQuantity());
+            
+            purchaseOrderQuantityPriceMapRepository.save(existing);
+        }
+        
+        // Step 2: Handle the difference
+        if (existingCount > newCount) {
+            // Delete excess existing records (keeping at least newCount records)
+            List<PurchaseOrderQuantityPriceMap> toDelete = existingMappings.subList(newCount, existingCount);
+            purchaseOrderQuantityPriceMapRepository.deleteAll(toDelete);
+        } else if (existingCount < newCount) {
+            // Insert additional new records
+            List<PurchaseOrderQuantityPriceMap> toInsert = newMappings.subList(existingCount, newCount);
+            purchaseOrderQuantityPriceMapRepository.saveAll(toInsert);
+        }
+        // If existingCount == newCount, we've already updated all records in Step 1
     }
 }
