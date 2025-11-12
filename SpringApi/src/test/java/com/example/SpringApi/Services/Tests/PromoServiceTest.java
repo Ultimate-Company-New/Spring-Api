@@ -470,7 +470,7 @@ class PromoServiceTest {
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             promoService.getPromoDetailsByName(nonExistentCode);
         });
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, exception.getMessage());
+        assertEquals(ErrorMessages.PromoErrorMessages.InvalidName, exception.getMessage());
         verify(promoRepository).findByPromoCodeAndClientId(nonExistentCode, TEST_CLIENT_ID);
     }
 
@@ -483,10 +483,10 @@ class PromoServiceTest {
     void getPromoDetailsByName_NullPromoCode_ThrowsNotFoundException() {
         // Arrange
         String nullCode = null;
-        when(promoRepository.findByPromoCodeAndClientId(nullCode, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        // No need to mock repository since service validates before calling repository
 
         // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             promoService.getPromoDetailsByName(nullCode);
         });
         assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, exception.getMessage());
@@ -501,10 +501,10 @@ class PromoServiceTest {
     void getPromoDetailsByName_EmptyPromoCode_ThrowsNotFoundException() {
         // Arrange
         String emptyCode = "";
-        when(promoRepository.findByPromoCodeAndClientId(emptyCode, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        // No need to mock repository since service validates before calling repository
 
         // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             promoService.getPromoDetailsByName(emptyCode);
         });
         assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, exception.getMessage());
@@ -519,13 +519,12 @@ class PromoServiceTest {
     void getPromoDetailsByName_WhitespacePromoCode_Success() {
         // Arrange
         String whitespaceCode = "   ";
-        when(promoRepository.findByPromoCodeAndClientId(whitespaceCode, TEST_CLIENT_ID)).thenReturn(Optional.of(testPromo));
+        // No need to mock repository since service validates before calling repository
 
-        // Act
-        PromoResponseModel result = promoService.getPromoDetailsByName(whitespaceCode);
-
-        // Assert
-        assertNotNull(result);
-        verify(promoRepository).findByPromoCodeAndClientId(whitespaceCode, TEST_CLIENT_ID);
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            promoService.getPromoDetailsByName(whitespaceCode);
+        });
+        assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, exception.getMessage());
     }
 }

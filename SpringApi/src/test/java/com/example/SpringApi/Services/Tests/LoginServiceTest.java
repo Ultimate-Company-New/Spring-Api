@@ -61,7 +61,7 @@ import org.mockito.MockedConstruction;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("LoginService Unit Tests")
-class LoginServicesTest {
+class LoginServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -235,15 +235,37 @@ class LoginServicesTest {
     
     /**
      * Test successful user sign-in.
-     * DEPRECATED: This test is outdated. Use SignInTest.java in Playwright test suite instead.
-     * The signIn method now returns List<ClientResponseModel> instead of String.
+     * Verifies that user can sign in and returns list of clients they have access to.
      */
     @Test
     @DisplayName("Sign In - Success - Should return list of clients")
-    @Disabled("Deprecated: Use Playwright API tests in SignInTest.java")
     void signIn_Success() {
-        // This test is deprecated and disabled
-        // Comprehensive tests are now in Spring-PlayWright-Automation/src/test/java/.../Login/SignInTest.java
+        // Arrange
+        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+        when(userClientMappingRepository.findByUserId(TEST_USER_ID)).thenReturn(List.of(testUserClientMapping));
+        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        
+        // Mock PasswordHelper static method to return true for valid password
+        try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
+            mockedPasswordHelper.when(() -> PasswordHelper.checkPassword(anyString(), anyString(), anyString()))
+                .thenReturn(true);
+            
+            // Act
+            List<com.example.SpringApi.Models.ResponseModels.ClientResponseModel> result = loginService.signIn(testLoginRequest);
+            
+            // Assert
+            assertNotNull(result);
+            assertEquals(1, result.size());
+            
+            com.example.SpringApi.Models.ResponseModels.ClientResponseModel clientResponse = result.get(0);
+            assertEquals(TEST_CLIENT_ID, clientResponse.getClientId());
+            assertEquals("Test Client", clientResponse.getName());
+            assertEquals(TEST_API_KEY, clientResponse.getApiKey());
+            
+            verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
+            verify(userClientMappingRepository, times(1)).findByUserId(TEST_USER_ID);
+            verify(clientRepository, times(1)).findById(TEST_CLIENT_ID);
+        }
     }
     
     /**
@@ -399,50 +421,7 @@ class LoginServicesTest {
     }
 
     // ==================== Sign Up Tests ====================
-    
-    /**
-     * Test successful user sign-up.
-     * Verifies that new user is created and returns success.
-     */
-    @Test
-    @DisplayName("Sign Up - Success - Should create user and return success")
-    void signUp_Success() {
-        // Arrange
-        User savedUser = new User(testUserRequest);
-        savedUser.setUserId(TEST_USER_ID);
-        
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(null);
-        when(userRepository.save(any(User.class))).thenReturn(savedUser);
-        when(clientRepository.findAll()).thenReturn(List.of(testClient));
-        
-        // Mock static PasswordHelper methods
-        try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
-            mockedPasswordHelper.when(() -> PasswordHelper.getHashedPasswordAndSalt(anyString()))
-                .thenReturn(new String[]{"salt123", "hashedPassword123"});
-            mockedPasswordHelper.when(() -> PasswordHelper.getToken(anyString())).thenReturn("token123");
-            
-            // Mock EmailTemplates constructor - avoid using argument matchers
-            try (MockedConstruction<EmailTemplates> mockedEmailTemplates = mockConstruction(EmailTemplates.class, (mock, context) -> {
-                when(mock.sendNewUserAccountConfirmation(anyLong(), anyString(), anyString(), anyString())).thenReturn(true);
-            })) {
-                
-                // DEPRECATED: signUp method has been removed from API
-                // This test is disabled
-            }
-        }
-    }
-    
-    /**
-     * Test sign-up with existing login name.
-     * DEPRECATED: The signUp endpoint has been removed from the API.
-     */
-    @Test
-    @DisplayName("Sign Up - Failure - Login name already exists")
-    @Disabled("Deprecated: signUp endpoint has been removed from API")
-    void signUp_ExistingLoginName_ThrowsBadRequestException() {
-        // This test is deprecated and disabled
-        // The signUp endpoint no longer exists in the API
-    }
+    // Note: signUp method has been removed from the API - no tests needed
 
     // ==================== Reset Password Tests ====================
     
@@ -458,6 +437,11 @@ class LoginServicesTest {
         when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
         lenient().when(userRepository.save(any(User.class))).thenReturn(testUser);
         when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
+        
+        // Mock environment properties for email configuration
+        when(environment.getProperty("email.sender.address")).thenReturn("test@example.com");
+        when(environment.getProperty("email.sender.name")).thenReturn("Test Sender");
+        when(environment.getProperty("sendgrid.api.key")).thenReturn("test-api-key");
         lenient().when(emailTemplates.sendResetPasswordEmail(anyString(), anyString()))
             .thenReturn(true);
         

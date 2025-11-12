@@ -69,6 +69,9 @@ class PackageServiceTest {
     private PackagePickupLocationMappingRepository packagePickupLocationMappingRepository;
 
     @Mock
+    private com.example.SpringApi.Repositories.PickupLocationRepository pickupLocationRepository;
+
+    @Mock
     private HttpServletRequest request;
 
     @Spy
@@ -275,7 +278,7 @@ class PackageServiceTest {
     void testGetAllPackagesInSystem_Success() {
         // Arrange
         List<Package> packageList = Arrays.asList(testPackage);
-        when(packageRepository.findByClientIdAndIsDeletedFalse(TEST_CLIENT_ID)).thenReturn(packageList);
+        when(packageRepository.findAll()).thenReturn(packageList);
 
         // Act
         List<PackageResponseModel> result = packageService.getAllPackagesInSystem();
@@ -485,6 +488,9 @@ class PackageServiceTest {
     @DisplayName("getPackagesByPickupLocationId - Success: Returns packages for pickup location")
     void testGetPackagesByPickupLocationId_Success() {
         // Arrange
+        when(pickupLocationRepository.countByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+            .thenReturn(1L); // Pickup location exists
+        
         List<PackagePickupLocationMapping> mappings = Arrays.asList(testMapping);
         when(packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
             .thenReturn(mappings);
@@ -502,6 +508,9 @@ class PackageServiceTest {
     @DisplayName("getPackagesByPickupLocationId - Success: Empty result")
     void testGetPackagesByPickupLocationId_EmptyResult() {
         // Arrange
+        when(pickupLocationRepository.countByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+            .thenReturn(1L); // Pickup location exists
+        
         when(packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
             .thenReturn(Arrays.asList());
 

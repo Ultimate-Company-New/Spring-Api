@@ -19,6 +19,7 @@ import com.example.SpringApi.Services.UserService;
 import com.example.SpringApi.Helpers.EmailTemplates;
 import com.example.SpringApi.Helpers.FirebaseHelper;
 import com.example.SpringApi.Helpers.EmailHelper;
+import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Helpers.PasswordHelper;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
@@ -38,6 +39,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.test.util.ReflectionTestUtils;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -196,6 +198,7 @@ class UserServiceTest {
         
         // Mock environment for profile checks
         lenient().when(environment.getActiveProfiles()).thenReturn(new String[]{"localhost"});
+        lenient().when(environment.getProperty("imageLocation")).thenReturn("firebase");
         
         // Manually inject the mocked environment into userService since @InjectMocks may not work reliably with many constructor parameters
         try {
@@ -205,6 +208,9 @@ class UserServiceTest {
         } catch (Exception e) {
             // Ignore reflection exceptions in test
         }
+        
+        // Set the @Value field using reflection since @Value doesn't work with mocked environments
+        ReflectionTestUtils.setField(userService, "imageLocation", "imgbb");
         
         // Mock getClientId() to return TEST_CLIENT_ID for multi-tenant filtering
         lenient().doReturn(TEST_CLIENT_ID).when(userService).getClientId();
@@ -368,7 +374,7 @@ class UserServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         when(userClientPermissionMappingRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
         when(userClientMappingRepository.save(any(UserClientMapping.class))).thenReturn(userClientMapping);
-        when(googleCredRepository.findById(anyLong())).thenReturn(Optional.of(new GoogleCred()));
+        lenient().when(googleCredRepository.findById(anyLong())).thenReturn(Optional.of(new GoogleCred()));
         when(clientRepository.findById(anyLong())).thenReturn(Optional.of(new Client()));
         
         ClientResponseModel clientResponse = new ClientResponseModel();
@@ -496,28 +502,36 @@ class UserServiceTest {
         
         when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(testUser);
         when(userRepository.save(any(User.class))).thenReturn(testUser);
-        when(userClientPermissionMappingRepository.findByUserIdAndClientId(anyLong(), anyLong()))
+        lenient().when(userClientPermissionMappingRepository.findByUserIdAndClientId(anyLong(), anyLong()))
             .thenReturn(new ArrayList<>());
         when(userClientPermissionMappingRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
-        when(userGroupUserMapRepository.findByUserId(anyLong())).thenReturn(new ArrayList<>());
-        when(googleCredRepository.findById(anyLong())).thenReturn(Optional.of(new GoogleCred()));
+        lenient().when(userGroupUserMapRepository.findByUserId(anyLong())).thenReturn(new ArrayList<>());
+        lenient().when(googleCredRepository.findById(anyLong())).thenReturn(Optional.of(new GoogleCred()));
+        
+        // Mock client for ImgBB API key
+        Client testClient = new Client();
+        testClient.setClientId(TEST_CLIENT_ID);
+        testClient.setImgbbApiKey("test-imgbb-api-key");
+        when(clientRepository.findById(anyLong())).thenReturn(Optional.of(testClient));
         
         ClientResponseModel clientResponse = new ClientResponseModel();
         clientResponse.setName("Test Client");
         when(clientService.getClientById(anyLong())).thenReturn(clientResponse);
         
         when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        lenient().when(environment.getProperty("imageLocation")).thenReturn("firebase");
+        when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
         
-        // Mock FirebaseHelper constructor to prevent external calls
-        try (MockedConstruction<FirebaseHelper> firebaseHelperMock = mockConstruction(FirebaseHelper.class,
+        // Mock ImgbbHelper constructor to prevent external calls
+        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
                 (mock, context) -> {
-                    doNothing().when(mock).deleteFile(anyString());
+                    when(mock.deleteImage(anyString())).thenReturn(true);
                 })) {
             
             // Act & Assert
             assertDoesNotThrow(() -> userService.updateUser(testUserRequest));
             verify(userRepository, times(1)).findByIdWithAllRelations(eq(TEST_USER_ID), anyLong());
-            verify(userRepository, times(1)).save(any(User.class));
+            verify(userRepository, times(2)).save(any(User.class)); // Called twice: once for profile pic cleanup, once for main update
             verify(userClientPermissionMappingRepository, times(1)).saveAll(anyList());
         }
     }
@@ -613,28 +627,37 @@ class UserServiceTest {
         when(addressRepository.findById(1L)).thenReturn(Optional.of(existingAddress));
         when(addressRepository.save(any(Address.class))).thenReturn(existingAddress);
         when(userRepository.save(any(User.class))).thenReturn(testUser);
-        when(userClientPermissionMappingRepository.findByUserIdAndClientId(anyLong(), anyLong()))
+        lenient().when(userClientPermissionMappingRepository.findByUserIdAndClientId(anyLong(), anyLong()))
             .thenReturn(new ArrayList<>());
         when(userClientPermissionMappingRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
-        when(userGroupUserMapRepository.findByUserId(anyLong())).thenReturn(new ArrayList<>());
-        when(googleCredRepository.findById(anyLong())).thenReturn(Optional.of(new GoogleCred()));
+        lenient().when(userGroupUserMapRepository.findByUserId(anyLong())).thenReturn(new ArrayList<>());
+        lenient().when(googleCredRepository.findById(anyLong())).thenReturn(Optional.of(new GoogleCred()));
+        
+        // Mock client for ImgBB API key
+        Client testClient = new Client();
+        testClient.setClientId(TEST_CLIENT_ID);
+        testClient.setImgbbApiKey("test-imgbb-api-key");
+        when(clientRepository.findById(anyLong())).thenReturn(Optional.of(testClient));
         
         ClientResponseModel clientResponse = new ClientResponseModel();
         clientResponse.setName("Test Client");
         when(clientService.getClientById(anyLong())).thenReturn(clientResponse);
         
         when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        lenient().when(environment.getProperty("imageLocation")).thenReturn("firebase");
+        when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
         
-        // Mock FirebaseHelper constructor to prevent external calls
-        try (MockedConstruction<FirebaseHelper> firebaseHelperMock = mockConstruction(FirebaseHelper.class,
+        // Mock ImgbbHelper constructor to prevent external calls
+        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
                 (mock, context) -> {
-                    doNothing().when(mock).deleteFile(anyString());
+                    when(mock.deleteImage(anyString())).thenReturn(true);
                 })) {
             
             // Act & Assert
             assertDoesNotThrow(() -> userService.updateUser(testUserRequest));
             verify(addressRepository, times(1)).findById(1L);
             verify(addressRepository, times(1)).save(any(Address.class));
+            verify(userRepository, times(2)).save(any(User.class)); // Called twice: once for profile pic cleanup, once for main update
         }
     }
 

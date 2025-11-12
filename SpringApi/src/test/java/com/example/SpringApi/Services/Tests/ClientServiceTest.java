@@ -22,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -114,6 +115,13 @@ class ClientServiceTest {
         
         // Setup common mock behaviors
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+        lenient().when(environment.getProperty("imageLocation")).thenReturn("firebase");
+        lenient().when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
+        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        
+        // Set the @Value field using reflection since @Value doesn't work with mocked environments
+        ReflectionTestUtils.setField(clientService, "imageLocation", "firebase");
+        
         // Note: getUser() and getUserId() are handled by BaseService with test token support
         // No need to mock them explicitly
     }
@@ -239,8 +247,6 @@ class ClientServiceTest {
         
         when(clientRepository.save(any(Client.class))).thenReturn(testClient);
         when(googleCredRepository.findById(TEST_GOOGLE_CRED_ID)).thenReturn(Optional.of(testGoogleCred));
-        when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
         try (MockedConstruction<FirebaseHelper> firebaseHelperMock = mockConstruction(FirebaseHelper.class,
                 (mock, context) -> {
@@ -291,7 +297,6 @@ class ClientServiceTest {
         
         when(clientRepository.save(any(Client.class))).thenReturn(testClient);
         when(googleCredRepository.findById(TEST_GOOGLE_CRED_ID)).thenReturn(Optional.of(testGoogleCred));
-        when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
         
         try (MockedConstruction<FirebaseHelper> firebaseHelperMock = mockConstruction(FirebaseHelper.class,
                 (mock, context) -> {
@@ -325,13 +330,20 @@ class ClientServiceTest {
         
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(clientRepository.save(any(Client.class))).thenReturn(testClient);
+        when(googleCredRepository.findById(TEST_GOOGLE_CRED_ID)).thenReturn(Optional.of(testGoogleCred));
         when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         
-        // Act & Assert
-        assertDoesNotThrow(() -> clientService.updateClient(testClientRequest));
-        verify(clientRepository, times(1)).findById(TEST_CLIENT_ID);
-        verify(clientRepository, times(1)).save(any(Client.class));
-        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
+        try (MockedConstruction<FirebaseHelper> firebaseHelperMock = mockConstruction(FirebaseHelper.class,
+                (mock, context) -> {
+                    when(mock.downloadFileAsBytesFromFirebase(anyString())).thenReturn(null); // No existing logo
+                })) {
+            
+            // Act & Assert
+            assertDoesNotThrow(() -> clientService.updateClient(testClientRequest));
+            verify(clientRepository, times(1)).findById(TEST_CLIENT_ID);
+            verify(clientRepository, times(1)).save(any(Client.class));
+            verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
+        }
     }
     
     /**

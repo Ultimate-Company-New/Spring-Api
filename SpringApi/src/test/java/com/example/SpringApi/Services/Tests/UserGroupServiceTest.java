@@ -123,7 +123,7 @@ class UserGroupServiceTest {
         
         // Initialize test mapping using constructor
         testMapping = new UserGroupUserMap(TEST_USER_ID, TEST_GROUP_ID, CREATED_USER);
-        testMapping.setId(1L);
+        testMapping.setMappingId(1L);
         
         // Setup common mock behaviors with lenient mocking for JWT authentication
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");

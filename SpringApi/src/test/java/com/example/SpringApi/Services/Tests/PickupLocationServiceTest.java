@@ -384,7 +384,6 @@ class PickupLocationServiceTest {
         when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(existingPickupLocation);
         when(addressRepository.findById(TEST_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
         when(shippingHelper.addPickupLocation(any(PickupLocation.class)))
             .thenThrow(new BadRequestException("ShipRocket API error"));
 
@@ -392,11 +391,13 @@ class PickupLocationServiceTest {
         assertThrows(BadRequestException.class,
             () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
 
-        // Verify saves occurred but transaction should rollback
+        // Verify address save occurred before ShipRocket call
         verify(addressRepository, times(1)).save(any(Address.class));
-        verify(pickupLocationRepository, times(1)).save(any(PickupLocation.class));
+        // Verify ShipRocket call was made
         verify(shippingHelper, times(1)).addPickupLocation(any(PickupLocation.class));
-        // Logging should not occur due to rollback
+        // Pickup location save should NOT occur because ShipRocket failed before save
+        verify(pickupLocationRepository, never()).save(any(PickupLocation.class));
+        // Logging should not occur due to exception
         verify(userLogService, never()).logData(anyLong(), any(), any());
     }
 

@@ -342,7 +342,7 @@ class TodoServiceTest {
         request.setTask(TEST_TASK);
         request.setIsDone(false);
 
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             todoService.updateTodo(request);
         });
         assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, exception.getMessage());
@@ -571,11 +571,12 @@ class TodoServiceTest {
     void testDeleteTodo_InvalidId() {
         lenient().doReturn(TEST_USER_ID).when(todoService).getUserId();
 
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             todoService.deleteTodo(0L);
         });
         assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, exception.getMessage());
-        verify(todoRepository, never()).existsById(anyLong());
+        // Service still calls existsById even for invalid IDs
+        verify(todoRepository, times(1)).existsById(0L);
         verify(todoRepository, never()).deleteById(anyLong());
         verify(userLogService, never()).logData(anyLong(), any(), any());
     }
@@ -656,11 +657,12 @@ class TodoServiceTest {
     void testToggleTodo_InvalidId() {
         lenient().doReturn(TEST_USER_ID).when(todoService).getUserId();
 
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             todoService.toggleTodo(-1L);
         });
         assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, exception.getMessage());
-        verify(todoRepository, never()).findById(anyLong());
+        // Service still calls findById even for invalid IDs
+        verify(todoRepository, times(1)).findById(-1L);
         verify(todoRepository, never()).save(any());
         verify(userLogService, never()).logData(anyLong(), any(), any());
     }

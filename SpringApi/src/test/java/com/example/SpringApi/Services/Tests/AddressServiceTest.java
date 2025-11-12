@@ -1,9 +1,13 @@
 package com.example.SpringApi.Services.Tests;
 
 import com.example.SpringApi.Models.DatabaseModels.Address;
+import com.example.SpringApi.Models.DatabaseModels.Client;
+import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.ResponseModels.AddressResponseModel;
 import com.example.SpringApi.Repositories.AddressRepository;
+import com.example.SpringApi.Repositories.ClientRepository;
+import com.example.SpringApi.Repositories.UserRepository;
 import com.example.SpringApi.Services.AddressService;
 import com.example.SpringApi.Services.UserLogService;
 import com.example.SpringApi.Exceptions.NotFoundException;
@@ -50,6 +54,12 @@ class AddressServiceTest {
     private AddressRepository addressRepository;
     
     @Mock
+    private ClientRepository clientRepository;
+    
+    @Mock
+    private UserRepository userRepository;
+    
+    @Mock
     private UserLogService userLogService;
     
     @Mock
@@ -60,6 +70,8 @@ class AddressServiceTest {
     
     private Address testAddress;
     private AddressRequestModel testAddressRequest;
+    private Client testClient;
+    private User testUser;
     private static final Long TEST_ADDRESS_ID = 1L;
     private static final Long TEST_USER_ID = 1L;
     private static final Long TEST_CLIENT_ID = 100L;
@@ -90,6 +102,32 @@ class AddressServiceTest {
         testAddressRequest.setCountry(TEST_COUNTRY);
         testAddressRequest.setIsPrimary(true);
         testAddressRequest.setIsDeleted(false);
+        
+        // Initialize test client
+        testClient = new Client();
+        testClient.setClientId(TEST_CLIENT_ID);
+        testClient.setName("Test Client");
+        testClient.setDescription("Test Client Description");
+        testClient.setSupportEmail("support@testclient.com");
+        testClient.setWebsite("https://testclient.com");
+        testClient.setIsDeleted(false);
+        testClient.setCreatedUser(CREATED_USER);
+        testClient.setModifiedUser(CREATED_USER);
+        testClient.setCreatedAt(LocalDateTime.now());
+        testClient.setUpdatedAt(LocalDateTime.now());
+        
+        // Initialize test user
+        testUser = new User();
+        testUser.setUserId(TEST_USER_ID);
+        testUser.setLoginName("testuser");
+        testUser.setFirstName("Test");
+        testUser.setLastName("User");
+        testUser.setEmail("test@example.com");
+        testUser.setIsDeleted(false);
+        testUser.setCreatedUser(CREATED_USER);
+        testUser.setModifiedUser(CREATED_USER);
+        testUser.setCreatedAt(LocalDateTime.now());
+        testUser.setUpdatedAt(LocalDateTime.now());
         
         // Initialize test address using constructor
         testAddress = new Address(testAddressRequest, CREATED_USER);
@@ -280,6 +318,8 @@ class AddressServiceTest {
     @DisplayName("Get Address By User ID - Success - Should return user addresses")
     void getAddressByUserId_Success() {
         // Arrange
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+        
         Address secondAddress = new Address(testAddressRequest, CREATED_USER);
         secondAddress.setAddressId(2L);
         secondAddress.setAddressType("Work");
@@ -309,6 +349,7 @@ class AddressServiceTest {
     @DisplayName("Get Address By User ID - Success - Empty list")
     void getAddressByUserId_EmptyList_ReturnsEmptyList() {
         // Arrange
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
         when(addressRepository.findByUserIdAndIsDeletedOrderByAddressIdDesc(TEST_USER_ID, false)).thenReturn(new ArrayList<>());
         
         // Act
@@ -330,6 +371,8 @@ class AddressServiceTest {
     @DisplayName("Get Address By Client ID - Success - Should return client addresses")
     void getAddressByClientId_Success() {
         // Arrange
+        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        
         Address secondAddress = new Address(testAddressRequest, CREATED_USER);
         secondAddress.setAddressId(2L);
         secondAddress.setAddressType("Billing");
@@ -361,6 +404,7 @@ class AddressServiceTest {
     @DisplayName("Get Address By Client ID - Success - Empty list")
     void getAddressByClientId_EmptyList_ReturnsEmptyList() {
         // Arrange
+        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(TEST_CLIENT_ID, false)).thenReturn(new ArrayList<>());
         
         // Act
@@ -380,6 +424,8 @@ class AddressServiceTest {
     @DisplayName("Get Address By Client ID - Success - Multiple address types")
     void getAddressByClientId_MultipleTypes_Success() {
         // Arrange
+        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        
         Address homeAddress = new Address(testAddressRequest, CREATED_USER);
         homeAddress.setAddressId(1L);
         homeAddress.setAddressType("Home");

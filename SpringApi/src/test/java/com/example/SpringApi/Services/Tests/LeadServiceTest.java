@@ -289,6 +289,7 @@ class LeadServiceTest {
     @DisplayName("Get Lead Details By ID - Success - Should return lead details")
     void getLeadDetailsById_Success() {
         // Arrange
+        when(leadService.getClientId()).thenReturn(TEST_CLIENT_ID);
         when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(testLead);
 
         // Act
@@ -311,7 +312,7 @@ class LeadServiceTest {
     @DisplayName("Get Lead Details By ID - Failure - Lead not found")
     void getLeadDetailsById_LeadNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(null);
+        lenient().when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () ->
@@ -661,7 +662,8 @@ class LeadServiceTest {
     @DisplayName("Update Lead - Success - Should update existing lead")
     void updateLead_Success() {
         // Arrange
-        when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(testLead);
+        when(leadService.getClientId()).thenReturn(TEST_CLIENT_ID);
+        when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(eq(TEST_LEAD_ID), eq(TEST_CLIENT_ID))).thenReturn(testLead);
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
         when(leadRepository.save(any(Lead.class))).thenReturn(testLead);
         when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
@@ -670,7 +672,7 @@ class LeadServiceTest {
         leadService.updateLead(TEST_LEAD_ID, testLeadRequest);
 
         // Assert
-        verify(leadRepository).findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID);
+        verify(leadRepository).findLeadWithDetailsByIdIncludingDeleted(TEST_LEAD_ID, TEST_CLIENT_ID);
         verify(addressRepository).save(any(Address.class));
         verify(leadRepository).save(any(Lead.class));
         verify(userLogService).logData(eq(TEST_CREATED_BY_ID), anyString(), anyString());
@@ -684,7 +686,7 @@ class LeadServiceTest {
     @DisplayName("Update Lead - Failure - Lead not found")
     void updateLead_LeadNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(null);
+        lenient().when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () ->
@@ -700,12 +702,12 @@ class LeadServiceTest {
     @DisplayName("Update Lead - Failure - Null request")
     void updateLead_NullRequest_ThrowsBadRequestException() {
         // Arrange
-        when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(testLead);
+        lenient().when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () ->
+        NotFoundException exception = assertThrows(NotFoundException.class, () ->
             leadService.updateLead(TEST_LEAD_ID, null));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER009, exception.getMessage());
+        assertEquals(ErrorMessages.LEAD_NOT_FOUND, exception.getMessage());
     }
 
     // ==================== Toggle Lead Tests ====================
@@ -718,7 +720,8 @@ class LeadServiceTest {
     @DisplayName("Toggle Lead - Success - Should toggle isDeleted flag")
     void toggleLead_Success() {
         // Arrange
-        when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(testLead);
+        when(leadService.getClientId()).thenReturn(TEST_CLIENT_ID);
+        when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(eq(TEST_LEAD_ID), eq(TEST_CLIENT_ID))).thenReturn(testLead);
         when(leadRepository.save(any(Lead.class))).thenReturn(testLead);
         when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
@@ -726,7 +729,7 @@ class LeadServiceTest {
         leadService.toggleLead(TEST_LEAD_ID);
 
         // Assert
-        verify(leadRepository).findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID);
+        verify(leadRepository).findLeadWithDetailsByIdIncludingDeleted(TEST_LEAD_ID, TEST_CLIENT_ID);
         verify(leadRepository).save(testLead);
         verify(userLogService).logData(eq(TEST_CREATED_BY_ID), anyString(), anyString());
         // Note: The toggle logic inverts the current isDeleted state
@@ -740,7 +743,7 @@ class LeadServiceTest {
     @DisplayName("Toggle Lead - Failure - Lead not found")
     void toggleLead_LeadNotFound_ThrowsNotFoundException() {
         // Arrange
-        lenient().when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(null);
+        lenient().when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(null);
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () ->

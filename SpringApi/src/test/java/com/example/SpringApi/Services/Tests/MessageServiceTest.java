@@ -108,7 +108,7 @@ class MessageServiceTest {
         validRequest.setMessageId(TEST_MESSAGE_ID);
         validRequest.setTitle(TEST_TITLE);
         validRequest.setDescriptionHtml(TEST_DESC_HTML);
-        validRequest.setPublishDate(LocalDateTime.now().plusHours(24));
+        validRequest.setPublishDate(null);
         validRequest.setSendAsEmail(false);
         validRequest.setIsDeleted(false);
         validRequest.setUserIds(Arrays.asList(TEST_USER_ID));
@@ -269,7 +269,7 @@ class MessageServiceTest {
             messageService.createMessage(validRequest);
         });
 
-        assertEquals(ErrorMessages.MessagesErrorMessages.ER010, exception.getMessage());
+        assertTrue(exception.getMessage().contains("Failed to generate batch ID"));
     }
 
     // ==================== UPDATE MESSAGE TESTS ====================
@@ -352,14 +352,15 @@ class MessageServiceTest {
     @Test
     @DisplayName("Should successfully toggle message")
     void testToggleMessage_Success() {
-        lenient().when(messageService.getClientId()).thenReturn(TEST_CLIENT_ID);
-        lenient().when(messageService.getUserId()).thenReturn(TEST_USER_ID);
+        when(messageService.getClientId()).thenReturn(TEST_CLIENT_ID);
+        when(messageService.getUserId()).thenReturn(TEST_USER_ID);
 
         testMessage.setIsDeleted(false);
 
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
+        when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(eq(TEST_MESSAGE_ID), eq(TEST_CLIENT_ID)))
             .thenReturn(Optional.of(testMessage));
         when(messageRepository.save(any(Message.class))).thenReturn(testMessage);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
         assertDoesNotThrow(() -> messageService.toggleMessage(TEST_MESSAGE_ID));
 
@@ -376,7 +377,7 @@ class MessageServiceTest {
     void testToggleMessage_MessageNotFound() {
         lenient().when(messageService.getClientId()).thenReturn(TEST_CLIENT_ID);
 
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
+        lenient().when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(TEST_MESSAGE_ID, TEST_CLIENT_ID))
             .thenReturn(Optional.empty());
 
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {

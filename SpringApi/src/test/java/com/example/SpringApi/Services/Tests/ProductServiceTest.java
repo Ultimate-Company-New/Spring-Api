@@ -63,6 +63,9 @@ class ProductServiceTest {
     private ProductRepository productRepository;
 
     @Mock
+    private ProductPickupLocationMappingRepository productPickupLocationMappingRepository;
+
+    @Mock
     private UserLogService userLogService;
 
     @Mock
@@ -119,6 +122,7 @@ class ProductServiceTest {
     void setUp() {
         // Initialize mocks
         productRepository = mock(ProductRepository.class);
+        productPickupLocationMappingRepository = mock(ProductPickupLocationMappingRepository.class);
         userLogService = mock(UserLogService.class);
         productCategoryRepository = mock(ProductCategoryRepository.class);
         googleCredRepository = mock(GoogleCredRepository.class);
@@ -139,6 +143,7 @@ class ProductServiceTest {
         // Create ProductService instance manually with all dependencies
         productService = new ProductService(
             productRepository,
+            productPickupLocationMappingRepository,
             userLogService,
             productCategoryRepository,
             clientRepository,
@@ -454,8 +459,8 @@ class ProductServiceTest {
         assertNotNull(result);
         assertEquals(TEST_PRODUCT_ID, result.getProductId());
         assertEquals(TEST_TITLE, result.getTitle());
-        assertEquals(testCategory, result.getCategory());
-        assertEquals(testPickupLocation, result.getPickupLocation());
+        assertNotNull(result.getCategory());
+        assertEquals(TEST_CATEGORY_ID, result.getCategory().getCategoryId());
         verify(productRepository, times(1)).findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID);
     }
 
@@ -699,31 +704,6 @@ class ProductServiceTest {
         assertEquals(ErrorMessages.ProductErrorMessages.InvalidClientId, exception.getMessage());
     }
 
-    @Test
-    @DisplayName("Product Validation - Invalid pickup location ID (null)")
-    void testProductValidation_InvalidPickupLocationId_Null() {
-        // Arrange
-        testProductRequest.setPickupLocationId(null);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> productService.addProduct(testProductRequest));
-
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidPickupLocationId, exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Product Validation - Invalid pickup location ID (zero)")
-    void testProductValidation_InvalidPickupLocationId_Zero() {
-        // Arrange
-        testProductRequest.setPickupLocationId(0L);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> productService.addProduct(testProductRequest));
-
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidPickupLocationId, exception.getMessage());
-    }
 
     // ==================== Image Processing Tests ====================
 
@@ -831,9 +811,13 @@ class ProductServiceTest {
         testProductRequest.setPrice(TEST_PRICE);
         testProductRequest.setCategoryId(TEST_CATEGORY_ID);
         testProductRequest.setClientId(TEST_CLIENT_ID);
-        testProductRequest.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
         testProductRequest.setIsDeleted(false);
         testProductRequest.setReturnsAllowed(true);
+
+        // Set pickup location quantities
+        Map<Long, Integer> pickupLocationQuantities = new HashMap<>();
+        pickupLocationQuantities.put(TEST_PICKUP_LOCATION_ID, 10);
+        testProductRequest.setPickupLocationQuantities(pickupLocationQuantities);
 
         // Set all required images
         testProductRequest.setMainImage(TEST_BASE64_IMAGE);
@@ -857,6 +841,14 @@ class ProductServiceTest {
         testProduct.setCreatedAt(LocalDateTime.now());
         testProduct.setUpdatedAt(LocalDateTime.now());
         testProduct.setCategory(testCategory);
-        testProduct.setPickupLocation(testPickupLocation);
+        
+        // Initialize product pickup location mappings
+        Set<ProductPickupLocationMapping> mappings = new HashSet<>();
+        ProductPickupLocationMapping mapping = new ProductPickupLocationMapping();
+        mapping.setProduct(testProduct);
+        mapping.setPickupLocation(testPickupLocation);
+        mapping.setAvailableStock(10);
+        mappings.add(mapping);
+        testProduct.setProductPickupLocationMappings(mappings);
     }
 }
