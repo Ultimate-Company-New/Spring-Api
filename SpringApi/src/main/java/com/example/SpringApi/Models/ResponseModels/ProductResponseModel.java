@@ -142,7 +142,8 @@ public class ProductResponseModel {
             // Populate pickup locations with their available stock from ProductPickupLocationMapping
             this.pickupLocations = new ArrayList<>();
             if (product.getProductPickupLocationMappings() != null && 
-                Hibernate.isInitialized(product.getProductPickupLocationMappings())) {
+                Hibernate.isInitialized(product.getProductPickupLocationMappings()) &&
+                !product.getProductPickupLocationMappings().isEmpty()) {
                 
                 for (ProductPickupLocationMapping mapping : product.getProductPickupLocationMappings()) {
                     if (mapping.getPickupLocation() != null && 

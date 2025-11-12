@@ -140,7 +140,7 @@ public class ErrorMessages {
         public static final String ER001 = "One or more group ids is not valid.";
         public static final String ER002 = "User group name is required.";
         public static final String ER003 = "User group description is required";
-        public static final String ER004 = "Atleast one user should be selected to include in the user group.";
+        public static final String ER004 = "At least one user should be selected to include in the user group.";
     }
 
     public static class AddressErrorMessages{

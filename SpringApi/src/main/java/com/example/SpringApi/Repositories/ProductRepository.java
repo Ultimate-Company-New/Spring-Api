@@ -20,15 +20,19 @@ import java.util.Set;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    @Query("SELECT p FROM Product p " +
+    @Query("SELECT DISTINCT p FROM Product p " +
            "LEFT JOIN FETCH p.category " +
            "LEFT JOIN FETCH p.createdByUser " +
+           "LEFT JOIN FETCH p.productPickupLocationMappings pplm " +
+           "LEFT JOIN FETCH pplm.pickupLocation " +
            "WHERE p.productId = :id AND p.clientId = :clientId")
     Product findByIdWithRelatedEntities(@Param("id") Long id, @Param("clientId") Long clientId);
 
-    @Query("SELECT p FROM Product p " +
+    @Query("SELECT DISTINCT p FROM Product p " +
            "LEFT JOIN FETCH p.category " +
            "LEFT JOIN FETCH p.createdByUser " +
+           "LEFT JOIN FETCH p.productPickupLocationMappings pplm " +
+           "LEFT JOIN FETCH pplm.pickupLocation " +
            "WHERE p.clientId = :clientId " +
            "AND (:columnName IS NULL OR :columnName = '' OR " +
            // Handle boolean fields - only support 'equals' condition
