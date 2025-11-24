@@ -1,6 +1,8 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.Helpers.BulkInsertHelper;
 import com.example.SpringApi.Services.Interface.IProductSubTranslator;
+import com.example.SpringApi.FilterQueryBuilder.ProductFilterQueryBuilder;
 import com.example.SpringApi.Models.ResponseModels.ProductResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
@@ -65,6 +67,8 @@ public class ProductService extends BaseService implements IProductSubTranslator
     private final ClientRepository clientRepository;
     private final ClientService clientService;
     private final Environment environment;
+    private final ProductFilterQueryBuilder productFilterQueryBuilder;
+    private final MessageService messageService;
     
     @Value("${imageLocation:firebase}")
     private String imageLocation;
@@ -76,6 +80,8 @@ public class ProductService extends BaseService implements IProductSubTranslator
                          ProductCategoryRepository productCategoryRepository,
                          ClientRepository clientRepository,
                          ClientService clientService,
+                         ProductFilterQueryBuilder productFilterQueryBuilder,
+                         MessageService messageService,
                          Environment environment,
                          HttpServletRequest request) {
         super();
@@ -85,6 +91,8 @@ public class ProductService extends BaseService implements IProductSubTranslator
         this.productCategoryRepository = productCategoryRepository;
         this.clientRepository = clientRepository;
         this.clientService = clientService;
+        this.productFilterQueryBuilder = productFilterQueryBuilder;
+        this.messageService = messageService;
         this.environment = environment;
     }
 
@@ -457,6 +465,10 @@ public class ProductService extends BaseService implements IProductSubTranslator
     @Override
     @Transactional
     public void addProduct(ProductRequestModel productRequestModel) {
+        persistProduct(productRequestModel);
+    }
+
+    private Product persistProduct(ProductRequestModel productRequestModel) {
         // Validate category exists
         if (productRequestModel.getCategoryId() == null) {
             throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidCategoryId);
@@ -473,6 +485,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
         
         // Save the product first to get the ID
         Product savedProduct = productRepository.save(product);
+        productRequestModel.setProductId(savedProduct.getProductId());
         
         // Create pickup location mappings
         createPickupLocationMappings(savedProduct.getProductId(), productRequestModel.getPickupLocationQuantities());
@@ -482,6 +495,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
         
         // Log the operation
         userLogService.logData(getUserId(), SuccessMessages.ProductsSuccessMessages.InsertProduct + " " + savedProduct.getProductId(), ApiRoutes.ProductsSubRoute.ADD_PRODUCT);
+        return savedProduct;
     }
     
     /**
@@ -622,16 +636,43 @@ public class ProductService extends BaseService implements IProductSubTranslator
             "productId", "title", "descriptionHtml", "brand", "color", "colorLabel",
             "condition", "countryOfManufacture", "model", "upc", "modificationHtml",
             "price", "discount", "isDiscountPercent", "returnsAllowed", "length",
-            "breadth", "height", "weightKgs", "categoryId", "pickupLocationId",
+            "breadth", "height", "weightKgs", "categoryId",
             "isDeleted", "itemModified", "createdUser", "modifiedUser", "createdAt",
             "updatedAt", "notes"
         ));
 
-        // Validate column name if provided
-        if (paginationBaseRequestModel.getColumnName() != null 
-            && !validColumns.contains(paginationBaseRequestModel.getColumnName())) {
-            throw new BadRequestException(
-                "Invalid column name: " + paginationBaseRequestModel.getColumnName());
+        // Validate filter conditions if provided
+        if (paginationBaseRequestModel.getFilters() != null && !paginationBaseRequestModel.getFilters().isEmpty()) {
+            for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
+                // Validate column name
+                if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
+                    throw new BadRequestException("Invalid column name: " + filter.getColumn());
+                }
+
+                // Validate operator
+                Set<String> validOperators = new HashSet<>(Arrays.asList(
+                    "equals", "notEquals", "contains", "notContains", "startsWith", "endsWith",
+                    "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual",
+                    "isEmpty", "isNotEmpty"
+                ));
+                if (filter.getOperator() != null && !validOperators.contains(filter.getOperator())) {
+                    throw new BadRequestException("Invalid operator: " + filter.getOperator());
+                }
+
+                // Validate column type matches operator
+                String columnType = productFilterQueryBuilder.getColumnType(filter.getColumn());
+                if ("boolean".equals(columnType) && !filter.getOperator().equals("equals") && !filter.getOperator().equals("notEquals")) {
+                    throw new BadRequestException("Boolean columns only support 'equals' and 'notEquals' operators");
+                }
+                if ("date".equals(columnType) || "number".equals(columnType)) {
+                    Set<String> numericDateOperators = new HashSet<>(Arrays.asList(
+                        "equals", "notEquals", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"
+                    ));
+                    if (!numericDateOperators.contains(filter.getOperator())) {
+                        throw new BadRequestException(columnType + " columns only support numeric comparison operators");
+                    }
+                }
+            }
         }
 
         // Calculate page size and offset
@@ -652,15 +693,13 @@ public class ProductService extends BaseService implements IProductSubTranslator
             }
         };
 
-        // Get paginated products with filtering
-        Page<Product> productPage = productRepository.findPaginatedProducts(
+        // Use filter query builder for dynamic filtering
+        Page<Product> productPage = productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
             getClientId(),
-            paginationBaseRequestModel.getColumnName(),
-            paginationBaseRequestModel.getCondition(),
-            paginationBaseRequestModel.getFilterExpr(),
+            paginationBaseRequestModel.getSelectedIds(),
+            paginationBaseRequestModel.getLogicOperator() != null ? paginationBaseRequestModel.getLogicOperator() : "AND",
+            paginationBaseRequestModel.getFilters(),
             paginationBaseRequestModel.isIncludeDeleted(),
-            paginationBaseRequestModel.getSelectedIds() != null ? 
-                new HashSet<>(paginationBaseRequestModel.getSelectedIds()) : null,
             pageable
         );
 
@@ -672,6 +711,57 @@ public class ProductService extends BaseService implements IProductSubTranslator
         
         // Set pagination metadata
         response.setTotalDataCount(productPage.getTotalElements());
+        
+        return response;
+    }
+
+    /**
+     * Creates multiple products in a single operation.
+     * 
+     * @param products List of ProductRequestModel containing the product data to insert
+     * @return BulkInsertResponseModel containing success/failure details for each product
+     */
+    @Override
+    public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkAddProducts(java.util.List<ProductRequestModel> products) {
+        if (products == null || products.isEmpty()) {
+            throw new BadRequestException("Product list cannot be null or empty");
+        }
+
+        com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
+            new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+        response.setTotalRequested(products.size());
+        
+        int successCount = 0;
+        int failureCount = 0;
+        
+        for (ProductRequestModel productRequest : products) {
+            try {
+                Product createdProduct = persistProduct(productRequest);
+                response.addSuccess(productRequest.getTitle(), createdProduct.getProductId());
+                successCount++;
+            } catch (BadRequestException bre) {
+                response.addFailure(
+                    productRequest.getTitle() != null ? productRequest.getTitle() : "unknown", 
+                    bre.getMessage()
+                );
+                failureCount++;
+            } catch (Exception e) {
+                response.addFailure(
+                    productRequest.getTitle() != null ? productRequest.getTitle() : "unknown", 
+                    "Error: " + e.getMessage()
+                );
+                failureCount++;
+            }
+        }
+        
+        userLogService.logData(getUserId(), 
+            SuccessMessages.ProductsSuccessMessages.InsertProduct + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+            ApiRoutes.ProductsSubRoute.BULK_ADD_PRODUCT);
+        
+        response.setSuccessCount(successCount);
+        response.setFailureCount(failureCount);
+        
+        BulkInsertHelper.createBulkInsertResultMessage(response, "Product", messageService, getUserId());
         
         return response;
     }

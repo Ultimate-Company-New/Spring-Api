@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.FilterQueryBuilder.PickupLocationFilterQueryBuilder;
 import com.example.SpringApi.Models.ShippingResponseModel.AddPickupLocationResponseModel;
 import com.example.SpringApi.Repositories.AddressRepository;
 import com.example.SpringApi.Repositories.PickupLocationRepository;
@@ -52,12 +53,14 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
     private final UserLogService userLogService;
     private final ClientService clientService;
     private final ShippingHelper shippingHelper;
+    private final PickupLocationFilterQueryBuilder pickupLocationFilterQueryBuilder;
 
     @Autowired
     public PickupLocationService(PickupLocationRepository pickupLocationRepository,
                                 AddressRepository addressRepository,
                                 UserLogService userLogService,
                                 ClientService clientService,
+                                PickupLocationFilterQueryBuilder pickupLocationFilterQueryBuilder,
                                 HttpServletRequest request) {
         super();
         this.pickupLocationRepository = pickupLocationRepository;
@@ -65,6 +68,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         this.userLogService = userLogService;
         this.clientService = clientService;
         this.shippingHelper = null; // Will be initialized on demand
+        this.pickupLocationFilterQueryBuilder = pickupLocationFilterQueryBuilder;
     }
 
     // Constructor for testing with mock ShippingHelper
@@ -73,6 +77,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                                 UserLogService userLogService,
                                 ClientService clientService,
                                 ShippingHelper shippingHelper,
+                                PickupLocationFilterQueryBuilder pickupLocationFilterQueryBuilder,
                                 HttpServletRequest request) {
         super();
         this.pickupLocationRepository = pickupLocationRepository;
@@ -80,6 +85,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         this.userLogService = userLogService;
         this.clientService = clientService;
         this.shippingHelper = shippingHelper;
+        this.pickupLocationFilterQueryBuilder = pickupLocationFilterQueryBuilder;
     }
 
     /**
@@ -110,24 +116,42 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
     public PaginationBaseResponseModel<PickupLocationResponseModel> getPickupLocationsInBatches(PaginationBaseRequestModel paginationBaseRequestModel) {
         // Valid columns for filtering
         Set<String> validColumns = new HashSet<>(Arrays.asList(
-            "pickupLocationId", "locationName", "address", "isDeleted", 
-            "shipRocketPickupLocationId", "createdBy", "modifiedBy", 
+            "pickupLocationId", "locationName", "addressNickName", "address", "isDeleted", 
+            "pickupLocationAddressId", "shipRocketPickupLocationId", "createdBy", "modifiedBy", 
             "createdAt", "updatedAt", "notes"
         ));
 
-        // Validate column name
-        if (paginationBaseRequestModel.getColumnName() != null &&
-            !validColumns.contains(paginationBaseRequestModel.getColumnName())) {
-            throw new BadRequestException("Invalid column name: " + paginationBaseRequestModel.getColumnName());
-        }
+        // Validate filter conditions if provided
+        if (paginationBaseRequestModel.getFilters() != null && !paginationBaseRequestModel.getFilters().isEmpty()) {
+            for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
+                // Validate column name
+                if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
+                    throw new BadRequestException("Invalid column name: " + filter.getColumn());
+                }
 
-        // Validate condition if provided
-        if (paginationBaseRequestModel.getCondition() != null && !paginationBaseRequestModel.getCondition().isEmpty()) {
-            Set<String> validConditions = new HashSet<>(Arrays.asList(
-                "equals", "contains", "startsWith", "endsWith", "isEmpty", "isNotEmpty"
-            ));
-            if (!validConditions.contains(paginationBaseRequestModel.getCondition())) {
-                throw new BadRequestException("Invalid condition for filtering: " + paginationBaseRequestModel.getCondition());
+                // Validate operator
+                Set<String> validOperators = new HashSet<>(Arrays.asList(
+                    "equals", "notEquals", "contains", "notContains", "startsWith", "endsWith",
+                    "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual",
+                    "isEmpty", "isNotEmpty"
+                ));
+                if (filter.getOperator() != null && !validOperators.contains(filter.getOperator())) {
+                    throw new BadRequestException("Invalid operator: " + filter.getOperator());
+                }
+
+                // Validate column type matches operator
+                String columnType = pickupLocationFilterQueryBuilder.getColumnType(filter.getColumn());
+                if ("boolean".equals(columnType) && !filter.getOperator().equals("equals") && !filter.getOperator().equals("notEquals")) {
+                    throw new BadRequestException("Boolean columns only support 'equals' and 'notEquals' operators");
+                }
+                if ("date".equals(columnType) || "number".equals(columnType)) {
+                    Set<String> numericDateOperators = new HashSet<>(Arrays.asList(
+                        "equals", "notEquals", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"
+                    ));
+                    if (!numericDateOperators.contains(filter.getOperator())) {
+                        throw new BadRequestException(columnType + " columns only support numeric comparison operators");
+                    }
+                }
             }
         }
 
@@ -149,12 +173,12 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
             }
         };
 
-        // Execute paginated query with filtering and clientId
-        Page<PickupLocation> result = pickupLocationRepository.findPaginatedPickupLocations(
+        // Use filter query builder for dynamic filtering
+        Page<PickupLocation> result = pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
             getClientId(),
-            paginationBaseRequestModel.getColumnName(),
-            paginationBaseRequestModel.getCondition(),
-            paginationBaseRequestModel.getFilterExpr(),
+            paginationBaseRequestModel.getSelectedIds(),
+            paginationBaseRequestModel.getLogicOperator() != null ? paginationBaseRequestModel.getLogicOperator() : "AND",
+            paginationBaseRequestModel.getFilters(),
             paginationBaseRequestModel.isIncludeDeleted(),
             pageable
         );

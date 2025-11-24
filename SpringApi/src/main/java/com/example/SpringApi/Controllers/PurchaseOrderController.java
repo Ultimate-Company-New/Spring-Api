@@ -100,6 +100,19 @@ public class PurchaseOrderController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
+
+    @PutMapping(ApiRoutes.PurchaseOrderSubRoute.BULK_CREATE_PURCHASE_ORDER)
+    public ResponseEntity<?> bulkCreatePurchaseOrders(@RequestBody java.util.List<PurchaseOrderRequestModel> purchaseOrders) {
+        try {
+            return ResponseEntity.ok(purchaseOrderService.bulkCreatePurchaseOrders(purchaseOrders));
+        } catch (BadRequestException bre) {
+            logger.error(bre);
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (Exception e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
     
     /**
      * Updates an existing purchase order.

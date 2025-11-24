@@ -1,10 +1,12 @@
 package com.example.SpringApi.Services.Tests;
 
+import com.example.SpringApi.FilterQueryBuilder.PackageFilterQueryBuilder;
 import com.example.SpringApi.Models.DatabaseModels.Package;
 import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
 import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
+import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PackageResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Repositories.PackageRepository;
@@ -22,7 +24,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -31,6 +32,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -72,9 +74,11 @@ class PackageServiceTest {
     private com.example.SpringApi.Repositories.PickupLocationRepository pickupLocationRepository;
 
     @Mock
+    private PackageFilterQueryBuilder packageFilterQueryBuilder;
+
+    @Mock
     private HttpServletRequest request;
 
-    @Spy
     @InjectMocks
     private PackageService packageService;
 
@@ -86,7 +90,7 @@ class PackageServiceTest {
 
     private static final Long TEST_PACKAGE_ID = 1L;
     private static final Long TEST_PICKUP_LOCATION_ID = 2L;
-    private static final Long TEST_CLIENT_ID = 100L;
+    private static final Long TEST_CLIENT_ID = 1L;
     private static final Long TEST_USER_ID = 1L;
     private static final String TEST_PACKAGE_NAME = "Test Package";
     private static final String TEST_PACKAGE_TYPE = "Box";
@@ -102,10 +106,7 @@ class PackageServiceTest {
      */
     @BeforeEach
     void setUp() {
-        // Mock BaseService methods
-        lenient().doReturn(CREATED_USER).when(packageService).getUser();
-        lenient().doReturn(TEST_USER_ID).when(packageService).getUserId();
-        lenient().doReturn(TEST_CLIENT_ID).when(packageService).getClientId();
+        // Note: BaseService methods are now handled by the actual service implementation
 
         // Initialize test data
         initializeTestData();
@@ -157,9 +158,6 @@ class PackageServiceTest {
 
         // Initialize test pagination request
         testPaginationRequest = new PaginationBaseRequestModel();
-        testPaginationRequest.setColumnName("packageId");
-        testPaginationRequest.setCondition("equals");
-        testPaginationRequest.setFilterExpr("1");
         testPaginationRequest.setIncludeDeleted(false);
         testPaginationRequest.setStart(0);
         testPaginationRequest.setEnd(10);
@@ -195,8 +193,8 @@ class PackageServiceTest {
         List<Package> packageList = Arrays.asList(testPackage);
         Page<Package> packagePage = new PageImpl<>(packageList, PageRequest.of(0, 10, Sort.by("packageId")), 1);
 
-        when(packageRepository.findPaginatedPackages(
-            eq(TEST_CLIENT_ID), eq("packageId"), eq("equals"), eq("1"), eq(false), any(Pageable.class)
+        lenient().when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class)
         )).thenReturn(packagePage);
 
         // Act
@@ -210,35 +208,156 @@ class PackageServiceTest {
     }
 
     @Test
-    @DisplayName("getPackagesInBatches - Success: Empty result")
-    void testGetPackagesInBatches_EmptyResult() {
+    @DisplayName("getPackagesInBatches - Failure: Invalid column name")
+    void testGetPackagesInBatches_InvalidColumnName() {
         // Arrange
-        Page<Package> emptyPage = new PageImpl<>(Arrays.asList(), PageRequest.of(0, 10, Sort.by("packageId")), 0);
+        PaginationBaseRequestModel.FilterCondition invalidFilter = new PaginationBaseRequestModel.FilterCondition();
+        invalidFilter.setColumn("invalidColumn");
+        invalidFilter.setOperator("contains");
+        invalidFilter.setValue("test");
+        testPaginationRequest.setFilters(Arrays.asList(invalidFilter));
+        testPaginationRequest.setLogicOperator("AND");
 
-        when(packageRepository.findPaginatedPackages(
-            eq(TEST_CLIENT_ID), eq("packageId"), eq("equals"), eq("1"), eq(false), any(Pageable.class)
-        )).thenReturn(emptyPage);
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class,
+            () -> packageService.getPackagesInBatches(testPaginationRequest));
+
+        assertTrue(exception.getMessage().contains("Invalid column name"));
+        verify(packageFilterQueryBuilder, never()).getColumnType("invalidColumn");
+    }
+
+    @Test
+    @DisplayName("getPackagesInBatches - Success: With single filter")
+    void testGetPackagesInBatches_WithSingleFilter() {
+        // Arrange
+        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+        filter.setColumn("packageName");
+        filter.setOperator("contains");
+        filter.setValue("Test");
+        testPaginationRequest.setFilters(Arrays.asList(filter));
+        testPaginationRequest.setLogicOperator("AND");
+
+        List<Package> packageList = Arrays.asList(testPackage);
+        Page<Package> packagePage = new PageImpl<>(packageList, PageRequest.of(0, 10, Sort.by("packageId")), 1);
+
+        when(packageFilterQueryBuilder.getColumnType("packageName")).thenReturn("string");
+        when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            eq(TEST_CLIENT_ID), isNull(), eq("AND"), eq(Arrays.asList(filter)), eq(false), any(Pageable.class)
+        )).thenReturn(packagePage);
 
         // Act
         PaginationBaseResponseModel<PackageResponseModel> result = packageService.getPackagesInBatches(testPaginationRequest);
 
         // Assert
         assertNotNull(result);
-        assertTrue(result.getData().isEmpty());
-        assertEquals(0, result.getTotalDataCount());
+        assertEquals(1, result.getData().size());
+        verify(packageFilterQueryBuilder, times(1)).getColumnType("packageName");
     }
 
     @Test
-    @DisplayName("getPackagesInBatches - Failure: Invalid column name")
-    void testGetPackagesInBatches_InvalidColumnName() {
+    @DisplayName("getPackagesInBatches - Success: With multiple filters AND")
+    void testGetPackagesInBatches_WithMultipleFiltersAND() {
         // Arrange
-        testPaginationRequest.setColumnName("invalidColumn");
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("packageName");
+        filter1.setOperator("contains");
+        filter1.setValue("Test");
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> packageService.getPackagesInBatches(testPaginationRequest));
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("packageType");
+        filter2.setOperator("contains");
+        filter2.setValue("Box");
 
-        assertTrue(exception.getMessage().contains("Invalid column name for filtering"));
+        testPaginationRequest.setFilters(Arrays.asList(filter1, filter2));
+        testPaginationRequest.setLogicOperator("AND");
+
+        List<Package> packageList = Arrays.asList(testPackage);
+        Page<Package> packagePage = new PageImpl<>(packageList, PageRequest.of(0, 10, Sort.by("packageId")), 1);
+
+        when(packageFilterQueryBuilder.getColumnType("packageName")).thenReturn("string");
+        when(packageFilterQueryBuilder.getColumnType("packageType")).thenReturn("string");
+        when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            eq(TEST_CLIENT_ID), isNull(), eq("AND"), eq(Arrays.asList(filter1, filter2)), eq(false), any(Pageable.class)
+        )).thenReturn(packagePage);
+
+        // Act
+        PaginationBaseResponseModel<PackageResponseModel> result = packageService.getPackagesInBatches(testPaginationRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(packageFilterQueryBuilder, times(1)).getColumnType("packageName");
+        verify(packageFilterQueryBuilder, times(1)).getColumnType("packageType");
+    }
+
+    @Test
+    @DisplayName("getPackagesInBatches - Success: With multiple filters OR")
+    void testGetPackagesInBatches_WithMultipleFiltersOR() {
+        // Arrange
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("packageName");
+        filter1.setOperator("contains");
+        filter1.setValue("Test");
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("packageName");
+        filter2.setOperator("contains");
+        filter2.setValue("Package");
+
+        testPaginationRequest.setFilters(Arrays.asList(filter1, filter2));
+        testPaginationRequest.setLogicOperator("OR");
+
+        List<Package> packageList = Arrays.asList(testPackage);
+        Page<Package> packagePage = new PageImpl<>(packageList, PageRequest.of(0, 10, Sort.by("packageId")), 1);
+
+        when(packageFilterQueryBuilder.getColumnType("packageName")).thenReturn("string");
+        when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            eq(TEST_CLIENT_ID), isNull(), eq("OR"), eq(Arrays.asList(filter1, filter2)), eq(false), any(Pageable.class)
+        )).thenReturn(packagePage);
+
+        // Act
+        PaginationBaseResponseModel<PackageResponseModel> result = packageService.getPackagesInBatches(testPaginationRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(packageFilterQueryBuilder, times(2)).getColumnType("packageName");
+    }
+
+    @Test
+    @DisplayName("getPackagesInBatches - Success: With complex filters")
+    void testGetPackagesInBatches_WithComplexFilters() {
+        // Arrange
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("packageName");
+        filter1.setOperator("contains");
+        filter1.setValue("Test");
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("packageId");
+        filter2.setOperator("greaterThan");
+        filter2.setValue("0");
+
+        testPaginationRequest.setFilters(Arrays.asList(filter1, filter2));
+        testPaginationRequest.setLogicOperator("AND");
+
+        List<Package> packageList = Arrays.asList(testPackage);
+        Page<Package> packagePage = new PageImpl<>(packageList, PageRequest.of(0, 10, Sort.by("packageId")), 1);
+
+        when(packageFilterQueryBuilder.getColumnType("packageName")).thenReturn("string");
+        when(packageFilterQueryBuilder.getColumnType("packageId")).thenReturn("number");
+        when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            eq(TEST_CLIENT_ID), isNull(), eq("AND"), eq(Arrays.asList(filter1, filter2)), eq(false), any(Pageable.class)
+        )).thenReturn(packagePage);
+
+        // Act
+        PaginationBaseResponseModel<PackageResponseModel> result = packageService.getPackagesInBatches(testPaginationRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(packageFilterQueryBuilder, times(1)).getColumnType("packageName");
+        verify(packageFilterQueryBuilder, times(1)).getColumnType("packageId");
     }
 
     // ==================== getPackageById Tests ====================
@@ -520,5 +639,168 @@ class PackageServiceTest {
         // Assert
         assertNotNull(result);
         assertTrue(result.isEmpty());
+    }
+
+    // ==================== Bulk Create Packages Tests ====================
+
+    @Test
+    @DisplayName("Bulk Create Packages - Success - All valid packages")
+    void bulkCreatePackages_AllValid_Success() {
+        // Arrange
+        List<PackageRequestModel> packages = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            PackageRequestModel pkgReq = new PackageRequestModel();
+            pkgReq.setPackageName("Package" + i);
+            pkgReq.setPackageType("Box");
+            pkgReq.setLength(10);
+            pkgReq.setBreadth(10);
+            pkgReq.setHeight(10);
+            pkgReq.setMaxWeight(BigDecimal.valueOf(5));
+            pkgReq.setStandardCapacity(25);
+            pkgReq.setPricePerUnit(BigDecimal.valueOf(50));
+            pkgReq.setClientId(TEST_CLIENT_ID);
+            AddressRequestModel addr = new AddressRequestModel();
+            addr.setStreetAddress("123 Test St");
+            addr.setCity("Test City");
+            addr.setState("TS");
+            addr.setPostalCode("12345");
+            addr.setCountry("USA");
+            addr.setAddressType("HOME");
+            addr.setClientId(TEST_CLIENT_ID);
+            pkgReq.setAddress(addr);
+            packages.add(pkgReq);
+        }
+
+        when(packageRepository.save(any(Package.class))).thenAnswer(invocation -> {
+            Package pkg = invocation.getArgument(0);
+            pkg.setPackageId((long) (Math.random() * 1000));
+            return pkg;
+        });
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+        // Act
+        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(packages);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(3, result.getTotalRequested());
+        assertEquals(3, result.getSuccessCount());
+        assertEquals(0, result.getFailureCount());
+        verify(packageRepository, times(3)).save(any(Package.class));
+    }
+
+    @Test
+    @DisplayName("Bulk Create Packages - Partial Success")
+    void bulkCreatePackages_PartialSuccess() {
+        // Arrange
+        List<PackageRequestModel> packages = new ArrayList<>();
+        
+        // Valid package
+        PackageRequestModel validPkg = new PackageRequestModel();
+        validPkg.setPackageName("Valid Package");
+        validPkg.setPackageType("Box");
+        validPkg.setLength(10);
+        validPkg.setBreadth(10);
+        validPkg.setHeight(10);
+        validPkg.setMaxWeight(BigDecimal.valueOf(5));
+        validPkg.setStandardCapacity(30);
+        validPkg.setPricePerUnit(BigDecimal.valueOf(60));
+        validPkg.setClientId(TEST_CLIENT_ID);
+        AddressRequestModel addr = new AddressRequestModel();
+        addr.setStreetAddress("123 Test St");
+        addr.setCity("Test City");
+        addr.setState("TS");
+        addr.setPostalCode("12345");
+        addr.setCountry("USA");
+        addr.setAddressType("HOME");
+        addr.setClientId(TEST_CLIENT_ID);
+        validPkg.setAddress(addr);
+        packages.add(validPkg);
+        
+        // Invalid package (missing package name)
+        PackageRequestModel invalidPkg = new PackageRequestModel();
+        invalidPkg.setPackageName(null);
+        invalidPkg.setPackageType("Box");
+        invalidPkg.setLength(10);
+        invalidPkg.setBreadth(10);
+        invalidPkg.setHeight(10);
+        invalidPkg.setMaxWeight(BigDecimal.valueOf(5));
+        invalidPkg.setStandardCapacity(30);
+        invalidPkg.setPricePerUnit(BigDecimal.valueOf(60));
+        invalidPkg.setClientId(TEST_CLIENT_ID);
+        AddressRequestModel invalidAddr = new AddressRequestModel();
+        invalidAddr.setStreetAddress("123 Test St");
+        invalidAddr.setCity("Test City");
+        invalidAddr.setState("TS");
+        invalidAddr.setPostalCode("12345");
+        invalidAddr.setCountry("USA");
+        invalidAddr.setAddressType("HOME");
+        invalidAddr.setClientId(TEST_CLIENT_ID);
+        invalidPkg.setAddress(invalidAddr);
+        packages.add(invalidPkg);
+
+        when(packageRepository.save(any(Package.class))).thenAnswer(invocation -> {
+            Package pkg = invocation.getArgument(0);
+            pkg.setPackageId((long) (Math.random() * 1000));
+            return pkg;
+        });
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+        // Act
+        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(packages);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.getTotalRequested());
+        assertEquals(1, result.getSuccessCount());
+        assertEquals(1, result.getFailureCount());
+        verify(packageRepository, times(1)).save(any(Package.class));
+    }
+
+    @Test
+    @DisplayName("Bulk Create Packages - Database Error")
+    void bulkCreatePackages_DatabaseError() {
+        // Arrange
+        List<PackageRequestModel> packages = new ArrayList<>();
+        PackageRequestModel pkgReq = new PackageRequestModel();
+        pkgReq.setPackageName("Test Package");
+        pkgReq.setPackageType("Box");
+        pkgReq.setLength(10);
+        pkgReq.setBreadth(10);
+        pkgReq.setHeight(10);
+        pkgReq.setMaxWeight(BigDecimal.valueOf(5));
+        AddressRequestModel addr = new AddressRequestModel();
+        addr.setStreetAddress("123 Test St");
+        addr.setCity("Test City");
+        addr.setState("TS");
+        addr.setPostalCode("12345");
+        addr.setCountry("USA");
+        pkgReq.setAddress(addr);
+        packages.add(pkgReq);
+
+        lenient().when(packageRepository.save(any(Package.class))).thenThrow(new RuntimeException("Database error"));
+
+        // Act
+        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(packages);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalRequested());
+        assertEquals(0, result.getSuccessCount());
+        assertEquals(1, result.getFailureCount());
+    }
+
+    @Test
+    @DisplayName("Bulk Create Packages - Empty List")
+    void bulkCreatePackages_EmptyList() {
+        // Arrange
+        List<PackageRequestModel> packages = new ArrayList<>();
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            packageService.bulkCreatePackages(packages);
+        });
+        assertTrue(exception.getMessage().contains("Package list cannot be null or empty"));
+        verify(packageRepository, never()).save(any(Package.class));
     }
 }

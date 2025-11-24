@@ -3,6 +3,8 @@ package com.example.SpringApi.Services;
 import com.example.SpringApi.Constants.EntityType;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.FilterQueryBuilder.PurchaseOrderFilterQueryBuilder;
+import com.example.SpringApi.Helpers.BulkInsertHelper;
 import com.example.SpringApi.Helpers.HTMLHelper;
 import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Helpers.PDFHelper;
@@ -48,6 +50,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +81,8 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
     private final PurchaseOrderQuantityPriceMapRepository purchaseOrderQuantityPriceMapRepository;
     private final UserLogService userLogService;
     private final Environment environment;
+    private final PurchaseOrderFilterQueryBuilder purchaseOrderFilterQueryBuilder;
+    private final MessageService messageService;
     
     @Autowired
     public PurchaseOrderService(PurchaseOrderRepository purchaseOrderRepository,
@@ -89,6 +94,8 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                                ResourcesRepository resourcesRepository,
                                PurchaseOrderQuantityPriceMapRepository purchaseOrderQuantityPriceMapRepository,
                                UserLogService userLogService,
+                               PurchaseOrderFilterQueryBuilder purchaseOrderFilterQueryBuilder,
+                               MessageService messageService,
                                Environment environment) {
         super();
         this.purchaseOrderRepository = purchaseOrderRepository;
@@ -100,6 +107,8 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         this.resourcesRepository = resourcesRepository;
         this.purchaseOrderQuantityPriceMapRepository = purchaseOrderQuantityPriceMapRepository;
         this.userLogService = userLogService;
+        this.purchaseOrderFilterQueryBuilder = purchaseOrderFilterQueryBuilder;
+        this.messageService = messageService;
         this.environment = environment;
     }
     
@@ -136,27 +145,41 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
             "expectedDeliveryDate", "createdAt", "updatedAt", "purchaseOrderReceipt", 
             "termsConditionsHtml", "notes", "createdUser", "modifiedUser",
             "approvedByUserId", "approvedDate", "rejectedByUserId", "rejectedDate",
-            
-            // Address field (for shipping address filtering)
-            "address",
-            
-            // Product filtering
-            "productIds"
+            "isDeleted", "address"
         );
 
-        // Validate column name if provided
-        if (paginationBaseRequestModel.getColumnName() != null
-            && !validColumns.contains(paginationBaseRequestModel.getColumnName())) {
-            throw new BadRequestException(
-                "Invalid column name: " + paginationBaseRequestModel.getColumnName());
-        }
+        // Validate filter conditions if provided
+        if (paginationBaseRequestModel.getFilters() != null && !paginationBaseRequestModel.getFilters().isEmpty()) {
+            for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
+                // Validate column name
+                if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
+                    throw new BadRequestException("Invalid column name: " + filter.getColumn());
+                }
 
-        // Validate condition if provided
-        Set<String> validConditions = Set.of("contains", "equals", "startsWith", "endsWith", "isEmpty", "isNotEmpty");
-        if (paginationBaseRequestModel.getCondition() != null
-            && !validConditions.contains(paginationBaseRequestModel.getCondition())) {
-            throw new BadRequestException(
-                "Invalid condition for filtering: " + paginationBaseRequestModel.getCondition());
+                // Validate operator
+                Set<String> validOperators = new HashSet<>(Arrays.asList(
+                    "equals", "notEquals", "contains", "notContains", "startsWith", "endsWith",
+                    "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual",
+                    "isEmpty", "isNotEmpty"
+                ));
+                if (filter.getOperator() != null && !validOperators.contains(filter.getOperator())) {
+                    throw new BadRequestException("Invalid operator: " + filter.getOperator());
+                }
+
+                // Validate column type matches operator
+                String columnType = purchaseOrderFilterQueryBuilder.getColumnType(filter.getColumn());
+                if ("boolean".equals(columnType) && !filter.getOperator().equals("equals") && !filter.getOperator().equals("notEquals")) {
+                    throw new BadRequestException("Boolean columns only support 'equals' and 'notEquals' operators");
+                }
+                if ("date".equals(columnType) || "number".equals(columnType)) {
+                    Set<String> numericDateOperators = new HashSet<>(Arrays.asList(
+                        "equals", "notEquals", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"
+                    ));
+                    if (!numericDateOperators.contains(filter.getOperator())) {
+                        throw new BadRequestException(columnType + " columns only support numeric comparison operators");
+                    }
+                }
+            }
         }
 
         // Calculate page size and offset
@@ -177,35 +200,18 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
             }
         };
 
-        // Parse comma-separated productIds if columnName is "productIds"
+        // selectedProductIds can be passed as a separate parameter if needed in the future
+        // For now, we'll use null to indicate no product filtering
         List<Long> selectedProductIds = null;
-        if ("productIds".equals(paginationBaseRequestModel.getColumnName()) 
-            && paginationBaseRequestModel.getFilterExpr() != null 
-            && !paginationBaseRequestModel.getFilterExpr().trim().isEmpty()) {
-            try {
-                selectedProductIds = Arrays.stream(paginationBaseRequestModel.getFilterExpr().split(","))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .map(Long::parseLong)
-                    .collect(Collectors.toList());
-                
-                // If list is empty after parsing, set to null for query
-                if (selectedProductIds.isEmpty()) {
-                    selectedProductIds = null;
-                }
-            } catch (NumberFormatException e) {
-                throw new BadRequestException("Invalid productIds format. Expected comma-separated numbers.");
-            }
-        }
 
-        // Execute paginated query with all LEFT JOIN FETCH
-        Page<PurchaseOrder> page = purchaseOrderRepository.findPaginatedPurchaseOrders(
+        // Use filter query builder for dynamic filtering
+        Page<PurchaseOrder> page = purchaseOrderFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
             getClientId(),
-            paginationBaseRequestModel.getColumnName(),
-            paginationBaseRequestModel.getCondition(),
-            paginationBaseRequestModel.getFilterExpr(),
-            paginationBaseRequestModel.isIncludeDeleted(),
+            paginationBaseRequestModel.getSelectedIds(),
             selectedProductIds,
+            paginationBaseRequestModel.getLogicOperator() != null ? paginationBaseRequestModel.getLogicOperator() : "AND",
+            paginationBaseRequestModel.getFilters(),
+            paginationBaseRequestModel.isIncludeDeleted(),
             pageable
         );
 
@@ -529,7 +535,6 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      * @return The PDF as a byte array
      * @throws BadRequestException if validation fails
      * @throws NotFoundException if the purchase order is not found
-     * @throws UnauthorizedException if user is not authorized
      * @throws TemplateException if PDF template processing fails
      * @throws IOException if PDF generation fails
      * @throws DocumentException if PDF document creation fails
@@ -913,5 +918,62 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
             purchaseOrderQuantityPriceMapRepository.saveAll(toInsert);
         }
         // If existingCount == newCount, we've already updated all records in Step 1
+    }
+
+    /**
+     * Creates multiple purchase orders in a single operation.
+     *
+     * @param purchaseOrders List of PurchaseOrderRequestModel containing the purchase order data to insert
+     * @return BulkInsertResponseModel containing success/failure details for each purchase order
+     */
+    @Override
+    public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreatePurchaseOrders(java.util.List<PurchaseOrderRequestModel> purchaseOrders) {
+        if (purchaseOrders == null || purchaseOrders.isEmpty()) {
+            throw new BadRequestException("Purchase order list cannot be null or empty");
+        }
+
+        com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
+            new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+        response.setTotalRequested(purchaseOrders.size());
+        
+        int successCount = 0;
+        int failureCount = 0;
+        
+        for (PurchaseOrderRequestModel poRequest : purchaseOrders) {
+            try {
+                createPurchaseOrder(poRequest);
+                
+                // Find the created purchase order (use vendor number as identifier)
+                Optional<PurchaseOrder> createdPO = purchaseOrderRepository.findByPurchaseOrderIdAndClientId(
+                    poRequest.getPurchaseOrderId(), getClientId());
+                if (createdPO.isPresent()) {
+                    response.addSuccess(poRequest.getVendorNumber(), createdPO.get().getPurchaseOrderId());
+                    successCount++;
+                }
+            } catch (BadRequestException bre) {
+                response.addFailure(
+                    poRequest.getVendorNumber() != null ? poRequest.getVendorNumber() : "unknown", 
+                    bre.getMessage()
+                );
+                failureCount++;
+            } catch (Exception e) {
+                response.addFailure(
+                    poRequest.getVendorNumber() != null ? poRequest.getVendorNumber() : "unknown", 
+                    "Error: " + e.getMessage()
+                );
+                failureCount++;
+            }
+        }
+        
+        userLogService.logData(getUserId(), 
+            SuccessMessages.PurchaseOrderSuccessMessages.InsertPurchaseOrder + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+            ApiRoutes.PurchaseOrderSubRoute.BULK_CREATE_PURCHASE_ORDER);
+        
+        response.setSuccessCount(successCount);
+        response.setFailureCount(failureCount);
+        
+        BulkInsertHelper.createBulkInsertResultMessage(response, "Purchase Order", messageService, getUserId());
+        
+        return response;
     }
 }

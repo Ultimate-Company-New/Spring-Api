@@ -1,11 +1,14 @@
 package com.example.SpringApi.Services.Tests;
 
+import com.example.SpringApi.FilterQueryBuilder.LeadFilterQueryBuilder;
 import com.example.SpringApi.Models.DatabaseModels.Lead;
 import com.example.SpringApi.Models.DatabaseModels.Address;
 import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
+import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.LeadResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Repositories.LeadRepository;
@@ -27,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
@@ -69,10 +73,12 @@ class LeadServiceTest {
     private UserLogService userLogService;
 
     @Mock
+    private LeadFilterQueryBuilder leadFilterQueryBuilder;
+
+    @Mock
     private HttpServletRequest request;
 
     @InjectMocks
-    @Spy
     private LeadService leadService;
 
     private Lead testLead;
@@ -82,7 +88,7 @@ class LeadServiceTest {
     private Address testAddress;
     private User testUser;
     private static final Long TEST_LEAD_ID = 1L;
-    private static final Long TEST_CLIENT_ID = 100L;
+    private static final Long TEST_CLIENT_ID = 1L;
     private static final Long TEST_ADDRESS_ID = 200L;
     private static final Long TEST_CREATED_BY_ID = 1L;
     private static final Long TEST_ASSIGNED_AGENT_ID = 2L;
@@ -98,6 +104,18 @@ class LeadServiceTest {
     private static final String TEST_STATE = "NY";
     private static final String TEST_POSTAL_CODE = "10001";
     private static final String TEST_COUNTRY = "USA";
+
+    private AddressRequestModel buildAddressRequest() {
+        AddressRequestModel addressRequest = new AddressRequestModel();
+        addressRequest.setAddressType("OFFICE");
+        addressRequest.setStreetAddress(TEST_STREET_ADDRESS);
+        addressRequest.setCity(TEST_CITY);
+        addressRequest.setState(TEST_STATE);
+        addressRequest.setPostalCode(TEST_POSTAL_CODE);
+        addressRequest.setCountry(TEST_COUNTRY);
+        addressRequest.setIsPrimary(true);
+        return addressRequest;
+    }
 
     /**
      * Sets up test data before each test execution.
@@ -134,14 +152,10 @@ class LeadServiceTest {
         testLeadRequest.setAddress(testAddressRequest);
         testLeadRequest.setCompanySize(50);
         testLeadRequest.setIsDeleted(false);
-
-        // Initialize pagination fields for batch operations
-        testLeadRequest.setColumnName("leadId");
-        testLeadRequest.setCondition("equals");
-        testLeadRequest.setFilterExpr("1");
+        
+        // Set pagination parameters
         testLeadRequest.setStart(0);
         testLeadRequest.setEnd(10);
-        testLeadRequest.setIncludeDeleted(false);
 
         // Initialize test lead using constructor
         testLead = new Lead(testLeadRequest, CREATED_USER);
@@ -175,8 +189,7 @@ class LeadServiceTest {
         // Mock Authorization header for BaseService authentication
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
         
-        // Mock getClientId() to return TEST_CLIENT_ID
-        lenient().when(leadService.getClientId()).thenReturn(TEST_CLIENT_ID);
+        // Note: getClientId() is now handled by the actual service implementation
     }
 
     // ==================== Get Leads In Batches Tests ====================
@@ -192,8 +205,8 @@ class LeadServiceTest {
         List<Lead> leadList = Arrays.asList(testLead);
         Page<Lead> leadPage = new PageImpl<>(leadList, PageRequest.of(0, 10, Sort.by("leadId")), 1);
 
-        when(leadRepository.findPaginatedLeads(
-            eq(TEST_CLIENT_ID), eq("leadId"), eq("equals"), eq("1"), eq(false), any(PageRequest.class)
+        lenient().when(leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), anyString(), any(), anyBoolean(), any(Pageable.class)
         )).thenReturn(leadPage);
 
         // Act
@@ -204,63 +217,7 @@ class LeadServiceTest {
         assertEquals(1, result.getData().size());
         assertEquals(1, result.getTotalDataCount());
         assertEquals(TEST_LEAD_ID, result.getData().get(0).getLeadId());
-        verify(leadRepository).findPaginatedLeads(anyLong(), anyString(), anyString(), anyString(), anyBoolean(), any(PageRequest.class));
-    }
-
-    /**
-     * Test get leads in batches with null column name.
-     * Verifies that BadRequestException is thrown when column name is null.
-     */
-    @Test
-    @DisplayName("Get Leads In Batches - Success - Null column name allowed")
-    void getLeadsInBatches_NullColumnName_ThrowsBadRequestException() {
-        // Arrange
-        testLeadRequest.setColumnName(null);
-        List<Lead> leadList = Arrays.asList(testLead);
-        Page<Lead> leadPage = new PageImpl<>(leadList, PageRequest.of(0, 10, Sort.by("leadId")), 1);
-
-        when(leadRepository.findPaginatedLeads(
-            eq(TEST_CLIENT_ID), isNull(), eq("equals"), eq("1"), eq(false), any(PageRequest.class)
-        )).thenReturn(leadPage);
-
-        // Act - Service allows null column name, will pass validation
-        PaginationBaseResponseModel<LeadResponseModel> result = leadService.getLeadsInBatches(testLeadRequest);
-        
-        // Assert - Should succeed with null column name
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-    }
-
-    /**
-     * Test get leads in batches with empty column name.
-     * Verifies that BadRequestException is thrown when column name is empty.
-     */
-    @Test
-    @DisplayName("Get Leads In Batches - Failure - Empty column name")
-    void getLeadsInBatches_EmptyColumnName_ThrowsBadRequestException() {
-        // Arrange
-        testLeadRequest.setColumnName("");
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () ->
-            leadService.getLeadsInBatches(testLeadRequest));
-        assertEquals("Invalid column name: ", exception.getMessage());
-    }
-
-    /**
-     * Test get leads in batches with whitespace column name.
-     * Verifies that BadRequestException is thrown when column name is whitespace.
-     */
-    @Test
-    @DisplayName("Get Leads In Batches - Failure - Whitespace column name")
-    void getLeadsInBatches_WhitespaceColumnName_ThrowsBadRequestException() {
-        // Arrange
-        testLeadRequest.setColumnName("   ");
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () ->
-            leadService.getLeadsInBatches(testLeadRequest));
-        assertEquals("Invalid column name:    ", exception.getMessage());
+        verify(leadFilterQueryBuilder).findPaginatedEntitiesWithMultipleFilters(anyLong(), anyString(), any(), anyBoolean(), any(Pageable.class));
     }
 
     /**
@@ -271,12 +228,179 @@ class LeadServiceTest {
     @DisplayName("Get Leads In Batches - Failure - Invalid column name")
     void getLeadsInBatches_InvalidColumnName_ThrowsBadRequestException() {
         // Arrange
-        testLeadRequest.setColumnName("invalidColumn");
+        PaginationBaseRequestModel.FilterCondition invalidFilter = new PaginationBaseRequestModel.FilterCondition();
+        invalidFilter.setColumn("invalidColumn");
+        invalidFilter.setOperator("contains");
+        invalidFilter.setValue("test");
+        testLeadRequest.setFilters(Arrays.asList(invalidFilter));
+        testLeadRequest.setLogicOperator("AND");
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () ->
             leadService.getLeadsInBatches(testLeadRequest));
-        assertEquals("Invalid column name: invalidColumn", exception.getMessage());
+        assertTrue(exception.getMessage().contains("Invalid column name"));
+    }
+
+    /**
+     * Test get leads in batches with single filter.
+     * Verifies that single filter expressions are correctly applied.
+     */
+    @Test
+    @DisplayName("Get Leads In Batches - Success - With single filter")
+    void getLeadsInBatches_WithSingleFilter_Success() {
+        // Arrange
+        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+        filter.setColumn("firstName");
+        filter.setOperator("contains");
+        filter.setValue("John");
+        testLeadRequest.setFilters(Arrays.asList(filter));
+        testLeadRequest.setLogicOperator("AND");
+
+        List<Lead> leadList = Arrays.asList(testLead);
+        Page<Lead> leadPage = new PageImpl<>(leadList, PageRequest.of(0, 10, Sort.by("leadId")), 1);
+
+        when(leadFilterQueryBuilder.getColumnType("firstName")).thenReturn("string");
+        lenient().when(leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(leadPage);
+
+        // Act
+        PaginationBaseResponseModel<LeadResponseModel> result = leadService.getLeadsInBatches(testLeadRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(leadFilterQueryBuilder, times(1)).getColumnType("firstName");
+        verify(leadFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        );
+    }
+
+    /**
+     * Test get leads in batches with multiple filters using AND logic.
+     * Verifies that multiple filters combined with AND are correctly applied.
+     */
+    @Test
+    @DisplayName("Get Leads In Batches - Success - With multiple filters AND")
+    void getLeadsInBatches_WithMultipleFiltersAND_Success() {
+        // Arrange
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("firstName");
+        filter1.setOperator("contains");
+        filter1.setValue("John");
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("lastName");
+        filter2.setOperator("contains");
+        filter2.setValue("Doe");
+
+        testLeadRequest.setFilters(Arrays.asList(filter1, filter2));
+        testLeadRequest.setLogicOperator("AND");
+
+        List<Lead> leadList = Arrays.asList(testLead);
+        Page<Lead> leadPage = new PageImpl<>(leadList, PageRequest.of(0, 10, Sort.by("leadId")), 1);
+
+        when(leadFilterQueryBuilder.getColumnType("firstName")).thenReturn("string");
+        when(leadFilterQueryBuilder.getColumnType("lastName")).thenReturn("string");
+        lenient().when(leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(leadPage);
+
+        // Act
+        PaginationBaseResponseModel<LeadResponseModel> result = leadService.getLeadsInBatches(testLeadRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(leadFilterQueryBuilder, times(1)).getColumnType("firstName");
+        verify(leadFilterQueryBuilder, times(1)).getColumnType("lastName");
+        verify(leadFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        );
+    }
+
+    /**
+     * Test get leads in batches with multiple filters using OR logic.
+     * Verifies that multiple filters combined with OR are correctly applied.
+     */
+    @Test
+    @DisplayName("Get Leads In Batches - Success - With multiple filters OR")
+    void getLeadsInBatches_WithMultipleFiltersOR_Success() {
+        // Arrange
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("firstName");
+        filter1.setOperator("contains");
+        filter1.setValue("John");
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("firstName");
+        filter2.setOperator("contains");
+        filter2.setValue("Jane");
+
+        testLeadRequest.setFilters(Arrays.asList(filter1, filter2));
+        testLeadRequest.setLogicOperator("OR");
+
+        List<Lead> leadList = Arrays.asList(testLead);
+        Page<Lead> leadPage = new PageImpl<>(leadList, PageRequest.of(0, 10, Sort.by("leadId")), 1);
+
+        when(leadFilterQueryBuilder.getColumnType("firstName")).thenReturn("string");
+        lenient().when(leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(leadPage);
+
+        // Act
+        PaginationBaseResponseModel<LeadResponseModel> result = leadService.getLeadsInBatches(testLeadRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(leadFilterQueryBuilder, times(2)).getColumnType("firstName");
+        verify(leadFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        );
+    }
+
+    /**
+     * Test get leads in batches with complex filters (string, number).
+     * Verifies that filters with different column types are correctly validated and applied.
+     */
+    @Test
+    @DisplayName("Get Leads In Batches - Success - With complex filters")
+    void getLeadsInBatches_WithComplexFilters_Success() {
+        // Arrange
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("firstName");
+        filter1.setOperator("contains");
+        filter1.setValue("John");
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("leadId");
+        filter2.setOperator(PaginationBaseRequestModel.OP_GREATER_THAN);
+        filter2.setValue("0");
+
+        testLeadRequest.setFilters(Arrays.asList(filter1, filter2));
+        testLeadRequest.setLogicOperator("AND");
+
+        List<Lead> leadList = Arrays.asList(testLead);
+        Page<Lead> leadPage = new PageImpl<>(leadList, PageRequest.of(0, 10, Sort.by("leadId")), 1);
+
+        when(leadFilterQueryBuilder.getColumnType("firstName")).thenReturn("string");
+        when(leadFilterQueryBuilder.getColumnType("leadId")).thenReturn("number");
+        lenient().when(leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(leadPage);
+
+        // Act
+        PaginationBaseResponseModel<LeadResponseModel> result = leadService.getLeadsInBatches(testLeadRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(leadFilterQueryBuilder, times(1)).getColumnType("firstName");
+        verify(leadFilterQueryBuilder, times(1)).getColumnType("leadId");
+        verify(leadFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        );
     }
 
     // ==================== Get Lead Details By ID Tests ====================
@@ -289,7 +413,7 @@ class LeadServiceTest {
     @DisplayName("Get Lead Details By ID - Success - Should return lead details")
     void getLeadDetailsById_Success() {
         // Arrange
-        when(leadService.getClientId()).thenReturn(TEST_CLIENT_ID);
+        // Note: BaseService methods are now handled by the actual service implementation
         when(leadRepository.findLeadWithDetailsById(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(testLead);
 
         // Act
@@ -662,7 +786,7 @@ class LeadServiceTest {
     @DisplayName("Update Lead - Success - Should update existing lead")
     void updateLead_Success() {
         // Arrange
-        when(leadService.getClientId()).thenReturn(TEST_CLIENT_ID);
+        // Note: BaseService methods are now handled by the actual service implementation
         when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(eq(TEST_LEAD_ID), eq(TEST_CLIENT_ID))).thenReturn(testLead);
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
         when(leadRepository.save(any(Lead.class))).thenReturn(testLead);
@@ -720,7 +844,7 @@ class LeadServiceTest {
     @DisplayName("Toggle Lead - Success - Should toggle isDeleted flag")
     void toggleLead_Success() {
         // Arrange
-        when(leadService.getClientId()).thenReturn(TEST_CLIENT_ID);
+        // Note: BaseService methods are now handled by the actual service implementation
         when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(eq(TEST_LEAD_ID), eq(TEST_CLIENT_ID))).thenReturn(testLead);
         when(leadRepository.save(any(Lead.class))).thenReturn(testLead);
         when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
@@ -749,5 +873,176 @@ class LeadServiceTest {
         NotFoundException exception = assertThrows(NotFoundException.class, () ->
             leadService.toggleLead(TEST_LEAD_ID));
         assertEquals(ErrorMessages.LEAD_NOT_FOUND, exception.getMessage());
+    }
+
+    // ==================== Bulk Create Leads Tests ====================
+
+    /**
+     * Test successful bulk lead creation.
+     * Verifies that multiple leads are created successfully.
+     */
+    @Test
+    @DisplayName("Bulk Create Leads - Success - All valid leads")
+    void bulkCreateLeads_AllValid_Success() {
+        // Arrange
+        List<LeadRequestModel> leads = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            LeadRequestModel leadReq = new LeadRequestModel();
+            leadReq.setEmail("lead" + i + "@example.com");
+            leadReq.setFirstName("FirstName" + i);
+            leadReq.setLastName("LastName" + i);
+            leadReq.setPhone("123456789" + i);
+            leadReq.setLeadStatus("Not Contacted");
+            leadReq.setCreatedById(TEST_CREATED_BY_ID);
+            leadReq.setAddressId(TEST_ADDRESS_ID);
+            leadReq.setClientId(TEST_CLIENT_ID);
+            leadReq.setAddress(buildAddressRequest());
+            leads.add(leadReq);
+        }
+
+        Map<String, Lead> savedLeads = new HashMap<>();
+        when(addressRepository.save(any(Address.class))).thenAnswer(invocation -> {
+            Address address = invocation.getArgument(0);
+            if (address.getAddressId() == null) {
+                address.setAddressId((long) (Math.random() * 1000));
+            }
+            return address;
+        });
+        when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong()))
+            .thenAnswer(invocation -> savedLeads.get(invocation.getArgument(0)));
+        when(leadRepository.save(any(Lead.class))).thenAnswer(invocation -> {
+            Lead lead = invocation.getArgument(0);
+            lead.setLeadId((long) (Math.random() * 1000));
+            savedLeads.put(lead.getEmail(), lead);
+            return lead;
+        });
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+        // Act
+        BulkInsertResponseModel<Long> result = leadService.bulkCreateLeads(leads);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(3, result.getTotalRequested());
+        assertEquals(3, result.getSuccessCount());
+        assertEquals(0, result.getFailureCount());
+        verify(leadRepository, times(3)).save(any(Lead.class));
+    }
+
+    /**
+     * Test bulk lead creation with partial success.
+     * Verifies that some leads succeed while others fail validation.
+     */
+    @Test
+    @DisplayName("Bulk Create Leads - Partial Success - Some leads fail validation")
+    void bulkCreateLeads_PartialSuccess() {
+        // Arrange
+        List<LeadRequestModel> leads = new ArrayList<>();
+        
+        // Valid lead
+        LeadRequestModel validLead = new LeadRequestModel();
+        validLead.setEmail("valid@example.com");
+        validLead.setFirstName("Valid");
+        validLead.setLastName("Lead");
+        validLead.setPhone("1234567890");
+        validLead.setLeadStatus("Not Contacted");
+        validLead.setCreatedById(TEST_CREATED_BY_ID);
+        validLead.setAddressId(TEST_ADDRESS_ID);
+        validLead.setClientId(TEST_CLIENT_ID);
+        validLead.setAddress(buildAddressRequest());
+        leads.add(validLead);
+        
+        // Invalid lead (missing email)
+        LeadRequestModel invalidLead = new LeadRequestModel();
+        invalidLead.setEmail(null);
+        invalidLead.setFirstName("Invalid");
+        invalidLead.setLastName("Lead");
+        invalidLead.setPhone("1234567890");
+        invalidLead.setLeadStatus("Not Contacted");
+        invalidLead.setCreatedById(TEST_CREATED_BY_ID);
+        invalidLead.setAddressId(TEST_ADDRESS_ID);
+        invalidLead.setClientId(TEST_CLIENT_ID);
+        invalidLead.setAddress(buildAddressRequest());
+        leads.add(invalidLead);
+
+        Map<String, Lead> savedLeads = new HashMap<>();
+        when(addressRepository.save(any(Address.class))).thenAnswer(invocation -> {
+            Address address = invocation.getArgument(0);
+            if (address.getAddressId() == null) {
+                address.setAddressId((long) (Math.random() * 1000));
+            }
+            return address;
+        });
+        when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong()))
+            .thenAnswer(invocation -> savedLeads.get(invocation.getArgument(0)));
+        when(leadRepository.save(any(Lead.class))).thenAnswer(invocation -> {
+            Lead lead = invocation.getArgument(0);
+            lead.setLeadId((long) (Math.random() * 1000));
+            savedLeads.put(lead.getEmail(), lead);
+            return lead;
+        });
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+        // Act
+        BulkInsertResponseModel<Long> result = leadService.bulkCreateLeads(leads);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.getTotalRequested());
+        assertEquals(1, result.getSuccessCount());
+        assertEquals(1, result.getFailureCount());
+        verify(leadRepository, times(1)).save(any(Lead.class));
+    }
+
+    /**
+     * Test bulk lead creation with database error.
+     * Verifies that database errors are properly handled.
+     */
+    @Test
+    @DisplayName("Bulk Create Leads - Failure - Database error")
+    void bulkCreateLeads_DatabaseError() {
+        // Arrange
+        List<LeadRequestModel> leads = new ArrayList<>();
+        LeadRequestModel leadReq = new LeadRequestModel();
+        leadReq.setEmail("test@example.com");
+        leadReq.setFirstName("Test");
+        leadReq.setLastName("Lead");
+        leadReq.setPhone("1234567890");
+        leadReq.setLeadStatus("Not Contacted");
+        leadReq.setCreatedById(TEST_CREATED_BY_ID);
+        leadReq.setAddressId(TEST_ADDRESS_ID);
+        leadReq.setClientId(TEST_CLIENT_ID);
+        leadReq.setAddress(buildAddressRequest());
+        leads.add(leadReq);
+
+        lenient().when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+        lenient().when(leadRepository.save(any(Lead.class))).thenThrow(new RuntimeException("Database error"));
+
+        // Act
+        BulkInsertResponseModel<Long> result = leadService.bulkCreateLeads(leads);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalRequested());
+        assertEquals(0, result.getSuccessCount());
+        assertEquals(1, result.getFailureCount());
+    }
+
+    /**
+     * Test bulk lead creation with empty list.
+     * Verifies that empty list is handled correctly.
+     */
+    @Test
+    @DisplayName("Bulk Create Leads - Success - Empty list")
+    void bulkCreateLeads_EmptyList() {
+        // Arrange
+        List<LeadRequestModel> leads = new ArrayList<>();
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            leadService.bulkCreateLeads(leads);
+        });
+        assertTrue(exception.getMessage().contains("Lead list cannot be null or empty"));
+        verify(leadRepository, never()).save(any(Lead.class));
     }
 }

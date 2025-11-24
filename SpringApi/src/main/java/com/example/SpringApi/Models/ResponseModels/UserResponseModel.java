@@ -46,7 +46,7 @@ public class UserResponseModel {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String notes;
-    private List<UserPermissionInfo> permissions;
+    private List<PermissionResponseModel> permissions;
     private List<AddressResponseModel> addresses;
     private List<UserGroupResponseModel> userGroups;
     
@@ -98,13 +98,7 @@ public class UserResponseModel {
             // Auto-populate permissions if available
             if (user.getUserClientPermissionMappings() != null && !user.getUserClientPermissionMappings().isEmpty()) {
                 this.permissions = user.getUserClientPermissionMappings().stream()
-                    .map(ucpm -> new UserPermissionInfo(
-                        ucpm.getPermission().getPermissionId(),
-                        ucpm.getPermission().getPermissionName(),
-                        ucpm.getPermission().getPermissionCode(),
-                        ucpm.getPermission().getDescription(),
-                        ucpm.getPermission().getCategory()
-                    ))
+                    .map(ucpm -> new PermissionResponseModel(ucpm.getPermission()))
                     .sorted((p1, p2) -> Long.compare(p1.getPermissionId(), p2.getPermissionId()))
                     .collect(Collectors.toList());
             }
@@ -117,30 +111,6 @@ public class UserResponseModel {
                     .sorted((g1, g2) -> Long.compare(g1.getGroupId(), g2.getGroupId())) // Sort by groupId ascending
                     .collect(Collectors.toList());
             }
-        }
-    }
-    
-    /**
-     * Inner class to represent permission information for a user.
-     */
-    @Getter
-    @Setter
-    public static class UserPermissionInfo {
-        private Long permissionId;
-        private String permissionName;
-        private String permissionCode;
-        private String description;
-        private String category;
-        
-        public UserPermissionInfo() {}
-        
-        public UserPermissionInfo(Long permissionId, String permissionName, String permissionCode, 
-                                String description, String category) {
-            this.permissionId = permissionId;
-            this.permissionName = permissionName;
-            this.permissionCode = permissionCode;
-            this.description = description;
-            this.category = category;
         }
     }
 }

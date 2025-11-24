@@ -182,4 +182,25 @@ public class UserGroupController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, ErrorMessages.ServerError, HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
+
+    /**
+     * Creates multiple user groups in a single operation.
+     * 
+     * @param userGroups List of UserGroupRequestModel containing the group data to create
+     * @return ResponseEntity containing BulkInsertResponseModel or ErrorResponseModel
+     */
+    @PutMapping("/" + ApiRoutes.UserGroupSubRoute.BULK_CREATE_USER_GROUP)
+    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.INSERT_GROUPS_PERMISSION +"')")
+    public ResponseEntity<?> bulkCreateUserGroups(@RequestBody java.util.List<UserGroupRequestModel> userGroups) {
+        try {
+            return ResponseEntity.ok(userGroupService.bulkCreateUserGroups(userGroups));
+        } catch (BadRequestException bre) {
+            logger.error(bre);
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (Exception e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, ErrorMessages.ServerError, HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
 }

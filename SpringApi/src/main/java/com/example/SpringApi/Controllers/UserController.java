@@ -5,6 +5,7 @@ import com.example.SpringApi.Services.UserService;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
+import com.example.SpringApi.Models.ResponseModels.BulkUserInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.UserResponseModel;
 import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
@@ -18,6 +19,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * REST Controller for User-related operations.
@@ -120,7 +123,8 @@ public class UserController {
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.CREATE_USER_PERMISSION +"')")
     public ResponseEntity<?> createUser(@RequestBody UserRequestModel user) {
         try {
-            userService.createUser(user);
+            // Always send email for single user creation
+            userService.createUser(user, true);
             return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
@@ -246,6 +250,73 @@ public class UserController {
         try {
             userService.confirmEmail(userId, token);
             return ResponseEntity.ok("Email confirmed successfully");
+        } catch (BadRequestException bre) {
+            logger.error(bre);
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (NotFoundException nfe) {
+            logger.error(nfe);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (UnauthorizedException ue) {
+            logger.error(ue);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+        } catch (Exception e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+
+    /**
+     * Retrieves all permissions available in the system.
+     * 
+     * This endpoint fetches all permissions from the database including their
+     * permission ID, name, code, description, and category. This is useful
+     * for populating permission selection dropdowns in user management interfaces.
+     * Only non-deleted permissions are returned.
+     * 
+     * @return ResponseEntity containing List of PermissionResponseModel or ErrorResponseModel
+     */
+    @GetMapping("/" + ApiRoutes.UsersSubRoute.GET_ALL_PERMISSIONS)
+    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.CREATE_USER_PERMISSION +"')")
+    public ResponseEntity<?> getAllPermissions() {
+        try {
+            return ResponseEntity.ok(userService.getAllPermissions());
+        } catch (BadRequestException bre) {
+            logger.error(bre);
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (NotFoundException nfe) {
+            logger.error(nfe);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (UnauthorizedException ue) {
+            logger.error(ue);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+        } catch (Exception e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+
+    /**
+     * Creates multiple users in the system efficiently with partial success support.
+     * 
+     * This endpoint performs bulk user insertion with the following characteristics:
+     * - Uses batch database operations for maximum efficiency
+     * - Supports partial success: if some users fail validation, others still succeed
+     * - Does NOT send email confirmations (unlike createUser endpoint)
+     * - Returns detailed results for each user including success/failure status and error messages
+     * 
+     * This is ideal for importing large numbers of users from external systems or
+     * bulk user provisioning scenarios. The endpoint can handle millions of records
+     * efficiently through batched database operations.
+     * 
+     * @param users List of UserRequestModel containing the user data to insert
+     * @return ResponseEntity containing BulkUserInsertResponseModel with detailed results or ErrorResponseModel
+     */
+    @PutMapping("/" + ApiRoutes.UsersSubRoute.BULK_CREATE_USER)
+    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.CREATE_USER_PERMISSION +"')")
+    public ResponseEntity<?> bulkCreateUsers(@RequestBody List<UserRequestModel> users) {
+        try {
+            BulkUserInsertResponseModel response = userService.bulkCreateUsers(users);
+            return ResponseEntity.ok(response);
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));

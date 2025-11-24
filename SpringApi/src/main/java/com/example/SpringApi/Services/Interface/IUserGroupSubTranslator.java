@@ -96,4 +96,15 @@ public interface IUserGroupSubTranslator {
      * @throws IllegalArgumentException if the userGroupRequestModel parameter is null
      */
     PaginationBaseResponseModel<UserGroupResponseModel> fetchUserGroupsInClientInBatches(UserGroupRequestModel userGroupRequestModel);
+    
+    /**
+     * Creates multiple user groups in a single operation.
+     * 
+     * This method performs bulk insertion of user groups, processing each group individually
+     * to support partial success. If some groups fail validation, others will still be created.
+     * 
+     * @param userGroups List of UserGroupRequestModel containing the group data to insert
+     * @return BulkInsertResponseModel containing success/failure details for each group
+     */
+    com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateUserGroups(java.util.List<UserGroupRequestModel> userGroups);
 }

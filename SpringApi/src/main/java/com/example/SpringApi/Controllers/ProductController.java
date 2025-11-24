@@ -72,6 +72,19 @@ public class ProductController {
         }
     }
 
+    @PutMapping("/" + ApiRoutes.ProductsSubRoute.BULK_ADD_PRODUCT)
+    public ResponseEntity<?> bulkAddProducts(@RequestBody java.util.List<ProductRequestModel> products) {
+        try {
+            return ResponseEntity.ok(productService.bulkAddProducts(products));
+        } catch (BadRequestException bre) {
+            logger.error(bre);
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (Exception e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+
     /**
      * Edits an existing product.
      * 

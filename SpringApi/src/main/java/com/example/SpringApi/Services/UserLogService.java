@@ -6,13 +6,16 @@ import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.UserLogsResponseModel;
 import com.example.SpringApi.Repositories.UserLogRepository;
 import com.example.SpringApi.Services.Interface.IUserLogSubTranslator;
+import com.example.SpringApi.FilterQueryBuilder.UserLogFilterQueryBuilder;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
+import com.example.SpringApi.Exceptions.BadRequestException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -21,11 +24,14 @@ import java.util.Set;
 @Service
 public class UserLogService extends BaseService implements IUserLogSubTranslator {
     private final UserLogRepository userLogRepository;
+    private final UserLogFilterQueryBuilder userLogFilterQueryBuilder;
 
     @Autowired
-    public UserLogService(UserLogRepository userLogRepository){
+    public UserLogService(UserLogRepository userLogRepository,
+                         UserLogFilterQueryBuilder userLogFilterQueryBuilder){
         super();
         this.userLogRepository = userLogRepository;
+        this.userLogFilterQueryBuilder = userLogFilterQueryBuilder;
     }
 
     @Override
@@ -66,28 +72,86 @@ public class UserLogService extends BaseService implements IUserLogSubTranslator
 
     /**
      * Retrieves user logs based on provided filtering criteria.
+     * Supports multi-filter with AND/OR logic for advanced filtering.
+     * 
+     * Valid columns for filtering: "logId", "userId", "clientId", "action", "description", "ipAddress",
+     *                               "userAgent", "sessionId", "logLevel", "createdAt", "createdUser",
+     *                               "updatedAt", "modifiedUser", "notes", "auditUserId", "change",
+     *                               "newValue", "oldValue"
+     * 
      * @param getUserLogsRequestModel The filtering criteria for retrieving user logs.
      * @return A response containing a pagination model with the user logs that match the filtering criteria.
+     * @throws BadRequestException if an invalid column name or filter condition is provided
      */
     @Override
     public PaginationBaseResponseModel<UserLogsResponseModel> fetchUserLogsInBatches(UserLogsRequestModel getUserLogsRequestModel) {
-        // validate the column names
-        if(StringUtils.hasText(getUserLogsRequestModel.getColumnName())){
-            Set<String> validColumns = new HashSet<>(Arrays.asList("action", "description", "logLevel"));
+        // Calculate page size and offset
+        int start = getUserLogsRequestModel.getStart();
+        int end = getUserLogsRequestModel.getEnd();
+        int pageSize = end - start;
 
-            if(!validColumns.contains(getUserLogsRequestModel.getColumnName())){
-                throw new IllegalArgumentException("Invalid column name: " + getUserLogsRequestModel.getColumnName());
+        // Validate page size
+        if (pageSize <= 0) {
+            throw new BadRequestException("Invalid pagination: end must be greater than start");
+        }
+
+        // Validate logic operator if provided
+        if (getUserLogsRequestModel.getLogicOperator() != null && !getUserLogsRequestModel.isValidLogicOperator()) {
+            throw new BadRequestException("Invalid logic operator. Must be 'AND' or 'OR'");
+        }
+
+        // Validate filters if provided
+        if (getUserLogsRequestModel.hasMultipleFilters()) {
+            Set<String> validColumns = new HashSet<>(Arrays.asList(
+                "logId", "userId", "clientId", "action", "description", "ipAddress",
+                "userAgent", "sessionId", "logLevel", "createdAt", "createdUser",
+                "updatedAt", "modifiedUser", "notes", "auditUserId", "change",
+                "newValue", "oldValue"
+            ));
+
+            for (FilterCondition filter : getUserLogsRequestModel.getFilters()) {
+                // Validate column name
+                if (!validColumns.contains(filter.getColumn())) {
+                    throw new BadRequestException(
+                        "Invalid column name: " + filter.getColumn() + 
+                        ". Valid columns: " + String.join(", ", validColumns)
+                    );
+                }
+
+                // Validate operator
+                if (!filter.isValidOperator()) {
+                    throw new BadRequestException(
+                        "Invalid operator: " + filter.getOperator() + " for column: " + filter.getColumn()
+                    );
+                }
+
+                // Validate operator matches column type
+                String columnType = userLogFilterQueryBuilder.getColumnType(filter.getColumn());
+                filter.validateOperatorForType(columnType, filter.getColumn());
+
+                // Validate value presence
+                filter.validateValuePresence();
             }
         }
 
-        Page<UserLog> userLogs = userLogRepository.findPaginatedUserLogs(getUserLogsRequestModel.getUserId(),
+        // Create custom Pageable with proper offset handling
+        Pageable pageable = new PageRequest(0, pageSize, Sort.by("logId").descending()) {
+            @Override
+            public long getOffset() {
+                return start;
+            }
+        };
+
+        // Use the filter query builder for multi-filter support
+        String logicOperator = getUserLogsRequestModel.getLogicOperator() != null ? 
+            getUserLogsRequestModel.getLogicOperator() : "AND";
+
+        Page<UserLog> userLogs = userLogFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                getUserLogsRequestModel.getUserId(),
                 getUserLogsRequestModel.getCarrierId(),
-                getUserLogsRequestModel.getColumnName(),
-                getUserLogsRequestModel.getCondition(),
-                getUserLogsRequestModel.getFilterExpr(),
-                PageRequest.of(getUserLogsRequestModel.getStart() / (getUserLogsRequestModel.getEnd() - getUserLogsRequestModel.getStart()),
-                        getUserLogsRequestModel.getEnd() - getUserLogsRequestModel.getStart(),
-                        Sort.by("logId").ascending()));
+                logicOperator,
+                getUserLogsRequestModel.getFilters(),
+                pageable);
 
         PaginationBaseResponseModel<UserLogsResponseModel> paginationBaseResponseModel = new PaginationBaseResponseModel<>();
         paginationBaseResponseModel.setData(userLogs.map(userLog -> new UserLogsResponseModel(userLog)).getContent());

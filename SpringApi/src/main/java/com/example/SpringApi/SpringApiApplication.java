@@ -22,6 +22,9 @@ import java.util.concurrent.Executor;
 				// scan the repositories
 				"com.example.SpringApi.Repositories",
 
+				// scan the filter query builders
+				"com.example.SpringApi.FilterQueryBuilder",
+
 				// scan the controllers
 				"com.example.SpringApi.Controllers",
 

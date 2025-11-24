@@ -3,6 +3,8 @@ package com.example.SpringApi.Services;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.FilterQueryBuilder.PromoFilterQueryBuilder;
+import com.example.SpringApi.Helpers.BulkInsertHelper;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.DatabaseModels.Promo;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
@@ -19,6 +21,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -37,13 +40,21 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
 
   private final PromoRepository promoRepository;
   private final UserLogService userLogService;
+  private final PromoFilterQueryBuilder promoFilterQueryBuilder;
+  private final MessageService messageService;
 
   @Autowired
   public PromoService(
-      PromoRepository promoRepository, UserLogService userLogService, HttpServletRequest request) {
+      PromoRepository promoRepository, 
+      UserLogService userLogService, 
+      PromoFilterQueryBuilder promoFilterQueryBuilder,
+      MessageService messageService,
+      HttpServletRequest request) {
     super();
     this.promoRepository = promoRepository;
     this.userLogService = userLogService;
+    this.promoFilterQueryBuilder = promoFilterQueryBuilder;
+    this.messageService = messageService;
   }
 
   /**
@@ -60,20 +71,37 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
         new HashSet<>(Arrays.asList("promoId", "promoCode", "description", "discountValue", 
             "isPercent", "isDeleted", "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes"));
 
-    // Validate column name
-    if (paginationBaseRequestModel.getColumnName() != null
-        && !validColumns.contains(paginationBaseRequestModel.getColumnName())) {
-      throw new BadRequestException(
-          "Invalid column name: " + paginationBaseRequestModel.getColumnName());
-    }
+    // Validate filter conditions if provided
+    if (paginationBaseRequestModel.getFilters() != null && !paginationBaseRequestModel.getFilters().isEmpty()) {
+      for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
+        // Validate column name
+        if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
+          throw new BadRequestException("Invalid column name: " + filter.getColumn());
+        }
 
-    // Validate condition if provided
-    if (paginationBaseRequestModel.getCondition() != null && !paginationBaseRequestModel.getCondition().isEmpty()) {
-      Set<String> validConditions = new HashSet<>(Arrays.asList(
-          "equals", "contains", "startsWith", "endsWith", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"
-      ));
-      if (!validConditions.contains(paginationBaseRequestModel.getCondition())) {
-        throw new BadRequestException("Invalid condition for filtering: " + paginationBaseRequestModel.getCondition());
+        // Validate operator
+        Set<String> validOperators = new HashSet<>(Arrays.asList(
+            "equals", "notEquals", "contains", "notContains", "startsWith", "endsWith",
+            "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual",
+            "isEmpty", "isNotEmpty"
+        ));
+        if (filter.getOperator() != null && !validOperators.contains(filter.getOperator())) {
+          throw new BadRequestException("Invalid operator: " + filter.getOperator());
+        }
+
+        // Validate column type matches operator
+        String columnType = promoFilterQueryBuilder.getColumnType(filter.getColumn());
+        if ("boolean".equals(columnType) && !filter.getOperator().equals("equals") && !filter.getOperator().equals("notEquals")) {
+          throw new BadRequestException("Boolean columns only support 'equals' and 'notEquals' operators");
+        }
+        if ("date".equals(columnType) || "number".equals(columnType)) {
+          Set<String> numericDateOperators = new HashSet<>(Arrays.asList(
+              "equals", "notEquals", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"
+          ));
+          if (!numericDateOperators.contains(filter.getOperator())) {
+            throw new BadRequestException(columnType + " columns only support numeric comparison operators");
+          }
+        }
       }
     }
 
@@ -88,21 +116,22 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
     }
 
     // Create custom Pageable with proper offset handling
-    org.springframework.data.domain.Pageable pageable = new org.springframework.data.domain.PageRequest(0, pageSize, Sort.by("promoId").descending()) {
+    org.springframework.data.domain.Pageable pageable = new PageRequest(0, pageSize, Sort.by("promoId").descending()) {
       @Override
       public long getOffset() {
         return start;
       }
     };
 
-    Page<Promo> page =
-        promoRepository.findPaginatedPromos(
-            getClientId(),
-            paginationBaseRequestModel.getColumnName(),
-            paginationBaseRequestModel.getCondition(),
-            paginationBaseRequestModel.getFilterExpr(),
-            paginationBaseRequestModel.isIncludeDeleted(),
-            pageable);
+    // Use filter query builder for dynamic filtering
+    Page<Promo> page = promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+        getClientId(),
+        paginationBaseRequestModel.getSelectedIds(),
+        paginationBaseRequestModel.getLogicOperator() != null ? paginationBaseRequestModel.getLogicOperator() : "AND",
+        paginationBaseRequestModel.getFilters(),
+        paginationBaseRequestModel.isIncludeDeleted(),
+        pageable
+    );
 
     PaginationBaseResponseModel<Promo> response = new PaginationBaseResponseModel<>();
     response.setData(page.getContent());
@@ -203,5 +232,61 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
             .orElseThrow(
                 () -> new NotFoundException(ErrorMessages.PromoErrorMessages.InvalidName));
     return new PromoResponseModel(promo);
+  }
+
+  /**
+   * Creates multiple promos in a single operation.
+   * 
+   * @param promos List of PromoRequestModel containing the promo data to insert
+   * @return BulkInsertResponseModel containing success/failure details for each promo
+   */
+  @Override
+  public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreatePromos(java.util.List<PromoRequestModel> promos) {
+    if (promos == null || promos.isEmpty()) {
+      throw new BadRequestException("Promo list cannot be null or empty");
+    }
+
+    com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
+        new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+    response.setTotalRequested(promos.size());
+    
+    int successCount = 0;
+    int failureCount = 0;
+    
+    for (PromoRequestModel promoRequest : promos) {
+      try {
+        createPromo(promoRequest);
+        
+        Optional<Promo> createdPromo = promoRepository.findByPromoCodeAndClientId(
+            promoRequest.getPromoCode().toUpperCase(), getClientId());
+        if (createdPromo.isPresent()) {
+          response.addSuccess(promoRequest.getPromoCode(), createdPromo.get().getPromoId());
+          successCount++;
+        }
+      } catch (BadRequestException bre) {
+        response.addFailure(
+            promoRequest.getPromoCode() != null ? promoRequest.getPromoCode() : "unknown", 
+            bre.getMessage()
+        );
+        failureCount++;
+      } catch (Exception e) {
+        response.addFailure(
+            promoRequest.getPromoCode() != null ? promoRequest.getPromoCode() : "unknown", 
+            "Error: " + e.getMessage()
+        );
+        failureCount++;
+      }
+    }
+    
+    userLogService.logData(getUserId(), 
+        SuccessMessages.PromoSuccessMessages.CreatePromo + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+        ApiRoutes.PromosSubRoute.BULK_CREATE_PROMO);
+    
+    response.setSuccessCount(successCount);
+    response.setFailureCount(failureCount);
+    
+    BulkInsertHelper.createBulkInsertResultMessage(response, "Promo", messageService, getUserId());
+    
+    return response;
   }
 }

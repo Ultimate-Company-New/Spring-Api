@@ -140,6 +140,10 @@ public class LoginService implements ILoginSubTranslator {
 
         // check if the password is correct
         if(PasswordHelper.checkPassword(loginRequestModel.getPassword(), user.getPassword(), user.getSalt())){
+            // Reset login attempts to 5 after successful login
+            user.setLoginAttempts(5);
+            userRepository.save(user);
+            
             // Get all UserClientMappings for this user
             List<UserClientMapping> userClientMappings = userClientMappingRepository.findByUserId(user.getUserId());
             
@@ -163,6 +167,9 @@ public class LoginService implements ILoginSubTranslator {
                     clientResponseList.add(clientResponse);
                 }
             }
+            
+            // Sort clients by name in ascending order (A to Z)
+            clientResponseList.sort((c1, c2) -> c1.getName().compareToIgnoreCase(c2.getName()));
             
             return clientResponseList;
         }

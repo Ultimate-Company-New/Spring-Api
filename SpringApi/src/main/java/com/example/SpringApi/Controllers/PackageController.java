@@ -201,4 +201,19 @@ public class PackageController {
                     .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
+
+    @PutMapping(ApiRoutes.PackageSubRoute.BULK_CREATE_PACKAGE)
+    public ResponseEntity<?> bulkCreatePackages(@RequestBody java.util.List<PackageRequestModel> packages) {
+        try {
+            return ResponseEntity.ok(packageService.bulkCreatePackages(packages));
+        } catch (BadRequestException e) {
+            logger.error(e);
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (Exception e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
 }

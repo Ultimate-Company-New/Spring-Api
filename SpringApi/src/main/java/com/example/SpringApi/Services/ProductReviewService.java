@@ -86,20 +86,6 @@ public class ProductReviewService extends BaseService implements IProductReviewS
      */
     @Override
     public PaginationBaseResponseModel<ProductReviewResponseModel> getProductReviewsInBatchesGivenProductId(PaginationBaseRequestModel paginationBaseRequestModel, long id) { 
-        // Valid columns for filtering
-        Set<String> validColumns = new HashSet<>(Arrays.asList(
-            "reviewId", "ratings", "score", "isDeleted", "review", "userId",
-            "productId", "parentId", "createdUser", "modifiedUser", "createdAt",
-            "updatedAt", "notes"
-        ));
-
-        // Validate column name if provided
-        if (paginationBaseRequestModel.getColumnName() != null 
-            && !validColumns.contains(paginationBaseRequestModel.getColumnName())) {
-            throw new BadRequestException(
-                "Invalid column name: " + paginationBaseRequestModel.getColumnName());
-        }
-
         // Calculate page size and offset
         int start = paginationBaseRequestModel.getStart();
         int end = paginationBaseRequestModel.getEnd();
@@ -118,12 +104,12 @@ public class ProductReviewService extends BaseService implements IProductReviewS
             }
         };
 
-        // Get paginated reviews for the product with filtering
+        // Get paginated reviews for the product (without filtering for now)
         Page<ProductReview> reviewPage = productReviewRepository.findPaginatedProductReviews(
             getClientId(),
-            paginationBaseRequestModel.getColumnName(),
-            paginationBaseRequestModel.getCondition(),
-            paginationBaseRequestModel.getFilterExpr(),
+            null,
+            null,
+            null,
             paginationBaseRequestModel.isIncludeDeleted(),
             pageable
         );

@@ -73,4 +73,11 @@ public interface IMessageSubTranslator {
      * @param messageId The ID of the message
      */
     void setMessageReadByUserIdAndMessageId(long userId, long messageId);
+    
+    /**
+     * Gets the count of unread messages for the current user.
+     * 
+     * @return The number of unread messages
+     */
+    int getUnreadMessageCount();
 }

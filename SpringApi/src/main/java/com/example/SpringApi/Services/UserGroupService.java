@@ -13,13 +13,15 @@ import com.example.SpringApi.Repositories.UserGroupUserMapRepository;
 import com.example.SpringApi.Repositories.UserRepository;
 import com.example.SpringApi.Services.Interface.IUserGroupSubTranslator;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.SpringApi.FilterQueryBuilder.UserGroupFilterQueryBuilder;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
+import com.example.SpringApi.Helpers.BulkInsertHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import com.example.SpringApi.Exceptions.NotFoundException;
 
 import java.util.*;
@@ -42,17 +44,23 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
     private final UserGroupRepository userGroupRepository;
     private final UserGroupUserMapRepository userGroupUserMapRepository;
     private final UserLogService userLogService;
+    private final UserGroupFilterQueryBuilder userGroupFilterQueryBuilder;
+    private final MessageService messageService;
 
     @Autowired
     public UserGroupService(UserLogService userLogService,
                            UserGroupRepository userGroupRepository,
                            UserGroupUserMapRepository userGroupUserMapRepository,
-                           UserRepository userRepository) {
+                           UserRepository userRepository,
+                           UserGroupFilterQueryBuilder userGroupFilterQueryBuilder,
+                           MessageService messageService) {
         super();
         this.userLogService = userLogService;
         this.userGroupRepository = userGroupRepository;
         this.userGroupUserMapRepository = userGroupUserMapRepository;
         this.userRepository = userRepository;
+        this.userGroupFilterQueryBuilder = userGroupFilterQueryBuilder;
+        this.messageService = messageService;
     }
 
     /**
@@ -199,51 +207,22 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
      * Retrieves user groups for a client with pagination, filtering, and sorting.
      * 
      * This method fetches user groups with support for:
-     * - Column-based filtering (groupName, description)
+     * - Multi-filter support with AND/OR logic
+     * - Column-based filtering (groupName, description, etc.)
      * - Various filter conditions (contains, equals, startsWith, endsWith, isEmpty, isNotEmpty)
      * - Pagination with configurable page size
      * - Optional inclusion of deleted groups
      * - Optional filtering by specific group IDs
      * 
-     * Valid columns for filtering: "userGroupId", "name", "description"
+     * Valid columns for filtering: "groupId", "groupName", "description", "isActive", "isDeleted", 
+     *                               "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes"
      * 
      * @param userGroupRequestModel The request model containing filter criteria and pagination settings
      * @return PaginationBaseResponseModel containing the filtered and paginated user groups
-     * @throws BadRequestException if an invalid column name is provided
+     * @throws BadRequestException if an invalid column name or filter condition is provided
      */
     @Override
     public PaginationBaseResponseModel<UserGroupResponseModel> fetchUserGroupsInClientInBatches(UserGroupRequestModel userGroupRequestModel) {
-        // Validate the column names
-        if (StringUtils.hasText(userGroupRequestModel.getColumnName())) {
-            Set<String> validColumns = new HashSet<>(Arrays.asList("userGroupId", "name", "description"));
-
-            if (!validColumns.contains(userGroupRequestModel.getColumnName())) {
-                throw new BadRequestException(
-                    ErrorMessages.InvalidColumn + String.join(",", validColumns)
-                );
-            }
-        }
-
-        // Validate condition
-        if (userGroupRequestModel.getCondition() != null && !userGroupRequestModel.getCondition().isEmpty()) {
-            Set<String> validConditions = new HashSet<>(Arrays.asList(
-                "equals",
-                "contains",
-                "startsWith",
-                "endsWith",
-                "isEmpty",
-                "isNotEmpty",
-                "greaterThan",
-                "lessThan",
-                "greaterThanOrEqual",
-                "lessThanOrEqual"
-            ));
-            
-            if (!validConditions.contains(userGroupRequestModel.getCondition())) {
-                throw new BadRequestException("Invalid condition for filtering: " + userGroupRequestModel.getCondition());
-            }
-        }
-
         // Validate page size
         int start = userGroupRequestModel.getStart();
         int end = userGroupRequestModel.getEnd();
@@ -253,10 +232,44 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
             throw new BadRequestException("Invalid pagination: end must be greater than start");
         }
 
+        // Validate logic operator if provided
+        if (userGroupRequestModel.getLogicOperator() != null && !userGroupRequestModel.isValidLogicOperator()) {
+            throw new BadRequestException("Invalid logic operator. Must be 'AND' or 'OR'");
+        }
+
+        // Validate filters if provided
+        if (userGroupRequestModel.hasMultipleFilters()) {
+            Set<String> validColumns = new HashSet<>(Arrays.asList(
+                "groupId", "clientId", "groupName", "description", "isActive", "isDeleted",
+                "notes", "createdUser", "modifiedUser", "createdAt", "updatedAt"
+            ));
+
+            for (FilterCondition filter : userGroupRequestModel.getFilters()) {
+                // Validate column name
+                if (!validColumns.contains(filter.getColumn())) {
+                    throw new BadRequestException(
+                        "Invalid column name: " + filter.getColumn() + 
+                        ". Valid columns: " + String.join(", ", validColumns)
+                    );
+                }
+
+                // Validate operator
+                if (!filter.isValidOperator()) {
+                    throw new BadRequestException(
+                        "Invalid operator: " + filter.getOperator() + " for column: " + filter.getColumn()
+                    );
+                }
+
+                // Validate operator matches column type
+                String columnType = userGroupFilterQueryBuilder.getColumnType(filter.getColumn());
+                filter.validateOperatorForType(columnType, filter.getColumn());
+
+                // Validate value presence
+                filter.validateValuePresence();
+            }
+        }
+
         // Create custom Pageable with exact OFFSET and LIMIT for database-level pagination
-        // Spring's PageRequest.of(page, size) uses: OFFSET = page * size, LIMIT = size
-        // For arbitrary offsets (e.g., start=5, end=15), we need OFFSET=5, LIMIT=10
-        // Solution: Override getOffset() to return the exact start position
         Pageable pageable = new PageRequest(0, pageSize, Sort.by("groupId").descending()) {
             @Override
             public long getOffset() {
@@ -264,12 +277,15 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
             }
         };
 
-        Page<UserGroup> userGroups = userGroupRepository.findPaginatedUserGroups(
+        // Use the filter query builder for multi-filter support
+        String logicOperator = userGroupRequestModel.getLogicOperator() != null ? 
+            userGroupRequestModel.getLogicOperator() : "AND";
+
+        Page<UserGroup> userGroups = userGroupFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
             getClientId(),
             userGroupRequestModel.getSelectedGroupIds(),
-            userGroupRequestModel.getColumnName(),
-            userGroupRequestModel.getCondition(),
-            userGroupRequestModel.getFilterExpr(),
+            logicOperator,
+            userGroupRequestModel.getFilters(),
             userGroupRequestModel.isIncludeDeleted(),
             pageable
         );
@@ -284,5 +300,59 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
         paginationBaseResponseModel.setData(userGroupResponseModels);
         paginationBaseResponseModel.setTotalDataCount(userGroups.getTotalElements());
         return paginationBaseResponseModel;
+    }
+
+    /**
+     * Creates multiple user groups in a single operation.
+     * 
+     * @param userGroups List of UserGroupRequestModel containing the group data to insert
+     * @return BulkInsertResponseModel containing success/failure details for each group
+     */
+    @Override
+    public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateUserGroups(List<UserGroupRequestModel> userGroups) {
+        if (userGroups == null || userGroups.isEmpty()) {
+            throw new BadRequestException("User group list cannot be null or empty");
+        }
+
+        com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
+            new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+        response.setTotalRequested(userGroups.size());
+        
+        int successCount = 0;
+        int failureCount = 0;
+        
+        for (UserGroupRequestModel groupRequest : userGroups) {
+            try {
+                createUserGroup(groupRequest);
+                
+                UserGroup createdGroup = userGroupRepository.findByGroupName(groupRequest.getGroupName());
+                response.addSuccess(groupRequest.getGroupName(), createdGroup.getGroupId());
+                successCount++;
+                
+            } catch (BadRequestException bre) {
+                response.addFailure(
+                    groupRequest.getGroupName() != null ? groupRequest.getGroupName() : "unknown", 
+                    bre.getMessage()
+                );
+                failureCount++;
+            } catch (Exception e) {
+                response.addFailure(
+                    groupRequest.getGroupName() != null ? groupRequest.getGroupName() : "unknown", 
+                    "Error: " + e.getMessage()
+                );
+                failureCount++;
+            }
+        }
+        
+        userLogService.logData(getUserId(), 
+            SuccessMessages.UserGroupSuccessMessages.InsertGroup + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+            ApiRoutes.UserGroupSubRoute.BULK_CREATE_USER_GROUP);
+        
+        response.setSuccessCount(successCount);
+        response.setFailureCount(failureCount);
+        
+        BulkInsertHelper.createBulkInsertResultMessage(response, "User Group", messageService, getUserId());
+        
+        return response;
     }
 }

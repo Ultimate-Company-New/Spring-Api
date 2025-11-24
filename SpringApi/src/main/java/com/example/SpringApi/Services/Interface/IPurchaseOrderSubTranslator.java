@@ -121,4 +121,12 @@ public interface IPurchaseOrderSubTranslator {
      * @throws com.itextpdf.text.DocumentException if PDF document creation fails
      */
     byte[] getPurchaseOrderPDF(long id) throws TemplateException, IOException, com.itextpdf.text.DocumentException;
+    
+    /**
+     * Creates multiple purchase orders in a single operation.
+     *
+     * @param purchaseOrders List of PurchaseOrderRequestModel containing the purchase order data to insert
+     * @return BulkInsertResponseModel containing success/failure details for each purchase order
+     */
+    com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreatePurchaseOrders(java.util.List<PurchaseOrderRequestModel> purchaseOrders);
 }

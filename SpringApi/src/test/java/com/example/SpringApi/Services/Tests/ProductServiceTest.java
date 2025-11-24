@@ -1,13 +1,16 @@
 package com.example.SpringApi.Services.Tests;
 
+import com.example.SpringApi.FilterQueryBuilder.ProductFilterQueryBuilder;
 import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.ProductRequestModel;
+import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.ProductResponseModel;
 import com.example.SpringApi.Repositories.*;
 import com.example.SpringApi.Services.ClientService;
+import com.example.SpringApi.Services.MessageService;
 import com.example.SpringApi.Services.ProductService;
 import com.example.SpringApi.Services.UserLogService;
 import com.example.SpringApi.Helpers.ImgbbHelper;
@@ -81,6 +84,11 @@ class ProductServiceTest {
     private ClientService clientService;
 
     @Mock
+    private ProductFilterQueryBuilder productFilterQueryBuilder;
+
+    private MessageService messageService;
+
+    @Mock
     private Environment environment;
 
     @Mock
@@ -140,6 +148,9 @@ class ProductServiceTest {
         // Mock BaseService.getClientId() to return a valid client ID
         lenient().when(request.getAttribute("clientId")).thenReturn(1L);
         
+        // MessageService is not used in tested methods, so pass null
+        messageService = null;
+        
         // Create ProductService instance manually with all dependencies
         productService = new ProductService(
             productRepository,
@@ -148,6 +159,8 @@ class ProductServiceTest {
             productCategoryRepository,
             clientRepository,
             clientService,
+            productFilterQueryBuilder,
+            messageService,
             environment,
             request
         );
@@ -486,16 +499,13 @@ class ProductServiceTest {
         PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
         paginationRequest.setStart(0);
         paginationRequest.setEnd(10);
-        paginationRequest.setColumnName("title");
-        paginationRequest.setCondition("contains");
-        paginationRequest.setFilterExpr("Test");
         paginationRequest.setIncludeDeleted(false);
 
         List<Product> productList = Arrays.asList(testProduct);
         Page<Product> productPage = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
 
-        when(productRepository.findPaginatedProducts(
-            eq(TEST_CLIENT_ID), eq("title"), eq("contains"), eq("Test"), eq(false), isNull(), any(Pageable.class)
+        when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
         )).thenReturn(productPage);
 
         // Act
@@ -515,13 +525,20 @@ class ProductServiceTest {
         PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
         paginationRequest.setStart(0);
         paginationRequest.setEnd(10);
-        paginationRequest.setColumnName("invalidColumn");
+
+        PaginationBaseRequestModel.FilterCondition invalidFilter = new PaginationBaseRequestModel.FilterCondition();
+        invalidFilter.setColumn("invalidColumn");
+        invalidFilter.setOperator("contains");
+        invalidFilter.setValue("test");
+        paginationRequest.setFilters(Arrays.asList(invalidFilter));
+        paginationRequest.setLogicOperator("AND");
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> productService.getProductInBatches(paginationRequest));
 
-        assertTrue(exception.getMessage().contains("Invalid column"));
+        assertTrue(exception.getMessage().contains("Invalid column name"));
+        verify(productFilterQueryBuilder, never()).getColumnType("invalidColumn");
     }
 
     @Test
@@ -536,8 +553,8 @@ class ProductServiceTest {
         List<Product> productList = Arrays.asList(testProduct);
         Page<Product> productPage = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
 
-        when(productRepository.findPaginatedProducts(
-            eq(TEST_CLIENT_ID), isNull(), isNull(), isNull(), eq(false), anySet(), any(Pageable.class)
+        when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
         )).thenReturn(productPage);
 
         // Act
@@ -549,19 +566,26 @@ class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("getProductInBatches - Success: Include deleted products")
-    void testGetProductInBatches_IncludeDeleted() {
+    @DisplayName("getProductInBatches - Success: With single filter")
+    void testGetProductInBatches_WithSingleFilter() {
         // Arrange
         PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
         paginationRequest.setStart(0);
         paginationRequest.setEnd(10);
-        paginationRequest.setIncludeDeleted(true);
+
+        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+        filter.setColumn("title");
+        filter.setOperator("contains");
+        filter.setValue("Test");
+        paginationRequest.setFilters(Arrays.asList(filter));
+        paginationRequest.setLogicOperator("AND");
 
         List<Product> productList = Arrays.asList(testProduct);
         Page<Product> productPage = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
 
-        when(productRepository.findPaginatedProducts(
-            eq(TEST_CLIENT_ID), isNull(), isNull(), isNull(), eq(true), isNull(), any(Pageable.class)
+        when(productFilterQueryBuilder.getColumnType("title")).thenReturn("string");
+        when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
         )).thenReturn(productPage);
 
         // Act
@@ -570,6 +594,125 @@ class ProductServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getData().size());
+        verify(productFilterQueryBuilder, times(1)).getColumnType("title");
+    }
+
+    @Test
+    @DisplayName("getProductInBatches - Success: With multiple filters AND")
+    void testGetProductInBatches_WithMultipleFiltersAND() {
+        // Arrange
+        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
+        paginationRequest.setStart(0);
+        paginationRequest.setEnd(10);
+
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("title");
+        filter1.setOperator("contains");
+        filter1.setValue("Test");
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("brand");
+        filter2.setOperator("contains");
+        filter2.setValue("Brand");
+
+        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
+        paginationRequest.setLogicOperator("AND");
+
+        List<Product> productList = Arrays.asList(testProduct);
+        Page<Product> productPage = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
+
+        when(productFilterQueryBuilder.getColumnType("title")).thenReturn("string");
+        when(productFilterQueryBuilder.getColumnType("brand")).thenReturn("string");
+        when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(productPage);
+
+        // Act
+        PaginationBaseResponseModel<ProductResponseModel> result = productService.getProductInBatches(paginationRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(productFilterQueryBuilder, times(1)).getColumnType("title");
+        verify(productFilterQueryBuilder, times(1)).getColumnType("brand");
+    }
+
+    @Test
+    @DisplayName("getProductInBatches - Success: With multiple filters OR")
+    void testGetProductInBatches_WithMultipleFiltersOR() {
+        // Arrange
+        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
+        paginationRequest.setStart(0);
+        paginationRequest.setEnd(10);
+
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("title");
+        filter1.setOperator("contains");
+        filter1.setValue("Test");
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("title");
+        filter2.setOperator("contains");
+        filter2.setValue("Product");
+
+        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
+        paginationRequest.setLogicOperator("OR");
+
+        List<Product> productList = Arrays.asList(testProduct);
+        Page<Product> productPage = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
+
+        when(productFilterQueryBuilder.getColumnType("title")).thenReturn("string");
+        when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(productPage);
+
+        // Act
+        PaginationBaseResponseModel<ProductResponseModel> result = productService.getProductInBatches(paginationRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(productFilterQueryBuilder, times(2)).getColumnType("title");
+    }
+
+    @Test
+    @DisplayName("getProductInBatches - Success: With complex filters")
+    void testGetProductInBatches_WithComplexFilters() {
+        // Arrange
+        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
+        paginationRequest.setStart(0);
+        paginationRequest.setEnd(10);
+
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("title");
+        filter1.setOperator("contains");
+        filter1.setValue("Test");
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("productId");
+        filter2.setOperator("greaterThan");
+        filter2.setValue("0");
+
+        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
+        paginationRequest.setLogicOperator("AND");
+
+        List<Product> productList = Arrays.asList(testProduct);
+        Page<Product> productPage = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
+
+        when(productFilterQueryBuilder.getColumnType("title")).thenReturn("string");
+        when(productFilterQueryBuilder.getColumnType("productId")).thenReturn("number");
+        when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(productPage);
+
+        // Act
+        PaginationBaseResponseModel<ProductResponseModel> result = productService.getProductInBatches(paginationRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(productFilterQueryBuilder, times(1)).getColumnType("title");
+        verify(productFilterQueryBuilder, times(1)).getColumnType("productId");
     }
 
     // ==================== Validation Tests ====================
@@ -850,5 +993,199 @@ class ProductServiceTest {
         mapping.setAvailableStock(10);
         mappings.add(mapping);
         testProduct.setProductPickupLocationMappings(mappings);
+    }
+
+    // ==================== Bulk Add Products Tests ====================
+
+    @Test
+    @DisplayName("Bulk Add Products - Success - All valid products")
+    void bulkAddProducts_AllValid_Success() {
+        // Arrange
+        List<ProductRequestModel> products = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            ProductRequestModel prodReq = new ProductRequestModel();
+            prodReq.setTitle("Product" + i);
+            prodReq.setDescriptionHtml("Description" + i);
+            prodReq.setBrand("Brand" + i);
+            prodReq.setPrice(BigDecimal.valueOf(100 + i));
+            prodReq.setCategoryId(TEST_CATEGORY_ID);
+            prodReq.setMainImage(TEST_BASE64_IMAGE);
+            prodReq.setTopImage(TEST_BASE64_IMAGE);
+            prodReq.setBottomImage(TEST_BASE64_IMAGE);
+            prodReq.setFrontImage(TEST_BASE64_IMAGE);
+            prodReq.setBackImage(TEST_BASE64_IMAGE);
+            prodReq.setRightImage(TEST_BASE64_IMAGE);
+            prodReq.setLeftImage(TEST_BASE64_IMAGE);
+            prodReq.setDetailsImage(TEST_BASE64_IMAGE);
+            prodReq.setDefectImage(TEST_BASE64_IMAGE);
+            prodReq.setColorLabel("Color" + i);
+            prodReq.setCondition("NEW");
+            prodReq.setCountryOfManufacture("USA");
+            prodReq.setClientId(TEST_CLIENT_ID);
+            Map<Long, Integer> quantities = new HashMap<>();
+            quantities.put(TEST_PICKUP_LOCATION_ID, 10);
+            prodReq.setPickupLocationQuantities(quantities);
+            products.add(prodReq);
+        }
+
+        when(productCategoryRepository.findById(TEST_CATEGORY_ID)).thenReturn(java.util.Optional.of(testCategory));
+        when(productRepository.save(any(Product.class))).thenAnswer(invocation -> {
+            Product product = invocation.getArgument(0);
+            product.setProductId((long) (Math.random() * 1000));
+            return product;
+        });
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        lenient().when(productPickupLocationMappingRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
+        lenient().when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
+        Client productClient = new Client();
+        productClient.setClientId(TEST_CLIENT_ID);
+        productClient.setImgbbApiKey("test-imgbb-api-key");
+        lenient().when(clientRepository.findById(anyLong())).thenReturn(Optional.of(productClient));
+
+        ClientResponseModel clientResponse = new ClientResponseModel();
+        clientResponse.setName("Test Client");
+        lenient().when(clientService.getClientById(anyLong())).thenReturn(clientResponse);
+
+        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+            (mock, context) -> {
+                when(mock.uploadFileToImgbb(anyString(), anyString()))
+                    .thenReturn(new ImgbbHelper.ImgbbUploadResponse("https://imgbb.com/test.png", "deleteHash"));
+                when(mock.deleteImage(anyString())).thenReturn(true);
+            })) {
+            // Act
+            BulkInsertResponseModel<Long> result = productService.bulkAddProducts(products);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(2, result.getTotalRequested());
+            assertEquals(2, result.getSuccessCount());
+            assertEquals(0, result.getFailureCount());
+        }
+    }
+
+    @Test
+    @DisplayName("Bulk Add Products - Partial Success")
+    void bulkAddProducts_PartialSuccess() {
+        // Arrange
+        List<ProductRequestModel> products = new ArrayList<>();
+        
+        // Valid product
+        ProductRequestModel validProduct = new ProductRequestModel();
+        validProduct.setTitle("Valid Product");
+        validProduct.setDescriptionHtml("Description");
+        validProduct.setBrand("Brand");
+        validProduct.setPrice(BigDecimal.valueOf(100));
+        validProduct.setCategoryId(TEST_CATEGORY_ID);
+        validProduct.setMainImage(TEST_BASE64_IMAGE);
+        validProduct.setTopImage(TEST_BASE64_IMAGE);
+        validProduct.setBottomImage(TEST_BASE64_IMAGE);
+        validProduct.setFrontImage(TEST_BASE64_IMAGE);
+        validProduct.setBackImage(TEST_BASE64_IMAGE);
+        validProduct.setRightImage(TEST_BASE64_IMAGE);
+        validProduct.setLeftImage(TEST_BASE64_IMAGE);
+        validProduct.setDetailsImage(TEST_BASE64_IMAGE);
+        validProduct.setDefectImage(TEST_BASE64_IMAGE);
+        validProduct.setColorLabel("ValidColor");
+        validProduct.setCondition("NEW");
+        validProduct.setCountryOfManufacture("USA");
+        validProduct.setClientId(TEST_CLIENT_ID);
+        Map<Long, Integer> quantities = new HashMap<>();
+        quantities.put(TEST_PICKUP_LOCATION_ID, 10);
+        validProduct.setPickupLocationQuantities(quantities);
+        products.add(validProduct);
+        
+        // Invalid product (missing title)
+        ProductRequestModel invalidProduct = new ProductRequestModel();
+        invalidProduct.setTitle(null);
+        invalidProduct.setCondition("USED");
+        invalidProduct.setCountryOfManufacture("USA");
+        invalidProduct.setClientId(TEST_CLIENT_ID);
+        invalidProduct.setColorLabel("InvalidColor");
+        products.add(invalidProduct);
+
+        when(productCategoryRepository.findById(TEST_CATEGORY_ID)).thenReturn(java.util.Optional.of(testCategory));
+        when(productRepository.save(any(Product.class))).thenAnswer(invocation -> {
+            Product product = invocation.getArgument(0);
+            product.setProductId((long) (Math.random() * 1000));
+            return product;
+        });
+        lenient().when(productPickupLocationMappingRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
+        lenient().when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
+        Client partialClient = new Client();
+        partialClient.setClientId(TEST_CLIENT_ID);
+        partialClient.setImgbbApiKey("test-imgbb-api-key");
+        lenient().when(clientRepository.findById(anyLong())).thenReturn(Optional.of(partialClient));
+
+        ClientResponseModel clientResponse = new ClientResponseModel();
+        clientResponse.setName("Test Client");
+        lenient().when(clientService.getClientById(anyLong())).thenReturn(clientResponse);
+
+        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+            (mock, context) -> {
+                when(mock.uploadFileToImgbb(anyString(), anyString()))
+                    .thenReturn(new ImgbbHelper.ImgbbUploadResponse("https://imgbb.com/test.png", "deleteHash"));
+                when(mock.deleteImage(anyString())).thenReturn(true);
+            })) {
+            // Act
+            BulkInsertResponseModel<Long> result = productService.bulkAddProducts(products);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(2, result.getTotalRequested());
+            assertEquals(1, result.getSuccessCount());
+            assertEquals(1, result.getFailureCount());
+        }
+    }
+
+    @Test
+    @DisplayName("Bulk Add Products - Database Error")
+    void bulkAddProducts_DatabaseError() {
+        // Arrange
+        List<ProductRequestModel> products = new ArrayList<>();
+        ProductRequestModel prodReq = new ProductRequestModel();
+        prodReq.setTitle("Test Product");
+        prodReq.setDescriptionHtml("Description");
+        prodReq.setBrand("Brand");
+        prodReq.setPrice(BigDecimal.valueOf(100));
+        prodReq.setCategoryId(TEST_CATEGORY_ID);
+        prodReq.setMainImage(TEST_BASE64_IMAGE);
+        prodReq.setTopImage(TEST_BASE64_IMAGE);
+        prodReq.setBottomImage(TEST_BASE64_IMAGE);
+        prodReq.setFrontImage(TEST_BASE64_IMAGE);
+        prodReq.setBackImage(TEST_BASE64_IMAGE);
+        prodReq.setRightImage(TEST_BASE64_IMAGE);
+        prodReq.setLeftImage(TEST_BASE64_IMAGE);
+        prodReq.setDetailsImage(TEST_BASE64_IMAGE);
+        prodReq.setDefectImage(TEST_BASE64_IMAGE);
+        Map<Long, Integer> quantities = new HashMap<>();
+        quantities.put(TEST_PICKUP_LOCATION_ID, 10);
+        prodReq.setPickupLocationQuantities(quantities);
+        products.add(prodReq);
+
+        lenient().when(productCategoryRepository.findById(TEST_CATEGORY_ID)).thenReturn(java.util.Optional.of(testCategory));
+        lenient().when(productRepository.save(any(Product.class))).thenThrow(new RuntimeException("Database error"));
+
+        // Act
+        BulkInsertResponseModel<Long> result = productService.bulkAddProducts(products);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalRequested());
+        assertEquals(0, result.getSuccessCount());
+        assertEquals(1, result.getFailureCount());
+    }
+
+    @Test
+    @DisplayName("Bulk Add Products - Empty List")
+    void bulkAddProducts_EmptyList() {
+        // Arrange
+        List<ProductRequestModel> products = new ArrayList<>();
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            productService.bulkAddProducts(products);
+        });
+        assertTrue(exception.getMessage().contains("Product list cannot be null or empty"));
+        verify(productRepository, never()).save(any(Product.class));
     }
 }

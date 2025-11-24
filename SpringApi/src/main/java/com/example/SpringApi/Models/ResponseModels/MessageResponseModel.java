@@ -37,9 +37,32 @@ public class MessageResponseModel {
     private String notes;
     private Long auditUserId;
     
-    // Related entities
-    private User createdByUser;
-    private User auditUser;
+    // Related entities (simplified to avoid circular references)
+    private SimpleUserDTO createdByUser;
+    private SimpleUserDTO auditUser;
+    
+    /**
+     * Simple DTO for user information to avoid circular references
+     */
+    @Getter
+    @Setter
+    public static class SimpleUserDTO {
+        private Long userId;
+        private String firstName;
+        private String lastName;
+        private String email;
+        private String loginName;
+        
+        public SimpleUserDTO(User user) {
+            if (user != null) {
+                this.userId = user.getUserId();
+                this.firstName = user.getFirstName();
+                this.lastName = user.getLastName();
+                this.email = user.getEmail();
+                this.loginName = user.getLoginName();
+            }
+        }
+    }
     
     // Additional computed fields
     private String titlePreview;
@@ -74,6 +97,11 @@ public class MessageResponseModel {
             this.createdUser = message.getCreatedUser();
             this.modifiedUser = message.getModifiedUser();
             this.notes = message.getNotes();
+            
+            // Set related entities (using simplified DTO to avoid circular references)
+            if (message.getCreatedByUser() != null) {
+                this.createdByUser = new SimpleUserDTO(message.getCreatedByUser());
+            }
 
             // Extract user IDs from MessageUserMap collection
             if (message.getMessageUserMaps() != null && !message.getMessageUserMaps().isEmpty()) {

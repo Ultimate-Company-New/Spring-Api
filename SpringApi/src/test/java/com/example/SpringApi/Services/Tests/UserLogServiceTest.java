@@ -2,6 +2,7 @@ package com.example.SpringApi.Services.Tests;
 
 import com.example.SpringApi.Models.DatabaseModels.UserLog;
 import com.example.SpringApi.Models.RequestModels.UserLogsRequestModel;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.UserLogsResponseModel;
 import com.example.SpringApi.Repositories.UserLogRepository;
@@ -55,6 +56,9 @@ class UserLogServiceTest {
     private UserLogRepository userLogRepository;
     
     @Mock
+    private com.example.SpringApi.FilterQueryBuilder.UserLogFilterQueryBuilder userLogFilterQueryBuilder;
+    
+    @Mock
     private HttpServletRequest request;
     
     @InjectMocks
@@ -87,9 +91,13 @@ class UserLogServiceTest {
         testUserLogsRequest.setCarrierId(TEST_CARRIER_ID);
         testUserLogsRequest.setStart(0);
         testUserLogsRequest.setEnd(10);
-        testUserLogsRequest.setColumnName("action");
-        testUserLogsRequest.setCondition("equals");
-        testUserLogsRequest.setFilterExpr("User Login");
+        // Set up filters using new FilterCondition structure
+        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+        filter.setColumn("action");
+        filter.setOperator("equals");
+        filter.setValue("User Login");
+        testUserLogsRequest.setFilters(List.of(filter));
+        testUserLogsRequest.setLogicOperator("AND");
         
         // Setup common mock behaviors with lenient mocking for JWT authentication
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
@@ -178,12 +186,12 @@ class UserLogServiceTest {
         List<UserLog> userLogs = Arrays.asList(testUserLog);
         Page<UserLog> page = new PageImpl<>(userLogs, PageRequest.of(0, 10), 1);
         
-        when(userLogRepository.findPaginatedUserLogs(
+        when(userLogFilterQueryBuilder.getColumnType("action")).thenReturn("string");
+        when(userLogFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
             eq(TEST_USER_ID),
             eq(TEST_CARRIER_ID),
-            eq("action"),
-            eq("equals"),
-            eq("User Login"),
+            eq("AND"),
+            anyList(),
             any(PageRequest.class)
         )).thenReturn(page);
         
@@ -199,12 +207,11 @@ class UserLogServiceTest {
         assertEquals(TEST_OLD_VALUE, result.getData().get(0).getDescription());
         assertEquals("admin", result.getData().get(0).getCreatedUser());
         
-        verify(userLogRepository, times(1)).findPaginatedUserLogs(
+        verify(userLogFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
             eq(TEST_USER_ID),
             eq(TEST_CARRIER_ID),
-            eq("action"),
-            eq("equals"),
-            eq("User Login"),
+            eq("AND"),
+            anyList(),
             any(PageRequest.class)
         );
     }
@@ -217,16 +224,21 @@ class UserLogServiceTest {
     @DisplayName("Fetch User Logs - Failure - Invalid column name")
     void fetchUserLogsInBatches_InvalidColumnName_ThrowsException() {
         // Arrange
-        testUserLogsRequest.setColumnName("invalidColumn");
+        // Set up filters with invalid column
+        PaginationBaseRequestModel.FilterCondition invalidFilter = new PaginationBaseRequestModel.FilterCondition();
+        invalidFilter.setColumn("invalidColumn");
+        invalidFilter.setOperator("equals");
+        invalidFilter.setValue("User Login");
+        testUserLogsRequest.setFilters(List.of(invalidFilter));
         
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.example.SpringApi.Exceptions.BadRequestException exception = assertThrows(
+            com.example.SpringApi.Exceptions.BadRequestException.class,
             () -> userLogService.fetchUserLogsInBatches(testUserLogsRequest)
         );
         
         assertTrue(exception.getMessage().contains("Invalid column name: invalidColumn"));
-        verify(userLogRepository, never()).findPaginatedUserLogs(anyLong(), anyLong(), anyString(), anyString(), anyString(), any(PageRequest.class));
+        verify(userLogFilterQueryBuilder, never()).findPaginatedEntitiesWithMultipleFilters(anyLong(), anyLong(), anyString(), anyList(), any(PageRequest.class));
     }
     
     /**
@@ -240,14 +252,23 @@ class UserLogServiceTest {
         List<UserLog> userLogs = Arrays.asList(testUserLog);
         Page<UserLog> page = new PageImpl<>(userLogs, PageRequest.of(0, 10), 1);
         
-        when(userLogRepository.findPaginatedUserLogs(anyLong(), anyLong(), anyString(), anyString(), anyString(), any(PageRequest.class)))
+        // Mock column types for all columns used in tests
+        when(userLogFilterQueryBuilder.getColumnType("action")).thenReturn("string");
+        when(userLogFilterQueryBuilder.getColumnType("description")).thenReturn("string");
+        when(userLogFilterQueryBuilder.getColumnType("logLevel")).thenReturn("string");
+        
+        when(userLogFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(anyLong(), anyLong(), anyString(), anyList(), any(PageRequest.class)))
             .thenReturn(page);
         
         String[] validColumns = {"action", "description", "logLevel"};
         
         for (String column : validColumns) {
             // Arrange
-            testUserLogsRequest.setColumnName(column);
+            PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+            filter.setColumn(column);
+            filter.setOperator("equals");
+            filter.setValue("User Login");
+            testUserLogsRequest.setFilters(List.of(filter));
             
             // Act
             PaginationBaseResponseModel<UserLogsResponseModel> result = userLogService.fetchUserLogsInBatches(testUserLogsRequest);
@@ -257,7 +278,7 @@ class UserLogServiceTest {
             assertEquals(1, result.getData().size());
         }
         
-        verify(userLogRepository, times(validColumns.length)).findPaginatedUserLogs(anyLong(), anyLong(), anyString(), anyString(), anyString(), any(PageRequest.class));
+        verify(userLogFilterQueryBuilder, times(validColumns.length)).findPaginatedEntitiesWithMultipleFilters(anyLong(), anyLong(), anyString(), anyList(), any(PageRequest.class));
     }
     
     /**
@@ -268,17 +289,17 @@ class UserLogServiceTest {
     @DisplayName("Fetch User Logs - Success - Without column filtering")
     void fetchUserLogsInBatches_Success_WithoutColumnFiltering() {
         // Arrange
-        testUserLogsRequest.setColumnName(null);
+        // Clear filters for no column filtering
+        testUserLogsRequest.setFilters(null);
         
         List<UserLog> userLogs = Arrays.asList(testUserLog);
         Page<UserLog> page = new PageImpl<>(userLogs, PageRequest.of(0, 10), 1);
         
-        when(userLogRepository.findPaginatedUserLogs(
+        when(userLogFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
             eq(TEST_USER_ID),
             eq(TEST_CARRIER_ID),
+            eq("AND"),
             isNull(),
-            eq("equals"),
-            eq("User Login"),
             any(PageRequest.class)
         )).thenReturn(page);
         
@@ -290,12 +311,11 @@ class UserLogServiceTest {
         assertEquals(1, result.getData().size());
         assertEquals(1L, result.getTotalDataCount());
         
-        verify(userLogRepository, times(1)).findPaginatedUserLogs(
+        verify(userLogFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
             eq(TEST_USER_ID),
             eq(TEST_CARRIER_ID),
+            eq("AND"),
             isNull(),
-            eq("equals"),
-            eq("User Login"),
             any(PageRequest.class)
         );
     }
@@ -310,12 +330,12 @@ class UserLogServiceTest {
         // Arrange
         Page<UserLog> emptyPage = new PageImpl<>(new ArrayList<>(), PageRequest.of(0, 10), 0);
         
-        when(userLogRepository.findPaginatedUserLogs(
+        when(userLogFilterQueryBuilder.getColumnType("action")).thenReturn("string");
+        when(userLogFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
             eq(TEST_USER_ID),
             eq(TEST_CARRIER_ID),
-            eq("action"),
-            eq("equals"),
-            eq("User Login"),
+            eq("AND"),
+            anyList(),
             any(PageRequest.class)
         )).thenReturn(emptyPage);
         
@@ -327,12 +347,11 @@ class UserLogServiceTest {
         assertTrue(result.getData().isEmpty());
         assertEquals(0L, result.getTotalDataCount());
         
-        verify(userLogRepository, times(1)).findPaginatedUserLogs(
+        verify(userLogFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
             eq(TEST_USER_ID),
             eq(TEST_CARRIER_ID),
-            eq("action"),
-            eq("equals"),
-            eq("User Login"),
+            eq("AND"),
+            anyList(),
             any(PageRequest.class)
         );
     }
@@ -351,12 +370,12 @@ class UserLogServiceTest {
         List<UserLog> userLogs = Arrays.asList(testUserLog, secondLog);
         Page<UserLog> page = new PageImpl<>(userLogs, PageRequest.of(0, 10), 2);
         
-        when(userLogRepository.findPaginatedUserLogs(
+        when(userLogFilterQueryBuilder.getColumnType("action")).thenReturn("string");
+        when(userLogFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
             eq(TEST_USER_ID),
             eq(TEST_CARRIER_ID),
-            eq("action"),
-            eq("equals"),
-            eq("User Login"),
+            eq("AND"),
+            anyList(),
             any(PageRequest.class)
         )).thenReturn(page);
         
@@ -372,12 +391,11 @@ class UserLogServiceTest {
         assertEquals(TEST_CHANGE, result.getData().get(0).getAction());
         assertEquals("User Logout", result.getData().get(1).getAction());
         
-        verify(userLogRepository, times(1)).findPaginatedUserLogs(
+        verify(userLogFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
             eq(TEST_USER_ID),
             eq(TEST_CARRIER_ID),
-            eq("action"),
-            eq("equals"),
-            eq("User Login"),
+            eq("AND"),
+            anyList(),
             any(PageRequest.class)
         );
     }

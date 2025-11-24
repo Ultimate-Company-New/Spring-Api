@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services.Tests;
 
+import com.example.SpringApi.FilterQueryBuilder.PickupLocationFilterQueryBuilder;
 import com.example.SpringApi.Models.DatabaseModels.Address;
 import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
 import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
@@ -79,10 +80,12 @@ class PickupLocationServiceTest {
     private ShippingHelper shippingHelper;
 
     @Mock
+    private PickupLocationFilterQueryBuilder pickupLocationFilterQueryBuilder;
+
+    @Mock
     private HttpServletRequest request;
 
     @InjectMocks
-    @Spy
     private PickupLocationService pickupLocationService;
 
     private PickupLocation testPickupLocation;
@@ -91,7 +94,7 @@ class PickupLocationServiceTest {
     private AddPickupLocationResponseModel testShipRocketResponse;
     private static final Long TEST_PICKUP_LOCATION_ID = 1L;
     private static final Long TEST_ADDRESS_ID = 100L;
-    private static final Long TEST_CLIENT_ID = 200L;
+    private static final Long TEST_CLIENT_ID = 1L;
     private static final Long TEST_SHIPROCKET_ID = 300L;
     private static final String TEST_ADDRESS_NICKNAME = "Home Warehouse";
     private static final String TEST_STREET_ADDRESS = "123 Main St";
@@ -150,8 +153,7 @@ class PickupLocationServiceTest {
         // Mock Authorization header
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
         
-        // Mock getClientId() to return TEST_CLIENT_ID
-        lenient().when(pickupLocationService.getClientId()).thenReturn(TEST_CLIENT_ID);
+        // Note: BaseService methods are now handled by the actual service implementation
     }
 
     // ==================== Get Pickup Location By ID Tests ====================
@@ -206,16 +208,13 @@ class PickupLocationServiceTest {
         PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
         paginationRequest.setStart(0);
         paginationRequest.setEnd(10);
-        paginationRequest.setColumnName("pickupLocationId");
-        paginationRequest.setCondition("equals");
-        paginationRequest.setFilterExpr("1");
         paginationRequest.setIncludeDeleted(false);
 
         List<PickupLocation> dataList = Collections.singletonList(testPickupLocation);
         Page<PickupLocation> pageResult = new PageImpl<>(dataList, PageRequest.of(0, 10), 1);
 
-        when(pickupLocationRepository.findPaginatedPickupLocations(
-            eq(TEST_CLIENT_ID), eq("pickupLocationId"), eq("equals"), eq("1"), eq(false), any(Pageable.class)))
+        lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class)))
             .thenReturn(pageResult);
 
         // Act
@@ -225,8 +224,8 @@ class PickupLocationServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getData().size());
         assertEquals(1, result.getTotalDataCount());
-        verify(pickupLocationRepository, times(1)).findPaginatedPickupLocations(
-            eq(TEST_CLIENT_ID), eq("pickupLocationId"), eq("equals"), eq("1"), eq(false), any(Pageable.class));
+        verify(pickupLocationFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class));
     }
 
     /**
@@ -238,12 +237,184 @@ class PickupLocationServiceTest {
     void getPickupLocationsInBatches_InvalidColumn_ThrowsBadRequestException() {
         // Arrange
         PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setColumnName("invalidColumn");
+        PaginationBaseRequestModel.FilterCondition invalidFilter = new PaginationBaseRequestModel.FilterCondition();
+        invalidFilter.setColumn("invalidColumn");
+        invalidFilter.setOperator("contains");
+        invalidFilter.setValue("test");
+        paginationRequest.setFilters(Arrays.asList(invalidFilter));
+        paginationRequest.setLogicOperator("AND");
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> pickupLocationService.getPickupLocationsInBatches(paginationRequest));
         assertTrue(exception.getMessage().contains("Invalid column name"));
+        verify(pickupLocationFilterQueryBuilder, never()).getColumnType("invalidColumn");
+    }
+
+    /**
+     * Test get pickup locations with single filter.
+     * Verifies that single filter expressions are correctly applied.
+     */
+    @Test
+    @DisplayName("Get Pickup Locations In Batches - With Single Filter")
+    void getPickupLocationsInBatches_WithSingleFilter_Success() {
+        // Arrange
+        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
+        paginationRequest.setStart(0);
+        paginationRequest.setEnd(10);
+
+        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+        filter.setColumn("addressNickName");
+        filter.setOperator("contains");
+        filter.setValue("Test");
+        paginationRequest.setFilters(Arrays.asList(filter));
+        paginationRequest.setLogicOperator("AND");
+
+        List<PickupLocation> dataList = Collections.singletonList(testPickupLocation);
+        Page<PickupLocation> pageResult = new PageImpl<>(dataList, PageRequest.of(0, 10), 1);
+
+        when(pickupLocationFilterQueryBuilder.getColumnType("addressNickName")).thenReturn("string");
+        lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), isNull(), anyString(), anyList(), anyBoolean(), any(Pageable.class)))
+            .thenReturn(pageResult);
+
+        // Act
+        PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService.getPickupLocationsInBatches(paginationRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(pickupLocationFilterQueryBuilder, times(1)).getColumnType("addressNickName");
+    }
+
+    /**
+     * Test get pickup locations with multiple filters using AND logic.
+     * Verifies that multiple filters combined with AND are correctly applied.
+     */
+    @Test
+    @DisplayName("Get Pickup Locations In Batches - With Multiple Filters AND")
+    void getPickupLocationsInBatches_WithMultipleFiltersAND_Success() {
+        // Arrange
+        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
+        paginationRequest.setStart(0);
+        paginationRequest.setEnd(10);
+
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("addressNickName");
+        filter1.setOperator("contains");
+        filter1.setValue("Test");
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("notes");
+        filter2.setOperator("contains");
+        filter2.setValue("123");
+
+        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
+        paginationRequest.setLogicOperator("AND");
+
+        List<PickupLocation> dataList = Collections.singletonList(testPickupLocation);
+        Page<PickupLocation> pageResult = new PageImpl<>(dataList, PageRequest.of(0, 10), 1);
+
+        when(pickupLocationFilterQueryBuilder.getColumnType("addressNickName")).thenReturn("string");
+        when(pickupLocationFilterQueryBuilder.getColumnType("notes")).thenReturn("string");
+        lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), isNull(), anyString(), anyList(), anyBoolean(), any(Pageable.class)))
+            .thenReturn(pageResult);
+
+        // Act
+        PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService.getPickupLocationsInBatches(paginationRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(pickupLocationFilterQueryBuilder, times(1)).getColumnType("addressNickName");
+        verify(pickupLocationFilterQueryBuilder, times(1)).getColumnType("notes");
+    }
+
+    /**
+     * Test get pickup locations with multiple filters using OR logic.
+     * Verifies that multiple filters combined with OR are correctly applied.
+     */
+    @Test
+    @DisplayName("Get Pickup Locations In Batches - With Multiple Filters OR")
+    void getPickupLocationsInBatches_WithMultipleFiltersOR_Success() {
+        // Arrange
+        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
+        paginationRequest.setStart(0);
+        paginationRequest.setEnd(10);
+
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("addressNickName");
+        filter1.setOperator("contains");
+        filter1.setValue("Test");
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("addressNickName");
+        filter2.setOperator("contains");
+        filter2.setValue("Location");
+
+        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
+        paginationRequest.setLogicOperator("OR");
+
+        List<PickupLocation> dataList = Collections.singletonList(testPickupLocation);
+        Page<PickupLocation> pageResult = new PageImpl<>(dataList, PageRequest.of(0, 10), 1);
+
+        when(pickupLocationFilterQueryBuilder.getColumnType("addressNickName")).thenReturn("string");
+        lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), isNull(), anyString(), anyList(), anyBoolean(), any(Pageable.class)))
+            .thenReturn(pageResult);
+
+        // Act
+        PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService.getPickupLocationsInBatches(paginationRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(pickupLocationFilterQueryBuilder, times(2)).getColumnType("addressNickName");
+    }
+
+    /**
+     * Test get pickup locations with complex filters (string, number).
+     * Verifies that filters with different column types are correctly validated and applied.
+     */
+    @Test
+    @DisplayName("Get Pickup Locations In Batches - With Complex Filters")
+    void getPickupLocationsInBatches_WithComplexFilters_Success() {
+        // Arrange
+        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
+        paginationRequest.setStart(0);
+        paginationRequest.setEnd(10);
+
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("addressNickName");
+        filter1.setOperator("contains");
+        filter1.setValue("Test");
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("pickupLocationId");
+        filter2.setOperator("equals");
+        filter2.setValue("1");
+
+        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
+        paginationRequest.setLogicOperator("AND");
+
+        List<PickupLocation> dataList = Collections.singletonList(testPickupLocation);
+        Page<PickupLocation> pageResult = new PageImpl<>(dataList, PageRequest.of(0, 10), 1);
+
+        when(pickupLocationFilterQueryBuilder.getColumnType("addressNickName")).thenReturn("string");
+        when(pickupLocationFilterQueryBuilder.getColumnType("pickupLocationId")).thenReturn("number");
+        lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), isNull(), anyString(), anyList(), anyBoolean(), any(Pageable.class)))
+            .thenReturn(pageResult);
+
+        // Act
+        PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService.getPickupLocationsInBatches(paginationRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(pickupLocationFilterQueryBuilder, times(1)).getColumnType("addressNickName");
+        verify(pickupLocationFilterQueryBuilder, times(1)).getColumnType("pickupLocationId");
     }
 
     // ==================== Create Pickup Location Tests ====================

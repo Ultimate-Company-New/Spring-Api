@@ -8,27 +8,35 @@ import com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping;
 import com.example.SpringApi.Models.DatabaseModels.UserGroupUserMap;
 import com.example.SpringApi.Models.DatabaseModels.UserClientMapping;
 import com.example.SpringApi.Models.DatabaseModels.GoogleCred;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
+import com.example.SpringApi.Models.ResponseModels.BulkUserInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.SpringApi.Models.ResponseModels.PermissionResponseModel;
 import com.example.SpringApi.Models.ResponseModels.UserResponseModel;
+import com.example.SpringApi.Models.RequestModels.MessageRequestModel;
 import com.example.SpringApi.Repositories.AddressRepository;
 import com.example.SpringApi.Repositories.ClientRepository;
 import com.example.SpringApi.Repositories.GoogleCredRepository;
+import com.example.SpringApi.Repositories.PermissionRepository;
 import com.example.SpringApi.Repositories.UserClientMappingRepository;
 import com.example.SpringApi.Repositories.UserClientPermissionMappingRepository;
 import com.example.SpringApi.Repositories.UserGroupUserMapRepository;
 import com.example.SpringApi.Repositories.UserRepository;
+import com.example.SpringApi.FilterQueryBuilder.UserFilterQueryBuilder;
 import com.example.SpringApi.Services.Interface.IUserSubTranslator;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.Helpers.BulkInsertHelper;
 import com.example.SpringApi.Helpers.EmailTemplates;
 import com.example.SpringApi.Helpers.FirebaseHelper;
 import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Helpers.PasswordHelper;
 import com.example.SpringApi.SuccessMessages;
 import com.example.SpringApi.Constants.ImageLocationConstants;
+import com.example.SpringApi.Logging.ContextualLogger;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +44,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -66,42 +73,53 @@ import java.io.File;
 public class UserService extends BaseService implements IUserSubTranslator {
     
     private final UserRepository userRepository;
+    private final UserFilterQueryBuilder userFilterQueryBuilder;
     private final AddressRepository addressRepository;
     private final UserGroupUserMapRepository userGroupUserMapRepository;
     private final UserClientMappingRepository userClientMappingRepository;
     private final UserClientPermissionMappingRepository userClientPermissionMappingRepository;
+    private final PermissionRepository permissionRepository;
     private final GoogleCredRepository googleCredRepository;
     private final ClientRepository clientRepository;
     private final Environment environment;
     private final UserLogService userLogService;
     private final ClientService clientService;
+    private final MessageService messageService;
+    private final ContextualLogger logger;
     
     @Value("${imageLocation:firebase}")
     private String imageLocation;
     
     @Autowired
-    public UserService(UserRepository userRepository, 
+    public UserService(UserRepository userRepository,
+                      UserFilterQueryBuilder userFilterQueryBuilder,
                       AddressRepository addressRepository,
                       UserGroupUserMapRepository userGroupUserMapRepository,
                       UserClientMappingRepository userClientMappingRepository,
                       UserClientPermissionMappingRepository userClientPermissionMappingRepository,
+                      PermissionRepository permissionRepository,
                       GoogleCredRepository googleCredRepository,
                       ClientRepository clientRepository,
                       Environment environment,
                       UserLogService userLogService,
                       ClientService clientService,
+                      MessageService messageService,
                       HttpServletRequest request) {
         super();
         this.userRepository = userRepository;
+        this.userFilterQueryBuilder = userFilterQueryBuilder;
         this.addressRepository = addressRepository;
         this.userGroupUserMapRepository = userGroupUserMapRepository;
         this.userClientMappingRepository = userClientMappingRepository;
         this.userClientPermissionMappingRepository = userClientPermissionMappingRepository;
+        this.permissionRepository = permissionRepository;
         this.googleCredRepository = googleCredRepository;
         this.clientRepository = clientRepository;
         this.environment = environment;
         this.userLogService = userLogService;
         this.clientService = clientService;
+        this.messageService = messageService;
+        this.logger = ContextualLogger.getLogger(UserService.class);
     }
 
     /**
@@ -187,13 +205,24 @@ public class UserService extends BaseService implements IUserSubTranslator {
      * such as createdUser, modifiedUser, and timestamps.
      * 
      * @param userRequestModel The UserRequestModel containing the user data to create
-     * @return true if the user was successfully created, false otherwise
      * @throws BadRequestException if the user data is invalid or incomplete
      * @throws IllegalArgumentException if the user parameter is null
      */
     @Override
     @Transactional
     public void createUser(UserRequestModel userRequestModel) {
+        createUser(userRequestModel, true);
+    }
+
+    /**
+     * Creates a new user in the system with optional email sending.
+     * 
+     * @param userRequestModel The UserRequestModel containing the user data to create
+     * @param sendEmail Whether to send confirmation email to the user
+     * @throws BadRequestException if the user data is invalid or incomplete
+     */
+    @Transactional
+    public void createUser(UserRequestModel userRequestModel, boolean sendEmail) {
         // 1. Check if user email already exists
         if (userRepository.findByLoginName(userRequestModel.getEmail()) != null) {
             throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidEmail + " - Email already exists");
@@ -212,162 +241,23 @@ public class UserService extends BaseService implements IUserSubTranslator {
         User savedUser = userRepository.save(newUser);
         
         // 4. Create address if provided
-        if (userRequestModel.getAddress() != null) {
-            // Set userId and clientId on the address request model if not already set
-            if (userRequestModel.getAddress().getUserId() == null) {
-                userRequestModel.getAddress().setUserId(savedUser.getUserId());
-            }
-            if (userRequestModel.getAddress().getClientId() == null) {
-                userRequestModel.getAddress().setClientId(getClientId());
-            }
-            
-            Address address = new Address(userRequestModel.getAddress(), getUser());
-            Address savedAddress = addressRepository.save(address);
-            savedUser.setAddressId(savedAddress.getAddressId());
-            userRepository.save(savedUser);
-        }
+        savedUser = createUserAddress(userRequestModel, savedUser);
         
-        // 5. Create permission mappings if provided
-        if (userRequestModel.getPermissionIds() == null || userRequestModel.getPermissionIds().isEmpty()) {
-            throw new BadRequestException("At least one permission mapping is required for the user.");
-        } else {
-            List<UserClientPermissionMapping> permissionMappings = new ArrayList<>();
-            for (Long permissionId : userRequestModel.getPermissionIds()) {
-                permissionMappings.add(new UserClientPermissionMapping(
-                    savedUser.getUserId(),
-                    getClientId(),
-                    permissionId,
-                    getUser(),
-                    getUser()
-                ));
-            }
-            userClientPermissionMappingRepository.saveAll(permissionMappings);
-        }
+        // 5. Create permission mappings
+        createUserPermissions(userRequestModel, savedUser);
         
-        // 6. Create user group mappings if provided
-        if (userRequestModel.getSelectedGroupIds() != null && !userRequestModel.getSelectedGroupIds().isEmpty()) {
-            List<UserGroupUserMap> groupMappings = new ArrayList<>();
-            for (Long groupId : userRequestModel.getSelectedGroupIds()) {
-                groupMappings.add(new UserGroupUserMap(
-                    savedUser.getUserId(),
-                    groupId,
-                    getUser()
-                ));
-            }
-            userGroupUserMapRepository.saveAll(groupMappings);
-        }
+        // 6. Create user group mappings
+        createUserGroups(userRequestModel, savedUser);
         
         // 7. Create user-client mapping
-        UserClientMapping userClientMapping = new UserClientMapping(
-            savedUser.getUserId(),
-            getClientId(),
-            userRequestModel.getApiKey(), getUser(), getUser()
-        );
-        userClientMappingRepository.save(userClientMapping);
+        createUserClientMapping(userRequestModel, savedUser);
         
         // 8. Upload profile picture if present
-        if (userRequestModel.getProfilePictureBase64() != null &&
-                !userRequestModel.getProfilePictureBase64().isEmpty() &&
-                !userRequestModel.getProfilePictureBase64().isBlank()) {
-            
-            // Get client details
-            Long clientId = getClientId();
-            ClientResponseModel clientDetails = clientService.getClientById(clientId);
-            String environmentName = environment.getActiveProfiles().length > 0
-                ? environment.getActiveProfiles()[0]
-                : "default";
-            
-            boolean isSuccess;
-            
-            // Use ImgBB or Firebase based on configuration
-            if (ImageLocationConstants.IMGBB.equalsIgnoreCase(imageLocation)) {
-                // Validate ImgBB API key is configured
-                Client client = clientRepository.findById(clientId)
-                    .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
-                    
-                if (client.getImgbbApiKey() == null || client.getImgbbApiKey().trim().isEmpty()) {
-                    throw new BadRequestException("ImgBB API key is not configured for this client");
-                }
-                
-                // Generate custom filename for ImgBB
-                String customFileName = ImgbbHelper.generateCustomFileNameForUserProfile(
-                    environmentName, 
-                    clientDetails.getName(), 
-                    savedUser.getUserId()
-                );
-                
-                ImgbbHelper imgbbHelper = new ImgbbHelper(client.getImgbbApiKey());
-                ImgbbHelper.ImgbbUploadResponse uploadResponse = imgbbHelper.uploadFileToImgbb(
-                    userRequestModel.getProfilePictureBase64(),
-                    customFileName
-                );
-                
-                if (uploadResponse != null && uploadResponse.getUrl() != null) {
-                    // Save both the profile picture URL and delete hash to the user
-                    savedUser.setProfilePicture(uploadResponse.getUrl());
-                    savedUser.setProfilePictureDeleteHash(uploadResponse.getDeleteHash());
-                    userRepository.save(savedUser);
-                    isSuccess = true;
-                } else {
-                    isSuccess = false;
-                }
-                
-            }
-            else if (ImageLocationConstants.FIREBASE.equalsIgnoreCase(imageLocation)) {
-                Optional<GoogleCred> googleCred = googleCredRepository.findById(clientId);
-
-                if (googleCred.isPresent()) {
-                    String filePath = clientDetails.getName() + " - " + clientId
-                            + File.separator
-                            + environmentName
-                            + File.separator
-                            + "UserProfiles"
-                            + File.separator
-                            + savedUser.getUserId() + "-" + savedUser.getLastName() + ".png";
-
-                    // Create FirebaseHelper with GoogleCred object
-                    GoogleCred googleCredData = googleCred.get();
-                    FirebaseHelper firebaseHelper = new FirebaseHelper(googleCredData);
-                    isSuccess = firebaseHelper.uploadFileToFirebase(
-                        userRequestModel.getProfilePictureBase64(), 
-                        filePath
-                    );
-                } else {
-                    throw new BadRequestException(ErrorMessages.UserErrorMessages.ER011);
-                }
-            } else {
-                throw new BadRequestException("Invalid imageLocation configuration: " + imageLocation);
-            }
-            
-            if (!isSuccess) {
-                throw new BadRequestException(ErrorMessages.UserErrorMessages.ER010);
-            }
-        }
+        uploadUserProfilePicture(userRequestModel, savedUser);
         
-        // 9. Send account confirmation email
-        Long clientId = getClientId();
-        ClientResponseModel clientDetails = clientService.getClientById(clientId);
-        Client client = clientRepository.findById(clientId).get();
-
-        EmailTemplates emailTemplates = new EmailTemplates(
-                clientDetails.getSendgridSenderName(),
-                clientDetails.getSendGridEmailAddress(),
-                clientDetails.getSendGridApiKey(),
-                environment,
-                client);
-        
-        try {
-            boolean sendAccountConfirmationEmailResponse = emailTemplates.sendNewUserAccountConfirmation(
-                    savedUser.getUserId(),
-                    savedUser.getToken(),
-                    savedUser.getLoginName(),
-                    password);
-            
-            if (!sendAccountConfirmationEmailResponse) {
-                throw new BadRequestException("Failed to send confirmation email");
-            }
-        } catch (Exception e) {
-            throw new BadRequestException("Failed to send confirmation email: " + e.getMessage());
+        // 9. Send account confirmation email (if requested)
+        if (sendEmail) {
+            sendUserConfirmationEmail(savedUser, password);
         }
         
         // 10. Log user creation
@@ -595,22 +485,55 @@ public class UserService extends BaseService implements IUserSubTranslator {
             throw new BadRequestException("Invalid pagination: end must be greater than start");
         }
         
-        // validate the column names
-        if(StringUtils.hasText(userRequestModel.getColumnName())){
-            Set<String> validColumns = new HashSet<>(Arrays.asList(
-                "userId",
-                "firstName", "lastName", "loginName",
-                "role", "dob", "phone", "address",
-                "datePasswordChanges", "loginAttempts", "isDeleted",
-                "locked", "emailConfirmed", "token", "isGuest",
-                "apiKey", "email", "addressId", "profilePicture",
-                "lastLoginAt", "createdAt", "createdUser",
-                "updatedAt", "modifiedUser", "notes"));
-
-            if(!validColumns.contains(userRequestModel.getColumnName())){
-                throw new BadRequestException(
-                    ErrorMessages.InvalidColumn + String.join(",", validColumns)
-                );
+        // Define valid columns
+        Set<String> validColumns = new HashSet<>(Arrays.asList(
+            "userId",
+            "firstName", "lastName", "loginName",
+            "role", "dob", "phone", "address",
+            "datePasswordChanges", "loginAttempts", "isDeleted",
+            "locked", "emailConfirmed", "token", "isGuest",
+            "apiKey", "email", "addressId", "profilePicture",
+            "lastLoginAt", "createdAt", "createdUser",
+            "updatedAt", "modifiedUser", "notes"));
+        
+        // Validate multi-filter mode
+        if (userRequestModel.hasMultipleFilters()) {
+            // Validate logic operator
+            if (!userRequestModel.isValidLogicOperator()) {
+                throw new BadRequestException("Invalid logicOperator. Must be 'AND' or 'OR'");
+            }
+            
+            // Validate each filter condition
+            for (PaginationBaseRequestModel.FilterCondition filter : userRequestModel.getFilters()) {
+                // Validate column name
+                if (!validColumns.contains(filter.getColumn())) {
+                    throw new BadRequestException(
+                        "Invalid column in filter: " + filter.getColumn() + 
+                        ". Valid columns: " + String.join(",", validColumns)
+                    );
+                }
+                
+                // Validate operator
+                if (!filter.isValidOperator()) {
+                    throw new BadRequestException(
+                        "Invalid operator in filter: " + filter.getOperator()
+                    );
+                }
+                
+                // Validate operator matches column type
+                try {
+                    String columnType = userFilterQueryBuilder.getColumnType(filter.getColumn());
+                    filter.validateOperatorForType(columnType, filter.getColumn());
+                } catch (IllegalArgumentException e) {
+                    throw new BadRequestException(e.getMessage());
+                }
+                
+                // Validate value presence
+                try {
+                    filter.validateValuePresence();
+                } catch (IllegalArgumentException e) {
+                    throw new BadRequestException(e.getMessage());
+                }
             }
         }
         
@@ -618,19 +541,20 @@ public class UserService extends BaseService implements IUserSubTranslator {
         // Spring's PageRequest.of(page, size) uses: OFFSET = page * size, LIMIT = size
         // For arbitrary offsets (e.g., start=5, end=15), we need OFFSET=5, LIMIT=10
         // Solution: Override getOffset() to return the exact start position
-        org.springframework.data.domain.Pageable pageable = new org.springframework.data.domain.PageRequest(0, limit, Sort.by("userId").descending()) {
+        // Default sort: userId DESC (newest users first)
+        org.springframework.data.domain.Pageable pageable = new org.springframework.data.domain.PageRequest(0, limit, Sort.by(Sort.Direction.DESC, "userId")) {
             @Override
             public long getOffset() {
                 return start;
             }
         };
 
-        Page<User> page = userRepository.findPaginatedUsers(
+        // Always use UserFilterQueryBuilder for dynamic filtering
+        Page<User> page = userFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
             getClientId(),
             userRequestModel.getSelectedUserIds(),
-            userRequestModel.getColumnName(),
-            userRequestModel.getCondition(),
-            userRequestModel.getFilterExpr(),
+            userRequestModel.getLogicOperator() != null ? userRequestModel.getLogicOperator().toUpperCase() : "AND",
+            userRequestModel.getFilters(),
             userRequestModel.isIncludeDeleted(),
             pageable
         );
@@ -677,5 +601,291 @@ public class UserService extends BaseService implements IUserSubTranslator {
         userRepository.save(user);
 
         // Note: Skipping user log for this public endpoint as there's no authenticated user context
+    }
+
+    /**
+     * Retrieves all permissions available in the system.
+     * 
+     * This method fetches all permissions from the database including their
+     * permission ID, name, code, description, and category. This is useful
+     * for populating permission selection dropdowns in user management interfaces.
+     * Only non-deleted permissions are returned, sorted by permissionId ascending.
+     * 
+     * @return List of PermissionResponseModel containing all permissions
+     */
+    @Override
+    public List<PermissionResponseModel> getAllPermissions() {
+        return permissionRepository.findAll().stream()
+                .filter(permission -> !permission.getIsDeleted())
+                .map(PermissionResponseModel::new)
+                .sorted((p1, p2) -> Long.compare(p1.getPermissionId(), p2.getPermissionId()))
+                .toList();
+    }
+
+    /**
+     * Creates multiple users in the system with partial success support.
+     * 
+     * This method calls createUser() for each user in the list, but WITHOUT sending emails.
+     * - Supports partial success: if some users fail, others still succeed
+     * - Does NOT send email confirmations (unlike createUser)
+     * - Returns detailed results for each user (success/failure with error messages)
+     * 
+     * @param users List of UserRequestModel containing the user data to create
+     * @return BulkUserInsertResponseModel containing success/failure counts and detailed results
+     */
+    @Override
+    public BulkUserInsertResponseModel bulkCreateUsers(List<UserRequestModel> users) {
+        // Validate input
+        if (users == null || users.isEmpty()) {
+            throw new BadRequestException("User list cannot be null or empty");
+        }
+
+        BulkUserInsertResponseModel response = new BulkUserInsertResponseModel();
+        response.setTotalRequested(users.size());
+        
+        int successCount = 0;
+        int failureCount = 0;
+        
+        // Process each user individually
+        for (UserRequestModel userRequest : users) {
+            try {
+                // Call createUser with sendEmail = false
+                createUser(userRequest, false);
+                
+                // If we get here, user was created successfully
+                // Fetch the created user to get the userId
+                User createdUser = userRepository.findByLoginName(userRequest.getEmail());
+                response.addSuccess(userRequest.getEmail(), createdUser.getUserId());
+                successCount++;
+                
+            } catch (BadRequestException bre) {
+                // Validation or business logic error
+                response.addFailure(
+                    userRequest.getEmail() != null ? userRequest.getEmail() : "unknown", 
+                    bre.getMessage()
+                );
+                failureCount++;
+            } catch (Exception e) {
+                // Unexpected error
+                response.addFailure(
+                    userRequest.getEmail() != null ? userRequest.getEmail() : "unknown", 
+                    "Error: " + e.getMessage()
+                );
+                failureCount++;
+            }
+        }
+        
+        // Log bulk user creation
+        userLogService.logData(getUserId(), 
+            SuccessMessages.UserSuccessMessages.CreateUser + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+            ApiRoutes.UsersSubRoute.BULK_CREATE_USER);
+        
+        response.setSuccessCount(successCount);
+        response.setFailureCount(failureCount);
+        
+        // Create a message with the bulk insert results using the helper
+        BulkInsertHelper.createBulkUserInsertResultMessage(response, messageService, getUserId());
+        
+        return response;
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    /**
+     * Creates address for a user if provided in the request.
+     * 
+     * @param userRequestModel The user request containing address data
+     * @param savedUser The saved user entity
+     * @return Updated user entity with addressId set
+     */
+    private User createUserAddress(UserRequestModel userRequestModel, User savedUser) {
+        if (userRequestModel.getAddress() != null) {
+            if (userRequestModel.getAddress().getUserId() == null) {
+                userRequestModel.getAddress().setUserId(savedUser.getUserId());
+            }
+            if (userRequestModel.getAddress().getClientId() == null) {
+                userRequestModel.getAddress().setClientId(getClientId());
+            }
+            
+            Address address = new Address(userRequestModel.getAddress(), getUser());
+            Address savedAddress = addressRepository.save(address);
+            savedUser.setAddressId(savedAddress.getAddressId());
+            userRepository.save(savedUser);
+        }
+        return savedUser;
+    }
+
+    /**
+     * Creates permission mappings for a user.
+     * 
+     * @param userRequestModel The user request containing permission IDs
+     * @param savedUser The saved user entity
+     */
+    private void createUserPermissions(UserRequestModel userRequestModel, User savedUser) {
+        if (userRequestModel.getPermissionIds() == null || userRequestModel.getPermissionIds().isEmpty()) {
+            throw new BadRequestException("At least one permission mapping is required for the user.");
+        }
+        
+        List<UserClientPermissionMapping> permissionMappings = new ArrayList<>();
+        for (Long permissionId : userRequestModel.getPermissionIds()) {
+            permissionMappings.add(new UserClientPermissionMapping(
+                savedUser.getUserId(),
+                getClientId(),
+                permissionId,
+                getUser(),
+                getUser()
+            ));
+        }
+        userClientPermissionMappingRepository.saveAll(permissionMappings);
+    }
+
+    /**
+     * Creates user group mappings for a user.
+     * 
+     * @param userRequestModel The user request containing group IDs
+     * @param savedUser The saved user entity
+     */
+    private void createUserGroups(UserRequestModel userRequestModel, User savedUser) {
+        if (userRequestModel.getSelectedGroupIds() != null && !userRequestModel.getSelectedGroupIds().isEmpty()) {
+            List<UserGroupUserMap> groupMappings = new ArrayList<>();
+            for (Long groupId : userRequestModel.getSelectedGroupIds()) {
+                groupMappings.add(new UserGroupUserMap(
+                    savedUser.getUserId(),
+                    groupId,
+                    getUser()
+                ));
+            }
+            userGroupUserMapRepository.saveAll(groupMappings);
+        }
+    }
+
+    /**
+     * Creates user-client mapping.
+     * 
+     * @param userRequestModel The user request containing API key
+     * @param savedUser The saved user entity
+     */
+    private void createUserClientMapping(UserRequestModel userRequestModel, User savedUser) {
+        UserClientMapping userClientMapping = new UserClientMapping(
+            savedUser.getUserId(),
+            getClientId(),
+            userRequestModel.getApiKey(),
+            getUser(),
+            getUser()
+        );
+        userClientMappingRepository.save(userClientMapping);
+    }
+
+    /**
+     * Uploads profile picture for a user if provided.
+     * 
+     * @param userRequestModel The user request containing profile picture base64
+     * @param savedUser The saved user entity
+     */
+    private void uploadUserProfilePicture(UserRequestModel userRequestModel, User savedUser) {
+        if (userRequestModel.getProfilePictureBase64() == null ||
+                userRequestModel.getProfilePictureBase64().isEmpty() ||
+                userRequestModel.getProfilePictureBase64().isBlank()) {
+            return;
+        }
+        
+        Long clientId = getClientId();
+        ClientResponseModel clientDetails = clientService.getClientById(clientId);
+        String environmentName = environment.getActiveProfiles().length > 0
+            ? environment.getActiveProfiles()[0]
+            : "default";
+        
+        boolean isSuccess;
+        
+        if (ImageLocationConstants.IMGBB.equalsIgnoreCase(imageLocation)) {
+            Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
+                
+            if (client.getImgbbApiKey() == null || client.getImgbbApiKey().trim().isEmpty()) {
+                throw new BadRequestException("ImgBB API key is not configured for this client");
+            }
+            
+            String customFileName = ImgbbHelper.generateCustomFileNameForUserProfile(
+                environmentName, 
+                clientDetails.getName(), 
+                savedUser.getUserId()
+            );
+            
+            ImgbbHelper imgbbHelper = new ImgbbHelper(client.getImgbbApiKey());
+            ImgbbHelper.ImgbbUploadResponse uploadResponse = imgbbHelper.uploadFileToImgbb(
+                userRequestModel.getProfilePictureBase64(),
+                customFileName
+            );
+            
+            if (uploadResponse != null && uploadResponse.getUrl() != null) {
+                savedUser.setProfilePicture(uploadResponse.getUrl());
+                savedUser.setProfilePictureDeleteHash(uploadResponse.getDeleteHash());
+                userRepository.save(savedUser);
+                isSuccess = true;
+            } else {
+                isSuccess = false;
+            }
+            
+        } else if (ImageLocationConstants.FIREBASE.equalsIgnoreCase(imageLocation)) {
+            Optional<GoogleCred> googleCred = googleCredRepository.findById(clientId);
+
+            if (googleCred.isPresent()) {
+                String filePath = clientDetails.getName() + " - " + clientId
+                        + File.separator
+                        + environmentName
+                        + File.separator
+                        + "UserProfiles"
+                        + File.separator
+                        + savedUser.getUserId() + "-" + savedUser.getLastName() + ".png";
+
+                GoogleCred googleCredData = googleCred.get();
+                FirebaseHelper firebaseHelper = new FirebaseHelper(googleCredData);
+                isSuccess = firebaseHelper.uploadFileToFirebase(
+                    userRequestModel.getProfilePictureBase64(), 
+                    filePath
+                );
+            } else {
+                throw new BadRequestException(ErrorMessages.UserErrorMessages.ER011);
+            }
+        } else {
+            throw new BadRequestException("Invalid imageLocation configuration: " + imageLocation);
+        }
+        
+        if (!isSuccess) {
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.ER010);
+        }
+    }
+
+    /**
+     * Sends confirmation email to newly created user.
+     * 
+     * @param savedUser The saved user entity
+     * @param password The generated password
+     */
+    private void sendUserConfirmationEmail(User savedUser, String password) {
+        Long clientId = getClientId();
+        ClientResponseModel clientDetails = clientService.getClientById(clientId);
+        Client client = clientRepository.findById(clientId).get();
+
+        EmailTemplates emailTemplates = new EmailTemplates(
+                clientDetails.getSendgridSenderName(),
+                clientDetails.getSendGridEmailAddress(),
+                clientDetails.getSendGridApiKey(),
+                environment,
+                client);
+        
+        try {
+            boolean sendAccountConfirmationEmailResponse = emailTemplates.sendNewUserAccountConfirmation(
+                    savedUser.getUserId(),
+                    savedUser.getToken(),
+                    savedUser.getLoginName(),
+                    password);
+            
+            if (!sendAccountConfirmationEmailResponse) {
+                throw new BadRequestException("Failed to send confirmation email");
+            }
+        } catch (Exception e) {
+            throw new BadRequestException("Failed to send confirmation email: " + e.getMessage());
+        }
     }
 }

@@ -70,4 +70,12 @@ public interface IPackageSubTranslator {
      * @param packageRequest The package data to create
      */
     void createPackage(PackageRequestModel packageRequest);
+    
+    /**
+     * Creates multiple packages in a single operation.
+     *
+     * @param packages List of PackageRequestModel containing the package data to insert
+     * @return BulkInsertResponseModel containing success/failure details for each package
+     */
+    com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreatePackages(java.util.List<PackageRequestModel> packages);
 }

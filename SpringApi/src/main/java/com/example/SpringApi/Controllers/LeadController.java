@@ -159,6 +159,22 @@ public class LeadController {
         }
     }
 
+    @PutMapping("/" + ApiRoutes.LeadsSubRoute.BULK_CREATE_LEAD)
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.INSERT_LEADS_PERMISSION + "')")
+    public ResponseEntity<?> bulkCreateLeads(@RequestBody java.util.List<LeadRequestModel> leads) {
+        try {
+            return ResponseEntity.ok(leadService.bulkCreateLeads(leads));
+        } catch (BadRequestException e) {
+            logger.error(e);
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (Exception e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+
     /**
      * Updates an existing lead with new information.
      * Validates updated data and modifies the lead record.

@@ -53,13 +53,15 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
                                         Pageable pageable);
 
     @Query("SELECT m FROM Message m " +
+           "LEFT JOIN FETCH m.createdByUser " +
            "WHERE m.clientId = :clientId " +
            "AND m.isDeleted = false " +
            "AND m.messageId IN (" +
            "  SELECT DISTINCT msg.messageId FROM Message msg " +
            "  LEFT JOIN msg.messageUserMaps mum " +
            "  LEFT JOIN msg.messageUserGroupMaps mugm " +
-           "  LEFT JOIN UserGroupUserMap ugm ON ugm.groupId = mugm.groupId " +
+           "  LEFT JOIN mugm.userGroup ug " +
+           "  LEFT JOIN ug.userMappings ugm " +
            "  WHERE msg.clientId = :clientId " +
            "  AND msg.isDeleted = false " +
            "  AND (mum.userId = :userId OR ugm.userId = :userId)" +
@@ -72,7 +74,9 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
                                                 @Param("userId") Long userId, 
                                                 Pageable pageable);
 
-    @Query("SELECT m FROM Message m WHERE m.messageId = :messageId AND m.clientId = :clientId AND m.isDeleted = false")
+    @Query("SELECT m FROM Message m " +
+           "LEFT JOIN FETCH m.createdByUser " +
+           "WHERE m.messageId = :messageId AND m.clientId = :clientId AND m.isDeleted = false")
     Optional<Message> findByMessageIdAndClientId(@Param("messageId") Long messageId, @Param("clientId") Long clientId);
 
     @Query("SELECT m FROM Message m WHERE m.messageId = :messageId AND m.clientId = :clientId")
@@ -83,5 +87,19 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
            "LEFT JOIN m.messageUserGroupMaps mugm " +
            "WHERE m.messageId = :messageId AND m.clientId = :clientId AND m.isDeleted = false")
     Optional<Message> findByMessageIdAndClientIdWithTargets(@Param("messageId") Long messageId, @Param("clientId") Long clientId);
+
+    @Query("SELECT COUNT(DISTINCT m.messageId) FROM Message m " +
+           "LEFT JOIN m.messageUserMaps mum " +
+           "LEFT JOIN m.messageUserGroupMaps mugm " +
+           "LEFT JOIN mugm.userGroup ug " +
+           "LEFT JOIN ug.userMappings ugm " +
+           "WHERE m.clientId = :clientId " +
+           "AND m.isDeleted = false " +
+           "AND (mum.userId = :userId OR ugm.userId = :userId) " +
+           "AND NOT EXISTS (" +
+           "  SELECT 1 FROM MessageUserReadMap murm " +
+           "  WHERE murm.messageId = m.messageId AND murm.userId = :userId" +
+           ")")
+    long countUnreadMessagesByUserId(@Param("clientId") Long clientId, @Param("userId") Long userId);
 }
 

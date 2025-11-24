@@ -2,6 +2,7 @@ package com.example.SpringApi.Services.Tests;
 
 import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import java.util.ArrayList;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
@@ -13,6 +14,7 @@ import com.example.SpringApi.Repositories.UserClientMappingRepository;
 import com.example.SpringApi.Repositories.UserClientPermissionMappingRepository;
 import com.example.SpringApi.Repositories.UserGroupUserMapRepository;
 import com.example.SpringApi.Repositories.UserRepository;
+import com.example.SpringApi.FilterQueryBuilder.UserFilterQueryBuilder;
 import com.example.SpringApi.Services.ClientService;
 import com.example.SpringApi.Services.UserLogService;
 import com.example.SpringApi.Services.UserService;
@@ -33,7 +35,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockedConstruction;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
@@ -103,6 +104,9 @@ class UserServiceTest {
     @Mock
     private HttpServletRequest request;
     
+    @Mock
+    private UserFilterQueryBuilder userFilterQueryBuilder;
+    
     // Mock helper classes to prevent external service calls during testing
     
     @Mock
@@ -111,14 +115,13 @@ class UserServiceTest {
     @Mock
     private EmailHelper emailHelper;
     
-    @Spy
     @InjectMocks
     private UserService userService;
     
     private User testUser;
     private UserRequestModel testUserRequest;
     private static final Long TEST_USER_ID = 1L;
-    private static final Long TEST_CLIENT_ID = 100L;
+    private static final Long TEST_CLIENT_ID = 1L;
     private static final String TEST_EMAIL = "test@example.com";
     private static final String TEST_LOGIN_NAME = "testuser";
     private static final String CREATED_USER = "admin";
@@ -212,8 +215,7 @@ class UserServiceTest {
         // Set the @Value field using reflection since @Value doesn't work with mocked environments
         ReflectionTestUtils.setField(userService, "imageLocation", "imgbb");
         
-        // Mock getClientId() to return TEST_CLIENT_ID for multi-tenant filtering
-        lenient().doReturn(TEST_CLIENT_ID).when(userService).getClientId();
+        // Note: getClientId() is now handled by the actual service implementation
     }
 
     // ==================== Toggle User Tests ====================
@@ -509,10 +511,10 @@ class UserServiceTest {
         lenient().when(googleCredRepository.findById(anyLong())).thenReturn(Optional.of(new GoogleCred()));
         
         // Mock client for ImgBB API key
-        Client testClient = new Client();
-        testClient.setClientId(TEST_CLIENT_ID);
-        testClient.setImgbbApiKey("test-imgbb-api-key");
-        when(clientRepository.findById(anyLong())).thenReturn(Optional.of(testClient));
+        Client updateClient = new Client();
+        updateClient.setClientId(TEST_CLIENT_ID);
+        updateClient.setImgbbApiKey("test-imgbb-api-key");
+        when(clientRepository.findById(anyLong())).thenReturn(Optional.of(updateClient));
         
         ClientResponseModel clientResponse = new ClientResponseModel();
         clientResponse.setName("Test Client");
@@ -637,7 +639,10 @@ class UserServiceTest {
         Client testClient = new Client();
         testClient.setClientId(TEST_CLIENT_ID);
         testClient.setImgbbApiKey("test-imgbb-api-key");
-        when(clientRepository.findById(anyLong())).thenReturn(Optional.of(testClient));
+        Client testClientPartial = new Client();
+        testClientPartial.setClientId(TEST_CLIENT_ID);
+        testClientPartial.setImgbbApiKey("test-imgbb-api-key");
+        when(clientRepository.findById(anyLong())).thenReturn(Optional.of(testClientPartial));
         
         ClientResponseModel clientResponse = new ClientResponseModel();
         clientResponse.setName("Test Client");
@@ -677,16 +682,13 @@ class UserServiceTest {
         // Arrange
         testUserRequest.setStart(0);
         testUserRequest.setEnd(10);
-        testUserRequest.setColumnName("userId");
-        testUserRequest.setCondition("contains");
-        testUserRequest.setFilterExpr("");
         testUserRequest.setIncludeDeleted(false);
         
         List<User> users = Arrays.asList(testUser);
         Page<User> userPage = new PageImpl<>(users, PageRequest.of(0, 10), 1);
         
-        when(userRepository.findPaginatedUsers(
-            eq(TEST_CLIENT_ID), isNull(), anyString(), anyString(), anyString(), eq(false), any(PageRequest.class)
+        when(userFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            eq(TEST_CLIENT_ID), isNull(), eq("AND"), isNull(), eq(false), any(org.springframework.data.domain.Pageable.class)
         )).thenReturn(userPage);
         
         // Act
@@ -696,8 +698,8 @@ class UserServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getData().size());
         assertEquals(1L, result.getTotalDataCount());
-        verify(userRepository, times(1)).findPaginatedUsers(
-            eq(TEST_CLIENT_ID), isNull(), anyString(), eq("contains"), anyString(), eq(false), any(PageRequest.class)
+        verify(userFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            eq(TEST_CLIENT_ID), isNull(), eq("AND"), isNull(), eq(false), any(org.springframework.data.domain.Pageable.class)
         );
     }
     
@@ -711,7 +713,13 @@ class UserServiceTest {
         // Arrange
         testUserRequest.setStart(0);
         testUserRequest.setEnd(10);
-        testUserRequest.setColumnName("invalidColumn");
+        
+        PaginationBaseRequestModel.FilterCondition invalidFilter = new PaginationBaseRequestModel.FilterCondition();
+        invalidFilter.setColumn("invalidColumn");
+        invalidFilter.setOperator("contains");
+        invalidFilter.setValue("test");
+        testUserRequest.setFilters(Arrays.asList(invalidFilter));
+        testUserRequest.setLogicOperator("AND");
         
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -719,32 +727,37 @@ class UserServiceTest {
             () -> userService.fetchUsersInCarrierInBatches(testUserRequest)
         );
         
-        assertTrue(exception.getMessage().contains(ErrorMessages.InvalidColumn));
-        verify(userRepository, never()).findPaginatedUsers(
-            anyLong(), anyList(), anyString(), anyString(), anyString(), anyBoolean(), any(PageRequest.class)
+        assertTrue(exception.getMessage().contains("Invalid column"));
+        verify(userFilterQueryBuilder, never()).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), anyList(), anyString(), anyList(), anyBoolean(), any(org.springframework.data.domain.Pageable.class)
         );
     }
     
     /**
-     * Test pagination with filtering.
+     * Test pagination with single filter.
      * Verifies that filter expressions are correctly applied.
      */
     @Test
-    @DisplayName("Fetch Users In Batches - Success - With filter")
-    void fetchUsersInCarrierInBatches_WithFilter_Success() {
+    @DisplayName("Fetch Users In Batches - Success - With single filter")
+    void fetchUsersInCarrierInBatches_WithSingleFilter_Success() {
         // Arrange
         testUserRequest.setStart(0);
         testUserRequest.setEnd(10);
-        testUserRequest.setColumnName("firstName");
-        testUserRequest.setCondition("contains");
-        testUserRequest.setFilterExpr("Test");
         testUserRequest.setIncludeDeleted(false);
+        
+        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+        filter.setColumn("firstName");
+        filter.setOperator("contains");
+        filter.setValue("Test");
+        testUserRequest.setFilters(Arrays.asList(filter));
+        testUserRequest.setLogicOperator("AND");
         
         List<User> users = Arrays.asList(testUser);
         Page<User> userPage = new PageImpl<>(users, PageRequest.of(0, 10), 1);
         
-        when(userRepository.findPaginatedUsers(
-            eq(TEST_CLIENT_ID), isNull(), eq("firstName"), eq("contains"), eq("Test"), eq(false), any(PageRequest.class)
+        when(userFilterQueryBuilder.getColumnType("firstName")).thenReturn("string");
+        when(userFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            eq(TEST_CLIENT_ID), isNull(), eq("AND"), anyList(), eq(false), any(org.springframework.data.domain.Pageable.class)
         )).thenReturn(userPage);
         
         // Act
@@ -753,9 +766,409 @@ class UserServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getData().size());
-        verify(userRepository, times(1)).findPaginatedUsers(
-            eq(TEST_CLIENT_ID), isNull(), eq("firstName"), eq("contains"), eq("Test"), eq(false), any(PageRequest.class)
+        assertEquals(1L, result.getTotalDataCount());
+        verify(userFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            eq(TEST_CLIENT_ID), isNull(), eq("AND"), anyList(), eq(false), any(org.springframework.data.domain.Pageable.class)
         );
+    }
+    
+    /**
+     * Test pagination with multiple filters using AND logic.
+     * Verifies that multiple filter conditions are correctly combined with AND.
+     */
+    @Test
+    @DisplayName("Fetch Users In Batches - Success - With multiple filters AND logic")
+    void fetchUsersInCarrierInBatches_WithMultipleFiltersAND_Success() {
+        // Arrange
+        testUserRequest.setStart(0);
+        testUserRequest.setEnd(10);
+        testUserRequest.setIncludeDeleted(false);
+        
+        // Create multiple filters
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("firstName");
+        filter1.setOperator("contains");
+        filter1.setValue("Test");
+        
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("role");
+        filter2.setOperator("equals");
+        filter2.setValue("Admin");
+        
+        testUserRequest.setFilters(Arrays.asList(filter1, filter2));
+        testUserRequest.setLogicOperator("AND");
+        
+        List<User> users = Arrays.asList(testUser);
+        Page<User> userPage = new PageImpl<>(users, PageRequest.of(0, 10), 1);
+        
+        when(userFilterQueryBuilder.getColumnType("firstName")).thenReturn("string");
+        when(userFilterQueryBuilder.getColumnType("role")).thenReturn("string");
+        when(userFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            eq(TEST_CLIENT_ID), isNull(), eq("AND"), anyList(), eq(false), any(org.springframework.data.domain.Pageable.class)
+        )).thenReturn(userPage);
+        
+        // Act
+        var result = userService.fetchUsersInCarrierInBatches(testUserRequest);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        assertEquals(1L, result.getTotalDataCount());
+        verify(userFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            eq(TEST_CLIENT_ID), isNull(), eq("AND"), anyList(), eq(false), any(org.springframework.data.domain.Pageable.class)
+        );
+    }
+    
+    /**
+     * Test pagination with multiple filters using OR logic.
+     * Verifies that multiple filter conditions are correctly combined with OR.
+     */
+    @Test
+    @DisplayName("Fetch Users In Batches - Success - With multiple filters OR logic")
+    void fetchUsersInCarrierInBatches_WithMultipleFiltersOR_Success() {
+        // Arrange
+        testUserRequest.setStart(0);
+        testUserRequest.setEnd(10);
+        testUserRequest.setIncludeDeleted(false);
+        
+        // Create multiple filters
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("firstName");
+        filter1.setOperator("contains");
+        filter1.setValue("John");
+        
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("firstName");
+        filter2.setOperator("contains");
+        filter2.setValue("Jane");
+        
+        PaginationBaseRequestModel.FilterCondition filter3 = new PaginationBaseRequestModel.FilterCondition();
+        filter3.setColumn("email");
+        filter3.setOperator("contains");
+        filter3.setValue("@admin.com");
+        
+        testUserRequest.setFilters(Arrays.asList(filter1, filter2, filter3));
+        testUserRequest.setLogicOperator("OR");
+        
+        List<User> users = Arrays.asList(testUser);
+        Page<User> userPage = new PageImpl<>(users, PageRequest.of(0, 10), 1);
+        
+        when(userFilterQueryBuilder.getColumnType("firstName")).thenReturn("string");
+        when(userFilterQueryBuilder.getColumnType("email")).thenReturn("string");
+        when(userFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            eq(TEST_CLIENT_ID), isNull(), eq("OR"), anyList(), eq(false), any(org.springframework.data.domain.Pageable.class)
+        )).thenReturn(userPage);
+        
+        // Act
+        var result = userService.fetchUsersInCarrierInBatches(testUserRequest);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        assertEquals(1L, result.getTotalDataCount());
+        verify(userFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            eq(TEST_CLIENT_ID), isNull(), eq("OR"), anyList(), eq(false), any(org.springframework.data.domain.Pageable.class)
+        );
+    }
+    
+    /**
+     * Test pagination with complex filters (number, date, boolean operators).
+     * Verifies that different column types and operators work correctly.
+     */
+    @Test
+    @DisplayName("Fetch Users In Batches - Success - With complex filters")
+    void fetchUsersInCarrierInBatches_WithComplexFilters_Success() {
+        // Arrange
+        testUserRequest.setStart(0);
+        testUserRequest.setEnd(10);
+        testUserRequest.setIncludeDeleted(false);
+        
+        // Create filters with different types
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("loginAttempts");
+        filter1.setOperator(">");
+        filter1.setValue("3");
+        
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("emailConfirmed");
+        filter2.setOperator("is");
+        filter2.setValue("true");
+        
+        PaginationBaseRequestModel.FilterCondition filter3 = new PaginationBaseRequestModel.FilterCondition();
+        filter3.setColumn("firstName");
+        filter3.setOperator("startsWith");
+        filter3.setValue("A");
+        
+        testUserRequest.setFilters(Arrays.asList(filter1, filter2, filter3));
+        testUserRequest.setLogicOperator("AND");
+        
+        List<User> users = Arrays.asList(testUser);
+        Page<User> userPage = new PageImpl<>(users, PageRequest.of(0, 10), 1);
+        
+        when(userFilterQueryBuilder.getColumnType("loginAttempts")).thenReturn("number");
+        when(userFilterQueryBuilder.getColumnType("emailConfirmed")).thenReturn("boolean");
+        when(userFilterQueryBuilder.getColumnType("firstName")).thenReturn("string");
+        when(userFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            eq(TEST_CLIENT_ID), isNull(), eq("AND"), anyList(), eq(false), any(org.springframework.data.domain.Pageable.class)
+        )).thenReturn(userPage);
+        
+        // Act
+        var result = userService.fetchUsersInCarrierInBatches(testUserRequest);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        assertEquals(1L, result.getTotalDataCount());
+        verify(userFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            eq(TEST_CLIENT_ID), isNull(), eq("AND"), anyList(), eq(false), any(org.springframework.data.domain.Pageable.class)
+        );
+    }
+
+    // ==================== Bulk Create Users Tests ====================
+    
+    /**
+     * Test successful bulk user creation.
+     * Verifies that multiple users are created successfully.
+     */
+    @Test
+    @DisplayName("Bulk Create Users - Success - All valid users")
+    void bulkCreateUsers_AllValid_Success() {
+        // Arrange
+        List<UserRequestModel> users = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            UserRequestModel userReq = new UserRequestModel();
+            userReq.setLoginName("bulkuser" + i + "@test.com");
+            userReq.setEmail("bulkuser" + i + "@test.com");
+            userReq.setFirstName("Bulk");
+            userReq.setLastName("User" + i);
+            userReq.setPhone("123456789" + i);
+            userReq.setRole("User");
+            userReq.setDob(LocalDate.of(1990, 1, 1));
+            userReq.setPermissionIds(Arrays.asList(1L));
+            users.add(userReq);
+        }
+        
+        Map<String, User> savedUsers = new HashMap<>();
+        when(userRepository.findByLoginName(anyString())).thenAnswer(invocation -> {
+            String loginName = invocation.getArgument(0);
+            return savedUsers.get(loginName);
+        });
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            if (user.getUserId() == null) {
+                user.setUserId((long) (Math.random() * 1000));
+            }
+            savedUsers.put(user.getLoginName(), user);
+            return user;
+        });
+        when(userClientMappingRepository.save(any(UserClientMapping.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userClientPermissionMappingRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
+        lenient().when(googleCredRepository.findById(anyLong())).thenReturn(Optional.of(new GoogleCred()));
+        Client bulkClient = new Client();
+        bulkClient.setClientId(TEST_CLIENT_ID);
+        bulkClient.setImgbbApiKey("test-imgbb-api-key");
+        lenient().when(clientRepository.findById(anyLong())).thenReturn(Optional.of(bulkClient));
+        
+        ClientResponseModel clientResponse = new ClientResponseModel();
+        clientResponse.setName("Test Client");
+        lenient().when(clientService.getClientById(anyLong())).thenReturn(clientResponse);
+        
+        // Mock additional services needed by createUser
+        lenient().when(addressRepository.save(any(Address.class))).thenAnswer(invocation -> {
+            Address address = invocation.getArgument(0);
+            address.setAddressId((long) (Math.random() * 1000));
+            return address;
+        });
+        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        lenient().when(emailHelper.sendEmail(any(com.example.SpringApi.Models.RequestModels.SendEmailRequest.class))).thenReturn(true);
+        lenient().when(userGroupUserMapRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
+        lenient().when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
+        
+        // Mock static PasswordHelper
+        try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
+            mockedPasswordHelper.when(PasswordHelper::getRandomPassword).thenReturn("randomPassword123");
+            mockedPasswordHelper.when(() -> PasswordHelper.getHashedPasswordAndSalt(anyString()))
+                .thenReturn(new String[]{"salt123", "hashedPassword123"});
+            mockedPasswordHelper.when(() -> PasswordHelper.getToken(anyString())).thenReturn("token123");
+            
+            // Act
+            var result = userService.bulkCreateUsers(users);
+            
+            // Assert
+            assertNotNull(result);
+            assertEquals(3, result.getTotalRequested());
+            assertEquals(3, result.getSuccessCount());
+            assertEquals(0, result.getFailureCount());
+            verify(userRepository, times(3)).save(any(User.class));
+        }
+    }
+    
+    /**
+     * Test bulk user creation with partial success.
+     * Verifies that some users succeed while others fail validation.
+     */
+    @Test
+    @DisplayName("Bulk Create Users - Partial Success - Mixed valid and invalid")
+    void bulkCreateUsers_PartialSuccess() {
+        // Arrange
+        List<UserRequestModel> users = new ArrayList<>();
+        
+        // Valid user
+        UserRequestModel validUser = new UserRequestModel();
+        validUser.setLoginName("valid@test.com");
+        validUser.setEmail("valid@test.com");
+        validUser.setFirstName("Valid");
+        validUser.setLastName("User");
+        validUser.setPhone("1234567890");
+        validUser.setRole("User");
+        validUser.setDob(LocalDate.of(1990, 1, 1));
+        validUser.setPermissionIds(Arrays.asList(1L));
+        users.add(validUser);
+        
+        // Invalid user (missing required fields)
+        UserRequestModel invalidUser = new UserRequestModel();
+        invalidUser.setEmail("invalid@test.com");
+        users.add(invalidUser);
+        
+        Map<String, User> savedUsers = new HashMap<>();
+        when(userRepository.findByLoginName(anyString())).thenAnswer(invocation ->
+            savedUsers.get(invocation.getArgument(0))
+        );
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            if (user.getUserId() == null) {
+                user.setUserId(100L);
+            }
+            savedUsers.put(user.getLoginName(), user);
+            return user;
+        });
+        when(userClientMappingRepository.save(any(UserClientMapping.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userClientPermissionMappingRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
+        lenient().when(googleCredRepository.findById(anyLong())).thenReturn(Optional.of(new GoogleCred()));
+        Client partialClient = new Client();
+        partialClient.setClientId(TEST_CLIENT_ID);
+        partialClient.setImgbbApiKey("test-imgbb-api-key");
+        lenient().when(clientRepository.findById(anyLong())).thenReturn(Optional.of(partialClient));
+        
+        ClientResponseModel clientResponse = new ClientResponseModel();
+        clientResponse.setName("Test Client");
+        lenient().when(clientService.getClientById(anyLong())).thenReturn(clientResponse);
+        
+        try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
+            mockedPasswordHelper.when(PasswordHelper::getRandomPassword).thenReturn("randomPassword123");
+            mockedPasswordHelper.when(() -> PasswordHelper.getHashedPasswordAndSalt(anyString()))
+                .thenReturn(new String[]{"salt123", "hashedPassword123"});
+            mockedPasswordHelper.when(() -> PasswordHelper.getToken(anyString())).thenReturn("token123");
+            
+            // Act
+            var result = userService.bulkCreateUsers(users);
+            
+            // Assert
+            assertNotNull(result);
+            assertEquals(2, result.getTotalRequested());
+            assertEquals(1, result.getSuccessCount());
+            assertEquals(1, result.getFailureCount());
+            verify(userRepository, times(1)).save(any(User.class));
+        }
+    }
+    
+    /**
+     * Test bulk user creation with duplicate email.
+     * Verifies that duplicate emails are rejected.
+     */
+    @Test
+    @DisplayName("Bulk Create Users - Failure - Duplicate email")
+    void bulkCreateUsers_DuplicateEmail() {
+        // Arrange
+        List<UserRequestModel> users = new ArrayList<>();
+        
+        UserRequestModel user1 = new UserRequestModel();
+        user1.setLoginName("new@test.com");
+        user1.setEmail("new@test.com");
+        user1.setFirstName("New");
+        user1.setLastName("User");
+        user1.setPhone("1234567890");
+        user1.setRole("User");
+        user1.setDob(LocalDate.of(1990, 1, 1));
+        user1.setPermissionIds(Arrays.asList(1L));
+        users.add(user1);
+        
+        UserRequestModel user2 = new UserRequestModel();
+        user2.setLoginName("existing@test.com");
+        user2.setEmail("existing@test.com");
+        user2.setFirstName("Existing");
+        user2.setLastName("User");
+        user2.setPhone("1234567890");
+        user2.setRole("User");
+        user2.setDob(LocalDate.of(1990, 1, 1));
+        user2.setPermissionIds(Arrays.asList(1L));
+        users.add(user2);
+        
+        Map<String, User> savedUsersForDuplicate = new HashMap<>();
+        savedUsersForDuplicate.put("existing@test.com", testUser);
+        when(userRepository.findByLoginName(anyString())).thenAnswer(invocation ->
+            savedUsersForDuplicate.get(invocation.getArgument(0))
+        );
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            if (user.getUserId() == null) {
+                user.setUserId(100L);
+            }
+            savedUsersForDuplicate.put(user.getLoginName(), user);
+            return user;
+        });
+        when(userClientMappingRepository.save(any(UserClientMapping.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userClientPermissionMappingRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
+        lenient().when(googleCredRepository.findById(anyLong())).thenReturn(Optional.of(new GoogleCred()));
+        Client duplicateClient = new Client();
+        duplicateClient.setClientId(TEST_CLIENT_ID);
+        duplicateClient.setImgbbApiKey("test-imgbb-api-key");
+        lenient().when(clientRepository.findById(anyLong())).thenReturn(Optional.of(duplicateClient));
+        
+        ClientResponseModel clientResponse = new ClientResponseModel();
+        clientResponse.setName("Test Client");
+        lenient().when(clientService.getClientById(anyLong())).thenReturn(clientResponse);
+        
+        try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
+            mockedPasswordHelper.when(PasswordHelper::getRandomPassword).thenReturn("randomPassword123");
+            mockedPasswordHelper.when(() -> PasswordHelper.getHashedPasswordAndSalt(anyString()))
+                .thenReturn(new String[]{"salt123", "hashedPassword123"});
+            mockedPasswordHelper.when(() -> PasswordHelper.getToken(anyString())).thenReturn("token123");
+            
+            // Act
+            var result = userService.bulkCreateUsers(users);
+            
+            // Assert
+            assertNotNull(result);
+            assertEquals(2, result.getTotalRequested());
+            assertEquals(1, result.getSuccessCount());
+            assertEquals(1, result.getFailureCount());
+            
+            // Verify the duplicate email failed
+            Optional<com.example.SpringApi.Models.ResponseModels.BulkUserInsertResponseModel.UserInsertResult> duplicateResult = 
+                result.getResults().stream()
+                    .filter(r -> r.getEmail().equals("existing@test.com"))
+                    .findFirst();
+            assertTrue(duplicateResult.isPresent());
+            assertFalse(duplicateResult.get().isSuccess());
+            assertTrue(duplicateResult.get().getErrorMessage().contains("Email already exists"));
+        }
+    }
+    
+    /**
+     * Test bulk user creation with empty list.
+     * Verifies that empty list returns empty result.
+     */
+    @Test
+    @DisplayName("Bulk Create Users - Empty List - Throws BadRequestException")
+    void bulkCreateUsers_EmptyList() {
+        // Act & Assert
+        com.example.SpringApi.Exceptions.BadRequestException exception = assertThrows(
+            com.example.SpringApi.Exceptions.BadRequestException.class,
+            () -> userService.bulkCreateUsers(new ArrayList<>())
+        );
+        
+        assertTrue(exception.getMessage().contains("User list cannot be null or empty"));
     }
 
     // ==================== Confirm Email Tests ====================

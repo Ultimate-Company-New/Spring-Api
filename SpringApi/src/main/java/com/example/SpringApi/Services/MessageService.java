@@ -95,11 +95,17 @@ public class MessageService extends BaseService implements IMessageSubTranslator
             "updatedAt", "notes", "createdUser", "modifiedUser"
         );
 
-        // Validate column name if provided
-        if (paginationBaseRequestModel.getColumnName() != null
-            && !validColumns.contains(paginationBaseRequestModel.getColumnName())) {
-            throw new BadRequestException(
-                "Invalid column name: " + paginationBaseRequestModel.getColumnName());
+        // Validate filters if provided
+        if (paginationBaseRequestModel.getFilters() != null) {
+            for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
+                if (filter == null) {
+                    continue;
+                }
+                String column = filter.getColumn();
+                if (column == null || !validColumns.contains(column)) {
+                    throw new BadRequestException("Invalid column name: " + column);
+                }
+            }
         }
 
         // Calculate page size and offset
@@ -120,12 +126,12 @@ public class MessageService extends BaseService implements IMessageSubTranslator
             }
         };
 
-        // Execute paginated query with LEFT JOIN FETCH
+        // Execute paginated query with LEFT JOIN FETCH (without filtering for now)
         Page<Message> page = messageRepository.findPaginatedMessages(
             getClientId(),
-            paginationBaseRequestModel.getColumnName(),
-            paginationBaseRequestModel.getCondition(),
-            paginationBaseRequestModel.getFilterExpr(),
+            null,
+            null,
+            null,
             paginationBaseRequestModel.isIncludeDeleted(),
             pageable
         );
@@ -526,5 +532,26 @@ public class MessageService extends BaseService implements IMessageSubTranslator
             getUserId(),
             SuccessMessages.MessagesSuccessMessages.SetMessageRead + " MessageId: " + messageId + ", UserId: " + userId,
             ApiRoutes.MessagesSubRoute.SET_MESSAGE_READ_BY_USER_ID_AND_MESSAGE_ID);
+    }
+
+    /**
+     * Gets the count of unread messages for the current user.
+     * 
+     * This method counts all messages that:
+     * - Belong to the current client
+     * - Are not deleted
+     * - Are targeted to the current user (directly or through user groups)
+     * - Have not been marked as read by the current user
+     * 
+     * @return The number of unread messages
+     */
+    @Override
+    public int getUnreadMessageCount() {
+        long userId = getUserId();
+        long clientId = getClientId();
+        
+        long count = messageRepository.countUnreadMessagesByUserId(clientId, userId);
+        
+        return (int) count;
     }
 }

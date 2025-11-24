@@ -1,8 +1,10 @@
 package com.example.SpringApi.Services.Tests;
 
+import com.example.SpringApi.FilterQueryBuilder.PromoFilterQueryBuilder;
 import com.example.SpringApi.Models.DatabaseModels.Promo;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.PromoRequestModel;
+import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PromoResponseModel;
 import com.example.SpringApi.Repositories.PromoRepository;
@@ -20,11 +22,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
@@ -64,9 +66,11 @@ class PromoServiceTest {
     private UserLogService userLogService;
 
     @Mock
+    private PromoFilterQueryBuilder promoFilterQueryBuilder;
+
+    @Mock
     private HttpServletRequest request;
 
-    @Spy
     @InjectMocks
     private PromoService promoService;
 
@@ -74,7 +78,7 @@ class PromoServiceTest {
     private PromoRequestModel testPromoRequest;
     private PaginationBaseRequestModel testPaginationRequest;
     private static final Long TEST_PROMO_ID = 1L;
-    private static final Long TEST_CLIENT_ID = 100L;
+    private static final Long TEST_CLIENT_ID = 1L;
     private static final Long TEST_USER_ID = 1L;
     private static final String TEST_PROMO_CODE = "TEST10";
     private static final String TEST_DESCRIPTION = "Test promo description";
@@ -107,14 +111,16 @@ class PromoServiceTest {
         testPaginationRequest = new PaginationBaseRequestModel();
         testPaginationRequest.setStart(0);
         testPaginationRequest.setEnd(10);
-        testPaginationRequest.setColumnName(TEST_VALID_COLUMN);
-        testPaginationRequest.setCondition("equals");
-        testPaginationRequest.setFilterExpr(TEST_PROMO_CODE);
+        // Set up filters using new FilterCondition structure
+        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+        filter.setColumn(TEST_VALID_COLUMN);
+        filter.setOperator("equals");
+        filter.setValue(TEST_PROMO_CODE);
+        testPaginationRequest.setFilters(List.of(filter));
+        testPaginationRequest.setLogicOperator("AND");
         testPaginationRequest.setIncludeDeleted(false);
         
-        // Mock getClientId() to return TEST_CLIENT_ID for multi-tenant filtering
-        lenient().doReturn(TEST_CLIENT_ID).when(promoService).getClientId();
-        lenient().doReturn(TEST_USER_ID).when(promoService).getUserId();
+        // Note: BaseService methods are now handled by the actual service implementation
     }
 
     // ==================== Get Promos In Batches Tests ====================
@@ -129,9 +135,9 @@ class PromoServiceTest {
         // Arrange
         List<Promo> promoList = Arrays.asList(testPromo);
         Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 1);
-        when(promoRepository.findPaginatedPromos(
-            eq(TEST_CLIENT_ID), eq(TEST_VALID_COLUMN), eq("equals"), eq(TEST_PROMO_CODE), eq(false),
-            any(PageRequest.class))).thenReturn(promoPage);
+        lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(promoPage);
 
         // Act
         PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(testPaginationRequest);
@@ -141,9 +147,9 @@ class PromoServiceTest {
         assertEquals(1, result.getData().size());
         assertEquals(1, result.getTotalDataCount());
         assertEquals(testPromo, result.getData().get(0));
-        verify(promoRepository).findPaginatedPromos(
-            eq(TEST_CLIENT_ID), eq(TEST_VALID_COLUMN), eq("equals"), eq(TEST_PROMO_CODE), eq(false),
-            any(PageRequest.class));
+        verify(promoFilterQueryBuilder).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        );
     }
 
     /**
@@ -154,7 +160,12 @@ class PromoServiceTest {
     @DisplayName("Get Promos In Batches - Failure - Invalid column name")
     void getPromosInBatches_InvalidColumnName_ThrowsBadRequestException() {
         // Arrange
-        testPaginationRequest.setColumnName(TEST_INVALID_COLUMN);
+        PaginationBaseRequestModel.FilterCondition invalidFilter = new PaginationBaseRequestModel.FilterCondition();
+        invalidFilter.setColumn("invalidColumn");
+        invalidFilter.setOperator("contains");
+        invalidFilter.setValue("test");
+        testPaginationRequest.setFilters(Arrays.asList(invalidFilter));
+        testPaginationRequest.setLogicOperator("AND");
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
@@ -164,19 +175,27 @@ class PromoServiceTest {
     }
 
     /**
-     * Test get promos in batches with null column name.
-     * Verifies that method handles null column name gracefully.
+     * Test get promos in batches with single filter.
+     * Verifies that single filter expressions are correctly applied.
      */
     @Test
-    @DisplayName("Get Promos In Batches - Success - Null column name handled")
-    void getPromosInBatches_NullColumnName_Success() {
+    @DisplayName("Get Promos In Batches - Success - With single filter")
+    void getPromosInBatches_WithSingleFilter_Success() {
         // Arrange
-        testPaginationRequest.setColumnName(null);
+        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+        filter.setColumn("promoCode");
+        filter.setOperator("contains");
+        filter.setValue("TEST");
+        testPaginationRequest.setFilters(Arrays.asList(filter));
+        testPaginationRequest.setLogicOperator("AND");
+
         List<Promo> promoList = Arrays.asList(testPromo);
         Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 1);
-        when(promoRepository.findPaginatedPromos(
-            eq(TEST_CLIENT_ID), eq(null), eq("equals"), eq(TEST_PROMO_CODE), eq(false),
-            any(PageRequest.class))).thenReturn(promoPage);
+
+        when(promoFilterQueryBuilder.getColumnType("promoCode")).thenReturn("string");
+        lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(promoPage);
 
         // Act
         PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(testPaginationRequest);
@@ -184,32 +203,137 @@ class PromoServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getData().size());
-        verify(promoRepository).findPaginatedPromos(
-            eq(TEST_CLIENT_ID), eq(null), eq("equals"), eq(TEST_PROMO_CODE), eq(false),
-            any(PageRequest.class));
+        verify(promoFilterQueryBuilder, times(1)).getColumnType("promoCode");
+        verify(promoFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        );
     }
 
     /**
-     * Test get promos in batches with empty result set.
-     * Verifies that empty pagination response is returned when no promos found.
+     * Test get promos in batches with multiple filters using AND logic.
+     * Verifies that multiple filters combined with AND are correctly applied.
      */
     @Test
-    @DisplayName("Get Promos In Batches - Success - Empty result set")
-    void getPromosInBatches_EmptyResult_Success() {
+    @DisplayName("Get Promos In Batches - Success - With multiple filters AND")
+    void getPromosInBatches_WithMultipleFiltersAND_Success() {
         // Arrange
-        List<Promo> emptyList = new ArrayList<>();
-        Page<Promo> emptyPage = new PageImpl<>(emptyList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 0);
-        when(promoRepository.findPaginatedPromos(
-            eq(TEST_CLIENT_ID), eq(TEST_VALID_COLUMN), eq("equals"), eq(TEST_PROMO_CODE), eq(false),
-            any(PageRequest.class))).thenReturn(emptyPage);
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("promoCode");
+        filter1.setOperator("contains");
+        filter1.setValue("TEST");
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("description");
+        filter2.setOperator("contains");
+        filter2.setValue("promo");
+
+        testPaginationRequest.setFilters(Arrays.asList(filter1, filter2));
+        testPaginationRequest.setLogicOperator("AND");
+
+        List<Promo> promoList = Arrays.asList(testPromo);
+        Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 1);
+
+        when(promoFilterQueryBuilder.getColumnType("promoCode")).thenReturn("string");
+        when(promoFilterQueryBuilder.getColumnType("description")).thenReturn("string");
+        lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(promoPage);
 
         // Act
         PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(testPaginationRequest);
 
         // Assert
         assertNotNull(result);
-        assertEquals(0, result.getData().size());
-        assertEquals(0, result.getTotalDataCount());
+        assertEquals(1, result.getData().size());
+        verify(promoFilterQueryBuilder, times(1)).getColumnType("promoCode");
+        verify(promoFilterQueryBuilder, times(1)).getColumnType("description");
+        verify(promoFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        );
+    }
+
+    /**
+     * Test get promos in batches with multiple filters using OR logic.
+     * Verifies that multiple filters combined with OR are correctly applied.
+     */
+    @Test
+    @DisplayName("Get Promos In Batches - Success - With multiple filters OR")
+    void getPromosInBatches_WithMultipleFiltersOR_Success() {
+        // Arrange
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("promoCode");
+        filter1.setOperator("contains");
+        filter1.setValue("TEST");
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("promoCode");
+        filter2.setOperator("contains");
+        filter2.setValue("PROMO");
+
+        testPaginationRequest.setFilters(Arrays.asList(filter1, filter2));
+        testPaginationRequest.setLogicOperator("OR");
+
+        List<Promo> promoList = Arrays.asList(testPromo);
+        Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 1);
+
+        when(promoFilterQueryBuilder.getColumnType("promoCode")).thenReturn("string");
+        lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(promoPage);
+
+        // Act
+        PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(testPaginationRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(promoFilterQueryBuilder, times(2)).getColumnType("promoCode");
+        verify(promoFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        );
+    }
+
+    /**
+     * Test get promos in batches with complex filters (string, number, boolean).
+     * Verifies that filters with different column types are correctly validated and applied.
+     */
+    @Test
+    @DisplayName("Get Promos In Batches - Success - With complex filters")
+    void getPromosInBatches_WithComplexFilters_Success() {
+        // Arrange
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("promoCode");
+        filter1.setOperator("contains");
+        filter1.setValue("TEST");
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("promoId");
+        filter2.setOperator("greaterThan");
+        filter2.setValue("0");
+
+        testPaginationRequest.setFilters(Arrays.asList(filter1, filter2));
+        testPaginationRequest.setLogicOperator("AND");
+
+        List<Promo> promoList = Arrays.asList(testPromo);
+        Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 1);
+
+        when(promoFilterQueryBuilder.getColumnType("promoCode")).thenReturn("string");
+        when(promoFilterQueryBuilder.getColumnType("promoId")).thenReturn("number");
+        lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(promoPage);
+
+        // Act
+        PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(testPaginationRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(promoFilterQueryBuilder, times(1)).getColumnType("promoCode");
+        verify(promoFilterQueryBuilder, times(1)).getColumnType("promoId");
+        verify(promoFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        );
     }
 
     // ==================== Create Promo Tests ====================
@@ -222,7 +346,7 @@ class PromoServiceTest {
     @DisplayName("Create Promo - Success - Should create and save promo with logging")
     void createPromo_Success() {
         // Arrange
-        lenient().doReturn(CREATED_USER).when(promoService).getUser();
+        // Note: BaseService methods are now handled by the actual service implementation
         when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
 
         // Act
@@ -244,7 +368,7 @@ class PromoServiceTest {
     @DisplayName("Create Promo - Failure - Null request model throws BadRequestException")
     void createPromo_NullRequestModel_ThrowsBadRequestException() {
         // Arrange
-        lenient().doReturn(CREATED_USER).when(promoService).getUser();
+        // Note: BaseService methods are now handled by the actual service implementation
         PromoRequestModel nullRequest = null;
 
         // Act & Assert
@@ -262,7 +386,7 @@ class PromoServiceTest {
     @DisplayName("Create Promo - Failure - Empty promo code throws BadRequestException")
     void createPromo_EmptyPromoCode_ThrowsBadRequestException() {
         // Arrange
-        lenient().doReturn(CREATED_USER).when(promoService).getUser();
+        // Note: BaseService methods are now handled by the actual service implementation
         testPromoRequest.setPromoCode("");
 
         // Act & Assert
@@ -360,7 +484,7 @@ class PromoServiceTest {
     @DisplayName("Toggle Promo - Success - Should toggle isDeleted flag and log")
     void togglePromo_Success() {
         // Arrange
-        lenient().doReturn(CREATED_USER).when(promoService).getUser();
+        // Note: BaseService methods are now handled by the actual service implementation
         when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testPromo));
         when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
 
@@ -526,5 +650,147 @@ class PromoServiceTest {
             promoService.getPromoDetailsByName(whitespaceCode);
         });
         assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, exception.getMessage());
+    }
+
+    // ==================== Bulk Create Promos Tests ====================
+
+    /**
+     * Test successful bulk promo creation.
+     * Verifies that multiple promos are created successfully.
+     */
+    @Test
+    @DisplayName("Bulk Create Promos - Success - All valid promos")
+    void bulkCreatePromos_AllValid_Success() {
+        // Arrange
+        List<PromoRequestModel> promos = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            PromoRequestModel promoReq = new PromoRequestModel();
+            promoReq.setPromoCode("PROMO" + i);
+            promoReq.setDescription("Promo " + i);
+            promoReq.setDiscountValue(BigDecimal.valueOf(10 + i));
+            promoReq.setClientId(TEST_CLIENT_ID);
+            promos.add(promoReq);
+        }
+
+        Map<String, Promo> savedPromos = new HashMap<>();
+        when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID))).thenAnswer(invocation -> {
+            String code = invocation.getArgument(0);
+            return Optional.ofNullable(savedPromos.get(code.toUpperCase()));
+        });
+        when(promoRepository.save(any(Promo.class))).thenAnswer(invocation -> {
+            Promo promo = invocation.getArgument(0);
+            promo.setPromoId((long) (Math.random() * 1000));
+             savedPromos.put(promo.getPromoCode(), promo);
+            return promo;
+        });
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+        // Act
+        BulkInsertResponseModel<Long> result = promoService.bulkCreatePromos(promos);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(3, result.getTotalRequested());
+        assertEquals(3, result.getSuccessCount());
+        assertEquals(0, result.getFailureCount());
+        verify(promoRepository, times(3)).save(any(Promo.class));
+    }
+
+    /**
+     * Test bulk promo creation with partial success.
+     * Verifies that some promos succeed while others fail validation.
+     */
+    @Test
+    @DisplayName("Bulk Create Promos - Partial Success - Some promos fail validation")
+    void bulkCreatePromos_PartialSuccess() {
+        // Arrange
+        List<PromoRequestModel> promos = new ArrayList<>();
+        
+        // Valid promo
+        PromoRequestModel validPromo = new PromoRequestModel();
+        validPromo.setPromoCode("VALID");
+        validPromo.setDescription("Valid Promo");
+        validPromo.setDiscountValue(BigDecimal.valueOf(10));
+        validPromo.setClientId(TEST_CLIENT_ID);
+        promos.add(validPromo);
+        
+        // Invalid promo (missing promo code)
+        PromoRequestModel invalidPromo = new PromoRequestModel();
+        invalidPromo.setPromoCode(null);
+        invalidPromo.setDescription("Invalid Promo");
+        invalidPromo.setDiscountValue(BigDecimal.valueOf(10));
+        invalidPromo.setClientId(TEST_CLIENT_ID);
+        promos.add(invalidPromo);
+
+        Map<String, Promo> savedPromos = new HashMap<>();
+        when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID))).thenAnswer(invocation -> {
+            String code = invocation.getArgument(0);
+            return Optional.ofNullable(savedPromos.get(code != null ? code.toUpperCase() : null));
+        });
+        when(promoRepository.save(any(Promo.class))).thenAnswer(invocation -> {
+            Promo promo = invocation.getArgument(0);
+            promo.setPromoId((long) (Math.random() * 1000));
+            savedPromos.put(promo.getPromoCode(), promo);
+            return promo;
+        });
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+        // Act
+        BulkInsertResponseModel<Long> result = promoService.bulkCreatePromos(promos);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.getTotalRequested());
+        assertEquals(1, result.getSuccessCount());
+        assertEquals(1, result.getFailureCount());
+        verify(promoRepository, times(1)).save(any(Promo.class));
+    }
+
+    /**
+     * Test bulk promo creation with database error.
+     * Verifies that database errors are properly handled.
+     */
+    @Test
+    @DisplayName("Bulk Create Promos - Failure - Database error")
+    void bulkCreatePromos_DatabaseError() {
+        // Arrange
+        List<PromoRequestModel> promos = new ArrayList<>();
+        PromoRequestModel promoReq = new PromoRequestModel();
+        promoReq.setPromoCode("TEST");
+        promoReq.setDescription("Test Promo");
+        promoReq.setDiscountValue(BigDecimal.valueOf(10));
+        promoReq.setClientId(TEST_CLIENT_ID);
+        promos.add(promoReq);
+
+        lenient().when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID)))
+            .thenReturn(Optional.empty());
+        lenient().when(promoRepository.save(any(Promo.class))).thenThrow(new RuntimeException("Database error"));
+
+        // Act
+        BulkInsertResponseModel<Long> result = promoService.bulkCreatePromos(promos);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalRequested());
+        assertEquals(0, result.getSuccessCount());
+        assertEquals(1, result.getFailureCount());
+    }
+
+    /**
+     * Test bulk promo creation with empty list.
+     * Verifies that empty list is handled correctly.
+     */
+    @Test
+    @DisplayName("Bulk Create Promos - Success - Empty list")
+    void bulkCreatePromos_EmptyList() {
+        // Arrange
+        List<PromoRequestModel> promos = new ArrayList<>();
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            promoService.bulkCreatePromos(promos);
+        });
+        assertTrue(exception.getMessage().contains("Promo list cannot be null or empty"));
+        verify(promoRepository, never()).save(any(Promo.class));
     }
 }

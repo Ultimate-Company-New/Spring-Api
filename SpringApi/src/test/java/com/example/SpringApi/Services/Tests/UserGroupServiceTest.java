@@ -3,10 +3,13 @@ package com.example.SpringApi.Services.Tests;
 import com.example.SpringApi.Models.DatabaseModels.UserGroup;
 import com.example.SpringApi.Models.DatabaseModels.UserGroupUserMap;
 import com.example.SpringApi.Models.DatabaseModels.User;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.UserGroupRequestModel;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
+import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.UserGroupResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.SpringApi.FilterQueryBuilder.UserGroupFilterQueryBuilder;
 import com.example.SpringApi.Repositories.UserGroupRepository;
 import com.example.SpringApi.Repositories.UserGroupUserMapRepository;
 import com.example.SpringApi.Repositories.UserRepository;
@@ -22,11 +25,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -63,6 +66,9 @@ class UserGroupServiceTest {
     
     @Mock
     private UserGroupUserMapRepository userGroupUserMapRepository;
+
+    @Mock
+    private UserGroupFilterQueryBuilder userGroupFilterQueryBuilder;
     
     @Mock
     private UserRepository userRepository;
@@ -73,7 +79,6 @@ class UserGroupServiceTest {
     @Mock
     private HttpServletRequest request;
     
-    @Spy
     @InjectMocks
     private UserGroupService userGroupService;
     
@@ -82,7 +87,7 @@ class UserGroupServiceTest {
     private User testUser;
     private UserGroupUserMap testMapping;
     private static final Long TEST_GROUP_ID = 1L;
-    private static final Long TEST_CLIENT_ID = 100L;
+    private static final Long TEST_CLIENT_ID = 1L;
     private static final Long TEST_USER_ID = 1L;
     private static final String TEST_GROUP_NAME = "Test Group";
     private static final String TEST_DESCRIPTION = "Test Description";
@@ -127,7 +132,7 @@ class UserGroupServiceTest {
         
         // Setup common mock behaviors with lenient mocking for JWT authentication
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
-        lenient().doReturn(TEST_CLIENT_ID).when(userGroupService).getClientId();
+        // Note: BaseService methods are now handled by the actual service implementation
         
         // Note: We avoid mocking getUser() and getClientId() to let JWT authentication work
         // The JWT authentication will provide these values automatically
@@ -389,16 +394,13 @@ class UserGroupServiceTest {
         // Arrange
         testUserGroupRequest.setStart(0);
         testUserGroupRequest.setEnd(10);
-        testUserGroupRequest.setColumnName("name");
-        testUserGroupRequest.setCondition("contains");
-        testUserGroupRequest.setFilterExpr("");
         testUserGroupRequest.setIncludeDeleted(false);
         
         List<UserGroup> userGroups = Arrays.asList(testUserGroup);
         Page<UserGroup> userGroupPage = new PageImpl<>(userGroups, PageRequest.of(0, 10), 1);
         
-        when(userGroupRepository.findPaginatedUserGroups(
-            eq(TEST_CLIENT_ID), isNull(), anyString(), eq("contains"), anyString(), eq(false), any(PageRequest.class)
+        lenient().when(userGroupFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
         )).thenReturn(userGroupPage);
         
         // Act
@@ -410,8 +412,8 @@ class UserGroupServiceTest {
         assertEquals(1L, result.getTotalDataCount());
         assertEquals(TEST_GROUP_ID, result.getData().get(0).getGroupId());
         assertEquals(TEST_GROUP_NAME, result.getData().get(0).getGroupName());
-        verify(userGroupRepository, times(1)).findPaginatedUserGroups(
-            eq(TEST_CLIENT_ID), isNull(), anyString(), eq("contains"), anyString(), eq(false), any(PageRequest.class)
+        verify(userGroupFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
         );
     }
     
@@ -425,7 +427,13 @@ class UserGroupServiceTest {
         // Arrange
         testUserGroupRequest.setStart(0);
         testUserGroupRequest.setEnd(10);
-        testUserGroupRequest.setColumnName("invalidColumn");
+        
+        PaginationBaseRequestModel.FilterCondition invalidFilter = new PaginationBaseRequestModel.FilterCondition();
+        invalidFilter.setColumn("invalidColumn");
+        invalidFilter.setOperator("contains");
+        invalidFilter.setValue("test");
+        testUserGroupRequest.setFilters(Arrays.asList(invalidFilter));
+        testUserGroupRequest.setLogicOperator("AND");
         
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -433,32 +441,37 @@ class UserGroupServiceTest {
             () -> userGroupService.fetchUserGroupsInClientInBatches(testUserGroupRequest)
         );
         
-        assertTrue(exception.getMessage().contains(ErrorMessages.InvalidColumn));
-        verify(userGroupRepository, never()).findPaginatedUserGroups(
-            anyLong(), anyList(), anyString(), anyString(), anyString(), anyBoolean(), any(PageRequest.class)
+        assertTrue(exception.getMessage().contains("Invalid column name"));
+        verify(userGroupFilterQueryBuilder, never()).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
         );
     }
     
     /**
-     * Test pagination with filtering.
-     * Verifies that filter expressions are correctly applied.
+     * Test pagination with single filter.
+     * Verifies that single filter expressions are correctly applied.
      */
     @Test
-    @DisplayName("Fetch User Groups In Batches - Success - With filter")
-    void fetchUserGroupsInClientInBatches_WithFilter_Success() {
+    @DisplayName("Fetch User Groups In Batches - Success - With single filter")
+    void fetchUserGroupsInClientInBatches_WithSingleFilter_Success() {
         // Arrange
         testUserGroupRequest.setStart(0);
         testUserGroupRequest.setEnd(10);
-        testUserGroupRequest.setColumnName("description");
-        testUserGroupRequest.setCondition("contains");
-        testUserGroupRequest.setFilterExpr("Admin");
         testUserGroupRequest.setIncludeDeleted(false);
+        
+        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+        filter.setColumn("description");
+        filter.setOperator("contains");
+        filter.setValue("Admin");
+        testUserGroupRequest.setFilters(Arrays.asList(filter));
+        testUserGroupRequest.setLogicOperator("AND");
         
         List<UserGroup> userGroups = Arrays.asList(testUserGroup);
         Page<UserGroup> userGroupPage = new PageImpl<>(userGroups, PageRequest.of(0, 10), 1);
         
-        when(userGroupRepository.findPaginatedUserGroups(
-            eq(TEST_CLIENT_ID), isNull(), eq("description"), eq("contains"), eq("Admin"), eq(false), any(PageRequest.class)
+        when(userGroupFilterQueryBuilder.getColumnType("description")).thenReturn("string");
+        lenient().when(userGroupFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
         )).thenReturn(userGroupPage);
         
         // Act
@@ -467,8 +480,9 @@ class UserGroupServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getData().size());
-        verify(userGroupRepository, times(1)).findPaginatedUserGroups(
-            eq(TEST_CLIENT_ID), isNull(), eq("description"), eq("contains"), eq("Admin"), eq(false), any(PageRequest.class)
+        verify(userGroupFilterQueryBuilder, times(1)).getColumnType("description");
+        verify(userGroupFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
         );
     }
     
@@ -482,17 +496,14 @@ class UserGroupServiceTest {
         // Arrange
         testUserGroupRequest.setStart(0);
         testUserGroupRequest.setEnd(10);
-        testUserGroupRequest.setColumnName("name");
-        testUserGroupRequest.setCondition("contains");
-        testUserGroupRequest.setFilterExpr("");
         testUserGroupRequest.setIncludeDeleted(false);
         testUserGroupRequest.setSelectedGroupIds(Arrays.asList(TEST_GROUP_ID, 2L, 3L));
         
         List<UserGroup> userGroups = Arrays.asList(testUserGroup);
         Page<UserGroup> userGroupPage = new PageImpl<>(userGroups, PageRequest.of(0, 10), 1);
         
-        when(userGroupRepository.findPaginatedUserGroups(
-            eq(TEST_CLIENT_ID), eq(Arrays.asList(TEST_GROUP_ID, 2L, 3L)), anyString(), eq("contains"), anyString(), eq(false), any(PageRequest.class)
+        lenient().when(userGroupFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
         )).thenReturn(userGroupPage);
         
         // Act
@@ -502,8 +513,306 @@ class UserGroupServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getData().size());
         assertEquals(1L, result.getTotalDataCount());
-        verify(userGroupRepository, times(1)).findPaginatedUserGroups(
-            eq(TEST_CLIENT_ID), eq(Arrays.asList(TEST_GROUP_ID, 2L, 3L)), anyString(), eq("contains"), anyString(), eq(false), any(PageRequest.class)
+        verify(userGroupFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
         );
+    }
+    
+    /**
+     * Test pagination with multiple filters using AND logic.
+     * Verifies that multiple filters combined with AND are correctly applied.
+     */
+    @Test
+    @DisplayName("Fetch User Groups In Batches - Success - With multiple filters AND")
+    void fetchUserGroupsInClientInBatches_WithMultipleFiltersAND_Success() {
+        // Arrange
+        testUserGroupRequest.setStart(0);
+        testUserGroupRequest.setEnd(10);
+        testUserGroupRequest.setIncludeDeleted(false);
+        
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("groupName");
+        filter1.setOperator("contains");
+        filter1.setValue("Admin");
+        
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("description");
+        filter2.setOperator("contains");
+        filter2.setValue("Group");
+        
+        testUserGroupRequest.setFilters(Arrays.asList(filter1, filter2));
+        testUserGroupRequest.setLogicOperator("AND");
+        
+        List<UserGroup> userGroups = Arrays.asList(testUserGroup);
+        Page<UserGroup> userGroupPage = new PageImpl<>(userGroups, PageRequest.of(0, 10), 1);
+        
+        when(userGroupFilterQueryBuilder.getColumnType("groupName")).thenReturn("string");
+        when(userGroupFilterQueryBuilder.getColumnType("description")).thenReturn("string");
+        lenient().when(userGroupFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(userGroupPage);
+        
+        // Act
+        PaginationBaseResponseModel<UserGroupResponseModel> result = userGroupService.fetchUserGroupsInClientInBatches(testUserGroupRequest);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(userGroupFilterQueryBuilder, times(1)).getColumnType("groupName");
+        verify(userGroupFilterQueryBuilder, times(1)).getColumnType("description");
+        verify(userGroupFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        );
+    }
+    
+    /**
+     * Test pagination with multiple filters using OR logic.
+     * Verifies that multiple filters combined with OR are correctly applied.
+     */
+    @Test
+    @DisplayName("Fetch User Groups In Batches - Success - With multiple filters OR")
+    void fetchUserGroupsInClientInBatches_WithMultipleFiltersOR_Success() {
+        // Arrange
+        testUserGroupRequest.setStart(0);
+        testUserGroupRequest.setEnd(10);
+        testUserGroupRequest.setIncludeDeleted(false);
+        
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("groupName");
+        filter1.setOperator("contains");
+        filter1.setValue("Admin");
+        
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("groupName");
+        filter2.setOperator("contains");
+        filter2.setValue("Manager");
+        
+        testUserGroupRequest.setFilters(Arrays.asList(filter1, filter2));
+        testUserGroupRequest.setLogicOperator("OR");
+        
+        List<UserGroup> userGroups = Arrays.asList(testUserGroup);
+        Page<UserGroup> userGroupPage = new PageImpl<>(userGroups, PageRequest.of(0, 10), 1);
+        
+        when(userGroupFilterQueryBuilder.getColumnType("groupName")).thenReturn("string");
+        lenient().when(userGroupFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(userGroupPage);
+        
+        // Act
+        PaginationBaseResponseModel<UserGroupResponseModel> result = userGroupService.fetchUserGroupsInClientInBatches(testUserGroupRequest);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(userGroupFilterQueryBuilder, times(2)).getColumnType("groupName");
+        verify(userGroupFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        );
+    }
+    
+    /**
+     * Test pagination with complex filters (string, number, boolean).
+     * Verifies that filters with different column types are correctly validated and applied.
+     */
+    @Test
+    @DisplayName("Fetch User Groups In Batches - Success - With complex filters")
+    void fetchUserGroupsInClientInBatches_WithComplexFilters_Success() {
+        // Arrange
+        testUserGroupRequest.setStart(0);
+        testUserGroupRequest.setEnd(10);
+        testUserGroupRequest.setIncludeDeleted(false);
+        
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("groupName");
+        filter1.setOperator("contains");
+        filter1.setValue("Admin");
+        
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("groupId");
+        filter2.setOperator(PaginationBaseRequestModel.OP_GREATER_THAN);
+        filter2.setValue("0");
+        
+        testUserGroupRequest.setFilters(Arrays.asList(filter1, filter2));
+        testUserGroupRequest.setLogicOperator("AND");
+        
+        List<UserGroup> userGroups = Arrays.asList(testUserGroup);
+        Page<UserGroup> userGroupPage = new PageImpl<>(userGroups, PageRequest.of(0, 10), 1);
+        
+        when(userGroupFilterQueryBuilder.getColumnType("groupName")).thenReturn("string");
+        when(userGroupFilterQueryBuilder.getColumnType("groupId")).thenReturn("number");
+        lenient().when(userGroupFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(userGroupPage);
+        
+        // Act
+        PaginationBaseResponseModel<UserGroupResponseModel> result = userGroupService.fetchUserGroupsInClientInBatches(testUserGroupRequest);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(userGroupFilterQueryBuilder, times(1)).getColumnType("groupName");
+        verify(userGroupFilterQueryBuilder, times(1)).getColumnType("groupId");
+        verify(userGroupFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)
+        );
+    }
+    
+    // ==================== Bulk Create User Groups Tests ====================
+    
+    /**
+     * Test successful bulk user group creation.
+     * Verifies that multiple user groups are created successfully.
+     */
+    @Test
+    @DisplayName("Bulk Create User Groups - Success - All valid groups")
+    void bulkCreateUserGroups_AllValid_Success() {
+        // Arrange
+        List<UserGroupRequestModel> userGroups = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            UserGroupRequestModel groupReq = new UserGroupRequestModel();
+            groupReq.setGroupName("BulkGroup" + i);
+            groupReq.setDescription("Description for group " + i);
+            groupReq.setUserIds(Arrays.asList(1L, 2L));
+            userGroups.add(groupReq);
+        }
+        
+        Map<String, UserGroup> savedGroups = new HashMap<>();
+        when(userGroupRepository.findByGroupName(anyString()))
+            .thenAnswer(invocation -> savedGroups.get(invocation.getArgument(0)));
+        when(userGroupRepository.save(any(UserGroup.class))).thenAnswer(invocation -> {
+            UserGroup group = invocation.getArgument(0);
+            group.setGroupId((long) (Math.random() * 1000));
+            savedGroups.put(group.getGroupName(), group);
+            return group;
+        });
+        when(userGroupUserMapRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        
+        // Act
+        BulkInsertResponseModel<Long> result = userGroupService.bulkCreateUserGroups(userGroups);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(3, result.getTotalRequested());
+        assertEquals(3, result.getSuccessCount());
+        assertEquals(0, result.getFailureCount());
+        verify(userGroupRepository, times(3)).save(any(UserGroup.class));
+    }
+    
+    /**
+     * Test bulk user group creation with partial success.
+     * Verifies that some groups succeed while others fail validation.
+     */
+    @Test
+    @DisplayName("Bulk Create User Groups - Partial Success - Mixed valid and invalid")
+    void bulkCreateUserGroups_PartialSuccess() {
+        // Arrange
+        List<UserGroupRequestModel> userGroups = new ArrayList<>();
+        
+        // Valid group
+        UserGroupRequestModel validGroup = new UserGroupRequestModel();
+        validGroup.setGroupName("ValidGroup");
+        validGroup.setDescription("Valid description");
+        validGroup.setUserIds(Arrays.asList(1L, 2L));
+        userGroups.add(validGroup);
+        
+        // Invalid group (missing userIds)
+        UserGroupRequestModel invalidGroup = new UserGroupRequestModel();
+        invalidGroup.setGroupName("InvalidGroup");
+        invalidGroup.setDescription("Invalid description");
+        userGroups.add(invalidGroup);
+        
+        Map<String, UserGroup> savedGroups = new HashMap<>();
+        when(userGroupRepository.findByGroupName(anyString()))
+            .thenAnswer(invocation -> savedGroups.get(invocation.getArgument(0)));
+        when(userGroupRepository.save(any(UserGroup.class))).thenAnswer(invocation -> {
+            UserGroup group = invocation.getArgument(0);
+            group.setGroupId(100L);
+            savedGroups.put(group.getGroupName(), group);
+            return group;
+        });
+        when(userGroupUserMapRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        
+        // Act
+        BulkInsertResponseModel<Long> result = userGroupService.bulkCreateUserGroups(userGroups);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.getTotalRequested());
+        assertEquals(1, result.getSuccessCount());
+        assertEquals(1, result.getFailureCount());
+        verify(userGroupRepository, times(1)).save(any(UserGroup.class));
+    }
+    
+    /**
+     * Test bulk user group creation with duplicate group name.
+     * Verifies that duplicate group names are rejected.
+     */
+    @Test
+    @DisplayName("Bulk Create User Groups - Failure - Duplicate group name")
+    void bulkCreateUserGroups_DuplicateName() {
+        // Arrange
+        List<UserGroupRequestModel> userGroups = new ArrayList<>();
+        
+        UserGroupRequestModel group1 = new UserGroupRequestModel();
+        group1.setGroupName("NewGroup");
+        group1.setDescription("New group");
+        group1.setUserIds(Arrays.asList(1L, 2L));
+        userGroups.add(group1);
+        
+        UserGroupRequestModel group2 = new UserGroupRequestModel();
+        group2.setGroupName("ExistingGroup");
+        group2.setDescription("Existing group");
+        group2.setUserIds(Arrays.asList(1L, 2L));
+        userGroups.add(group2);
+        
+        Map<String, UserGroup> savedGroups = new HashMap<>();
+        UserGroup existingGroup = new UserGroup(group2, CREATED_USER, TEST_CLIENT_ID);
+        existingGroup.setGroupId(TEST_GROUP_ID);
+        savedGroups.put("ExistingGroup", existingGroup);
+        
+        when(userGroupRepository.findByGroupName(anyString()))
+            .thenAnswer(invocation -> savedGroups.get(invocation.getArgument(0)));
+        when(userGroupRepository.save(any(UserGroup.class))).thenAnswer(invocation -> {
+            UserGroup group = invocation.getArgument(0);
+            group.setGroupId(100L);
+            savedGroups.put(group.getGroupName(), group);
+            return group;
+        });
+        when(userGroupUserMapRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        
+        // Act
+        BulkInsertResponseModel<Long> result = userGroupService.bulkCreateUserGroups(userGroups);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.getTotalRequested());
+        assertEquals(1, result.getSuccessCount());
+        assertEquals(1, result.getFailureCount());
+        
+        // Verify the duplicate group name failed
+        Optional<BulkInsertResponseModel.InsertResult<Long>> duplicateResult = 
+            result.getResults().stream()
+                .filter(r -> r.getIdentifier().equals("ExistingGroup"))
+                .findFirst();
+        assertTrue(duplicateResult.isPresent());
+        assertFalse(duplicateResult.get().isSuccess());
+    }
+    
+    /**
+     * Test bulk user group creation with empty list.
+     * Verifies that empty list returns empty result.
+     */
+    @Test
+    @DisplayName("Bulk Create User Groups - Empty List - Returns empty result")
+    void bulkCreateUserGroups_EmptyList() {
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            userGroupService.bulkCreateUserGroups(new ArrayList<>());
+        });
+        assertTrue(exception.getMessage().contains("User group list cannot be null or empty"));
+        verify(userGroupRepository, never()).save(any(UserGroup.class));
     }
 }

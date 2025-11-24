@@ -94,4 +94,12 @@ public interface IProductSubTranslator {
      * @throws UnauthorizedException if user is not authorized
      */
     PaginationBaseResponseModel<ProductResponseModel> getProductInBatches(PaginationBaseRequestModel paginationBaseRequestModel);
+    
+    /**
+     * Creates multiple products in a single operation.
+     * 
+     * @param products List of ProductRequestModel containing the product data to insert
+     * @return BulkInsertResponseModel containing success/failure details for each product
+     */
+    com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkAddProducts(java.util.List<ProductRequestModel> products);
 }

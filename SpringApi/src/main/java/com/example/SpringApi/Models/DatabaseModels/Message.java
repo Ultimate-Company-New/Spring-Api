@@ -54,6 +54,10 @@ public class Message {
     @Column(name = "createdByUserId")
     private Long createdByUserId;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "createdByUserId", referencedColumnName = "userId", insertable = false, updatable = false)
+    private User createdByUser;
+    
     @Column(name = "sendgridEmailBatchId", length = 255)
     private String sendgridEmailBatchId;
     

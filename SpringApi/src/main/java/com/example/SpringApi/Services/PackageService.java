@@ -1,5 +1,7 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.Helpers.BulkInsertHelper;
+import com.example.SpringApi.FilterQueryBuilder.PackageFilterQueryBuilder;
 import com.example.SpringApi.Models.DatabaseModels.Package;
 import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
 import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
@@ -20,6 +22,7 @@ import com.example.SpringApi.SuccessMessages;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +48,8 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     private final UserLogService userLogService;
     private final PackagePickupLocationMappingRepository packagePickupLocationMappingRepository;
     private final com.example.SpringApi.Repositories.PickupLocationRepository pickupLocationRepository;
+    private final PackageFilterQueryBuilder packageFilterQueryBuilder;
+    private final MessageService messageService;
 
     @Autowired
     public PackageService(
@@ -52,12 +57,16 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         UserLogService userLogService,
         PackagePickupLocationMappingRepository packagePickupLocationMappingRepository,
         com.example.SpringApi.Repositories.PickupLocationRepository pickupLocationRepository,
+        PackageFilterQueryBuilder packageFilterQueryBuilder,
+        MessageService messageService,
         HttpServletRequest request) {
         super();
         this.packageRepository = packageRepository;
         this.userLogService = userLogService;
         this.packagePickupLocationMappingRepository = packagePickupLocationMappingRepository;
         this.pickupLocationRepository = pickupLocationRepository;
+        this.packageFilterQueryBuilder = packageFilterQueryBuilder;
+        this.messageService = messageService;
     }
 
     /**
@@ -90,6 +99,9 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             "packageId",
             "packageName",
             "dimensions",
+            "length",
+            "breadth",
+            "height",
             "standardCapacity",
             "packageType",
             "maxWeight",
@@ -102,47 +114,56 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             "isDeleted"
         ));
         
-        if (paginationBaseRequestModel.getColumnName() != null && 
-            !validColumns.contains(paginationBaseRequestModel.getColumnName())) {
-            throw new BadRequestException("Invalid column name for filtering: " + paginationBaseRequestModel.getColumnName());
-        }
-        
-        // Validate condition
-        if (paginationBaseRequestModel.getCondition() != null && !paginationBaseRequestModel.getCondition().isEmpty()) {
-            Set<String> validConditions = new HashSet<>(Arrays.asList(
-                "equals",
-                "contains",
-                "startsWith",
-                "endsWith",
-                "greaterThan",
-                "lessThan",
-                "greaterThanOrEqual",
-                "lessThanOrEqual"
-            ));
-            
-            if (!validConditions.contains(paginationBaseRequestModel.getCondition())) {
-                throw new BadRequestException("Invalid condition for filtering: " + paginationBaseRequestModel.getCondition());
+        // Validate filter conditions if provided
+        if (paginationBaseRequestModel.getFilters() != null && !paginationBaseRequestModel.getFilters().isEmpty()) {
+            for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
+                // Validate column name
+                if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
+                    throw new BadRequestException("Invalid column name: " + filter.getColumn());
+                }
+
+                // Validate operator
+                Set<String> validOperators = new HashSet<>(Arrays.asList(
+                    "equals", "notEquals", "contains", "notContains", "startsWith", "endsWith",
+                    "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual",
+                    "isEmpty", "isNotEmpty"
+                ));
+                if (filter.getOperator() != null && !validOperators.contains(filter.getOperator())) {
+                    throw new BadRequestException("Invalid operator: " + filter.getOperator());
+                }
+
+                // Validate column type matches operator
+                String columnType = packageFilterQueryBuilder.getColumnType(filter.getColumn());
+                if ("boolean".equals(columnType) && !filter.getOperator().equals("equals") && !filter.getOperator().equals("notEquals")) {
+                    throw new BadRequestException("Boolean columns only support 'equals' and 'notEquals' operators");
+                }
+                if ("date".equals(columnType) || "number".equals(columnType)) {
+                    Set<String> numericDateOperators = new HashSet<>(Arrays.asList(
+                        "equals", "notEquals", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"
+                    ));
+                    if (!numericDateOperators.contains(filter.getOperator())) {
+                        throw new BadRequestException(columnType + " columns only support numeric comparison operators");
+                    }
+                }
             }
         }
+        
         int limit = end - start;
         
         // Create custom Pageable with exact OFFSET and LIMIT for database-level pagination
-        // Spring's PageRequest.of(page, size) uses: OFFSET = page * size, LIMIT = size
-        // For arbitrary offsets (e.g., start=5, end=15), we need OFFSET=5, LIMIT=10
-        // Solution: Override getOffset() to return the exact start position
-        org.springframework.data.domain.Pageable pageable = new org.springframework.data.domain.PageRequest(0, limit, Sort.by("packageId").descending()) {
+        org.springframework.data.domain.Pageable pageable = new PageRequest(0, limit, Sort.by("packageId").descending()) {
             @Override
             public long getOffset() {
                 return start;
             }
         };
         
-        // Execute paginated query with filtering - Page object handles count automatically
-        Page<Package> page = packageRepository.findPaginatedPackages(
+        // Use filter query builder for dynamic filtering
+        Page<Package> page = packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
             getClientId(),
-            paginationBaseRequestModel.getColumnName(),
-            paginationBaseRequestModel.getCondition(),
-            paginationBaseRequestModel.getFilterExpr(),
+            paginationBaseRequestModel.getSelectedIds(),
+            paginationBaseRequestModel.getLogicOperator() != null ? paginationBaseRequestModel.getLogicOperator() : "AND",
+            paginationBaseRequestModel.getFilters(),
             paginationBaseRequestModel.isIncludeDeleted(),
             pageable
         );
@@ -245,14 +266,21 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      */
     @Override
     public void createPackage(PackageRequestModel packageRequest) {
-        // Create new package using the constructor
-        Package savedPackage =packageRepository.save(new Package(packageRequest, getUser(), getClientId()));
+        persistPackage(packageRequest);
+    }
+
+    private Package persistPackage(PackageRequestModel packageRequest) {
+        Package savedPackage = packageRepository.save(new Package(packageRequest, getUser(), getClientId()));
+
+        // Make generated ID available to the caller (useful for bulk operations/tests)
+        packageRequest.setPackageId(savedPackage.getPackageId());
 
         // Logging
         userLogService.logData(
             getUserId(),
             SuccessMessages.PackagesSuccessMessages.InsertPackage + savedPackage.getPackageId(),
             ApiRoutes.PackageSubRoute.CREATE_PACKAGE);
+        return savedPackage;
     }
 
     /**
@@ -273,5 +301,56 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         return mappings.stream()
             .map(mapping -> new PackageResponseModel(mapping.getPackageEntity()))
             .collect(Collectors.toList());
+    }
+
+    /**
+     * Creates multiple packages in a single operation.
+     *
+     * @param packages List of PackageRequestModel containing the package data to insert
+     * @return BulkInsertResponseModel containing success/failure details for each package
+     */
+    @Override
+    public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreatePackages(java.util.List<PackageRequestModel> packages) {
+        if (packages == null || packages.isEmpty()) {
+            throw new BadRequestException("Package list cannot be null or empty");
+        }
+
+        com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
+            new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+        response.setTotalRequested(packages.size());
+        
+        int successCount = 0;
+        int failureCount = 0;
+        
+        for (PackageRequestModel packageRequest : packages) {
+            try {
+                Package createdPackage = persistPackage(packageRequest);
+                response.addSuccess(packageRequest.getPackageName(), createdPackage.getPackageId());
+                successCount++;
+            } catch (BadRequestException bre) {
+                response.addFailure(
+                    packageRequest.getPackageName() != null ? packageRequest.getPackageName() : "unknown", 
+                    bre.getMessage()
+                );
+                failureCount++;
+            } catch (Exception e) {
+                response.addFailure(
+                    packageRequest.getPackageName() != null ? packageRequest.getPackageName() : "unknown", 
+                    "Error: " + e.getMessage()
+                );
+                failureCount++;
+            }
+        }
+        
+        userLogService.logData(getUserId(), 
+            SuccessMessages.PackagesSuccessMessages.InsertPackage + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+            ApiRoutes.PackageSubRoute.BULK_CREATE_PACKAGE);
+        
+        response.setSuccessCount(successCount);
+        response.setFailureCount(failureCount);
+        
+        BulkInsertHelper.createBulkInsertResultMessage(response, "Package", messageService, getUserId());
+        
+        return response;
     }
 }

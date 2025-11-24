@@ -64,4 +64,12 @@ public interface ILeadSubTranslator {
      * @return The updated Lead entity
      */
     void toggleLead(Long leadId);
+    
+    /**
+     * Creates multiple leads in a single operation.
+     * 
+     * @param leads List of LeadRequestModel containing the lead data to insert
+     * @return BulkInsertResponseModel containing success/failure details for each lead
+     */
+    com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateLeads(java.util.List<LeadRequestModel> leads);
 }

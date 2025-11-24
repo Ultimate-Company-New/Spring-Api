@@ -254,4 +254,26 @@ public class MessageController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
+
+    /**
+     * Gets the count of unread messages for the current user.
+     * 
+     * This endpoint returns the number of unread messages for the authenticated user.
+     * Messages are considered unread if they have been sent to the user (directly or
+     * through user groups) and have not been marked as read.
+     * Requires VIEW_MESSAGES_PERMISSION to access.
+     * 
+     * @return ResponseEntity containing the unread message count or error
+     */
+    @GetMapping("/" + ApiRoutes.MessagesSubRoute.GET_UNREAD_MESSAGE_COUNT)
+    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_MESSAGES_PERMISSION +"')")
+    public ResponseEntity<?> getUnreadMessageCount() {
+        try {
+            int count = messageService.getUnreadMessageCount();
+            return ResponseEntity.ok(count);
+        } catch (Exception e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
 }

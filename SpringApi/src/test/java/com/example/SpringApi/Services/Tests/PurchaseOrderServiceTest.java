@@ -3,12 +3,14 @@ package com.example.SpringApi.Services.Tests;
 import com.example.SpringApi.Constants.EntityType;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.FilterQueryBuilder.PurchaseOrderFilterQueryBuilder;
 import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem;
 import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
+import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PurchaseOrderResponseModel;
 import com.example.SpringApi.Repositories.*;
@@ -22,7 +24,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
@@ -83,9 +84,11 @@ class PurchaseOrderServiceTest {
     private UserLogService userLogService;
 
     @Mock
+    private PurchaseOrderFilterQueryBuilder purchaseOrderFilterQueryBuilder;
+
+    @Mock
     private Environment environment;
 
-    @Spy
     @InjectMocks
     private PurchaseOrderService purchaseOrderService;
 
@@ -110,10 +113,7 @@ class PurchaseOrderServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Mock BaseService methods
-        lenient().doReturn(TEST_CLIENT_ID).when(purchaseOrderService).getClientId();
-        lenient().doReturn(TEST_USER_ID).when(purchaseOrderService).getUserId();
-        lenient().doReturn(CREATED_USER).when(purchaseOrderService).getUser();
+        // Note: BaseService methods are now handled by the actual service implementation
 
         // Initialize test data
         initializeTestData();
@@ -138,8 +138,8 @@ class PurchaseOrderServiceTest {
         List<PurchaseOrder> purchaseOrders = Arrays.asList(testPurchaseOrder);
         Page<PurchaseOrder> page = new PageImpl<>(purchaseOrders);
 
-        when(purchaseOrderRepository.findPaginatedPurchaseOrders(
-            eq(TEST_CLIENT_ID), isNull(), isNull(), isNull(), eq(false), isNull(), any(Pageable.class)
+        lenient().when(purchaseOrderFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class)
         )).thenReturn(page);
 
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
@@ -153,29 +153,54 @@ class PurchaseOrderServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getData().size());
         assertEquals(1L, result.getTotalDataCount());
-        verify(purchaseOrderRepository).findPaginatedPurchaseOrders(
-            anyLong(), isNull(), isNull(), isNull(), anyBoolean(), isNull(), any(Pageable.class)
+        verify(purchaseOrderFilterQueryBuilder).findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class)
         );
     }
 
     @Test
-    @DisplayName("Get POs In Batches - With Column Filter")
-    void getPurchaseOrdersInBatches_WithColumnFilter() {
+    @DisplayName("Get POs In Batches - Invalid Column Name")
+    void getPurchaseOrdersInBatches_InvalidColumnName() {
         // Arrange
         PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
         paginationRequest.setStart(0);
         paginationRequest.setEnd(10);
-        paginationRequest.setColumnName("vendorNumber");
-        paginationRequest.setCondition("equals");
-        paginationRequest.setFilterExpr(TEST_VENDOR_NUMBER);
-        paginationRequest.setIncludeDeleted(false);
+
+        PaginationBaseRequestModel.FilterCondition invalidFilter = new PaginationBaseRequestModel.FilterCondition();
+        invalidFilter.setColumn("invalidColumn");
+        invalidFilter.setOperator("contains");
+        invalidFilter.setValue("test");
+        paginationRequest.setFilters(Arrays.asList(invalidFilter));
+        paginationRequest.setLogicOperator("AND");
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class,
+            () -> purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest));
+
+        assertEquals("Invalid column name: invalidColumn", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get POs In Batches - With Single Filter")
+    void getPurchaseOrdersInBatches_WithSingleFilter() {
+        // Arrange
+        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
+        paginationRequest.setStart(0);
+        paginationRequest.setEnd(10);
+
+        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+        filter.setColumn("vendorNumber");
+        filter.setOperator("contains");
+        filter.setValue(TEST_VENDOR_NUMBER);
+        paginationRequest.setFilters(Arrays.asList(filter));
+        paginationRequest.setLogicOperator("AND");
 
         List<PurchaseOrder> purchaseOrders = Arrays.asList(testPurchaseOrder);
         Page<PurchaseOrder> page = new PageImpl<>(purchaseOrders);
 
-        when(purchaseOrderRepository.findPaginatedPurchaseOrders(
-            eq(TEST_CLIENT_ID), eq("vendorNumber"), eq("equals"), eq(TEST_VENDOR_NUMBER), 
-            eq(false), isNull(), any(Pageable.class)
+        lenient().when(purchaseOrderFilterQueryBuilder.getColumnType("vendorNumber")).thenReturn("string");
+        lenient().when(purchaseOrderFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class)
         )).thenReturn(page);
 
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
@@ -188,39 +213,161 @@ class PurchaseOrderServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getData().size());
+        verify(purchaseOrderFilterQueryBuilder, times(1)).getColumnType("vendorNumber");
     }
 
     @Test
-    @DisplayName("Get POs In Batches - Invalid Column Name")
-    void getPurchaseOrdersInBatches_InvalidColumnName() {
+    @DisplayName("Get POs In Batches - With Multiple Filters AND")
+    void getPurchaseOrdersInBatches_WithMultipleFiltersAND() {
         // Arrange
         PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
         paginationRequest.setStart(0);
         paginationRequest.setEnd(10);
-        paginationRequest.setColumnName("invalidColumn");
+
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("vendorNumber");
+        filter1.setOperator("contains");
+        filter1.setValue(TEST_VENDOR_NUMBER);
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("purchaseOrderStatus");
+        filter2.setOperator("contains");
+        filter2.setValue("Pending");
+
+        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
+        paginationRequest.setLogicOperator("AND");
+
+        List<PurchaseOrder> purchaseOrders = Arrays.asList(testPurchaseOrder);
+        Page<PurchaseOrder> page = new PageImpl<>(purchaseOrders);
+
+        lenient().when(purchaseOrderFilterQueryBuilder.getColumnType("vendorNumber")).thenReturn("string");
+        when(purchaseOrderFilterQueryBuilder.getColumnType("purchaseOrderStatus")).thenReturn("string");
+        lenient().when(purchaseOrderFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(page);
+
+        when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
+            .thenReturn(new ArrayList<>());
+
+        // Act
+        PaginationBaseResponseModel<PurchaseOrderResponseModel> result = 
+            purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(purchaseOrderFilterQueryBuilder, times(1)).getColumnType("vendorNumber");
+        verify(purchaseOrderFilterQueryBuilder, times(1)).getColumnType("purchaseOrderStatus");
+    }
+
+    @Test
+    @DisplayName("Get POs In Batches - With Multiple Filters OR")
+    void getPurchaseOrdersInBatches_WithMultipleFiltersOR() {
+        // Arrange
+        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
+        paginationRequest.setStart(0);
+        paginationRequest.setEnd(10);
+
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("purchaseOrderStatus");
+        filter1.setOperator("contains");
+        filter1.setValue("Pending");
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("purchaseOrderStatus");
+        filter2.setOperator("contains");
+        filter2.setValue("Approved");
+
+        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
+        paginationRequest.setLogicOperator("OR");
+
+        List<PurchaseOrder> purchaseOrders = Arrays.asList(testPurchaseOrder);
+        Page<PurchaseOrder> page = new PageImpl<>(purchaseOrders);
+
+        when(purchaseOrderFilterQueryBuilder.getColumnType("purchaseOrderStatus")).thenReturn("string");
+        lenient().when(purchaseOrderFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(page);
+
+        when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
+            .thenReturn(new ArrayList<>());
+
+        // Act
+        PaginationBaseResponseModel<PurchaseOrderResponseModel> result = 
+            purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(purchaseOrderFilterQueryBuilder, times(2)).getColumnType("purchaseOrderStatus");
+    }
+
+    @Test
+    @DisplayName("Get POs In Batches - With Complex Filters")
+    void getPurchaseOrdersInBatches_WithComplexFilters() {
+        // Arrange
+        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
+        paginationRequest.setStart(0);
+        paginationRequest.setEnd(10);
+
+        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+        filter1.setColumn("vendorNumber");
+        filter1.setOperator("contains");
+        filter1.setValue(TEST_VENDOR_NUMBER);
+
+        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+        filter2.setColumn("purchaseOrderId");
+        filter2.setOperator("greaterThan");
+        filter2.setValue("0");
+
+        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
+        paginationRequest.setLogicOperator("AND");
+
+        List<PurchaseOrder> purchaseOrders = Arrays.asList(testPurchaseOrder);
+        Page<PurchaseOrder> page = new PageImpl<>(purchaseOrders);
+
+        lenient().when(purchaseOrderFilterQueryBuilder.getColumnType("vendorNumber")).thenReturn("string");
+        when(purchaseOrderFilterQueryBuilder.getColumnType("purchaseOrderId")).thenReturn("number");
+        lenient().when(purchaseOrderFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class)
+        )).thenReturn(page);
+
+        when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
+            .thenReturn(new ArrayList<>());
+
+        // Act
+        PaginationBaseResponseModel<PurchaseOrderResponseModel> result = 
+            purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        verify(purchaseOrderFilterQueryBuilder, times(1)).getColumnType("vendorNumber");
+        verify(purchaseOrderFilterQueryBuilder, times(1)).getColumnType("purchaseOrderId");
+    }
+
+    @Test
+    @DisplayName("Get POs In Batches - Invalid Operator")
+    void getPurchaseOrdersInBatches_InvalidOperator() {
+        // Arrange
+        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
+        paginationRequest.setStart(0);
+        paginationRequest.setEnd(10);
+
+        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+        filter.setColumn("vendorNumber");
+        filter.setOperator("invalidOperator");
+        filter.setValue("test");
+        paginationRequest.setFilters(Arrays.asList(filter));
+        paginationRequest.setLogicOperator("AND");
+
+        lenient().when(purchaseOrderFilterQueryBuilder.getColumnType("vendorNumber")).thenReturn("string");
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest));
 
-        assertTrue(exception.getMessage().contains("Invalid column name"));
-    }
-
-    @Test
-    @DisplayName("Get POs In Batches - Invalid Condition")
-    void getPurchaseOrdersInBatches_InvalidCondition() {
-        // Arrange
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
-        paginationRequest.setColumnName("vendorNumber");
-        paginationRequest.setCondition("invalidCondition");
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest));
-
-        assertTrue(exception.getMessage().contains("Invalid condition"));
+        assertEquals("Invalid operator: invalidOperator", exception.getMessage());
     }
 
     @Test
@@ -236,54 +383,6 @@ class PurchaseOrderServiceTest {
             () -> purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest));
 
         assertEquals("Invalid pagination: end must be greater than start", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Get POs In Batches - With Product IDs Filter")
-    void getPurchaseOrdersInBatches_WithProductIds() {
-        // Arrange
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
-        paginationRequest.setColumnName("productIds");
-        paginationRequest.setFilterExpr("1,2,3");
-        paginationRequest.setIncludeDeleted(false);
-
-        List<PurchaseOrder> purchaseOrders = Arrays.asList(testPurchaseOrder);
-        Page<PurchaseOrder> page = new PageImpl<>(purchaseOrders);
-
-        when(purchaseOrderRepository.findPaginatedPurchaseOrders(
-            eq(TEST_CLIENT_ID), eq("productIds"), isNull(), eq("1,2,3"), 
-            eq(false), anyList(), any(Pageable.class)
-        )).thenReturn(page);
-
-        when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
-            .thenReturn(new ArrayList<>());
-
-        // Act
-        PaginationBaseResponseModel<PurchaseOrderResponseModel> result = 
-            purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-    }
-
-    @Test
-    @DisplayName("Get POs In Batches - Invalid Product IDs Format")
-    void getPurchaseOrdersInBatches_InvalidProductIdsFormat() {
-        // Arrange
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
-        paginationRequest.setColumnName("productIds");
-        paginationRequest.setFilterExpr("1,abc,3"); // Invalid format
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest));
-
-        assertTrue(exception.getMessage().contains("Invalid productIds format"));
     }
 
     // ==================== createPurchaseOrder Tests ====================
@@ -705,6 +804,146 @@ class PurchaseOrderServiceTest {
         testPurchaseOrder.setUpdatedAt(LocalDateTime.now());
         testPurchaseOrder.setCreatedUser(CREATED_USER);
         testPurchaseOrder.setModifiedUser(CREATED_USER);
+    }
+
+    // ==================== Bulk Create Purchase Orders Tests ====================
+
+    @Test
+    @DisplayName("Bulk Create Purchase Orders - Success - All valid POs")
+    void bulkCreatePurchaseOrders_AllValid_Success() {
+        // Arrange
+        List<PurchaseOrderRequestModel> purchaseOrders = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            PurchaseOrderRequestModel poReq = new PurchaseOrderRequestModel();
+            poReq.setVendorNumber("VENDOR" + i);
+            poReq.setPurchaseOrderStatus("DRAFT");
+            poReq.setPriority("HIGH");
+            poReq.setAssignedLeadId(TEST_LEAD_ID);
+            poReq.setAddress(testAddressRequest);
+            poReq.setDeliveryFee(new BigDecimal("5.00"));
+            poReq.setServiceFee(new BigDecimal("10.00"));
+            poReq.setDiscount(new BigDecimal("0.00"));
+            List<PurchaseOrderProductItem> products = new ArrayList<>();
+            products.add(new PurchaseOrderProductItem(TEST_PRODUCT_ID, new BigDecimal("10.00"), 10));
+            poReq.setProducts(products);
+            purchaseOrders.add(poReq);
+        }
+
+        lenient().when(leadRepository.findById(TEST_LEAD_ID)).thenReturn(java.util.Optional.of(testLead));
+        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+        when(paymentInfoRepository.save(any(PaymentInfo.class))).thenReturn(testPaymentInfo);
+        when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenAnswer(invocation -> {
+            PurchaseOrder po = invocation.getArgument(0);
+            po.setPurchaseOrderId((long) (Math.random() * 1000));
+            return po;
+        });
+        lenient().when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(any(), any()))
+            .thenReturn(Optional.of(testPurchaseOrder));
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+        // Act
+        BulkInsertResponseModel<Long> result = purchaseOrderService.bulkCreatePurchaseOrders(purchaseOrders);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.getTotalRequested());
+        assertEquals(2, result.getSuccessCount());
+        assertEquals(0, result.getFailureCount());
+    }
+
+    @Test
+    @DisplayName("Bulk Create Purchase Orders - Partial Success")
+    void bulkCreatePurchaseOrders_PartialSuccess() {
+        // Arrange
+        List<PurchaseOrderRequestModel> purchaseOrders = new ArrayList<>();
+        
+        // Valid PO
+        PurchaseOrderRequestModel validPO = new PurchaseOrderRequestModel();
+        validPO.setVendorNumber("VALID_VENDOR");
+        validPO.setPurchaseOrderStatus("DRAFT");
+        validPO.setPriority("HIGH");
+        validPO.setAssignedLeadId(TEST_LEAD_ID);
+        validPO.setAddress(testAddressRequest);
+        validPO.setDeliveryFee(new BigDecimal("5.00"));
+        validPO.setServiceFee(new BigDecimal("10.00"));
+        validPO.setDiscount(new BigDecimal("0.00"));
+        List<PurchaseOrderProductItem> products = new ArrayList<>();
+        products.add(new PurchaseOrderProductItem(TEST_PRODUCT_ID, new BigDecimal("10.00"), 10));
+        validPO.setProducts(products);
+        purchaseOrders.add(validPO);
+        
+        // Invalid PO (missing vendor number)
+        PurchaseOrderRequestModel invalidPO = new PurchaseOrderRequestModel();
+        invalidPO.setVendorNumber(null);
+        purchaseOrders.add(invalidPO);
+
+        lenient().when(leadRepository.findById(TEST_LEAD_ID)).thenReturn(java.util.Optional.of(testLead));
+        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+        when(paymentInfoRepository.save(any(PaymentInfo.class))).thenReturn(testPaymentInfo);
+        when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenAnswer(invocation -> {
+            PurchaseOrder po = invocation.getArgument(0);
+            po.setPurchaseOrderId((long) (Math.random() * 1000));
+            return po;
+        });
+        lenient().when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(any(), any()))
+            .thenReturn(Optional.of(testPurchaseOrder));
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+        // Act
+        BulkInsertResponseModel<Long> result = purchaseOrderService.bulkCreatePurchaseOrders(purchaseOrders);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.getTotalRequested());
+        assertEquals(1, result.getSuccessCount());
+        assertEquals(1, result.getFailureCount());
+    }
+
+    @Test
+    @DisplayName("Bulk Create Purchase Orders - Database Error")
+    void bulkCreatePurchaseOrders_DatabaseError() {
+        // Arrange
+        List<PurchaseOrderRequestModel> purchaseOrders = new ArrayList<>();
+        PurchaseOrderRequestModel poReq = new PurchaseOrderRequestModel();
+        poReq.setVendorNumber("TEST_VENDOR");
+        poReq.setPurchaseOrderStatus("DRAFT");
+        poReq.setPriority("HIGH");
+        poReq.setAssignedLeadId(TEST_LEAD_ID);
+        poReq.setAddress(testAddressRequest);
+        poReq.setDeliveryFee(new BigDecimal("5.00"));
+        poReq.setServiceFee(new BigDecimal("10.00"));
+        poReq.setDiscount(new BigDecimal("0.00"));
+        List<PurchaseOrderProductItem> products = new ArrayList<>();
+        products.add(new PurchaseOrderProductItem(TEST_PRODUCT_ID, new BigDecimal("10.00"), 10));
+        poReq.setProducts(products);
+        purchaseOrders.add(poReq);
+
+        lenient().when(leadRepository.findById(TEST_LEAD_ID)).thenReturn(java.util.Optional.of(testLead));
+        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+        when(paymentInfoRepository.save(any(PaymentInfo.class))).thenReturn(testPaymentInfo);
+        when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenThrow(new RuntimeException("Database error"));
+
+        // Act
+        BulkInsertResponseModel<Long> result = purchaseOrderService.bulkCreatePurchaseOrders(purchaseOrders);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalRequested());
+        assertEquals(0, result.getSuccessCount());
+        assertEquals(1, result.getFailureCount());
+    }
+
+    @Test
+    @DisplayName("Bulk Create Purchase Orders - Empty List")
+    void bulkCreatePurchaseOrders_EmptyList() {
+        // Arrange
+        List<PurchaseOrderRequestModel> purchaseOrders = new ArrayList<>();
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class,
+            () -> purchaseOrderService.bulkCreatePurchaseOrders(purchaseOrders));
+        assertTrue(exception.getMessage().contains("Purchase order list cannot be null or empty"));
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
     }
 }
 

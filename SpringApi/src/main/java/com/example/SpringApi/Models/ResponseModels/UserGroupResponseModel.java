@@ -22,12 +22,12 @@ public class UserGroupResponseModel {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
-    // List of users in this group
-    private List<UserResponseModel> users;
+    // List of user IDs in this group
+    private List<Long> userIds;
     
     // Default constructor
     public UserGroupResponseModel() {
-        this.users = new ArrayList<>();
+        this.userIds = new ArrayList<>();
     }
     
     // Constructor that takes UserGroups entity and populates response fields
@@ -35,8 +35,8 @@ public class UserGroupResponseModel {
         this(userGroup, true);
     }
     
-    // Constructor that takes UserGroups entity and optionally populates users
-    public UserGroupResponseModel(UserGroup userGroup, boolean includeUsers) {
+    // Constructor that takes UserGroups entity and optionally populates user IDs
+    public UserGroupResponseModel(UserGroup userGroup, boolean includeUserIds) {
         this();
         if (userGroup != null) {
             this.groupId = userGroup.getGroupId();
@@ -50,16 +50,16 @@ public class UserGroupResponseModel {
             this.updatedAt = userGroup.getUpdatedAt();
             this.notes = userGroup.getNotes();
             
-            // Auto-populate users from mappings if available and requested
-            if (includeUsers && userGroup.getUserMappings() != null && !userGroup.getUserMappings().isEmpty()) {
-                this.users = new ArrayList<>();
+            // Auto-populate user IDs from mappings if available and requested
+            if (includeUserIds && userGroup.getUserMappings() != null && !userGroup.getUserMappings().isEmpty()) {
+                this.userIds = new ArrayList<>();
                 for (var mapping : userGroup.getUserMappings()) {
-                    if (mapping.getUser() != null) {
-                        this.users.add(new UserResponseModel(mapping.getUser()));
+                    if (mapping.getUserId() != null) {
+                        this.userIds.add(mapping.getUserId());
                     }
                 }
-                // Sort users by userId in descending order to ensure consistent ordering
-                this.users.sort((u1, u2) -> Long.compare(u2.getUserId(), u1.getUserId()));
+                // Sort user IDs in descending order to ensure consistent ordering
+                this.userIds.sort((id1, id2) -> Long.compare(id2, id1));
             }
         }
     }

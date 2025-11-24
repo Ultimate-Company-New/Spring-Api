@@ -121,6 +121,7 @@ public class ApiRoutes {
         // Api + frontend Endpoints
         public static final String GET_PACKAGES_IN_BATCHES = "getPackagesInBatches";
         public static final String CREATE_PACKAGE = "createPackage";
+        public static final String BULK_CREATE_PACKAGE = "bulkCreatePackage";
         public static final String UPDATE_PACKAGE = "updatePackage";
         public static final String TOGGLE_PACKAGE = "togglePackage";
         public static final String GET_PACKAGE_BY_ID = "getPackageById";
@@ -137,6 +138,7 @@ public class ApiRoutes {
         public static final String GET_USER_GROUPS_IN_BATCHES = "getUserGroupsInBatches";
         public static final String GET_USER_GROUP_DETAILS_BY_ID = "getUserGroupDetailsById";
         public static final String CREATE_USER_GROUP = "createUserGroup";
+        public static final String BULK_CREATE_USER_GROUP = "bulkCreateUserGroup";
         public static final String UPDATE_USER_GROUP = "updateUserGroup";
         public static final String GET_USER_IDS_IN_USER_GROUP = "getUserIdsInUserGroup";
         public static final String TOGGLE_USER_GROUP = "toggleUserGroup";
@@ -172,6 +174,7 @@ public class ApiRoutes {
         public static final String GET_USER_GROUPS_IN_MESSAGE = "getUserGroupsInMessage";
         public static final String GET_MESSAGES_BY_USER_ID = "getMessagesByUserId";
         public static final String SET_MESSAGE_READ_BY_USER_ID_AND_MESSAGE_ID = "setMessageReadByUserIdAndMessageId";
+        public static final String GET_UNREAD_MESSAGE_COUNT = "getUnreadMessageCount";
     }
 
     public enum OrdersSubRoute
@@ -236,6 +239,7 @@ public class ApiRoutes {
 
         // Api + frontend Endpoints
         public static final String ADD_PRODUCT = "addProduct";
+        public static final String BULK_ADD_PRODUCT = "bulkAddProduct";
         public static final String EDIT_PRODUCT = "editProduct";
         public static final String TOGGLE_DELETE_PRODUCT = "toggleDeleteProduct";
         public static final String TOGGLE_RETURN_PRODUCT = "toggleReturnProduct";
@@ -261,6 +265,7 @@ public class ApiRoutes {
 
         // Api + frontend Endpoints
         public static final String CREATE_PROMO = "createPromo";
+        public static final String BULK_CREATE_PROMO = "bulkCreatePromo";
         public static final String GET_PROMOS_IN_BATCHES = "getPromosInBatches";
         public static final String GET_PROMO_DETAILS_BY_ID = "getPromoDetailsById";
         public static final String TOGGLE_PROMO = "togglePromo";
@@ -288,6 +293,7 @@ public class ApiRoutes {
         public static final String BULK_CREATE_USER = "bulkCreateUser";
 
         // Api + frontend Endpoints
+        public static final String GET_ALL_PERMISSIONS = "getAllPermissions";
         public static final String GET_USER_PERMISSIONS_BY_ID = "getUserPermissionsById";
 
         public static final String IS_EMAIL_AVAILABLE_IN_SYSTEM = "isEmailAvailableInSystem";
@@ -329,6 +335,7 @@ public class ApiRoutes {
         public static final String GET_LEAD_DETAILS_BY_ID = "getLeadDetailsById";
         public static final String GET_LEAD_DETAILS_BY_EMAIL = "getLeadDetailsByEmail";
         public static final String CREATE_LEAD = "createLead";
+        public static final String BULK_CREATE_LEAD = "bulkCreateLead";
         public static final String UPDATE_LEAD = "updateLead";
         public static final String TOGGLE_LEAD = "toggleLead";
     }
@@ -342,6 +349,7 @@ public class ApiRoutes {
         public static final String GET_PURCHASE_ORDERS_IN_BATCHES = "getPurchaseOrdersInBatches";
         public static final String GET_PURCHASE_ORDER_BY_ID = "getPurchaseOrderById";
         public static final String CREATE_PURCHASE_ORDER = "createPurchaseOrder";
+        public static final String BULK_CREATE_PURCHASE_ORDER = "bulkCreatePurchaseOrder";
         public static final String UPDATE_PURCHASE_ORDER = "updatePurchaseOrder";
         public static final String TOGGLE_PURCHASE_ORDER = "togglePurchaseOrder";
         public static final String APPROVED_BY_PURCHASE_ORDER = "approvedByPurchaseOrder";

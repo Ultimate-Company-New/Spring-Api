@@ -379,7 +379,7 @@ public class EmailTemplates {
                         <p style="color: #7f8c8d; font-size: 14px; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px;">
                             Your New Password
                         </p>
-                        <p style="color: #2c3e50; font-size: 20px; font-weight: bold; margin: 0; font-family: 'Courier New', monospace; word-break: break-all;">
+                        <p data-test-id="reset-password-value" style="color: #2c3e50; font-size: 20px; font-weight: bold; margin: 0; font-family: 'Courier New', monospace; word-break: break-all;">
                             %s
                         </p>
                     </div>

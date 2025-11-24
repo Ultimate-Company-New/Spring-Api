@@ -337,12 +337,12 @@ class ClientServiceTest {
                 (mock, context) -> {
                     when(mock.downloadFileAsBytesFromFirebase(anyString())).thenReturn(null); // No existing logo
                 })) {
-            
-            // Act & Assert
-            assertDoesNotThrow(() -> clientService.updateClient(testClientRequest));
-            verify(clientRepository, times(1)).findById(TEST_CLIENT_ID);
-            verify(clientRepository, times(1)).save(any(Client.class));
-            verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
+        
+        // Act & Assert
+        assertDoesNotThrow(() -> clientService.updateClient(testClientRequest));
+        verify(clientRepository, times(1)).findById(TEST_CLIENT_ID);
+        verify(clientRepository, times(1)).save(any(Client.class));
+        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
         }
     }
     

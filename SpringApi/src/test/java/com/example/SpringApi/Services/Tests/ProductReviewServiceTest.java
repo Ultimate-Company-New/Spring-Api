@@ -63,7 +63,6 @@ class ProductReviewServiceTest {
     @Mock
     private HttpServletRequest request;
 
-    @Spy
     @InjectMocks
     private ProductReviewService productReviewService;
 
@@ -73,7 +72,7 @@ class ProductReviewServiceTest {
 
     private static final Long TEST_REVIEW_ID = 1L;
     private static final Long TEST_PRODUCT_ID = 100L;
-    private static final Long TEST_USER_ID = 200L;
+    private static final Long TEST_USER_ID = 1L;
     private static final Long TEST_CLIENT_ID = 1L;
     private static final String TEST_USER = "testuser";
     private static final BigDecimal TEST_RATING = new BigDecimal("4.5");
@@ -107,10 +106,7 @@ class ProductReviewServiceTest {
         // Mock Authorization header for JWT authentication
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
 
-        // Mock getUserId(), getUser(), and getClientId() methods
-        lenient().when(productReviewService.getUserId()).thenReturn(TEST_USER_ID);
-        lenient().when(productReviewService.getUser()).thenReturn(TEST_USER);
-        lenient().when(productReviewService.getClientId()).thenReturn(TEST_CLIENT_ID);
+        // Note: BaseService methods are now handled by the actual service implementation
     }
 
     // ==================== Insert Product Review Tests ====================

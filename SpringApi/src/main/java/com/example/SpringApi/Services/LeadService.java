@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.Helpers.BulkInsertHelper;
 import com.example.SpringApi.Models.DatabaseModels.Lead;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.DatabaseModels.Address;
@@ -8,6 +9,8 @@ import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
 import com.example.SpringApi.Repositories.LeadRepository;
 import com.example.SpringApi.Services.Interface.ILeadSubTranslator;
+import com.example.SpringApi.FilterQueryBuilder.LeadFilterQueryBuilder;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -25,6 +28,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
+import java.util.HashSet;
+import java.util.Arrays;
 
 /**
  * Service implementation for Lead operations and business logic.
@@ -40,42 +45,38 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
     private final LeadRepository leadRepository;
     private final AddressRepository addressRepository;
     private final UserLogService userLogService;
+    private final LeadFilterQueryBuilder leadFilterQueryBuilder;
+    private final MessageService messageService;
 
     @Autowired
     public LeadService(
         LeadRepository leadRepository, 
         AddressRepository addressRepository,
         UserLogService userLogService,
-        HttpServletRequest request) {
+        LeadFilterQueryBuilder leadFilterQueryBuilder,
+        MessageService messageService) {
         super();
         this.leadRepository = leadRepository;
         this.addressRepository = addressRepository;
         this.userLogService = userLogService;
+        this.leadFilterQueryBuilder = leadFilterQueryBuilder;
+        this.messageService = messageService;
     }
     
     /**
      * Retrieves leads in paginated batches with optional filtering and sorting.
-     * Supports pagination, sorting by multiple fields, and filtering capabilities.
+     * Supports pagination, sorting by multiple fields, and multi-filter capabilities with AND/OR logic.
+     * 
+     * Valid columns for filtering: "leadId", "firstName", "lastName", "email", "address", "website",
+     *                               "phone", "companySize", "title", "leadStatus", "company", "annualRevenue",
+     *                               "fax", "isDeleted", "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes"
      * 
      * @param leadRequestModel The request model containing pagination and filter parameters
      * @return PaginationBaseResponseModel containing paginated lead data
+     * @throws BadRequestException if an invalid column name or filter condition is provided
      */
     @Override
     public PaginationBaseResponseModel<LeadResponseModel> getLeadsInBatches(LeadRequestModel leadRequestModel) {
-        // Valid columns for filtering
-        Set<String> validColumns = Set.of(
-            "leadId", "firstName", "lastName", "email", "address", "website",
-            "phone", "companySize", "title", "leadStatus", "company", "annualRevenue",
-            "fax", "isDeleted", "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes"
-        );
-
-        // Validate column name if provided
-        if (leadRequestModel.getColumnName() != null 
-            && !validColumns.contains(leadRequestModel.getColumnName())) {
-            throw new BadRequestException(
-                "Invalid column name: " + leadRequestModel.getColumnName());
-        }
-        
         // Calculate page size and offset
         int start = leadRequestModel.getStart();
         int end = leadRequestModel.getEnd();
@@ -86,6 +87,45 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
             throw new BadRequestException("Invalid pagination: end must be greater than start");
         }
 
+        // Validate logic operator if provided
+        if (leadRequestModel.getLogicOperator() != null && !leadRequestModel.isValidLogicOperator()) {
+            throw new BadRequestException("Invalid logic operator. Must be 'AND' or 'OR'");
+        }
+
+        // Validate filters if provided
+        if (leadRequestModel.hasMultipleFilters()) {
+            Set<String> validColumns = new HashSet<>(Arrays.asList(
+                "leadId", "firstName", "lastName", "email", "address", "website",
+                "phone", "companySize", "title", "leadStatus", "company", "annualRevenue",
+                "fax", "isDeleted", "clientId", "addressId", "createdById", "assignedAgentId",
+                "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes"
+            ));
+
+            for (FilterCondition filter : leadRequestModel.getFilters()) {
+                // Validate column name
+                if (!validColumns.contains(filter.getColumn())) {
+                    throw new BadRequestException(
+                        "Invalid column name: " + filter.getColumn() + 
+                        ". Valid columns: " + String.join(", ", validColumns)
+                    );
+                }
+
+                // Validate operator
+                if (!filter.isValidOperator()) {
+                    throw new BadRequestException(
+                        "Invalid operator: " + filter.getOperator() + " for column: " + filter.getColumn()
+                    );
+                }
+
+                // Validate operator matches column type
+                String columnType = leadFilterQueryBuilder.getColumnType(filter.getColumn());
+                filter.validateOperatorForType(columnType, filter.getColumn());
+
+                // Validate value presence
+                filter.validateValuePresence();
+            }
+        }
+
         // Create custom Pageable with proper offset handling
         Pageable pageable = new PageRequest(0, pageSize, Sort.by("leadId").descending()) {
             @Override
@@ -93,13 +133,16 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
                 return start;
             }
         };
+
+        // Use the filter query builder for multi-filter support
+        String logicOperator = leadRequestModel.getLogicOperator() != null ? 
+            leadRequestModel.getLogicOperator() : "AND";
         
         // Execute paginated query with clientId filter
-        Page<Lead> page = leadRepository.findPaginatedLeads(
+        Page<Lead> page = leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
             getClientId(),
-            leadRequestModel.getColumnName(),
-            leadRequestModel.getCondition(),
-            leadRequestModel.getFilterExpr(),
+            logicOperator,
+            leadRequestModel.getFilters(),
             leadRequestModel.isIncludeDeleted(),
             pageable
         );
@@ -226,5 +269,60 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
             getUserId(),
             SuccessMessages.LeadSuccessMessages.ToggleLead + lead.getLeadId(),
             ApiRoutes.LeadsSubRoute.TOGGLE_LEAD);
+    }
+
+    /**
+     * Creates multiple leads in a single operation.
+     * 
+     * @param leads List of LeadRequestModel containing the lead data to insert
+     * @return BulkInsertResponseModel containing success/failure details for each lead
+     */
+    @Override
+    public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateLeads(java.util.List<LeadRequestModel> leads) {
+        if (leads == null || leads.isEmpty()) {
+            throw new BadRequestException("Lead list cannot be null or empty");
+        }
+
+        com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
+            new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+        response.setTotalRequested(leads.size());
+        
+        int successCount = 0;
+        int failureCount = 0;
+        
+        for (LeadRequestModel leadRequest : leads) {
+            try {
+                createLead(leadRequest);
+                
+                Lead createdLead = leadRepository.findLeadWithDetailsByEmail(leadRequest.getEmail(), getClientId());
+                if (createdLead != null) {
+                    response.addSuccess(leadRequest.getEmail(), createdLead.getLeadId());
+                    successCount++;
+                }
+            } catch (BadRequestException bre) {
+                response.addFailure(
+                    leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown", 
+                    bre.getMessage()
+                );
+                failureCount++;
+            } catch (Exception e) {
+                response.addFailure(
+                    leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown", 
+                    "Error: " + e.getMessage()
+                );
+                failureCount++;
+            }
+        }
+        
+        userLogService.logData(getUserId(), 
+            SuccessMessages.LeadSuccessMessages.InsertLead + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+            ApiRoutes.LeadsSubRoute.BULK_CREATE_LEAD);
+        
+        response.setSuccessCount(successCount);
+        response.setFailureCount(failureCount);
+        
+        BulkInsertHelper.createBulkInsertResultMessage(response, "Lead", messageService, getUserId());
+        
+        return response;
     }
 }
