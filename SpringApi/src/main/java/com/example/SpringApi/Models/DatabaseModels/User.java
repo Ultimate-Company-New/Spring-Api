@@ -8,6 +8,7 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.UpdateTimestamp;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
+import com.example.SpringApi.Models.Enums.UserRole;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 
@@ -240,8 +241,16 @@ public class User {
             throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidPhone);
         }
         
+        // Validate role using UserRole enum
         if (request.getRole() == null || request.getRole().trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidRole);
+        }
+        
+        if (!UserRole.isValid(request.getRole())) {
+            throw new BadRequestException(
+                ErrorMessages.UserErrorMessages.InvalidRole + 
+                " - Must be one of: SUPERADMIN, ADMIN, MANAGER, VIEWER, CUSTOMER, CUSTOM"
+            );
         }
         
         if (request.getDob() == null) {
@@ -275,7 +284,8 @@ public class User {
         this.phone = request.getPhone();
         this.datePasswordChanges = request.getDatePasswordChanges();
         this.loginAttempts = request.getLoginAttempts() != null ? request.getLoginAttempts() : 5;
-        this.role = request.getRole();
+        // Store role as uppercase string in database
+        this.role = request.getRole() != null ? request.getRole().toUpperCase() : null;
         this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : Boolean.FALSE;
         this.locked = request.getLocked() != null ? request.getLocked() : Boolean.FALSE;
         this.emailConfirmed = request.getEmailConfirmed() != null ? request.getEmailConfirmed() : Boolean.FALSE;

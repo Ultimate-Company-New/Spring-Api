@@ -137,13 +137,13 @@ public class EmailTemplates {
             String temporaryPassword
     ) {
         String profile = environment.getActiveProfiles().length > 0 ? environment.getActiveProfiles()[0] : "default";
-        String apiUrl = environment.getProperty("app.url." + profile);
+        String frontendUrl = environment.getProperty("frontend.url." + profile);
 
-        // Generate the confirmation account link (POST endpoint with query parameter for token)
-        // Using query parameter to avoid URL encoding issues with bcrypt tokens containing '/'
+        // Generate the confirmation account link pointing to FRONTEND
+        // Frontend will handle the confirmation and call the API
         String confirmAccountLink = String.format(
-                "%s/api/User/confirmEmail/%s?token=%s",
-                apiUrl,
+                "%s/confirm-email?userId=%s&token=%s",
+                frontendUrl,
                 userId,
                 java.net.URLEncoder.encode(userToken, java.nio.charset.StandardCharsets.UTF_8)
         );

@@ -140,8 +140,9 @@ public class LoginService implements ILoginSubTranslator {
 
         // check if the password is correct
         if(PasswordHelper.checkPassword(loginRequestModel.getPassword(), user.getPassword(), user.getSalt())){
-            // Reset login attempts to 5 after successful login
+            // Reset login attempts to 5 after successful login and update lastLoginAt (UTC)
             user.setLoginAttempts(5);
+            user.setLastLoginAt(java.time.LocalDateTime.now(java.time.ZoneOffset.UTC));
             userRepository.save(user);
             
             // Get all UserClientMappings for this user

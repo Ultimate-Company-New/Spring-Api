@@ -1,11 +1,16 @@
 package com.example.SpringApi.Models;
 
+import com.example.SpringApi.Models.Enums.UserRole;
+
 public class Authorizations {
 
-    // Roles
-    public static final String ADMIN_ROLE = "Admin";
-    public static final String MANAGER_ROLE = "Manager";
-    public static final String VIEWER_ROLE = "Viewer";
+    // Roles - Using uppercase to match database constraint
+    public static final String SUPER_ADMIN_ROLE = UserRole.SUPERADMIN.getValue();
+    public static final String ADMIN_ROLE = UserRole.ADMIN.getValue();
+    public static final String MANAGER_ROLE = UserRole.MANAGER.getValue();
+    public static final String VIEWER_ROLE = UserRole.VIEWER.getValue();
+    public static final String CUSTOMER_ROLE = UserRole.CUSTOMER.getValue();
+    public static final String CUSTOM_ROLE = UserRole.CUSTOM.getValue();
 
     // UserPermissions
     public static final String VIEW_USER_PERMISSION = "ViewUser";

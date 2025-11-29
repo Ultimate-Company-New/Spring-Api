@@ -111,10 +111,10 @@ public class UserLogFilterQueryBuilder extends BaseFilterQueryBuilder {
             List<FilterCondition> filters,
             Pageable pageable) {
 
-        // Base query
+        // Base query - filter by userId and optionally by clientId (allows NULL clientId as well)
         String baseQuery = "SELECT ul FROM UserLog ul " +
                 "WHERE ul.userId = :userId " +
-                "AND ul.clientId = :clientId ";
+                "AND (ul.clientId = :clientId OR ul.clientId IS NULL) ";
 
         // Build dynamic filter conditions using the query builder
         QueryResult filterResult = buildFilterConditions(filters, logicOperator);
@@ -129,7 +129,7 @@ public class UserLogFilterQueryBuilder extends BaseFilterQueryBuilder {
         // Count query
         String countQuery = "SELECT COUNT(ul) FROM UserLog ul " +
                 "WHERE ul.userId = :userId " +
-                "AND ul.clientId = :clientId ";
+                "AND (ul.clientId = :clientId OR ul.clientId IS NULL) ";
 
         if (filterResult.hasConditions()) {
             countQuery += "AND (" + filterResult.getWhereClause() + ") ";

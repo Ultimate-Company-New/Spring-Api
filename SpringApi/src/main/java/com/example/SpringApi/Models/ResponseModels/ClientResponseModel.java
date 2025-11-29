@@ -33,6 +33,7 @@ public class ClientResponseModel {
     private String sendgridSenderName;
     private String razorpayApiKey;
     private String razorpayApiSecret;
+    private String imgbbApiKey;
     private String shipRocketEmail;
     private String shipRocketPassword;
     private String jiraUserName;
@@ -70,6 +71,7 @@ public class ClientResponseModel {
             this.sendgridSenderName = client.getSendgridSenderName();
             this.razorpayApiKey = client.getRazorpayApiKey();
             this.razorpayApiSecret = client.getRazorpayApiSecret();
+            this.imgbbApiKey = client.getImgbbApiKey();
             this.shipRocketEmail = client.getShipRocketEmail();
             this.shipRocketPassword = client.getShipRocketPassword();
             this.jiraUserName = client.getJiraUserName();

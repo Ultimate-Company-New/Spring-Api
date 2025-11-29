@@ -1,5 +1,8 @@
 package com.example.SpringApi.Models.RequestModels;
 
+import com.example.SpringApi.Models.Enums.UserRole;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDate;
@@ -24,6 +27,7 @@ public class UserRequestModel extends PaginationBaseRequestModel {
     private Boolean locked;
     private Boolean emailConfirmed;
     private String token;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dob;
     private Boolean isGuest;
     private String apiKey;
@@ -39,4 +43,22 @@ public class UserRequestModel extends PaginationBaseRequestModel {
     private AddressRequestModel address;
     private String profilePictureBase64;
     private List<Long> selectedUserIds;
+    
+    /**
+     * Get the role as a UserRole enum
+     * @return UserRole enum or null if role is invalid
+     */
+    @JsonIgnore
+    public UserRole getRoleEnum() {
+        return UserRole.fromString(role);
+    }
+    
+    /**
+     * Validate if the role string is valid
+     * @return true if valid, false otherwise
+     */
+    @JsonIgnore
+    public boolean isRoleValid() {
+        return UserRole.isValid(role);
+    }
 }
