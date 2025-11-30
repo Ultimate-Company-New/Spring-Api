@@ -227,6 +227,10 @@ public class Client {
         if (request.getNotes() == null) {
             this.notes = existingClient.getNotes();
         }
+        
+        // Preserve logo fields - these are managed separately in the service layer
+        this.logoUrl = existingClient.getLogoUrl();
+        this.logoDeleteHash = existingClient.getLogoDeleteHash();
     }
 
     /**

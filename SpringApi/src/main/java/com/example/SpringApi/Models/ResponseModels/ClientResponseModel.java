@@ -62,6 +62,7 @@ public class ClientResponseModel {
         if (client != null) {
             this.clientId = client.getClientId();
             this.name = client.getName();
+            this.logoUrl = client.getLogoUrl();
             this.description = client.getDescription();
             this.sendGridApiKey = client.getSendGridApiKey();
             this.sendGridEmailAddress = client.getSendGridEmailAddress();

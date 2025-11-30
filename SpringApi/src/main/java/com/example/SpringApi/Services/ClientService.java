@@ -225,34 +225,31 @@ public class ClientService extends BaseService implements IClientSubTranslator {
                 ? environment.getActiveProfiles()[0]
                 : "default";
 
+            // Logo handling
+            boolean hasNewLogo = clientRequest.getLogoBase64() != null && 
+                               !clientRequest.getLogoBase64().isEmpty() && 
+                               !clientRequest.getLogoBase64().isBlank();
+            
             // Use ImgBB or Firebase based on configuration
             if (ImageLocationConstants.IMGBB.equalsIgnoreCase(imageLocation)) {
                 // ImgBB-based logo management
                 
+                if (updatedClient.getImgbbApiKey() == null || updatedClient.getImgbbApiKey().trim().isEmpty()) {
+                    throw new BadRequestException("ImgBB API key is not configured for this client");
+                }
+                
+                ImgbbHelper imgbbHelper = new ImgbbHelper(updatedClient.getImgbbApiKey());
+                
                 // Handle logo update based on request
-                if (clientRequest.getLogoBase64() == null ||
-                    clientRequest.getLogoBase64().isEmpty() ||
-                    clientRequest.getLogoBase64().isBlank()) {
+                if (!hasNewLogo) {
                     // If no logo in request, delete the old logo from ImgBB and clear from database
                     if (updatedClient.getLogoDeleteHash() != null && !updatedClient.getLogoDeleteHash().isEmpty()) {
-                        // Validate ImgBB API key only when we need to delete
-                        if (updatedClient.getImgbbApiKey() == null || updatedClient.getImgbbApiKey().trim().isEmpty()) {
-                            throw new BadRequestException("ImgBB API key is not configured for this client");
-                        }
-                        ImgbbHelper imgbbHelper = new ImgbbHelper(updatedClient.getImgbbApiKey());
                         imgbbHelper.deleteImage(updatedClient.getLogoDeleteHash());
                     }
                     updatedClient.setLogoUrl(null);
                     updatedClient.setLogoDeleteHash(null);
                     clientRepository.save(updatedClient);
                 } else {
-                    // Validate ImgBB API key before uploading
-                    if (updatedClient.getImgbbApiKey() == null || updatedClient.getImgbbApiKey().trim().isEmpty()) {
-                        throw new BadRequestException("ImgBB API key is not configured for this client");
-                    }
-                    
-                    ImgbbHelper imgbbHelper = new ImgbbHelper(updatedClient.getImgbbApiKey());
-                    
                     // Delete old logo from ImgBB before uploading new one
                     if (updatedClient.getLogoDeleteHash() != null && !updatedClient.getLogoDeleteHash().isEmpty()) {
                         imgbbHelper.deleteImage(updatedClient.getLogoDeleteHash());
@@ -277,37 +274,22 @@ public class ClientService extends BaseService implements IClientSubTranslator {
                     }
                 }
             } else if (ImageLocationConstants.FIREBASE.equalsIgnoreCase(imageLocation)) {
+                // Firebase-based logo management
                 String filePath = FirebaseHelper.getClientLogoPath(
                     environmentName,
                     updatedClient.getName(),
                     updatedClient.getClientId()
                 );
-                // Firebase-based logo management
+                
                 Optional<GoogleCred> googleCred = googleCredRepository.findById(updatedClient.getGoogleCredId());
 
                 if (googleCred.isPresent()) {
                     GoogleCred googleCredData = googleCred.get();
                     FirebaseHelper firebaseHelper = new FirebaseHelper(googleCredData);
 
-                    // Check if logo exists on Firebase
-                    byte[] existingLogo = firebaseHelper.downloadFileAsBytesFromFirebase(filePath);
-                    boolean logoExists = existingLogo != null;
-
-                    // Handle logo update based on request
-                    if (clientRequest.getLogoBase64() == null ||
-                        clientRequest.getLogoBase64().isEmpty() ||
-                        clientRequest.getLogoBase64().isBlank()) {
-                        // If no logo in request and logo exists, delete it
-                        if (logoExists) {
-                            firebaseHelper.deleteFile(filePath);
-                        }
-                    } else {
-                        // If logo exists, delete it first before uploading new one
-                        if (logoExists) {
-                            firebaseHelper.deleteFile(filePath);
-                        }
-
-                        // Upload new logo
+                    if (hasNewLogo) {
+                        // Delete old logo if exists, then upload new one
+                        firebaseHelper.deleteFile(filePath);
                         boolean isSuccess = firebaseHelper.uploadFileToFirebase(
                             clientRequest.getLogoBase64(),
                             filePath
@@ -316,6 +298,9 @@ public class ClientService extends BaseService implements IClientSubTranslator {
                         if (!isSuccess) {
                             throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidLogoUpload);
                         }
+                    } else {
+                        // No new logo, delete existing if exists
+                        firebaseHelper.deleteFile(filePath);
                     }
                 } else {
                     throw new BadRequestException(ErrorMessages.UserErrorMessages.ER011);
