@@ -10,6 +10,7 @@ import com.example.SpringApi.Exceptions.UnauthorizedException;
 import com.example.SpringApi.Logging.ContextualLogger;
 import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
 import com.example.SpringApi.Services.Interface.ILeadSubTranslator;
+import com.example.SpringApi.Services.LeadService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -159,11 +160,28 @@ public class LeadController {
         }
     }
 
+    /**
+     * Creates multiple leads asynchronously in a single operation.
+     * Processing happens in background thread; results sent via message notification.
+     * 
+     * @param leads List of LeadRequestModel containing the lead data to insert
+     * @return ResponseEntity with 200 OK status indicating job has been queued
+     */
     @PutMapping("/" + ApiRoutes.LeadsSubRoute.BULK_CREATE_LEAD)
     @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.INSERT_LEADS_PERMISSION + "')")
     public ResponseEntity<?> bulkCreateLeads(@RequestBody java.util.List<LeadRequestModel> leads) {
         try {
-            return ResponseEntity.ok(leadService.bulkCreateLeads(leads));
+            // Cast to LeadService to access BaseService methods (security context not available in async thread)
+            LeadService service = (LeadService) leadService;
+            Long userId = service.getUserId();
+            String loginName = service.getUser();
+            Long clientId = service.getClientId();
+            
+            // Trigger async processing - returns immediately
+            leadService.bulkCreateLeadsAsync(leads, userId, loginName, clientId);
+            
+            // Return 200 OK - processing will continue in background
+            return ResponseEntity.ok().build();
         } catch (BadRequestException e) {
             logger.error(e);
             return ResponseEntity.badRequest()

@@ -12,8 +12,6 @@ import com.example.SpringApi.Services.Interface.ILeadSubTranslator;
 import com.example.SpringApi.FilterQueryBuilder.LeadFilterQueryBuilder;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 import com.example.SpringApi.Repositories.AddressRepository;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Exceptions.BadRequestException;
@@ -26,7 +24,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Arrays;
@@ -195,21 +195,9 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      * @param leadRequestModel The lead data to create
      */
     @Override
+    @Transactional
     public void createLead(LeadRequestModel leadRequestModel) {
-        // Get current authenticated user
-        String authenticatedUser = getUser();
-
-        // Use the Lead constructor that handles validation and field mapping
-        Lead lead = new Lead(leadRequestModel, authenticatedUser);
-        Address savedAddress = addressRepository.save(new Address(leadRequestModel.getAddress(), authenticatedUser));
-        lead.setAddressId(savedAddress.getAddressId());
-        Lead savedLead = leadRepository.save(lead);
-
-        // Logging
-        userLogService.logData(
-            getUserId(),
-            SuccessMessages.LeadSuccessMessages.InsertLead + savedLead.getLeadId(),
-            ApiRoutes.LeadsSubRoute.CREATE_LEAD);
+        createLead(leadRequestModel, getUser(), true);
     }
     
     /**
@@ -217,11 +205,16 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      * 
      * @param leadId The unique identifier of the lead to update
      * @param leadRequestModel The updated lead data
-     * @return The updated Lead entity
      */
     @Override
+    @Transactional
     public void updateLead(Long leadId, LeadRequestModel leadRequestModel) {
-        Lead existingLead = leadRepository.findLeadWithDetailsByIdIncludingDeleted(leadId, getClientId());
+        // Get security context
+        Long currentClientId = getClientId();
+        Long currentUserId = getUserId();
+        String authenticatedUser = getUser();
+
+        Lead existingLead = leadRepository.findLeadWithDetailsByIdIncludingDeleted(leadId, currentClientId);
         if (existingLead == null) {
             throw new NotFoundException(ErrorMessages.LEAD_NOT_FOUND);
         }
@@ -231,16 +224,20 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
             throw new NotFoundException(ErrorMessages.LEAD_NOT_FOUND);
         }
 
-        // Use the Lead constructor that handles validation and field mapping for updates
-        Lead updatedLead = new Lead(leadRequestModel, getUser(), existingLead);
-        Address savedAddress = addressRepository.save(new Address(leadRequestModel.getAddress(), getUser(), existingLead.getAddress()));
+        // Set clientId and createdById from security context/existing lead (not from frontend)
+        leadRequestModel.setClientId(currentClientId);
+        leadRequestModel.setCreatedById(existingLead.getCreatedById()); // Preserve original creator
 
-        updatedLead.setAddressId(savedAddress.getAddressId());
+        // Update address
+        updateLeadAddress(leadRequestModel, existingLead, authenticatedUser);
+
+        // Use the Lead constructor that handles validation and field mapping for updates
+        Lead updatedLead = new Lead(leadRequestModel, authenticatedUser, existingLead);
         leadRepository.save(updatedLead);
 
         // Logging
         userLogService.logData(
-            getUserId(),
+            currentUserId,
             SuccessMessages.LeadSuccessMessages.UpdateLead + updatedLead.getLeadId(),
             ApiRoutes.LeadsSubRoute.UPDATE_LEAD);
     }
@@ -249,9 +246,9 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      * Toggles the active status of a lead.
      * 
      * @param leadId The unique identifier of the lead to toggle
-     * @return The updated Lead entity
      */
     @Override
+    @Transactional
     public void toggleLead(Long leadId) {
         Lead lead = leadRepository.findLeadWithDetailsByIdIncludingDeleted(leadId, getClientId());
         if (lead == null) {
@@ -272,57 +269,161 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
     }
 
     /**
-     * Creates multiple leads in a single operation.
+     * Creates multiple leads asynchronously in the system with partial success support.
      * 
-     * @param leads List of LeadRequestModel containing the lead data to insert
-     * @return BulkInsertResponseModel containing success/failure details for each lead
+     * This method processes leads in a background thread with the following characteristics:
+     * - Supports partial success: if some leads fail validation, others still succeed
+     * - Sends detailed results to user via message notification after processing completes
+     * - NOT_SUPPORTED: Runs without a transaction to avoid rollback-only issues when individual lead creations fail
+     * 
+     * @param leads List of LeadRequestModel containing the lead data to create
+     * @param requestingUserId The ID of the user making the request (captured from security context)
+     * @param requestingUserLoginName The loginName of the user making the request (captured from security context)
+     * @param requestingClientId The client ID of the user making the request (captured from security context)
      */
     @Override
-    public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateLeads(java.util.List<LeadRequestModel> leads) {
-        if (leads == null || leads.isEmpty()) {
-            throw new BadRequestException("Lead list cannot be null or empty");
-        }
-
-        com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
-            new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
-        response.setTotalRequested(leads.size());
-        
-        int successCount = 0;
-        int failureCount = 0;
-        
-        for (LeadRequestModel leadRequest : leads) {
-            try {
-                createLead(leadRequest);
-                
-                Lead createdLead = leadRepository.findLeadWithDetailsByEmail(leadRequest.getEmail(), getClientId());
-                if (createdLead != null) {
-                    response.addSuccess(leadRequest.getEmail(), createdLead.getLeadId());
-                    successCount++;
-                }
-            } catch (BadRequestException bre) {
-                response.addFailure(
-                    leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown", 
-                    bre.getMessage()
-                );
-                failureCount++;
-            } catch (Exception e) {
-                response.addFailure(
-                    leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown", 
-                    "Error: " + e.getMessage()
-                );
-                failureCount++;
+    @org.springframework.scheduling.annotation.Async
+    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+    public void bulkCreateLeadsAsync(List<LeadRequestModel> leads, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
+        try {
+            // Validate input
+            if (leads == null || leads.isEmpty()) {
+                throw new BadRequestException("Lead list cannot be null or empty");
             }
+
+            com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
+                new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+            response.setTotalRequested(leads.size());
+            
+            int successCount = 0;
+            int failureCount = 0;
+            
+            // Process each lead individually
+            for (LeadRequestModel leadRequest : leads) {
+                try {
+                    // Call createLead with explicit createdUser and shouldLog = false (bulk logs collectively)
+                    createLead(leadRequest, requestingUserLoginName, false);
+                    
+                    // If we get here, lead was created successfully
+                    // Fetch the created lead to get the leadId
+                    Lead createdLead = leadRepository.findLeadWithDetailsByEmail(leadRequest.getEmail(), requestingClientId);
+                    if (createdLead != null) {
+                        response.addSuccess(leadRequest.getEmail(), createdLead.getLeadId());
+                        successCount++;
+                    }
+                    
+                } catch (BadRequestException bre) {
+                    // Validation or business logic error
+                    response.addFailure(
+                        leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown", 
+                        bre.getMessage()
+                    );
+                    failureCount++;
+                } catch (Exception e) {
+                    // Unexpected error
+                    response.addFailure(
+                        leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown", 
+                        "Error: " + e.getMessage()
+                    );
+                    failureCount++;
+                }
+            }
+            
+            // Log bulk lead creation (using captured context values)
+            userLogService.logDataWithContext(
+                requestingUserId,
+                requestingUserLoginName,
+                requestingClientId,
+                SuccessMessages.LeadSuccessMessages.InsertLead + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+                ApiRoutes.LeadsSubRoute.BULK_CREATE_LEAD
+            );
+            
+            response.setSuccessCount(successCount);
+            response.setFailureCount(failureCount);
+            
+            // Create a message with the bulk insert results using the helper (using captured context)
+            BulkInsertHelper.createDetailedBulkInsertResultMessage(
+                response, "Lead", "Leads", "Email", "Lead ID", 
+                messageService, requestingUserId, requestingUserLoginName, requestingClientId
+            );
+            
+        } catch (Exception e) {
+            // Still send a message to user about the failure (using captured userId)
+            com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> errorResponse = 
+                new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+            errorResponse.setTotalRequested(leads != null ? leads.size() : 0);
+            errorResponse.setSuccessCount(0);
+            errorResponse.setFailureCount(leads != null ? leads.size() : 0);
+            errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
+            BulkInsertHelper.createDetailedBulkInsertResultMessage(
+                errorResponse, "Lead", "Leads", "Email", "Lead ID", 
+                messageService, requestingUserId, requestingUserLoginName, requestingClientId
+            );
         }
-        
-        userLogService.logData(getUserId(), 
-            SuccessMessages.LeadSuccessMessages.InsertLead + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
-            ApiRoutes.LeadsSubRoute.BULK_CREATE_LEAD);
-        
-        response.setSuccessCount(successCount);
-        response.setFailureCount(failureCount);
-        
-        BulkInsertHelper.createBulkInsertResultMessage(response, "Lead", messageService, getUserId(), getUser(), getClientId());
-        
-        return response;
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    /**
+     * Creates a new lead in the system with explicit createdUser.
+     * This variant is used for async operations where security context is not available.
+     * 
+     * @param leadRequestModel The lead data to create
+     * @param createdUser The loginName of the user creating this lead (for async operations)
+     * @param shouldLog Whether to log this individual lead creation (false for bulk operations)
+     * @throws BadRequestException if the lead data is invalid or incomplete
+     */
+    @Transactional
+    private void createLead(LeadRequestModel leadRequestModel, String createdUser, boolean shouldLog) {
+        // Get security context (or use passed values for async)
+        Long currentClientId = getClientId();
+        Long currentUserId = getUserId();
+
+        // Set clientId and createdById from security context (not from frontend)
+        leadRequestModel.setClientId(currentClientId);
+        leadRequestModel.setCreatedById(currentUserId);
+
+        // Create address first
+        Address savedAddress = createLeadAddress(leadRequestModel, createdUser);
+
+        // Use the Lead constructor that handles validation and field mapping
+        Lead lead = new Lead(leadRequestModel, createdUser);
+        lead.setAddressId(savedAddress.getAddressId());
+        Lead savedLead = leadRepository.save(lead);
+
+        // Log lead creation (skip for bulk operations as they log collectively)
+        if (shouldLog) {
+            userLogService.logData(
+                currentUserId,
+                SuccessMessages.LeadSuccessMessages.InsertLead + savedLead.getLeadId(),
+                ApiRoutes.LeadsSubRoute.CREATE_LEAD);
+        }
+    }
+
+    /**
+     * Creates address for a lead.
+     * 
+     * @param leadRequestModel The lead request containing address data
+     * @param createdUser The loginName of the user creating this address
+     * @return The saved Address entity
+     */
+    private Address createLeadAddress(LeadRequestModel leadRequestModel, String createdUser) {
+        return addressRepository.save(new Address(leadRequestModel.getAddress(), createdUser));
+    }
+
+    /**
+     * Updates address for an existing lead.
+     * 
+     * @param leadRequestModel The lead request containing address data
+     * @param existingLead The existing lead entity
+     * @param modifiedUser The loginName of the user modifying this address
+     */
+    private void updateLeadAddress(LeadRequestModel leadRequestModel, Lead existingLead, String modifiedUser) {
+        if (leadRequestModel.getAddress() != null) {
+            Address savedAddress = addressRepository.save(
+                new Address(leadRequestModel.getAddress(), modifiedUser, existingLead.getAddress())
+            );
+            existingLead.setAddressId(savedAddress.getAddressId());
+        }
     }
 }

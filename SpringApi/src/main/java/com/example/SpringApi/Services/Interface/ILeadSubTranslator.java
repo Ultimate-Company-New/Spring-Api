@@ -66,10 +66,17 @@ public interface ILeadSubTranslator {
     void toggleLead(Long leadId);
     
     /**
-     * Creates multiple leads in a single operation.
+     * Creates multiple leads asynchronously in the system with partial success support.
      * 
-     * @param leads List of LeadRequestModel containing the lead data to insert
-     * @return BulkInsertResponseModel containing success/failure details for each lead
+     * This method processes leads in a background thread with the following characteristics:
+     * - Supports partial success: if some leads fail validation, others still succeed
+     * - Sends detailed results to user via message notification after processing completes
+     * - NOT_SUPPORTED: Runs without a transaction to avoid rollback-only issues
+     * 
+     * @param leads List of LeadRequestModel containing the lead data to create
+     * @param requestingUserId The ID of the user making the request (captured from security context)
+     * @param requestingUserLoginName The loginName of the user making the request (captured from security context)
+     * @param requestingClientId The client ID of the user making the request (captured from security context)
      */
-    com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateLeads(java.util.List<LeadRequestModel> leads);
+    void bulkCreateLeadsAsync(java.util.List<LeadRequestModel> leads, Long requestingUserId, String requestingUserLoginName, Long requestingClientId);
 }
