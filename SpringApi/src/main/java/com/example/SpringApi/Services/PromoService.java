@@ -9,6 +9,7 @@ import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.DatabaseModels.Promo;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.PromoRequestModel;
+import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PromoResponseModel;
 import com.example.SpringApi.Repositories.PromoRepository;
@@ -17,13 +18,17 @@ import com.example.SpringApi.SuccessMessages;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service implementation for Promo operations.
@@ -148,23 +153,9 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
    * @throws BadRequestException if promo code already exists
    */
   @Override
+  @Transactional
   public void createPromo(PromoRequestModel promoRequestModel) {
-    // Check for duplicate promo code
-      Promo promo = new Promo(promoRequestModel, getUser(), getClientId());
-
-      Optional<Promo> existingPromo = promoRepository.findByPromoCodeAndClientId(
-        promoRequestModel.getPromoCode().toUpperCase(), getClientId());
-
-      if (existingPromo.isPresent()) {
-      throw new BadRequestException(ErrorMessages.PromoErrorMessages.DuplicateName);
-    }
-    
-    // Ensure clientId is set from current context for multi-tenant isolation
-    promoRepository.save(promo);
-    userLogService.logData(
-        getUserId(),
-        SuccessMessages.PromoSuccessMessages.CreatePromo + promoRequestModel.getPromoCode(),
-        ApiRoutes.PromosSubRoute.CREATE_PROMO);
+    createPromo(promoRequestModel, getUser(), true);
   }
 
   /**
@@ -189,6 +180,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
    * @throws NotFoundException if the promo is not found
    */
   @Override
+  @Transactional
   public void togglePromo(long id) {
     Promo promo =
         promoRepository
@@ -235,19 +227,114 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   }
 
   /**
+   * Creates multiple promos asynchronously in the system with partial success support.
+   * 
+   * This method processes promos in a background thread with the following characteristics:
+   * - Supports partial success: if some promos fail validation, others still succeed
+   * - Sends detailed results to user via message notification after processing completes
+   * - NOT_SUPPORTED: Runs without a transaction to avoid rollback-only issues when individual promo creations fail
+   * 
+   * @param promos List of PromoRequestModel containing the promo data to create
+   * @param requestingUserId The ID of the user making the request (captured from security context)
+   * @param requestingUserLoginName The loginName of the user making the request (captured from security context)
+   * @param requestingClientId The client ID of the user making the request (captured from security context)
+   */
+  @Override
+  @Async
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
+  public void bulkCreatePromosAsync(List<PromoRequestModel> promos, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
+    try {
+      // Validate input
+      if (promos == null || promos.isEmpty()) {
+        throw new BadRequestException("Promo list cannot be null or empty");
+      }
+
+      BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
+      response.setTotalRequested(promos.size());
+      
+      int successCount = 0;
+      int failureCount = 0;
+      
+      // Process each promo individually
+      for (PromoRequestModel promoRequest : promos) {
+        try {
+          // Call createPromo with explicit createdUser and shouldLog = false (bulk logs collectively)
+          createPromo(promoRequest, requestingUserLoginName, false);
+          
+          // If we get here, promo was created successfully
+          // Fetch the created promo to get the promoId
+          Optional<Promo> createdPromo = promoRepository.findByPromoCodeAndClientId(
+              promoRequest.getPromoCode().toUpperCase(), requestingClientId);
+          if (createdPromo.isPresent()) {
+            response.addSuccess(promoRequest.getPromoCode(), createdPromo.get().getPromoId());
+            successCount++;
+          }
+          
+        } catch (BadRequestException bre) {
+          // Validation or business logic error
+          response.addFailure(
+              promoRequest.getPromoCode() != null ? promoRequest.getPromoCode() : "unknown", 
+              bre.getMessage()
+          );
+          failureCount++;
+        } catch (Exception e) {
+          // Unexpected error
+          response.addFailure(
+              promoRequest.getPromoCode() != null ? promoRequest.getPromoCode() : "unknown", 
+              "Error: " + e.getMessage()
+          );
+          failureCount++;
+        }
+      }
+      
+      // Log bulk promo creation (using captured context values)
+      userLogService.logDataWithContext(
+          requestingUserId,
+          requestingUserLoginName,
+          requestingClientId,
+          SuccessMessages.PromoSuccessMessages.CreatePromo + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+          ApiRoutes.PromosSubRoute.BULK_CREATE_PROMO
+      );
+      
+      response.setSuccessCount(successCount);
+      response.setFailureCount(failureCount);
+      
+      // Create a message with the bulk insert results using the helper (using captured context)
+      BulkInsertHelper.createDetailedBulkInsertResultMessage(
+          response, "Promo", "Promos", "Promo Code", "Promo ID", 
+          messageService, requestingUserId, requestingUserLoginName, requestingClientId
+      );
+      
+    } catch (Exception e) {
+      // Still send a message to user about the failure (using captured userId)
+      BulkInsertResponseModel<Long> errorResponse = new BulkInsertResponseModel<>();
+      errorResponse.setTotalRequested(promos != null ? promos.size() : 0);
+      errorResponse.setSuccessCount(0);
+      errorResponse.setFailureCount(promos != null ? promos.size() : 0);
+      errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
+      BulkInsertHelper.createDetailedBulkInsertResultMessage(
+          errorResponse, "Promo", "Promos", "Promo Code", "Promo ID", 
+          messageService, requestingUserId, requestingUserLoginName, requestingClientId
+      );
+    }
+  }
+
+  /**
    * Creates multiple promos in a single operation.
+   * This is the synchronous version that returns results directly.
    * 
    * @param promos List of PromoRequestModel containing the promo data to insert
    * @return BulkInsertResponseModel containing success/failure details for each promo
+   * @deprecated Use bulkCreatePromosAsync for better performance with large datasets
    */
   @Override
-  public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreatePromos(java.util.List<PromoRequestModel> promos) {
+  @Deprecated
+  public BulkInsertResponseModel<Long> bulkCreatePromos(List<PromoRequestModel> promos) {
     if (promos == null || promos.isEmpty()) {
       throw new BadRequestException("Promo list cannot be null or empty");
     }
 
-    com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
-        new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+    BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
     response.setTotalRequested(promos.size());
     
     int successCount = 0;
@@ -285,8 +372,52 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
     response.setSuccessCount(successCount);
     response.setFailureCount(failureCount);
     
-    BulkInsertHelper.createBulkInsertResultMessage(response, "Promo", messageService, getUserId(), getUser(), getClientId());
+    BulkInsertHelper.createDetailedBulkInsertResultMessage(
+        response, "Promo", "Promos", "Promo Code", "Promo ID", 
+        messageService, getUserId(), getUser(), getClientId());
     
     return response;
+  }
+
+  // ==================== HELPER METHODS ====================
+
+  /**
+   * Creates a new promo with explicit createdUser.
+   * This variant is used for async operations where security context is not available.
+   * 
+   * @param promoRequestModel The promo data to create
+   * @param createdUser The loginName of the user creating this promo (for async operations)
+   * @param shouldLog Whether to log this individual promo creation (false for bulk operations)
+   * @throws BadRequestException if promo code already exists
+   */
+  @Transactional
+  private void createPromo(PromoRequestModel promoRequestModel, String createdUser, boolean shouldLog) {
+    // Get security context
+    Long currentClientId = getClientId();
+    Long currentUserId = getUserId();
+
+    // Check for overlapping promo codes in the same date range
+    // This allows the same promo code to be used in different time periods
+    java.util.List<Promo> overlappingPromos = promoRepository.findOverlappingPromos(
+        promoRequestModel.getPromoCode().toUpperCase(),
+        currentClientId,
+        promoRequestModel.getStartDate(),
+        promoRequestModel.getExpiryDate());
+
+    if (!overlappingPromos.isEmpty()) {
+      throw new BadRequestException(ErrorMessages.PromoErrorMessages.OverlappingPromoCode);
+    }
+    
+    // Create and save promo
+    Promo promo = new Promo(promoRequestModel, createdUser, currentClientId);
+    promoRepository.save(promo);
+
+    // Log promo creation (skip for bulk operations as they log collectively)
+    if (shouldLog) {
+      userLogService.logData(
+          currentUserId,
+          SuccessMessages.PromoSuccessMessages.CreatePromo + promoRequestModel.getPromoCode(),
+          ApiRoutes.PromosSubRoute.CREATE_PROMO);
+    }
   }
 }

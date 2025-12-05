@@ -5,6 +5,7 @@ import com.example.SpringApi.Models.DatabaseModels.Client;
 import lombok.Getter;
 import lombok.Setter;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -33,6 +34,8 @@ public class PromoResponseModel {
     private LocalDateTime updatedAt;
     private String modifiedUser;
     private String notes;
+    private LocalDate startDate;
+    private LocalDate expiryDate;
     
     // Additional computed fields
     private String discountDisplay;
@@ -58,6 +61,8 @@ public class PromoResponseModel {
             this.updatedAt = promo.getUpdatedAt();
             this.modifiedUser = promo.getModifiedUser();
             this.notes = promo.getNotes();
+            this.startDate = promo.getStartDate();
+            this.expiryDate = promo.getExpiryDate();
                         
             // Compute additional fields
             this.isActive = !this.isDeleted;

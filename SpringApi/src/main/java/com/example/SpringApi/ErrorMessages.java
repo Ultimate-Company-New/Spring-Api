@@ -247,6 +247,7 @@ public class ErrorMessages {
         public static final String InvalidId = "Invalid promo Id.";
         public static final String InvalidName = "Invalid promo code.";
         public static final String DuplicateName = "Duplicate promo code name.";
+        public static final String OverlappingPromoCode = "A promo with this code already exists during the specified time period.";
         public static final String InvalidRequest = "Promo request cannot be null.";
         public static final String InvalidDescription = "Description is required and cannot be empty.";
         public static final String DescriptionTooLong = "Description cannot exceed 500 characters.";
@@ -254,6 +255,10 @@ public class ErrorMessages {
         public static final String InvalidPercentageValue = "Percentage discount cannot exceed 100%.";
         public static final String InvalidPromoCode = "Promo code is required and cannot be empty.";
         public static final String PromoCodeTooLong = "Promo code cannot exceed 100 characters.";
+        public static final String InvalidStartDate = "Start date is required.";
+        public static final String StartDateMustBeTodayOrFuture = "Start date must be today or in the future.";
+        public static final String InvalidExpiryDate = "Expiry date must be today or in the future.";
+        public static final String ExpiryDateMustBeAfterStartDate = "Expiry date must be after or equal to start date.";
 
         // Additional error messages
         public static final String ER001 = "Promo code is required.";

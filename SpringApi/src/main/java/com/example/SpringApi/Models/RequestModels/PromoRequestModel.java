@@ -3,6 +3,7 @@ package com.example.SpringApi.Models.RequestModels;
 import lombok.Getter;
 import lombok.Setter;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 /**
  * Request model for Promo operations.
@@ -26,4 +27,6 @@ public class PromoRequestModel extends PaginationBaseRequestModel {
     private String promoCode;
     private Long clientId;
     private String notes;
+    private LocalDate startDate;
+    private LocalDate expiryDate;
 }

@@ -10,6 +10,7 @@ import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -68,6 +69,12 @@ public class Promo {
     
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
+    
+    @Column(name = "startDate", nullable = false)
+    private LocalDate startDate;
+    
+    @Column(name = "expiryDate")
+    private LocalDate expiryDate;
 
     
     public Promo() {}
@@ -126,9 +133,23 @@ public class Promo {
             throw new BadRequestException(ErrorMessages.PromoErrorMessages.PromoCodeTooLong);
         }
         
-        // Validate client ID (required, > 0)
-        if (request.getClientId() == null || request.getClientId() <= 0) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidId);
+        // Validate start date (required, must be today or in the future)
+        if (request.getStartDate() == null) {
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidStartDate);
+        }
+        LocalDate today = LocalDate.now();
+        if (request.getStartDate().isBefore(today)) {
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.StartDateMustBeTodayOrFuture);
+        }
+        
+        // Validate expiry date (optional, but if provided must be today or in the future and after start date)
+        if (request.getExpiryDate() != null) {
+            if (request.getExpiryDate().isBefore(today)) {
+                throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidExpiryDate);
+            }
+            if (request.getExpiryDate().isBefore(request.getStartDate())) {
+                throw new BadRequestException(ErrorMessages.PromoErrorMessages.ExpiryDateMustBeAfterStartDate);
+            }
         }
     }
     
@@ -155,8 +176,9 @@ public class Promo {
         this.isPercent = request.getIsPercent() != null ? request.getIsPercent() : false;
         this.discountValue = request.getDiscountValue();
         this.promoCode = request.getPromoCode().trim().toUpperCase(); // Standardize to uppercase
-        this.clientId = request.getClientId();
         this.notes = request.getNotes() != null ? request.getNotes().trim() : "Created Via SpringApi";
+        this.startDate = request.getStartDate();
+        this.expiryDate = request.getExpiryDate();
     }
     
     /**

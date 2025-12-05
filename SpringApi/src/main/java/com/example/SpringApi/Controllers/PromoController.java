@@ -4,6 +4,7 @@ import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.PromoRequestModel;
 import com.example.SpringApi.Services.Interface.IPromoSubTranslator;
+import com.example.SpringApi.Services.PromoService;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
@@ -73,9 +74,11 @@ public class PromoController {
      * 
      * This endpoint creates a new promo with the provided details including
      * discount value, promo code, and associated client information.
+     * ClientId is automatically retrieved from the security context.
      * Requires INSERT_PROMOS_PERMISSION to access.
      * 
--     * @return ResponseEntity containing the ID of the newly created promo or error
+     * @param promoRequestModel The promo request model containing promo data
+     * @return ResponseEntity containing success status or error
      */
     @PutMapping("/" + ApiRoutes.PromosSubRoute.CREATE_PROMO)
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.INSERT_PROMOS_PERMISSION +"')")
@@ -95,11 +98,33 @@ public class PromoController {
         }
     }
 
+    /**
+     * Creates multiple promotional codes in a single bulk operation.
+     * 
+     * This endpoint processes promos asynchronously and sends results via message notification.
+     * Security context is captured BEFORE calling the async method to ensure proper user tracking.
+     * Requires INSERT_PROMOS_PERMISSION to access.
+     * 
+     * @param promos List of PromoRequestModel containing the promo data to insert
+     * @return ResponseEntity with 200 OK if processing started successfully
+     */
     @PutMapping("/" + ApiRoutes.PromosSubRoute.BULK_CREATE_PROMO)
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.INSERT_PROMOS_PERMISSION +"')")
     public ResponseEntity<?> bulkCreatePromos(@RequestBody java.util.List<PromoRequestModel> promos) {
         try {
-            return ResponseEntity.ok(promoService.bulkCreatePromos(promos));
+            // Cast to concrete service to access BaseService methods for security context
+            PromoService concreteService = (PromoService) promoService;
+            
+            // Capture security context BEFORE calling async method
+            Long userId = concreteService.getUserId();
+            String loginName = concreteService.getUser();
+            Long clientId = concreteService.getClientId();
+            
+            // Call async method with captured context
+            promoService.bulkCreatePromosAsync(promos, userId, loginName, clientId);
+            
+            // Return immediately - results will be sent via message notification
+            return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
