@@ -126,27 +126,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
      */
     @Override
     public void createUserGroup(UserGroupRequestModel userGroupRequest) {
-        // Create and save the user group
-        UserGroup userGroup = new UserGroup(userGroupRequest, getUser(), getClientId());
-
-        // Check if group name already exists
-        UserGroup existingGroup = userGroupRepository.findByGroupName(userGroup.getGroupName());
-        if (existingGroup != null) {
-            throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.GroupNameExists);
-        }
-        UserGroup savedGroup = userGroupRepository.save(userGroup);
-        
-        // Create user-group mappings
-        List<UserGroupUserMap> mappings = new ArrayList<>();
-        for (Long userId : userGroupRequest.getUserIds()) {
-            UserGroupUserMap mapping = new UserGroupUserMap(userId, savedGroup.getGroupId(), getUser());
-            mappings.add(mapping);
-        }
-        userGroupUserMapRepository.saveAll(mappings);
-        
-        userLogService.logData(getUserId(), 
-            SuccessMessages.UserGroupSuccessMessages.InsertGroup + " " + savedGroup.getGroupId(),
-            ApiRoutes.UserGroupSubRoute.CREATE_USER_GROUP);
+        createUserGroup(userGroupRequest, getUser(), true);
     }
 
     /**
@@ -181,19 +161,8 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
             UserGroup userGroup = new UserGroup(userGroupRequest, getUser(), existingGroup.get(), getClientId());
             UserGroup updatedGroup = userGroupRepository.save(userGroup);
             
-            // Delete existing user-group mappings
-            List<UserGroupUserMap> existingMappings = userGroupUserMapRepository.findByGroupId(userGroupRequest.getGroupId());
-            if (!existingMappings.isEmpty()) {
-                userGroupUserMapRepository.deleteAll(existingMappings);
-            }
-            
-            // Create new user-group mappings
-            List<UserGroupUserMap> mappings = new ArrayList<>();
-            for (Long userId : userGroupRequest.getUserIds()) {
-                UserGroupUserMap mapping = new UserGroupUserMap(userId, updatedGroup.getGroupId(), getUser());
-                mappings.add(mapping);
-            }
-            userGroupUserMapRepository.saveAll(mappings);
+            // Update user-group mappings
+            updateUserGroupMappings(userGroupRequest, updatedGroup);
             
             userLogService.logData(getUserId(), 
                 SuccessMessages.UserGroupSuccessMessages.UpdateGroup + " " + updatedGroup.getGroupId(),
@@ -215,7 +184,8 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
      * - Optional filtering by specific group IDs
      * 
      * Valid columns for filtering: "groupId", "groupName", "description", "isActive", "isDeleted", 
-     *                               "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes"
+     *                               "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes",
+     *                               "userCount", "memberCount", "members" (all refer to member count)
      * 
      * @param userGroupRequestModel The request model containing filter criteria and pagination settings
      * @return PaginationBaseResponseModel containing the filtered and paginated user groups
@@ -241,7 +211,8 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
         if (userGroupRequestModel.hasMultipleFilters()) {
             Set<String> validColumns = new HashSet<>(Arrays.asList(
                 "groupId", "clientId", "groupName", "description", "isActive", "isDeleted",
-                "notes", "createdUser", "modifiedUser", "createdAt", "updatedAt"
+                "notes", "createdUser", "modifiedUser", "createdAt", "updatedAt",
+                "userCount", "memberCount", "members"
             ));
 
             for (FilterCondition filter : userGroupRequestModel.getFilters()) {
@@ -303,56 +274,170 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
     }
 
     /**
-     * Creates multiple user groups in a single operation.
+     * Creates multiple user groups asynchronously in the system with partial success support.
      * 
-     * @param userGroups List of UserGroupRequestModel containing the group data to insert
-     * @return BulkInsertResponseModel containing success/failure details for each group
+     * This method processes user groups in a background thread with the following characteristics:
+     * - Supports partial success: if some groups fail validation, others still succeed
+     * - Sends detailed results to user via message notification after processing completes
+     * - NOT_SUPPORTED: Runs without a transaction to avoid rollback-only issues when individual group creations fail
+     * 
+     * @param userGroups List of UserGroupRequestModel containing the group data to create
+     * @param requestingUserId The ID of the user making the request (captured from security context)
+     * @param requestingUserLoginName The loginName of the user making the request (captured from security context)
+     * @param requestingClientId The client ID of the user making the request (captured from security context)
      */
     @Override
-    public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateUserGroups(List<UserGroupRequestModel> userGroups) {
-        if (userGroups == null || userGroups.isEmpty()) {
-            throw new BadRequestException("User group list cannot be null or empty");
+    @org.springframework.scheduling.annotation.Async
+    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+    public void bulkCreateUserGroupsAsync(List<UserGroupRequestModel> userGroups, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
+        try {
+            // Validate input
+            if (userGroups == null || userGroups.isEmpty()) {
+                throw new BadRequestException("User group list cannot be null or empty");
+            }
+
+            com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
+                new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+            response.setTotalRequested(userGroups.size());
+            
+            int successCount = 0;
+            int failureCount = 0;
+            
+            // Process each group individually
+            for (UserGroupRequestModel groupRequest : userGroups) {
+                try {
+                    // Call createUserGroup with explicit createdUser and shouldLog = false (bulk logs collectively)
+                    createUserGroup(groupRequest, requestingUserLoginName, false);
+                    
+                    // If we get here, group was created successfully
+                    // Fetch the created group to get the groupId
+                    UserGroup createdGroup = userGroupRepository.findByGroupName(groupRequest.getGroupName());
+                    response.addSuccess(groupRequest.getGroupName(), createdGroup.getGroupId());
+                    successCount++;
+                    
+                } catch (BadRequestException bre) {
+                    // Validation or business logic error
+                    response.addFailure(
+                        groupRequest.getGroupName() != null ? groupRequest.getGroupName() : "unknown", 
+                        bre.getMessage()
+                    );
+                    failureCount++;
+                } catch (Exception e) {
+                    // Unexpected error
+                    response.addFailure(
+                        groupRequest.getGroupName() != null ? groupRequest.getGroupName() : "unknown", 
+                        "Error: " + e.getMessage()
+                    );
+                    failureCount++;
+                }
+            }
+            
+            // Log bulk user group creation (using captured context values)
+            userLogService.logDataWithContext(
+                requestingUserId,
+                requestingUserLoginName,
+                requestingClientId,
+                SuccessMessages.UserGroupSuccessMessages.InsertGroup + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+                ApiRoutes.UserGroupSubRoute.BULK_CREATE_USER_GROUP
+            );
+            
+            response.setSuccessCount(successCount);
+            response.setFailureCount(failureCount);
+            
+            // Create a message with the bulk insert results using the specialized user group helper (using captured context)
+            BulkInsertHelper.createBulkUserGroupInsertResultMessage(response, messageService, requestingUserId, requestingUserLoginName, requestingClientId);
+            
+        } catch (Exception e) {
+            // Still send a message to user about the failure (using captured userId)
+            com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> errorResponse = 
+                new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+            errorResponse.setTotalRequested(userGroups != null ? userGroups.size() : 0);
+            errorResponse.setSuccessCount(0);
+            errorResponse.setFailureCount(userGroups != null ? userGroups.size() : 0);
+            errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
+            BulkInsertHelper.createBulkUserGroupInsertResultMessage(errorResponse, messageService, requestingUserId, requestingUserLoginName, requestingClientId);
+        }
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    /**
+     * Creates a new user group in the system with explicit createdUser.
+     * This variant is used for async operations where security context is not available.
+     * 
+     * @param userGroupRequest The UserGroupRequestModel containing the group data to insert
+     * @param createdUser The loginName of the user creating this group (for async operations)
+     * @param shouldLog Whether to log this individual group creation (false for bulk operations)
+     * @throws BadRequestException if the user group data is invalid or incomplete
+     */
+    @org.springframework.transaction.annotation.Transactional
+    private void createUserGroup(UserGroupRequestModel userGroupRequest, String createdUser, boolean shouldLog) {
+        // Validate that at least one user is provided
+        if (userGroupRequest.getUserIds() == null || userGroupRequest.getUserIds().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.ER004);
         }
 
-        com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
-            new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
-        response.setTotalRequested(userGroups.size());
+        // Create and save the user group
+        UserGroup userGroup = new UserGroup(userGroupRequest, createdUser, getClientId());
+
+        // Check if group name already exists
+        UserGroup existingGroup = userGroupRepository.findByGroupName(userGroup.getGroupName());
+        if (existingGroup != null) {
+            throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.GroupNameExists);
+        }
+        UserGroup savedGroup = userGroupRepository.save(userGroup);
         
-        int successCount = 0;
-        int failureCount = 0;
+        // Create user-group mappings
+        createUserGroupMappings(userGroupRequest, savedGroup, createdUser);
         
-        for (UserGroupRequestModel groupRequest : userGroups) {
-            try {
-                createUserGroup(groupRequest);
-                
-                UserGroup createdGroup = userGroupRepository.findByGroupName(groupRequest.getGroupName());
-                response.addSuccess(groupRequest.getGroupName(), createdGroup.getGroupId());
-                successCount++;
-                
-            } catch (BadRequestException bre) {
-                response.addFailure(
-                    groupRequest.getGroupName() != null ? groupRequest.getGroupName() : "unknown", 
-                    bre.getMessage()
-                );
-                failureCount++;
-            } catch (Exception e) {
-                response.addFailure(
-                    groupRequest.getGroupName() != null ? groupRequest.getGroupName() : "unknown", 
-                    "Error: " + e.getMessage()
-                );
-                failureCount++;
+        // Log user group creation (skip for bulk operations as they log collectively)
+        if (shouldLog) {
+            userLogService.logData(getUserId(), 
+                SuccessMessages.UserGroupSuccessMessages.InsertGroup + " " + savedGroup.getGroupId(),
+                ApiRoutes.UserGroupSubRoute.CREATE_USER_GROUP);
+        }
+    }
+
+    /**
+     * Creates user-group mappings for a user group.
+     * 
+     * @param userGroupRequest The user group request containing user IDs
+     * @param savedGroup The saved user group entity
+     * @param createdUser The loginName of the user creating these mappings
+     */
+    private void createUserGroupMappings(UserGroupRequestModel userGroupRequest, UserGroup savedGroup, String createdUser) {
+        if (userGroupRequest.getUserIds() != null && !userGroupRequest.getUserIds().isEmpty()) {
+            List<UserGroupUserMap> mappings = new ArrayList<>();
+            for (Long userId : userGroupRequest.getUserIds()) {
+                UserGroupUserMap mapping = new UserGroupUserMap(userId, savedGroup.getGroupId(), createdUser);
+                mappings.add(mapping);
             }
+            userGroupUserMapRepository.saveAll(mappings);
+        }
+    }
+
+    /**
+     * Updates user-group mappings for an existing user group.
+     * Deletes all existing mappings and creates new ones.
+     * 
+     * @param userGroupRequest The user group request containing user IDs
+     * @param updatedGroup The updated user group entity
+     */
+    private void updateUserGroupMappings(UserGroupRequestModel userGroupRequest, UserGroup updatedGroup) {
+        // Delete existing user-group mappings
+        List<UserGroupUserMap> existingMappings = userGroupUserMapRepository.findByGroupId(userGroupRequest.getGroupId());
+        if (!existingMappings.isEmpty()) {
+            userGroupUserMapRepository.deleteAll(existingMappings);
         }
         
-        userLogService.logData(getUserId(), 
-            SuccessMessages.UserGroupSuccessMessages.InsertGroup + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
-            ApiRoutes.UserGroupSubRoute.BULK_CREATE_USER_GROUP);
-        
-        response.setSuccessCount(successCount);
-        response.setFailureCount(failureCount);
-        
-        BulkInsertHelper.createBulkInsertResultMessage(response, "User Group", messageService, getUserId());
-        
-        return response;
+        // Create new user-group mappings
+        if (userGroupRequest.getUserIds() != null && !userGroupRequest.getUserIds().isEmpty()) {
+            List<UserGroupUserMap> mappings = new ArrayList<>();
+            for (Long userId : userGroupRequest.getUserIds()) {
+                UserGroupUserMap mapping = new UserGroupUserMap(userId, updatedGroup.getGroupId(), getUser());
+                mappings.add(mapping);
+            }
+            userGroupUserMapRepository.saveAll(mappings);
+        }
     }
 }

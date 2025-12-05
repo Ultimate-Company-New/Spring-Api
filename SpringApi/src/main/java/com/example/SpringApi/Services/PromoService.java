@@ -285,7 +285,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
     response.setSuccessCount(successCount);
     response.setFailureCount(failureCount);
     
-    BulkInsertHelper.createBulkInsertResultMessage(response, "Promo", messageService, getUserId());
+    BulkInsertHelper.createBulkInsertResultMessage(response, "Promo", messageService, getUserId(), getUser(), getClientId());
     
     return response;
   }

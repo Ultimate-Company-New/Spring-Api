@@ -972,7 +972,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         response.setSuccessCount(successCount);
         response.setFailureCount(failureCount);
         
-        BulkInsertHelper.createBulkInsertResultMessage(response, "Purchase Order", messageService, getUserId());
+        BulkInsertHelper.createBulkInsertResultMessage(response, "Purchase Order", messageService, getUserId(), getUser(), getClientId());
         
         return response;
     }

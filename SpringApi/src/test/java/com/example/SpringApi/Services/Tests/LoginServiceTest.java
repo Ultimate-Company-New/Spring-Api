@@ -124,8 +124,7 @@ class LoginServiceTest {
         testUserRequest.setPhone("1234567890");
         testUserRequest.setRole("Customer");
         testUserRequest.setDob(LocalDate.of(1990, 1, 1));
-        testUserRequest.setEmail(TEST_EMAIL);
-        
+
         testUser = new User(testUserRequest);
         testUser.setUserId(TEST_USER_ID);
         testUser.setToken(TEST_TOKEN);

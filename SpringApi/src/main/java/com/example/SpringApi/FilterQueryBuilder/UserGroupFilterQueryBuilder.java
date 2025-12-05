@@ -47,6 +47,11 @@ public class UserGroupFilterQueryBuilder extends BaseFilterQueryBuilder {
             case "modifiedUser": return "ug.modifiedUser";
             case "createdAt": return "ug.createdAt";
             case "updatedAt": return "ug.updatedAt";
+            case "userCount":
+            case "memberCount":
+            case "members": 
+                // Use subquery to count user mappings
+                return "(SELECT COUNT(ugm2) FROM UserGroupUserMap ugm2 WHERE ugm2.groupId = ug.groupId)";
             default: return "ug." + column;
         }
     }
@@ -63,7 +68,7 @@ public class UserGroupFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     @Override
     protected List<String> getNumberColumns() {
-        return Arrays.asList("groupId", "clientId");
+        return Arrays.asList("groupId", "clientId", "userCount", "memberCount", "members");
     }
 
     /**

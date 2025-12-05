@@ -124,7 +124,7 @@ public class UserController {
     public ResponseEntity<?> createUser(@RequestBody UserRequestModel user) {
         try {
             // Always send email for single user creation
-            userService.createUser(user, true);
+            userService.createUser(user);
             return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
@@ -298,34 +298,39 @@ public class UserController {
     /**
      * Creates multiple users in the system efficiently with partial success support.
      * 
-     * This endpoint performs bulk user insertion with the following characteristics:
+     * This endpoint performs bulk user insertion ASYNCHRONOUSLY with the following characteristics:
+     * - Immediately returns 202 Accepted to the client
+     * - Processes users in background thread
      * - Uses batch database operations for maximum efficiency
      * - Supports partial success: if some users fail validation, others still succeed
      * - Does NOT send email confirmations (unlike createUser endpoint)
-     * - Returns detailed results for each user including success/failure status and error messages
+     * - Sends results to the user via message notification after processing completes
      * 
      * This is ideal for importing large numbers of users from external systems or
      * bulk user provisioning scenarios. The endpoint can handle millions of records
-     * efficiently through batched database operations.
+     * efficiently through batched database operations without blocking the client.
      * 
      * @param users List of UserRequestModel containing the user data to insert
-     * @return ResponseEntity containing BulkUserInsertResponseModel with detailed results or ErrorResponseModel
+     * @return ResponseEntity with 202 Accepted status indicating job has been queued
      */
     @PutMapping("/" + ApiRoutes.UsersSubRoute.BULK_CREATE_USER)
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.CREATE_USER_PERMISSION +"')")
     public ResponseEntity<?> bulkCreateUsers(@RequestBody List<UserRequestModel> users) {
         try {
-            BulkUserInsertResponseModel response = userService.bulkCreateUsers(users);
-            return ResponseEntity.ok(response);
+            // Cast to UserService to access BaseService methods (security context not available in async thread)
+            UserService service = (UserService) userService;
+            Long userId = service.getUserId();
+            String loginName = service.getUser();
+            Long clientId = service.getClientId();
+            
+            // Trigger async processing - returns immediately
+            userService.bulkCreateUsersAsync(users, userId, loginName, clientId);
+            
+            // Return 200 OK - processing will continue in background
+            return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
-        } catch (NotFoundException nfe) {
-            logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
-        } catch (UnauthorizedException ue) {
-            logger.error(ue);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));

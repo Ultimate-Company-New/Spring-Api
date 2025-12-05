@@ -321,7 +321,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         response.setSuccessCount(successCount);
         response.setFailureCount(failureCount);
         
-        BulkInsertHelper.createBulkInsertResultMessage(response, "Lead", messageService, getUserId());
+        BulkInsertHelper.createBulkInsertResultMessage(response, "Lead", messageService, getUserId(), getUser(), getClientId());
         
         return response;
     }

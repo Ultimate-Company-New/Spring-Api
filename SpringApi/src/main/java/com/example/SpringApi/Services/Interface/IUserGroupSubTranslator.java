@@ -98,13 +98,16 @@ public interface IUserGroupSubTranslator {
     PaginationBaseResponseModel<UserGroupResponseModel> fetchUserGroupsInClientInBatches(UserGroupRequestModel userGroupRequestModel);
     
     /**
-     * Creates multiple user groups in a single operation.
+     * Creates multiple user groups asynchronously in the system with partial success support.
      * 
-     * This method performs bulk insertion of user groups, processing each group individually
-     * to support partial success. If some groups fail validation, others will still be created.
+     * This method processes user groups in a background thread. Supports partial success:
+     * if some groups fail validation, others still succeed. Results are sent to user via
+     * message notification after processing completes.
      * 
      * @param userGroups List of UserGroupRequestModel containing the group data to insert
-     * @return BulkInsertResponseModel containing success/failure details for each group
+     * @param requestingUserId The ID of the user making the request (captured from security context)
+     * @param requestingUserLoginName The loginName of the user making the request (captured from security context)
+     * @param requestingClientId The client ID of the user making the request (captured from security context)
      */
-    com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateUserGroups(java.util.List<UserGroupRequestModel> userGroups);
+    void bulkCreateUserGroupsAsync(java.util.List<UserGroupRequestModel> userGroups, Long requestingUserId, String requestingUserLoginName, Long requestingClientId);
 }

@@ -31,7 +31,6 @@ public class UserRequestModel extends PaginationBaseRequestModel {
     private LocalDate dob;
     private Boolean isGuest;
     private String apiKey;
-    private String email;
     private Long addressId;
     private String profilePicture;
     private LocalDateTime lastLoginAt;

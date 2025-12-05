@@ -35,35 +35,34 @@ public class LeadFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     @Override
     protected String mapColumnToField(String column) {
-        switch (column) {
-            case "leadId": return "l.leadId";
-            case "firstName": return "l.firstName";
-            case "lastName": return "l.lastName";
-            case "email": return "l.email";
-            case "phone": return "l.phone";
-            case "company": return "l.company";
-            case "companySize": return "l.companySize";
-            case "title": return "l.title";
-            case "leadStatus": return "l.leadStatus";
-            case "annualRevenue": return "l.annualRevenue";
-            case "fax": return "l.fax";
-            case "website": return "l.website";
-            case "isDeleted": return "l.isDeleted";
-            case "clientId": return "l.clientId";
-            case "addressId": return "l.addressId";
-            case "createdById": return "l.createdById";
-            case "assignedAgentId": return "l.assignedAgentId";
-            case "createdUser": return "l.createdUser";
-            case "modifiedUser": return "l.modifiedUser";
-            case "createdAt": return "l.createdAt";
-            case "updatedAt": return "l.updatedAt";
-            case "notes": return "l.notes";
-            case "address": 
-                return "CONCAT(COALESCE(a.streetAddress, ''), ' ', COALESCE(a.streetAddress2, ''), ' ', " +
-                       "COALESCE(a.streetAddress3, ''), ' ', COALESCE(a.city, ''), ' ', " +
-                       "COALESCE(a.state, ''), ' ', COALESCE(a.postalCode, ''), ' ', COALESCE(a.country, ''))";
-            default: return "l." + column;
-        }
+        return switch (column) {
+            case "leadId" -> "l.leadId";
+            case "firstName" -> "l.firstName";
+            case "lastName" -> "l.lastName";
+            case "email" -> "l.email";
+            case "phone" -> "l.phone";
+            case "company" -> "l.company";
+            case "companySize" -> "l.companySize";
+            case "title" -> "l.title";
+            case "leadStatus" -> "l.leadStatus";
+            case "annualRevenue" -> "l.annualRevenue";
+            case "fax" -> "l.fax";
+            case "website" -> "l.website";
+            case "isDeleted" -> "l.isDeleted";
+            case "clientId" -> "l.clientId";
+            case "addressId" -> "l.addressId";
+            case "createdById" -> "l.createdById";
+            case "assignedAgentId" -> "l.assignedAgentId";
+            case "createdUser" -> "l.createdUser";
+            case "modifiedUser" -> "l.modifiedUser";
+            case "createdAt" -> "l.createdAt";
+            case "updatedAt" -> "l.updatedAt";
+            case "notes" -> "l.notes";
+            case "address" -> "CONCAT(COALESCE(a.streetAddress, ''), ' ', COALESCE(a.streetAddress2, ''), ' ', " +
+                    "COALESCE(a.streetAddress3, ''), ' ', COALESCE(a.city, ''), ' ', " +
+                    "COALESCE(a.state, ''), ' ', COALESCE(a.postalCode, ''), ' ', COALESCE(a.country, ''))";
+            default -> "l." + column;
+        };
     }
 
     @Override

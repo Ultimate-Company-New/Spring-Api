@@ -349,7 +349,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         response.setSuccessCount(successCount);
         response.setFailureCount(failureCount);
         
-        BulkInsertHelper.createBulkInsertResultMessage(response, "Package", messageService, getUserId());
+        BulkInsertHelper.createBulkInsertResultMessage(response, "Package", messageService, getUserId(), getUser(), getClientId());
         
         return response;
     }

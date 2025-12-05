@@ -4,6 +4,7 @@ import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.RequestModels.UserGroupRequestModel;
 import com.example.SpringApi.Services.Interface.IUserGroupSubTranslator;
+import com.example.SpringApi.Services.UserGroupService;
 import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Logging.ContextualLogger;
@@ -184,16 +185,31 @@ public class UserGroupController {
     }
 
     /**
-     * Creates multiple user groups in a single operation.
+     * Creates multiple user groups asynchronously in a single operation.
+     * 
+     * This endpoint queues the bulk creation job and returns immediately.
+     * The groups are processed in the background, and the user receives
+     * a message notification with detailed results when processing completes.
+     * Supports partial success: if some groups fail validation, others still succeed.
      * 
      * @param userGroups List of UserGroupRequestModel containing the group data to create
-     * @return ResponseEntity containing BulkInsertResponseModel or ErrorResponseModel
+     * @return ResponseEntity with 200 OK (job queued) or ErrorResponseModel
      */
     @PutMapping("/" + ApiRoutes.UserGroupSubRoute.BULK_CREATE_USER_GROUP)
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.INSERT_GROUPS_PERMISSION +"')")
     public ResponseEntity<?> bulkCreateUserGroups(@RequestBody java.util.List<UserGroupRequestModel> userGroups) {
         try {
-            return ResponseEntity.ok(userGroupService.bulkCreateUserGroups(userGroups));
+            // Capture security context BEFORE async call (context not available in async thread)
+            UserGroupService userGroupServiceConcrete = (UserGroupService) userGroupService;
+            Long userId = userGroupServiceConcrete.getUserId();
+            String loginName = userGroupServiceConcrete.getUser();
+            Long clientId = userGroupServiceConcrete.getClientId();
+
+            // Call async method with captured context
+            userGroupService.bulkCreateUserGroupsAsync(userGroups, userId, loginName, clientId);
+
+            // Return immediately - user will receive message when processing completes
+            return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));

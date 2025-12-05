@@ -75,15 +75,6 @@ public interface IUserSubTranslator {
     void createUser(UserRequestModel userRequestModel);
 
     /**
-     * Creates a new user in the system with optional email sending.
-     * 
-     * @param userRequestModel The UserRequestModel containing the user data to create
-     * @param sendEmail Whether to send confirmation email to the user
-     * @throws BadRequestException if the user data is invalid or incomplete
-     */
-    void createUser(UserRequestModel userRequestModel, boolean sendEmail);
-
-    /**
      * Updates an existing user with new information.
      * 
      * This method retrieves the existing user by ID, validates the new data,
@@ -137,21 +128,10 @@ public interface IUserSubTranslator {
     void confirmEmail(Long userId, String token);
 
     /**
-     * Creates multiple users in the system efficiently with partial success support.
-     * 
-     * This method performs bulk user insertion with the following characteristics:
-     * - Uses batch database operations for efficiency
-     * - Supports partial success: if some users fail validation, others still succeed
-     * - Does NOT send email confirmations (unlike createUser)
-     * - Returns detailed results for each user (success/failure with error messages)
-     * 
-     * The method validates each user individually and collects all errors without
-     * stopping the entire operation. This allows for maximum throughput even when
-     * some records have validation issues.
+     * Creates multiple users asynchronously - triggers background processing and returns immediately.
+     * Results are sent to the user via message notification.
      * 
      * @param users List of UserRequestModel containing the user data to create
-     * @return BulkUserInsertResponseModel containing success/failure counts and detailed results
-     * @throws BadRequestException if the users list is null or empty
      */
-    BulkUserInsertResponseModel bulkCreateUsers(List<UserRequestModel> users);
+    void bulkCreateUsersAsync(List<UserRequestModel> users, Long requestingUserId, String requestingUserLoginName, Long requestingClientId);
 }

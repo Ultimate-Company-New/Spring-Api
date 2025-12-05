@@ -69,6 +69,29 @@ public class UserLogService extends BaseService implements IUserLogSubTranslator
         return true;
     }
 
+    /**
+     * Logs user activity data with explicit context values (for async operations).
+     * Creates a log entry with the endpoint as the action and the provided value as description.
+     * This variant is used when the security context is not available (e.g., async methods).
+     *
+     * @param userId The ID of the user performing the action
+     * @param userLoginName The loginName of the user performing the action
+     * @param clientId The client ID
+     * @param newValue The description or new value to be logged
+     * @param endPoint The API endpoint or action being performed
+     * @return Boolean indicating success (always true for this implementation)
+     */
+    public Boolean logDataWithContext(long userId, String userLoginName, Long clientId, String newValue, String endPoint) {
+        // Create description based on the new value provided
+        String description = newValue != null ? 
+            "Action performed on endpoint: " + endPoint : 
+            "Action performed on endpoint added new value: " + newValue;
+        
+        UserLog userLog = new UserLog(userId, clientId, endPoint, description, newValue, userLoginName);
+        userLogRepository.save(userLog);
+        return true;
+    }
+
 
     /**
      * Retrieves user logs based on provided filtering criteria.

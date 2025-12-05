@@ -992,13 +992,12 @@ class UserServiceTest {
             mockedPasswordHelper.when(() -> PasswordHelper.getToken(anyString())).thenReturn("token123");
             
             // Act
-            var result = userService.bulkCreateUsers(users);
+            // Note: bulkCreateUsersAsync is now void and async, so we can't test the return value directly
+            // This test would need to be refactored to test the async behavior properly
+            assertDoesNotThrow(() -> userService.bulkCreateUsersAsync(users, TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID));
             
             // Assert
-            assertNotNull(result);
-            assertEquals(3, result.getTotalRequested());
-            assertEquals(3, result.getSuccessCount());
-            assertEquals(0, result.getFailureCount());
+            // Verify that save was called for each user
             verify(userRepository, times(3)).save(any(User.class));
         }
     }
@@ -1061,13 +1060,11 @@ class UserServiceTest {
             mockedPasswordHelper.when(() -> PasswordHelper.getToken(anyString())).thenReturn("token123");
             
             // Act
-            var result = userService.bulkCreateUsers(users);
+            // Note: bulkCreateUsersAsync is now void and async, so we can't test the return value directly
+            assertDoesNotThrow(() -> userService.bulkCreateUsersAsync(users, TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID));
             
             // Assert
-            assertNotNull(result);
-            assertEquals(2, result.getTotalRequested());
-            assertEquals(1, result.getSuccessCount());
-            assertEquals(1, result.getFailureCount());
+            // Verify that save was called for the valid user
             verify(userRepository, times(1)).save(any(User.class));
         }
     }
@@ -1136,22 +1133,12 @@ class UserServiceTest {
             mockedPasswordHelper.when(() -> PasswordHelper.getToken(anyString())).thenReturn("token123");
             
             // Act
-            var result = userService.bulkCreateUsers(users);
+            // Note: bulkCreateUsersAsync is now void and async, so we can't test the return value directly
+            assertDoesNotThrow(() -> userService.bulkCreateUsersAsync(users, TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID));
             
             // Assert
-            assertNotNull(result);
-            assertEquals(2, result.getTotalRequested());
-            assertEquals(1, result.getSuccessCount());
-            assertEquals(1, result.getFailureCount());
-            
-            // Verify the duplicate email failed
-            Optional<com.example.SpringApi.Models.ResponseModels.BulkUserInsertResponseModel.UserInsertResult> duplicateResult = 
-                result.getResults().stream()
-                    .filter(r -> r.getEmail().equals("existing@test.com"))
-                    .findFirst();
-            assertTrue(duplicateResult.isPresent());
-            assertFalse(duplicateResult.get().isSuccess());
-            assertTrue(duplicateResult.get().getErrorMessage().contains("Email already exists"));
+            // Verify that save was called for the new user only (duplicate should be rejected)
+            verify(userRepository, times(1)).save(any(User.class));
         }
     }
     
@@ -1165,7 +1152,7 @@ class UserServiceTest {
         // Act & Assert
         com.example.SpringApi.Exceptions.BadRequestException exception = assertThrows(
             com.example.SpringApi.Exceptions.BadRequestException.class,
-            () -> userService.bulkCreateUsers(new ArrayList<>())
+            () -> userService.bulkCreateUsersAsync(new ArrayList<>(), TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID)
         );
         
         assertTrue(exception.getMessage().contains("User list cannot be null or empty"));

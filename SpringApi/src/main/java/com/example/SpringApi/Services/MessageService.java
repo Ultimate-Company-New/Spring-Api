@@ -158,12 +158,25 @@ public class MessageService extends BaseService implements IMessageSubTranslator
     @Override
     @Transactional
     public void createMessage(MessageRequestModel messageRequestModel) {
+        createMessageWithContext(messageRequestModel, getUserId(), getUser(), getClientId());
+    }
+
+    /**
+     * Creates a message with explicit context values (for async operations).
+     * This variant is used when the security context is not available (e.g., async methods).
+     *
+     * @param messageRequestModel The message request model
+     * @param requestingUserId The ID of the user creating the message
+     * @param requestingUserLoginName The loginName of the user creating the message
+     * @param requestingClientId The client ID
+     */
+    public void createMessageWithContext(MessageRequestModel messageRequestModel, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
         // Fetch client configuration
-        Client client = clientRepository.findById(getClientId())
+        Client client = clientRepository.findById(requestingClientId)
             .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
         
         // Use the Message constructor that handles validation and field mapping
-        Message message = new Message(messageRequestModel, getUserId(), getUser(), getClientId());
+        Message message = new Message(messageRequestModel, requestingUserId, requestingUserLoginName, requestingClientId);
         
         // Generate batch ID if sendAsEmail is true and publishDate is set
         if (Boolean.TRUE.equals(message.getSendAsEmail()) && message.getPublishDate() != null) {
@@ -186,7 +199,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
                     savedMessage.getMessageId(),
                     userId,
                     "TO", // Default to TO
-                    getUser(),
+                    requestingUserLoginName,
                     messageRequestModel.getNotes()
                 );
                 messageUserMapRepository.save(userMap);
@@ -199,7 +212,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
                 MessageUserGroupMap groupMap = new MessageUserGroupMap(
                     savedMessage.getMessageId(),
                     groupId,
-                    getUser(),
+                    requestingUserLoginName,
                     messageRequestModel.getNotes()
                 );
                 messageUserGroupMapRepository.save(groupMap);
@@ -212,7 +225,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
             List<Long> userIds = messageRequestModel.getUserIds() != null ? messageRequestModel.getUserIds() : Collections.emptyList();
             List<Long> groupIds = messageRequestModel.getUserGroupIds() != null ? messageRequestModel.getUserGroupIds() : Collections.emptyList();
             List<String> recipientEmails = userRepository.findAllUserEmailsByClientAndUserIdsAndGroupIds(
-                getClientId(),
+                requestingClientId,
                 userIds,
                 groupIds
             );
@@ -239,10 +252,13 @@ public class MessageService extends BaseService implements IMessageSubTranslator
         }
         
         // Logging
-        userLogService.logData(
-            getUserId(),
+        userLogService.logDataWithContext(
+            requestingUserId,
+            requestingUserLoginName,
+            requestingClientId,
             SuccessMessages.MessagesSuccessMessages.InsertMessage + " " + savedMessage.getMessageId(),
-            ApiRoutes.MessagesSubRoute.CREATE_MESSAGE);
+            ApiRoutes.MessagesSubRoute.CREATE_MESSAGE
+        );
     }
     
     @Override

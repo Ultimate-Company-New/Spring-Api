@@ -13,6 +13,7 @@ public class UserGroupRequestModel extends PaginationBaseRequestModel {
 
     private String groupName;
     private String description;
+    private String notes;
     private Boolean isDeleted;
 
     private List<Long> userIds;

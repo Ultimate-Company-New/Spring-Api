@@ -761,7 +761,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
         response.setSuccessCount(successCount);
         response.setFailureCount(failureCount);
         
-        BulkInsertHelper.createBulkInsertResultMessage(response, "Product", messageService, getUserId());
+        BulkInsertHelper.createBulkInsertResultMessage(response, "Product", messageService, getUserId(), getUser(), getClientId());
         
         return response;
     }

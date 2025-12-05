@@ -292,7 +292,7 @@ public class User {
         this.token = request.getToken();
         this.dob = request.getDob();
         this.isGuest = request.getIsGuest() != null ? request.getIsGuest() : Boolean.FALSE;
-        this.email = request.getEmail();
+        this.email = request.getLoginName(); // Use loginName as email
         this.addressId = request.getAddressId();
         this.profilePicture = request.getProfilePicture();
         this.lastLoginAt = request.getLastLoginAt();

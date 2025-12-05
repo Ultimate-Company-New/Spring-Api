@@ -95,7 +95,6 @@ public class UserGroup {
         this.createdAt = existingUserGroup.getCreatedAt();
         this.isActive = existingUserGroup.getIsActive();
         this.isDeleted = existingUserGroup.getIsDeleted();
-        this.notes = existingUserGroup.getNotes();
         
         setFieldsFromRequest(request, clientId);
         this.modifiedUser = modifiedUser;  // When updating, use the provided modified user
@@ -136,5 +135,6 @@ public class UserGroup {
         this.clientId = clientId;
         this.groupName = request.getGroupName().trim();
         this.description = request.getDescription() != null ? request.getDescription().trim() : null;
+        this.notes = request.getNotes() != null ? request.getNotes().trim() : null;
     }
 }
