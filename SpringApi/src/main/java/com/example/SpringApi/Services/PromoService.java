@@ -84,29 +84,17 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
           throw new BadRequestException("Invalid column name: " + filter.getColumn());
         }
 
-        // Validate operator
-        Set<String> validOperators = new HashSet<>(Arrays.asList(
-            "equals", "notEquals", "contains", "notContains", "startsWith", "endsWith",
-            "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual",
-            "isEmpty", "isNotEmpty"
-        ));
-        if (filter.getOperator() != null && !validOperators.contains(filter.getOperator())) {
+        // Validate operator (FilterCondition.setOperator auto-normalizes symbols to words)
+        if (!filter.isValidOperator()) {
           throw new BadRequestException("Invalid operator: " + filter.getOperator());
         }
 
         // Validate column type matches operator
         String columnType = promoFilterQueryBuilder.getColumnType(filter.getColumn());
-        if ("boolean".equals(columnType) && !filter.getOperator().equals("equals") && !filter.getOperator().equals("notEquals")) {
-          throw new BadRequestException("Boolean columns only support 'equals' and 'notEquals' operators");
-        }
-        if ("date".equals(columnType) || "number".equals(columnType)) {
-          Set<String> numericDateOperators = new HashSet<>(Arrays.asList(
-              "equals", "notEquals", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"
-          ));
-          if (!numericDateOperators.contains(filter.getOperator())) {
-            throw new BadRequestException(columnType + " columns only support numeric comparison operators");
-          }
-        }
+        filter.validateOperatorForType(columnType, filter.getColumn());
+
+        // Validate value presence
+        filter.validateValuePresence();
       }
     }
 

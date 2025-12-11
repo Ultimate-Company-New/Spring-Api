@@ -4,6 +4,7 @@ import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.DatabaseModels.Product;
 import com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping;
+import com.example.SpringApi.Models.DatabaseModels.User;
 import org.hibernate.Hibernate;
 import lombok.Getter;
 import lombok.Setter;
@@ -72,8 +73,49 @@ public class ProductResponseModel {
     private LocalDateTime updatedAt;
     private String notes;
     
+    // Item availability
+    private LocalDateTime itemAvailableFrom;
+    private String itemAvailableFromTimezone;
+    
+    // Created by user details (firstName, lastName, email)
+    private CreatedByUserInfo createdByUserInfo;
+    
     // Related entities
     private ProductCategoryResponseModel category;
+    
+    /**
+     * Inner class to hold created by user information.
+     * Contains essential user details for display purposes.
+     */
+    @Getter
+    @Setter
+    public static class CreatedByUserInfo {
+        private Long userId;
+        private String firstName;
+        private String lastName;
+        private String loginName;
+        
+        public CreatedByUserInfo() {}
+        
+        public CreatedByUserInfo(User user) {
+            if (user != null) {
+                this.userId = user.getUserId();
+                this.firstName = user.getFirstName();
+                this.lastName = user.getLastName();
+                this.loginName = user.getLoginName();
+            }
+        }
+        
+        /**
+         * Returns the full name of the user.
+         */
+        public String getFullName() {
+            if (firstName != null && lastName != null) {
+                return firstName + " " + lastName;
+            }
+            return loginName;
+        }
+    }
     
     // List of pickup locations with their available stock quantities
     private List<ProductPickupLocationItem> pickupLocations;
@@ -133,6 +175,13 @@ public class ProductResponseModel {
             this.createdAt = product.getCreatedAt();
             this.updatedAt = product.getUpdatedAt();
             this.notes = product.getNotes();
+            this.itemAvailableFrom = product.getItemAvailableFrom();
+            this.itemAvailableFromTimezone = product.getItemAvailableFromTimezone();
+            
+            // Populate created by user info if available
+            if (product.getCreatedByUser() != null && Hibernate.isInitialized(product.getCreatedByUser())) {
+                this.createdByUserInfo = new CreatedByUserInfo(product.getCreatedByUser());
+            }
             
             // Populate related entities with safe DTOs
             if (product.getCategory() != null && Hibernate.isInitialized(product.getCategory())) {
@@ -162,9 +211,19 @@ public class ProductResponseModel {
                     }
                 }
             }
-            else{
-                throw new NotFoundException(ErrorMessages.ProductErrorMessages.NoPickupLocationsFound);
-            }
+            // Note: Empty pickupLocations list is valid - products might not be assigned to locations yet
+        }
+    }
+
+    /**
+     * Sets the full path on the category response model.
+     * Should be called after construction with the pre-computed full path.
+     * 
+     * @param fullPath The full hierarchical path (e.g., "Electronics > Computers > Laptops")
+     */
+    public void setCategoryFullPath(String fullPath) {
+        if (this.category != null && fullPath != null) {
+            this.category.setFullPath(fullPath);
         }
     }
 }

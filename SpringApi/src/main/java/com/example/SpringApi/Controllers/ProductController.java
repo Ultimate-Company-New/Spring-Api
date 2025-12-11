@@ -75,7 +75,17 @@ public class ProductController {
     @PutMapping("/" + ApiRoutes.ProductsSubRoute.BULK_ADD_PRODUCT)
     public ResponseEntity<?> bulkAddProducts(@RequestBody java.util.List<ProductRequestModel> products) {
         try {
-            return ResponseEntity.ok(productService.bulkAddProducts(products));
+            // Cast to ProductService to access BaseService methods
+            com.example.SpringApi.Services.ProductService service = (com.example.SpringApi.Services.ProductService) productService;
+            Long userId = service.getUserId();
+            String loginName = service.getUser();
+            Long clientId = service.getClientId();
+            
+            // Trigger async processing - returns immediately
+            productService.bulkAddProductsAsync(products, userId, loginName, clientId);
+            
+            // Return 200 OK - processing will continue in background
+            return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
@@ -229,6 +239,67 @@ public class ProductController {
         } catch (UnauthorizedException uae) {
             logger.error(uae);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+        } catch (Exception e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+
+    /**
+     * Retrieves categories based on parent ID for hierarchical navigation.
+     * 
+     * If parentId is null: Returns all root categories (categories with null parentId)
+     * If parentId is provided: Returns all child categories of that parent (where isEnd=true)
+     * 
+     * This enables drill-down category navigation where users can browse the hierarchy
+     * level by level until they reach assignable leaf categories.
+     * Requires INSERT_PRODUCTS_PERMISSION or VIEW_PRODUCTS_PERMISSION to access.
+     * 
+     * @param parentId The parent category ID (optional, null for root categories)
+     * @return ResponseEntity containing list of categories with full paths or error
+     */
+    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.INSERT_PRODUCTS_PERMISSION +"') || " +
+                  "@customAuthorization.hasAuthority('"+ Authorizations.VIEW_PRODUCTS_PERMISSION +"')")
+    @GetMapping("/" + ApiRoutes.ProductCategorySubRoute.FIND_CATEGORIES_WITHOUT_CHILDREN)
+    public ResponseEntity<?> findCategoriesByParentId(@RequestParam(required = false) Long parentId) {
+        try {
+            return ResponseEntity.ok(productService.findCategoriesByParentId(parentId));
+        } catch (BadRequestException bre) {
+            logger.error(bre);
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (NotFoundException nfe) {
+            logger.error(nfe);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (UnauthorizedException uae) {
+            logger.error(uae);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+        } catch (Exception e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+
+    /**
+     * Retrieves full category paths for a list of category IDs.
+     * 
+     * This endpoint takes a list of category IDs and returns a mapping of each ID
+     * to its full hierarchical path (e.g., "Electronics > Computers > Laptops").
+     * Useful for bulk operations like product import where multiple category paths
+     * need to be resolved efficiently.
+     * Requires INSERT_PRODUCTS_PERMISSION or VIEW_PRODUCTS_PERMISSION to access.
+     * 
+     * @param categoryIds List of category IDs to get paths for
+     * @return ResponseEntity containing Map of category ID to full path string
+     */
+    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.INSERT_PRODUCTS_PERMISSION +"') || " +
+                  "@customAuthorization.hasAuthority('"+ Authorizations.VIEW_PRODUCTS_PERMISSION +"')")
+    @PostMapping("/" + ApiRoutes.ProductCategorySubRoute.GET_CATEGORY_PATHS_BY_IDS)
+    public ResponseEntity<?> getCategoryPathsByIds(@RequestBody java.util.List<Long> categoryIds) {
+        try {
+            return ResponseEntity.ok(productService.getCategoryPathsByIds(categoryIds));
+        } catch (BadRequestException bre) {
+            logger.error(bre);
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));

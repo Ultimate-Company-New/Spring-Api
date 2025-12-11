@@ -3,6 +3,7 @@ package com.example.SpringApi.Models.RequestModels;
 import lombok.Getter;
 import lombok.Setter;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -52,6 +53,17 @@ public class ProductRequestModel {
     private Map<Long, Integer> pickupLocationQuantities;
     
     private String notes;
+    
+    /**
+     * Date and time when the product becomes available for sale.
+     * Stored in the specified timezone.
+     */
+    private LocalDateTime itemAvailableFrom;
+    
+    /**
+     * Timezone for the itemAvailableFrom field (e.g., "Asia/Kolkata", "America/New_York", "UTC").
+     */
+    private String itemAvailableFromTimezone;
     
     // Image fields
     private String mainImage;

@@ -4,10 +4,12 @@ import com.example.SpringApi.Helpers.BulkInsertHelper;
 import com.example.SpringApi.Services.Interface.IProductSubTranslator;
 import com.example.SpringApi.FilterQueryBuilder.ProductFilterQueryBuilder;
 import com.example.SpringApi.Models.ResponseModels.ProductResponseModel;
+import com.example.SpringApi.Models.ResponseModels.ProductCategoryWithPathResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.ProductRequestModel;
 import com.example.SpringApi.Models.DatabaseModels.Product;
+import com.example.SpringApi.Models.DatabaseModels.ProductCategory;
 import com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping;
 import com.example.SpringApi.Repositories.ProductRepository;
 import com.example.SpringApi.Repositories.ProductCategoryRepository;
@@ -22,6 +24,9 @@ import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,8 +34,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.core.env.Environment;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
@@ -95,6 +102,480 @@ public class ProductService extends BaseService implements IProductSubTranslator
         this.messageService = messageService;
         this.environment = environment;
     }
+    
+    /**
+     * Adds a new product.
+     * This method creates a new product with the provided details including
+     * title, description, pricing, category, and other product attributes.
+     * It validates the category existence, saves the product first to get the ID,
+     * then handles multiple product images by processing URLs to base64 and 
+     * uploading them to ImgBB storage. Finally, it creates pickup location mappings
+     * for the product based on the provided pickup location quantities.
+     * 
+     * @param productRequestModel The product to create
+     * @throws BadRequestException if validation fails
+     */
+    @Override
+    @Transactional
+    public void addProduct(ProductRequestModel productRequestModel) {
+        persistProduct(productRequestModel, getUser(), getClientId());
+    }
+    
+    /**
+     * Edits an existing product.
+     * This method updates an existing product with the provided details.
+     * All product fields can be updated except the product ID.
+     * Deletes old images from ImgBB before uploading new ones.
+     * Updates pickup location mappings by deleting existing ones and creating new ones.
+     * 
+     * @param productRequestModel The product data to update
+     * @throws BadRequestException if validation fails
+     * @throws NotFoundException if the product is not found
+     */
+    @Override
+    @Transactional
+    public void editProduct(ProductRequestModel productRequestModel) {
+        // Validate request
+        if (productRequestModel.getProductId() == null) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidId);
+        }
+        
+        // Find existing product
+        Product existingProduct = productRepository.findByIdWithRelatedEntities(productRequestModel.getProductId(), getClientId());
+        if (existingProduct == null) {
+            throw new NotFoundException(String.format(ErrorMessages.ProductErrorMessages.ER013, productRequestModel.getProductId()));
+        }
+        
+        // Create updated product using constructor (validations including pickup location quantities are handled in the constructor)
+        Product updatedProduct = new Product(productRequestModel, getUser(), existingProduct);
+        
+        // Save the updated product
+        productRepository.save(updatedProduct);
+        
+        // Update pickup location mappings (delete existing and create new)
+        productPickupLocationMappingRepository.deleteByProductId(updatedProduct.getProductId());
+        createPickupLocationMappings(updatedProduct.getProductId(), productRequestModel.getPickupLocationQuantities(), getUser());
+        
+        // Process and upload images to ImgBB using the updated product ID (delete old images first)
+        processAndUploadProductImages(productRequestModel, updatedProduct, true);
+        
+        // Log the operation
+        userLogService.logData(getUserId(), SuccessMessages.ProductsSuccessMessages.UpdateProduct + " " + updatedProduct.getProductId(), ApiRoutes.ProductsSubRoute.EDIT_PRODUCT);
+    }
+    
+    /**
+     * Toggles the deleted status of a product (soft delete/restore).
+     * This method toggles the deleted flag of a product without permanently
+     * removing it from the database. Deleted products are hidden from standard queries.
+     * 
+     * @param id The ID of the product to toggle
+     * @throws BadRequestException if validation fails
+     * @throws NotFoundException if the product is not found
+     */
+    @Override
+    @Transactional
+    public void toggleDeleteProduct(long id) {
+        // Find the product
+        Product product = productRepository.findByIdWithRelatedEntities(id, getClientId());
+        if (product == null) {
+            throw new NotFoundException(String.format(ErrorMessages.ProductErrorMessages.ER013, id));
+        }
+        
+        // Toggle the deleted status
+        product.setIsDeleted(!product.getIsDeleted());
+        product.setModifiedUser(getUser());
+        
+        // Save the updated product
+        productRepository.save(product);
+        
+        // Log the operation
+        userLogService.logData(getUserId(), SuccessMessages.ProductsSuccessMessages.ToggleProduct + " " + product.getProductId(), ApiRoutes.ProductsSubRoute.TOGGLE_DELETE_PRODUCT);
+    }
+    
+    /**
+     * Toggles the return eligibility status of a product.
+     * This method toggles whether a product can be returned by customers.
+     * This affects the return policy displayed to customers during checkout.
+     * 
+     * @param id The ID of the product to toggle
+     * @throws BadRequestException if validation fails
+     * @throws NotFoundException if the product is not found
+     */
+    @Override
+    @Transactional
+    public void toggleReturnProduct(long id) {
+        // Find the product
+        Product product = productRepository.findByIdWithRelatedEntities(id, getClientId());
+        if (product == null) {
+            throw new NotFoundException(String.format(ErrorMessages.ProductErrorMessages.ER013, id));
+        }
+        
+        // Toggle the returns allowed status
+        product.setReturnsAllowed(!product.getReturnsAllowed());
+        product.setModifiedUser(getUser());
+        
+        // Save the updated product
+        productRepository.save(product);
+        
+        // Log the operation
+        userLogService.logData(getUserId(), SuccessMessages.ProductsSuccessMessages.ToggleReturnProduct + " " + product.getProductId(), ApiRoutes.ProductsSubRoute.TOGGLE_RETURN_PRODUCT);
+    }
+    
+    /**
+     * Retrieves detailed information about a specific product by ID.
+     * This method returns comprehensive product details including title,
+     * description, pricing, images, category, and availability information.
+     * 
+     * @param id The ID of the product to retrieve
+     * @return The product details
+     * @throws BadRequestException if validation fails
+     * @throws NotFoundException if the product is not found
+     */
+    @Override
+    public ProductResponseModel getProductDetailsById(long id) {
+        // Find the product with all related entities
+        Product product = productRepository.findByIdWithRelatedEntities(id, getClientId());
+        if (product == null) {
+            throw new NotFoundException(String.format(ErrorMessages.ProductErrorMessages.ER013, id));
+        }
+        
+        // Convert to response model
+        ProductResponseModel response = new ProductResponseModel(product);
+        
+        // Build and set the full category path
+        if (product.getCategoryId() != null) {
+            String categoryFullPath = buildCategoryFullPath(product.getCategoryId());
+            response.setCategoryFullPath(categoryFullPath);
+        }
+        
+        return response;
+    }
+    
+    /**
+     * Retrieves products in batches with pagination support.
+     * This method returns a paginated list of products based on the provided
+     * pagination parameters. It supports filtering and sorting options.
+     * 
+     * @param paginationBaseRequestModel The pagination parameters
+     * @return Paginated response containing product data
+     * @throws BadRequestException if validation fails
+     */
+    @Override
+    public PaginationBaseResponseModel<ProductResponseModel> getProductInBatches(PaginationBaseRequestModel paginationBaseRequestModel) {
+        // Valid columns for filtering
+        Set<String> validColumns = new HashSet<>(Arrays.asList(
+            "productId", "title", "descriptionHtml", "brand", "color", "colorLabel",
+            "condition", "countryOfManufacture", "model", "upc", "modificationHtml",
+            "price", "discount", "isDiscountPercent", "returnsAllowed", "length",
+            "breadth", "height", "weightKgs", "categoryId",
+            "isDeleted", "itemModified", "createdUser", "modifiedUser", "createdAt",
+            "updatedAt", "notes"
+        ));
+
+        // Validate filter conditions if provided
+        if (paginationBaseRequestModel.getFilters() != null && !paginationBaseRequestModel.getFilters().isEmpty()) {
+            for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
+                // Validate column name
+                if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
+                    throw new BadRequestException("Invalid column name: " + filter.getColumn());
+                }
+
+                // Validate operator
+                Set<String> validOperators = new HashSet<>(Arrays.asList(
+                    "equals", "notEquals", "contains", "notContains", "startsWith", "endsWith",
+                    "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual",
+                    "isEmpty", "isNotEmpty"
+                ));
+                if (filter.getOperator() != null && !validOperators.contains(filter.getOperator())) {
+                    throw new BadRequestException("Invalid operator: " + filter.getOperator());
+                }
+
+                // Validate column type matches operator
+                String columnType = productFilterQueryBuilder.getColumnType(filter.getColumn());
+                if ("boolean".equals(columnType) && !filter.getOperator().equals("equals") && !filter.getOperator().equals("notEquals")) {
+                    throw new BadRequestException("Boolean columns only support 'equals' and 'notEquals' operators");
+                }
+                if ("date".equals(columnType) || "number".equals(columnType)) {
+                    Set<String> numericDateOperators = new HashSet<>(Arrays.asList(
+                        "equals", "notEquals", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"
+                    ));
+                    if (!numericDateOperators.contains(filter.getOperator())) {
+                        throw new BadRequestException(columnType + " columns only support numeric comparison operators");
+                    }
+                }
+            }
+        }
+
+        // Calculate page size and offset
+        int start = paginationBaseRequestModel.getStart();
+        int end = paginationBaseRequestModel.getEnd();
+        int pageSize = end - start;
+
+        // Validate page size
+        if (pageSize <= 0) {
+            throw new BadRequestException("Invalid pagination: end must be greater than start");
+        }
+
+        // Create custom Pageable with proper offset handling
+        Pageable pageable = new PageRequest(0, pageSize, Sort.by("productId").descending()) {
+            @Override
+            public long getOffset() {
+                return start;
+            }
+        };
+
+        // Use filter query builder for dynamic filtering
+        Page<Product> productPage = productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            getClientId(),
+            paginationBaseRequestModel.getSelectedIds(),
+            paginationBaseRequestModel.getLogicOperator() != null ? paginationBaseRequestModel.getLogicOperator() : "AND",
+            paginationBaseRequestModel.getFilters(),
+            paginationBaseRequestModel.isIncludeDeleted(),
+            pageable
+        );
+
+        // Convert to response models
+        PaginationBaseResponseModel<ProductResponseModel> response = new PaginationBaseResponseModel<>();
+        response.setData(productPage.getContent().stream()
+            .map(ProductResponseModel::new)
+            .collect(Collectors.toList()));
+        
+        // Set pagination metadata
+        response.setTotalDataCount(productPage.getTotalElements());
+        
+        return response;
+    }
+
+    /**
+     * Creates multiple products asynchronously in the system with partial success support.
+     * 
+     * This method processes products in a background thread with the following characteristics:
+     * - Supports partial success: if some products fail validation, others still succeed
+     * - Sends detailed results to user via message notification after processing completes
+     * - NOT_SUPPORTED: Runs without a transaction to avoid rollback-only issues when individual product creations fail
+     * 
+     * @param products List of ProductRequestModel containing the product data to insert
+     * @param requestingUserId The ID of the user making the request (captured from security context)
+     * @param requestingUserLoginName The loginName of the user making the request (captured from security context)
+     * @param requestingClientId The client ID of the user making the request (captured from security context)
+     */
+    @Override
+    @Async
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void bulkAddProductsAsync(java.util.List<ProductRequestModel> products, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
+        try {
+            // Validate input
+            if (products == null || products.isEmpty()) {
+                throw new BadRequestException("Product list cannot be null or empty");
+            }
+
+            com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
+                new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+            response.setTotalRequested(products.size());
+            
+            int successCount = 0;
+            int failureCount = 0;
+            
+            // Process each product individually
+            for (ProductRequestModel productRequest : products) {
+                try {
+                    // Call persistProduct with explicit createdUser and shouldLog = false (bulk logs collectively)
+                    Product createdProduct = persistProduct(productRequest, requestingUserLoginName, requestingClientId, requestingUserId, false);
+                    response.addSuccess(productRequest.getTitle(), createdProduct.getProductId());
+                    successCount++;
+                    
+                } catch (BadRequestException bre) {
+                    // Validation or business logic error
+                    response.addFailure(
+                        productRequest.getTitle() != null ? productRequest.getTitle() : "unknown", 
+                        bre.getMessage()
+                    );
+                    failureCount++;
+                } catch (Exception e) {
+                    // Unexpected error
+                    response.addFailure(
+                        productRequest.getTitle() != null ? productRequest.getTitle() : "unknown", 
+                        "Error: " + e.getMessage()
+                    );
+                    failureCount++;
+                }
+            }
+            
+            // Log bulk product creation (using captured context values)
+            userLogService.logDataWithContext(
+                requestingUserId,
+                requestingUserLoginName,
+                requestingClientId,
+                SuccessMessages.ProductsSuccessMessages.InsertProduct + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+                ApiRoutes.ProductsSubRoute.BULK_ADD_PRODUCT
+            );
+            
+            response.setSuccessCount(successCount);
+            response.setFailureCount(failureCount);
+            
+            // Create a message with the bulk insert results using the helper (using captured context)
+            BulkInsertHelper.createDetailedBulkInsertResultMessage(
+                response, "Product", "Products", "Title", "Product ID", 
+                messageService, requestingUserId, requestingUserLoginName, requestingClientId
+            );
+            
+        } catch (Exception e) {
+            // Still send a message to user about the failure (using captured userId)
+            com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> errorResponse = 
+                new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+            errorResponse.setTotalRequested(products != null ? products.size() : 0);
+            errorResponse.setSuccessCount(0);
+            errorResponse.setFailureCount(products != null ? products.size() : 0);
+            errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
+            BulkInsertHelper.createDetailedBulkInsertResultMessage(
+                errorResponse, "Product", "Products", "Title", "Product ID", 
+                messageService, requestingUserId, requestingUserLoginName, requestingClientId
+            );
+        }
+    }
+    
+    /**
+     * Creates multiple products synchronously in a single operation (for testing).
+     * This is a synchronous wrapper that processes products immediately and returns results.
+     * 
+     * @param products List of ProductRequestModel containing the product data to insert
+     * @return BulkInsertResponseModel containing success/failure details for each product
+     */
+    @Override
+    @Transactional
+    public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkAddProducts(java.util.List<ProductRequestModel> products) {
+        // Validate input
+        if (products == null || products.isEmpty()) {
+            throw new BadRequestException("Product list cannot be null or empty");
+        }
+
+        com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
+            new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+        response.setTotalRequested(products.size());
+        
+        int successCount = 0;
+        int failureCount = 0;
+        
+        // Process each product individually
+        for (ProductRequestModel productRequest : products) {
+            try {
+                Product createdProduct = persistProduct(productRequest, getUser(), getClientId());
+                response.addSuccess(productRequest.getTitle(), createdProduct.getProductId());
+                successCount++;
+            } catch (BadRequestException bre) {
+                response.addFailure(
+                    productRequest.getTitle() != null ? productRequest.getTitle() : "unknown", 
+                    bre.getMessage()
+                );
+                failureCount++;
+            } catch (Exception e) {
+                response.addFailure(
+                    productRequest.getTitle() != null ? productRequest.getTitle() : "unknown", 
+                    "Error: " + e.getMessage()
+                );
+                failureCount++;
+            }
+        }
+        
+        // Log bulk product creation
+        userLogService.logData(
+            getUserId(),
+            SuccessMessages.ProductsSuccessMessages.InsertProduct + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+            ApiRoutes.ProductsSubRoute.BULK_ADD_PRODUCT
+        );
+        
+        response.setSuccessCount(successCount);
+        response.setFailureCount(failureCount);
+        
+        return response;
+    }
+    
+    /**
+     * Retrieves categories based on parent ID for hierarchical navigation.
+     * 
+     * If parentId is null: Returns all root categories (categories with null parentId)
+     * If parentId is provided: Returns all child categories of that parent (where isEnd=true)
+     * 
+     * This enables drill-down category navigation where users can browse the hierarchy
+     * level by level until they reach assignable leaf categories.
+     * 
+     * @param parentId The parent category ID (null for root categories)
+     * @return List of ProductCategoryWithPathResponseModel containing categories with full paths
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductCategoryWithPathResponseModel> findCategoriesByParentId(Long parentId) {
+        List<ProductCategory> categories;
+        
+        if (parentId == null) {
+            // Fetch all root categories (categories with null parentId)
+            categories = productCategoryRepository.findAll().stream()
+                    .filter(cat -> cat.getParentId() == null)
+                    .collect(Collectors.toList());
+        } else {
+            // Fetch ALL child categories with the specified parentId (both leaf and non-leaf)
+            // This allows drill-down navigation through the entire hierarchy
+            categories = productCategoryRepository.findAll().stream()
+                    .filter(cat -> cat.getParentId() != null && 
+                                  cat.getParentId().equals(parentId))
+                    .collect(Collectors.toList());
+        }
+
+        // Build response models with full paths and isEnd flag
+        List<ProductCategoryWithPathResponseModel> result = new ArrayList<>();
+        for (ProductCategory category : categories) {
+            String fullPath = buildFullPath(category);
+            result.add(new ProductCategoryWithPathResponseModel(
+                    category.getCategoryId(),
+                    category.getName(),
+                    fullPath,
+                    category.getParentId(),
+                    category.getIsEnd()
+            ));
+        }
+
+        return result;
+    }
+
+    /**
+     * Retrieves full category paths for a list of category IDs.
+     * 
+     * This method takes a list of category IDs and returns a mapping of each ID
+     * to its full hierarchical path (e.g., "Electronics › Computers › Laptops").
+     * Uses the existing buildCategoryFullPath helper method for consistency.
+     * 
+     * @param categoryIds List of category IDs to get paths for
+     * @return Map of category ID to full path string
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, String> getCategoryPathsByIds(List<Long> categoryIds) {
+        Map<Long, String> result = new java.util.HashMap<>();
+        
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return result;
+        }
+        
+        // Remove duplicates and nulls
+        Set<Long> uniqueIds = new HashSet<>(categoryIds);
+        uniqueIds.remove(null);
+        
+        // Build path for each category ID
+        for (Long categoryId : uniqueIds) {
+            try {
+                String fullPath = buildCategoryFullPath(categoryId);
+                if (fullPath != null && !fullPath.isEmpty()) {
+                    result.put(categoryId, fullPath);
+                }
+            } catch (Exception e) {
+                // Skip categories that can't be found
+            }
+        }
+        
+        return result;
+    }
+
+    // ==================== HELPER METHODS ====================
 
     /**
      * Processes and uploads product images to ImgBB storage.
@@ -436,14 +917,15 @@ public class ProductService extends BaseService implements IProductSubTranslator
      * 
      * @param productId The product ID
      * @param pickupLocationQuantities Map of pickup location ID to available quantity
+     * @param createdUser The loginName of the user creating these mappings
      * @throws BadRequestException if validation fails
      */
-    private void createPickupLocationMappings(Long productId, Map<Long, Integer> pickupLocationQuantities) {
+    private void createPickupLocationMappings(Long productId, Map<Long, Integer> pickupLocationQuantities, String createdUser) {
         // Create all mappings using the static factory method (includes validation)
         List<ProductPickupLocationMapping> mappings = ProductPickupLocationMapping.createFromMap(
             productId, 
             pickupLocationQuantities, 
-            getUser()
+            createdUser
         );
         
         // Save all mappings in a single batch operation for better performance
@@ -451,24 +933,34 @@ public class ProductService extends BaseService implements IProductSubTranslator
     }
     
     /**
-     * Adds a new product.
-     * This method creates a new product with the provided details including
-     * title, description, pricing, category, and other product attributes.
-     * It validates the category existence, saves the product first to get the ID,
-     * then handles multiple product images by processing URLs to base64 and 
-     * uploading them to ImgBB storage. Finally, it creates pickup location mappings
-     * for the product based on the provided pickup location quantities.
+     * Persists a product to the database.
+     * This helper method is used by both single and bulk product creation.
      * 
      * @param productRequestModel The product to create
+     * @param createdUser The loginName of the user creating this product
+     * @param clientId The client ID from security context (passed explicitly for async compatibility)
+     * @return The saved product entity
      * @throws BadRequestException if validation fails
      */
-    @Override
     @Transactional
-    public void addProduct(ProductRequestModel productRequestModel) {
-        persistProduct(productRequestModel);
+    private Product persistProduct(ProductRequestModel productRequestModel, String createdUser, Long clientId) {
+        // Default behavior: log the operation using security context
+        return persistProduct(productRequestModel, createdUser, clientId, null, true);
     }
-
-    private Product persistProduct(ProductRequestModel productRequestModel) {
+    
+    /**
+     * Helper method to persist a single product with explicit logging control.
+     * 
+     * @param productRequestModel The product data to persist
+     * @param createdUser The user creating the product (passed explicitly for context)
+     * @param clientId The client ID from security context (passed explicitly for context)
+     * @param userId The user ID for logging (null to use security context)
+     * @param shouldLog Whether to log this individual operation (false for bulk operations)
+     * @return The saved product entity
+     * @throws BadRequestException if validation fails
+     */
+    @Transactional
+    private Product persistProduct(ProductRequestModel productRequestModel, String createdUser, Long clientId, Long userId, boolean shouldLog) {
         // Validate category exists
         if (productRequestModel.getCategoryId() == null) {
             throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidCategoryId);
@@ -481,288 +973,89 @@ public class ProductService extends BaseService implements IProductSubTranslator
         }
         
         // Create new product using constructor (validations including pickup location quantities are handled in the constructor)
-        Product product = new Product(productRequestModel, getUser());
+        // clientId comes from security context, not from request
+        Product product = new Product(productRequestModel, createdUser, clientId);
         
         // Save the product first to get the ID
         Product savedProduct = productRepository.save(product);
         productRequestModel.setProductId(savedProduct.getProductId());
         
         // Create pickup location mappings
-        createPickupLocationMappings(savedProduct.getProductId(), productRequestModel.getPickupLocationQuantities());
+        createPickupLocationMappings(savedProduct.getProductId(), productRequestModel.getPickupLocationQuantities(), createdUser);
         
         // Process and upload images to ImgBB using the saved product ID
         processAndUploadProductImages(productRequestModel, savedProduct, false);
         
-        // Log the operation
-        userLogService.logData(getUserId(), SuccessMessages.ProductsSuccessMessages.InsertProduct + " " + savedProduct.getProductId(), ApiRoutes.ProductsSubRoute.ADD_PRODUCT);
+        // Log the operation only if shouldLog is true (skip for bulk as they log collectively)
+        if (shouldLog) {
+            // Use provided userId or fall back to security context
+            Long logUserId = userId != null ? userId : getUserId();
+            userLogService.logDataWithContext(logUserId, createdUser, clientId, 
+                SuccessMessages.ProductsSuccessMessages.InsertProduct + " " + savedProduct.getProductId(), 
+                ApiRoutes.ProductsSubRoute.ADD_PRODUCT);
+        }
         return savedProduct;
     }
-    
-    /**
-     * Edits an existing product.
-     * This method updates an existing product with the provided details.
-     * All product fields can be updated except the product ID.
-     * Deletes old images from ImgBB before uploading new ones.
-     * Updates pickup location mappings by deleting existing ones and creating new ones.
-     * 
-     * @param productRequestModel The product data to update
-     * @throws BadRequestException if validation fails
-     * @throws NotFoundException if the product is not found
-     */
-    @Override
-    @Transactional
-    public void editProduct(ProductRequestModel productRequestModel) {
-        // Validate request
-        if (productRequestModel.getProductId() == null) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidId);
-        }
-        
-        // Find existing product
-        Product existingProduct = productRepository.findByIdWithRelatedEntities(productRequestModel.getProductId(), getClientId());
-        if (existingProduct == null) {
-            throw new NotFoundException(String.format(ErrorMessages.ProductErrorMessages.ER013, productRequestModel.getProductId()));
-        }
-        
-        // Create updated product using constructor (validations including pickup location quantities are handled in the constructor)
-        Product updatedProduct = new Product(productRequestModel, getUser(), existingProduct);
-        
-        // Save the updated product
-        productRepository.save(updatedProduct);
-        
-        // Update pickup location mappings (delete existing and create new)
-        productPickupLocationMappingRepository.deleteByProductId(updatedProduct.getProductId());
-        createPickupLocationMappings(updatedProduct.getProductId(), productRequestModel.getPickupLocationQuantities());
-        
-        // Process and upload images to ImgBB using the updated product ID (delete old images first)
-        processAndUploadProductImages(productRequestModel, updatedProduct, true);
-        
-        // Log the operation
-        userLogService.logData(getUserId(), SuccessMessages.ProductsSuccessMessages.UpdateProduct + " " + updatedProduct.getProductId(), ApiRoutes.ProductsSubRoute.EDIT_PRODUCT);
-    }
-    
-    /**
-     * Toggles the deleted status of a product (soft delete/restore).
-     * This method toggles the deleted flag of a product without permanently
-     * removing it from the database. Deleted products are hidden from standard queries.
-     * 
-     * @param id The ID of the product to toggle
-     * @throws BadRequestException if validation fails
-     * @throws NotFoundException if the product is not found
-     */
-    @Override
-    @Transactional
-    public void toggleDeleteProduct(long id) {
-        // Find the product
-        Product product = productRepository.findByIdWithRelatedEntities(id, getClientId());
-        if (product == null) {
-            throw new NotFoundException(String.format(ErrorMessages.ProductErrorMessages.ER013, id));
-        }
-        
-        // Toggle the deleted status
-        product.setIsDeleted(!product.getIsDeleted());
-        product.setModifiedUser(getUser());
-        
-        // Save the updated product
-        productRepository.save(product);
-        
-        // Log the operation
-        userLogService.logData(getUserId(), SuccessMessages.ProductsSuccessMessages.ToggleProduct + " " + product.getProductId(), ApiRoutes.ProductsSubRoute.TOGGLE_DELETE_PRODUCT);
-    }
-    
-    /**
-     * Toggles the return eligibility status of a product.
-     * This method toggles whether a product can be returned by customers.
-     * This affects the return policy displayed to customers during checkout.
-     * 
-     * @param id The ID of the product to toggle
-     * @throws BadRequestException if validation fails
-     * @throws NotFoundException if the product is not found
-     */
-    @Override
-    @Transactional
-    public void toggleReturnProduct(long id) {
-        // Find the product
-        Product product = productRepository.findByIdWithRelatedEntities(id, getClientId());
-        if (product == null) {
-            throw new NotFoundException(String.format(ErrorMessages.ProductErrorMessages.ER013, id));
-        }
-        
-        // Toggle the returns allowed status
-        product.setReturnsAllowed(!product.getReturnsAllowed());
-        product.setModifiedUser(getUser());
-        
-        // Save the updated product
-        productRepository.save(product);
-        
-        // Log the operation
-        userLogService.logData(getUserId(), SuccessMessages.ProductsSuccessMessages.ToggleReturnProduct + " " + product.getProductId(), ApiRoutes.ProductsSubRoute.TOGGLE_RETURN_PRODUCT);
-    }
-    
-    /**
-     * Retrieves detailed information about a specific product by ID.
-     * This method returns comprehensive product details including title,
-     * description, pricing, images, category, and availability information.
-     * 
-     * @param id The ID of the product to retrieve
-     * @return The product details
-     * @throws BadRequestException if validation fails
-     * @throws NotFoundException if the product is not found
-     */
-    @Override
-    public ProductResponseModel getProductDetailsById(long id) {
-        // Find the product with all related entities
-        Product product = productRepository.findByIdWithRelatedEntities(id, getClientId());
-        if (product == null) {
-            throw new NotFoundException(String.format(ErrorMessages.ProductErrorMessages.ER013, id));
-        }
-        
-        // Convert to response model
-        return new ProductResponseModel(product);
-    }
-    
-    /**
-     * Retrieves products in batches with pagination support.
-     * This method returns a paginated list of products based on the provided
-     * pagination parameters. It supports filtering and sorting options.
-     * 
-     * @param paginationBaseRequestModel The pagination parameters
-     * @return Paginated response containing product data
-     * @throws BadRequestException if validation fails
-     */
-    @Override
-    public PaginationBaseResponseModel<ProductResponseModel> getProductInBatches(PaginationBaseRequestModel paginationBaseRequestModel) {
-        // Valid columns for filtering
-        Set<String> validColumns = new HashSet<>(Arrays.asList(
-            "productId", "title", "descriptionHtml", "brand", "color", "colorLabel",
-            "condition", "countryOfManufacture", "model", "upc", "modificationHtml",
-            "price", "discount", "isDiscountPercent", "returnsAllowed", "length",
-            "breadth", "height", "weightKgs", "categoryId",
-            "isDeleted", "itemModified", "createdUser", "modifiedUser", "createdAt",
-            "updatedAt", "notes"
-        ));
 
-        // Validate filter conditions if provided
-        if (paginationBaseRequestModel.getFilters() != null && !paginationBaseRequestModel.getFilters().isEmpty()) {
-            for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
-                // Validate column name
-                if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
-                    throw new BadRequestException("Invalid column name: " + filter.getColumn());
-                }
+    /**
+     * Builds the full hierarchical path for a category by traversing parent categories.
+     * Uses " > " as the separator between category names.
+     * 
+     * @param categoryId The ID of the category to build the path for
+     * @return The full path string (e.g., "Electronics > Computers > Laptops")
+     */
+    private String buildCategoryFullPath(Long categoryId) {
+        List<String> pathParts = new ArrayList<>();
+        Long currentId = categoryId;
+        
+        // Traverse up the hierarchy collecting names (with a safety limit to prevent infinite loops)
+        int maxDepth = 20;
+        int depth = 0;
+        
+        while (currentId != null && depth < maxDepth) {
+            Optional<ProductCategory> categoryOpt = productCategoryRepository.findById(currentId);
+            if (categoryOpt.isPresent()) {
+                ProductCategory category = categoryOpt.get();
+                pathParts.add(category.getName());
+                currentId = category.getParentId();
+            } else {
+                break;
+            }
+            depth++;
+        }
+        
+        // Reverse to get root-to-leaf order
+        Collections.reverse(pathParts);
+        
+        return String.join(" > ", pathParts);
+    }
 
-                // Validate operator
-                Set<String> validOperators = new HashSet<>(Arrays.asList(
-                    "equals", "notEquals", "contains", "notContains", "startsWith", "endsWith",
-                    "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual",
-                    "isEmpty", "isNotEmpty"
-                ));
-                if (filter.getOperator() != null && !validOperators.contains(filter.getOperator())) {
-                    throw new BadRequestException("Invalid operator: " + filter.getOperator());
-                }
+    /**
+     * Builds the full hierarchical path for a category by traversing up the parent chain.
+     * 
+     * This method recursively builds the path from root to leaf using the separator " › ".
+     * Example: "Electronics › Computers › Laptops"
+     * 
+     * @param category The category to build the path for
+     * @return The full hierarchical path as a string
+     */
+    private String buildFullPath(ProductCategory category) {
+        List<String> pathParts = new ArrayList<>();
+        ProductCategory current = category;
 
-                // Validate column type matches operator
-                String columnType = productFilterQueryBuilder.getColumnType(filter.getColumn());
-                if ("boolean".equals(columnType) && !filter.getOperator().equals("equals") && !filter.getOperator().equals("notEquals")) {
-                    throw new BadRequestException("Boolean columns only support 'equals' and 'notEquals' operators");
-                }
-                if ("date".equals(columnType) || "number".equals(columnType)) {
-                    Set<String> numericDateOperators = new HashSet<>(Arrays.asList(
-                        "equals", "notEquals", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"
-                    ));
-                    if (!numericDateOperators.contains(filter.getOperator())) {
-                        throw new BadRequestException(columnType + " columns only support numeric comparison operators");
-                    }
-                }
+        // Traverse up the parent chain
+        while (current != null) {
+            pathParts.add(0, current.getName()); // Add to beginning of list
+            
+            // Get parent if parentId exists
+            if (current.getParentId() != null) {
+                current = productCategoryRepository.findById(current.getParentId()).orElse(null);
+            } else {
+                break;
             }
         }
 
-        // Calculate page size and offset
-        int start = paginationBaseRequestModel.getStart();
-        int end = paginationBaseRequestModel.getEnd();
-        int pageSize = end - start;
-
-        // Validate page size
-        if (pageSize <= 0) {
-            throw new BadRequestException("Invalid pagination: end must be greater than start");
-        }
-
-        // Create custom Pageable with proper offset handling
-        Pageable pageable = new PageRequest(0, pageSize, Sort.by("productId").descending()) {
-            @Override
-            public long getOffset() {
-                return start;
-            }
-        };
-
-        // Use filter query builder for dynamic filtering
-        Page<Product> productPage = productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-            getClientId(),
-            paginationBaseRequestModel.getSelectedIds(),
-            paginationBaseRequestModel.getLogicOperator() != null ? paginationBaseRequestModel.getLogicOperator() : "AND",
-            paginationBaseRequestModel.getFilters(),
-            paginationBaseRequestModel.isIncludeDeleted(),
-            pageable
-        );
-
-        // Convert to response models
-        PaginationBaseResponseModel<ProductResponseModel> response = new PaginationBaseResponseModel<>();
-        response.setData(productPage.getContent().stream()
-            .map(ProductResponseModel::new)
-            .collect(Collectors.toList()));
-        
-        // Set pagination metadata
-        response.setTotalDataCount(productPage.getTotalElements());
-        
-        return response;
-    }
-
-    /**
-     * Creates multiple products in a single operation.
-     * 
-     * @param products List of ProductRequestModel containing the product data to insert
-     * @return BulkInsertResponseModel containing success/failure details for each product
-     */
-    @Override
-    public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkAddProducts(java.util.List<ProductRequestModel> products) {
-        if (products == null || products.isEmpty()) {
-            throw new BadRequestException("Product list cannot be null or empty");
-        }
-
-        com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
-            new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
-        response.setTotalRequested(products.size());
-        
-        int successCount = 0;
-        int failureCount = 0;
-        
-        for (ProductRequestModel productRequest : products) {
-            try {
-                Product createdProduct = persistProduct(productRequest);
-                response.addSuccess(productRequest.getTitle(), createdProduct.getProductId());
-                successCount++;
-            } catch (BadRequestException bre) {
-                response.addFailure(
-                    productRequest.getTitle() != null ? productRequest.getTitle() : "unknown", 
-                    bre.getMessage()
-                );
-                failureCount++;
-            } catch (Exception e) {
-                response.addFailure(
-                    productRequest.getTitle() != null ? productRequest.getTitle() : "unknown", 
-                    "Error: " + e.getMessage()
-                );
-                failureCount++;
-            }
-        }
-        
-        userLogService.logData(getUserId(), 
-            SuccessMessages.ProductsSuccessMessages.InsertProduct + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
-            ApiRoutes.ProductsSubRoute.BULK_ADD_PRODUCT);
-        
-        response.setSuccessCount(successCount);
-        response.setFailureCount(failureCount);
-        
-        BulkInsertHelper.createBulkInsertResultMessage(response, "Product", messageService, getUserId(), getUser(), getClientId());
-        
-        return response;
+        // Join path parts with separator
+        return String.join(" › ", pathParts);
     }
 }

@@ -169,7 +169,6 @@ class LeadServiceTest {
         testUserRequest = new UserRequestModel();
         testUserRequest.setUserId(TEST_CREATED_BY_ID);
         testUserRequest.setLoginName(CREATED_USER);
-        testUserRequest.setEmail("admin@example.com");
         testUserRequest.setFirstName("Admin");
         testUserRequest.setLastName("User");
         testUserRequest.setPhone("1234567890");

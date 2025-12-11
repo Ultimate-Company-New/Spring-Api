@@ -110,4 +110,13 @@ public interface IUserGroupSubTranslator {
      * @param requestingClientId The client ID of the user making the request (captured from security context)
      */
     void bulkCreateUserGroupsAsync(java.util.List<UserGroupRequestModel> userGroups, Long requestingUserId, String requestingUserLoginName, Long requestingClientId);
+    
+    /**
+     * Creates multiple user groups synchronously in a single operation (for testing).
+     * This is a synchronous wrapper that processes user groups immediately and returns results.
+     * 
+     * @param userGroups List of UserGroupRequestModel containing the user group data to create
+     * @return BulkInsertResponseModel containing success/failure details for each user group
+     */
+    com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateUserGroups(java.util.List<UserGroupRequestModel> userGroups);
 }

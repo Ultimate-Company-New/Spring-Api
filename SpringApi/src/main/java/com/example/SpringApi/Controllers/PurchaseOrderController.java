@@ -105,6 +105,10 @@ public class PurchaseOrderController {
     public ResponseEntity<?> bulkCreatePurchaseOrders(@RequestBody java.util.List<PurchaseOrderRequestModel> purchaseOrders) {
         try {
             return ResponseEntity.ok(purchaseOrderService.bulkCreatePurchaseOrders(purchaseOrders));
+        } catch (UnsupportedOperationException uoe) {
+            logger.error(uoe);
+            return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
+                    .body(new ErrorResponseModel("Not Implemented", uoe.getMessage(), HttpStatus.NOT_IMPLEMENTED.value()));
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));

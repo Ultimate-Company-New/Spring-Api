@@ -227,6 +227,7 @@ public class ApiRoutes {
         public static final String GET_CHILD_CATEGORIES_GIVEN_PARENT_ID = "getChildCategoriesGivenParentId";
         public static final String GET_CATEGORY_BY_NAME = "getCategoryByName";
         public static final String FIND_CATEGORIES_WITHOUT_CHILDREN = "findCategoriesWithoutChildren";
+        public static final String GET_CATEGORY_PATHS_BY_IDS = "getCategoryPathsByIds";
     }
 
     public static class ProductsSubRoute {

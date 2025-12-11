@@ -23,13 +23,21 @@ public class PaginationBaseRequestModel {
     public static final String OP_IS_NOT_ONE_OF = "isNotOneOf";
     public static final String OP_CONTAINS_ONE_OF = "containsOneOf";
     
-    // Number operators
-    public static final String OP_EQUAL = "=";
-    public static final String OP_NOT_EQUAL = "!=";
-    public static final String OP_GREATER_THAN = ">";
-    public static final String OP_GREATER_THAN_OR_EQUAL = ">=";
-    public static final String OP_LESS_THAN = "<";
-    public static final String OP_LESS_THAN_OR_EQUAL = "<=";
+    // Number operators (word format for query builders)
+    public static final String OP_EQUAL = "equals";
+    public static final String OP_NOT_EQUAL = "notEquals";
+    public static final String OP_GREATER_THAN = "greaterThan";
+    public static final String OP_GREATER_THAN_OR_EQUAL = "greaterThanOrEqual";
+    public static final String OP_LESS_THAN = "lessThan";
+    public static final String OP_LESS_THAN_OR_EQUAL = "lessThanOrEqual";
+    
+    // Symbol operators (accepted from frontend, normalized to word format)
+    public static final String OP_SYMBOL_EQUAL = "=";
+    public static final String OP_SYMBOL_NOT_EQUAL = "!=";
+    public static final String OP_SYMBOL_GREATER_THAN = ">";
+    public static final String OP_SYMBOL_GREATER_THAN_OR_EQUAL = ">=";
+    public static final String OP_SYMBOL_LESS_THAN = "<";
+    public static final String OP_SYMBOL_LESS_THAN_OR_EQUAL = "<=";
     
     // Date operators
     public static final String OP_IS = "is";
@@ -80,11 +88,16 @@ public class PaginationBaseRequestModel {
      * Inner class representing a single filter condition
      */
     @Getter
-    @Setter
     public static class FilterCondition {
         private String column;
         private String operator;
         private Object value;
+        
+        // Symbol operators that can be sent from frontend (will be normalized)
+        public static final List<String> SYMBOL_OPERATORS = Arrays.asList(
+            OP_SYMBOL_EQUAL, OP_SYMBOL_NOT_EQUAL, OP_SYMBOL_GREATER_THAN, 
+            OP_SYMBOL_GREATER_THAN_OR_EQUAL, OP_SYMBOL_LESS_THAN, OP_SYMBOL_LESS_THAN_OR_EQUAL
+        );
         
         // Valid operators for different column types (using constants)
         public static final List<String> STRING_OPERATORS = Arrays.asList(
@@ -104,17 +117,59 @@ public class PaginationBaseRequestModel {
         
         public static final List<String> BOOLEAN_OPERATORS = Arrays.asList(OP_IS);
         
+        // Setters with normalization
+        public void setColumn(String column) {
+            this.column = column;
+        }
+        
+        public void setValue(Object value) {
+            this.value = value;
+        }
+        
         /**
-         * Validates if the operator is valid for any column type
+         * Sets the operator and normalizes symbol operators to word format.
+         * This ensures query builders always receive word format operators.
+         */
+        public void setOperator(String operator) {
+            this.operator = normalizeOperator(operator);
+        }
+        
+        /**
+         * Normalizes symbol operators to word format for query builder compatibility.
+         * 
+         * @param op The operator (may be symbol or word format)
+         * @return The normalized operator in word format
+         */
+        private String normalizeOperator(String op) {
+            if (op == null) {
+                return null;
+            }
+            return switch (op) {
+                case "=" -> OP_EQUAL;
+                case "!=" -> OP_NOT_EQUAL;
+                case ">" -> OP_GREATER_THAN;
+                case ">=" -> OP_GREATER_THAN_OR_EQUAL;
+                case "<" -> OP_LESS_THAN;
+                case "<=" -> OP_LESS_THAN_OR_EQUAL;
+                default -> op;
+            };
+        }
+        
+        /**
+         * Validates if the operator is valid for any column type.
+         * Accepts both symbol and word format operators.
          */
         public boolean isValidOperator() {
             if (operator == null) {
                 return false;
             }
+            // After normalization, operator should be in word format
+            // But also accept symbols in case validation is called before normalization
             return STRING_OPERATORS.contains(operator) || 
                    NUMBER_OPERATORS.contains(operator) || 
                    DATE_OPERATORS.contains(operator) || 
-                   BOOLEAN_OPERATORS.contains(operator);
+                   BOOLEAN_OPERATORS.contains(operator) ||
+                   SYMBOL_OPERATORS.contains(operator);
         }
         
         /**

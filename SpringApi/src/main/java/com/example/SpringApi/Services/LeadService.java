@@ -362,6 +362,72 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         }
     }
 
+    /**
+     * Creates multiple leads synchronously in a single operation (for testing).
+     * This is a synchronous wrapper that processes leads immediately and returns results.
+     * 
+     * @param leads List of LeadRequestModel containing the lead data to create
+     * @return BulkInsertResponseModel containing success/failure details for each lead
+     */
+    @Override
+    @Transactional
+    public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateLeads(List<LeadRequestModel> leads) {
+        // Validate input
+        if (leads == null || leads.isEmpty()) {
+            throw new BadRequestException("Lead list cannot be null or empty");
+        }
+
+        com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
+            new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+        response.setTotalRequested(leads.size());
+        
+        int successCount = 0;
+        int failureCount = 0;
+        
+        // Process each lead individually
+        for (LeadRequestModel leadRequest : leads) {
+            try {
+                // Call createLead with current user and shouldLog = false
+                createLead(leadRequest, getUser(), false);
+                
+                // If we get here, lead was created successfully
+                // Fetch the created lead to get the leadId
+                Lead createdLead = leadRepository.findLeadWithDetailsByEmail(leadRequest.getEmail(), getClientId());
+                if (createdLead != null) {
+                    response.addSuccess(leadRequest.getEmail(), createdLead.getLeadId());
+                    successCount++;
+                }
+                
+            } catch (BadRequestException bre) {
+                // Validation or business logic error
+                response.addFailure(
+                    leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown", 
+                    bre.getMessage()
+                );
+                failureCount++;
+            } catch (Exception e) {
+                // Unexpected error
+                response.addFailure(
+                    leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown", 
+                    "Error: " + e.getMessage()
+                );
+                failureCount++;
+            }
+        }
+        
+        // Log bulk lead creation
+        userLogService.logData(
+            getUserId(),
+            SuccessMessages.LeadSuccessMessages.InsertLead + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+            ApiRoutes.LeadsSubRoute.BULK_CREATE_LEAD
+        );
+        
+        response.setSuccessCount(successCount);
+        response.setFailureCount(failureCount);
+        
+        return response;
+    }
+
     // ==================== HELPER METHODS ====================
 
     /**

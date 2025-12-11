@@ -359,6 +359,70 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
         }
     }
 
+    /**
+     * Creates multiple user groups synchronously in a single operation (for testing).
+     * This is a synchronous wrapper that processes user groups immediately and returns results.
+     * 
+     * @param userGroups List of UserGroupRequestModel containing the user group data to create
+     * @return BulkInsertResponseModel containing success/failure details for each user group
+     */
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateUserGroups(List<UserGroupRequestModel> userGroups) {
+        // Validate input
+        if (userGroups == null || userGroups.isEmpty()) {
+            throw new BadRequestException("User group list cannot be null or empty");
+        }
+
+        com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
+            new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+        response.setTotalRequested(userGroups.size());
+        
+        int successCount = 0;
+        int failureCount = 0;
+        
+        // Process each group individually
+        for (UserGroupRequestModel groupRequest : userGroups) {
+            try {
+                // Call createUserGroup with current user and shouldLog = false
+                createUserGroup(groupRequest, getUser(), false);
+                
+                // If we get here, group was created successfully
+                // Fetch the created group to get the groupId
+                UserGroup createdGroup = userGroupRepository.findByGroupName(groupRequest.getGroupName());
+                response.addSuccess(groupRequest.getGroupName(), createdGroup.getGroupId());
+                successCount++;
+                
+            } catch (BadRequestException bre) {
+                // Validation or business logic error
+                response.addFailure(
+                    groupRequest.getGroupName() != null ? groupRequest.getGroupName() : "unknown", 
+                    bre.getMessage()
+                );
+                failureCount++;
+            } catch (Exception e) {
+                // Unexpected error
+                response.addFailure(
+                    groupRequest.getGroupName() != null ? groupRequest.getGroupName() : "unknown", 
+                    "Error: " + e.getMessage()
+                );
+                failureCount++;
+            }
+        }
+        
+        // Log bulk user group creation
+        userLogService.logData(
+            getUserId(),
+            SuccessMessages.UserGroupSuccessMessages.InsertGroup + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+            ApiRoutes.UserGroupSubRoute.BULK_CREATE_USER_GROUP
+        );
+        
+        response.setSuccessCount(successCount);
+        response.setFailureCount(failureCount);
+        
+        return response;
+    }
+
     // ==================== HELPER METHODS ====================
 
     /**

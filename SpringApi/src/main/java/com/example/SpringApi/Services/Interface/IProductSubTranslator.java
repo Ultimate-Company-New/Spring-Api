@@ -2,8 +2,11 @@ package com.example.SpringApi.Services.Interface;
 
 import com.example.SpringApi.Models.ResponseModels.ProductResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.SpringApi.Models.ResponseModels.ProductCategoryWithPathResponseModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.ProductRequestModel;
+
+import java.util.List;
 
 /**
  * Interface for Product operations and data access.
@@ -96,10 +99,55 @@ public interface IProductSubTranslator {
     PaginationBaseResponseModel<ProductResponseModel> getProductInBatches(PaginationBaseRequestModel paginationBaseRequestModel);
     
     /**
-     * Creates multiple products in a single operation.
+     * Creates multiple products asynchronously in a single operation with partial success support.
+     * 
+     * This method processes products in a background thread with the following characteristics:
+     * - Supports partial success: if some products fail validation, others still succeed
+     * - Sends detailed results to user via message notification after processing completes
+     * - NOT_SUPPORTED: Runs without a transaction to avoid rollback-only issues when individual product creations fail
+     * 
+     * @param products List of ProductRequestModel containing the product data to insert
+     * @param requestingUserId The ID of the user making the request (captured from security context)
+     * @param requestingUserLoginName The loginName of the user making the request (captured from security context)
+     * @param requestingClientId The client ID of the user making the request (captured from security context)
+     */
+    void bulkAddProductsAsync(java.util.List<ProductRequestModel> products, Long requestingUserId, String requestingUserLoginName, Long requestingClientId);
+    
+    /**
+     * Creates multiple products synchronously in a single operation (for testing).
+     * 
+     * This is a synchronous wrapper for unit tests that processes products immediately
+     * and returns the bulk insert result with success/failure details for each product.
      * 
      * @param products List of ProductRequestModel containing the product data to insert
      * @return BulkInsertResponseModel containing success/failure details for each product
      */
     com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkAddProducts(java.util.List<ProductRequestModel> products);
+    
+    /**
+     * Retrieves categories based on parent ID for hierarchical navigation.
+     * 
+     * If parentId is null: Returns all root categories (categories with null parentId)
+     * If parentId is provided: Returns all child categories of that parent (where isEnd=true)
+     * 
+     * This enables drill-down category navigation where users can browse the hierarchy
+     * level by level until they reach assignable leaf categories.
+     * 
+     * @param parentId The parent category ID (null for root categories)
+     * @return List of ProductCategoryWithPathResponseModel containing categories with full paths
+     */
+    List<ProductCategoryWithPathResponseModel> findCategoriesByParentId(Long parentId);
+    
+    /**
+     * Retrieves full category paths for a list of category IDs.
+     * 
+     * This method takes a list of category IDs and returns a mapping of each ID
+     * to its full hierarchical path (e.g., "Electronics > Computers > Laptops").
+     * Useful for bulk operations like product import where multiple category paths
+     * need to be resolved efficiently.
+     * 
+     * @param categoryIds List of category IDs to get paths for
+     * @return Map of category ID to full path string
+     */
+    java.util.Map<Long, String> getCategoryPathsByIds(List<Long> categoryIds);
 }

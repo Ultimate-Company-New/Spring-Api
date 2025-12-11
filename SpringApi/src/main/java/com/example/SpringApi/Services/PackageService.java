@@ -6,6 +6,7 @@ import com.example.SpringApi.Models.DatabaseModels.Package;
 import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
 import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
 import com.example.SpringApi.Models.ApiRoutes;
+import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PackageResponseModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
@@ -24,7 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -265,22 +269,9 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      * @param packageRequest The package data to create
      */
     @Override
+    @Transactional
     public void createPackage(PackageRequestModel packageRequest) {
-        persistPackage(packageRequest);
-    }
-
-    private Package persistPackage(PackageRequestModel packageRequest) {
-        Package savedPackage = packageRepository.save(new Package(packageRequest, getUser(), getClientId()));
-
-        // Make generated ID available to the caller (useful for bulk operations/tests)
-        packageRequest.setPackageId(savedPackage.getPackageId());
-
-        // Logging
-        userLogService.logData(
-            getUserId(),
-            SuccessMessages.PackagesSuccessMessages.InsertPackage + savedPackage.getPackageId(),
-            ApiRoutes.PackageSubRoute.CREATE_PACKAGE);
-        return savedPackage;
+        createPackage(packageRequest, getUser(), true);
     }
 
     /**
@@ -304,36 +295,134 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     }
 
     /**
-     * Creates multiple packages in a single operation.
-     *
-     * @param packages List of PackageRequestModel containing the package data to insert
+     * Creates multiple packages asynchronously in the system with partial success support.
+     * 
+     * This method processes packages in a background thread with the following characteristics:
+     * - Supports partial success: if some packages fail validation, others still succeed
+     * - Sends detailed results to user via message notification after processing completes
+     * - NOT_SUPPORTED: Runs without a transaction to avoid rollback-only issues when individual package creations fail
+     * 
+     * @param packages List of PackageRequestModel containing the package data to create
+     * @param requestingUserId The ID of the user making the request (captured from security context)
+     * @param requestingUserLoginName The loginName of the user making the request (captured from security context)
+     * @param requestingClientId The client ID of the user making the request (captured from security context)
+     */
+    @Override
+    @Async
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void bulkCreatePackagesAsync(List<PackageRequestModel> packages, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
+        try {
+            // Validate input
+            if (packages == null || packages.isEmpty()) {
+                throw new BadRequestException("Package list cannot be null or empty");
+            }
+
+            BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
+            response.setTotalRequested(packages.size());
+            
+            int successCount = 0;
+            int failureCount = 0;
+            
+            // Process each package individually
+            for (PackageRequestModel packageRequest : packages) {
+                try {
+                    // Call createPackage with explicit createdUser and shouldLog = false (bulk logs collectively)
+                    createPackage(packageRequest, requestingUserLoginName, false);
+                    
+                    // If we get here, package was created successfully
+                    // The packageId is set by persistPackage method
+                    response.addSuccess(packageRequest.getPackageName(), packageRequest.getPackageId());
+                    successCount++;
+                    
+                } catch (BadRequestException bre) {
+                    // Validation or business logic error
+                    response.addFailure(
+                        packageRequest.getPackageName() != null ? packageRequest.getPackageName() : "unknown", 
+                        bre.getMessage()
+                    );
+                    failureCount++;
+                } catch (Exception e) {
+                    // Unexpected error
+                    response.addFailure(
+                        packageRequest.getPackageName() != null ? packageRequest.getPackageName() : "unknown", 
+                        "Error: " + e.getMessage()
+                    );
+                    failureCount++;
+                }
+            }
+            
+            // Log bulk package creation (using captured context values)
+            userLogService.logDataWithContext(
+                requestingUserId,
+                requestingUserLoginName,
+                requestingClientId,
+                SuccessMessages.PackagesSuccessMessages.InsertPackage + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+                ApiRoutes.PackageSubRoute.BULK_CREATE_PACKAGE
+            );
+            
+            response.setSuccessCount(successCount);
+            response.setFailureCount(failureCount);
+            
+            // Create a message with the bulk insert results using the helper (using captured context)
+            BulkInsertHelper.createDetailedBulkInsertResultMessage(
+                response, "Package", "Packages", "Package Name", "Package ID", 
+                messageService, requestingUserId, requestingUserLoginName, requestingClientId
+            );
+            
+        } catch (Exception e) {
+            // Still send a message to user about the failure (using captured userId)
+            BulkInsertResponseModel<Long> errorResponse = new BulkInsertResponseModel<>();
+            errorResponse.setTotalRequested(packages != null ? packages.size() : 0);
+            errorResponse.setSuccessCount(0);
+            errorResponse.setFailureCount(packages != null ? packages.size() : 0);
+            errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
+            BulkInsertHelper.createDetailedBulkInsertResultMessage(
+                errorResponse, "Package", "Packages", "Package Name", "Package ID", 
+                messageService, requestingUserId, requestingUserLoginName, requestingClientId
+            );
+        }
+    }
+
+    /**
+     * Creates multiple packages synchronously in a single operation (for testing).
+     * This is a synchronous wrapper that processes packages immediately and returns results.
+     * 
+     * @param packages List of PackageRequestModel containing the package data to create
      * @return BulkInsertResponseModel containing success/failure details for each package
      */
     @Override
-    public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreatePackages(java.util.List<PackageRequestModel> packages) {
+    @Transactional
+    public BulkInsertResponseModel<Long> bulkCreatePackages(List<PackageRequestModel> packages) {
+        // Validate input
         if (packages == null || packages.isEmpty()) {
             throw new BadRequestException("Package list cannot be null or empty");
         }
 
-        com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
-            new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+        BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
         response.setTotalRequested(packages.size());
         
         int successCount = 0;
         int failureCount = 0;
         
+        // Process each package individually
         for (PackageRequestModel packageRequest : packages) {
             try {
-                Package createdPackage = persistPackage(packageRequest);
-                response.addSuccess(packageRequest.getPackageName(), createdPackage.getPackageId());
+                // Call createPackage with current user and shouldLog = false
+                createPackage(packageRequest, getUser(), false);
+                
+                // If we get here, package was created successfully
+                response.addSuccess(packageRequest.getPackageName(), packageRequest.getPackageId());
                 successCount++;
+                
             } catch (BadRequestException bre) {
+                // Validation or business logic error
                 response.addFailure(
                     packageRequest.getPackageName() != null ? packageRequest.getPackageName() : "unknown", 
                     bre.getMessage()
                 );
                 failureCount++;
             } catch (Exception e) {
+                // Unexpected error
                 response.addFailure(
                     packageRequest.getPackageName() != null ? packageRequest.getPackageName() : "unknown", 
                     "Error: " + e.getMessage()
@@ -342,15 +431,63 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             }
         }
         
-        userLogService.logData(getUserId(), 
+        // Log bulk package creation
+        userLogService.logData(
+            getUserId(),
             SuccessMessages.PackagesSuccessMessages.InsertPackage + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
-            ApiRoutes.PackageSubRoute.BULK_CREATE_PACKAGE);
+            ApiRoutes.PackageSubRoute.BULK_CREATE_PACKAGE
+        );
         
         response.setSuccessCount(successCount);
         response.setFailureCount(failureCount);
         
-        BulkInsertHelper.createBulkInsertResultMessage(response, "Package", messageService, getUserId(), getUser(), getClientId());
-        
         return response;
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    /**
+     * Creates a new package in the system with explicit createdUser.
+     * This variant is used for async operations where security context is not available.
+     * 
+     * @param packageRequest The package data to create
+     * @param createdUser The loginName of the user creating this package (for async operations)
+     * @param shouldLog Whether to log this individual package creation (false for bulk operations)
+     * @throws BadRequestException if the package data is invalid or incomplete
+     */
+    @Transactional
+    private void createPackage(PackageRequestModel packageRequest, String createdUser, boolean shouldLog) {
+        // Get security context
+        Long currentClientId = getClientId();
+        Long currentUserId = getUserId();
+
+        // Persist the package
+        Package savedPackage = persistPackage(packageRequest, createdUser, currentClientId);
+
+        // Log package creation (skip for bulk operations as they log collectively)
+        if (shouldLog) {
+            userLogService.logData(
+                currentUserId,
+                SuccessMessages.PackagesSuccessMessages.InsertPackage + savedPackage.getPackageId(),
+                ApiRoutes.PackageSubRoute.CREATE_PACKAGE
+            );
+        }
+    }
+
+    /**
+     * Persists a package to the database.
+     * 
+     * @param packageRequest The package data to persist
+     * @param createdUser The loginName of the user creating this package
+     * @param clientId The client ID for the package
+     * @return The saved Package entity
+     */
+    private Package persistPackage(PackageRequestModel packageRequest, String createdUser, Long clientId) {
+        Package savedPackage = packageRepository.save(new Package(packageRequest, createdUser, clientId));
+
+        // Make generated ID available to the caller (useful for bulk operations/tests)
+        packageRequest.setPackageId(savedPackage.getPackageId());
+
+        return savedPackage;
     }
 }

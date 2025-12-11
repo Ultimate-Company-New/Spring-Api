@@ -121,8 +121,7 @@ class UserGroupServiceTest {
         userRequest.setPhone("1234567890");
         userRequest.setRole("Customer");
         userRequest.setDob(LocalDate.of(1990, 1, 1));
-        userRequest.setEmail("test@example.com");
-        
+
         testUser = new User(userRequest, CREATED_USER);
         testUser.setUserId(TEST_USER_ID);
         

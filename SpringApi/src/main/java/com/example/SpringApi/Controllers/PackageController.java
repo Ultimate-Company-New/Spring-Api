@@ -10,6 +10,7 @@ import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PackageResponseModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
+import com.example.SpringApi.Services.PackageService;
 import com.example.SpringApi.Services.Interface.IPackageSubTranslator;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,10 +35,12 @@ import java.util.List;
 public class PackageController {
     private static final ContextualLogger logger = ContextualLogger.getLogger(PackageController.class);
     private final IPackageSubTranslator packageService;
+    private final PackageService concreteService;
 
     @Autowired
-    public PackageController(IPackageSubTranslator packageService) {
+    public PackageController(IPackageSubTranslator packageService, PackageService concreteService) {
         this.packageService = packageService;
+        this.concreteService = concreteService;
     }
 
     /**
@@ -202,10 +205,27 @@ public class PackageController {
         }
     }
 
+    /**
+     * Creates multiple packages asynchronously in a single operation.
+     * Results will be sent via message notification after processing completes.
+     *
+     * @param packages List of PackageRequestModel containing the package data to insert
+     * @return ResponseEntity with 200 OK (processing started)
+     */
+    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.INSERT_PACKAGES_PERMISSION +"')")
     @PutMapping(ApiRoutes.PackageSubRoute.BULK_CREATE_PACKAGE)
     public ResponseEntity<?> bulkCreatePackages(@RequestBody java.util.List<PackageRequestModel> packages) {
         try {
-            return ResponseEntity.ok(packageService.bulkCreatePackages(packages));
+            // Capture security context before async call
+            Long userId = concreteService.getUserId();
+            String loginName = concreteService.getUser();
+            Long clientId = concreteService.getClientId();
+            
+            // Call async method with captured context
+            packageService.bulkCreatePackagesAsync(packages, userId, loginName, clientId);
+            
+            // Return immediately - results will be sent via message notification
+            return ResponseEntity.ok().build();
         } catch (BadRequestException e) {
             logger.error(e);
             return ResponseEntity.badRequest()

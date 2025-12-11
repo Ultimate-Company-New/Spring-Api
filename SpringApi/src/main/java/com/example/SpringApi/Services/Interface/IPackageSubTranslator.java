@@ -72,7 +72,22 @@ public interface IPackageSubTranslator {
     void createPackage(PackageRequestModel packageRequest);
     
     /**
-     * Creates multiple packages in a single operation.
+     * Creates multiple packages asynchronously in the system with partial success support.
+     * 
+     * This method processes packages in a background thread with the following characteristics:
+     * - Supports partial success: if some packages fail validation, others still succeed
+     * - Sends detailed results to user via message notification after processing completes
+     * 
+     * @param packages List of PackageRequestModel containing the package data to create
+     * @param requestingUserId The ID of the user making the request (captured from security context)
+     * @param requestingUserLoginName The loginName of the user making the request (captured from security context)
+     * @param requestingClientId The client ID of the user making the request (captured from security context)
+     */
+    void bulkCreatePackagesAsync(java.util.List<PackageRequestModel> packages, Long requestingUserId, String requestingUserLoginName, Long requestingClientId);
+
+    /**
+     * Creates multiple packages synchronously in a single operation (for testing).
+     * This is a synchronous wrapper that processes packages immediately and returns results.
      *
      * @param packages List of PackageRequestModel containing the package data to insert
      * @return BulkInsertResponseModel containing success/failure details for each package

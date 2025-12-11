@@ -928,52 +928,55 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      */
     @Override
     public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreatePurchaseOrders(java.util.List<PurchaseOrderRequestModel> purchaseOrders) {
-        if (purchaseOrders == null || purchaseOrders.isEmpty()) {
-            throw new BadRequestException("Purchase order list cannot be null or empty");
-        }
+        // TODO: Refactor to use async pattern with explicit security context parameters (similar to ProductService.bulkAddProductsAsync)
+        throw new UnsupportedOperationException("Bulk purchase order creation is temporarily disabled. Please use single purchase order creation endpoint.");
+        
+        // if (purchaseOrders == null || purchaseOrders.isEmpty()) {
+        //     throw new BadRequestException("Purchase order list cannot be null or empty");
+        // }
 
-        com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
-            new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
-        response.setTotalRequested(purchaseOrders.size());
+        // com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
+        //     new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+        // response.setTotalRequested(purchaseOrders.size());
         
-        int successCount = 0;
-        int failureCount = 0;
+        // int successCount = 0;
+        // int failureCount = 0;
         
-        for (PurchaseOrderRequestModel poRequest : purchaseOrders) {
-            try {
-                createPurchaseOrder(poRequest);
+        // for (PurchaseOrderRequestModel poRequest : purchaseOrders) {
+        //     try {
+        //         createPurchaseOrder(poRequest);
                 
-                // Find the created purchase order (use vendor number as identifier)
-                Optional<PurchaseOrder> createdPO = purchaseOrderRepository.findByPurchaseOrderIdAndClientId(
-                    poRequest.getPurchaseOrderId(), getClientId());
-                if (createdPO.isPresent()) {
-                    response.addSuccess(poRequest.getVendorNumber(), createdPO.get().getPurchaseOrderId());
-                    successCount++;
-                }
-            } catch (BadRequestException bre) {
-                response.addFailure(
-                    poRequest.getVendorNumber() != null ? poRequest.getVendorNumber() : "unknown", 
-                    bre.getMessage()
-                );
-                failureCount++;
-            } catch (Exception e) {
-                response.addFailure(
-                    poRequest.getVendorNumber() != null ? poRequest.getVendorNumber() : "unknown", 
-                    "Error: " + e.getMessage()
-                );
-                failureCount++;
-            }
-        }
+        //         // Find the created purchase order (use vendor number as identifier)
+        //         Optional<PurchaseOrder> createdPO = purchaseOrderRepository.findByPurchaseOrderIdAndClientId(
+        //             poRequest.getPurchaseOrderId(), getClientId());
+        //         if (createdPO.isPresent()) {
+        //             response.addSuccess(poRequest.getVendorNumber(), createdPO.get().getPurchaseOrderId());
+        //             successCount++;
+        //         }
+        //     } catch (BadRequestException bre) {
+        //         response.addFailure(
+        //             poRequest.getVendorNumber() != null ? poRequest.getVendorNumber() : "unknown", 
+        //             bre.getMessage()
+        //         );
+        //         failureCount++;
+        //     } catch (Exception e) {
+        //         response.addFailure(
+        //             poRequest.getVendorNumber() != null ? poRequest.getVendorNumber() : "unknown", 
+        //             "Error: " + e.getMessage()
+        //         );
+        //         failureCount++;
+        //     }
+        // }
         
-        userLogService.logData(getUserId(), 
-            SuccessMessages.PurchaseOrderSuccessMessages.InsertPurchaseOrder + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
-            ApiRoutes.PurchaseOrderSubRoute.BULK_CREATE_PURCHASE_ORDER);
+        // userLogService.logData(getUserId(), 
+        //     SuccessMessages.PurchaseOrderSuccessMessages.InsertPurchaseOrder + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+        //     ApiRoutes.PurchaseOrderSubRoute.BULK_CREATE_PURCHASE_ORDER);
         
-        response.setSuccessCount(successCount);
-        response.setFailureCount(failureCount);
+        // response.setSuccessCount(successCount);
+        // response.setFailureCount(failureCount);
         
-        BulkInsertHelper.createBulkInsertResultMessage(response, "Purchase Order", messageService, getUserId(), getUser(), getClientId());
+        // BulkInsertHelper.createBulkInsertResultMessage(response, "Purchase Order", messageService, getUserId(), getUser(), getClientId());
         
-        return response;
+        // return response;
     }
 }

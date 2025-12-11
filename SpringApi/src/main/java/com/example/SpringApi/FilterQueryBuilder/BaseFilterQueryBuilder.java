@@ -206,27 +206,38 @@ public abstract class BaseFilterQueryBuilder {
     }
 
     /**
-     * Builds a number filter condition
+     * Builds a number filter condition.
+     * Accepts both symbol operators (=, !=, etc.) and word operators (equals, notEquals, etc.)
+     * for backwards compatibility, though word format is preferred.
      */
     private String buildNumberCondition(String fieldPath, String operator, Object value, String paramName, Map<String, Object> parameters) {
+        // Convert string values to numbers for proper comparison
+        Object numericValue = parseNumericValue(value);
+        
         switch (operator) {
+            case "equals":
             case "=":
-                parameters.put(paramName, value);
+                parameters.put(paramName, numericValue);
                 return fieldPath + " = :" + paramName;
+            case "notEquals":
             case "!=":
-                parameters.put(paramName, value);
+                parameters.put(paramName, numericValue);
                 return fieldPath + " != :" + paramName;
+            case "greaterThan":
             case ">":
-                parameters.put(paramName, value);
+                parameters.put(paramName, numericValue);
                 return fieldPath + " > :" + paramName;
+            case "greaterThanOrEqual":
             case ">=":
-                parameters.put(paramName, value);
+                parameters.put(paramName, numericValue);
                 return fieldPath + " >= :" + paramName;
+            case "lessThan":
             case "<":
-                parameters.put(paramName, value);
+                parameters.put(paramName, numericValue);
                 return fieldPath + " < :" + paramName;
+            case "lessThanOrEqual":
             case "<=":
-                parameters.put(paramName, value);
+                parameters.put(paramName, numericValue);
                 return fieldPath + " <= :" + paramName;
             case "isEmpty":
                 return fieldPath + " IS NULL";
@@ -236,9 +247,37 @@ public abstract class BaseFilterQueryBuilder {
                 return "1=1";
         }
     }
+    
+    /**
+     * Parses a value to a numeric type (Long or Double).
+     * If already a number, returns as-is. If a string, attempts to parse.
+     */
+    private Object parseNumericValue(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number) {
+            return value;
+        }
+        if (value instanceof String) {
+            String strValue = ((String) value).trim();
+            try {
+                // Try parsing as Long first (for IDs)
+                if (!strValue.contains(".")) {
+                    return Long.parseLong(strValue);
+                }
+                // Otherwise parse as Double
+                return Double.parseDouble(strValue);
+            } catch (NumberFormatException e) {
+                return value; // Return original if parsing fails
+            }
+        }
+        return value;
+    }
 
     /**
-     * Builds a date filter condition
+     * Builds a date filter condition.
+     * Supports both date-specific operators (is, isNot, etc.) and number-style operators (equals, greaterThan, etc.)
      */
     private String buildDateCondition(String fieldPath, String operator, Object value, String paramName, Map<String, Object> parameters) {
         // Parse date value
@@ -258,21 +297,27 @@ public abstract class BaseFilterQueryBuilder {
 
         switch (operator) {
             case "is":
+            case "equals":
                 parameters.put(paramName, dateValue);
                 return "DATE(" + fieldPath + ") = :" + paramName;
             case "isNot":
+            case "notEquals":
                 parameters.put(paramName, dateValue);
                 return "DATE(" + fieldPath + ") != :" + paramName;
             case "isAfter":
+            case "greaterThan":
                 parameters.put(paramName, dateValue);
                 return "DATE(" + fieldPath + ") > :" + paramName;
             case "isOnOrAfter":
+            case "greaterThanOrEqual":
                 parameters.put(paramName, dateValue);
                 return "DATE(" + fieldPath + ") >= :" + paramName;
             case "isBefore":
+            case "lessThan":
                 parameters.put(paramName, dateValue);
                 return "DATE(" + fieldPath + ") < :" + paramName;
             case "isOnOrBefore":
+            case "lessThanOrEqual":
                 parameters.put(paramName, dateValue);
                 return "DATE(" + fieldPath + ") <= :" + paramName;
             case "isEmpty":

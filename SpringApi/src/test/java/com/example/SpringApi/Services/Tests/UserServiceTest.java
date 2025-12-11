@@ -136,7 +136,6 @@ class UserServiceTest {
         testUserRequest = new UserRequestModel();
         testUserRequest.setUserId(TEST_USER_ID);
         testUserRequest.setLoginName(TEST_LOGIN_NAME);
-        testUserRequest.setEmail(TEST_EMAIL);
         testUserRequest.setFirstName("Test");
         testUserRequest.setLastName("User");
         testUserRequest.setPhone("1234567890");
@@ -567,8 +566,8 @@ class UserServiceTest {
     @DisplayName("Update User - Failure - Email change not allowed")
     void updateUser_EmailChange_ThrowsBadRequestException() {
         // Arrange
-        testUserRequest.setEmail("newemail@example.com");
-        
+        testUserRequest.setLoginName("newemail@example.com");
+
         when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(testUser);
         
         // Act & Assert
@@ -938,7 +937,6 @@ class UserServiceTest {
         for (int i = 0; i < 3; i++) {
             UserRequestModel userReq = new UserRequestModel();
             userReq.setLoginName("bulkuser" + i + "@test.com");
-            userReq.setEmail("bulkuser" + i + "@test.com");
             userReq.setFirstName("Bulk");
             userReq.setLastName("User" + i);
             userReq.setPhone("123456789" + i);
@@ -1015,7 +1013,6 @@ class UserServiceTest {
         // Valid user
         UserRequestModel validUser = new UserRequestModel();
         validUser.setLoginName("valid@test.com");
-        validUser.setEmail("valid@test.com");
         validUser.setFirstName("Valid");
         validUser.setLastName("User");
         validUser.setPhone("1234567890");
@@ -1026,7 +1023,7 @@ class UserServiceTest {
         
         // Invalid user (missing required fields)
         UserRequestModel invalidUser = new UserRequestModel();
-        invalidUser.setEmail("invalid@test.com");
+        invalidUser.setLoginName("invalid@test.com");
         users.add(invalidUser);
         
         Map<String, User> savedUsers = new HashMap<>();
@@ -1081,7 +1078,6 @@ class UserServiceTest {
         
         UserRequestModel user1 = new UserRequestModel();
         user1.setLoginName("new@test.com");
-        user1.setEmail("new@test.com");
         user1.setFirstName("New");
         user1.setLastName("User");
         user1.setPhone("1234567890");
@@ -1092,7 +1088,6 @@ class UserServiceTest {
         
         UserRequestModel user2 = new UserRequestModel();
         user2.setLoginName("existing@test.com");
-        user2.setEmail("existing@test.com");
         user2.setFirstName("Existing");
         user2.setLastName("User");
         user2.setPhone("1234567890");

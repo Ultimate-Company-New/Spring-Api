@@ -79,4 +79,13 @@ public interface ILeadSubTranslator {
      * @param requestingClientId The client ID of the user making the request (captured from security context)
      */
     void bulkCreateLeadsAsync(java.util.List<LeadRequestModel> leads, Long requestingUserId, String requestingUserLoginName, Long requestingClientId);
+    
+    /**
+     * Creates multiple leads synchronously in a single operation (for testing).
+     * This is a synchronous wrapper that processes leads immediately and returns results.
+     * 
+     * @param leads List of LeadRequestModel containing the lead data to create
+     * @return BulkInsertResponseModel containing success/failure details for each lead
+     */
+    com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateLeads(java.util.List<LeadRequestModel> leads);
 }

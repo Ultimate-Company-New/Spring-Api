@@ -207,6 +207,12 @@ public class Product {
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "itemAvailableFrom", nullable = false)
+    private LocalDateTime itemAvailableFrom;
+
+    @Column(name = "itemAvailableFromTimezone", nullable = false, length = 100)
+    private String itemAvailableFromTimezone;
+
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     private Set<ProductPickupLocationMapping> productPickupLocationMappings = new HashSet<>();
 
@@ -220,12 +226,15 @@ public class Product {
      * 
      * @param request The ProductRequestModel containing the product data
      * @param createdUser The user creating the product
+     * @param clientId The client ID from the security context (not from request)
      */
-    public Product(ProductRequestModel request, String createdUser) {
+    public Product(ProductRequestModel request, String createdUser, Long clientId) {
         validateRequest(request);
         validateUser(createdUser);
+        validateClientId(clientId);
         
         setFieldsFromRequest(request);
+        this.clientId = clientId;
         this.createdUser = createdUser;
         this.modifiedUser = createdUser;
         
@@ -254,7 +263,7 @@ public class Product {
      * 
      * @param request The ProductRequestModel containing the updated product data
      * @param modifiedUser The user modifying the product
-     * @param existingProduct The existing product entity
+     * @param existingProduct The existing product entity (clientId is preserved from existing)
      */
     public Product(ProductRequestModel request, String modifiedUser, Product existingProduct) {
         validateRequest(request);
@@ -263,6 +272,7 @@ public class Product {
         this.productId = existingProduct.getProductId();
         this.createdUser = existingProduct.getCreatedUser();
         this.createdAt = existingProduct.getCreatedAt();
+        this.clientId = existingProduct.getClientId(); // Preserve clientId from existing product
         
         setFieldsFromRequest(request);
         this.modifiedUser = modifiedUser;
@@ -328,9 +338,7 @@ public class Product {
         if (request.getCategoryId() == null) {
             throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidCategoryId);
         }
-        if (request.getClientId() == null) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidClientId);
-        }
+        // Note: clientId is not validated from request - it comes from security context via constructor parameter
         if (request.getPickupLocationQuantities() == null || request.getPickupLocationQuantities().isEmpty()) {
             throw new BadRequestException("At least one pickup location with quantity must be provided");
         }
@@ -345,6 +353,18 @@ public class Product {
     private void validateUser(String user) {
         if (user == null || user.trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+        }
+    }
+
+    /**
+     * Validates the clientId parameter.
+     * 
+     * @param clientId The client ID to validate
+     * @throws BadRequestException if validation fails
+     */
+    private void validateClientId(Long clientId) {
+        if (clientId == null) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidClientId);
         }
     }
 
@@ -375,7 +395,13 @@ public class Product {
         this.height = request.getHeight();
         this.weightKgs = request.getWeightKgs();
         this.categoryId = request.getCategoryId();
-        this.clientId = request.getClientId();
+        // Note: clientId is set in constructor from security context, not from request
         this.notes = request.getNotes() != null ? request.getNotes().trim() : null;
+        this.itemAvailableFrom = request.getItemAvailableFrom() != null 
+            ? request.getItemAvailableFrom() 
+            : LocalDateTime.now();
+        this.itemAvailableFromTimezone = request.getItemAvailableFromTimezone() != null 
+            ? request.getItemAvailableFromTimezone().trim() 
+            : "UTC";
     }
 }
