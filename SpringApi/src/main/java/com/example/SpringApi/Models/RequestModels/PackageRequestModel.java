@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 /**
  * Request model for Package operations.
@@ -26,8 +27,13 @@ public class PackageRequestModel {
     private Integer standardCapacity;
     private BigDecimal pricePerUnit;
     private String packageType;
-    private Long clientId;
     private Boolean isDeleted;
-    private AddressRequestModel address;
     private String notes;
+    
+    /**
+     * Map of pickup location ID to pickup location inventory data.
+     * A package can be stocked at multiple pickup locations with different inventory settings.
+     * Uses PackagePickupLocationMappingRequestModel for each location's inventory configuration.
+     */
+    private Map<Long, PackagePickupLocationMappingRequestModel> pickupLocationQuantities;
 }

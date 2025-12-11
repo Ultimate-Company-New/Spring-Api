@@ -525,7 +525,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
      * @throws BadRequestException if the user data is invalid or incomplete
      */
     @Transactional
-    private void createUser(UserRequestModel userRequestModel, boolean sendEmail, String createdUser, boolean shouldLog) {
+    protected void createUser(UserRequestModel userRequestModel, boolean sendEmail, String createdUser, boolean shouldLog) {
         // 1. Check if user email already exists
         if (userRepository.findByLoginName(userRequestModel.getLoginName()) != null) {
             throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidEmail + " - Login name (email) already exists");

@@ -4,7 +4,6 @@ import com.example.SpringApi.FilterQueryBuilder.PackageFilterQueryBuilder;
 import com.example.SpringApi.Models.DatabaseModels.Package;
 import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
 import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
-import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PackageResponseModel;
@@ -84,7 +83,6 @@ class PackageServiceTest {
 
     private Package testPackage;
     private PackageRequestModel testPackageRequest;
-    private AddressRequestModel testAddress;
     private PaginationBaseRequestModel testPaginationRequest;
     private PackagePickupLocationMapping testMapping;
 
@@ -95,10 +93,6 @@ class PackageServiceTest {
     private static final String TEST_PACKAGE_NAME = "Test Package";
     private static final String TEST_PACKAGE_TYPE = "Box";
     private static final String CREATED_USER = "testuser";
-    private static final String TEST_STREET_ADDRESS = "123 Test St";
-    private static final String TEST_CITY = "Test City";
-    private static final String TEST_STATE = "Test State";
-    private static final String TEST_POSTAL_CODE = "12345";
 
     /**
      * Sets up test data before each test execution.
@@ -143,18 +137,7 @@ class PackageServiceTest {
         testPackageRequest.setMaxWeight(BigDecimal.valueOf(5.0));
         testPackageRequest.setStandardCapacity(1);
         testPackageRequest.setPricePerUnit(BigDecimal.valueOf(10.0));
-        testPackageRequest.setClientId(TEST_CLIENT_ID);
         testPackageRequest.setIsDeleted(false);
-
-        // Initialize test address
-        testAddress = new AddressRequestModel();
-        testAddress.setStreetAddress(TEST_STREET_ADDRESS);
-        testAddress.setCity(TEST_CITY);
-        testAddress.setState(TEST_STATE);
-        testAddress.setPostalCode(TEST_POSTAL_CODE);
-        testAddress.setCountry("USA");
-        testAddress.setAddressType("HOME");
-        testPackageRequest.setAddress(testAddress);
 
         // Initialize test pagination request
         testPaginationRequest = new PaginationBaseRequestModel();
@@ -177,7 +160,7 @@ class PackageServiceTest {
         pkg.setStandardCapacity(request.getStandardCapacity());
         pkg.setPricePerUnit(request.getPricePerUnit());
         pkg.setPackageType(request.getPackageType());
-        pkg.setClientId(request.getClientId());
+        pkg.setClientId(TEST_CLIENT_ID);
         pkg.setIsDeleted(request.getIsDeleted() != null ? request.getIsDeleted() : Boolean.FALSE);
         pkg.setCreatedUser(CREATED_USER);
         pkg.setModifiedUser(CREATED_USER);
@@ -481,77 +464,17 @@ class PackageServiceTest {
     }
 
     @Test
-    @DisplayName("updatePackage - Failure: Null address")
-    void testUpdatePackage_NullAddress() {
+    @DisplayName("updatePackage - Failure: Missing package name")
+    void testUpdatePackage_MissingPackageName() {
         // Arrange
         when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
-        testPackageRequest.setAddress(null);
+        testPackageRequest.setPackageName(null);
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> packageService.updatePackage(testPackageRequest));
 
-        assertEquals("Address is required for package validation", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("updatePackage - Failure: Missing street address")
-    void testUpdatePackage_MissingStreetAddress() {
-        // Arrange
-        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
-        testAddress.setStreetAddress(null);
-        testPackageRequest.setAddress(testAddress);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> packageService.updatePackage(testPackageRequest));
-
-        assertEquals("Address line 1 is required.", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("updatePackage - Failure: Missing city")
-    void testUpdatePackage_MissingCity() {
-        // Arrange
-        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
-        testAddress.setCity(null);
-        testPackageRequest.setAddress(testAddress);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> packageService.updatePackage(testPackageRequest));
-
-        assertEquals("City is required.", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("updatePackage - Failure: Missing state")
-    void testUpdatePackage_MissingState() {
-        // Arrange
-        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
-        testAddress.setState(null);
-        testPackageRequest.setAddress(testAddress);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> packageService.updatePackage(testPackageRequest));
-
-        assertEquals("State is required.", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("updatePackage - Failure: Missing postal code")
-    void testUpdatePackage_MissingPostalCode() {
-        // Arrange
-        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
-        testAddress.setPostalCode(null);
-        testPackageRequest.setAddress(testAddress);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> packageService.updatePackage(testPackageRequest));
-
-        assertEquals("Zip Code is required.", exception.getMessage());
+        assertTrue(exception.getMessage().contains("Package name"));
     }
 
     // ==================== createPackage Tests ====================
@@ -575,30 +498,16 @@ class PackageServiceTest {
     }
 
     @Test
-    @DisplayName("createPackage - Failure: Null address")
-    void testCreatePackage_NullAddress() {
+    @DisplayName("createPackage - Failure: Missing package name")
+    void testCreatePackage_MissingPackageName() {
         // Arrange
-        testPackageRequest.setAddress(null);
+        testPackageRequest.setPackageName(null);
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> packageService.createPackage(testPackageRequest));
 
-        assertEquals("Address is required for package validation", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("createPackage - Failure: Missing street address")
-    void testCreatePackage_MissingStreetAddress() {
-        // Arrange
-        testAddress.setStreetAddress("");
-        testPackageRequest.setAddress(testAddress);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> packageService.createPackage(testPackageRequest));
-
-        assertEquals("Address line 1 is required.", exception.getMessage());
+        assertTrue(exception.getMessage().contains("Package name"));
     }
 
     // ==================== getPackagesByPickupLocationId Tests ====================
@@ -658,16 +567,6 @@ class PackageServiceTest {
             pkgReq.setMaxWeight(BigDecimal.valueOf(5));
             pkgReq.setStandardCapacity(25);
             pkgReq.setPricePerUnit(BigDecimal.valueOf(50));
-            pkgReq.setClientId(TEST_CLIENT_ID);
-            AddressRequestModel addr = new AddressRequestModel();
-            addr.setStreetAddress("123 Test St");
-            addr.setCity("Test City");
-            addr.setState("TS");
-            addr.setPostalCode("12345");
-            addr.setCountry("USA");
-            addr.setAddressType("HOME");
-            addr.setClientId(TEST_CLIENT_ID);
-            pkgReq.setAddress(addr);
             packages.add(pkgReq);
         }
 
@@ -705,16 +604,6 @@ class PackageServiceTest {
         validPkg.setMaxWeight(BigDecimal.valueOf(5));
         validPkg.setStandardCapacity(30);
         validPkg.setPricePerUnit(BigDecimal.valueOf(60));
-        validPkg.setClientId(TEST_CLIENT_ID);
-        AddressRequestModel addr = new AddressRequestModel();
-        addr.setStreetAddress("123 Test St");
-        addr.setCity("Test City");
-        addr.setState("TS");
-        addr.setPostalCode("12345");
-        addr.setCountry("USA");
-        addr.setAddressType("HOME");
-        addr.setClientId(TEST_CLIENT_ID);
-        validPkg.setAddress(addr);
         packages.add(validPkg);
         
         // Invalid package (missing package name)
@@ -727,16 +616,6 @@ class PackageServiceTest {
         invalidPkg.setMaxWeight(BigDecimal.valueOf(5));
         invalidPkg.setStandardCapacity(30);
         invalidPkg.setPricePerUnit(BigDecimal.valueOf(60));
-        invalidPkg.setClientId(TEST_CLIENT_ID);
-        AddressRequestModel invalidAddr = new AddressRequestModel();
-        invalidAddr.setStreetAddress("123 Test St");
-        invalidAddr.setCity("Test City");
-        invalidAddr.setState("TS");
-        invalidAddr.setPostalCode("12345");
-        invalidAddr.setCountry("USA");
-        invalidAddr.setAddressType("HOME");
-        invalidAddr.setClientId(TEST_CLIENT_ID);
-        invalidPkg.setAddress(invalidAddr);
         packages.add(invalidPkg);
 
         when(packageRepository.save(any(Package.class))).thenAnswer(invocation -> {
@@ -769,13 +648,8 @@ class PackageServiceTest {
         pkgReq.setBreadth(10);
         pkgReq.setHeight(10);
         pkgReq.setMaxWeight(BigDecimal.valueOf(5));
-        AddressRequestModel addr = new AddressRequestModel();
-        addr.setStreetAddress("123 Test St");
-        addr.setCity("Test City");
-        addr.setState("TS");
-        addr.setPostalCode("12345");
-        addr.setCountry("USA");
-        pkgReq.setAddress(addr);
+        pkgReq.setStandardCapacity(25);
+        pkgReq.setPricePerUnit(BigDecimal.valueOf(50));
         packages.add(pkgReq);
 
         lenient().when(packageRepository.save(any(Package.class))).thenThrow(new RuntimeException("Database error"));

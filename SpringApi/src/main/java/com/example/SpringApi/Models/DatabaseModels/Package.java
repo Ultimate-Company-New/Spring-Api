@@ -123,6 +123,7 @@ public class Package {
         validateUser(modifiedUser);
         
         this.packageId = existingPackage.getPackageId();
+        this.clientId = existingPackage.getClientId();
         this.createdUser = existingPackage.getCreatedUser();
         this.createdAt = existingPackage.getCreatedAt();
         
@@ -164,16 +165,8 @@ public class Package {
         if (request.getPackageType() == null || request.getPackageType().trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidPackageType);
         }
-        if (request.getClientId() == null) {
-            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidClientId);
-        }
-        
-        // Validate address is required
-        if (request.getAddress() == null) {
-            throw new BadRequestException("Address is required for package validation");
-        }
-        
-        new Address(request.getAddress(), "temp");
+        // Note: clientId is passed as a constructor parameter from security context, not from request body
+        // Note: Packages don't require an address - they are stored at pickup locations
     }
 
     /**
@@ -204,7 +197,6 @@ public class Package {
         this.standardCapacity = request.getStandardCapacity();
         this.pricePerUnit = request.getPricePerUnit();
         this.packageType = request.getPackageType().trim();
-        this.clientId = request.getClientId();
         this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : Boolean.FALSE;
         this.notes = request.getNotes();
     }

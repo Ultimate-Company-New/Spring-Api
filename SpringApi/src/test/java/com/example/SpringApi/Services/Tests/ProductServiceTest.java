@@ -979,7 +979,7 @@ class ProductServiceTest {
         testProductRequest.setAdditionalImage3(TEST_BASE64_IMAGE);
 
         // Initialize test product
-        testProduct = new Product(testProductRequest, CREATED_USER);
+        testProduct = new Product(testProductRequest, CREATED_USER, TEST_CLIENT_ID);
         testProduct.setProductId(TEST_PRODUCT_ID);
         testProduct.setCreatedAt(LocalDateTime.now());
         testProduct.setUpdatedAt(LocalDateTime.now());

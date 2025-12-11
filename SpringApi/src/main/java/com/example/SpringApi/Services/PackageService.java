@@ -4,7 +4,9 @@ import com.example.SpringApi.Helpers.BulkInsertHelper;
 import com.example.SpringApi.FilterQueryBuilder.PackageFilterQueryBuilder;
 import com.example.SpringApi.Models.DatabaseModels.Package;
 import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
+import com.example.SpringApi.Models.RequestModels.PackagePickupLocationMappingRequestModel;
 import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
+import com.example.SpringApi.Models.ResponseModels.PackagePickupLocationMappingResponseModel;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
@@ -32,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.Set;
 import java.util.HashSet;
@@ -172,11 +175,19 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             pageable
         );
 
-        // Convert Package entities to PackageResponseModel
+        // Convert Package entities to PackageResponseModel with pickup location quantities
         PaginationBaseResponseModel<PackageResponseModel> response = new PaginationBaseResponseModel<>();
         List<PackageResponseModel> packageResponseModels = new ArrayList<>();
         for (Package pkg : page.getContent()) {
             PackageResponseModel packageResponseModel = new PackageResponseModel(pkg);
+            
+            // Fetch pickup location mappings and add to response with full inventory data
+            List<PackagePickupLocationMapping> mappings = packagePickupLocationMappingRepository.findByPackageId(pkg.getPackageId());
+            for (PackagePickupLocationMapping mapping : mappings) {
+                PackagePickupLocationMappingResponseModel locationData = new PackagePickupLocationMappingResponseModel(mapping);
+                packageResponseModel.getPickupLocationQuantities().put(mapping.getPickupLocationId(), locationData);
+            }
+            
             packageResponseModels.add(packageResponseModel);
         }
         
@@ -191,7 +202,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      * Retrieves detailed information for a specific package by ID.
      *
      * @param packageId The unique identifier of the package
-     * @return PackageResponseModel with complete package details
+     * @return PackageResponseModel with complete package details including pickup location quantities
      */
     @Override
     public PackageResponseModel getPackageById(Long packageId) {
@@ -199,7 +210,17 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         if (packageEntity == null) {
             throw new NotFoundException(ErrorMessages.PackageErrorMessages.InvalidId);
         }
-        return new PackageResponseModel(packageEntity);
+        
+        PackageResponseModel response = new PackageResponseModel(packageEntity);
+        
+        // Fetch pickup location mappings and add to response with full inventory data
+        List<PackagePickupLocationMapping> mappings = packagePickupLocationMappingRepository.findByPackageId(packageId);
+        for (PackagePickupLocationMapping mapping : mappings) {
+            PackagePickupLocationMappingResponseModel locationData = new PackagePickupLocationMappingResponseModel(mapping);
+            response.getPickupLocationQuantities().put(mapping.getPickupLocationId(), locationData);
+        }
+        
+        return response;
     }
 
     /**
@@ -246,6 +267,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      * @param packageRequest The updated package data
      */
     @Override
+    @Transactional
     public void updatePackage(PackageRequestModel packageRequest) {
         Package existingPackage = packageRepository.findByPackageIdAndClientId(packageRequest.getPackageId(), getClientId());
         if (existingPackage == null) {
@@ -255,6 +277,19 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         // Create updated package using the constructor
         Package updatedPackage = new Package(packageRequest, getUser(), existingPackage);
         packageRepository.save(updatedPackage);
+
+        // Fetch existing pickup location mappings before deleting (to compare quantities for lastRestockDate logic)
+        List<PackagePickupLocationMapping> existingMappingsList = packagePickupLocationMappingRepository.findByPackageId(updatedPackage.getPackageId());
+        Map<Long, PackagePickupLocationMapping> existingMappingsMap = existingMappingsList.stream()
+            .collect(Collectors.toMap(PackagePickupLocationMapping::getPickupLocationId, m -> m));
+
+        // Delete existing mappings
+        packagePickupLocationMappingRepository.deleteByPackageId(updatedPackage.getPackageId());
+        
+        // Create new mappings with lastRestockDate logic (only update if quantity increased)
+        if (packageRequest.getPickupLocationQuantities() != null && !packageRequest.getPickupLocationQuantities().isEmpty()) {
+            createOrUpdatePickupLocationMappings(updatedPackage.getPackageId(), packageRequest.getPickupLocationQuantities(), getUser(), existingMappingsMap);
+        }
 
         // Logging
         userLogService.logData(
@@ -271,7 +306,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     @Override
     @Transactional
     public void createPackage(PackageRequestModel packageRequest) {
-        createPackage(packageRequest, getUser(), true);
+        createPackage(packageRequest, getUser(), getClientId(), getUserId(), true);
     }
 
     /**
@@ -296,7 +331,6 @@ public class PackageService extends BaseService implements IPackageSubTranslator
 
     /**
      * Creates multiple packages asynchronously in the system with partial success support.
-     * 
      * This method processes packages in a background thread with the following characteristics:
      * - Supports partial success: if some packages fail validation, others still succeed
      * - Sends detailed results to user via message notification after processing completes
@@ -326,8 +360,8 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             // Process each package individually
             for (PackageRequestModel packageRequest : packages) {
                 try {
-                    // Call createPackage with explicit createdUser and shouldLog = false (bulk logs collectively)
-                    createPackage(packageRequest, requestingUserLoginName, false);
+                    // Call createPackage with explicit createdUser, clientId, and shouldLog = false (bulk logs collectively)
+                    createPackage(packageRequest, requestingUserLoginName, requestingClientId, requestingUserId, false);
                     
                     // If we get here, package was created successfully
                     // The packageId is set by persistPackage method
@@ -407,8 +441,8 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         // Process each package individually
         for (PackageRequestModel packageRequest : packages) {
             try {
-                // Call createPackage with current user and shouldLog = false
-                createPackage(packageRequest, getUser(), false);
+                // Call createPackage with current user, clientId, userId and shouldLog = false
+                createPackage(packageRequest, getUser(), getClientId(), getUserId(), false);
                 
                 // If we get here, package was created successfully
                 response.addSuccess(packageRequest.getPackageName(), packageRequest.getPackageId());
@@ -447,27 +481,30 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     // ==================== HELPER METHODS ====================
 
     /**
-     * Creates a new package in the system with explicit createdUser.
+     * Creates a new package in the system with explicit createdUser and clientId.
      * This variant is used for async operations where security context is not available.
      * 
      * @param packageRequest The package data to create
      * @param createdUser The loginName of the user creating this package (for async operations)
+     * @param clientId The client ID for the package (for async operations)
+     * @param userId The user ID for logging (for async operations)
      * @param shouldLog Whether to log this individual package creation (false for bulk operations)
      * @throws BadRequestException if the package data is invalid or incomplete
      */
     @Transactional
-    private void createPackage(PackageRequestModel packageRequest, String createdUser, boolean shouldLog) {
-        // Get security context
-        Long currentClientId = getClientId();
-        Long currentUserId = getUserId();
-
+    protected void createPackage(PackageRequestModel packageRequest, String createdUser, Long clientId, Long userId, boolean shouldLog) {
         // Persist the package
-        Package savedPackage = persistPackage(packageRequest, createdUser, currentClientId);
+        Package savedPackage = persistPackage(packageRequest, createdUser, clientId);
+
+        // Create pickup location mappings if provided
+        if (packageRequest.getPickupLocationQuantities() != null && !packageRequest.getPickupLocationQuantities().isEmpty()) {
+            createPickupLocationMappings(savedPackage.getPackageId(), packageRequest.getPickupLocationQuantities(), createdUser);
+        }
 
         // Log package creation (skip for bulk operations as they log collectively)
         if (shouldLog) {
             userLogService.logData(
-                currentUserId,
+                userId,
                 SuccessMessages.PackagesSuccessMessages.InsertPackage + savedPackage.getPackageId(),
                 ApiRoutes.PackageSubRoute.CREATE_PACKAGE
             );
@@ -489,5 +526,103 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         packageRequest.setPackageId(savedPackage.getPackageId());
 
         return savedPackage;
+    }
+
+    /**
+     * Creates pickup location mappings for a new package.
+     * Sets lastRestockDate to UTC now for all new mappings.
+     * Uses batch insert for optimized database performance.
+     * 
+     * @param packageId The package ID
+     * @param pickupLocationQuantities Map of pickup location ID to PackagePickupLocationMappingRequestModel (quantity, reorderLevel, maxStockLevel, lastRestockDate, notes)
+     * @param createdUser The loginName of the user creating these mappings
+     */
+    private void createPickupLocationMappings(Long packageId, Map<Long, PackagePickupLocationMappingRequestModel> pickupLocationQuantities, String createdUser) {
+        // For new packages, always set lastRestockDate to UTC now
+        createOrUpdatePickupLocationMappings(packageId, pickupLocationQuantities, createdUser, null);
+    }
+
+    /**
+     * Creates or updates pickup location mappings for a package.
+     * When updating, only sets lastRestockDate to UTC now if quantity increased.
+     * Uses batch insert for optimized database performance.
+     * 
+     * @param packageId The package ID
+     * @param pickupLocationQuantities Map of pickup location ID to PackagePickupLocationMappingRequestModel
+     * @param modifiedUser The loginName of the user creating/updating these mappings
+     * @param existingMappings Map of existing mappings (null for new packages, populated for updates)
+     */
+    private void createOrUpdatePickupLocationMappings(
+            Long packageId, 
+            Map<Long, PackagePickupLocationMappingRequestModel> pickupLocationQuantities, 
+            String modifiedUser,
+            Map<Long, PackagePickupLocationMapping> existingMappings) {
+        
+        List<PackagePickupLocationMapping> mappings = new ArrayList<>();
+        java.time.LocalDateTime utcNow = java.time.LocalDateTime.now(java.time.ZoneOffset.UTC);
+        
+        for (Map.Entry<Long, PackagePickupLocationMappingRequestModel> entry : pickupLocationQuantities.entrySet()) {
+            Long pickupLocationId = entry.getKey();
+            PackagePickupLocationMappingRequestModel locationData = entry.getValue();
+            
+            // Skip invalid entries
+            if (pickupLocationId == null || pickupLocationId <= 0 || locationData == null) {
+                continue;
+            }
+            
+            int quantity = locationData.getQuantity() != null ? locationData.getQuantity() : 0;
+            int reorderLevel = locationData.getReorderLevel() != null ? locationData.getReorderLevel() : 10;
+            int maxStockLevel = locationData.getMaxStockLevel() != null ? locationData.getMaxStockLevel() : 1000;
+            
+            // Validate: quantity cannot be negative, maxStockLevel must be >= reorderLevel
+            if (quantity < 0) {
+                quantity = 0;
+            }
+            if (maxStockLevel < reorderLevel) {
+                maxStockLevel = reorderLevel + 1;
+            }
+            
+            // Determine lastRestockDate
+            java.time.LocalDateTime lastRestockDate;
+            if (existingMappings == null) {
+                // New package: always set to UTC now
+                lastRestockDate = utcNow;
+            } else {
+                // Update: check if quantity increased
+                PackagePickupLocationMapping existingMapping = existingMappings.get(pickupLocationId);
+                if (existingMapping == null) {
+                    // New location for this package: set to UTC now
+                    lastRestockDate = utcNow;
+                } else {
+                    // Existing location: only update if quantity increased
+                    int oldQuantity = existingMapping.getAvailableQuantity() != null ? existingMapping.getAvailableQuantity() : 0;
+                    if (quantity > oldQuantity) {
+                        // Quantity increased: update lastRestockDate to UTC now
+                        lastRestockDate = utcNow;
+                    } else {
+                        // Quantity same or decreased: keep existing lastRestockDate
+                        lastRestockDate = existingMapping.getLastRestockDate();
+                    }
+                }
+            }
+            
+            PackagePickupLocationMapping mapping = new PackagePickupLocationMapping();
+            mapping.setPackageId(packageId);
+            mapping.setPickupLocationId(pickupLocationId);
+            mapping.setAvailableQuantity(quantity);
+            mapping.setReorderLevel(reorderLevel);
+            mapping.setMaxStockLevel(maxStockLevel);
+            mapping.setLastRestockDate(lastRestockDate);
+            mapping.setNotes(locationData.getNotes());
+            mapping.setCreatedUser(modifiedUser);
+            mapping.setModifiedUser(modifiedUser);
+            
+            mappings.add(mapping);
+        }
+        
+        // Save all mappings in a single batch operation for better performance
+        if (!mappings.isEmpty()) {
+            packagePickupLocationMappingRepository.saveAll(mappings);
+        }
     }
 }

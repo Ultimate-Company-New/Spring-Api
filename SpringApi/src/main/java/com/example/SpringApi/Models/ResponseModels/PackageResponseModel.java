@@ -6,6 +6,8 @@ import com.example.SpringApi.Models.DatabaseModels.Package;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Response model for Package operations.
@@ -35,6 +37,13 @@ public class PackageResponseModel {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String notes;
+    
+    /**
+     * Map of pickup location ID to pickup location inventory data.
+     * Shows package inventory at each pickup location with full audit information.
+     * Uses PackagePickupLocationMappingResponseModel for complete mapping details.
+     */
+    private Map<Long, PackagePickupLocationMappingResponseModel> pickupLocationQuantities = new HashMap<>();
 
     /**
      * Constructor that creates a response model from a Package entity.
