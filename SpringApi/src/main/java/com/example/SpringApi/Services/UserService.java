@@ -510,7 +510,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
      * @throws BadRequestException if the user data is invalid or incomplete
      */
     @Transactional
-    private void createUser(UserRequestModel userRequestModel, boolean sendEmail) {
+    protected void createUser(UserRequestModel userRequestModel, boolean sendEmail) {
         createUser(userRequestModel, sendEmail, getUser(), true);
     }
 

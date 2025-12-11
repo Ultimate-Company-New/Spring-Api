@@ -4,6 +4,7 @@ import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
 import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Services.Interface.IPickupLocationSubTranslator;
+import com.example.SpringApi.Services.PickupLocationService;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.Authorizations;
@@ -130,13 +131,15 @@ public class PickupLocationController {
      * Validates updated data and modifies pickup location record while maintaining audit trail.
      * Requires UPDATE_PICKUP_LOCATIONS_PERMISSION to access.
      * 
+     * @param id The unique identifier of the pickup location to update
      * @param pickupLocationRequestModel The updated pickup location data
      * @return ResponseEntity containing the ID of updated pickup location or error
      */
-    @PostMapping("/" + ApiRoutes.PickupLocationsSubRoute.UPDATE_PICKUP_LOCATION)
+    @PostMapping("/" + ApiRoutes.PickupLocationsSubRoute.UPDATE_PICKUP_LOCATION + "/{id}")
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.UPDATE_PICKUP_LOCATIONS_PERMISSION +"')")
-    public ResponseEntity<?> updatePickupLocation(@RequestBody PickupLocationRequestModel pickupLocationRequestModel) {
+    public ResponseEntity<?> updatePickupLocation(@PathVariable Long id, @RequestBody PickupLocationRequestModel pickupLocationRequestModel) {
         try {
+            pickupLocationRequestModel.setPickupLocationId(id);
             pickupLocationService.updatePickupLocation(pickupLocationRequestModel);
             return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
@@ -181,6 +184,39 @@ public class PickupLocationController {
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+
+    /**
+     * Creates multiple pickup locations asynchronously in a single operation.
+     * Processing happens in background thread; results sent via message notification.
+     * 
+     * @param pickupLocations List of PickupLocationRequestModel containing the pickup location data to insert
+     * @return ResponseEntity with 200 OK status indicating job has been queued
+     */
+    @PutMapping("/" + ApiRoutes.PickupLocationsSubRoute.BULK_CREATE_PICKUP_LOCATION)
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.INSERT_PICKUP_LOCATIONS_PERMISSION + "')")
+    public ResponseEntity<?> bulkCreatePickupLocations(@RequestBody java.util.List<PickupLocationRequestModel> pickupLocations) {
+        try {
+            // Cast to PickupLocationService to access BaseService methods (security context not available in async thread)
+            PickupLocationService service = (PickupLocationService) pickupLocationService;
+            Long userId = service.getUserId();
+            String loginName = service.getUser();
+            Long clientId = service.getClientId();
+            
+            // Trigger async processing - returns immediately
+            pickupLocationService.bulkCreatePickupLocationsAsync(pickupLocations, userId, loginName, clientId);
+            
+            // Return 200 OK - processing will continue in background
+            return ResponseEntity.ok().build();
+        } catch (BadRequestException e) {
+            logger.error(e);
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (Exception e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 }

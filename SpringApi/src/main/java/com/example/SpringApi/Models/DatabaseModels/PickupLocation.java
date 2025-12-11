@@ -31,7 +31,7 @@ public class PickupLocation {
     @Column(name = "pickupLocationId", nullable = false)
     private Long pickupLocationId;
     
-    @Column(name = "addressNickName", nullable = false, length = 255)
+    @Column(name = "addressNickName", nullable = false, length = 36)
     private String addressNickName;
     
     @Column(name = "isDeleted", nullable = false)
@@ -132,12 +132,12 @@ public class PickupLocation {
             throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.InvalidRequest);
         }
         
-        // Validate address nickname (required, length > 0, max 255 chars)
+        // Validate address nickname (required, length > 0, max 36 chars - Shiprocket API limit)
         if (request.getAddressNickName() == null || request.getAddressNickName().trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickName);
         }
-        if (request.getAddressNickName().trim().length() > 255) {
-            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.AddressNickNameTooLong);
+        if (request.getAddressNickName().trim().length() > 36) {
+            throw new BadRequestException("Location name must be 36 characters or less (Shiprocket limit)");
         }
         
         // Validate pickup location address ID (required, > 0)

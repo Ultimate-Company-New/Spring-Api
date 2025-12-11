@@ -1,13 +1,16 @@
 package com.example.SpringApi.Services;
 
 import com.example.SpringApi.FilterQueryBuilder.PickupLocationFilterQueryBuilder;
+import com.example.SpringApi.Helpers.BulkInsertHelper;
 import com.example.SpringApi.Models.ShippingResponseModel.AddPickupLocationResponseModel;
 import com.example.SpringApi.Repositories.AddressRepository;
 import com.example.SpringApi.Repositories.PickupLocationRepository;
+import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PickupLocationResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
+import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Services.Interface.IPickupLocationSubTranslator;
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
 import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
@@ -24,11 +27,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Set;
 import java.util.HashSet;
@@ -54,6 +60,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
     private final ClientService clientService;
     private final ShippingHelper shippingHelper;
     private final PickupLocationFilterQueryBuilder pickupLocationFilterQueryBuilder;
+    private final MessageService messageService;
 
     @Autowired
     public PickupLocationService(PickupLocationRepository pickupLocationRepository,
@@ -61,6 +68,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                                 UserLogService userLogService,
                                 ClientService clientService,
                                 PickupLocationFilterQueryBuilder pickupLocationFilterQueryBuilder,
+                                MessageService messageService,
                                 HttpServletRequest request) {
         super();
         this.pickupLocationRepository = pickupLocationRepository;
@@ -69,6 +77,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         this.clientService = clientService;
         this.shippingHelper = null; // Will be initialized on demand
         this.pickupLocationFilterQueryBuilder = pickupLocationFilterQueryBuilder;
+        this.messageService = messageService;
     }
 
     // Constructor for testing with mock ShippingHelper
@@ -78,6 +87,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                                 ClientService clientService,
                                 ShippingHelper shippingHelper,
                                 PickupLocationFilterQueryBuilder pickupLocationFilterQueryBuilder,
+                                MessageService messageService,
                                 HttpServletRequest request) {
         super();
         this.pickupLocationRepository = pickupLocationRepository;
@@ -86,21 +96,12 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         this.clientService = clientService;
         this.shippingHelper = shippingHelper;
         this.pickupLocationFilterQueryBuilder = pickupLocationFilterQueryBuilder;
+        this.messageService = messageService;
     }
 
-    /**
-     * Creates a ShippingHelper instance initialized with the current client's ShipRocket credentials.
-     * For testing, returns the injected mock if available.
-     * 
-     * @return ShippingHelper instance with client credentials
-     */
-    private ShippingHelper getShippingHelper() {
-        if (shippingHelper != null) {
-            return shippingHelper; // For testing with mock
-        }
-        ClientResponseModel client = clientService.getClientById(getClientId());
-        return new ShippingHelper(client.getShipRocketEmail(), client.getShipRocketPassword());
-    }
+    // ============================================================================
+    // Public Methods
+    // ============================================================================
 
     /**
      * Retrieves pickup locations in paginated batches based on filter criteria.
@@ -267,19 +268,24 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
             throw new NotFoundException(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, pickupLocationRequestModel.getPickupLocationId()));
         }
         
+        // Get the existing address for comparison
+        Address existingAddress = addressRepository.findById(existingPickupLocation.getPickupLocationAddressId())
+            .orElseThrow(() -> new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound));
+        
+        // Check if physical address fields have changed (requires new Shiprocket location)
+        boolean addressFieldsChanged = hasAddressFieldsChanged(existingAddress, pickupLocationRequestModel.getAddress());
+        
         // Update the address if provided
         Address updatedAddress = null;
         if (pickupLocationRequestModel.getAddress() != null) {
-            Address existingAddress = addressRepository.findById(existingPickupLocation.getPickupLocationAddressId())
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound));
-            
             updatedAddress = new Address(pickupLocationRequestModel.getAddress(), getUser(), existingAddress);
             updatedAddress = addressRepository.save(updatedAddress);
         } else {
-            // If address is not being updated, fetch the existing one for ShipRocket
-            updatedAddress = addressRepository.findById(existingPickupLocation.getPickupLocationAddressId())
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound));
+            updatedAddress = existingAddress;
         }
+        
+        // Set the address ID on the request model for validation
+        pickupLocationRequestModel.setPickupLocationAddressId(updatedAddress.getAddressId());
         
         // Update the pickup location
         PickupLocation updatedPickupLocation = new PickupLocation(pickupLocationRequestModel, getUser(), existingPickupLocation);
@@ -288,20 +294,24 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         // (The @ManyToOne relationship isn't loaded automatically)
         updatedPickupLocation.setAddress(updatedAddress);
         
-        // Update in ShipRocket first to get the ShipRocket ID
-        ShippingHelper shippingHelper = getShippingHelper();
-        AddPickupLocationResponseModel addPickupLocationResponse = shippingHelper.addPickupLocation(updatedPickupLocation);
+        // Only call Shiprocket if physical address fields have changed
+        if (addressFieldsChanged) {
+            // Create new pickup location in ShipRocket and get new ID
+            ShippingHelper shippingHelper = getShippingHelper();
+            AddPickupLocationResponseModel addPickupLocationResponse = shippingHelper.addPickupLocation(updatedPickupLocation);
+            updatedPickupLocation.setShipRocketPickupLocationId(addPickupLocationResponse.getPickup_id());
+        } else {
+            // Keep the existing Shiprocket ID
+            updatedPickupLocation.setShipRocketPickupLocationId(existingPickupLocation.getShipRocketPickupLocationId());
+        }
         
-        // Set the ShipRocket ID from the response
-        updatedPickupLocation.setShipRocketPickupLocationId(addPickupLocationResponse.getPickup_id());
-        
-        // Save the updated pickup location with ShipRocket ID to database
+        // Save the updated pickup location to database
         pickupLocationRepository.save(updatedPickupLocation);
         
         // Log the update
         userLogService.logData(getUserId(), SuccessMessages.PickupLocationSuccessMessages.UpdatePickupLocation + " " + updatedPickupLocation.getPickupLocationId(), ApiRoutes.PickupLocationsSubRoute.UPDATE_PICKUP_LOCATION);
     }
-
+    
     /**
      * Toggles the deletion status of a pickup location by its ID.
      * 
@@ -326,5 +336,256 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         
         // Log the toggle action
         userLogService.logData(getUserId(), SuccessMessages.PickupLocationSuccessMessages.TogglePickupLocation + " " + pickupLocation.getPickupLocationId(), ApiRoutes.PickupLocationsSubRoute.TOGGLE_PICKUP_LOCATION);
+    }
+
+    /**
+     * Creates multiple pickup locations asynchronously in a single operation.
+     * Processing happens in background thread; results sent via message notification.
+     * 
+     * Uses @Async for non-blocking processing and:
+     * - NOT_SUPPORTED: Runs without a transaction to avoid rollback-only issues when individual creations fail
+     * 
+     * @param pickupLocations List of PickupLocationRequestModel containing the pickup location data to create
+     * @param requestingUserId The ID of the user making the request (captured from security context)
+     * @param requestingUserLoginName The loginName of the user making the request (captured from security context)
+     * @param requestingClientId The client ID of the user making the request (captured from security context)
+     */
+    @Override
+    @Async
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void bulkCreatePickupLocationsAsync(List<PickupLocationRequestModel> pickupLocations, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
+        try {
+            // Validate input
+            if (pickupLocations == null || pickupLocations.isEmpty()) {
+                throw new BadRequestException("Pickup location list cannot be null or empty");
+            }
+
+            BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
+            response.setTotalRequested(pickupLocations.size());
+            
+            int successCount = 0;
+            int failureCount = 0;
+            
+            // Process each pickup location individually
+            for (PickupLocationRequestModel pickupLocationRequest : pickupLocations) {
+                try {
+                    // Call createPickupLocationInternal with explicit createdUser
+                    Long createdId = createPickupLocationInternal(pickupLocationRequest, requestingUserLoginName, requestingClientId);
+                    
+                    if (createdId != null) {
+                        response.addSuccess(pickupLocationRequest.getAddressNickName(), createdId);
+                        successCount++;
+                    }
+                    
+                } catch (BadRequestException bre) {
+                    // Validation or business logic error
+                    response.addFailure(
+                        pickupLocationRequest.getAddressNickName() != null ? pickupLocationRequest.getAddressNickName() : "unknown", 
+                        bre.getMessage()
+                    );
+                    failureCount++;
+                } catch (Exception e) {
+                    // Unexpected error
+                    response.addFailure(
+                        pickupLocationRequest.getAddressNickName() != null ? pickupLocationRequest.getAddressNickName() : "unknown", 
+                        "Error: " + e.getMessage()
+                    );
+                    failureCount++;
+                }
+            }
+            
+            // Log bulk pickup location creation (using captured context values)
+            userLogService.logDataWithContext(
+                requestingUserId,
+                requestingUserLoginName,
+                requestingClientId,
+                SuccessMessages.PickupLocationSuccessMessages.InsertPickupLocation + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+                ApiRoutes.PickupLocationsSubRoute.BULK_CREATE_PICKUP_LOCATION
+            );
+            
+            response.setSuccessCount(successCount);
+            response.setFailureCount(failureCount);
+            
+            // Create a message with the bulk insert results using the helper (using captured context)
+            BulkInsertHelper.createDetailedBulkInsertResultMessage(
+                response, "Pickup Location", "Pickup Locations", "Location Name", "Pickup Location ID", 
+                messageService, requestingUserId, requestingUserLoginName, requestingClientId
+            );
+            
+        } catch (Exception e) {
+            // Still send a message to user about the failure (using captured userId)
+            BulkInsertResponseModel<Long> errorResponse = new BulkInsertResponseModel<>();
+            errorResponse.setTotalRequested(pickupLocations != null ? pickupLocations.size() : 0);
+            errorResponse.setSuccessCount(0);
+            errorResponse.setFailureCount(pickupLocations != null ? pickupLocations.size() : 0);
+            errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
+            BulkInsertHelper.createDetailedBulkInsertResultMessage(
+                errorResponse, "Pickup Location", "Pickup Locations", "Location Name", "Pickup Location ID", 
+                messageService, requestingUserId, requestingUserLoginName, requestingClientId
+            );
+        }
+    }
+
+    /**
+     * Creates multiple pickup locations synchronously in a single operation (for testing).
+     * This is a synchronous wrapper that processes pickup locations immediately and returns results.
+     * 
+     * @param pickupLocations List of PickupLocationRequestModel containing the pickup location data to create
+     * @return BulkInsertResponseModel containing success/failure details for each pickup location
+     */
+    @Override
+    @Transactional
+    public BulkInsertResponseModel<Long> bulkCreatePickupLocations(List<PickupLocationRequestModel> pickupLocations) {
+        // Validate input
+        if (pickupLocations == null || pickupLocations.isEmpty()) {
+            throw new BadRequestException("Pickup location list cannot be null or empty");
+        }
+
+        BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
+        response.setTotalRequested(pickupLocations.size());
+        
+        int successCount = 0;
+        int failureCount = 0;
+        
+        // Process each pickup location individually
+        for (PickupLocationRequestModel pickupLocationRequest : pickupLocations) {
+            try {
+                // Call createPickupLocationInternal with current user
+                Long createdId = createPickupLocationInternal(pickupLocationRequest, getUser(), getClientId());
+                
+                if (createdId != null) {
+                    response.addSuccess(pickupLocationRequest.getAddressNickName(), createdId);
+                    successCount++;
+                }
+                
+            } catch (BadRequestException bre) {
+                // Validation or business logic error
+                response.addFailure(
+                    pickupLocationRequest.getAddressNickName() != null ? pickupLocationRequest.getAddressNickName() : "unknown", 
+                    bre.getMessage()
+                );
+                failureCount++;
+            } catch (Exception e) {
+                // Unexpected error
+                response.addFailure(
+                    pickupLocationRequest.getAddressNickName() != null ? pickupLocationRequest.getAddressNickName() : "unknown", 
+                    "Error: " + e.getMessage()
+                );
+                failureCount++;
+            }
+        }
+        
+        // Log bulk pickup location creation
+        userLogService.logData(
+            getUserId(),
+            SuccessMessages.PickupLocationSuccessMessages.InsertPickupLocation + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+            ApiRoutes.PickupLocationsSubRoute.BULK_CREATE_PICKUP_LOCATION
+        );
+        
+        response.setSuccessCount(successCount);
+        response.setFailureCount(failureCount);
+        
+        return response;
+    }
+
+    // ============================================================================
+    // Private Helper Methods
+    // ============================================================================
+
+    /**
+     * Creates a ShippingHelper instance initialized with the current client's ShipRocket credentials.
+     * For testing, returns the injected mock if available.
+     * 
+     * @return ShippingHelper instance with client credentials
+     */
+    private ShippingHelper getShippingHelper() {
+        if (shippingHelper != null) {
+            return shippingHelper; // For testing with mock
+        }
+        ClientResponseModel client = clientService.getClientById(getClientId());
+        return new ShippingHelper(client.getShipRocketEmail(), client.getShipRocketPassword());
+    }
+
+    /**
+     * Creates a ShippingHelper instance initialized with a specific client's ShipRocket credentials.
+     * Used for bulk operations where clientId is passed explicitly.
+     * 
+     * @param clientId The client ID to get credentials for
+     * @return ShippingHelper instance with client credentials
+     */
+    private ShippingHelper getShippingHelper(Long clientId) {
+        if (shippingHelper != null) {
+            return shippingHelper; // For testing with mock
+        }
+        ClientResponseModel client = clientService.getClientById(clientId);
+        return new ShippingHelper(client.getShipRocketEmail(), client.getShipRocketPassword());
+    }
+
+    /**
+     * Checks if physical address fields have changed between existing and new address.
+     * Only compares fields that require a new Shiprocket pickup location:
+     * streetAddress, streetAddress2, streetAddress3, city, state, country, postalCode
+     * 
+     * @param existingAddress The current address in the database
+     * @param newAddress The new address from the request
+     * @return true if any physical address field has changed, false otherwise
+     */
+    private boolean hasAddressFieldsChanged(Address existingAddress, AddressRequestModel newAddress) {
+        if (newAddress == null) {
+            return false;
+        }
+        
+        // Helper to safely compare strings (null-safe)
+        java.util.function.BiPredicate<String, String> isDifferent = (existing, updated) -> {
+            if (existing == null && updated == null) return false;
+            if (existing == null || updated == null) return true;
+            return !existing.equals(updated);
+        };
+        
+        // Compare physical address fields only
+        return isDifferent.test(existingAddress.getStreetAddress(), newAddress.getStreetAddress()) ||
+               isDifferent.test(existingAddress.getStreetAddress2(), newAddress.getStreetAddress2()) ||
+               isDifferent.test(existingAddress.getStreetAddress3(), newAddress.getStreetAddress3()) ||
+               isDifferent.test(existingAddress.getCity(), newAddress.getCity()) ||
+               isDifferent.test(existingAddress.getState(), newAddress.getState()) ||
+               isDifferent.test(existingAddress.getCountry(), newAddress.getCountry()) ||
+               isDifferent.test(existingAddress.getPostalCode(), newAddress.getPostalCode());
+    }
+
+    /**
+     * Internal method to create a pickup location with explicit user and client context.
+     * Used for bulk operations where security context may not be available.
+     * 
+     * @param pickupLocationRequestModel The pickup location data to create
+     * @param createdUser The username to set as creator
+     * @param clientId The client ID for this operation
+     * @return The created pickup location ID
+     * @throws Exception if creation fails
+     */
+    private Long createPickupLocationInternal(PickupLocationRequestModel pickupLocationRequestModel, String createdUser, Long clientId) throws Exception {
+        // Create the address first
+        Address address = new Address(pickupLocationRequestModel.getAddress(), createdUser);
+        address = addressRepository.save(address);
+        
+        // Set the address ID in the request
+        pickupLocationRequestModel.setPickupLocationAddressId(address.getAddressId());
+        
+        // Create the pickup location
+        PickupLocation pickupLocation = new PickupLocation(pickupLocationRequestModel, createdUser, clientId);
+        
+        // Set the address on the pickup location for ShipRocket API call
+        pickupLocation.setAddress(address);
+        
+        pickupLocation = pickupLocationRepository.save(pickupLocation);
+        
+        // Call ShipRocket to create pickup location
+        ShippingHelper shippingHelperInstance = getShippingHelper(clientId);
+        AddPickupLocationResponseModel addPickupLocationResponse = shippingHelperInstance.addPickupLocation(pickupLocation);
+        
+        // Set the ShipRocket ID
+        pickupLocation.setShipRocketPickupLocationId(addPickupLocationResponse.getPickup_id());
+        pickupLocationRepository.save(pickupLocation);
+        
+        return pickupLocation.getPickupLocationId();
     }
 }

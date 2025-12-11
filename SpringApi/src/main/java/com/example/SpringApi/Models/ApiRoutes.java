@@ -214,6 +214,7 @@ public class ApiRoutes {
 
         // Api + frontend Endpoints
         public static final String CREATE_PICKUP_LOCATION = "createPickupLocation";
+        public static final String BULK_CREATE_PICKUP_LOCATION = "bulkCreatePickupLocations";
         public static final String GET_PICKUP_LOCATIONS_IN_BATCHES = "getPickupLocationsInBatches";
         public static final String GET_ALL_PICKUP_LOCATIONS = "getAllPickupLocations";
         public static final String UPDATE_PICKUP_LOCATION = "updatePickupLocation";

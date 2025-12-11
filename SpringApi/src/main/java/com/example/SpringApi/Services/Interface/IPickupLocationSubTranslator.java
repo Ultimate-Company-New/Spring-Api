@@ -1,5 +1,8 @@
 package com.example.SpringApi.Services.Interface;
 
+import java.util.List;
+
+import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PickupLocationResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
@@ -79,4 +82,24 @@ public interface IPickupLocationSubTranslator {
      * @throws NotFoundException if the pickup location is not found
      */
     void togglePickupLocation(long pickupLocationId);
+    
+    /**
+     * Creates multiple pickup locations asynchronously in a single operation.
+     * Processing happens in background thread; results sent via message notification.
+     * 
+     * @param pickupLocations List of PickupLocationRequestModel containing the pickup location data to create
+     * @param requestingUserId The ID of the user making the request (captured from security context)
+     * @param requestingUserLoginName The loginName of the user making the request (captured from security context)
+     * @param requestingClientId The client ID of the user making the request (captured from security context)
+     */
+    void bulkCreatePickupLocationsAsync(List<PickupLocationRequestModel> pickupLocations, Long requestingUserId, String requestingUserLoginName, Long requestingClientId);
+    
+    /**
+     * Creates multiple pickup locations synchronously in a single operation (for testing).
+     * This is a synchronous wrapper that processes pickup locations immediately and returns results.
+     * 
+     * @param pickupLocations List of PickupLocationRequestModel containing the pickup location data to create
+     * @return BulkInsertResponseModel containing success/failure details for each pickup location
+     */
+    BulkInsertResponseModel<Long> bulkCreatePickupLocations(List<PickupLocationRequestModel> pickupLocations);
 }
