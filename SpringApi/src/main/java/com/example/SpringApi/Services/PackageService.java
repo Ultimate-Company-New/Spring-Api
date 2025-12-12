@@ -102,6 +102,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         }
         
         // Validate column name
+        // Note: pickupLocationId filters through PackagePickupLocationMapping join
         Set<String> validColumns = new HashSet<>(Arrays.asList(
             "packageId",
             "packageName",
@@ -118,7 +119,8 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             "createdAt",
             "updatedAt",
             "notes",
-            "isDeleted"
+            "isDeleted",
+            "pickupLocationId"
         ));
         
         // Validate filter conditions if provided
@@ -175,6 +177,9 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             pageable
         );
 
+        // Check if filtering by pickupLocationId to only include that location in response
+        Long pickupLocationIdFilter = packageFilterQueryBuilder.extractPickupLocationIdFilter(paginationBaseRequestModel.getFilters());
+
         // Convert Package entities to PackageResponseModel with pickup location quantities
         PaginationBaseResponseModel<PackageResponseModel> response = new PaginationBaseResponseModel<>();
         List<PackageResponseModel> packageResponseModels = new ArrayList<>();
@@ -184,6 +189,10 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             // Fetch pickup location mappings and add to response with full inventory data
             List<PackagePickupLocationMapping> mappings = packagePickupLocationMappingRepository.findByPackageId(pkg.getPackageId());
             for (PackagePickupLocationMapping mapping : mappings) {
+                // If filtering by pickupLocationId, only include that specific location
+                if (pickupLocationIdFilter != null && !pickupLocationIdFilter.equals(mapping.getPickupLocationId())) {
+                    continue;
+                }
                 PackagePickupLocationMappingResponseModel locationData = new PackagePickupLocationMappingResponseModel(mapping);
                 packageResponseModel.getPickupLocationQuantities().put(mapping.getPickupLocationId(), locationData);
             }
@@ -613,7 +622,6 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             mapping.setReorderLevel(reorderLevel);
             mapping.setMaxStockLevel(maxStockLevel);
             mapping.setLastRestockDate(lastRestockDate);
-            mapping.setNotes(locationData.getNotes());
             mapping.setCreatedUser(modifiedUser);
             mapping.setModifiedUser(modifiedUser);
             

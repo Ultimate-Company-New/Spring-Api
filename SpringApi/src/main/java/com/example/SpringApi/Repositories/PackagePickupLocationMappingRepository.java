@@ -27,4 +27,31 @@ public interface PackagePickupLocationMappingRepository extends JpaRepository<Pa
     @Modifying
     @Query("DELETE FROM PackagePickupLocationMapping m WHERE m.packageId = :packageId")
     void deleteByPackageId(@Param("packageId") Long packageId);
+    
+    /**
+     * Delete all mappings for a specific pickup location
+     */
+    @Modifying
+    @Query("DELETE FROM PackagePickupLocationMapping m WHERE m.pickupLocationId = :pickupLocationId")
+    void deleteByPickupLocationId(@Param("pickupLocationId") Long pickupLocationId);
+    
+    /**
+     * Count all PackagePickupLocationMappings by pickup location ID.
+     * 
+     * @param pickupLocationId The pickup location ID
+     * @return The count of mappings
+     */
+    @Query("SELECT COUNT(m) FROM PackagePickupLocationMapping m WHERE m.pickupLocationId = :pickupLocationId")
+    Integer countByPickupLocationId(@Param("pickupLocationId") Long pickupLocationId);
+    
+    /**
+     * Get counts of PackagePickupLocationMappings grouped by pickup location ID for multiple locations.
+     * Returns a list of Object arrays where [0] is pickupLocationId and [1] is the count.
+     * 
+     * @param pickupLocationIds List of pickup location IDs
+     * @return List of Object arrays with [pickupLocationId, count]
+     */
+    @Query("SELECT m.pickupLocationId, COUNT(m) FROM PackagePickupLocationMapping m " +
+           "WHERE m.pickupLocationId IN :pickupLocationIds GROUP BY m.pickupLocationId")
+    List<Object[]> countByPickupLocationIds(@Param("pickupLocationIds") List<Long> pickupLocationIds);
 }

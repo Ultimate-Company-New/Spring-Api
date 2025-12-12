@@ -39,6 +39,10 @@ public class PickupLocationResponseModel {
     // Additional computed fields
     private Boolean isActive;
     
+    // Count fields for products and packages at this location
+    private Integer productCount;
+    private Integer packageCount;
+    
     /**
      * Constructor to create response model from database entity.
      * 

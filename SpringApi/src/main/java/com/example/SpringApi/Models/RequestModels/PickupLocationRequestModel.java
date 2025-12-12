@@ -4,6 +4,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
  * Request model for PickupLocation operations.
  * 
@@ -31,4 +33,8 @@ public class PickupLocationRequestModel extends PaginationBaseRequestModel {
     
     // Additional fields for creation/update
     private AddressRequestModel address;
+    
+    // Product and Package inventory mappings
+    private List<ProductPickupLocationMappingRequestModel> productMappings;
+    private List<PackagePickupLocationMappingRequestModel> packageMappings;
 }

@@ -54,6 +54,8 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
             case "updatedAt": return "pkg.updatedAt";
             // Special case for dimensions - concatenated field
             case "dimensions": return "CONCAT(pkg.length, ' x ', pkg.breadth, ' x ', pkg.height)";
+            // Special case: filter through PackagePickupLocationMapping join
+            case "pickupLocationId": return "pplm.pickupLocationId";
             default: return "pkg." + column;
         }
     }
@@ -71,7 +73,7 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
     @Override
     protected List<String> getNumberColumns() {
         return Arrays.asList("packageId", "clientId", "length", "breadth", "height", 
-                "maxWeight", "standardCapacity", "pricePerUnit");
+                "maxWeight", "standardCapacity", "pricePerUnit", "pickupLocationId");
     }
 
     /**
@@ -98,6 +100,8 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
      * Finds paginated packages with multiple filter conditions combined with AND/OR logic.
      * Builds the WHERE clause dynamically and executes the query.
      * 
+     * When filtering by pickupLocationId, only packages with that pickup location are returned.
+     * 
      * @param clientId The client ID to filter packages by
      * @param selectedIds List of specific package IDs to include (null for all)
      * @param logicOperator "AND" or "OR" to combine filter conditions
@@ -114,9 +118,31 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
             boolean includeDeleted,
             Pageable pageable) {
 
-        // Base query
-        String baseQuery = "SELECT pkg FROM Package pkg " +
+        // Check if there's a pickupLocationId filter
+        Long pickupLocationIdFilter = null;
+        if (filters != null) {
+            for (FilterCondition filter : filters) {
+                if ("pickupLocationId".equals(filter.getColumn()) && "equals".equals(filter.getOperator())) {
+                    try {
+                        pickupLocationIdFilter = Long.parseLong(filter.getValue().toString());
+                    } catch (NumberFormatException e) {
+                        // Invalid pickupLocationId, will be handled by regular filter processing
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Base query - use INNER JOIN when filtering by pickupLocationId
+        String baseQuery;
+        if (pickupLocationIdFilter != null) {
+            baseQuery = "SELECT DISTINCT pkg FROM Package pkg " +
+                    "INNER JOIN PackagePickupLocationMapping pplm ON pkg.packageId = pplm.packageId " +
+                    "WHERE pkg.clientId = :clientId ";
+        } else {
+            baseQuery = "SELECT pkg FROM Package pkg " +
                 "WHERE pkg.clientId = :clientId ";
+        }
 
         // Add selectedIds condition
         if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -138,9 +164,16 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
         // Add ordering
         baseQuery += "ORDER BY pkg.packageId DESC";
 
-        // Count query
-        String countQuery = "SELECT COUNT(pkg) FROM Package pkg " +
+        // Count query - include JOIN if filtering by pickupLocationId
+        String countQuery;
+        if (pickupLocationIdFilter != null) {
+            countQuery = "SELECT COUNT(DISTINCT pkg) FROM Package pkg " +
+                    "INNER JOIN PackagePickupLocationMapping pplm ON pkg.packageId = pplm.packageId " +
+                    "WHERE pkg.clientId = :clientId ";
+        } else {
+            countQuery = "SELECT COUNT(pkg) FROM Package pkg " +
                 "WHERE pkg.clientId = :clientId ";
+        }
 
         if (selectedIds != null && !selectedIds.isEmpty()) {
             countQuery += "AND pkg.packageId IN :selectedIds ";
@@ -189,6 +222,28 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
         List<Package> packages = mainQuery.getResultList();
 
         return new PageImpl<>(packages, pageable, totalCount);
+    }
+
+    /**
+     * Gets the extracted pickupLocationId filter value if present.
+     * This is used by the service to filter the pickup location mappings in the response.
+     * 
+     * @param filters List of filter conditions
+     * @return The pickupLocationId filter value, or null if not present
+     */
+    public Long extractPickupLocationIdFilter(List<FilterCondition> filters) {
+        if (filters != null) {
+            for (FilterCondition filter : filters) {
+                if ("pickupLocationId".equals(filter.getColumn()) && "equals".equals(filter.getOperator())) {
+                    try {
+                        return Long.parseLong(filter.getValue().toString());
+                    } catch (NumberFormatException e) {
+                        return null;
+                    }
+                }
+            }
+        }
+        return null;
     }
 }
 

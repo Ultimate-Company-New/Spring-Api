@@ -5,22 +5,30 @@ import com.example.SpringApi.Helpers.BulkInsertHelper;
 import com.example.SpringApi.Models.ShippingResponseModel.AddPickupLocationResponseModel;
 import com.example.SpringApi.Repositories.AddressRepository;
 import com.example.SpringApi.Repositories.PickupLocationRepository;
+import com.example.SpringApi.Repositories.ProductPickupLocationMappingRepository;
+import com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository;
 import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PickupLocationResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
+import com.example.SpringApi.Models.RequestModels.ProductPickupLocationMappingRequestModel;
+import com.example.SpringApi.Models.RequestModels.PackagePickupLocationMappingRequestModel;
 import com.example.SpringApi.Services.Interface.IPickupLocationSubTranslator;
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
 import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
 import com.example.SpringApi.Models.DatabaseModels.Address;
+import com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping;
+import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Helpers.ShippingHelper;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.SuccessMessages;
+
+import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -35,6 +43,8 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.Set;
 import java.util.HashSet;
@@ -56,6 +66,8 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
 
     private final PickupLocationRepository pickupLocationRepository;
     private final AddressRepository addressRepository;
+    private final ProductPickupLocationMappingRepository productMappingRepository;
+    private final PackagePickupLocationMappingRepository packageMappingRepository;
     private final UserLogService userLogService;
     private final ClientService clientService;
     private final ShippingHelper shippingHelper;
@@ -65,6 +77,8 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
     @Autowired
     public PickupLocationService(PickupLocationRepository pickupLocationRepository,
                                 AddressRepository addressRepository,
+                                ProductPickupLocationMappingRepository productMappingRepository,
+                                PackagePickupLocationMappingRepository packageMappingRepository,
                                 UserLogService userLogService,
                                 ClientService clientService,
                                 PickupLocationFilterQueryBuilder pickupLocationFilterQueryBuilder,
@@ -73,6 +87,8 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         super();
         this.pickupLocationRepository = pickupLocationRepository;
         this.addressRepository = addressRepository;
+        this.productMappingRepository = productMappingRepository;
+        this.packageMappingRepository = packageMappingRepository;
         this.userLogService = userLogService;
         this.clientService = clientService;
         this.shippingHelper = null; // Will be initialized on demand
@@ -83,6 +99,8 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
     // Constructor for testing with mock ShippingHelper
     public PickupLocationService(PickupLocationRepository pickupLocationRepository,
                                 AddressRepository addressRepository,
+                                ProductPickupLocationMappingRepository productMappingRepository,
+                                PackagePickupLocationMappingRepository packageMappingRepository,
                                 UserLogService userLogService,
                                 ClientService clientService,
                                 ShippingHelper shippingHelper,
@@ -92,6 +110,8 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         super();
         this.pickupLocationRepository = pickupLocationRepository;
         this.addressRepository = addressRepository;
+        this.productMappingRepository = productMappingRepository;
+        this.packageMappingRepository = packageMappingRepository;
         this.userLogService = userLogService;
         this.clientService = clientService;
         this.shippingHelper = shippingHelper;
@@ -172,10 +192,39 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
             pageable
         );
 
-        // Convert PickupLocation results to PickupLocationResponseModel
+        // Get all pickup location IDs from the result for batch count queries
+        List<Long> pickupLocationIds = result.getContent().stream()
+            .map(PickupLocation::getPickupLocationId)
+            .collect(Collectors.toList());
+
+        // Batch fetch product and package counts (2 queries instead of 2*N queries)
+        Map<Long, Integer> productCountMap = new HashMap<>();
+        Map<Long, Integer> packageCountMap = new HashMap<>();
+        
+        if (!pickupLocationIds.isEmpty()) {
+            // Get product counts in a single query
+            List<Object[]> productCounts = productMappingRepository.countByPickupLocationIds(pickupLocationIds);
+            for (Object[] row : productCounts) {
+                productCountMap.put((Long) row[0], ((Number) row[1]).intValue());
+            }
+            
+            // Get package counts in a single query
+            List<Object[]> packageCounts = packageMappingRepository.countByPickupLocationIds(pickupLocationIds);
+            for (Object[] row : packageCounts) {
+                packageCountMap.put((Long) row[0], ((Number) row[1]).intValue());
+            }
+        }
+
+        // Convert PickupLocation results to PickupLocationResponseModel with counts
         PaginationBaseResponseModel<PickupLocationResponseModel> response = new PaginationBaseResponseModel<>();
         response.setData(result.getContent().stream()
-            .map(pickupLocation -> new PickupLocationResponseModel(pickupLocation))
+            .map(pickupLocation -> {
+                PickupLocationResponseModel responseModel = new PickupLocationResponseModel(pickupLocation);
+                // Set product and package counts from the maps (defaults to 0 if not found)
+                responseModel.setProductCount(productCountMap.getOrDefault(pickupLocation.getPickupLocationId(), 0));
+                responseModel.setPackageCount(packageCountMap.getOrDefault(pickupLocation.getPickupLocationId(), 0));
+                return responseModel;
+            })
             .collect(Collectors.toList()));
         response.setTotalDataCount(result.getTotalElements());
 
@@ -239,7 +288,13 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         
         // Set the ShipRocket ID
         pickupLocation.setShipRocketPickupLocationId(addPickupLocationResponse.getPickup_id());
-        pickupLocationRepository.save(pickupLocation);
+        pickupLocation = pickupLocationRepository.save(pickupLocation);
+        
+        // Save product mappings if provided
+        saveProductMappings(pickupLocation.getPickupLocationId(), pickupLocationRequestModel.getProductMappings());
+        
+        // Save package mappings if provided
+        savePackageMappings(pickupLocation.getPickupLocationId(), pickupLocationRequestModel.getPackageMappings());
         
         // Log the creation
         userLogService.logData(getUserId(), SuccessMessages.PickupLocationSuccessMessages.InsertPickupLocation + " " + pickupLocation.getPickupLocationId(), ApiRoutes.PickupLocationsSubRoute.CREATE_PICKUP_LOCATION);
@@ -297,21 +352,33 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         // Only call Shiprocket if physical address fields have changed
         if (addressFieldsChanged) {
             // Create new pickup location in ShipRocket and get new ID
-            ShippingHelper shippingHelper = getShippingHelper();
-            AddPickupLocationResponseModel addPickupLocationResponse = shippingHelper.addPickupLocation(updatedPickupLocation);
-            updatedPickupLocation.setShipRocketPickupLocationId(addPickupLocationResponse.getPickup_id());
+        ShippingHelper shippingHelper = getShippingHelper();
+        AddPickupLocationResponseModel addPickupLocationResponse = shippingHelper.addPickupLocation(updatedPickupLocation);
+        updatedPickupLocation.setShipRocketPickupLocationId(addPickupLocationResponse.getPickup_id());
         } else {
             // Keep the existing Shiprocket ID
             updatedPickupLocation.setShipRocketPickupLocationId(existingPickupLocation.getShipRocketPickupLocationId());
         }
         
         // Save the updated pickup location to database
-        pickupLocationRepository.save(updatedPickupLocation);
+        updatedPickupLocation = pickupLocationRepository.save(updatedPickupLocation);
+        
+        // Update product mappings if provided (delete existing and recreate)
+        if (pickupLocationRequestModel.getProductMappings() != null) {
+            productMappingRepository.deleteByPickupLocationId(updatedPickupLocation.getPickupLocationId());
+            saveProductMappings(updatedPickupLocation.getPickupLocationId(), pickupLocationRequestModel.getProductMappings());
+        }
+        
+        // Update package mappings if provided (delete existing and recreate)
+        if (pickupLocationRequestModel.getPackageMappings() != null) {
+            packageMappingRepository.deleteByPickupLocationId(updatedPickupLocation.getPickupLocationId());
+            savePackageMappings(updatedPickupLocation.getPickupLocationId(), pickupLocationRequestModel.getPackageMappings());
+        }
         
         // Log the update
         userLogService.logData(getUserId(), SuccessMessages.PickupLocationSuccessMessages.UpdatePickupLocation + " " + updatedPickupLocation.getPickupLocationId(), ApiRoutes.PickupLocationsSubRoute.UPDATE_PICKUP_LOCATION);
     }
-    
+
     /**
      * Toggles the deletion status of a pickup location by its ID.
      * 
@@ -586,6 +653,132 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         pickupLocation.setShipRocketPickupLocationId(addPickupLocationResponse.getPickup_id());
         pickupLocationRepository.save(pickupLocation);
         
+        // Save product and package mappings (for bulk import)
+        saveProductMappingsInternal(pickupLocation.getPickupLocationId(), pickupLocationRequestModel.getProductMappings(), createdUser);
+        savePackageMappingsInternal(pickupLocation.getPickupLocationId(), pickupLocationRequestModel.getPackageMappings(), createdUser);
+        
         return pickupLocation.getPickupLocationId();
+    }
+    
+    /**
+     * Saves product pickup location mappings.
+     * 
+     * @param pickupLocationId The pickup location ID
+     * @param productMappings List of product mappings to save
+     */
+    private void saveProductMappings(Long pickupLocationId, List<ProductPickupLocationMappingRequestModel> productMappings) {
+        if (productMappings == null || productMappings.isEmpty()) {
+            return;
+        }
+        
+        String createdUser = getUser();
+        for (ProductPickupLocationMappingRequestModel mapping : productMappings) {
+            if (mapping.getProductId() == null || mapping.getQuantity() == null || mapping.getQuantity() < 1) {
+                continue; // Skip invalid mappings
+            }
+            
+            ProductPickupLocationMapping entity = new ProductPickupLocationMapping();
+            entity.setProductId(mapping.getProductId());
+            entity.setPickupLocationId(pickupLocationId);
+            entity.setAvailableStock(mapping.getQuantity());
+            entity.setItemAvailableFrom(LocalDateTime.now());
+            entity.setIsActive(true);
+            entity.setLastStockUpdate(LocalDateTime.now());
+            entity.setMinStockLevel(1);
+            entity.setMaxStockLevel(mapping.getQuantity() * 2);
+            entity.setReorderLevel(mapping.getQuantity() / 2);
+            entity.setCreatedUser(createdUser);
+            entity.setModifiedUser(createdUser);
+            
+            productMappingRepository.save(entity);
+        }
+    }
+    
+    /**
+     * Saves package pickup location mappings.
+     * 
+     * @param pickupLocationId The pickup location ID
+     * @param packageMappings List of package mappings to save
+     */
+    private void savePackageMappings(Long pickupLocationId, List<PackagePickupLocationMappingRequestModel> packageMappings) {
+        if (packageMappings == null || packageMappings.isEmpty()) {
+            return;
+        }
+        
+        String createdUser = getUser();
+        for (PackagePickupLocationMappingRequestModel mapping : packageMappings) {
+            if (mapping.getPackageId() == null || mapping.getQuantity() == null || mapping.getQuantity() < 1) {
+                continue; // Skip invalid mappings
+            }
+            
+            PackagePickupLocationMapping entity = new PackagePickupLocationMapping();
+            entity.setPackageId(mapping.getPackageId());
+            entity.setPickupLocationId(pickupLocationId);
+            entity.setAvailableQuantity(mapping.getQuantity());
+            entity.setReorderLevel(mapping.getReorderLevel() != null ? mapping.getReorderLevel() : 1);
+            entity.setMaxStockLevel(mapping.getMaxStockLevel() != null ? mapping.getMaxStockLevel() : mapping.getQuantity() * 2);
+            entity.setLastRestockDate(LocalDateTime.now());
+            entity.setCreatedUser(createdUser);
+            entity.setModifiedUser(createdUser);
+            
+            packageMappingRepository.save(entity);
+        }
+    }
+    
+    /**
+     * Internal method to save product mappings with explicit createdUser (for bulk import).
+     */
+    private void saveProductMappingsInternal(Long pickupLocationId, List<ProductPickupLocationMappingRequestModel> productMappings, String createdUser) {
+        if (productMappings == null || productMappings.isEmpty()) {
+            return;
+        }
+        
+        for (ProductPickupLocationMappingRequestModel mapping : productMappings) {
+            if (mapping.getProductId() == null || mapping.getQuantity() == null || mapping.getQuantity() < 1) {
+                continue; // Skip invalid mappings
+            }
+            
+            ProductPickupLocationMapping entity = new ProductPickupLocationMapping();
+            entity.setProductId(mapping.getProductId());
+            entity.setPickupLocationId(pickupLocationId);
+            entity.setAvailableStock(mapping.getQuantity());
+            entity.setItemAvailableFrom(LocalDateTime.now());
+            entity.setIsActive(true);
+            entity.setLastStockUpdate(LocalDateTime.now());
+            entity.setMinStockLevel(1);
+            entity.setMaxStockLevel(mapping.getQuantity() * 2);
+            entity.setReorderLevel(mapping.getQuantity() / 2);
+            entity.setCreatedUser(createdUser);
+            entity.setModifiedUser(createdUser);
+            
+            productMappingRepository.save(entity);
+        }
+    }
+    
+    /**
+     * Internal method to save package mappings with explicit createdUser (for bulk import).
+     */
+    private void savePackageMappingsInternal(Long pickupLocationId, List<PackagePickupLocationMappingRequestModel> packageMappings, String createdUser) {
+        if (packageMappings == null || packageMappings.isEmpty()) {
+            return;
+        }
+        
+        for (PackagePickupLocationMappingRequestModel mapping : packageMappings) {
+            if (mapping.getPackageId() == null || mapping.getQuantity() == null || mapping.getQuantity() < 1) {
+                continue; // Skip invalid mappings
+            }
+            
+            PackagePickupLocationMapping entity = new PackagePickupLocationMapping();
+            entity.setPackageId(mapping.getPackageId());
+            entity.setPickupLocationId(pickupLocationId);
+            entity.setAvailableQuantity(mapping.getQuantity());
+            entity.setReorderLevel(mapping.getReorderLevel() != null ? mapping.getReorderLevel() : 1);
+            entity.setMaxStockLevel(mapping.getMaxStockLevel() != null ? mapping.getMaxStockLevel() : mapping.getQuantity() * 2);
+            entity.setLastRestockDate(LocalDateTime.now());
+            entity.setCreatedUser(createdUser);
+            entity.setModifiedUser(createdUser);
+            
+            packageMappingRepository.save(entity);
+        }
     }
 }

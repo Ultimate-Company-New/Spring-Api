@@ -64,6 +64,8 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
             case "modifiedUser": return "p.modifiedUser";
             case "createdAt": return "p.createdAt";
             case "updatedAt": return "p.updatedAt";
+            // Special case: filter through ProductPickupLocationMapping join
+            case "pickupLocationId": return "pplm.pickupLocationId";
             default: return "p." + column;
         }
     }
@@ -81,7 +83,7 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
     @Override
     protected List<String> getNumberColumns() {
         return Arrays.asList("productId", "clientId", "price", "discount", "length", "breadth", 
-                "height", "weightKgs", "categoryId");
+                "height", "weightKgs", "categoryId", "pickupLocationId");
     }
 
     /**
@@ -108,6 +110,9 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
      * Finds paginated products with multiple filter conditions combined with AND/OR logic.
      * Builds the WHERE clause dynamically and executes the query.
      * 
+     * When filtering by pickupLocationId, only products with that pickup location are returned,
+     * and only the mapping for that specific pickup location is included in the response.
+     * 
      * @param clientId The client ID to filter products by
      * @param selectedIds List of specific product IDs to include (null for all)
      * @param logicOperator "AND" or "OR" to combine filter conditions
@@ -124,14 +129,44 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
             boolean includeDeleted,
             Pageable pageable) {
 
+        // Check if there's a pickupLocationId filter
+        Long pickupLocationIdFilter = null;
+        if (filters != null) {
+            for (FilterCondition filter : filters) {
+                if ("pickupLocationId".equals(filter.getColumn()) && "equals".equals(filter.getOperator())) {
+                    try {
+                        pickupLocationIdFilter = Long.parseLong(filter.getValue().toString());
+                    } catch (NumberFormatException e) {
+                        // Invalid pickupLocationId, will be handled by regular filter processing
+                    }
+                    break;
+                }
+            }
+        }
+
         // Base query with all necessary JOINs
-        String baseQuery = "SELECT DISTINCT p FROM Product p " +
-                "LEFT JOIN FETCH p.category " +
-                "LEFT JOIN FETCH p.createdByUser " +
-                "LEFT JOIN FETCH p.productPickupLocationMappings pplm " +
-                "LEFT JOIN FETCH pplm.pickupLocation pl " +
-                "LEFT JOIN FETCH pl.address " +
-                "WHERE p.clientId = :clientId ";
+        // When filtering by pickupLocationId, use INNER JOIN to filter and only fetch that mapping
+        String baseQuery;
+        if (pickupLocationIdFilter != null) {
+            // Use INNER JOIN when filtering by pickupLocationId - only get products with that mapping
+            // and only fetch that specific mapping
+            baseQuery = "SELECT DISTINCT p FROM Product p " +
+                    "LEFT JOIN FETCH p.category " +
+                    "LEFT JOIN FETCH p.createdByUser " +
+                    "INNER JOIN FETCH p.productPickupLocationMappings pplm " +
+                    "INNER JOIN FETCH pplm.pickupLocation pl " +
+                    "LEFT JOIN FETCH pl.address " +
+                    "WHERE p.clientId = :clientId ";
+        } else {
+            // Standard LEFT JOIN for normal queries
+            baseQuery = "SELECT DISTINCT p FROM Product p " +
+                    "LEFT JOIN FETCH p.category " +
+                    "LEFT JOIN FETCH p.createdByUser " +
+                    "LEFT JOIN FETCH p.productPickupLocationMappings pplm " +
+                    "LEFT JOIN FETCH pplm.pickupLocation pl " +
+                    "LEFT JOIN FETCH pl.address " +
+                    "WHERE p.clientId = :clientId ";
+        }
 
         // Add selectedIds condition
         if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -153,9 +188,17 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
         // Add ordering
         baseQuery += "ORDER BY p.productId DESC";
 
-        // Count query (without FETCH joins)
-        String countQuery = "SELECT COUNT(DISTINCT p) FROM Product p " +
-                "WHERE p.clientId = :clientId ";
+        // Count query (without FETCH joins, but with proper JOINs for filtering)
+        String countQuery;
+        if (pickupLocationIdFilter != null) {
+            countQuery = "SELECT COUNT(DISTINCT p) FROM Product p " +
+                    "INNER JOIN p.productPickupLocationMappings pplm " +
+                    "WHERE p.clientId = :clientId ";
+        } else {
+            countQuery = "SELECT COUNT(DISTINCT p) FROM Product p " +
+                    "LEFT JOIN p.productPickupLocationMappings pplm " +
+                    "WHERE p.clientId = :clientId ";
+        }
 
         if (selectedIds != null && !selectedIds.isEmpty()) {
             countQuery += "AND p.productId IN :selectedIds ";

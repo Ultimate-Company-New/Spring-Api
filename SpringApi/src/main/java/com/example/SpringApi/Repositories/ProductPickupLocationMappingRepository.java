@@ -36,5 +36,42 @@ public interface ProductPickupLocationMappingRepository extends JpaRepository<Pr
     @Modifying
     @Query("DELETE FROM ProductPickupLocationMapping pplm WHERE pplm.productId = :productId")
     void deleteByProductId(@Param("productId") Long productId);
+    
+    /**
+     * Find all ProductPickupLocationMappings by pickup location ID.
+     * 
+     * @param pickupLocationId The pickup location ID
+     * @return List of ProductPickupLocationMappings
+     */
+    List<ProductPickupLocationMapping> findByPickupLocationId(@Param("pickupLocationId") Long pickupLocationId);
+    
+    /**
+     * Delete all ProductPickupLocationMappings by pickup location ID.
+     * 
+     * @param pickupLocationId The pickup location ID
+     */
+    @Modifying
+    @Query("DELETE FROM ProductPickupLocationMapping pplm WHERE pplm.pickupLocationId = :pickupLocationId")
+    void deleteByPickupLocationId(@Param("pickupLocationId") Long pickupLocationId);
+    
+    /**
+     * Count all ProductPickupLocationMappings by pickup location ID.
+     * 
+     * @param pickupLocationId The pickup location ID
+     * @return The count of mappings
+     */
+    @Query("SELECT COUNT(pplm) FROM ProductPickupLocationMapping pplm WHERE pplm.pickupLocationId = :pickupLocationId")
+    Integer countByPickupLocationId(@Param("pickupLocationId") Long pickupLocationId);
+    
+    /**
+     * Get counts of ProductPickupLocationMappings grouped by pickup location ID for multiple locations.
+     * Returns a list of Object arrays where [0] is pickupLocationId and [1] is the count.
+     * 
+     * @param pickupLocationIds List of pickup location IDs
+     * @return List of Object arrays with [pickupLocationId, count]
+     */
+    @Query("SELECT pplm.pickupLocationId, COUNT(pplm) FROM ProductPickupLocationMapping pplm " +
+           "WHERE pplm.pickupLocationId IN :pickupLocationIds GROUP BY pplm.pickupLocationId")
+    List<Object[]> countByPickupLocationIds(@Param("pickupLocationIds") List<Long> pickupLocationIds);
 }
 

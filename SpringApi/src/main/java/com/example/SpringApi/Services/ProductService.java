@@ -263,13 +263,14 @@ public class ProductService extends BaseService implements IProductSubTranslator
     @Override
     public PaginationBaseResponseModel<ProductResponseModel> getProductInBatches(PaginationBaseRequestModel paginationBaseRequestModel) {
         // Valid columns for filtering
+        // Note: pickupLocationId filters through ProductPickupLocationMapping join
         Set<String> validColumns = new HashSet<>(Arrays.asList(
             "productId", "title", "descriptionHtml", "brand", "color", "colorLabel",
             "condition", "countryOfManufacture", "model", "upc", "modificationHtml",
             "price", "discount", "isDiscountPercent", "returnsAllowed", "length",
             "breadth", "height", "weightKgs", "categoryId",
             "isDeleted", "itemModified", "createdUser", "modifiedUser", "createdAt",
-            "updatedAt", "notes"
+            "updatedAt", "notes", "pickupLocationId"
         ));
 
         // Validate filter conditions if provided
