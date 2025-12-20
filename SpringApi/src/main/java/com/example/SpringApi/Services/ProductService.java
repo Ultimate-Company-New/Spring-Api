@@ -69,6 +69,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
     
     private final ProductRepository productRepository;
     private final ProductPickupLocationMappingRepository productPickupLocationMappingRepository;
+    private final com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository packagePickupLocationMappingRepository;
     private final UserLogService userLogService;
     private final ProductCategoryRepository productCategoryRepository;
     private final ClientRepository clientRepository;
@@ -83,6 +84,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
     @Autowired
     public ProductService(ProductRepository productRepository,
                          ProductPickupLocationMappingRepository productPickupLocationMappingRepository,
+                         com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository packagePickupLocationMappingRepository,
                          UserLogService userLogService,
                          ProductCategoryRepository productCategoryRepository,
                          ClientRepository clientRepository,
@@ -94,6 +96,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
         super();
         this.productRepository = productRepository;
         this.productPickupLocationMappingRepository = productPickupLocationMappingRepository;
+        this.packagePickupLocationMappingRepository = packagePickupLocationMappingRepository;
         this.userLogService = userLogService;
         this.productCategoryRepository = productCategoryRepository;
         this.clientRepository = clientRepository;
@@ -944,7 +947,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
      * @throws BadRequestException if validation fails
      */
     @Transactional
-    private Product persistProduct(ProductRequestModel productRequestModel, String createdUser, Long clientId) {
+    protected Product persistProduct(ProductRequestModel productRequestModel, String createdUser, Long clientId) {
         // Default behavior: log the operation using security context
         return persistProduct(productRequestModel, createdUser, clientId, null, true);
     }
@@ -961,7 +964,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
      * @throws BadRequestException if validation fails
      */
     @Transactional
-    private Product persistProduct(ProductRequestModel productRequestModel, String createdUser, Long clientId, Long userId, boolean shouldLog) {
+    protected Product persistProduct(ProductRequestModel productRequestModel, String createdUser, Long clientId, Long userId, boolean shouldLog) {
         // Validate category exists
         if (productRequestModel.getCategoryId() == null) {
             throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidCategoryId);
@@ -1059,4 +1062,155 @@ public class ProductService extends BaseService implements IProductSubTranslator
         // Join path parts with separator
         return String.join(" › ", pathParts);
     }
+    
+    /**
+     * Gets product stock information across all pickup locations for a specific product.
+     * Returns stock availability with pickup location address details for distance calculation.
+     * Also includes package availability information for each location.
+     * 
+     * @param productId The product ID
+     * @return List of ProductStockByLocationResponseModel with stock, location, and package details
+     */
+    public java.util.List<com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel> getProductStockAtLocationsByProductId(
+            Long productId, 
+            Integer requestedQuantity,
+            String deliveryPostcode,
+            Boolean isCod) {
+        // Fetch product to get its dimensions
+        Product product = productRepository.findById(productId).orElse(null);
+        
+        java.util.List<ProductPickupLocationMapping> mappings = productPickupLocationMappingRepository
+            .findByProductIdWithPickupLocationAndAddress(productId);
+        
+        // Get all pickup location IDs
+        java.util.List<Long> pickupLocationIds = mappings.stream()
+            .map(ProductPickupLocationMapping::getPickupLocationId)
+            .collect(java.util.stream.Collectors.toList());
+        
+        // Fetch package info for all locations in one query
+        java.util.Map<Long, java.util.List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping>> packagesByLocation = 
+            new java.util.HashMap<>();
+        
+        if (!pickupLocationIds.isEmpty()) {
+            java.util.List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping> packageMappings = 
+                packagePickupLocationMappingRepository.findByPickupLocationIdsWithPackages(pickupLocationIds);
+            
+            for (com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping pm : packageMappings) {
+                packagesByLocation
+                    .computeIfAbsent(pm.getPickupLocationId(), k -> new java.util.ArrayList<>())
+                    .add(pm);
+            }
+        }
+        
+        // Create PackagingHelper for calculations
+        com.example.SpringApi.Helpers.PackagingHelper packagingHelper = new com.example.SpringApi.Helpers.PackagingHelper();
+        
+        // Note: Shipping options are now calculated at the order level via ShippingController
+        // This allows combining products from the same pickup location for more accurate shipping costs
+        
+        // Build response list
+        java.util.List<com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel> responseList = new java.util.ArrayList<>();
+        
+        for (com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping mapping : mappings) {
+            com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel response = 
+                new com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel(mapping);
+            
+            // Set product dimensions
+            setProductDimensions(response, product);
+            
+            // Get packages for this location
+            java.util.List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping> locationPackages = 
+                packagesByLocation.getOrDefault(mapping.getPickupLocationId(), java.util.Collections.emptyList());
+            
+            // Add package info and get dimensions for packaging calculation
+            java.util.List<com.example.SpringApi.Helpers.PackagingHelper.PackageDimension> packageDimensions = 
+                addPackageInfoToResponse(response, locationPackages);
+            
+            // Calculate packaging estimate
+            calculatePackagingEstimate(response, product, requestedQuantity, mapping.getAvailableStock(), packageDimensions, packagingHelper);
+            
+            // Note: Shipping options are now calculated at the order level via ShippingController
+            
+            responseList.add(response);
+        }
+        
+        return responseList;
+    }
+    
+    private void setProductDimensions(
+            com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel response,
+            com.example.SpringApi.Models.DatabaseModels.Product product) {
+        if (product != null) {
+            response.setProductLength(product.getLength());
+            response.setProductBreadth(product.getBreadth());
+            response.setProductHeight(product.getHeight());
+            response.setProductWeightKgs(product.getWeightKgs());
+        }
+    }
+    
+    private java.util.List<com.example.SpringApi.Helpers.PackagingHelper.PackageDimension> addPackageInfoToResponse(
+            com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel response,
+            java.util.List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping> locationPackages) {
+        
+        java.util.List<com.example.SpringApi.Helpers.PackagingHelper.PackageDimension> packageDimensions = new java.util.ArrayList<>();
+        
+        for (com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping pm : locationPackages) {
+            com.example.SpringApi.Models.DatabaseModels.Package pkg = pm.getPackageEntity();
+            if (pkg == null) continue;
+            
+            // Add to response
+            response.getAvailablePackages().add(
+                new com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel.PackageInfoModel(
+                    pkg.getPackageId(), pkg.getPackageName(), pkg.getPackageType(),
+                    pkg.getPricePerUnit(), pm.getAvailableQuantity(),
+                    pkg.getLength(), pkg.getBreadth(), pkg.getHeight(), pkg.getMaxWeight()
+                )
+            );
+            
+            // Add to packaging calculation list
+            packageDimensions.add(new com.example.SpringApi.Helpers.PackagingHelper.PackageDimension(
+                pkg.getPackageId(), pkg.getPackageName(), pkg.getPackageType(),
+                pkg.getLength(), pkg.getBreadth(), pkg.getHeight(),
+                pkg.getMaxWeight(), pkg.getPricePerUnit(), pm.getAvailableQuantity()
+            ));
+        }
+        
+        return packageDimensions;
+    }
+    
+    private void calculatePackagingEstimate(
+            com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel response,
+            com.example.SpringApi.Models.DatabaseModels.Product product,
+            Integer requestedQuantity,
+            int availableStock,
+            java.util.List<com.example.SpringApi.Helpers.PackagingHelper.PackageDimension> packageDimensions,
+            com.example.SpringApi.Helpers.PackagingHelper packagingHelper) {
+        
+        if (product == null || requestedQuantity == null || requestedQuantity <= 0) return;
+        
+        int quantityToPackage = Math.min(requestedQuantity, availableStock);
+        
+        com.example.SpringApi.Helpers.PackagingHelper.ProductDimension productDim = 
+            new com.example.SpringApi.Helpers.PackagingHelper.ProductDimension(
+                product.getLength(), product.getBreadth(), product.getHeight(),
+                product.getWeightKgs(), quantityToPackage
+            );
+        
+        com.example.SpringApi.Helpers.PackagingHelper.PackagingEstimateResult estimate = 
+            packagingHelper.calculatePackaging(productDim, packageDimensions);
+        
+        for (com.example.SpringApi.Helpers.PackagingHelper.PackageUsageResult usage : estimate.getPackagesUsed()) {
+            response.getPackagingEstimate().add(
+                new com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel.PackageUsageModel(
+                    usage.getPackageId(), usage.getPackageName(), usage.getPackageType(),
+                    usage.getQuantityUsed(), usage.getPricePerUnit(), usage.getTotalCost()
+                )
+            );
+        }
+        response.setTotalPackagingCost(estimate.getTotalPackagingCost());
+        response.setMaxItemsPackable(estimate.getMaxItemsPackable());
+    }
+    
+    // Note: Shipping options are now calculated at the order level via ShippingController
+    // This allows combining products from the same pickup location for more accurate shipping costs
 }

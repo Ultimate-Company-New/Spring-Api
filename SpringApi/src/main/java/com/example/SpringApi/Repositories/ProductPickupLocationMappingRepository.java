@@ -73,5 +73,18 @@ public interface ProductPickupLocationMappingRepository extends JpaRepository<Pr
     @Query("SELECT pplm.pickupLocationId, COUNT(pplm) FROM ProductPickupLocationMapping pplm " +
            "WHERE pplm.pickupLocationId IN :pickupLocationIds GROUP BY pplm.pickupLocationId")
     List<Object[]> countByPickupLocationIds(@Param("pickupLocationIds") List<Long> pickupLocationIds);
+    
+    /**
+     * Find all ProductPickupLocationMappings for a specific product across all pickup locations.
+     * Fetches pickup location with address for distance calculation.
+     * 
+     * @param productId The product ID
+     * @return List of ProductPickupLocationMappings with pickup location and address
+     */
+    @Query("SELECT pplm FROM ProductPickupLocationMapping pplm " +
+           "JOIN FETCH pplm.pickupLocation pl " +
+           "LEFT JOIN FETCH pl.address a " +
+           "WHERE pplm.productId = :productId AND pplm.isActive = true AND pl.isDeleted = false")
+    List<ProductPickupLocationMapping> findByProductIdWithPickupLocationAndAddress(@Param("productId") Long productId);
 }
 

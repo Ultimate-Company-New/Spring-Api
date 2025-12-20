@@ -12,9 +12,7 @@ import com.example.SpringApi.ErrorMessages;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * JPA Entity for the PurchaseOrder table.
@@ -82,17 +80,11 @@ public class PurchaseOrder {
     @Column(name = "purchaseOrderId", nullable = false)
     private Long purchaseOrderId;
 
-    @Column(name = "expectedDeliveryDate")
-    private LocalDateTime expectedDeliveryDate;
-
     @Column(name = "vendorNumber", length = 100)
     private String vendorNumber;
 
     @Column(name = "isDeleted", nullable = false)
     private Boolean isDeleted;
-
-    @Column(name = "termsConditionsHtml", columnDefinition = "TEXT")
-    private String termsConditionsHtml;
 
     @Column(name = "purchaseOrderReceipt", length = 500)
     private String purchaseOrderReceipt;
@@ -103,19 +95,12 @@ public class PurchaseOrder {
     @Column(name = "paymentId", nullable = false)
     private Long paymentId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "paymentId", insertable = false, updatable = false)
-    private PaymentInfo paymentInfo;
-
     @Column(name = "clientId", nullable = false)
     private Long clientId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clientId", insertable = false, updatable = false)
     private Client client;
-
-    @Column(name = "priority", nullable = false, length = 20)
-    private String priority;
 
     @Column(name = "approvedByUserId")
     private Long approvedByUserId;
@@ -144,13 +129,6 @@ public class PurchaseOrder {
     @JoinColumn(name = "assignedLeadId", insertable = false, updatable = false)
     private Lead assignedLead;
 
-    @Column(name = "purchaseOrderAddressId", nullable = false)
-    private Long purchaseOrderAddressId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "purchaseOrderAddressId", insertable = false, updatable = false)
-    private Address purchaseOrderAddress;
-
     @Column(name = "createdUser", nullable = false)
     private String createdUser;
 
@@ -173,13 +151,7 @@ public class PurchaseOrder {
     @Column(name = "updatedAt", nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column(name = "notes", columnDefinition = "TEXT")
-    private String notes;
-
     // Relationships - Collections
-    @OneToMany(mappedBy = "purchaseOrder", fetch = FetchType.LAZY)
-    private Set<PurchaseOrderQuantityPriceMap> purchaseOrderQuantityPriceMaps = new LinkedHashSet<>();
-
     @Transient
     private List<Resources> attachments = new ArrayList<>(); // Not persisted, populated manually
 
@@ -225,9 +197,6 @@ public class PurchaseOrder {
         // Preserve paymentId from existing purchase order (payment is updated separately in service)
         this.paymentId = existingPurchaseOrder.getPaymentId();
         
-        // Preserve purchaseOrderAddressId from existing purchase order (address is updated separately in service)
-        this.purchaseOrderAddressId = existingPurchaseOrder.getPurchaseOrderAddressId();
-        
         this.modifiedUser = modifiedUser;
     }
 
@@ -242,14 +211,14 @@ public class PurchaseOrder {
             throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidRequest);
         }
         
+        // Validate OrderSummary data is provided
+        if (request.getOrderSummary() == null) {
+            throw new BadRequestException("OrderSummary data is required");
+        }
+        
         // Validate max 30 attachments
         if (request.getAttachments() != null && request.getAttachments().size() > 30) {
             throw new BadRequestException("Maximum 30 attachments allowed per purchase order");
-        }
-        
-        // Validate that either purchaseOrderAddressId or address data is provided
-        if (request.getPurchaseOrderAddressId() == null && request.getAddress() == null) {
-            throw new BadRequestException("Either purchaseOrderAddressId or address data must be provided");
         }
         
         // Validate that products list is provided and not empty
@@ -257,7 +226,7 @@ public class PurchaseOrder {
             throw new BadRequestException("At least one product must be specified in products list");
         }
         
-        // termsConditionsHtml and vendorNumber are optional (can be null)
+        // vendorNumber is optional (can be null)
         if (request.getPurchaseOrderStatus() == null || request.getPurchaseOrderStatus().trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidOrderStatus);
         }
@@ -265,21 +234,8 @@ public class PurchaseOrder {
         if (!Status.isValid(request.getPurchaseOrderStatus().trim())) {
             throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidOrderStatusValue);
         }
-        if (request.getPriority() == null || request.getPriority().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidPriority);
-        }
-        // Validate priority values
-        if (!request.getPriority().matches("LOW|MEDIUM|HIGH|URGENT")) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidPriority);
-        }
         if (request.getAssignedLeadId() == null) {
             throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidAssignedLeadId);
-        }
-      
-        // Validate address if provided (for new address creation)
-        if (request.getAddress() != null) {
-            Address tempAddress = new Address();
-            tempAddress.validateRequest(request.getAddress());
         }
     }
 
@@ -302,13 +258,10 @@ public class PurchaseOrder {
      * @param clientId The client ID from the authenticated user's token or existing purchase order
      */
     private void setFieldsFromRequest(PurchaseOrderRequestModel request, Long clientId) {
-        this.expectedDeliveryDate = request.getExpectedDeliveryDate();
         this.vendorNumber = request.getVendorNumber() != null ? request.getVendorNumber().trim() : null;
         this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : Boolean.FALSE;
-        this.termsConditionsHtml = request.getTermsConditionsHtml() != null ? request.getTermsConditionsHtml().trim() : null;
         this.purchaseOrderReceipt = request.getPurchaseOrderReceipt() != null ? request.getPurchaseOrderReceipt().trim() : null;
         this.purchaseOrderStatus = request.getPurchaseOrderStatus().trim();
-        this.priority = request.getPriority().trim();
         this.paymentId = request.getPaymentId();
         this.clientId = clientId;
         this.approvedByUserId = request.getApprovedByUserId();
@@ -316,8 +269,6 @@ public class PurchaseOrder {
         this.rejectedByUserId = request.getRejectedByUserId();
         this.rejectedDate = request.getRejectedDate();
         this.assignedLeadId = request.getAssignedLeadId();
-        this.purchaseOrderAddressId = request.getPurchaseOrderAddressId();
-        this.notes = request.getNotes() != null ? request.getNotes().trim() : null;
     }
 
     /**

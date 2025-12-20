@@ -4,7 +4,6 @@ import com.example.SpringApi.Constants.EntityType;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.FilterQueryBuilder.PurchaseOrderFilterQueryBuilder;
-import com.example.SpringApi.Helpers.BulkInsertHelper;
 import com.example.SpringApi.Helpers.HTMLHelper;
 import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Helpers.PDFHelper;
@@ -13,24 +12,32 @@ import com.itextpdf.text.DocumentException;
 import com.example.SpringApi.Models.DatabaseModels.Address;
 import com.example.SpringApi.Models.DatabaseModels.Client;
 import com.example.SpringApi.Models.DatabaseModels.Lead;
-import com.example.SpringApi.Models.DatabaseModels.PaymentInfo;
+import com.example.SpringApi.Models.DatabaseModels.OrderSummary;
 import com.example.SpringApi.Models.DatabaseModels.Product;
 import com.example.SpringApi.Models.DatabaseModels.PurchaseOrder;
-import com.example.SpringApi.Models.DatabaseModels.PurchaseOrderQuantityPriceMap;
 import com.example.SpringApi.Models.DatabaseModels.Resources;
+import com.example.SpringApi.Models.DatabaseModels.Shipment;
+import com.example.SpringApi.Models.DatabaseModels.ShipmentPackage;
+import com.example.SpringApi.Models.DatabaseModels.ShipmentPackageProduct;
+import com.example.SpringApi.Models.DatabaseModels.ShipmentProduct;
 import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
+import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PurchaseOrderResponseModel;
 import com.example.SpringApi.Repositories.AddressRepository;
 import com.example.SpringApi.Repositories.ClientRepository;
 import com.example.SpringApi.Repositories.LeadRepository;
-import com.example.SpringApi.Repositories.PaymentInfoRepository;
+import com.example.SpringApi.Repositories.OrderSummaryRepository;
 import com.example.SpringApi.Repositories.PurchaseOrderRepository;
-import com.example.SpringApi.Repositories.PurchaseOrderQuantityPriceMapRepository;
 import com.example.SpringApi.Repositories.ResourcesRepository;
+import com.example.SpringApi.Repositories.ShipmentPackageProductRepository;
+import com.example.SpringApi.Repositories.ShipmentPackageRepository;
+import com.example.SpringApi.Repositories.ShipmentProductRepository;
+import com.example.SpringApi.Repositories.ShipmentRepository;
 import com.example.SpringApi.Repositories.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.SpringApi.Services.Interface.IPurchaseOrderSubTranslator;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.SuccessMessages;
@@ -72,44 +79,56 @@ import java.util.stream.Collectors;
 public class PurchaseOrderService extends BaseService implements IPurchaseOrderSubTranslator {
     
     private final PurchaseOrderRepository purchaseOrderRepository;
-    private final PaymentInfoRepository paymentInfoRepository;
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
     private final LeadRepository leadRepository;
     private final ClientRepository clientRepository;
     private final ResourcesRepository resourcesRepository;
-    private final PurchaseOrderQuantityPriceMapRepository purchaseOrderQuantityPriceMapRepository;
+    private final OrderSummaryRepository orderSummaryRepository;
+    private final ShipmentRepository shipmentRepository;
+    private final ShipmentProductRepository shipmentProductRepository;
+    private final ShipmentPackageRepository shipmentPackageRepository;
+    private final ShipmentPackageProductRepository shipmentPackageProductRepository;
     private final UserLogService userLogService;
     private final Environment environment;
     private final PurchaseOrderFilterQueryBuilder purchaseOrderFilterQueryBuilder;
     private final MessageService messageService;
+    private final ObjectMapper objectMapper;
     
     @Autowired
     public PurchaseOrderService(PurchaseOrderRepository purchaseOrderRepository,
-                               PaymentInfoRepository paymentInfoRepository,
                                AddressRepository addressRepository,
                                UserRepository userRepository,
                                LeadRepository leadRepository,
                                ClientRepository clientRepository,
                                ResourcesRepository resourcesRepository,
-                               PurchaseOrderQuantityPriceMapRepository purchaseOrderQuantityPriceMapRepository,
+                               OrderSummaryRepository orderSummaryRepository,
+                               ShipmentRepository shipmentRepository,
+                               ShipmentProductRepository shipmentProductRepository,
+                               ShipmentPackageRepository shipmentPackageRepository,
+                               ShipmentPackageProductRepository shipmentPackageProductRepository,
                                UserLogService userLogService,
                                PurchaseOrderFilterQueryBuilder purchaseOrderFilterQueryBuilder,
                                MessageService messageService,
-                               Environment environment) {
+                               Environment environment,
+                               ObjectMapper objectMapper) {
         super();
         this.purchaseOrderRepository = purchaseOrderRepository;
-        this.paymentInfoRepository = paymentInfoRepository;
         this.addressRepository = addressRepository;
         this.userRepository = userRepository;
         this.leadRepository = leadRepository;
         this.clientRepository = clientRepository;
         this.resourcesRepository = resourcesRepository;
-        this.purchaseOrderQuantityPriceMapRepository = purchaseOrderQuantityPriceMapRepository;
+        this.orderSummaryRepository = orderSummaryRepository;
+        this.shipmentRepository = shipmentRepository;
+        this.shipmentProductRepository = shipmentProductRepository;
+        this.shipmentPackageRepository = shipmentPackageRepository;
+        this.shipmentPackageProductRepository = shipmentPackageProductRepository;
         this.userLogService = userLogService;
         this.purchaseOrderFilterQueryBuilder = purchaseOrderFilterQueryBuilder;
         this.messageService = messageService;
         this.environment = environment;
+        this.objectMapper = objectMapper;
     }
     
     /**
@@ -119,13 +138,12 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      * pagination parameters. It supports filtering and sorting options.
      * 
      * Eagerly loads all related entities including:
-     * - Address (delivery/billing address)
-     * - PaymentInfo (payment details and quotation)
+     * - OrderSummary (financial breakdown and fulfillment details)
+     * - Shipments with Products, Packages, and Courier selections
      * - Created By User
      * - Modified By User
      * - Assigned Lead
      * - Approved By User
-     * - Purchase Order Quantity Maps with Product Pickup Location Mappings, Products, and Pickup Locations
      * 
      * Advanced Filtering Capabilities:
      * - selectedProductIds: Filter POs containing specific products
@@ -153,7 +171,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
             for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
                 // Validate column name
                 if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
-                    throw new BadRequestException("Invalid column name: " + filter.getColumn());
+                    throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidColumnName, filter.getColumn()));
                 }
 
                 // Validate operator
@@ -163,20 +181,20 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                     "isEmpty", "isNotEmpty"
                 ));
                 if (filter.getOperator() != null && !validOperators.contains(filter.getOperator())) {
-                    throw new BadRequestException("Invalid operator: " + filter.getOperator());
+                    throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidOperator, filter.getOperator()));
                 }
 
                 // Validate column type matches operator
                 String columnType = purchaseOrderFilterQueryBuilder.getColumnType(filter.getColumn());
                 if ("boolean".equals(columnType) && !filter.getOperator().equals("equals") && !filter.getOperator().equals("notEquals")) {
-                    throw new BadRequestException("Boolean columns only support 'equals' and 'notEquals' operators");
+                    throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.BooleanColumnsOnlySupportEquals);
                 }
                 if ("date".equals(columnType) || "number".equals(columnType)) {
                     Set<String> numericDateOperators = new HashSet<>(Arrays.asList(
                         "equals", "notEquals", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"
                     ));
                     if (!numericDateOperators.contains(filter.getOperator())) {
-                        throw new BadRequestException(columnType + " columns only support numeric comparison operators");
+                        throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.ColumnsOnlySupportNumericOperators, columnType));
                     }
                 }
             }
@@ -189,7 +207,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
 
         // Validate page size
         if (pageSize <= 0) {
-            throw new BadRequestException("Invalid pagination: end must be greater than start");
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidPagination);
         }
 
         // Create custom Pageable with proper offset handling
@@ -215,20 +233,71 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
             pageable
         );
 
-        // Load resources (attachments) for all purchase orders in this page
+        // Load resources (attachments), OrderSummary, and Shipments for all purchase orders in this page
+        List<PurchaseOrderResponseModel> purchaseOrderResponseModels = new ArrayList<>();
         if (!page.getContent().isEmpty()) {
-            // Load resources individually for each PO filtered by entityType
             for (PurchaseOrder po : page.getContent()) {
+                // Load resources (attachments) for this purchase order
                 List<Resources> poResources = resourcesRepository.findByEntityIdAndEntityType(
                     po.getPurchaseOrderId(), EntityType.PURCHASE_ORDER);
                 po.setAttachments(poResources);
+                
+                // Load OrderSummary with shipments and related entities
+                OrderSummary orderSummary = null;
+                Optional<OrderSummary> orderSummaryOptional = orderSummaryRepository.findByEntityTypeAndEntityId(
+                    OrderSummary.EntityType.PURCHASE_ORDER.getValue(), 
+                    po.getPurchaseOrderId()
+                );
+                
+                if (orderSummaryOptional.isPresent()) {
+                    orderSummary = orderSummaryOptional.get();
+                    
+                    // Load shipments for this OrderSummary
+                    List<Shipment> shipments = shipmentRepository.findByOrderSummaryId(orderSummary.getOrderSummaryId());
+                    orderSummary.setShipments(shipments);
+                    
+                    // Load related entities for each shipment (products, packages, package products)
+                    for (Shipment shipment : shipments) {
+                        // Load shipment products
+                        List<ShipmentProduct> shipmentProducts = shipmentProductRepository.findByShipmentId(shipment.getShipmentId());
+                        shipment.setShipmentProducts(shipmentProducts);
+                        
+                        // Initialize Product entities for shipment products
+                        for (ShipmentProduct shipmentProduct : shipmentProducts) {
+                            if (shipmentProduct.getProduct() != null) {
+                                org.hibernate.Hibernate.initialize(shipmentProduct.getProduct());
+                            }
+                        }
+                        
+                        // Load shipment packages
+                        List<ShipmentPackage> shipmentPackages = shipmentPackageRepository.findByShipmentId(shipment.getShipmentId());
+                        shipment.setShipmentPackages(shipmentPackages);
+                        
+                        // Load package products for each shipment package
+                        for (ShipmentPackage shipmentPackage : shipmentPackages) {
+                            // Initialize Package entity
+                            if (shipmentPackage.getPackageInfo() != null) {
+                                org.hibernate.Hibernate.initialize(shipmentPackage.getPackageInfo());
+                            }
+                            
+                            List<ShipmentPackageProduct> packageProducts = 
+                                shipmentPackageProductRepository.findByShipmentPackageId(shipmentPackage.getShipmentPackageId());
+                            shipmentPackage.setShipmentPackageProducts(packageProducts);
+                            
+                            // Initialize Product entities for package products
+                            for (ShipmentPackageProduct packageProduct : packageProducts) {
+                                if (packageProduct.getProduct() != null) {
+                                    org.hibernate.Hibernate.initialize(packageProduct.getProduct());
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Convert to response model
+                purchaseOrderResponseModels.add(new PurchaseOrderResponseModel(po, orderSummary));
             }
         }
-
-        // Convert PurchaseOrder entities to PurchaseOrderResponseModel
-        List<PurchaseOrderResponseModel> purchaseOrderResponseModels = page.getContent().stream()
-            .map(PurchaseOrderResponseModel::new)
-            .toList();
 
         PaginationBaseResponseModel<PurchaseOrderResponseModel> response = new PaginationBaseResponseModel<>();
         response.setData(purchaseOrderResponseModels);
@@ -241,45 +310,167 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      * Creates a new purchase order.
      * 
      * This method creates a new purchase order with the provided details including
-     * supplier information, line items, and delivery details.
-     * All validations are performed in the PurchaseOrder entity constructor.
+     * supplier information, OrderSummary (financial breakdown and fulfillment details),
+     * and Shipment data (products, packages, courier selections).
+     * All validations are performed in the entity constructors.
      * 
      * Flow:
-     * 1. Create Address (if address data provided) or use existing purchaseOrderAddressId
-     * 2. Create PurchaseOrder entity (without paymentId)
+     * 1. Create Address (if address data provided) or use existing entityAddressId from OrderSummary
+     * 2. Create PurchaseOrder entity
      * 3. Save PurchaseOrder to get purchaseOrderId
-     * 4. Create PaymentInfo quotation from PurchaseOrder
-     * 5. Save PaymentInfo to get paymentId
-     * 6. Link paymentId to PurchaseOrder and update
+     * 4. Create OrderSummary entity (linked to PurchaseOrder via entityType + entityId)
+     * 5. Save OrderSummary to get orderSummaryId
+     * 6. Create Shipments with ShipmentProducts, ShipmentPackages, and ShipmentPackageProducts
+     * 7. Handle attachments if provided
      * 
      * @param purchaseOrderRequestModel The purchase order to create
      * @throws BadRequestException if validation fails
      * @throws UnauthorizedException if user is not authorized
      */
+    private Long findOrCreateAddress(AddressRequestModel addressRequest) {
+        if (addressRequest == null) {
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AddressDataRequired);
+        }
+        
+        // Normalize address data for comparison (trim and handle nulls)
+        String streetAddress = addressRequest.getStreetAddress() != null ? addressRequest.getStreetAddress().trim() : null;
+        String streetAddress2 = addressRequest.getStreetAddress2() != null ? addressRequest.getStreetAddress2().trim() : null;
+        String streetAddress3 = addressRequest.getStreetAddress3() != null ? addressRequest.getStreetAddress3().trim() : null;
+        String city = addressRequest.getCity() != null ? addressRequest.getCity().trim() : null;
+        String state = addressRequest.getState() != null ? addressRequest.getState().trim() : null;
+        String postalCode = addressRequest.getPostalCode() != null ? addressRequest.getPostalCode().trim() : null;
+        String nameOnAddress = addressRequest.getNameOnAddress() != null ? addressRequest.getNameOnAddress().trim() : null;
+        String emailOnAddress = addressRequest.getEmailOnAddress() != null ? addressRequest.getEmailOnAddress().trim() : null;
+        String phoneOnAddress = addressRequest.getPhoneOnAddress() != null ? addressRequest.getPhoneOnAddress().trim() : null;
+        String country = addressRequest.getCountry() != null ? addressRequest.getCountry().trim() : null;
+        String addressType = addressRequest.getAddressType() != null ? addressRequest.getAddressType().toUpperCase() : null;
+        Boolean isPrimary = addressRequest.getIsPrimary() != null ? addressRequest.getIsPrimary() : false;
+        Boolean isDeleted = addressRequest.getIsDeleted() != null ? addressRequest.getIsDeleted() : false;
+        Long userId = addressRequest.getUserId();
+        Long clientId = addressRequest.getClientId() != null ? addressRequest.getClientId() : getClientId();
+        
+        // Check for exact duplicate
+        Optional<Address> existingAddress = addressRepository.findExactDuplicate(
+            userId,
+            clientId,
+            addressType,
+            streetAddress,
+            streetAddress2,
+            streetAddress3,
+            city,
+            state,
+            postalCode,
+            nameOnAddress,
+            emailOnAddress,
+            phoneOnAddress,
+            country,
+            isPrimary,
+            isDeleted
+        );
+        
+        if (existingAddress.isPresent()) {
+            // Return existing address ID
+            return existingAddress.get().getAddressId();
+        }
+        
+        // No duplicate found, create new address
+        // Ensure clientId is set
+        if (addressRequest.getClientId() == null) {
+            addressRequest.setClientId(getClientId());
+        }
+        
+        Address newAddress = new Address(addressRequest, getUser());
+        newAddress = addressRepository.save(newAddress);
+        return newAddress.getAddressId();
+    }
+    
     @Override
     public void createPurchaseOrder(PurchaseOrderRequestModel purchaseOrderRequestModel) {
-        // Step 1: Create the purchase order entity (validations are done in constructor)
+        // Step 1: Create the purchase order entity (validations are done in constructor, including OrderSummary check)
         PurchaseOrder purchaseOrder = new PurchaseOrder(purchaseOrderRequestModel, getUser(), getClientId());
         
-        // Step 2: Create the address entity (validations are done in constructor)
-        Address address = new Address(purchaseOrderRequestModel.getAddress(), getUser());
-        addressRepository.save(address);
-        purchaseOrder.setPurchaseOrderAddressId(address.getAddressId());
-
-        // Step 3: Create the payment info entity BEFORE saving purchase order (paymentId is non-nullable)
-        PaymentInfo paymentInfo = new PaymentInfo(purchaseOrderRequestModel, getUser());
-        paymentInfo = paymentInfoRepository.save(paymentInfo);
-        purchaseOrder.setPaymentId(paymentInfo.getPaymentId());
-
-        // Step 4: Save the purchase order to database (to get purchaseOrderId)
-        purchaseOrderRepository.save(purchaseOrder);
-
-        // Step 5: Create the purchase order quantity price map entities
-        List<PurchaseOrderQuantityPriceMap> purchaseOrderQuantityPriceMaps = PurchaseOrderQuantityPriceMap.createFromRequest(
-            purchaseOrderRequestModel,
-            purchaseOrder.getPurchaseOrderId()
+        // Step 2: Handle Address - find existing duplicate or create new
+        Long entityAddressId = findOrCreateAddress(purchaseOrderRequestModel.getOrderSummary().getAddress());
+        
+        // Step 3: Save the purchase order to database (to get purchaseOrderId)
+        purchaseOrder = purchaseOrderRepository.save(purchaseOrder);
+        
+        // Step 4: Create OrderSummary entity
+        OrderSummary orderSummary = new OrderSummary(
+            OrderSummary.EntityType.PURCHASE_ORDER.getValue(), // entityType
+            purchaseOrder.getPurchaseOrderId(), // entityId
+            purchaseOrderRequestModel.getOrderSummary(), // orderSummaryData
+            entityAddressId,
+            getClientId(),
+            getUser()
         );
-        purchaseOrderQuantityPriceMapRepository.saveAll(purchaseOrderQuantityPriceMaps);
+        
+        orderSummary = orderSummaryRepository.save(orderSummary);
+
+        // Step 5: Create Shipments with all related data
+        if (purchaseOrderRequestModel.getShipments() != null && !purchaseOrderRequestModel.getShipments().isEmpty()) {
+            for (PurchaseOrderRequestModel.ShipmentData shipmentData : purchaseOrderRequestModel.getShipments()) {
+                // Step 5.1: Create Shipment
+                Shipment shipment = new Shipment(
+                    orderSummary.getOrderSummaryId(),
+                    shipmentData,
+                    getClientId(),
+                    getUser()
+                );
+                
+                // Step 5.2: Set courier selection (required for each shipment)
+                if (shipmentData.getSelectedCourier() != null) {
+                    shipment.setCourierSelection(shipmentData.getSelectedCourier());
+                } else {
+                    throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.CourierSelectionRequired);
+                }
+                
+                shipment = shipmentRepository.save(shipment);
+                
+                // Step 5.3: Create ShipmentProducts
+                if (shipmentData.getProducts() != null && !shipmentData.getProducts().isEmpty()) {
+                    List<ShipmentProduct> shipmentProducts = new ArrayList<>();
+                    for (PurchaseOrderRequestModel.ShipmentProductData productData : shipmentData.getProducts()) {
+                        ShipmentProduct shipmentProduct = new ShipmentProduct(
+                            shipment.getShipmentId(),
+                            productData
+                        );
+                        shipmentProducts.add(shipmentProduct);
+                    }
+                    shipmentProductRepository.saveAll(shipmentProducts);
+                }
+                
+                // Step 5.4: Create ShipmentPackages with ShipmentPackageProducts
+                if (shipmentData.getPackages() != null && !shipmentData.getPackages().isEmpty()) {
+                    for (PurchaseOrderRequestModel.ShipmentPackageData packageData : shipmentData.getPackages()) {
+                        ShipmentPackage shipmentPackage = new ShipmentPackage(
+                            shipment.getShipmentId(),
+                            packageData
+                        );
+                        shipmentPackage = shipmentPackageRepository.save(shipmentPackage);
+                        
+                        // Step 5.5: Create ShipmentPackageProducts
+                        if (packageData.getProducts() != null && !packageData.getProducts().isEmpty()) {
+                            List<ShipmentPackageProduct> packageProducts = new ArrayList<>();
+                            for (PurchaseOrderRequestModel.PackageProductData productData : packageData.getProducts()) {
+                                ShipmentPackageProduct packageProduct = new ShipmentPackageProduct(
+                                    shipmentPackage.getShipmentPackageId(),
+                                    productData
+                                );
+                                packageProducts.add(packageProduct);
+                            }
+                            shipmentPackageProductRepository.saveAll(packageProducts);
+                        } else {
+                            throw new BadRequestException(ErrorMessages.ShipmentPackageProductErrorMessages.AtLeastOneProductRequired);
+                        }
+                    }
+                } else {
+                    throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.AtLeastOnePackageRequired);
+                }
+            }
+        } else {
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AtLeastOneShipmentRequired);
+        }
         
         // Step 6: Handle attachments if provided
         if (purchaseOrderRequestModel.getAttachments() != null && 
@@ -295,8 +486,8 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         userLogService.logData(
             getUserId(),
             SuccessMessages.PurchaseOrderSuccessMessages.InsertPurchaseOrder + " " + purchaseOrder.getPurchaseOrderId() + 
-            " with Address " + purchaseOrder.getPurchaseOrderAddressId() +
-            " and Payment Quotation " + paymentInfo.getPaymentId(),
+            " with OrderSummary " + orderSummary.getOrderSummaryId() +
+            " and " + (purchaseOrderRequestModel.getShipments() != null ? purchaseOrderRequestModel.getShipments().size() : 0) + " shipments",
             ApiRoutes.PurchaseOrderSubRoute.CREATE_PURCHASE_ORDER);
     }
     
@@ -304,15 +495,16 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      * Updates an existing purchase order.
      * 
      * This method updates an existing purchase order's details including
-     * supplier information, line items, and delivery details.
+     * supplier information, OrderSummary (financial breakdown and fulfillment details),
+     * and Shipment data (products, packages, courier selections).
      * 
      * Flow:
      * 1. Fetch existing PurchaseOrder
-     * 2. Handle Address update if new address data provided
-     * 3. Update PurchaseOrder with new data
-     * 4. Save PurchaseOrder
-     * 5. If payment quotation exists, update it with recalculated amounts
-     * 6. If no payment quotation exists, create one
+     * 2. Update PurchaseOrder with new data
+     * 3. Handle Address update if new address data provided
+     * 4. Update or create OrderSummary
+     * 5. Delete existing Shipments and related data, then create new ones
+     * 6. Update attachments
      * 
      * @param purchaseOrderRequestModel The purchase order to update
      * @throws BadRequestException if validation fails
@@ -321,12 +513,13 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      */
     @Override
     public void updatePurchaseOrder(PurchaseOrderRequestModel purchaseOrderRequestModel) {
-        // Step 1: Update the purchase order entity
+        // Step 1: Fetch and update the purchase order entity
         PurchaseOrder existingPurchaseOrder = purchaseOrderRepository.findByPurchaseOrderIdAndClientId(
                 purchaseOrderRequestModel.getPurchaseOrderId(), 
                 getClientId()
             )
             .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
+        
         PurchaseOrder updatedPurchaseOrder = new PurchaseOrder(
             purchaseOrderRequestModel, 
             getUser(), 
@@ -334,29 +527,120 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         ); 
         purchaseOrderRepository.save(updatedPurchaseOrder);
         
-        // Step 2: Handle Address update if new address data provided
-        Address existingAddress = addressRepository.findById(updatedPurchaseOrder.getPurchaseOrderAddressId())
-        .orElseThrow(() -> new NotFoundException(ErrorMessages.AddressErrorMessages.InvalidId));    
-        Address updatedAddress = new Address(purchaseOrderRequestModel.getAddress(), getUser(), existingAddress);
-        addressRepository.save(updatedAddress);
+        // Step 2: Handle Address - find existing duplicate or create new
+        Long entityAddressId = findOrCreateAddress(purchaseOrderRequestModel.getOrderSummary().getAddress());
 
-        // Step 3: Update the purchase order quantity price map entities
-        updatePurchaseOrderQuantityPriceMaps(
-            updatedPurchaseOrder.getPurchaseOrderId(),
-            purchaseOrderRequestModel
+        // Step 3: Update or create OrderSummary
+        Optional<OrderSummary> existingOrderSummaryOpt = orderSummaryRepository.findByEntityTypeAndEntityId(
+            OrderSummary.EntityType.PURCHASE_ORDER.getValue(),
+            updatedPurchaseOrder.getPurchaseOrderId()
         );
         
-        // Step 4: Update or create payment quotation
-        PaymentInfo existingPaymentInfo = paymentInfoRepository.findById(updatedPurchaseOrder.getPaymentId())
-        .orElseThrow(() -> new NotFoundException(ErrorMessages.PaymentInfoErrorMessages.InvalidId));
-        PaymentInfo updatedPaymentInfo = new PaymentInfo(
-                purchaseOrderRequestModel, 
+        OrderSummary orderSummary;
+        if (existingOrderSummaryOpt.isPresent()) {
+            // Update existing OrderSummary
+            OrderSummary existingOrderSummary = existingOrderSummaryOpt.get();
+            orderSummary = new OrderSummary(
+                OrderSummary.EntityType.PURCHASE_ORDER.getValue(),
+                updatedPurchaseOrder.getPurchaseOrderId(),
+                purchaseOrderRequestModel.getOrderSummary(), // orderSummaryData
+                entityAddressId,
                 getUser(), 
-                existingPaymentInfo
+                existingOrderSummary
             );
-        paymentInfoRepository.save(updatedPaymentInfo);
+        } else {
+            // Create new OrderSummary
+            orderSummary = new OrderSummary(
+                OrderSummary.EntityType.PURCHASE_ORDER.getValue(),
+                updatedPurchaseOrder.getPurchaseOrderId(),
+                purchaseOrderRequestModel.getOrderSummary(), // orderSummaryData
+                entityAddressId,
+                getClientId(),
+                getUser()
+            );
+        }
         
-        // Step 5: Update the Resources (attachments)
+        orderSummary = orderSummaryRepository.save(orderSummary);
+        
+        // Step 5: Delete existing shipments and related data, then create new ones
+        List<Shipment> existingShipments = shipmentRepository.findByOrderSummaryId(orderSummary.getOrderSummaryId());
+        for (Shipment existingShipment : existingShipments) {
+            // Delete ShipmentPackageProducts (cascade will handle ShipmentPackages and ShipmentProducts)
+            List<ShipmentPackage> existingPackages = shipmentPackageRepository.findByShipmentId(existingShipment.getShipmentId());
+            for (ShipmentPackage existingPackage : existingPackages) {
+                shipmentPackageProductRepository.deleteByShipmentPackageId(existingPackage.getShipmentPackageId());
+            }
+            shipmentPackageRepository.deleteByShipmentId(existingShipment.getShipmentId());
+            shipmentProductRepository.deleteByShipmentId(existingShipment.getShipmentId());
+        }
+        shipmentRepository.deleteAll(existingShipments);
+        
+        // Create new Shipments with all related data
+        if (purchaseOrderRequestModel.getShipments() != null && !purchaseOrderRequestModel.getShipments().isEmpty()) {
+            for (PurchaseOrderRequestModel.ShipmentData shipmentData : purchaseOrderRequestModel.getShipments()) {
+                // Create Shipment
+                Shipment shipment = new Shipment(
+                    orderSummary.getOrderSummaryId(),
+                    shipmentData,
+                    getClientId(),
+                    getUser()
+                );
+                
+                // Step 5.2: Set courier selection (required for each shipment)
+                if (shipmentData.getSelectedCourier() != null) {
+                    shipment.setCourierSelection(shipmentData.getSelectedCourier());
+                } else {
+                    throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.CourierSelectionRequired);
+                }
+                
+                shipment = shipmentRepository.save(shipment);
+                
+                // Step 5.3: Create ShipmentProducts
+                if (shipmentData.getProducts() != null && !shipmentData.getProducts().isEmpty()) {
+                    List<ShipmentProduct> shipmentProducts = new ArrayList<>();
+                    for (PurchaseOrderRequestModel.ShipmentProductData productData : shipmentData.getProducts()) {
+                        ShipmentProduct shipmentProduct = new ShipmentProduct(
+                            shipment.getShipmentId(),
+                            productData
+                        );
+                        shipmentProducts.add(shipmentProduct);
+                    }
+                    shipmentProductRepository.saveAll(shipmentProducts);
+                }
+                
+                // Step 5.4: Create ShipmentPackages with ShipmentPackageProducts
+                if (shipmentData.getPackages() != null && !shipmentData.getPackages().isEmpty()) {
+                    for (PurchaseOrderRequestModel.ShipmentPackageData packageData : shipmentData.getPackages()) {
+                        ShipmentPackage shipmentPackage = new ShipmentPackage(
+                            shipment.getShipmentId(),
+                            packageData
+                        );
+                        shipmentPackage = shipmentPackageRepository.save(shipmentPackage);
+        
+                        // Step 5.5: Create ShipmentPackageProducts
+                        if (packageData.getProducts() != null && !packageData.getProducts().isEmpty()) {
+                            List<ShipmentPackageProduct> packageProducts = new ArrayList<>();
+                            for (PurchaseOrderRequestModel.PackageProductData productData : packageData.getProducts()) {
+                                ShipmentPackageProduct packageProduct = new ShipmentPackageProduct(
+                                    shipmentPackage.getShipmentPackageId(),
+                                    productData
+                                );
+                                packageProducts.add(packageProduct);
+                            }
+                            shipmentPackageProductRepository.saveAll(packageProducts);
+                        } else {
+                            throw new BadRequestException(ErrorMessages.ShipmentPackageProductErrorMessages.AtLeastOneProductRequired);
+                        }
+                    }
+                } else {
+                    throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.AtLeastOnePackageRequired);
+                }
+            }
+        } else {
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AtLeastOneShipmentRequired);
+        }
+        
+        // Step 6: Update the Resources (attachments)
         // Delete all existing resources from ImgBB and database, then create new ones
         deleteExistingPurchaseOrderAttachments(updatedPurchaseOrder.getPurchaseOrderId());
         
@@ -381,13 +665,12 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      * Retrieves detailed information about a specific purchase order by ID.
      * 
      * This method returns comprehensive purchase order details including all related entities:
-     * - Address (delivery/billing address)
-     * - PaymentInfo (payment details and quotation)
+     * - OrderSummary (financial breakdown and fulfillment details)
+     * - Shipments with Products, Packages, and Courier selections
      * - Created By User
      * - Modified By User
      * - Assigned Lead
      * - Approved By User
-     * - Products with quantities and pickup locations
      * 
      * @param id The ID of the purchase order to retrieve
      * @return The purchase order details with all relationships
@@ -409,8 +692,60 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         List<Resources> resources = resourcesRepository.findByEntityIdAndEntityType(id, EntityType.PURCHASE_ORDER);
         purchaseOrder.setAttachments(resources);
         
+        // Load OrderSummary with shipments and related entities
+        OrderSummary orderSummary = null;
+        Optional<OrderSummary> orderSummaryOptional = orderSummaryRepository.findByEntityTypeAndEntityId(
+            OrderSummary.EntityType.PURCHASE_ORDER.getValue(), 
+            id
+        );
+        
+        if (orderSummaryOptional.isPresent()) {
+            orderSummary = orderSummaryOptional.get();
+            
+            // Load shipments for this OrderSummary
+            List<Shipment> shipments = shipmentRepository.findByOrderSummaryId(orderSummary.getOrderSummaryId());
+            orderSummary.setShipments(shipments);
+            
+                    // Load related entities for each shipment (products, packages, package products)
+                    for (Shipment shipment : shipments) {
+                        // Load shipment products
+                        List<ShipmentProduct> shipmentProducts = shipmentProductRepository.findByShipmentId(shipment.getShipmentId());
+                        shipment.setShipmentProducts(shipmentProducts);
+                        
+                        // Initialize Product entities for shipment products
+                        for (ShipmentProduct shipmentProduct : shipmentProducts) {
+                            if (shipmentProduct.getProduct() != null) {
+                                org.hibernate.Hibernate.initialize(shipmentProduct.getProduct());
+                            }
+                        }
+                        
+                        // Load shipment packages
+                        List<ShipmentPackage> shipmentPackages = shipmentPackageRepository.findByShipmentId(shipment.getShipmentId());
+                        shipment.setShipmentPackages(shipmentPackages);
+                        
+                        // Load package products for each shipment package
+                        for (ShipmentPackage shipmentPackage : shipmentPackages) {
+                            // Initialize Package entity
+                            if (shipmentPackage.getPackageInfo() != null) {
+                                org.hibernate.Hibernate.initialize(shipmentPackage.getPackageInfo());
+                            }
+                            
+                            List<ShipmentPackageProduct> packageProducts = 
+                                shipmentPackageProductRepository.findByShipmentPackageId(shipmentPackage.getShipmentPackageId());
+                            shipmentPackage.setShipmentPackageProducts(packageProducts);
+                            
+                            // Initialize Product entities for package products
+                            for (ShipmentPackageProduct packageProduct : packageProducts) {
+                                if (packageProduct.getProduct() != null) {
+                                    org.hibernate.Hibernate.initialize(packageProduct.getProduct());
+                                }
+                            }
+                        }
+                    }
+        }
+        
         // Convert to response model (constructor handles all mapping)
-        return new PurchaseOrderResponseModel(purchaseOrder);
+        return new PurchaseOrderResponseModel(purchaseOrder, orderSummary);
     }
     
     /**
@@ -551,9 +886,15 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         
         PurchaseOrder purchaseOrder = purchaseOrderOptional.get();
         
-        // Fetch shipping address
+        // Fetch OrderSummary to get shipping address
+        OrderSummary orderSummary = orderSummaryRepository.findByEntityTypeAndEntityId(
+            OrderSummary.EntityType.PURCHASE_ORDER.getValue(),
+            purchaseOrder.getPurchaseOrderId()
+        ).orElseThrow(() -> new NotFoundException("OrderSummary not found for purchase order"));
+        
+        // Fetch shipping address from OrderSummary
         Optional<Address> shippingAddressOptional = 
-            addressRepository.findById(purchaseOrder.getPurchaseOrderAddressId());
+            addressRepository.findById(orderSummary.getEntityAddressId());
         
         if (shippingAddressOptional.isEmpty()) {
             throw new NotFoundException(ErrorMessages.AddressErrorMessages.InvalidId);
@@ -725,6 +1066,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
     
     /**
      * Retrieves the product to quantity mapping for a purchase order.
+     * Gets products from ShipmentProduct via OrderSummary.
      * 
      * @param purchaseOrder The purchase order entity
      * @return Map of Product to quantity
@@ -732,18 +1074,31 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
     private Map<Product, Integer> getProductQuantityMap(PurchaseOrder purchaseOrder) {
         Map<Product, Integer> productQuantityMap = new LinkedHashMap<>();
         
-        // Get all quantity price maps for this purchase order
-        Set<PurchaseOrderQuantityPriceMap> quantityMaps = purchaseOrder.getPurchaseOrderQuantityPriceMaps();
+        // Get OrderSummary for this purchase order
+        Optional<OrderSummary> orderSummaryOpt = orderSummaryRepository.findByEntityTypeAndEntityId(
+            OrderSummary.EntityType.PURCHASE_ORDER.getValue(),
+            purchaseOrder.getPurchaseOrderId()
+        );
         
-        if (quantityMaps != null) {
-            for (PurchaseOrderQuantityPriceMap quantityMap : quantityMaps) {
-                // Get the product directly from the quantity map
-                if (quantityMap.getProduct() != null) {
-                    Product product = quantityMap.getProduct();
-                    Integer quantity = quantityMap.getQuantity();
+        if (orderSummaryOpt.isPresent()) {
+            OrderSummary orderSummary = orderSummaryOpt.get();
+            
+            // Get all shipments for this order summary
+            List<Shipment> shipments = shipmentRepository.findByOrderSummaryId(orderSummary.getOrderSummaryId());
+            
+            // Get all shipment products
+            for (Shipment shipment : shipments) {
+                List<ShipmentProduct> shipmentProducts = shipmentProductRepository.findByShipmentId(shipment.getShipmentId());
+                
+                for (ShipmentProduct shipmentProduct : shipmentProducts) {
+                    // Fetch product details
+                    Product product = shipmentProduct.getProduct();
+                    if (product != null) {
+                        Integer quantity = shipmentProduct.getAllocatedQuantity();
                     
                     // Aggregate quantities if the same product appears multiple times
                     productQuantityMap.merge(product, quantity, Integer::sum);
+                    }
                 }
             }
         }
@@ -773,7 +1128,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         String imgbbApiKey = client.getImgbbApiKey();
         
         if (imgbbApiKey == null || imgbbApiKey.trim().isEmpty()) {
-            throw new BadRequestException("ImgBB API key is not configured for this client");
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.ImgbbApiKeyNotConfigured);
         }
         
         // Get environment name for custom file naming
@@ -781,20 +1136,33 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
             ? environment.getActiveProfiles()[0] 
             : "default";
         
-        // Prepare attachment upload requests
+        // Prepare attachment upload requests (keep track of fileName -> request mapping)
         List<ImgbbHelper.AttachmentUploadRequest> uploadRequests = new ArrayList<>();
+        Map<Integer, String> indexToFileNameMap = new HashMap<>(); // Track index -> fileName mapping
+        
+        int index = 0;
         for (Map.Entry<String, String> attachment : attachments.entrySet()) {
             String fileName = attachment.getKey();
             String base64Data = attachment.getValue();
             
-            if (fileName == null || fileName.trim().isEmpty() || base64Data == null || base64Data.trim().isEmpty()) {
-                throw new BadRequestException("Each attachment must have a valid fileName (key) and base64 data (value)");
+            // Skip URLs (already uploaded attachments) - only upload new base64 images
+            if (base64Data != null && base64Data.startsWith("http")) {
+                continue; // Skip existing URLs, they're already uploaded
             }
             
+            if (fileName == null || fileName.trim().isEmpty() || base64Data == null || base64Data.trim().isEmpty()) {
+                throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidAttachmentData);
+            }
+            
+            // Store fileName for this index
+            indexToFileNameMap.put(index, fileName);
             // No notes field in the new structure
             uploadRequests.add(new ImgbbHelper.AttachmentUploadRequest(fileName, base64Data, null));
+            index++;
         }
         
+        // Only upload if there are new attachments
+        if (!uploadRequests.isEmpty()) {
         // Upload all attachments using ImgbbHelper
         ImgbbHelper imgbbHelper = new ImgbbHelper(imgbbApiKey);
         List<ImgbbHelper.AttachmentUploadResult> uploadResults;
@@ -806,19 +1174,25 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                 purchaseOrderId
             );
         } catch (IOException e) {
-            throw new BadRequestException("Failed to upload attachments: " + e.getMessage());
+                throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.FailedToUploadAttachments, e.getMessage()));
         }
         
         // Save resource records to database
-        for (ImgbbHelper.AttachmentUploadResult result : uploadResults) {
+            // Store fileName in 'key' field and URL in 'value' field for proper mapping
+            for (int i = 0; i < uploadResults.size(); i++) {
+                ImgbbHelper.AttachmentUploadResult result = uploadResults.get(i);
+                String fileName = indexToFileNameMap.get(i);
+                
             Resources resource = new Resources();
             resource.setEntityId(purchaseOrderId);
             resource.setEntityType(EntityType.PURCHASE_ORDER);
-            resource.setKey(result.getUrl()); // ImgBB URL in 'key' field
-            resource.setValue(result.getDeleteHash()); // Delete hash in 'value' field
+                resource.setKey(fileName); // Store fileName in 'key' field
+                resource.setValue(result.getUrl()); // Store ImgBB URL in 'value' field
+                resource.setDeleteHashValue(result.getDeleteHash()); // Store delete hash
             resource.setNotes(result.getNotes());
             
             resourcesRepository.save(resource);
+            }
         }
     }
     
@@ -853,7 +1227,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                     
                     // Collect delete hashes
                     List<String> deleteHashes = existingResources.stream()
-                        .map(Resources::getValue)
+                        .map(Resources::getDeleteHashValue)
                         .filter(hash -> hash != null && !hash.trim().isEmpty())
                         .collect(Collectors.toList());
                     
@@ -867,58 +1241,6 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         resourcesRepository.deleteAll(existingResources);
     }
     
-    /**
-     * Updates purchase order quantity price mappings by updating existing records,
-     * deleting excess records, or inserting new records as needed.
-     * 
-     * This approach avoids trigger errors and duplicate entry constraints by:
-     * - Updating existing records with new values
-     * - Deleting only excess records (if existing > new)
-     * - Inserting only additional records (if existing < new)
-     * 
-     * @param purchaseOrderId The purchase order ID
-     * @param request The purchase order request model with new product data
-     */
-    private void updatePurchaseOrderQuantityPriceMaps(Long purchaseOrderId, PurchaseOrderRequestModel request) {
-        // Get existing mappings
-        List<PurchaseOrderQuantityPriceMap> existingMappings = 
-            purchaseOrderQuantityPriceMapRepository.findByPurchaseOrderId(purchaseOrderId);
-        
-        // Create new mappings from the request
-        List<PurchaseOrderQuantityPriceMap> newMappings = PurchaseOrderQuantityPriceMap.createFromRequest(
-            request,
-            purchaseOrderId
-        );
-        
-        int existingCount = existingMappings.size();
-        int newCount = newMappings.size();
-        int minCount = Math.min(existingCount, newCount);
-        
-        // Step 1: Update existing records with new values (up to minCount)
-        for (int i = 0; i < minCount; i++) {
-            PurchaseOrderQuantityPriceMap existing = existingMappings.get(i);
-            PurchaseOrderQuantityPriceMap newMapping = newMappings.get(i);
-            
-            // Update the existing record with new values
-            existing.setProductId(newMapping.getProductId());
-            existing.setQuantity(newMapping.getQuantity());
-            existing.setPricePerQuantity(newMapping.getPricePerQuantity());
-            
-            purchaseOrderQuantityPriceMapRepository.save(existing);
-        }
-        
-        // Step 2: Handle the difference
-        if (existingCount > newCount) {
-            // Delete excess existing records (keeping at least newCount records)
-            List<PurchaseOrderQuantityPriceMap> toDelete = existingMappings.subList(newCount, existingCount);
-            purchaseOrderQuantityPriceMapRepository.deleteAll(toDelete);
-        } else if (existingCount < newCount) {
-            // Insert additional new records
-            List<PurchaseOrderQuantityPriceMap> toInsert = newMappings.subList(existingCount, newCount);
-            purchaseOrderQuantityPriceMapRepository.saveAll(toInsert);
-        }
-        // If existingCount == newCount, we've already updated all records in Step 1
-    }
 
     /**
      * Creates multiple purchase orders in a single operation.

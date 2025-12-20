@@ -31,6 +31,9 @@ import java.util.concurrent.Executor;
 				// scan the services and subpackages
 				"com.example.SpringApi.Services",
 
+				// scan the helpers
+				"com.example.SpringApi.Helpers",
+
 				// scan the datasource beans
 				"com.example.SpringApi.DataSource",
 

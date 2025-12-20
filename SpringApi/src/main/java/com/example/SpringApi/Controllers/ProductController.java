@@ -305,4 +305,39 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
+    
+    /**
+     * Gets product stock information across all pickup locations for a specific product.
+     * Returns stock availability with pickup location address details for distance calculation.
+     * Requires VIEW_PRODUCTS_PERMISSION to access.
+     * 
+     * @param productId The product ID
+     * @return ResponseEntity containing list of ProductStockByLocationResponseModel
+     */
+    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_PRODUCTS_PERMISSION +"') || " +
+                  "@customAuthorization.hasAuthority('"+ Authorizations.INSERT_PURCHASE_ORDERS_PERMISSION +"') || " +
+                  "@customAuthorization.hasAuthority('"+ Authorizations.UPDATE_PURCHASE_ORDERS_PERMISSION +"')")
+    @GetMapping("/" + ApiRoutes.ProductsSubRoute.GET_PRODUCT_STOCK_AT_LOCATIONS_BY_PRODUCT_ID + "/{productId}/{quantity}/{deliveryPostcode}/{isCod}")
+    public ResponseEntity<?> getProductStockAtLocationsByProductId(
+            @PathVariable Long productId,
+            @PathVariable Integer quantity,
+            @PathVariable String deliveryPostcode,
+            @PathVariable Boolean isCod) {
+        try {
+            com.example.SpringApi.Services.ProductService service = (com.example.SpringApi.Services.ProductService) productService;
+            // Handle "0" or empty delivery postcode as null
+            String effectivePostcode = (deliveryPostcode == null || deliveryPostcode.equals("0") || deliveryPostcode.isEmpty()) ? null : deliveryPostcode;
+            Integer effectiveQuantity = (quantity == null || quantity <= 0) ? null : quantity;
+            return ResponseEntity.ok(service.getProductStockAtLocationsByProductId(productId, effectiveQuantity, effectivePostcode, isCod));
+        } catch (BadRequestException bre) {
+            logger.error(bre);
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (NotFoundException nfe) {
+            logger.error(nfe);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (Exception e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
 }

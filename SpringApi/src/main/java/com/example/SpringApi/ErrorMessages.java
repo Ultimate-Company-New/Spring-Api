@@ -367,6 +367,16 @@ public class ErrorMessages {
         public static final String InvalidPriority = "Priority is required and must be one of: LOW, MEDIUM, HIGH, URGENT.";
         public static final String AlreadyApproved = "Purchase order is already approved.";
         public static final String AlreadyRejected = "Purchase order is already rejected.";
+        public static final String AddressDataRequired = "Address data is required in OrderSummary.";
+        public static final String AtLeastOneShipmentRequired = "At least one shipment is required for purchase order.";
+        public static final String ImgbbApiKeyNotConfigured = "ImgBB API key is not configured for this client";
+        public static final String InvalidAttachmentData = "Each attachment must have a valid fileName (key) and base64 data (value)";
+        public static final String FailedToUploadAttachments = "Failed to upload attachments: %s";
+        public static final String InvalidColumnName = "Invalid column name: %s";
+        public static final String InvalidOperator = "Invalid operator: %s";
+        public static final String BooleanColumnsOnlySupportEquals = "Boolean columns only support 'equals' and 'notEquals' operators";
+        public static final String ColumnsOnlySupportNumericOperators = "%s columns only support numeric comparison operators";
+        public static final String InvalidPagination = "Invalid pagination: end must be greater than start";
 
         // additional error messages
         public static final String ER001 = "Expected shipment date should be greater than or equal to the current date.";
@@ -418,6 +428,71 @@ public class ErrorMessages {
         public static final String ER001 = "Failed to send email";
         public static final String ER002 = "Failed to generate batch ID";
         public static final String ER003 = "Failed to cancel email";
+    }
+
+    public static class OrderSummaryErrorMessages {
+        // standard error messages
+        public static final String InvalidId = "Invalid order summary Id.";
+        public static final String InvalidRequest = "OrderSummary data is required.";
+        public static final String EntityTypeRequired = "Entity type is required and cannot be empty.";
+        public static final String InvalidEntityType = "Invalid entity type. Must be 'PURCHASE_ORDER' or 'ORDER'.";
+        public static final String EntityIdRequired = "Entity ID is required and must be greater than 0.";
+        public static final String ProductsSubtotalRequired = "productsSubtotal is required.";
+        public static final String ProductsSubtotalInvalid = "productsSubtotal must be greater than or equal to 0.";
+        public static final String TotalDiscountInvalid = "totalDiscount must be greater than or equal to 0.";
+        public static final String PackagingFeeInvalid = "packagingFee must be greater than or equal to 0.";
+        public static final String TotalShippingInvalid = "totalShipping must be greater than or equal to 0.";
+        public static final String InvalidGstPercentage = "GST percentage must be between 0 and 100.";
+        public static final String EntityAddressIdRequired = "Entity address ID is required and must be greater than 0.";
+        public static final String PriorityRequired = "Priority is required and cannot be empty.";
+        public static final String InvalidPriority = "Invalid priority. Must be 'LOW', 'MEDIUM', 'HIGH', or 'URGENT'.";
+        public static final String PaidAmountInvalid = "Paid amount must be greater than or equal to 0.";
+        public static final String PaidAmountExceedsGrandTotal = "Paid amount cannot exceed grand total.";
+    }
+
+    public static class ShipmentErrorMessages {
+        // standard error messages
+        public static final String InvalidId = "Invalid shipment Id.";
+        public static final String InvalidRequest = "Shipment data is required.";
+        public static final String OrderSummaryIdRequired = "Order summary ID is required and must be greater than 0.";
+        public static final String TotalWeightRequired = "Total weight is required.";
+        public static final String TotalWeightInvalid = "Total weight must be greater than or equal to 0.";
+        public static final String TotalQuantityRequired = "Total quantity is required and must be greater than 0.";
+        public static final String PackagingCostRequired = "packagingCost is required.";
+        public static final String PackagingCostInvalid = "packagingCost must be greater than or equal to 0.";
+        public static final String ShippingCostRequired = "shippingCost is required.";
+        public static final String ShippingCostInvalid = "shippingCost must be greater than or equal to 0.";
+        public static final String CourierSelectionRequired = "Each shipment must have at least one courier selected.";
+    }
+
+    public static class ShipmentProductErrorMessages {
+        // standard error messages
+        public static final String InvalidId = "Invalid shipment product Id.";
+        public static final String InvalidRequest = "Shipment product data is required.";
+        public static final String ShipmentIdRequired = "Shipment ID is required and must be greater than 0.";
+        public static final String AllocatedQuantityRequired = "Allocated quantity is required and must be greater than 0.";
+        public static final String AllocatedPriceRequired = "Allocated price is required.";
+        public static final String AllocatedPriceInvalid = "Allocated price must be greater than or equal to 0.";
+    }
+
+    public static class ShipmentPackageErrorMessages {
+        // standard error messages
+        public static final String InvalidId = "Invalid shipment package Id.";
+        public static final String InvalidRequest = "Shipment package data is required.";
+        public static final String ShipmentIdRequired = "Shipment ID is required and must be greater than 0.";
+        public static final String QuantityUsedRequired = "Quantity used is required and must be greater than 0.";
+        public static final String TotalCostRequired = "Total cost is required.";
+        public static final String TotalCostInvalid = "Total cost must be greater than or equal to 0.";
+        public static final String AtLeastOnePackageRequired = "Each shipment must have at least one package.";
+    }
+
+    public static class ShipmentPackageProductErrorMessages {
+        // standard error messages
+        public static final String InvalidId = "Invalid shipment package product Id.";
+        public static final String InvalidRequest = "Package product data is required.";
+        public static final String ShipmentPackageIdRequired = "Shipment package ID is required and must be greater than 0.";
+        public static final String QuantityRequired = "Quantity is required and must be greater than 0.";
+        public static final String AtLeastOneProductRequired = "Each package must have at least one product.";
     }
 
 }

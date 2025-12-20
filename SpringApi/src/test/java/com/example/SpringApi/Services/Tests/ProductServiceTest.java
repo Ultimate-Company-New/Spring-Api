@@ -69,6 +69,9 @@ class ProductServiceTest {
     private ProductPickupLocationMappingRepository productPickupLocationMappingRepository;
 
     @Mock
+    private com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository packagePickupLocationMappingRepository;
+
+    @Mock
     private UserLogService userLogService;
 
     @Mock
@@ -131,6 +134,7 @@ class ProductServiceTest {
         // Initialize mocks
         productRepository = mock(ProductRepository.class);
         productPickupLocationMappingRepository = mock(ProductPickupLocationMappingRepository.class);
+        packagePickupLocationMappingRepository = mock(com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository.class);
         userLogService = mock(UserLogService.class);
         productCategoryRepository = mock(ProductCategoryRepository.class);
         googleCredRepository = mock(GoogleCredRepository.class);
@@ -155,6 +159,7 @@ class ProductServiceTest {
         productService = new ProductService(
             productRepository,
             productPickupLocationMappingRepository,
+            packagePickupLocationMappingRepository,
             userLogService,
             productCategoryRepository,
             clientRepository,

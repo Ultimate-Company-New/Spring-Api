@@ -54,4 +54,16 @@ public interface PackagePickupLocationMappingRepository extends JpaRepository<Pa
     @Query("SELECT m.pickupLocationId, COUNT(m) FROM PackagePickupLocationMapping m " +
            "WHERE m.pickupLocationId IN :pickupLocationIds GROUP BY m.pickupLocationId")
     List<Object[]> countByPickupLocationIds(@Param("pickupLocationIds") List<Long> pickupLocationIds);
+    
+    /**
+     * Find all package mappings for multiple pickup locations with package details.
+     * 
+     * @param pickupLocationIds List of pickup location IDs
+     * @return List of PackagePickupLocationMappings with package entity loaded
+     */
+    @Query("SELECT m FROM PackagePickupLocationMapping m " +
+           "JOIN FETCH m.packageEntity p " +
+           "WHERE m.pickupLocationId IN :pickupLocationIds AND m.availableQuantity > 0 " +
+           "ORDER BY p.pricePerUnit ASC")
+    List<PackagePickupLocationMapping> findByPickupLocationIdsWithPackages(@Param("pickupLocationIds") List<Long> pickupLocationIds);
 }

@@ -28,6 +28,7 @@ public class ApiRoutes {
         public static final String SUPPORT = "Support";
         public static final String LEAD = "Lead";
         public static final String PURCHASE_ORDER = "PurchaseOrder";
+        public static final String SHIPPING = "Shipping";
         public static final String SALES_ORDER = "SalesOrder";
         public static final String WEB_TEMPLATE = "WebTemplate";
         public static final String DATA = "Data";
@@ -248,6 +249,7 @@ public class ApiRoutes {
         public static final String GET_PRODUCT_DETAILS_BY_ID = "getProductDetailsById";
         public static final String GET_PRODUCT_DETAILS_BY_IDS = "getProductDetailsByIds";
         public static final String GET_PRODUCTS_IN_BATCHES = "getProductsInBatches";
+        public static final String GET_PRODUCT_STOCK_AT_LOCATIONS_BY_PRODUCT_ID = "getProductStockAtLocationsByProductId";
 
         // Public endpoints
         public static final String ADD_ITEM_TO_CART = "addItemToCart";
@@ -357,6 +359,12 @@ public class ApiRoutes {
         public static final String APPROVED_BY_PURCHASE_ORDER = "approvedByPurchaseOrder";
         public static final String REJECTED_BY_PURCHASE_ORDER = "rejectedByPurchaseOrder";
         public static final String GET_PURCHASE_ORDER_PDF = "getPurchaseOrderPdf";
+    }
+
+    public static class ShippingSubRoute {
+        public static final String GET_SHIPPING_OPTIONS = "getShippingOptions";
+        public static final String CALCULATE_SHIPPING = "calculateShipping";
+        public static final String OPTIMIZE_ORDER = "optimizeOrder";
     }
 
     public static class SalesOrderSubRoute {

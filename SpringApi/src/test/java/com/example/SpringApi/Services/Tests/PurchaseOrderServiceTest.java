@@ -8,7 +8,6 @@ import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem;
 import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
 import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
@@ -60,9 +59,6 @@ class PurchaseOrderServiceTest {
     private PurchaseOrderRepository purchaseOrderRepository;
 
     @Mock
-    private PaymentInfoRepository paymentInfoRepository;
-
-    @Mock
     private AddressRepository addressRepository;
 
     @Mock
@@ -78,7 +74,19 @@ class PurchaseOrderServiceTest {
     private ResourcesRepository resourcesRepository;
 
     @Mock
-    private PurchaseOrderQuantityPriceMapRepository purchaseOrderQuantityPriceMapRepository;
+    private OrderSummaryRepository orderSummaryRepository;
+
+    @Mock
+    private ShipmentRepository shipmentRepository;
+
+    @Mock
+    private ShipmentProductRepository shipmentProductRepository;
+
+    @Mock
+    private ShipmentPackageRepository shipmentPackageRepository;
+
+    @Mock
+    private ShipmentPackageProductRepository shipmentPackageProductRepository;
 
     @Mock
     private UserLogService userLogService;
@@ -95,7 +103,7 @@ class PurchaseOrderServiceTest {
     private PurchaseOrder testPurchaseOrder;
     private PurchaseOrderRequestModel testPurchaseOrderRequest;
     private Address testAddress;
-    private PaymentInfo testPaymentInfo;
+    private OrderSummary testOrderSummary;
     private Lead testLead;
     private User testUser;
     private Client testClient;
@@ -144,6 +152,11 @@ class PurchaseOrderServiceTest {
 
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
             .thenReturn(new ArrayList<>());
+        
+        // Mock OrderSummary and Shipments loading
+        when(orderSummaryRepository.findByEntityTypeAndEntityId(
+            eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
+            .thenReturn(Optional.empty());
 
         // Act
         PaginationBaseResponseModel<PurchaseOrderResponseModel> result = 
@@ -205,6 +218,10 @@ class PurchaseOrderServiceTest {
 
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
             .thenReturn(new ArrayList<>());
+        
+        when(orderSummaryRepository.findByEntityTypeAndEntityId(
+            eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
+            .thenReturn(Optional.empty());
 
         // Act
         PaginationBaseResponseModel<PurchaseOrderResponseModel> result = 
@@ -248,6 +265,10 @@ class PurchaseOrderServiceTest {
 
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
             .thenReturn(new ArrayList<>());
+        
+        when(orderSummaryRepository.findByEntityTypeAndEntityId(
+            eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
+            .thenReturn(Optional.empty());
 
         // Act
         PaginationBaseResponseModel<PurchaseOrderResponseModel> result = 
@@ -291,6 +312,10 @@ class PurchaseOrderServiceTest {
 
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
             .thenReturn(new ArrayList<>());
+        
+        when(orderSummaryRepository.findByEntityTypeAndEntityId(
+            eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
+            .thenReturn(Optional.empty());
 
         // Act
         PaginationBaseResponseModel<PurchaseOrderResponseModel> result = 
@@ -334,6 +359,10 @@ class PurchaseOrderServiceTest {
 
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
             .thenReturn(new ArrayList<>());
+        
+        when(orderSummaryRepository.findByEntityTypeAndEntityId(
+            eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
+            .thenReturn(Optional.empty());
 
         // Act
         PaginationBaseResponseModel<PurchaseOrderResponseModel> result = 
@@ -393,19 +422,24 @@ class PurchaseOrderServiceTest {
         // Arrange
         testPurchaseOrderRequest.setAttachments(null);
 
+        when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
+            .thenReturn(Optional.empty());
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(paymentInfoRepository.save(any(PaymentInfo.class))).thenReturn(testPaymentInfo);
+        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
-        when(purchaseOrderQuantityPriceMapRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
+        when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
+        when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(shipmentProductRepository.save(any(ShipmentProduct.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(shipmentPackageRepository.save(any(ShipmentPackage.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(shipmentPackageProductRepository.save(any(ShipmentPackageProduct.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
         assertDoesNotThrow(() -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
 
         // Assert
-        verify(addressRepository, times(1)).save(any(Address.class));
-        verify(paymentInfoRepository, times(1)).save(any(PaymentInfo.class));
+        verify(addressRepository, atLeastOnce()).save(any(Address.class));
         verify(purchaseOrderRepository, times(1)).save(any(PurchaseOrder.class));
-        verify(purchaseOrderQuantityPriceMapRepository, times(1)).saveAll(anyList());
+        verify(orderSummaryRepository, times(1)).save(any(OrderSummary.class));
         verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
     }
 
@@ -417,11 +451,16 @@ class PurchaseOrderServiceTest {
         attachments.put("receipt.pdf", "base64-data-here");
         testPurchaseOrderRequest.setAttachments(attachments);
 
+        lenient().when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
+            .thenReturn(Optional.empty());
         lenient().when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        lenient().when(paymentInfoRepository.save(any(PaymentInfo.class))).thenReturn(testPaymentInfo);
-        lenient().when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
-        lenient().when(purchaseOrderQuantityPriceMapRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
         lenient().when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        lenient().when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+        lenient().when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
+        lenient().when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(shipmentProductRepository.save(any(ShipmentProduct.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(shipmentPackageRepository.save(any(ShipmentPackage.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(shipmentPackageProductRepository.save(any(ShipmentPackageProduct.class))).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(resourcesRepository.save(any(Resources.class))).thenReturn(new Resources());
 
         try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
@@ -441,10 +480,9 @@ class PurchaseOrderServiceTest {
             assertDoesNotThrow(() -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
 
             // Assert
-            verify(addressRepository, times(1)).save(any(Address.class));
-            verify(paymentInfoRepository, times(1)).save(any(PaymentInfo.class));
+            verify(addressRepository, atLeastOnce()).save(any(Address.class));
             verify(purchaseOrderRepository, times(1)).save(any(PurchaseOrder.class));
-            verify(purchaseOrderQuantityPriceMapRepository, times(1)).saveAll(anyList());
+            verify(orderSummaryRepository, times(1)).save(any(OrderSummary.class));
             // Note: Attachment upload is conditional based on environment configuration
         }
     }
@@ -460,13 +498,20 @@ class PurchaseOrderServiceTest {
 
         when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
             .thenReturn(Optional.of(testPurchaseOrder));
-        when(addressRepository.findById(TEST_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        when(paymentInfoRepository.findById(TEST_PAYMENT_ID)).thenReturn(Optional.of(testPaymentInfo));
-        when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+        when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
+            .thenReturn(Optional.empty());
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(paymentInfoRepository.save(any(PaymentInfo.class))).thenReturn(testPaymentInfo);
-        when(purchaseOrderQuantityPriceMapRepository.findByPurchaseOrderId(TEST_PO_ID))
-            .thenReturn(new ArrayList<>());
+        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+        when(orderSummaryRepository.findByEntityTypeAndEntityId(
+            eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
+            .thenReturn(Optional.of(testOrderSummary));
+        when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
+        when(shipmentRepository.findByOrderSummaryId(anyLong())).thenReturn(new ArrayList<>());
+        when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(shipmentProductRepository.save(any(ShipmentProduct.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(shipmentPackageRepository.save(any(ShipmentPackage.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(shipmentPackageProductRepository.save(any(ShipmentPackageProduct.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
             .thenReturn(new ArrayList<>());
 
@@ -475,8 +520,8 @@ class PurchaseOrderServiceTest {
 
         // Assert
         verify(purchaseOrderRepository, times(1)).save(any(PurchaseOrder.class));
-        verify(addressRepository, times(1)).save(any(Address.class));
-        verify(paymentInfoRepository, times(1)).save(any(PaymentInfo.class));
+        verify(addressRepository, atLeastOnce()).save(any(Address.class));
+        verify(orderSummaryRepository, times(1)).save(any(OrderSummary.class));
         verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
     }
 
@@ -505,35 +550,15 @@ class PurchaseOrderServiceTest {
         when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
             .thenReturn(Optional.of(testPurchaseOrder));
         when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
-        when(addressRepository.findById(TEST_ADDRESS_ID)).thenReturn(Optional.empty());
+        when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
+            .thenReturn(Optional.empty());
+        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.empty());
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
             () -> purchaseOrderService.updatePurchaseOrder(testPurchaseOrderRequest));
 
-        assertEquals(ErrorMessages.AddressErrorMessages.InvalidId, exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Update PO - Payment Not Found")
-    void updatePurchaseOrder_PaymentNotFound() {
-        // Arrange
-        testPurchaseOrderRequest.setPurchaseOrderId(TEST_PO_ID);
-
-        when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.of(testPurchaseOrder));
-        when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
-        when(addressRepository.findById(TEST_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(purchaseOrderQuantityPriceMapRepository.findByPurchaseOrderId(TEST_PO_ID))
-            .thenReturn(new ArrayList<>());
-        when(paymentInfoRepository.findById(TEST_PAYMENT_ID)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class,
-            () -> purchaseOrderService.updatePurchaseOrder(testPurchaseOrderRequest));
-
-        assertEquals(ErrorMessages.PaymentInfoErrorMessages.InvalidId, exception.getMessage());
+        assertTrue(exception.getMessage().contains("Client") || exception.getMessage().contains("not found"));
     }
 
     // ==================== getPurchaseOrderDetailsById Tests ====================
@@ -546,6 +571,10 @@ class PurchaseOrderServiceTest {
             .thenReturn(Optional.of(testPurchaseOrder));
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
             .thenReturn(new ArrayList<>());
+        when(orderSummaryRepository.findByEntityTypeAndEntityId(
+            eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
+            .thenReturn(Optional.of(testOrderSummary));
+        when(shipmentRepository.findByOrderSummaryId(anyLong())).thenReturn(new ArrayList<>());
 
         // Act
         PurchaseOrderResponseModel result = purchaseOrderService.getPurchaseOrderDetailsById(TEST_PO_ID);
@@ -765,38 +794,55 @@ class PurchaseOrderServiceTest {
         testAddress.setPostalCode("12345");
         testAddress.setCountry("Test Country");
 
-        // Initialize test payment info
-        testPaymentInfo = new PaymentInfo();
-        testPaymentInfo.setPaymentId(TEST_PAYMENT_ID);
-        testPaymentInfo.setSubTotal(new BigDecimal("100.00"));
-        testPaymentInfo.setTax(new BigDecimal("10.00"));
-        testPaymentInfo.setDeliveryFee(new BigDecimal("5.00"));
-        testPaymentInfo.setTotal(new BigDecimal("115.00"));
+        // Initialize test order summary
+        testOrderSummary = new OrderSummary();
+        testOrderSummary.setOrderSummaryId(1L);
+        testOrderSummary.setEntityType(OrderSummary.EntityType.PURCHASE_ORDER.getValue());
+        testOrderSummary.setEntityId(TEST_PO_ID);
+        testOrderSummary.setProductsSubtotal(new BigDecimal("100.00"));
+        testOrderSummary.setTotalDiscount(new BigDecimal("0.00"));
+        testOrderSummary.setPackagingFee(new BigDecimal("5.00"));
+        testOrderSummary.setTotalShipping(new BigDecimal("10.00"));
+        testOrderSummary.setSubtotal(new BigDecimal("115.00"));
+        testOrderSummary.setGstPercentage(new BigDecimal("18.00"));
+        testOrderSummary.setGstAmount(new BigDecimal("20.70"));
+        testOrderSummary.setGrandTotal(new BigDecimal("135.70"));
+        testOrderSummary.setPendingAmount(new BigDecimal("135.70"));
+        testOrderSummary.setEntityAddressId(TEST_ADDRESS_ID);
+        testOrderSummary.setPriority("HIGH");
+        testOrderSummary.setClientId(TEST_CLIENT_ID);
+        testOrderSummary.setCreatedUser(CREATED_USER);
+        testOrderSummary.setModifiedUser(CREATED_USER);
 
         // Initialize test purchase order request
         testPurchaseOrderRequest = new PurchaseOrderRequestModel();
         testPurchaseOrderRequest.setVendorNumber(TEST_VENDOR_NUMBER);
         testPurchaseOrderRequest.setPurchaseOrderStatus("DRAFT");
-        testPurchaseOrderRequest.setPriority("HIGH");
         testPurchaseOrderRequest.setAssignedLeadId(TEST_LEAD_ID);
-        testPurchaseOrderRequest.setAddress(testAddressRequest);
-        testPurchaseOrderRequest.setDeliveryFee(new BigDecimal("5.00"));
-        testPurchaseOrderRequest.setServiceFee(new BigDecimal("10.00"));
-        testPurchaseOrderRequest.setDiscount(new BigDecimal("0.00"));
         
-        // Set products list
-        List<PurchaseOrderProductItem> products = new ArrayList<>();
-        products.add(new PurchaseOrderProductItem(TEST_PRODUCT_ID, new BigDecimal("10.00"), 10));
-        testPurchaseOrderRequest.setProducts(products);
+        // Set OrderSummary data
+        PurchaseOrderRequestModel.OrderSummaryData orderSummaryData = new PurchaseOrderRequestModel.OrderSummaryData();
+        orderSummaryData.setProductsSubtotal(new BigDecimal("100.00"));
+        orderSummaryData.setTotalDiscount(new BigDecimal("0.00"));
+        orderSummaryData.setPackagingFee(new BigDecimal("5.00"));
+        orderSummaryData.setTotalShipping(new BigDecimal("10.00"));
+        orderSummaryData.setGstPercentage(new BigDecimal("18.00"));
+        orderSummaryData.setGstAmount(new BigDecimal("20.70"));
+        orderSummaryData.setGrandTotal(new BigDecimal("135.70"));
+        orderSummaryData.setPendingAmount(new BigDecimal("135.70"));
+        orderSummaryData.setPriority("HIGH");
+        orderSummaryData.setAddress(testAddressRequest);
+        testPurchaseOrderRequest.setOrderSummary(orderSummaryData);
+        
+        // Set shipments (empty for basic tests)
+        testPurchaseOrderRequest.setShipments(new ArrayList<>());
 
         // Initialize test purchase order
         testPurchaseOrder = new PurchaseOrder();
         testPurchaseOrder.setPurchaseOrderId(TEST_PO_ID);
         testPurchaseOrder.setVendorNumber(TEST_VENDOR_NUMBER);
         testPurchaseOrder.setPurchaseOrderStatus("DRAFT");
-        testPurchaseOrder.setPriority("HIGH");
         testPurchaseOrder.setAssignedLeadId(TEST_LEAD_ID);
-        testPurchaseOrder.setPurchaseOrderAddressId(TEST_ADDRESS_ID);
         testPurchaseOrder.setPaymentId(TEST_PAYMENT_ID);
         testPurchaseOrder.setClientId(TEST_CLIENT_ID);
         testPurchaseOrder.setIsDeleted(false);
@@ -817,26 +863,37 @@ class PurchaseOrderServiceTest {
             PurchaseOrderRequestModel poReq = new PurchaseOrderRequestModel();
             poReq.setVendorNumber("VENDOR" + i);
             poReq.setPurchaseOrderStatus("DRAFT");
-            poReq.setPriority("HIGH");
             poReq.setAssignedLeadId(TEST_LEAD_ID);
-            poReq.setAddress(testAddressRequest);
-            poReq.setDeliveryFee(new BigDecimal("5.00"));
-            poReq.setServiceFee(new BigDecimal("10.00"));
-            poReq.setDiscount(new BigDecimal("0.00"));
-            List<PurchaseOrderProductItem> products = new ArrayList<>();
-            products.add(new PurchaseOrderProductItem(TEST_PRODUCT_ID, new BigDecimal("10.00"), 10));
-            poReq.setProducts(products);
+            
+            PurchaseOrderRequestModel.OrderSummaryData orderSummaryData = new PurchaseOrderRequestModel.OrderSummaryData();
+            orderSummaryData.setProductsSubtotal(new BigDecimal("100.00"));
+            orderSummaryData.setTotalDiscount(new BigDecimal("0.00"));
+            orderSummaryData.setPackagingFee(new BigDecimal("5.00"));
+            orderSummaryData.setTotalShipping(new BigDecimal("10.00"));
+            orderSummaryData.setGstPercentage(new BigDecimal("18.00"));
+            orderSummaryData.setGstAmount(new BigDecimal("20.70"));
+            orderSummaryData.setGrandTotal(new BigDecimal("135.70"));
+            orderSummaryData.setPendingAmount(new BigDecimal("135.70"));
+            orderSummaryData.setPriority("HIGH");
+            orderSummaryData.setAddress(testAddressRequest);
+            poReq.setOrderSummary(orderSummaryData);
+            poReq.setShipments(new ArrayList<>());
+            
             purchaseOrders.add(poReq);
         }
 
         lenient().when(leadRepository.findById(TEST_LEAD_ID)).thenReturn(java.util.Optional.of(testLead));
+        lenient().when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
+            .thenReturn(Optional.empty());
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(paymentInfoRepository.save(any(PaymentInfo.class))).thenReturn(testPaymentInfo);
+        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenAnswer(invocation -> {
             PurchaseOrder po = invocation.getArgument(0);
             po.setPurchaseOrderId((long) (Math.random() * 1000));
             return po;
         });
+        when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
+        when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(any(), any()))
             .thenReturn(Optional.of(testPurchaseOrder));
         when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
@@ -861,15 +918,21 @@ class PurchaseOrderServiceTest {
         PurchaseOrderRequestModel validPO = new PurchaseOrderRequestModel();
         validPO.setVendorNumber("VALID_VENDOR");
         validPO.setPurchaseOrderStatus("DRAFT");
-        validPO.setPriority("HIGH");
         validPO.setAssignedLeadId(TEST_LEAD_ID);
-        validPO.setAddress(testAddressRequest);
-        validPO.setDeliveryFee(new BigDecimal("5.00"));
-        validPO.setServiceFee(new BigDecimal("10.00"));
-        validPO.setDiscount(new BigDecimal("0.00"));
-        List<PurchaseOrderProductItem> products = new ArrayList<>();
-        products.add(new PurchaseOrderProductItem(TEST_PRODUCT_ID, new BigDecimal("10.00"), 10));
-        validPO.setProducts(products);
+        
+        PurchaseOrderRequestModel.OrderSummaryData orderSummaryData = new PurchaseOrderRequestModel.OrderSummaryData();
+        orderSummaryData.setProductsSubtotal(new BigDecimal("100.00"));
+        orderSummaryData.setTotalDiscount(new BigDecimal("0.00"));
+        orderSummaryData.setPackagingFee(new BigDecimal("5.00"));
+        orderSummaryData.setTotalShipping(new BigDecimal("10.00"));
+        orderSummaryData.setGstPercentage(new BigDecimal("18.00"));
+        orderSummaryData.setGstAmount(new BigDecimal("20.70"));
+        orderSummaryData.setGrandTotal(new BigDecimal("135.70"));
+        orderSummaryData.setPendingAmount(new BigDecimal("135.70"));
+        orderSummaryData.setPriority("HIGH");
+        orderSummaryData.setAddress(testAddressRequest);
+        validPO.setOrderSummary(orderSummaryData);
+        validPO.setShipments(new ArrayList<>());
         purchaseOrders.add(validPO);
         
         // Invalid PO (missing vendor number)
@@ -878,13 +941,17 @@ class PurchaseOrderServiceTest {
         purchaseOrders.add(invalidPO);
 
         lenient().when(leadRepository.findById(TEST_LEAD_ID)).thenReturn(java.util.Optional.of(testLead));
+        lenient().when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
+            .thenReturn(Optional.empty());
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(paymentInfoRepository.save(any(PaymentInfo.class))).thenReturn(testPaymentInfo);
+        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenAnswer(invocation -> {
             PurchaseOrder po = invocation.getArgument(0);
             po.setPurchaseOrderId((long) (Math.random() * 1000));
             return po;
         });
+        when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
+        when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(any(), any()))
             .thenReturn(Optional.of(testPurchaseOrder));
         when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
@@ -907,20 +974,28 @@ class PurchaseOrderServiceTest {
         PurchaseOrderRequestModel poReq = new PurchaseOrderRequestModel();
         poReq.setVendorNumber("TEST_VENDOR");
         poReq.setPurchaseOrderStatus("DRAFT");
-        poReq.setPriority("HIGH");
         poReq.setAssignedLeadId(TEST_LEAD_ID);
-        poReq.setAddress(testAddressRequest);
-        poReq.setDeliveryFee(new BigDecimal("5.00"));
-        poReq.setServiceFee(new BigDecimal("10.00"));
-        poReq.setDiscount(new BigDecimal("0.00"));
-        List<PurchaseOrderProductItem> products = new ArrayList<>();
-        products.add(new PurchaseOrderProductItem(TEST_PRODUCT_ID, new BigDecimal("10.00"), 10));
-        poReq.setProducts(products);
+        
+        PurchaseOrderRequestModel.OrderSummaryData orderSummaryData = new PurchaseOrderRequestModel.OrderSummaryData();
+        orderSummaryData.setProductsSubtotal(new BigDecimal("100.00"));
+        orderSummaryData.setTotalDiscount(new BigDecimal("0.00"));
+        orderSummaryData.setPackagingFee(new BigDecimal("5.00"));
+        orderSummaryData.setTotalShipping(new BigDecimal("10.00"));
+        orderSummaryData.setGstPercentage(new BigDecimal("18.00"));
+        orderSummaryData.setGstAmount(new BigDecimal("20.70"));
+        orderSummaryData.setGrandTotal(new BigDecimal("135.70"));
+        orderSummaryData.setPendingAmount(new BigDecimal("135.70"));
+        orderSummaryData.setPriority("HIGH");
+        orderSummaryData.setAddress(testAddressRequest);
+        poReq.setOrderSummary(orderSummaryData);
+        poReq.setShipments(new ArrayList<>());
         purchaseOrders.add(poReq);
 
         lenient().when(leadRepository.findById(TEST_LEAD_ID)).thenReturn(java.util.Optional.of(testLead));
+        lenient().when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
+            .thenReturn(Optional.empty());
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(paymentInfoRepository.save(any(PaymentInfo.class))).thenReturn(testPaymentInfo);
+        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenThrow(new RuntimeException("Database error"));
 
         // Act
