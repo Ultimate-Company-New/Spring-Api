@@ -129,15 +129,19 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
             boolean includeDeleted,
             Pageable pageable) {
 
-        // Check if there's a pickupLocationId filter
+        // Check if there's a pickupLocationId filter (any operator, not just equals)
+        boolean hasPickupLocationIdFilter = false;
         Long pickupLocationIdFilter = null;
         if (filters != null) {
             for (FilterCondition filter : filters) {
-                if ("pickupLocationId".equals(filter.getColumn()) && "equals".equals(filter.getOperator())) {
-                    try {
-                        pickupLocationIdFilter = Long.parseLong(filter.getValue().toString());
-                    } catch (NumberFormatException e) {
-                        // Invalid pickupLocationId, will be handled by regular filter processing
+                if ("pickupLocationId".equals(filter.getColumn())) {
+                    hasPickupLocationIdFilter = true;
+                    if ("equals".equals(filter.getOperator())) {
+                        try {
+                            pickupLocationIdFilter = Long.parseLong(filter.getValue().toString());
+                        } catch (NumberFormatException e) {
+                            // Invalid pickupLocationId, will be handled by regular filter processing
+                        }
                     }
                     break;
                 }
@@ -145,20 +149,32 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
         }
 
         // Base query with all necessary JOINs
-        // When filtering by pickupLocationId, use INNER JOIN to filter and only fetch that mapping
+        // Only include ProductPickupLocationMapping JOIN when filtering by pickupLocationId
+        // This prevents errors when the table doesn't exist
         String baseQuery;
-        if (pickupLocationIdFilter != null) {
-            // Use INNER JOIN when filtering by pickupLocationId - only get products with that mapping
-            // and only fetch that specific mapping
-            baseQuery = "SELECT DISTINCT p FROM Product p " +
-                    "LEFT JOIN FETCH p.category " +
-                    "LEFT JOIN FETCH p.createdByUser " +
-                    "INNER JOIN FETCH p.productPickupLocationMappings pplm " +
-                    "INNER JOIN FETCH pplm.pickupLocation pl " +
-                    "LEFT JOIN FETCH pl.address " +
-                    "WHERE p.clientId = :clientId ";
+        if (hasPickupLocationIdFilter) {
+            if (pickupLocationIdFilter != null) {
+                // Use INNER JOIN when filtering by pickupLocationId - only get products with that mapping
+                // and only fetch that specific mapping
+                baseQuery = "SELECT DISTINCT p FROM Product p " +
+                        "LEFT JOIN FETCH p.category " +
+                        "LEFT JOIN FETCH p.createdByUser " +
+                        "INNER JOIN FETCH p.productPickupLocationMappings pplm " +
+                        "INNER JOIN FETCH pplm.pickupLocation pl " +
+                        "LEFT JOIN FETCH pl.address " +
+                        "WHERE p.clientId = :clientId ";
+            } else {
+                // Use LEFT JOIN when filtering by pickupLocationId with other operators
+                baseQuery = "SELECT DISTINCT p FROM Product p " +
+                        "LEFT JOIN FETCH p.category " +
+                        "LEFT JOIN FETCH p.createdByUser " +
+                        "LEFT JOIN FETCH p.productPickupLocationMappings pplm " +
+                        "LEFT JOIN FETCH pplm.pickupLocation pl " +
+                        "LEFT JOIN FETCH pl.address " +
+                        "WHERE p.clientId = :clientId ";
+            }
         } else {
-            // Standard LEFT JOIN for normal queries
+            // No pickupLocationId filter - still fetch pickup locations for display
             baseQuery = "SELECT DISTINCT p FROM Product p " +
                     "LEFT JOIN FETCH p.category " +
                     "LEFT JOIN FETCH p.createdByUser " +
@@ -189,14 +205,21 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
         baseQuery += "ORDER BY p.productId DESC";
 
         // Count query (without FETCH joins, but with proper JOINs for filtering)
+        // Only include ProductPickupLocationMapping JOIN when filtering by pickupLocationId
         String countQuery;
-        if (pickupLocationIdFilter != null) {
-            countQuery = "SELECT COUNT(DISTINCT p) FROM Product p " +
-                    "INNER JOIN p.productPickupLocationMappings pplm " +
-                    "WHERE p.clientId = :clientId ";
+        if (hasPickupLocationIdFilter) {
+            if (pickupLocationIdFilter != null) {
+                countQuery = "SELECT COUNT(DISTINCT p) FROM Product p " +
+                        "INNER JOIN p.productPickupLocationMappings pplm " +
+                        "WHERE p.clientId = :clientId ";
+            } else {
+                countQuery = "SELECT COUNT(DISTINCT p) FROM Product p " +
+                        "LEFT JOIN p.productPickupLocationMappings pplm " +
+                        "WHERE p.clientId = :clientId ";
+            }
         } else {
+            // No pickupLocationId filter - don't join ProductPickupLocationMapping table
             countQuery = "SELECT COUNT(DISTINCT p) FROM Product p " +
-                    "LEFT JOIN p.productPickupLocationMappings pplm " +
                     "WHERE p.clientId = :clientId ";
         }
 

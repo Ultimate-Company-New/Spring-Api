@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  * JPA Entity for the Resources table.
  * 
  * This entity represents file attachments and resources for various entities
- * such as PurchaseOrder, SalesOrder, etc.
+ * such as PurchaseOrder, Lead, User, Product, etc.
  * 
  * @author SpringApi Team
  * @version 1.0
@@ -33,7 +33,7 @@ public class Resources {
     private Long entityId;
     
     @Column(name = "entityType", nullable = false, length = 50)
-    private String entityType; // Type of entity (PurchaseOrder, SalesOrder, etc.)
+    private String entityType; // Type of entity (PurchaseOrder, Lead, User, Product, etc.)
     
     @Column(name = "`key`", nullable = false, length = 500)
     private String key; // File name or identifier
@@ -64,7 +64,7 @@ public class Resources {
      * Constructor for creating a new resource.
      * 
      * @param entityId The entity ID (e.g., purchaseOrderId)
-     * @param entityType The entity type (e.g., "PurchaseOrder", "SalesOrder")
+     * @param entityType The entity type (e.g., "PurchaseOrder", "Lead")
      * @param key The file name or identifier
      * @param value The URL of the file
      * @param deleteHashValue The delete hash (optional)
@@ -75,6 +75,25 @@ public class Resources {
         this.key = key;
         this.value = value;
         this.deleteHashValue = deleteHashValue;
+    }
+    
+    /**
+     * Constructor for creating a new resource with notes.
+     * 
+     * @param entityId The entity ID (e.g., purchaseOrderId)
+     * @param entityType The entity type (e.g., "PurchaseOrder", "Lead")
+     * @param key The file name or identifier
+     * @param value The URL of the file
+     * @param deleteHashValue The delete hash (optional)
+     * @param notes Additional notes (optional)
+     */
+    public Resources(Long entityId, String entityType, String key, String value, String deleteHashValue, String notes) {
+        this.entityId = entityId;
+        this.entityType = entityType;
+        this.key = key;
+        this.value = value;
+        this.deleteHashValue = deleteHashValue;
+        this.notes = notes;
     }
 }
 

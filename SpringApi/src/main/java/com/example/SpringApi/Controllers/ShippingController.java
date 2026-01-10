@@ -5,6 +5,8 @@ import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Exceptions.UnauthorizedException;
 import com.example.SpringApi.Logging.ContextualLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.RequestModels.OrderOptimizationRequestModel;
@@ -35,7 +37,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/" + ApiRoutes.ApiControllerNames.SHIPPING)
 public class ShippingController {
 
-    private static final ContextualLogger logger = ContextualLogger.getLogger(ShippingController.class);
+    private static final ContextualLogger contextualLogger = ContextualLogger.getLogger(ShippingController.class);
+    private static final Logger logger = LoggerFactory.getLogger(ShippingController.class);
     
     private final IShippingSubTranslator shippingService;
 
@@ -59,16 +62,16 @@ public class ShippingController {
             ShippingCalculationResponseModel response = shippingService.calculateShipping(request);
             return ResponseEntity.ok(response);
         } catch (BadRequestException bre) {
-            logger.error(bre);
+            contextualLogger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException nfe) {
-            logger.error(nfe);
+            contextualLogger.error(nfe);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException ue) {
-            logger.error(ue);
+            contextualLogger.error(ue);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
-            logger.error(e);
+            contextualLogger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
@@ -95,20 +98,28 @@ public class ShippingController {
     @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_PURCHASE_ORDERS_PERMISSION +"')")
     @PostMapping(ApiRoutes.ShippingSubRoute.OPTIMIZE_ORDER)
     public ResponseEntity<?> optimizeOrder(@RequestBody OrderOptimizationRequestModel request) {
+        long startTime = System.currentTimeMillis();
+        logger.info("Received optimizeOrder request for " + 
+                   (request.getProductQuantities() != null ? request.getProductQuantities().size() : 0) + 
+                   " products, delivery postcode: " + request.getDeliveryPostcode());
         try {
             OrderOptimizationResponseModel response = shippingService.optimizeOrder(request);
+            long duration = System.currentTimeMillis() - startTime;
+            logger.info("optimizeOrder completed in " + duration + "ms, success: " + response.getSuccess());
             return ResponseEntity.ok(response);
         } catch (BadRequestException bre) {
-            logger.error(bre);
+            long duration = System.currentTimeMillis() - startTime;
+            logger.error("optimizeOrder failed after " + duration + "ms: BadRequestException");
+            contextualLogger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException nfe) {
-            logger.error(nfe);
+            contextualLogger.error(nfe);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException ue) {
-            logger.error(ue);
+            contextualLogger.error(ue);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
-            logger.error(e);
+            contextualLogger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }

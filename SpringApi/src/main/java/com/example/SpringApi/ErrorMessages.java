@@ -332,22 +332,6 @@ public class ErrorMessages {
         public static final String ER018 = "Invalid user.";
     }
 
-    public static class SalesOrderErrorMessages {
-        // Standard error messages for sales order operations
-        public static final String InvalidId = "Invalid sales order id.";
-
-        // additional error messages
-        public static final String ER001 = "Payment id is required and should be valid";
-        public static final String ER002 = "Purchase order id is required and should be valid";
-        public static final String ER003 = "Terms and conditions html and markdown values are required.";
-        public static final String ER004 = "At least one sales order product quantity mapping is required.";
-        public static final String ER005 = "Product id should be valid and present in the database.";
-        public static final String ER006 = "Error creating the sales order pdf.";
-
-        public static final String ER007 = "Packing estimate model should not be null or empty.";
-        public static final String ER008 = "A courier id needs to be selected for shipping.";
-    }
-
     public static class PurchaseOrderErrorMessages {
         // Standard error messages for purchase order operations
         public static final String InvalidId = "Invalid purchase order Id.";
@@ -397,27 +381,6 @@ public class ErrorMessages {
         public static final String ER002 = "Product Review text is required.";
         public static final String ER003 = "Product Review user id is required and should be valid.";
         public static final String ER004 = "Product Review product id is required and should be valid.";
-    }
-
-    public static class PaymentInfoErrorMessages {
-        // standard error messages
-        public static final String InvalidId = "Invalid payment Info Id.";
-        public static final String InvalidRequest = "Payment info request cannot be null.";
-        public static final String InvalidTotal = "Total amount is required and must be greater than or equal to 0.";
-        public static final String InvalidTax = "Tax amount is required and must be greater than or equal to 0.";
-        public static final String InvalidServiceFee = "Service fee is required and must be greater than or equal to 0.";
-        public static final String InvalidPackagingFee = "Packaging fee is required and must be greater than or equal to 0.";
-        public static final String InvalidDiscount = "Discount amount is required and must be greater than or equal to 0.";
-        public static final String InvalidSubTotal = "Subtotal is required and must be greater than or equal to 0.";
-        public static final String InvalidDeliveryFee = "Delivery fee is required and must be greater than or equal to 0.";
-        public static final String InvalidPendingAmount = "Pending amount is required and must be greater than or equal to 0.";
-        public static final String InvalidPaymentMethod = "Payment method is required and cannot be empty.";
-        public static final String InvalidPaymentStatus = "Payment status is required and cannot be empty.";
-        public static final String InvalidPaymentDate = "Payment date is required.";
-        public static final String InvalidCardLast4 = "Card last 4 digits must be exactly 4 characters.";
-
-        // additional error messages
-        public static final String ER001 = "Numbers dont add up this should be true: (subTotal + tax + serviceFee + deliveryFee + packingFee - discount = total)";
     }
 
     public static class EmailErrorMessages {

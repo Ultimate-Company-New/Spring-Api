@@ -101,14 +101,31 @@ public class PurchaseOrderController {
         }
     }
 
+    /**
+     * Creates multiple purchase orders asynchronously.
+     * 
+     * This endpoint triggers async processing of multiple purchase orders. Results
+     * will be sent to the user via message when processing completes.
+     * 
+     * @param purchaseOrders List of purchase orders to create
+     * @return ResponseEntity with 200 OK if processing started successfully
+     * @throws BadRequestException if validation fails
+     */
+    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.INSERT_PURCHASE_ORDERS_PERMISSION +"')")
     @PutMapping(ApiRoutes.PurchaseOrderSubRoute.BULK_CREATE_PURCHASE_ORDER)
     public ResponseEntity<?> bulkCreatePurchaseOrders(@RequestBody java.util.List<PurchaseOrderRequestModel> purchaseOrders) {
         try {
-            return ResponseEntity.ok(purchaseOrderService.bulkCreatePurchaseOrders(purchaseOrders));
-        } catch (UnsupportedOperationException uoe) {
-            logger.error(uoe);
-            return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                    .body(new ErrorResponseModel("Not Implemented", uoe.getMessage(), HttpStatus.NOT_IMPLEMENTED.value()));
+            // Cast to PurchaseOrderService to access BaseService methods
+            com.example.SpringApi.Services.PurchaseOrderService service = (com.example.SpringApi.Services.PurchaseOrderService) purchaseOrderService;
+            Long userId = service.getUserId();
+            String loginName = service.getUser();
+            Long clientId = service.getClientId();
+            
+            // Trigger async processing - returns immediately
+            purchaseOrderService.bulkCreatePurchaseOrdersAsync(purchaseOrders, userId, loginName, clientId);
+            
+            // Return 200 OK - processing will continue in background
+            return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));

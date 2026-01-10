@@ -29,7 +29,7 @@ public class ApiRoutes {
         public static final String LEAD = "Lead";
         public static final String PURCHASE_ORDER = "PurchaseOrder";
         public static final String SHIPPING = "Shipping";
-        public static final String SALES_ORDER = "SalesOrder";
+        public static final String SHIPMENT = "Shipment";
         public static final String WEB_TEMPLATE = "WebTemplate";
         public static final String DATA = "Data";
 
@@ -189,7 +189,6 @@ public class ApiRoutes {
         UpdateShippingDetails,
         RemoveProductsInOrder,
         OnPaymentSuccess,
-        UpdatePaymentInfoModelData,
         UpdateProductQuantityInOrder,
         CancelOrder,
         GetCancellationPricing,
@@ -367,24 +366,14 @@ public class ApiRoutes {
         public static final String OPTIMIZE_ORDER = "optimizeOrder";
     }
 
-    public static class SalesOrderSubRoute {
+    public static class ShipmentSubRoute {
         // purely frontend endpoints
         public static final String SET_INCLUDE_DELETED = "setIncludeDeleted";
         public static final String GET_INCLUDE_DELETED = "getIncludeDeleted";
-        public static final String GET_PACKAGING_ESTIMATE = "getPackagingEstimate";
-        public static final String GET_SHIPPING_ESTIMATE = "getShippingEstimate";
 
         // Api + frontend Endpoints
-        public static final String GET_SALES_ORDERS_IN_BATCHES = "getSalesOrdersInBatches";
-        public static final String GET_SALES_ORDER_BY_ID = "getSalesOrderById";
-        public static final String CREATE_SALES_ORDER = "createSalesOrder";
-        public static final String UPDATE_SALES_ORDER = "updateSalesOrder";
-        public static final String TOGGLE_SALES_ORDER = "toggleSalesOrder";
-        public static final String GET_SALES_ORDER_PDF = "getSalesOrderPdf";
-        public static final String CANCEL_SALES_ORDER = "cancelSalesOrder";
-
-        public static final String UPDATE_CUSTOMER_DELIVERY_ADDRESS = "updateCustomerDeliveryAddress";
-        public static final String UPDATE_SALES_ORDER_PICKUP_ADDRESS = "updateSalesOrderPickupAddress";
+        public static final String GET_SHIPMENTS_IN_BATCHES = "getShipmentsInBatches";
+        public static final String GET_SHIPMENT_BY_ID = "getShipmentById";
     }
 
     public static class WebTemplateSubRoute {

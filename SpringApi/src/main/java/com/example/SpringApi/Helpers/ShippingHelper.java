@@ -6,6 +6,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -19,6 +20,7 @@ import com.example.SpringApi.Models.ShippingResponseModel.TokenResponseModel;
 import com.example.SpringApi.Models.ShippingResponseModel.AddPickupLocationResponseModel;
 import com.example.SpringApi.Models.ShippingResponseModel.GetAllPickupLocationsResponseModel;
 import com.example.SpringApi.Models.ShippingResponseModel.ShippingOptionsResponseModel;
+import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderResponseModel;
 import com.example.SpringApi.Adapters.DateAdapter;
 import com.example.SpringApi.Adapters.LocalDateTimeAdapter;
 
@@ -26,6 +28,29 @@ public class ShippingHelper {
     private final String _apiUrl = "https://apiv2.shiprocket.in/v1/external";
     private final String _email;
     private final String _password;
+    
+    /**
+     * Timeout for HTTP requests to Shiprocket API (5 seconds).
+     * Prevents hanging if the API is slow or unresponsive.
+     */
+    private static final Duration HTTP_TIMEOUT = Duration.ofSeconds(5);
+    
+    /**
+     * Cached token and its expiration time.
+     * Shiprocket tokens typically expire after some time, so we cache and reuse.
+     */
+    private String cachedToken = null;
+    private long tokenExpiresAt = 0;
+    private static final long TOKEN_CACHE_DURATION_MS = 55 * 60 * 1000; // 55 minutes (tokens usually valid for 1 hour)
+    
+    /**
+     * Create an HttpClient with timeout configuration.
+     */
+    private HttpClient createHttpClient() {
+        return HttpClient.newBuilder()
+                .connectTimeout(HTTP_TIMEOUT)
+                .build();
+    }
 
     public ShippingHelper(String email, String password) {
         this._email = email;
@@ -40,7 +65,7 @@ public class ShippingHelper {
             Object content,
             String successMessage) {
         try{
-            HttpClient client = HttpClient.newHttpClient();
+            HttpClient client = createHttpClient();
             Gson gson = new GsonBuilder()
                     .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
                     .registerTypeAdapter(Date.class, new DateAdapter())
@@ -48,16 +73,17 @@ public class ShippingHelper {
 
             String requestBody = content != null ? gson.toJson(content) : "";
 
-            var request = HttpRequest.newBuilder()
+            var requestBuilder = HttpRequest.newBuilder()
                     .uri(new URI(url))
                     .header("Content-Type", "application/json")
+                    .timeout(HTTP_TIMEOUT)
                     .method(methodType, HttpRequest.BodyPublishers.ofString(requestBody));
 
             if(org.springframework.util.StringUtils.hasText(token)){
-                request.header("Authorization", "Bearer " + token);
+                requestBuilder.header("Authorization", "Bearer " + token);
             }
 
-            HttpResponse<String> response = client.send(request.build(), HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
             if(response.statusCode() == 200) {
                 return gson.fromJson(response.body(), type);
             }
@@ -73,9 +99,22 @@ public class ShippingHelper {
         }
     }
 
-    public String getToken() {
+    /**
+     * Get authentication token from Shiprocket API.
+     * Uses cached token if available and not expired to avoid excessive API calls.
+     * 
+     * @return Authentication token
+     */
+    public synchronized String getToken() {
+        // Check if cached token is still valid
+        long currentTime = System.currentTimeMillis();
+        if (cachedToken != null && currentTime < tokenExpiresAt) {
+            return cachedToken;
+        }
+        
+        // Token expired or not cached - fetch new one
         try {
-            HttpClient client = HttpClient.newHttpClient();
+            HttpClient client = createHttpClient();
             URI uri = URI.create(_apiUrl + "/auth/login");
 
             HashMap<String, Object> jsonBody = new HashMap<>();
@@ -89,6 +128,7 @@ public class ShippingHelper {
                     .POST(HttpRequest.BodyPublishers.ofString(data, StandardCharsets.UTF_8))
                     .uri(uri)
                     .header("Content-Type", "application/json")
+                    .timeout(HTTP_TIMEOUT)
                     .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -98,9 +138,25 @@ public class ShippingHelper {
             }
 
             TokenResponseModel tokenResponse = mapper.readValue(response.body(), TokenResponseModel.class);
-            return tokenResponse.getToken();
+            String newToken = tokenResponse.getToken();
+            
+            // Cache the token with expiration time
+            cachedToken = newToken;
+            tokenExpiresAt = currentTime + TOKEN_CACHE_DURATION_MS;
+            
+            return newToken;
         }
         catch (Exception e) {
+            // Clear cached token on error so we retry next time
+            cachedToken = null;
+            tokenExpiresAt = 0;
+            // Check if it's a connection/timeout related error
+            String errorMsg = e.getMessage();
+            String className = e.getClass().getSimpleName();
+            if (errorMsg != null && (errorMsg.contains("timeout") || errorMsg.contains("timed out") || errorMsg.contains("connect") || 
+                className.contains("Timeout") || className.contains("Connect"))) {
+                throw new BadRequestException("Authentication token request failed due to network timeout. Please check network connectivity or Shiprocket API status.");
+            }
             throw new BadRequestException("Exception occurred while getting auth token: " + e.getMessage());
         }
     }
@@ -202,19 +258,103 @@ public class ShippingHelper {
                 if (response != null && response.getData() != null && 
                     response.getData().available_courier_companies != null &&
                     !response.getData().available_courier_companies.isEmpty()) {
-                    
-                    System.out.println("Route " + pickupPostcode + " -> " + deliveryPostcode + 
-                        ": Found couriers at " + weight + " kg");
                     return weight;
                 }
             } catch (Exception e) {
-                System.err.println("Error checking weight " + weight + " for route: " + e.getMessage());
+                // Error checking weight - continue to next weight
             }
         }
         
         // No couriers found even at 100kg
-        System.err.println("No couriers available for route " + pickupPostcode + " -> " + deliveryPostcode + 
-            " even at 100kg");
         return 0; // Indicates no couriers available
+    }
+    
+    /**
+     * Creates a custom order in ShipRocket.
+     * 
+     * Based on ShipRocket API: POST /orders/create/adhoc
+     * Documentation: https://www.postman.com/shiprocketdev/shiprocket-dev-s-public-workspace/request/mydll5u/create-custom-order
+     * 
+     * @param orderRequest ShipRocketOrderRequestModel containing order details
+     * 
+     * @return ShipRocketOrderResponseModel containing order details
+     */
+    public ShipRocketOrderResponseModel createCustomOrder(Object orderRequest) {
+        String token = getToken();
+        return httpResponse(
+                token,
+                _apiUrl + "/orders/create/adhoc",
+                "POST",
+                new TypeToken<ShipRocketOrderResponseModel>(){}.getType(),
+                orderRequest,
+                "Successfully created ShipRocket order.");
+    }
+    
+    /**
+     * Gets order details from ShipRocket by order ID.
+     * 
+     * Based on ShipRocket API: GET /orders/show/{order_id}
+     * 
+     * This API returns comprehensive order information including:
+     * - Order details (customer info, addresses, payment info)
+     * - Products in the order
+     * - Shipment details (AWB, courier, status)
+     * - AWB data with charges breakdown
+     * - Insurance and return pickup data
+     * 
+     * @param shipRocketOrderId The ShipRocket order ID to fetch details for
+     * @return ShipRocketOrderDetailsResponseModel containing full order details
+     */
+    public com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderDetailsResponseModel getOrderDetails(String shipRocketOrderId) {
+        if (shipRocketOrderId == null || shipRocketOrderId.trim().isEmpty()) {
+            throw new BadRequestException("ShipRocket order ID is required to fetch order details");
+        }
+        
+        String token = getToken();
+        return httpResponse(
+                token,
+                _apiUrl + "/orders/show/" + shipRocketOrderId.trim(),
+                "GET",
+                new TypeToken<com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderDetailsResponseModel>(){}.getType(),
+                null,
+                "Successfully fetched ShipRocket order details.");
+    }
+    
+    /**
+     * Gets order details as raw JSON string from ShipRocket by order ID.
+     * 
+     * This method returns the raw JSON response for storing as metadata.
+     * 
+     * @param shipRocketOrderId The ShipRocket order ID to fetch details for
+     * @return Raw JSON string of the order details response
+     */
+    public String getOrderDetailsAsJson(String shipRocketOrderId) {
+        if (shipRocketOrderId == null || shipRocketOrderId.trim().isEmpty()) {
+            throw new BadRequestException("ShipRocket order ID is required to fetch order details");
+        }
+        
+        try {
+            String token = getToken();
+            HttpClient client = createHttpClient();
+            
+            var requestBuilder = HttpRequest.newBuilder()
+                    .uri(new URI(_apiUrl + "/orders/show/" + shipRocketOrderId.trim()))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + token)
+                    .timeout(HTTP_TIMEOUT)
+                    .GET();
+            
+            HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+            
+            if (response.statusCode() == 200) {
+                return response.body();
+            } else {
+                throw new BadRequestException("Shiprocket API error (status " + response.statusCode() + "): " + response.body());
+            }
+        } catch (BadRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BadRequestException("Exception occurred while fetching order details: " + e.getMessage());
+        }
     }
 }

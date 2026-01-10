@@ -2,6 +2,9 @@ package com.example.SpringApi.Services;
 
 import com.example.SpringApi.Helpers.PackagingHelper;
 import com.example.SpringApi.Helpers.ShippingHelper;
+import com.example.SpringApi.Logging.ContextualLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
 import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
 import com.example.SpringApi.Models.DatabaseModels.Product;
@@ -28,6 +31,8 @@ import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
@@ -42,7 +47,9 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ShippingService extends BaseService implements IShippingSubTranslator {
-
+    private static final ContextualLogger contextualLogger = ContextualLogger.getLogger(ShippingService.class);
+    private static final Logger logger = LoggerFactory.getLogger(ShippingService.class);
+    
     /**
      * Maximum weight per shipment in kg.
      * Couriers typically have limits around 50-100 kg.
@@ -51,6 +58,12 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
      * to reach this limit efficiently.
      */
     private static final BigDecimal MAX_WEIGHT_PER_SHIPMENT = BigDecimal.valueOf(150);
+    
+    /**
+     * Timeout for shipping API calls in seconds.
+     * Prevents infinite blocking if external API hangs.
+     */
+    private static final int SHIPPING_API_TIMEOUT_SECONDS = 30;
     
     private final ClientService clientService;
     private final ProductRepository productRepository;
@@ -145,9 +158,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                     }
                 }
             } catch (Exception e) {
-                // Log error but continue with other locations
-                System.err.println("Failed to fetch shipping for location " + location.getLocationName() 
-                    + " (" + location.getPickupPostcode() + "): " + e.getMessage());
+                // Continue with other locations on error
             }
             
             response.getLocationOptions().add(locationOptions);
@@ -267,6 +278,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         int availableStock;
         int maxItemsPackable;
         List<PackagingHelper.PackageDimension> packageDimensions;
+        String packagingErrorMessage; // Store error message from packaging calculation
         // Map of packageId to Package entity for creating PackageResponseModel
         Map<Long, com.example.SpringApi.Models.DatabaseModels.Package> packageEntities = new HashMap<>();
     }
@@ -323,16 +335,22 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     
     @Override
     public OrderOptimizationResponseModel optimizeOrder(OrderOptimizationRequestModel request) {
+        long overallStartTime = System.currentTimeMillis();
+        logger.info("Starting order optimization for " + (request.getProductQuantities() != null ? request.getProductQuantities().size() : 0) + 
+                   " products, delivery postcode: " + request.getDeliveryPostcode());
+        
         OrderOptimizationResponseModel response = new OrderOptimizationResponseModel();
         
         // Validate request
         if (request.getProductQuantities() == null || request.getProductQuantities().isEmpty()) {
+            logger.warn("Order optimization failed: No products specified");
             response.setSuccess(false);
             response.setErrorMessage("No products specified");
             return response;
         }
         
         if (request.getDeliveryPostcode() == null || request.getDeliveryPostcode().isEmpty()) {
+            logger.warn("Order optimization failed: Delivery postcode is required");
             response.setSuccess(false);
             response.setErrorMessage("Delivery postcode is required");
             return response;
@@ -340,47 +358,72 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         
         try {
             // Step 1: Fetch all product data
+            logger.info("Step 1: Fetching product data for " + request.getProductQuantities().size() + " products");
+            long step1Start = System.currentTimeMillis();
             Map<Long, ProductLocationInfo> productInfoMap = fetchProductData(request.getProductQuantities());
+            logger.info("Step 1 completed in " + (System.currentTimeMillis() - step1Start) + "ms, found " + productInfoMap.size() + " products");
             
             if (productInfoMap.isEmpty()) {
+                logger.warn("Order optimization failed: No valid products found");
                 response.setSuccess(false);
                 response.setErrorMessage("No valid products found");
                 return response;
             }
             
             // Step 2: Fetch stock and packaging info for all products at all locations
+            logger.info("Step 2: Fetching location data (stock and packaging)");
+            long step2Start = System.currentTimeMillis();
             Map<Long, LocationInfo> locationInfoMap = fetchLocationData(productInfoMap);
+            logger.info("Step 2 completed in " + (System.currentTimeMillis() - step2Start) + "ms, found " + locationInfoMap.size() + " locations");
             
             List<AllocationCandidate> candidates;
             
             // Check if custom allocations are provided
             if (request.getCustomAllocations() != null && !request.getCustomAllocations().isEmpty()) {
-                // Custom mode: Use user-provided allocations directly
-                AllocationCandidate customCandidate = createCustomAllocationCandidate(
+                // Custom mode: Validate and use user-provided allocations strictly
+                logger.info("Custom allocation mode: Validating user-specified allocations");
+                CustomAllocationResult customResult = createCustomAllocationCandidate(
                     request.getCustomAllocations(), 
                     productInfoMap, 
                     locationInfoMap
                 );
+                
+                // If validation failed, return error immediately
+                if (!customResult.isValid) {
+                    logger.warn("Custom allocation validation failed: " + customResult.errorMessage);
+                    response.setSuccess(false);
+                    response.setErrorMessage(customResult.errorMessage);
+                    return response;
+                }
+                
                 candidates = new ArrayList<>();
-                candidates.add(customCandidate);
+                candidates.add(customResult.candidate);
             } else {
                 // Auto mode: Generate optimal candidates
                 // Step 3: Build feasibility matrix and check if order can be fulfilled
-                String feasibilityError = checkFeasibility(productInfoMap, request.getProductQuantities());
+                logger.info("Step 3: Checking feasibility");
+                long step3Start = System.currentTimeMillis();
+                String feasibilityError = checkFeasibility(productInfoMap, request.getProductQuantities(), locationInfoMap);
+                logger.info("Step 3 completed in " + (System.currentTimeMillis() - step3Start) + "ms");
                 if (feasibilityError != null) {
+                    logger.warn("Order optimization failed: " + feasibilityError);
                     response.setSuccess(false);
                     response.setErrorMessage(feasibilityError);
                     return response;
                 }
                 
                 // Step 4: Generate candidate allocation strategies
+                logger.info("Step 4: Generating candidate allocation strategies");
+                long step4Start = System.currentTimeMillis();
                 candidates = generateCandidates(
                     productInfoMap, 
                     locationInfoMap, 
                     request.getProductQuantities()
                 );
+                logger.info("Step 4 completed in " + (System.currentTimeMillis() - step4Start) + "ms, generated " + candidates.size() + " candidates");
                 
                 if (candidates.isEmpty()) {
+                    logger.warn("Order optimization failed: No valid allocation strategies found");
                     response.setSuccess(false);
                     response.setErrorMessage("No valid allocation strategies found");
                     return response;
@@ -388,12 +431,16 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             }
             
             // Step 5: Evaluate each candidate (calculate packaging and shipping costs)
+            logger.info("Step 5: Evaluating " + candidates.size() + " candidates (packaging and shipping costs)");
+            long step5Start = System.currentTimeMillis();
             ShippingHelper shippingHelper = getShippingHelper();
             String deliveryPostcode = request.getDeliveryPostcode();
             boolean isCod = Boolean.TRUE.equals(request.getIsCod());
+            boolean isCustomAllocation = request.getCustomAllocations() != null && !request.getCustomAllocations().isEmpty();
             
             evaluateCandidates(candidates, productInfoMap, locationInfoMap, 
-                              shippingHelper, deliveryPostcode, isCod);
+                              shippingHelper, deliveryPostcode, isCod, isCustomAllocation);
+            logger.info("Step 5 completed in " + (System.currentTimeMillis() - step5Start) + "ms");
             
             // Step 6: Filter out options with no couriers available, sort by cost
             // First, separate options with all couriers available from those without
@@ -444,10 +491,15 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 .mapToInt(Integer::intValue).sum());
             response.setSuccess(true);
             
+            long totalDuration = System.currentTimeMillis() - overallStartTime;
+            logger.info("Order optimization completed successfully in " + totalDuration + "ms");
+            
         } catch (Exception e) {
+            long totalDuration = System.currentTimeMillis() - overallStartTime;
+            logger.error("Order optimization failed after " + totalDuration + "ms: " + e.getMessage(), e);
+            contextualLogger.error(e);
             response.setSuccess(false);
             response.setErrorMessage("Optimization failed: " + e.getMessage());
-            e.printStackTrace();
         }
         
         return response;
@@ -516,11 +568,12 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         
         // Fetch package info for all locations
         if (!locationInfoMap.isEmpty()) {
-            List<PackagePickupLocationMapping> packageMappings = 
-                packagePickupLocationMappingRepository.findByPickupLocationIdsWithPackages(
-                    new ArrayList<>(locationInfoMap.keySet())
-                );
+            List<Long> locationIds = new ArrayList<>(locationInfoMap.keySet());
             
+            List<PackagePickupLocationMapping> packageMappings = 
+                packagePickupLocationMappingRepository.findByPickupLocationIdsWithPackages(locationIds);
+            
+            Map<Long, Integer> packagesPerLocation = new HashMap<>();
             for (PackagePickupLocationMapping pm : packageMappings) {
                 LocationInfo locInfo = locationInfoMap.get(pm.getPickupLocationId());
                 if (locInfo != null && pm.getPackageEntity() != null) {
@@ -532,6 +585,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                         pkg.getLength(), pkg.getBreadth(), pkg.getHeight(),
                         pkg.getMaxWeight(), pkg.getPricePerUnit(), pm.getAvailableQuantity()
                     ));
+                    packagesPerLocation.merge(pm.getPickupLocationId(), 1, Integer::sum);
                 }
             }
         }
@@ -546,10 +600,26 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 if (locInfo != null && !locInfo.packageDimensions.isEmpty()) {
                     stock.packageDimensions = locInfo.packageDimensions;
                     
-                    // Check if product fits in any package
-                    boolean canFit = canProductFitInAnyPackage(productInfo, locInfo.packageDimensions);
-                    if (canFit) {
-                        // Calculate max items packable
+                    // Check if product can fit in any package (ignoring available quantity for feasibility check)
+                    // This determines if the product dimensions/weight are compatible with package types
+                    boolean canFitInAnyPackageType = false;
+                    double productVolume = productInfo.length != null && productInfo.breadth != null && productInfo.height != null
+                        ? productInfo.length.doubleValue() * productInfo.breadth.doubleValue() * productInfo.height.doubleValue()
+                        : 0;
+                    double productWeight = productInfo.weightKgs != null ? productInfo.weightKgs.doubleValue() : 0;
+                    
+                    for (PackagingHelper.PackageDimension pkg : locInfo.packageDimensions) {
+                        double pkgVolume = pkg.getVolume();
+                        double pkgMaxWeight = pkg.getMaxWeight();
+                        boolean fits = pkgVolume >= productVolume && pkgMaxWeight >= productWeight;
+                        if (fits) {
+                            canFitInAnyPackageType = true;
+                            break;
+                        }
+                    }
+                    
+                    if (canFitInAnyPackageType || (productInfo.length == null && productInfo.breadth == null && productInfo.height == null)) {
+                        // Product can fit in at least one package type - calculate actual packable quantity
                         PackagingHelper.ProductDimension productDim = new PackagingHelper.ProductDimension(
                             productInfo.length, productInfo.breadth, productInfo.height,
                             productInfo.weightKgs, stock.availableStock
@@ -557,8 +627,32 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                         PackagingHelper.PackagingEstimateResult estimate = 
                             packagingHelper.calculatePackaging(productDim, locInfo.packageDimensions);
                         stock.maxItemsPackable = estimate.getMaxItemsPackable();
+                        
+                        // If product fits but maxItemsPackable is 0, it's likely a quantity issue, not dimension issue
+                        // Set maxItemsPackable to availableStock to indicate it CAN be packed if packages are available
+                        if (stock.maxItemsPackable == 0 && canFitInAnyPackageType && stock.availableStock > 0) {
+                            // Check if any package has quantity > 0
+                            boolean hasPackageQuantity = locInfo.packageDimensions.stream()
+                                .anyMatch(p -> p.getAvailableQuantity() > 0);
+                            
+                            if (!hasPackageQuantity) {
+                                // Product fits but no packages available - allow feasibility check to pass
+                                // but mark that packaging is limited by package availability
+                                stock.maxItemsPackable = stock.availableStock; // Assume can pack if packages become available
+                                stock.packagingErrorMessage = "Product fits in package types but no packages available (all have 0 quantity)";
+                            } else {
+                                // Packages available but still can't pack - store error message
+                                if (estimate.getErrorMessage() != null) {
+                                    stock.packagingErrorMessage = estimate.getErrorMessage();
+                                }
+                            }
+                        } else if (estimate.getMaxItemsPackable() == 0 && estimate.getErrorMessage() != null) {
+                            stock.packagingErrorMessage = estimate.getErrorMessage();
+                        }
                     } else {
+                        // Product cannot fit in any package type (dimensions/weight exceed all package limits)
                         stock.maxItemsPackable = 0;
+                        stock.packagingErrorMessage = "Product dimensions/weight exceed all available package limits";
                     }
                 } else {
                     stock.maxItemsPackable = 0;
@@ -569,31 +663,13 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         return locationInfoMap;
     }
     
-    /**
-     * Check if a product can fit in any available package
-     */
-    private boolean canProductFitInAnyPackage(ProductLocationInfo product, 
-                                               List<PackagingHelper.PackageDimension> packages) {
-        if (product.length == null || product.breadth == null || product.height == null) {
-            return true; // Assume it fits if no dimensions
-        }
-        
-        for (PackagingHelper.PackageDimension pkg : packages) {
-            if (pkg.getAvailableQuantity() > 0 &&
-                pkg.getVolume() >= product.length.doubleValue() * product.breadth.doubleValue() * product.height.doubleValue() &&
-                pkg.getMaxWeight() >= product.weightKgs.doubleValue()) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
     
     /**
      * Check if the order can be fulfilled
      */
     private String checkFeasibility(Map<Long, ProductLocationInfo> productInfoMap, 
-                                    Map<Long, Integer> productQuantities) {
+                                    Map<Long, Integer> productQuantities,
+                                    Map<Long, LocationInfo> locationInfoMap) {
         for (Map.Entry<Long, Integer> entry : productQuantities.entrySet()) {
             Long productId = entry.getKey();
             int requestedQty = entry.getValue();
@@ -604,13 +680,111 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             }
             
             // Calculate total available (considering packaging constraints)
-            int totalAvailable = info.stockByLocation.values().stream()
+            int totalStock = info.stockByLocation.values().stream()
+                .mapToInt(s -> s.availableStock)
+                .sum();
+            
+            int totalPackable = info.stockByLocation.values().stream()
                 .mapToInt(s -> Math.min(s.availableStock, s.maxItemsPackable))
                 .sum();
             
-            if (totalAvailable < requestedQty) {
-                return "Insufficient stock/packaging for product '" + info.productTitle + 
-                       "'. Requested: " + requestedQty + ", Available: " + totalAvailable;
+            // Check if any location has packages configured (check both stock.packageDimensions and locationInfoMap)
+            boolean hasPackagesConfigured = info.stockByLocation.values().stream()
+                .anyMatch(s -> s.packageDimensions != null && !s.packageDimensions.isEmpty());
+            
+            // Also check locationInfoMap directly in case packages weren't copied to stock
+            if (!hasPackagesConfigured && locationInfoMap != null) {
+                hasPackagesConfigured = info.stockByLocation.keySet().stream()
+                    .anyMatch(locationId -> {
+                        LocationInfo locInfo = locationInfoMap.get(locationId);
+                        return locInfo != null && locInfo.packageDimensions != null && !locInfo.packageDimensions.isEmpty();
+                    });
+            }
+            
+            // Check if any package has available quantity
+            boolean hasAvailablePackages = info.stockByLocation.values().stream()
+                .anyMatch(s -> s.packageDimensions != null && 
+                    s.packageDimensions.stream().anyMatch(p -> p.getAvailableQuantity() > 0));
+            
+            // Also check locationInfoMap for package availability
+            if (!hasAvailablePackages && locationInfoMap != null) {
+                hasAvailablePackages = info.stockByLocation.keySet().stream()
+                    .anyMatch(locationId -> {
+                        LocationInfo locInfo = locationInfoMap.get(locationId);
+                        if (locInfo != null && locInfo.packageDimensions != null) {
+                            return locInfo.packageDimensions.stream().anyMatch(p -> p.getAvailableQuantity() > 0);
+                        }
+                        return false;
+                    });
+            }
+            
+            // Check if product can fit in any package type (ignoring quantity)
+            boolean canFitInAnyPackageType = false;
+            if (hasPackagesConfigured) {
+                double productVolume = info.length != null && info.breadth != null && info.height != null
+                    ? info.length.doubleValue() * info.breadth.doubleValue() * info.height.doubleValue()
+                    : 0;
+                double productWeight = info.weightKgs != null ? info.weightKgs.doubleValue() : 0;
+                
+                // Check stock.packageDimensions first
+                canFitInAnyPackageType = info.stockByLocation.values().stream()
+                    .filter(s -> s.packageDimensions != null)
+                    .flatMap(s -> s.packageDimensions.stream())
+                    .anyMatch(pkg -> pkg.getVolume() >= productVolume && pkg.getMaxWeight() >= productWeight);
+                
+                // If not found, check locationInfoMap
+                if (!canFitInAnyPackageType && locationInfoMap != null) {
+                    canFitInAnyPackageType = info.stockByLocation.keySet().stream()
+                        .anyMatch(locationId -> {
+                            LocationInfo locInfo = locationInfoMap.get(locationId);
+                            if (locInfo == null || locInfo.packageDimensions == null) return false;
+                            return locInfo.packageDimensions.stream()
+                                .anyMatch(pkg -> pkg.getVolume() >= productVolume && pkg.getMaxWeight() >= productWeight);
+                        });
+                }
+                
+                // If no dimensions, assume it fits
+                if (info.length == null && info.breadth == null && info.height == null) {
+                    canFitInAnyPackageType = true;
+                }
+            }
+            
+            // Get packaging error message if available
+            String packagingError = info.stockByLocation.values().stream()
+                .filter(s -> s.packagingErrorMessage != null)
+                .map(s -> s.packagingErrorMessage)
+                .findFirst()
+                .orElse(null);
+            
+            if (totalPackable < requestedQty) {
+                // Provide more detailed error message
+                if (totalStock == 0) {
+                    return "Insufficient stock for product '" + info.productTitle + 
+                           "'. Requested: " + requestedQty + ", Available stock: 0";
+                } else if (!hasPackagesConfigured) {
+                    return "Product '" + info.productTitle + 
+                           "' cannot be packaged. Stock available: " + totalStock + 
+                           ", but no packages are configured at pickup locations. Requested: " + requestedQty;
+                } else if (!hasAvailablePackages) {
+                    return "Product '" + info.productTitle + 
+                           "' cannot be packaged. Stock available: " + totalStock + 
+                           ", but no packages are available at pickup locations (all packages have 0 quantity). Requested: " + requestedQty;
+                } else if (!canFitInAnyPackageType) {
+                    return "Product '" + info.productTitle + 
+                           "' cannot be packaged. Stock available: " + totalStock + 
+                           ", but product dimensions/weight exceed all available package limits. Requested: " + requestedQty;
+                } else if (totalStock >= requestedQty && totalPackable == 0) {
+                    // Product fits but can't be packed - likely quantity issue
+                    String errorDetail = packagingError != null ? packagingError : 
+                        "not enough packages available to pack the requested quantity";
+                    return "Product '" + info.productTitle + 
+                           "' cannot be packaged with available packages. Stock available: " + totalStock + 
+                           ", but " + errorDetail + ". Requested: " + requestedQty;
+                } else {
+                    return "Insufficient stock/packaging for product '" + info.productTitle + 
+                           "'. Requested: " + requestedQty + ", Available stock: " + totalStock + 
+                           ", Packable (considering packaging constraints): " + totalPackable;
+                }
             }
         }
         
@@ -710,43 +884,127 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     }
     
     /**
-     * Create allocation candidate from user-provided custom allocations.
-     * Transforms the nested map structure into the candidate format.
+     * Result of custom allocation validation
+     */
+    private static class CustomAllocationResult {
+        AllocationCandidate candidate;
+        String errorMessage;
+        boolean isValid;
+        
+        static CustomAllocationResult success(AllocationCandidate candidate) {
+            CustomAllocationResult result = new CustomAllocationResult();
+            result.candidate = candidate;
+            result.isValid = true;
+            return result;
+        }
+        
+        static CustomAllocationResult error(String message) {
+            CustomAllocationResult result = new CustomAllocationResult();
+            result.errorMessage = message;
+            result.isValid = false;
+            return result;
+        }
+    }
+    
+    /**
+     * Create and validate allocation candidate from user-provided custom allocations.
+     * Strictly validates each product-location-quantity mapping.
      * 
      * @param customAllocations Map of productId -> (pickupLocationId -> quantity)
      * @param productInfoMap Product information map
      * @param locationInfoMap Location information map
-     * @return AllocationCandidate with the user's allocations
+     * @return CustomAllocationResult with candidate or error message
      */
-    private AllocationCandidate createCustomAllocationCandidate(
+    private CustomAllocationResult createCustomAllocationCandidate(
             Map<Long, Map<Long, Integer>> customAllocations,
             Map<Long, ProductLocationInfo> productInfoMap,
             Map<Long, LocationInfo> locationInfoMap) {
         
         AllocationCandidate candidate = new AllocationCandidate();
+        List<String> errors = new ArrayList<>();
         
-        // Transform from productId -> (locationId -> qty) 
+        // Validate and transform from productId -> (locationId -> qty) 
         // to locationId -> (productId -> qty)
         for (Map.Entry<Long, Map<Long, Integer>> productEntry : customAllocations.entrySet()) {
             Long productId = productEntry.getKey();
             Map<Long, Integer> locationQtys = productEntry.getValue();
             
+            ProductLocationInfo productInfo = productInfoMap.get(productId);
+            if (productInfo == null) {
+                errors.add("Product ID " + productId + " not found");
+                continue;
+            }
+            
             for (Map.Entry<Long, Integer> locEntry : locationQtys.entrySet()) {
                 Long locationId = locEntry.getKey();
                 Integer qty = locEntry.getValue();
                 
-                if (qty != null && qty > 0) {
-                    candidate.locationProductQuantities
-                        .computeIfAbsent(locationId, k -> new HashMap<>())
-                        .put(productId, qty);
+                if (qty == null || qty <= 0) continue;
+                
+                // Validate location exists
+                LocationInfo locInfo = locationInfoMap.get(locationId);
+                if (locInfo == null) {
+                    errors.add("Product '" + productInfo.productTitle + "': Location ID " + locationId + " not found");
+                    continue;
                 }
+                
+                // Validate product has stock at this specific location
+                LocationStock stock = productInfo.stockByLocation.get(locationId);
+                if (stock == null) {
+                    errors.add("Product '" + productInfo.productTitle + "': Not available at location '" + 
+                              locInfo.locationName + "' (no stock mapping exists)");
+                    continue;
+                }
+                
+                // Validate sufficient stock
+                if (stock.availableStock < qty) {
+                    errors.add("Product '" + productInfo.productTitle + "': Insufficient stock at '" + 
+                              locInfo.locationName + "'. Requested: " + qty + ", Available: " + stock.availableStock);
+                    continue;
+                }
+                
+                // Validate packaging available at this location
+                if (locInfo.packageDimensions.isEmpty()) {
+                    errors.add("Product '" + productInfo.productTitle + "': No packages available at '" + 
+                              locInfo.locationName + "'");
+                    continue;
+                }
+                
+                // Validate product can be packaged at this location
+                int packable = Math.min(stock.availableStock, stock.maxItemsPackable);
+                if (packable < qty) {
+                    errors.add("Product '" + productInfo.productTitle + "': Cannot package " + qty + 
+                              " units at '" + locInfo.locationName + "'. Max packable: " + packable +
+                              (stock.packagingErrorMessage != null ? " (" + stock.packagingErrorMessage + ")" : ""));
+                    continue;
+                }
+                
+                // Validation passed - add to candidate
+                candidate.locationProductQuantities
+                    .computeIfAbsent(locationId, k -> new HashMap<>())
+                    .put(productId, qty);
             }
+        }
+        
+        // If there are validation errors, return them
+        if (!errors.isEmpty()) {
+            return CustomAllocationResult.error("Custom allocation validation failed:\n• " + 
+                String.join("\n• ", errors));
+        }
+        
+        // Check that at least one allocation was made
+        if (candidate.locationProductQuantities.isEmpty()) {
+            return CustomAllocationResult.error("No valid allocations specified");
         }
         
         candidate.canFulfillOrder = true;
         candidate.shortfall = 0;
         
-        return candidate;
+        logger.info("Custom allocation validated: " + candidate.locationProductQuantities.size() + 
+                   " locations, " + candidate.locationProductQuantities.values().stream()
+                       .mapToInt(Map::size).sum() + " product allocations");
+        
+        return CustomAllocationResult.success(candidate);
     }
     
     /**
@@ -899,9 +1157,153 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     }
     
     /**
+     * Reallocate products from unserviceable locations to serviceable ones.
+     * This is called after route availability is determined to move products
+     * from locations that can't ship to the delivery postcode to locations that can.
+     * 
+     * @param candidate The allocation candidate to modify
+     * @param productInfoMap Product information including stock at each location
+     * @param locationInfoMap Location information including packages
+     * @param serviceableLocationIds Set of location IDs that can ship to delivery postcode
+     * @param unserviceableLocationIds Set of location IDs that cannot ship
+     */
+    private void reallocateFromUnserviceableLocations(
+            AllocationCandidate candidate,
+            Map<Long, ProductLocationInfo> productInfoMap,
+            Map<Long, LocationInfo> locationInfoMap,
+            Set<Long> serviceableLocationIds,
+            Set<Long> unserviceableLocationIds) {
+        
+        // Track products that need reallocation from unserviceable locations
+        Map<Long, Integer> productsToReallocate = new HashMap<>();
+        List<Long> locationsToRemove = new ArrayList<>();
+        
+        // Find all products allocated to unserviceable locations
+        for (Map.Entry<Long, Map<Long, Integer>> locEntry : 
+             candidate.locationProductQuantities.entrySet()) {
+            
+            Long locationId = locEntry.getKey();
+            if (unserviceableLocationIds.contains(locationId)) {
+                // This location can't ship - need to reallocate its products
+                Map<Long, Integer> productQtys = locEntry.getValue();
+                for (Map.Entry<Long, Integer> prodEntry : productQtys.entrySet()) {
+                    productsToReallocate.merge(prodEntry.getKey(), prodEntry.getValue(), Integer::sum);
+                }
+                locationsToRemove.add(locationId);
+                
+                LocationInfo locInfo = locationInfoMap.get(locationId);
+                String locationName = locInfo != null ? locInfo.locationName : "Location " + locationId;
+                logger.info("Need to reallocate " + productQtys.size() + " products from unserviceable location: " + locationName);
+            }
+        }
+        
+        if (productsToReallocate.isEmpty()) {
+            return; // Nothing to reallocate
+        }
+        
+        // Remove unserviceable locations from candidate
+        for (Long locationId : locationsToRemove) {
+            candidate.locationProductQuantities.remove(locationId);
+        }
+        
+        // Track what we've already allocated from each serviceable location
+        // to avoid over-allocating from existing allocations
+        Map<Long, Map<Long, Integer>> existingAllocations = new HashMap<>();
+        for (Map.Entry<Long, Map<Long, Integer>> locEntry : 
+             candidate.locationProductQuantities.entrySet()) {
+            existingAllocations.put(locEntry.getKey(), new HashMap<>(locEntry.getValue()));
+        }
+        
+        // Try to reallocate each product to serviceable locations
+        for (Map.Entry<Long, Integer> prodEntry : productsToReallocate.entrySet()) {
+            Long productId = prodEntry.getKey();
+            int qtyToReallocate = prodEntry.getValue();
+            
+            ProductLocationInfo productInfo = productInfoMap.get(productId);
+            if (productInfo == null) continue;
+            
+            // Sort serviceable locations by available stock for this product (descending)
+            List<Long> sortedServiceableLocations = serviceableLocationIds.stream()
+                .filter(locId -> {
+                    // Must have stock and packages
+                    LocationStock stock = productInfo.stockByLocation.get(locId);
+                    LocationInfo locInfo = locationInfoMap.get(locId);
+                    return stock != null && 
+                           Math.min(stock.availableStock, stock.maxItemsPackable) > 0 &&
+                           locInfo != null && 
+                           !locInfo.packageDimensions.isEmpty();
+                })
+                .sorted((a, b) -> {
+                    LocationStock stockA = productInfo.stockByLocation.get(a);
+                    LocationStock stockB = productInfo.stockByLocation.get(b);
+                    int availA = Math.min(stockA.availableStock, stockA.maxItemsPackable);
+                    int availB = Math.min(stockB.availableStock, stockB.maxItemsPackable);
+                    return Integer.compare(availB, availA); // Descending
+                })
+                .collect(Collectors.toList());
+            
+            logger.debug("Product " + productId + " (" + productInfo.productTitle + 
+                        "): need to reallocate " + qtyToReallocate + 
+                        " units, " + sortedServiceableLocations.size() + " serviceable locations available");
+            
+            // Allocate from serviceable locations
+            for (Long locationId : sortedServiceableLocations) {
+                if (qtyToReallocate <= 0) break;
+                
+                LocationStock stock = productInfo.stockByLocation.get(locationId);
+                int totalAvailable = Math.min(stock.availableStock, stock.maxItemsPackable);
+                
+                // Subtract already allocated quantity from this location
+                int alreadyAllocated = existingAllocations
+                    .getOrDefault(locationId, Collections.emptyMap())
+                    .getOrDefault(productId, 0);
+                int remainingAvailable = totalAvailable - alreadyAllocated;
+                
+                if (remainingAvailable <= 0) continue;
+                
+                int toAllocate = Math.min(qtyToReallocate, remainingAvailable);
+                
+                // Add to candidate's allocations
+                candidate.locationProductQuantities
+                    .computeIfAbsent(locationId, k -> new HashMap<>())
+                    .merge(productId, toAllocate, Integer::sum);
+                
+                // Track what we've now allocated
+                existingAllocations
+                    .computeIfAbsent(locationId, k -> new HashMap<>())
+                    .merge(productId, toAllocate, Integer::sum);
+                
+                qtyToReallocate -= toAllocate;
+                
+                LocationInfo locInfo = locationInfoMap.get(locationId);
+                String locationName = locInfo != null ? locInfo.locationName : "Location " + locationId;
+                logger.info("Reallocated " + toAllocate + " units of product " + productId + 
+                           " (" + productInfo.productTitle + ") to " + locationName);
+            }
+            
+            // Check if we couldn't fully reallocate
+            if (qtyToReallocate > 0) {
+                logger.warn("Could not fully reallocate product " + productId + 
+                           " (" + productInfo.productTitle + "): " + qtyToReallocate + 
+                           " units have no serviceable location with available stock");
+                candidate.canFulfillOrder = false;
+                candidate.shortfall += qtyToReallocate;
+            }
+        }
+    }
+    
+    /**
      * Evaluate candidates by calculating packaging and shipping costs.
      * Splits heavy shipments into smaller ones to meet courier weight limits.
      * Dynamically determines max weight per route by testing from 500kg down to 100kg.
+     * 
+     * @param candidates List of allocation candidates to evaluate
+     * @param productInfoMap Product information map
+     * @param locationInfoMap Location information map
+     * @param shippingHelper Helper for shipping API calls
+     * @param deliveryPostcode Delivery destination postcode
+     * @param isCod Whether order is Cash on Delivery
+     * @param isCustomAllocation If true, uses exact locations specified without reallocation
      */
     private void evaluateCandidates(
             List<AllocationCandidate> candidates,
@@ -909,44 +1311,134 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             Map<Long, LocationInfo> locationInfoMap,
             ShippingHelper shippingHelper,
             String deliveryPostcode,
-            boolean isCod) {
+            boolean isCod,
+            boolean isCustomAllocation) {
+        
+        // Pre-fetch authentication token once before parallel operations
+        // This ensures we have a valid token cached before multiple threads try to use it
+        try {
+            logger.debug("Pre-fetching authentication token before parallel operations");
+            shippingHelper.getToken(); // This will cache the token for reuse
+        } catch (Exception e) {
+            logger.warn("Failed to pre-fetch token, will retry per-request: " + e.getMessage());
+            // Continue anyway - each request will try to get token
+        }
         
         // Pre-fetch: Find max weight for each unique pickup-delivery route
         // This tests 500kg, 400kg, 300kg, 200kg, 100kg until couriers are found
         Map<String, BigDecimal> routeMaxWeights = new ConcurrentHashMap<>();
         Set<String> uniquePickupPostcodes = new HashSet<>();
         
-        // Collect all unique pickup postcodes
-        for (LocationInfo locInfo : locationInfoMap.values()) {
-            if (locInfo.postalCode != null) {
+        // Collect pickup postcodes ONLY from locations actually used in candidates
+        // This is especially important for custom allocation where user selects specific locations
+        Set<Long> usedLocationIds = new HashSet<>();
+        for (AllocationCandidate candidate : candidates) {
+            usedLocationIds.addAll(candidate.locationProductQuantities.keySet());
+        }
+        
+        for (Long locationId : usedLocationIds) {
+            LocationInfo locInfo = locationInfoMap.get(locationId);
+            if (locInfo != null && locInfo.postalCode != null) {
                 uniquePickupPostcodes.add(locInfo.postalCode);
             }
         }
         
         // Fetch max weight for each route in parallel
+        logger.info("Starting max weight lookup for " + uniquePickupPostcodes.size() + " unique pickup postcodes");
         List<CompletableFuture<Void>> maxWeightFutures = new ArrayList<>();
         for (String pickupPostcode : uniquePickupPostcodes) {
+            final String postcode = pickupPostcode;
             maxWeightFutures.add(CompletableFuture.runAsync(() -> {
                 try {
-                    double maxWeight = shippingHelper.findMaxWeightForRoute(pickupPostcode, deliveryPostcode, isCod);
+                    logger.debug("Fetching max weight for route: " + postcode + " -> " + deliveryPostcode);
+                    long startTime = System.currentTimeMillis();
+                    double maxWeight = shippingHelper.findMaxWeightForRoute(postcode, deliveryPostcode, isCod);
+                    long duration = System.currentTimeMillis() - startTime;
+                    logger.debug("Max weight lookup completed for " + postcode + " in " + duration + "ms: " + maxWeight + " kg");
                     if (maxWeight > 0) {
-                        routeMaxWeights.put(pickupPostcode, BigDecimal.valueOf(maxWeight));
+                        routeMaxWeights.put(postcode, BigDecimal.valueOf(maxWeight));
                     } else {
                         // No couriers available - use 0 to indicate this route is not serviceable
-                        routeMaxWeights.put(pickupPostcode, BigDecimal.ZERO);
+                        routeMaxWeights.put(postcode, BigDecimal.ZERO);
+                        logger.warn("No couriers available for route: " + postcode + " -> " + deliveryPostcode);
                     }
                 } catch (Exception e) {
-                    System.err.println("Error finding max weight for route: " + e.getMessage());
-                    routeMaxWeights.put(pickupPostcode, MAX_WEIGHT_PER_SHIPMENT);
+                    // Log as WARN since this is an expected failure (timeout/network issues)
+                    // The process will continue with default max weight
+                    String errorMsg = e.getMessage();
+                    if (errorMsg != null && (errorMsg.contains("timeout") || errorMsg.contains("timed out") || errorMsg.contains("connect"))) {
+                        logger.warn("Max weight lookup timed out for route " + postcode + " -> " + deliveryPostcode + " (using default max weight): " + errorMsg);
+                    } else {
+                        logger.warn("Error fetching max weight for route " + postcode + " -> " + deliveryPostcode + " (using default max weight): " + errorMsg);
+                    }
+                    // Don't log to contextualLogger for expected failures - these are handled gracefully
+                    routeMaxWeights.put(postcode, MAX_WEIGHT_PER_SHIPMENT);
                 }
             }));
         }
         
-        // Wait for all max weight calls to complete
+        // Wait for all max weight calls to complete with timeout
         try {
-            CompletableFuture.allOf(maxWeightFutures.toArray(new CompletableFuture[0])).join();
+            logger.info("Waiting for max weight lookups to complete (timeout: " + SHIPPING_API_TIMEOUT_SECONDS + "s)");
+            long startTime = System.currentTimeMillis();
+            CompletableFuture<Void> allMaxWeights = CompletableFuture.allOf(maxWeightFutures.toArray(new CompletableFuture[0]));
+            allMaxWeights.get(SHIPPING_API_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            long duration = System.currentTimeMillis() - startTime;
+            logger.info("All max weight lookups completed in " + duration + "ms");
+        } catch (TimeoutException e) {
+            // Log as WARN since this is an expected failure - we continue with available results
+            logger.warn("Timeout waiting for max weight lookups after " + SHIPPING_API_TIMEOUT_SECONDS + " seconds (continuing with available results)");
+            // Continue with available results - use default max weight for missing routes
+            for (String postcode : uniquePickupPostcodes) {
+                if (!routeMaxWeights.containsKey(postcode)) {
+                    routeMaxWeights.put(postcode, MAX_WEIGHT_PER_SHIPMENT);
+                    logger.debug("Using default max weight for route " + postcode + " due to timeout");
+                }
+            }
         } catch (Exception e) {
-            System.err.println("Error fetching route max weights: " + e.getMessage());
+            // Log as WARN since this is an expected failure - we continue with available results
+            logger.warn("Error waiting for max weight lookups (continuing with available results): " + e.getMessage());
+            // Continue with available results
+            for (String postcode : uniquePickupPostcodes) {
+                if (!routeMaxWeights.containsKey(postcode)) {
+                    routeMaxWeights.put(postcode, MAX_WEIGHT_PER_SHIPMENT);
+                }
+            }
+        }
+        
+        // Build set of serviceable location IDs (only for locations actually used in candidates)
+        Set<Long> serviceableLocationIds = new HashSet<>();
+        Set<Long> unserviceableLocationIds = new HashSet<>();
+        for (Long locationId : usedLocationIds) {
+            LocationInfo locInfo = locationInfoMap.get(locationId);
+            if (locInfo == null) continue;
+            
+            String pickupPostcode = locInfo.postalCode;
+            BigDecimal routeMaxWeight = pickupPostcode != null ? 
+                routeMaxWeights.getOrDefault(pickupPostcode, MAX_WEIGHT_PER_SHIPMENT) : 
+                MAX_WEIGHT_PER_SHIPMENT;
+            
+            if (routeMaxWeight.compareTo(BigDecimal.ZERO) > 0) {
+                serviceableLocationIds.add(locationId);
+            } else {
+                unserviceableLocationIds.add(locationId);
+                logger.info("Location " + locInfo.locationName + " (" + pickupPostcode + 
+                           ") is unserviceable for delivery to " + deliveryPostcode);
+            }
+        }
+        
+        logger.info("Serviceable locations: " + serviceableLocationIds.size() + 
+                   ", Unserviceable locations: " + unserviceableLocationIds.size());
+        
+        // For custom allocation, do NOT reallocate - use exactly what the user specified
+        // For auto allocation, try to reallocate products from unserviceable locations to serviceable ones
+        if (!isCustomAllocation) {
+            for (AllocationCandidate candidate : candidates) {
+                reallocateFromUnserviceableLocations(candidate, productInfoMap, locationInfoMap, 
+                                                      serviceableLocationIds, unserviceableLocationIds);
+            }
+        } else {
+            logger.info("Custom allocation mode - using exact locations specified by user (no reallocation)");
         }
         
         // First pass: Build all shipments with packaging, then determine weight splits
@@ -971,13 +1463,16 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                     MAX_WEIGHT_PER_SHIPMENT;
                 
                 // Check if this route is not serviceable (no couriers even at 100kg)
+                // After reallocation, this should only happen if product couldn't be moved
                 if (routeMaxWeight.compareTo(BigDecimal.ZERO) == 0) {
                     hasUnserviceableRoute = true;
                     String locationName = locInfo.locationName != null ? 
                         locInfo.locationName : "Unknown";
                     if (routeErrors.length() > 0) routeErrors.append("; ");
-                    routeErrors.append("No couriers service route from ").append(locationName)
-                        .append(" (").append(pickupPostcode).append(") to ").append(deliveryPostcode);
+                    routeErrors.append("No courier options available between pickup location ")
+                        .append(locationName).append(" [").append(pickupPostcode).append("]")
+                        .append(" and delivery postcode [").append(deliveryPostcode).append("]")
+                        .append(" (no alternative locations available)");
                     continue; // Skip this location
                 }
                 
@@ -1029,9 +1524,11 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         }
         
         // Second pass: Fetch shipping rates for all shipments in parallel
+        logger.info("Starting shipping rate lookup for " + candidates.size() + " candidates");
         Map<String, CompletableFuture<ShippingOptionsResponseModel>> shippingFutures = 
             new ConcurrentHashMap<>();
         
+        int totalShipments = 0;
         for (AllocationCandidate candidate : candidates) {
             for (OrderOptimizationResponseModel.Shipment shipment : candidate.shipments) {
                 if (shipment.getPickupLocation() == null || 
@@ -1047,13 +1544,27 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 if (!shippingFutures.containsKey(cacheKey)) {
                     final String finalPickupPostcode = pickupPostcode;
                     final String finalWeight = weight.toString();
+                    totalShipments++;
                     
                     shippingFutures.put(cacheKey, CompletableFuture.supplyAsync(() -> {
                         try {
-                            return shippingHelper.getAvailableShippingOptions(
+                            logger.debug("Fetching shipping options: " + finalPickupPostcode + " -> " + deliveryPostcode + " (" + finalWeight + " kg)");
+                            long startTime = System.currentTimeMillis();
+                            ShippingOptionsResponseModel result = shippingHelper.getAvailableShippingOptions(
                                 finalPickupPostcode, deliveryPostcode, isCod, finalWeight);
+                            long duration = System.currentTimeMillis() - startTime;
+                            logger.debug("Shipping options fetched in " + duration + "ms for " + finalPickupPostcode + " -> " + deliveryPostcode);
+                            return result;
                         } catch (Exception e) {
-                            System.err.println("Shipping API error: " + e.getMessage());
+                            // Log as WARN since this is an expected failure (timeout/network issues)
+                            // The process will continue with available results
+                            String errorMsg = e.getMessage();
+                            if (errorMsg != null && (errorMsg.contains("timeout") || errorMsg.contains("timed out") || errorMsg.contains("connect"))) {
+                                logger.warn("Shipping options lookup timed out for " + finalPickupPostcode + " -> " + deliveryPostcode + " (will continue with available results): " + errorMsg);
+                            } else {
+                                logger.warn("Error fetching shipping options for " + finalPickupPostcode + " -> " + deliveryPostcode + " (will continue with available results): " + errorMsg);
+                            }
+                            // Don't log to contextualLogger for expected failures - these are handled gracefully
                             return null;
                         }
                     }));
@@ -1061,19 +1572,48 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             }
         }
         
-        // Wait for all shipping calls to complete
-        CompletableFuture.allOf(shippingFutures.values().toArray(new CompletableFuture[0])).join();
+        logger.info("Waiting for " + shippingFutures.size() + " unique shipping rate lookups to complete (timeout: " + SHIPPING_API_TIMEOUT_SECONDS + "s)");
+        
+        // Wait for all shipping calls to complete with timeout
+        try {
+            long startTime = System.currentTimeMillis();
+            CompletableFuture<Void> allShipping = CompletableFuture.allOf(
+                shippingFutures.values().toArray(new CompletableFuture[0]));
+            allShipping.get(SHIPPING_API_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            long duration = System.currentTimeMillis() - startTime;
+            logger.info("All shipping rate lookups completed in " + duration + "ms");
+        } catch (TimeoutException e) {
+            // Log as WARN since this is an expected failure - we continue with available results
+            logger.warn("Timeout waiting for shipping rate lookups after " + SHIPPING_API_TIMEOUT_SECONDS + " seconds (continuing with available results)");
+            // Continue with available results - mark missing ones as null
+        } catch (Exception e) {
+            // Log as WARN since this is an expected failure - we continue with available results
+            logger.warn("Error waiting for shipping rate lookups (continuing with available results): " + e.getMessage());
+        }
         
         // Build shipping results map
         Map<String, ShippingOptionsResponseModel> shippingResults = new HashMap<>();
+        int successfulLookups = 0;
+        int failedLookups = 0;
         for (Map.Entry<String, CompletableFuture<ShippingOptionsResponseModel>> entry : 
              shippingFutures.entrySet()) {
             try {
-                shippingResults.put(entry.getKey(), entry.getValue().get());
+                ShippingOptionsResponseModel result = entry.getValue().get(1, TimeUnit.SECONDS); // Quick timeout for individual get
+                if (result != null) {
+                    shippingResults.put(entry.getKey(), result);
+                    successfulLookups++;
+                } else {
+                    failedLookups++;
+                }
+            } catch (TimeoutException e) {
+                logger.warn("Individual shipping lookup timeout for key: " + entry.getKey());
+                failedLookups++;
             } catch (Exception e) {
-                // Ignore
+                logger.warn("Error getting shipping result for key " + entry.getKey() + ": " + e.getMessage());
+                failedLookups++;
             }
         }
+        logger.info("Shipping rate lookup summary: " + successfulLookups + " successful, " + failedLookups + " failed/timeout");
         
         // Third pass: Apply shipping rates and calculate totals
         // Filter out shipments with no packages (they cannot be fulfilled)
@@ -1144,8 +1684,9 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                         if (unavailabilityReasons.length() > 0) {
                             unavailabilityReasons.append("; ");
                         }
-                        unavailabilityReasons.append("No couriers for route from ").append(locationName)
-                            .append(" (").append(shipment.getTotalWeightKgs()).append(" kg)");
+                        unavailabilityReasons.append("No courier options available between pickup location ")
+                            .append(locationName).append(" [").append(pickupPostcode).append("]")
+                            .append(" and delivery postcode [").append(deliveryPostcode).append("]");
                         validShipments.add(shipment); // Still add - has packages but no couriers
                     }
                 } else {
@@ -1404,6 +1945,8 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     
     /**
      * Calculate packaging with detailed product information.
+     * Uses multi-product packaging optimization to combine different products
+     * into the same package when they fit, minimizing packaging cost.
      */
     private List<OrderOptimizationResponseModel.PackageUsage> calculatePackagingWithDetails(
             Map<Long, Integer> productQtys,
@@ -1412,6 +1955,8 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         
         List<OrderOptimizationResponseModel.PackageUsage> result = new ArrayList<>();
         
+        // Build product dimensions map for multi-product packaging
+        Map<Long, PackagingHelper.ProductDimension> productDimensions = new HashMap<>();
         for (Map.Entry<Long, Integer> entry : productQtys.entrySet()) {
             Long productId = entry.getKey();
             int qty = entry.getValue();
@@ -1419,35 +1964,48 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             ProductLocationInfo info = productInfoMap.get(productId);
             if (info == null) continue;
             
-            PackagingHelper.ProductDimension productDim = new PackagingHelper.ProductDimension(
-                info.length, info.breadth, info.height, info.weightKgs, qty);
+            productDimensions.put(productId, new PackagingHelper.ProductDimension(
+                info.length, info.breadth, info.height, info.weightKgs, qty));
+        }
+        
+        if (productDimensions.isEmpty()) {
+            return result;
+        }
+        
+        // Use multi-product packaging optimization
+        PackagingHelper.MultiProductPackagingResult estimate = 
+            packagingHelper.calculatePackagingForMultipleProducts(productDimensions, locInfo.packageDimensions);
+        
+        // Convert to response model
+        for (PackagingHelper.MultiProductPackageUsageResult usage : estimate.getPackagesUsed()) {
+            OrderOptimizationResponseModel.PackageUsage pkgUsage = 
+                new OrderOptimizationResponseModel.PackageUsage();
             
-            PackagingHelper.PackagingEstimateResult estimate = 
-                packagingHelper.calculatePackaging(productDim, locInfo.packageDimensions);
+            com.example.SpringApi.Models.DatabaseModels.Package pkgEntity = 
+                locInfo.packageEntities.get(usage.getPackageId());
+            if (pkgEntity != null) {
+                pkgUsage.setPackageInfo(new PackageResponseModel(pkgEntity));
+            }
             
-            for (PackagingHelper.PackageUsageResult usage : estimate.getPackagesUsed()) {
-                OrderOptimizationResponseModel.PackageUsage pkgUsage = 
-                    new OrderOptimizationResponseModel.PackageUsage();
+            pkgUsage.setQuantityUsed(usage.getQuantityUsed());
+            pkgUsage.setTotalCost(usage.getTotalCost());
+            
+            // Add all products that are in this package type
+            for (Map.Entry<Long, Integer> productEntry : usage.getProductQuantities().entrySet()) {
+                Long productId = productEntry.getKey();
+                int qtyInPackage = productEntry.getValue();
                 
-                com.example.SpringApi.Models.DatabaseModels.Package pkgEntity = 
-                    locInfo.packageEntities.get(usage.getPackageId());
-                if (pkgEntity != null) {
-                    pkgUsage.setPackageInfo(new PackageResponseModel(pkgEntity));
-                }
-                
-                pkgUsage.setQuantityUsed(usage.getQuantityUsed());
-                pkgUsage.setTotalCost(usage.getTotalCost());
                 pkgUsage.getProductIds().add(productId);
                 
-                // Add product detail (only productId, full details are in Shipment.products)
+                // Add product detail
                 OrderOptimizationResponseModel.PackageProductDetail detail = 
                     new OrderOptimizationResponseModel.PackageProductDetail();
                 detail.setProductId(productId);
-                detail.setQuantity(qty);
+                detail.setQuantity(qtyInPackage);
                 pkgUsage.getProductDetails().add(detail);
-                
-                result.add(pkgUsage);
             }
+            
+            result.add(pkgUsage);
         }
         
         return result;

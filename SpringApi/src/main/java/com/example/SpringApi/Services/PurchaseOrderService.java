@@ -2,6 +2,7 @@ package com.example.SpringApi.Services;
 
 import com.example.SpringApi.Constants.EntityType;
 import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.Helpers.BulkInsertHelper;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.FilterQueryBuilder.PurchaseOrderFilterQueryBuilder;
 import com.example.SpringApi.Helpers.HTMLHelper;
@@ -21,9 +22,11 @@ import com.example.SpringApi.Models.DatabaseModels.ShipmentPackage;
 import com.example.SpringApi.Models.DatabaseModels.ShipmentPackageProduct;
 import com.example.SpringApi.Models.DatabaseModels.ShipmentProduct;
 import com.example.SpringApi.Models.DatabaseModels.User;
+import com.example.SpringApi.Models.DatabaseModels.Payment;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
+import com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PurchaseOrderResponseModel;
 import com.example.SpringApi.Repositories.AddressRepository;
@@ -37,7 +40,7 @@ import com.example.SpringApi.Repositories.ShipmentPackageRepository;
 import com.example.SpringApi.Repositories.ShipmentProductRepository;
 import com.example.SpringApi.Repositories.ShipmentRepository;
 import com.example.SpringApi.Repositories.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.SpringApi.Repositories.PaymentRepository;
 import com.example.SpringApi.Services.Interface.IPurchaseOrderSubTranslator;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.SuccessMessages;
@@ -48,12 +51,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -89,11 +96,11 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
     private final ShipmentProductRepository shipmentProductRepository;
     private final ShipmentPackageRepository shipmentPackageRepository;
     private final ShipmentPackageProductRepository shipmentPackageProductRepository;
+    private final PaymentRepository paymentRepository;
     private final UserLogService userLogService;
     private final Environment environment;
     private final PurchaseOrderFilterQueryBuilder purchaseOrderFilterQueryBuilder;
     private final MessageService messageService;
-    private final ObjectMapper objectMapper;
     
     @Autowired
     public PurchaseOrderService(PurchaseOrderRepository purchaseOrderRepository,
@@ -107,11 +114,11 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                                ShipmentProductRepository shipmentProductRepository,
                                ShipmentPackageRepository shipmentPackageRepository,
                                ShipmentPackageProductRepository shipmentPackageProductRepository,
+                               PaymentRepository paymentRepository,
                                UserLogService userLogService,
                                PurchaseOrderFilterQueryBuilder purchaseOrderFilterQueryBuilder,
                                MessageService messageService,
-                               Environment environment,
-                               ObjectMapper objectMapper) {
+                               Environment environment) {
         super();
         this.purchaseOrderRepository = purchaseOrderRepository;
         this.addressRepository = addressRepository;
@@ -124,11 +131,11 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         this.shipmentProductRepository = shipmentProductRepository;
         this.shipmentPackageRepository = shipmentPackageRepository;
         this.shipmentPackageProductRepository = shipmentPackageProductRepository;
+        this.paymentRepository = paymentRepository;
         this.userLogService = userLogService;
         this.purchaseOrderFilterQueryBuilder = purchaseOrderFilterQueryBuilder;
         this.messageService = messageService;
         this.environment = environment;
-        this.objectMapper = objectMapper;
     }
     
     /**
@@ -159,7 +166,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         // Valid columns for filtering - includes PO fields and address field
         Set<String> validColumns = Set.of(
             // Purchase Order fields
-            "purchaseOrderId", "vendorNumber", "purchaseOrderStatus", "priority", "paymentId",
+            "purchaseOrderId", "vendorNumber", "purchaseOrderStatus", "priority",
             "expectedDeliveryDate", "createdAt", "updatedAt", "purchaseOrderReceipt", 
             "termsConditionsHtml", "notes", "createdUser", "modifiedUser",
             "approvedByUserId", "approvedDate", "rejectedByUserId", "rejectedDate",
@@ -252,12 +259,31 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                 if (orderSummaryOptional.isPresent()) {
                     orderSummary = orderSummaryOptional.get();
                     
+                    // Initialize Address entity for OrderSummary (needed for response model)
+                    if (orderSummary.getEntityAddress() != null) {
+                        org.hibernate.Hibernate.initialize(orderSummary.getEntityAddress());
+                    }
+                    
+                    // Initialize Promo entity if present
+                    if (orderSummary.getPromo() != null) {
+                        org.hibernate.Hibernate.initialize(orderSummary.getPromo());
+                    }
+                    
                     // Load shipments for this OrderSummary
                     List<Shipment> shipments = shipmentRepository.findByOrderSummaryId(orderSummary.getOrderSummaryId());
                     orderSummary.setShipments(shipments);
                     
                     // Load related entities for each shipment (products, packages, package products)
                     for (Shipment shipment : shipments) {
+                        // Initialize PickupLocation and its Address for each shipment (required for response model)
+                        if (shipment.getPickupLocation() != null) {
+                            org.hibernate.Hibernate.initialize(shipment.getPickupLocation());
+                            // Initialize the address within the pickup location
+                            if (shipment.getPickupLocation().getAddress() != null) {
+                                org.hibernate.Hibernate.initialize(shipment.getPickupLocation().getAddress());
+                            }
+                        }
+                        
                         // Load shipment products
                         List<ShipmentProduct> shipmentProducts = shipmentProductRepository.findByShipmentId(shipment.getShipmentId());
                         shipment.setShipmentProducts(shipmentProducts);
@@ -294,8 +320,20 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                     }
                 }
                 
+                // Load payments for this purchase order
+                List<Payment> payments = paymentRepository.findAllByPurchaseOrderId(po.getPurchaseOrderId());
+                
                 // Convert to response model
-                purchaseOrderResponseModels.add(new PurchaseOrderResponseModel(po, orderSummary));
+                PurchaseOrderResponseModel responseModel = new PurchaseOrderResponseModel(po, orderSummary);
+                
+                // Add payments to response model
+                if (payments != null && !payments.isEmpty()) {
+                    for (Payment payment : payments) {
+                        responseModel.getPayments().add(new com.example.SpringApi.Models.ResponseModels.PaymentResponseModel(payment));
+                    }
+                }
+                
+                purchaseOrderResponseModels.add(responseModel);
             }
         }
 
@@ -327,168 +365,28 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      * @throws BadRequestException if validation fails
      * @throws UnauthorizedException if user is not authorized
      */
+    /**
+     * Finds an existing address or creates a new one.
+     * Delegates to findOrCreateAddressWithContext using current security context.
+     *
+     * @param addressRequest The address request model
+     * @return The address ID (existing or newly created)
+     */
     private Long findOrCreateAddress(AddressRequestModel addressRequest) {
-        if (addressRequest == null) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AddressDataRequired);
-        }
-        
-        // Normalize address data for comparison (trim and handle nulls)
-        String streetAddress = addressRequest.getStreetAddress() != null ? addressRequest.getStreetAddress().trim() : null;
-        String streetAddress2 = addressRequest.getStreetAddress2() != null ? addressRequest.getStreetAddress2().trim() : null;
-        String streetAddress3 = addressRequest.getStreetAddress3() != null ? addressRequest.getStreetAddress3().trim() : null;
-        String city = addressRequest.getCity() != null ? addressRequest.getCity().trim() : null;
-        String state = addressRequest.getState() != null ? addressRequest.getState().trim() : null;
-        String postalCode = addressRequest.getPostalCode() != null ? addressRequest.getPostalCode().trim() : null;
-        String nameOnAddress = addressRequest.getNameOnAddress() != null ? addressRequest.getNameOnAddress().trim() : null;
-        String emailOnAddress = addressRequest.getEmailOnAddress() != null ? addressRequest.getEmailOnAddress().trim() : null;
-        String phoneOnAddress = addressRequest.getPhoneOnAddress() != null ? addressRequest.getPhoneOnAddress().trim() : null;
-        String country = addressRequest.getCountry() != null ? addressRequest.getCountry().trim() : null;
-        String addressType = addressRequest.getAddressType() != null ? addressRequest.getAddressType().toUpperCase() : null;
-        Boolean isPrimary = addressRequest.getIsPrimary() != null ? addressRequest.getIsPrimary() : false;
-        Boolean isDeleted = addressRequest.getIsDeleted() != null ? addressRequest.getIsDeleted() : false;
-        Long userId = addressRequest.getUserId();
-        Long clientId = addressRequest.getClientId() != null ? addressRequest.getClientId() : getClientId();
-        
-        // Check for exact duplicate
-        Optional<Address> existingAddress = addressRepository.findExactDuplicate(
-            userId,
-            clientId,
-            addressType,
-            streetAddress,
-            streetAddress2,
-            streetAddress3,
-            city,
-            state,
-            postalCode,
-            nameOnAddress,
-            emailOnAddress,
-            phoneOnAddress,
-            country,
-            isPrimary,
-            isDeleted
-        );
-        
-        if (existingAddress.isPresent()) {
-            // Return existing address ID
-            return existingAddress.get().getAddressId();
-        }
-        
-        // No duplicate found, create new address
-        // Ensure clientId is set
-        if (addressRequest.getClientId() == null) {
-            addressRequest.setClientId(getClientId());
-        }
-        
-        Address newAddress = new Address(addressRequest, getUser());
-        newAddress = addressRepository.save(newAddress);
-        return newAddress.getAddressId();
+        return findOrCreateAddressWithContext(addressRequest, getUser(), getClientId());
     }
     
     @Override
+    @Transactional
     public void createPurchaseOrder(PurchaseOrderRequestModel purchaseOrderRequestModel) {
-        // Step 1: Create the purchase order entity (validations are done in constructor, including OrderSummary check)
-        PurchaseOrder purchaseOrder = new PurchaseOrder(purchaseOrderRequestModel, getUser(), getClientId());
-        
-        // Step 2: Handle Address - find existing duplicate or create new
-        Long entityAddressId = findOrCreateAddress(purchaseOrderRequestModel.getOrderSummary().getAddress());
-        
-        // Step 3: Save the purchase order to database (to get purchaseOrderId)
-        purchaseOrder = purchaseOrderRepository.save(purchaseOrder);
-        
-        // Step 4: Create OrderSummary entity
-        OrderSummary orderSummary = new OrderSummary(
-            OrderSummary.EntityType.PURCHASE_ORDER.getValue(), // entityType
-            purchaseOrder.getPurchaseOrderId(), // entityId
-            purchaseOrderRequestModel.getOrderSummary(), // orderSummaryData
-            entityAddressId,
-            getClientId(),
-            getUser()
+        // Delegate to common method with current security context
+        createPurchaseOrderWithContext(
+            purchaseOrderRequestModel, 
+            getUser(), 
+            getClientId(), 
+            getUserId(), 
+            true  // shouldLog = true for singular operations
         );
-        
-        orderSummary = orderSummaryRepository.save(orderSummary);
-
-        // Step 5: Create Shipments with all related data
-        if (purchaseOrderRequestModel.getShipments() != null && !purchaseOrderRequestModel.getShipments().isEmpty()) {
-            for (PurchaseOrderRequestModel.ShipmentData shipmentData : purchaseOrderRequestModel.getShipments()) {
-                // Step 5.1: Create Shipment
-                Shipment shipment = new Shipment(
-                    orderSummary.getOrderSummaryId(),
-                    shipmentData,
-                    getClientId(),
-                    getUser()
-                );
-                
-                // Step 5.2: Set courier selection (required for each shipment)
-                if (shipmentData.getSelectedCourier() != null) {
-                    shipment.setCourierSelection(shipmentData.getSelectedCourier());
-                } else {
-                    throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.CourierSelectionRequired);
-                }
-                
-                shipment = shipmentRepository.save(shipment);
-                
-                // Step 5.3: Create ShipmentProducts
-                if (shipmentData.getProducts() != null && !shipmentData.getProducts().isEmpty()) {
-                    List<ShipmentProduct> shipmentProducts = new ArrayList<>();
-                    for (PurchaseOrderRequestModel.ShipmentProductData productData : shipmentData.getProducts()) {
-                        ShipmentProduct shipmentProduct = new ShipmentProduct(
-                            shipment.getShipmentId(),
-                            productData
-                        );
-                        shipmentProducts.add(shipmentProduct);
-                    }
-                    shipmentProductRepository.saveAll(shipmentProducts);
-                }
-                
-                // Step 5.4: Create ShipmentPackages with ShipmentPackageProducts
-                if (shipmentData.getPackages() != null && !shipmentData.getPackages().isEmpty()) {
-                    for (PurchaseOrderRequestModel.ShipmentPackageData packageData : shipmentData.getPackages()) {
-                        ShipmentPackage shipmentPackage = new ShipmentPackage(
-                            shipment.getShipmentId(),
-                            packageData
-                        );
-                        shipmentPackage = shipmentPackageRepository.save(shipmentPackage);
-                        
-                        // Step 5.5: Create ShipmentPackageProducts
-                        if (packageData.getProducts() != null && !packageData.getProducts().isEmpty()) {
-                            List<ShipmentPackageProduct> packageProducts = new ArrayList<>();
-                            for (PurchaseOrderRequestModel.PackageProductData productData : packageData.getProducts()) {
-                                ShipmentPackageProduct packageProduct = new ShipmentPackageProduct(
-                                    shipmentPackage.getShipmentPackageId(),
-                                    productData
-                                );
-                                packageProducts.add(packageProduct);
-                            }
-                            shipmentPackageProductRepository.saveAll(packageProducts);
-                        } else {
-                            throw new BadRequestException(ErrorMessages.ShipmentPackageProductErrorMessages.AtLeastOneProductRequired);
-                        }
-                    }
-                } else {
-                    throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.AtLeastOnePackageRequired);
-                }
-            }
-        } else {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AtLeastOneShipmentRequired);
-        }
-        
-        // Step 6: Handle attachments if provided
-        if (purchaseOrderRequestModel.getAttachments() != null && 
-            !purchaseOrderRequestModel.getAttachments().isEmpty()) {
-            
-            uploadPurchaseOrderAttachments(
-                purchaseOrderRequestModel.getAttachments(),
-                purchaseOrder.getPurchaseOrderId()
-            );
-        }
-        
-        // Log the creation
-        userLogService.logData(
-            getUserId(),
-            SuccessMessages.PurchaseOrderSuccessMessages.InsertPurchaseOrder + " " + purchaseOrder.getPurchaseOrderId() + 
-            " with OrderSummary " + orderSummary.getOrderSummaryId() +
-            " and " + (purchaseOrderRequestModel.getShipments() != null ? purchaseOrderRequestModel.getShipments().size() : 0) + " shipments",
-            ApiRoutes.PurchaseOrderSubRoute.CREATE_PURCHASE_ORDER);
     }
     
     /**
@@ -509,9 +407,9 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      * @param purchaseOrderRequestModel The purchase order to update
      * @throws BadRequestException if validation fails
      * @throws NotFoundException if the purchase order is not found
-     * @throws UnauthorizedException if user is not authorized
      */
     @Override
+    @Transactional
     public void updatePurchaseOrder(PurchaseOrderRequestModel purchaseOrderRequestModel) {
         // Step 1: Fetch and update the purchase order entity
         PurchaseOrder existingPurchaseOrder = purchaseOrderRepository.findByPurchaseOrderIdAndClientId(
@@ -548,6 +446,21 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                 getUser(), 
                 existingOrderSummary
             );
+            
+            // Recalculate pendingAmount based on payments made
+            // When updating, if grandTotal changes, we need to recalculate: pendingAmount = newGrandTotal - totalPaid
+            Long totalPaidPaise = paymentRepository.getTotalNetPaidPaiseForEntity(
+                    Payment.EntityType.PURCHASE_ORDER.getValue(),
+                    updatedPurchaseOrder.getPurchaseOrderId());
+            BigDecimal totalPaid = BigDecimal.valueOf(totalPaidPaise).divide(BigDecimal.valueOf(100));
+            BigDecimal newPendingAmount = orderSummary.getGrandTotal().subtract(totalPaid);
+            
+            // Ensure pendingAmount doesn't go negative (shouldn't happen, but safety check)
+            if (newPendingAmount.compareTo(BigDecimal.ZERO) < 0) {
+                newPendingAmount = BigDecimal.ZERO;
+            }
+            
+            orderSummary.setPendingAmount(newPendingAmount);
         } else {
             // Create new OrderSummary
             orderSummary = new OrderSummary(
@@ -558,9 +471,14 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                 getClientId(),
                 getUser()
             );
+            // For new OrderSummary, pendingAmount is already set to grandTotal in constructor
         }
         
         orderSummary = orderSummaryRepository.save(orderSummary);
+
+        // Build a canonical map of productId -> pricePerUnit from request.products[]
+        // We always persist custom PO pricing from request (no fallback to Product default pricing).
+        final Map<Long, BigDecimal> productPriceMap = buildProductIdToPricePerUnitMap(purchaseOrderRequestModel);
         
         // Step 5: Delete existing shipments and related data, then create new ones
         List<Shipment> existingShipments = shipmentRepository.findByOrderSummaryId(orderSummary.getOrderSummaryId());
@@ -599,6 +517,15 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                 if (shipmentData.getProducts() != null && !shipmentData.getProducts().isEmpty()) {
                     List<ShipmentProduct> shipmentProducts = new ArrayList<>();
                     for (PurchaseOrderRequestModel.ShipmentProductData productData : shipmentData.getProducts()) {
+                        // Ensure allocatedPrice always matches PO-level custom price from request.products[]
+                        BigDecimal canonicalPrice = productPriceMap.get(productData.getProductId());
+                        if (canonicalPrice == null) {
+                            throw new BadRequestException(
+                                "Allocated price not found for productId " + productData.getProductId() +
+                                ". Ensure request.products[] includes this product with pricePerUnit."
+                            );
+                        }
+                        productData.setAllocatedPrice(canonicalPrice);
                         ShipmentProduct shipmentProduct = new ShipmentProduct(
                             shipment.getShipmentId(),
                             productData
@@ -708,6 +635,15 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
             
                     // Load related entities for each shipment (products, packages, package products)
                     for (Shipment shipment : shipments) {
+                        // Initialize PickupLocation and its Address for each shipment (required for response model)
+                        if (shipment.getPickupLocation() != null) {
+                            org.hibernate.Hibernate.initialize(shipment.getPickupLocation());
+                            // Initialize the address within the pickup location
+                            if (shipment.getPickupLocation().getAddress() != null) {
+                                org.hibernate.Hibernate.initialize(shipment.getPickupLocation().getAddress());
+                            }
+                        }
+                        
                         // Load shipment products
                         List<ShipmentProduct> shipmentProducts = shipmentProductRepository.findByShipmentId(shipment.getShipmentId());
                         shipment.setShipmentProducts(shipmentProducts);
@@ -744,8 +680,20 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                     }
         }
         
+        // Load payments for this purchase order
+        List<Payment> payments = paymentRepository.findAllByPurchaseOrderId(purchaseOrder.getPurchaseOrderId());
+        
         // Convert to response model (constructor handles all mapping)
-        return new PurchaseOrderResponseModel(purchaseOrder, orderSummary);
+        PurchaseOrderResponseModel responseModel = new PurchaseOrderResponseModel(purchaseOrder, orderSummary);
+        
+        // Add payments to response model
+        if (payments != null && !payments.isEmpty()) {
+            for (Payment payment : payments) {
+                responseModel.getPayments().add(new com.example.SpringApi.Models.ResponseModels.PaymentResponseModel(payment));
+            }
+        }
+        
+        return responseModel;
     }
     
     /**
@@ -1108,92 +1056,14 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
     
     /**
      * Helper method to upload purchase order attachments to ImgBB.
+     * Delegates to uploadPurchaseOrderAttachmentsWithContext using current security context.
      * 
      * @param attachments Map of attachments (key: fileName, value: base64 data)
      * @param purchaseOrderId The purchase order ID
      * @throws BadRequestException if ImgBB is not configured or upload fails
      */
     private void uploadPurchaseOrderAttachments(Map<String, String> attachments, Long purchaseOrderId) {
-        // Check image location from application properties
-        String imageLocation = environment.getProperty("imageLocation");
-        
-        // Only upload if ImgBB is configured, otherwise skip
-        if (!"imgbb".equalsIgnoreCase(imageLocation)) {
-            return;
-        }
-        
-        // Get client and validate ImgBB API key
-        Client client = clientRepository.findById(getClientId())
-            .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
-        String imgbbApiKey = client.getImgbbApiKey();
-        
-        if (imgbbApiKey == null || imgbbApiKey.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.ImgbbApiKeyNotConfigured);
-        }
-        
-        // Get environment name for custom file naming
-        String environmentName = environment.getActiveProfiles().length > 0 
-            ? environment.getActiveProfiles()[0] 
-            : "default";
-        
-        // Prepare attachment upload requests (keep track of fileName -> request mapping)
-        List<ImgbbHelper.AttachmentUploadRequest> uploadRequests = new ArrayList<>();
-        Map<Integer, String> indexToFileNameMap = new HashMap<>(); // Track index -> fileName mapping
-        
-        int index = 0;
-        for (Map.Entry<String, String> attachment : attachments.entrySet()) {
-            String fileName = attachment.getKey();
-            String base64Data = attachment.getValue();
-            
-            // Skip URLs (already uploaded attachments) - only upload new base64 images
-            if (base64Data != null && base64Data.startsWith("http")) {
-                continue; // Skip existing URLs, they're already uploaded
-            }
-            
-            if (fileName == null || fileName.trim().isEmpty() || base64Data == null || base64Data.trim().isEmpty()) {
-                throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidAttachmentData);
-            }
-            
-            // Store fileName for this index
-            indexToFileNameMap.put(index, fileName);
-            // No notes field in the new structure
-            uploadRequests.add(new ImgbbHelper.AttachmentUploadRequest(fileName, base64Data, null));
-            index++;
-        }
-        
-        // Only upload if there are new attachments
-        if (!uploadRequests.isEmpty()) {
-        // Upload all attachments using ImgbbHelper
-        ImgbbHelper imgbbHelper = new ImgbbHelper(imgbbApiKey);
-        List<ImgbbHelper.AttachmentUploadResult> uploadResults;
-        try {
-            uploadResults = imgbbHelper.uploadPurchaseOrderAttachments(
-                uploadRequests,
-                environmentName,
-                client.getName(),
-                purchaseOrderId
-            );
-        } catch (IOException e) {
-                throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.FailedToUploadAttachments, e.getMessage()));
-        }
-        
-        // Save resource records to database
-            // Store fileName in 'key' field and URL in 'value' field for proper mapping
-            for (int i = 0; i < uploadResults.size(); i++) {
-                ImgbbHelper.AttachmentUploadResult result = uploadResults.get(i);
-                String fileName = indexToFileNameMap.get(i);
-                
-            Resources resource = new Resources();
-            resource.setEntityId(purchaseOrderId);
-            resource.setEntityType(EntityType.PURCHASE_ORDER);
-                resource.setKey(fileName); // Store fileName in 'key' field
-                resource.setValue(result.getUrl()); // Store ImgBB URL in 'value' field
-                resource.setDeleteHashValue(result.getDeleteHash()); // Store delete hash
-            resource.setNotes(result.getNotes());
-            
-            resourcesRepository.save(resource);
-            }
-        }
+        uploadPurchaseOrderAttachmentsWithContext(attachments, purchaseOrderId, getClientId());
     }
     
     /**
@@ -1241,64 +1111,457 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         resourcesRepository.deleteAll(existingResources);
     }
     
-
+    
     /**
-     * Creates multiple purchase orders in a single operation.
+     * Creates multiple purchase orders asynchronously with explicit security context.
+     * 
+     * This method runs in a separate thread using @Async annotation and processes each
+     * purchase order individually. Results are sent via message to the requesting user.
+     * Uses Propagation.NOT_SUPPORTED to prevent rollback-only issues.
      *
      * @param purchaseOrders List of PurchaseOrderRequestModel containing the purchase order data to insert
-     * @return BulkInsertResponseModel containing success/failure details for each purchase order
+     * @param requestingUserId The user ID of the user making the request (captured from security context)
+     * @param requestingUserLoginName The login name of the user making the request (captured from security context)
+     * @param requestingClientId The client ID of the user making the request (captured from security context)
      */
     @Override
-    public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreatePurchaseOrders(java.util.List<PurchaseOrderRequestModel> purchaseOrders) {
-        // TODO: Refactor to use async pattern with explicit security context parameters (similar to ProductService.bulkAddProductsAsync)
-        throw new UnsupportedOperationException("Bulk purchase order creation is temporarily disabled. Please use single purchase order creation endpoint.");
-        
-        // if (purchaseOrders == null || purchaseOrders.isEmpty()) {
-        //     throw new BadRequestException("Purchase order list cannot be null or empty");
-        // }
+    @Async
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void bulkCreatePurchaseOrdersAsync(java.util.List<PurchaseOrderRequestModel> purchaseOrders, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
+        try {
+            // Validate input
+            if (purchaseOrders == null || purchaseOrders.isEmpty()) {
+                throw new BadRequestException("Purchase order list cannot be null or empty");
+            }
 
-        // com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
-        //     new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
-        // response.setTotalRequested(purchaseOrders.size());
+            com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
+                new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+            response.setTotalRequested(purchaseOrders.size());
+            
+            int successCount = 0;
+            int failureCount = 0;
+            
+            // Process each purchase order individually
+            for (PurchaseOrderRequestModel poRequest : purchaseOrders) {
+                try {
+                    // Call createPurchaseOrderWithContext with explicit security context (shouldLog = false for bulk)
+                    Long createdPurchaseOrderId = createPurchaseOrderWithContext(poRequest, requestingUserLoginName, requestingClientId, requestingUserId, false);
+                    String identifier = poRequest.getVendorNumber() != null ? poRequest.getVendorNumber() : "PO-" + createdPurchaseOrderId;
+                    response.addSuccess(identifier, createdPurchaseOrderId);
+                    successCount++;
+                    
+                } catch (BadRequestException bre) {
+                    // Validation or business logic error
+                    response.addFailure(
+                        poRequest.getVendorNumber() != null ? poRequest.getVendorNumber() : "unknown", 
+                        bre.getMessage()
+                    );
+                    failureCount++;
+                } catch (Exception e) {
+                    // Unexpected error
+                    response.addFailure(
+                        poRequest.getVendorNumber() != null ? poRequest.getVendorNumber() : "unknown", 
+                        "Error: " + e.getMessage()
+                    );
+                    failureCount++;
+                }
+            }
+            
+            // Log bulk purchase order creation (using captured context values)
+            userLogService.logDataWithContext(
+                requestingUserId,
+                requestingUserLoginName,
+                requestingClientId,
+                SuccessMessages.PurchaseOrderSuccessMessages.InsertPurchaseOrder + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+                ApiRoutes.PurchaseOrderSubRoute.BULK_CREATE_PURCHASE_ORDER
+            );
+            
+            response.setSuccessCount(successCount);
+            response.setFailureCount(failureCount);
+            
+            // Create a message with the bulk insert results using the helper (using captured context)
+            BulkInsertHelper.createDetailedBulkInsertResultMessage(
+                response, "Purchase Order", "Purchase Orders", "Vendor Number", "Purchase Order ID", 
+                messageService, requestingUserId, requestingUserLoginName, requestingClientId
+            );
+            
+        } catch (Exception e) {
+            // Still send a message to user about the failure (using captured userId)
+            com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> errorResponse = 
+                new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+            errorResponse.setTotalRequested(purchaseOrders != null ? purchaseOrders.size() : 0);
+            errorResponse.setSuccessCount(0);
+            errorResponse.setFailureCount(purchaseOrders != null ? purchaseOrders.size() : 0);
+            errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
+            BulkInsertHelper.createDetailedBulkInsertResultMessage(
+                errorResponse, "Purchase Order", "Purchase Orders", "Vendor Number", "Purchase Order ID", 
+                messageService, requestingUserId, requestingUserLoginName, requestingClientId
+            );
+        }
+    }
+    
+    /**
+     * Creates a purchase order with explicit security context parameters.
+     * This is the common method called by both singular and bulk insert operations.
+     * Used by async bulk import where security context is not available in the worker thread.
+     *
+     * @param purchaseOrderRequestModel The purchase order to create
+     * @param createdUser The login name of the user creating the purchase order
+     * @param clientId The client ID for the purchase order
+     * @param userId The user ID creating the purchase order
+     * @param shouldLog Whether to log this individual operation (false for bulk operations)
+     * @return The ID of the created purchase order
+     */
+    @Transactional
+    protected Long createPurchaseOrderWithContext(PurchaseOrderRequestModel purchaseOrderRequestModel, String createdUser, Long clientId, Long userId, boolean shouldLog) {
+        // Step 1: Create the purchase order entity (validations are done in constructor, including OrderSummary check)
+        PurchaseOrder purchaseOrder = new PurchaseOrder(purchaseOrderRequestModel, createdUser, clientId);
         
-        // int successCount = 0;
-        // int failureCount = 0;
+        // Step 2: Handle Address - find existing duplicate or create new
+        Long entityAddressId = findOrCreateAddressWithContext(purchaseOrderRequestModel.getOrderSummary().getAddress(), createdUser, clientId);
         
-        // for (PurchaseOrderRequestModel poRequest : purchaseOrders) {
-        //     try {
-        //         createPurchaseOrder(poRequest);
+        // Step 3: Save the purchase order to database (to get purchaseOrderId)
+        purchaseOrder = purchaseOrderRepository.save(purchaseOrder);
+        
+        // Step 4: Create OrderSummary entity
+        OrderSummary orderSummary = new OrderSummary(
+            OrderSummary.EntityType.PURCHASE_ORDER.getValue(), // entityType
+            purchaseOrder.getPurchaseOrderId(), // entityId
+            purchaseOrderRequestModel.getOrderSummary(), // orderSummaryData
+            entityAddressId,
+            clientId,
+            createdUser
+        );
+        
+        orderSummary = orderSummaryRepository.save(orderSummary);
+
+        // Build a canonical map of productId -> pricePerUnit from request.products[]
+        // We always persist custom PO pricing from request (no fallback to Product default pricing).
+        final Map<Long, BigDecimal> productPriceMap = buildProductIdToPricePerUnitMap(purchaseOrderRequestModel);
+
+        // Step 5: Create Shipments with all related data
+        if (purchaseOrderRequestModel.getShipments() != null && !purchaseOrderRequestModel.getShipments().isEmpty()) {
+            for (PurchaseOrderRequestModel.ShipmentData shipmentData : purchaseOrderRequestModel.getShipments()) {
+                // Step 5.1: Create Shipment
+                Shipment shipment = new Shipment(
+                    orderSummary.getOrderSummaryId(),
+                    shipmentData,
+                    clientId,
+                    createdUser
+                );
                 
-        //         // Find the created purchase order (use vendor number as identifier)
-        //         Optional<PurchaseOrder> createdPO = purchaseOrderRepository.findByPurchaseOrderIdAndClientId(
-        //             poRequest.getPurchaseOrderId(), getClientId());
-        //         if (createdPO.isPresent()) {
-        //             response.addSuccess(poRequest.getVendorNumber(), createdPO.get().getPurchaseOrderId());
-        //             successCount++;
-        //         }
-        //     } catch (BadRequestException bre) {
-        //         response.addFailure(
-        //             poRequest.getVendorNumber() != null ? poRequest.getVendorNumber() : "unknown", 
-        //             bre.getMessage()
-        //         );
-        //         failureCount++;
-        //     } catch (Exception e) {
-        //         response.addFailure(
-        //             poRequest.getVendorNumber() != null ? poRequest.getVendorNumber() : "unknown", 
-        //             "Error: " + e.getMessage()
-        //         );
-        //         failureCount++;
-        //     }
-        // }
+                // Step 5.2: Set courier selection (required for each shipment)
+                if (shipmentData.getSelectedCourier() != null) {
+                    shipment.setCourierSelection(shipmentData.getSelectedCourier());
+                } else {
+                    throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.CourierSelectionRequired);
+                }
+                
+                shipment = shipmentRepository.save(shipment);
+                
+                // Step 5.3: Create ShipmentProducts
+                if (shipmentData.getProducts() != null && !shipmentData.getProducts().isEmpty()) {
+                    List<ShipmentProduct> shipmentProducts = new ArrayList<>();
+                    for (PurchaseOrderRequestModel.ShipmentProductData productData : shipmentData.getProducts()) {
+                        // Ensure allocatedPrice always matches PO-level custom price from request.products[]
+                        BigDecimal canonicalPrice = productPriceMap.get(productData.getProductId());
+                        if (canonicalPrice == null) {
+                            throw new BadRequestException(
+                                "Allocated price not found for productId " + productData.getProductId() +
+                                ". Ensure request.products[] includes this product with pricePerUnit."
+                            );
+                        }
+                        productData.setAllocatedPrice(canonicalPrice);
+                        ShipmentProduct shipmentProduct = new ShipmentProduct(
+                            shipment.getShipmentId(),
+                            productData
+                        );
+                        shipmentProducts.add(shipmentProduct);
+                    }
+                    shipmentProductRepository.saveAll(shipmentProducts);
+                }
+                
+                // Step 5.4: Create ShipmentPackages with ShipmentPackageProducts
+                if (shipmentData.getPackages() != null && !shipmentData.getPackages().isEmpty()) {
+                    for (PurchaseOrderRequestModel.ShipmentPackageData packageData : shipmentData.getPackages()) {
+                        ShipmentPackage shipmentPackage = new ShipmentPackage(
+                            shipment.getShipmentId(),
+                            packageData
+                        );
+                        shipmentPackage = shipmentPackageRepository.save(shipmentPackage);
+                        
+                        // Step 5.5: Create ShipmentPackageProducts
+                        if (packageData.getProducts() != null && !packageData.getProducts().isEmpty()) {
+                            List<ShipmentPackageProduct> packageProducts = new ArrayList<>();
+                            for (PurchaseOrderRequestModel.PackageProductData productData : packageData.getProducts()) {
+                                ShipmentPackageProduct packageProduct = new ShipmentPackageProduct(
+                                    shipmentPackage.getShipmentPackageId(),
+                                    productData
+                                );
+                                packageProducts.add(packageProduct);
+                            }
+                            shipmentPackageProductRepository.saveAll(packageProducts);
+                        } else {
+                            throw new BadRequestException(ErrorMessages.ShipmentPackageProductErrorMessages.AtLeastOneProductRequired);
+                        }
+                    }
+                } else {
+                    throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.AtLeastOnePackageRequired);
+                }
+            }
+        } else {
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AtLeastOneShipmentRequired);
+        }
         
-        // userLogService.logData(getUserId(), 
-        //     SuccessMessages.PurchaseOrderSuccessMessages.InsertPurchaseOrder + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
-        //     ApiRoutes.PurchaseOrderSubRoute.BULK_CREATE_PURCHASE_ORDER);
+        // Step 6: Handle attachments if provided
+        if (purchaseOrderRequestModel.getAttachments() != null && 
+            !purchaseOrderRequestModel.getAttachments().isEmpty()) {
+            
+            uploadPurchaseOrderAttachmentsWithContext(
+                purchaseOrderRequestModel.getAttachments(),
+                purchaseOrder.getPurchaseOrderId(),
+                clientId
+            );
+        }
         
-        // response.setSuccessCount(successCount);
-        // response.setFailureCount(failureCount);
+        // Log the creation if required
+        if (shouldLog) {
+            userLogService.logDataWithContext(
+                userId,
+                createdUser,
+                clientId,
+                SuccessMessages.PurchaseOrderSuccessMessages.InsertPurchaseOrder + " " + purchaseOrder.getPurchaseOrderId() + 
+                " with OrderSummary " + orderSummary.getOrderSummaryId() +
+                " and " + (purchaseOrderRequestModel.getShipments() != null ? purchaseOrderRequestModel.getShipments().size() : 0) + " shipments",
+                ApiRoutes.PurchaseOrderSubRoute.CREATE_PURCHASE_ORDER);
+        }
         
-        // BulkInsertHelper.createBulkInsertResultMessage(response, "Purchase Order", messageService, getUserId(), getUser(), getClientId());
+        return purchaseOrder.getPurchaseOrderId();
+    }
+
+    /**
+     * Build a canonical map of productId -> pricePerUnit from request.products[].
+     *
+     * Business rule: PO always uses custom per-unit pricing from the request payload.
+     * This may equal the product default price, but we never fall back to the Product table
+     * when persisting PO shipment product pricing.
+     */
+    private Map<Long, BigDecimal> buildProductIdToPricePerUnitMap(PurchaseOrderRequestModel purchaseOrderRequestModel) {
+        if (purchaseOrderRequestModel == null) {
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidRequest);
+        }
+
+        if (purchaseOrderRequestModel.getProducts() == null || purchaseOrderRequestModel.getProducts().isEmpty()) {
+            throw new BadRequestException("At least one product must be specified in products list");
+        }
+
+        Map<Long, BigDecimal> map = new HashMap<>();
+        for (PurchaseOrderProductItem item : purchaseOrderRequestModel.getProducts()) {
+            if (item == null) {
+                continue;
+            }
+
+            if (item.getProductId() == null || item.getProductId() <= 0) {
+                throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidId);
+            }
+
+            if (item.getPricePerUnit() == null) {
+                throw new BadRequestException("pricePerUnit is required for productId " + item.getProductId());
+            }
+            if (item.getPricePerUnit().compareTo(BigDecimal.ZERO) < 0) {
+                throw new BadRequestException("pricePerUnit must be greater than or equal to 0 for productId " + item.getProductId());
+            }
+
+            // Enforce uniqueness to avoid ambiguous pricing
+            if (map.containsKey(item.getProductId())) {
+                throw new BadRequestException("Duplicate productId in products list: " + item.getProductId());
+            }
+
+            map.put(item.getProductId(), item.getPricePerUnit());
+        }
+
+        return map;
+    }
+    
+    /**
+     * Finds an existing address or creates a new one with explicit security context.
+     * Used by async bulk import where security context is not available.
+     *
+     * @param addressRequest The address request model
+     * @param createdUser The login name of the user creating the address
+     * @param clientId The client ID for the address
+     * @return The address ID (existing or newly created)
+     */
+    private Long findOrCreateAddressWithContext(AddressRequestModel addressRequest, String createdUser, Long clientId) {
+        if (addressRequest == null) {
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AddressDataRequired);
+        }
         
-        // return response;
+        Long effectiveClientId = addressRequest.getClientId() != null ? addressRequest.getClientId() : clientId;
+        
+        // Check for exact duplicate (normalization is handled in the repository query)
+        Optional<Address> existingAddress = addressRepository.findExactDuplicate(
+            addressRequest.getUserId(),
+            effectiveClientId,
+            addressRequest.getAddressType(),
+            addressRequest.getStreetAddress(),
+            addressRequest.getStreetAddress2(),
+            addressRequest.getStreetAddress3(),
+            addressRequest.getCity(),
+            addressRequest.getState(),
+            addressRequest.getPostalCode(),
+            addressRequest.getNameOnAddress(),
+            addressRequest.getEmailOnAddress(),
+            addressRequest.getPhoneOnAddress(),
+            addressRequest.getCountry(),
+            addressRequest.getIsPrimary(),
+            addressRequest.getIsDeleted()
+        );
+        
+        if (existingAddress.isPresent()) {
+            return existingAddress.get().getAddressId();
+        }
+        
+        // No duplicate found, create new address
+        if (addressRequest.getClientId() == null) {
+            addressRequest.setClientId(clientId);
+        }
+        
+        Address newAddress = new Address(addressRequest, createdUser);
+        newAddress = addressRepository.save(newAddress);
+        return newAddress.getAddressId();
+    }
+    
+    /**
+     * Helper method to upload purchase order attachments to ImgBB with explicit context.
+     * Used by async bulk import where security context is not available.
+     * 
+     * @param attachments Map of attachments (key: fileName, value: base64 data)
+     * @param purchaseOrderId The purchase order ID
+     * @param clientId The client ID
+     * @throws BadRequestException if ImgBB is not configured or upload fails
+     */
+    private void uploadPurchaseOrderAttachmentsWithContext(Map<String, String> attachments, Long purchaseOrderId, Long clientId) {
+        if (attachments == null || attachments.isEmpty()) {
+            return; // No attachments to process
+        }
+        
+        // Check image location from application properties
+        String imageLocation = environment.getProperty("imageLocation");
+        boolean isImgbbConfigured = "imgbb".equalsIgnoreCase(imageLocation);
+        
+        // Prepare attachments for processing
+        List<Map.Entry<String, String>> newAttachments = new ArrayList<>();
+        List<Map.Entry<String, String>> existingAttachments = new ArrayList<>();
+        
+        for (Map.Entry<String, String> attachment : attachments.entrySet()) {
+            String fileName = attachment.getKey();
+            String data = attachment.getValue();
+            
+            if (fileName == null || fileName.trim().isEmpty() || data == null || data.trim().isEmpty()) {
+                throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidAttachmentData);
+            }
+            
+            // Separate new base64 uploads from existing URLs
+            if (data.startsWith("http")) {
+                // Existing URL - save directly to database
+                existingAttachments.add(attachment);
+            } else {
+                // New base64 data - needs processing
+                newAttachments.add(attachment);
+            }
+        }
+        
+        // Save existing URLs directly to database
+        for (Map.Entry<String, String> attachment : existingAttachments) {
+            Resources resource = new Resources(
+                purchaseOrderId,
+                EntityType.PURCHASE_ORDER,
+                attachment.getKey(),
+                attachment.getValue(),
+                null
+            );
+            resourcesRepository.save(resource);
+        }
+        
+        // Process new base64 attachments
+        if (newAttachments.isEmpty()) {
+            return; // No new attachments to process
+        }
+        
+        if (isImgbbConfigured) {
+            // Upload to ImgBB and save URLs
+            Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
+            String imgbbApiKey = client.getImgbbApiKey();
+            
+            if (imgbbApiKey == null || imgbbApiKey.trim().isEmpty()) {
+                throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.ImgbbApiKeyNotConfigured);
+            }
+            
+            // Get environment name for custom file naming
+            String environmentName = environment.getActiveProfiles().length > 0 
+                ? environment.getActiveProfiles()[0] 
+                : "default";
+            
+            // Prepare attachment upload requests (keep track of fileName -> request mapping)
+            List<ImgbbHelper.AttachmentUploadRequest> uploadRequests = new ArrayList<>();
+            Map<Integer, String> indexToFileNameMap = new HashMap<>(); // Track index -> fileName mapping
+            
+            int index = 0;
+            for (Map.Entry<String, String> attachment : newAttachments) {
+                String fileName = attachment.getKey();
+                String base64Data = attachment.getValue();
+                
+                // Store fileName for this index
+                indexToFileNameMap.put(index, fileName);
+                uploadRequests.add(new ImgbbHelper.AttachmentUploadRequest(fileName, base64Data, null));
+                index++;
+            }
+            
+            // Upload all attachments using ImgbbHelper
+            ImgbbHelper imgbbHelper = new ImgbbHelper(imgbbApiKey);
+            List<ImgbbHelper.AttachmentUploadResult> uploadResults;
+            try {
+                uploadResults = imgbbHelper.uploadPurchaseOrderAttachments(
+                    uploadRequests,
+                    environmentName,
+                    client.getName(),
+                    purchaseOrderId
+                );
+            } catch (IOException e) {
+                throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.FailedToUploadAttachments, e.getMessage()));
+            }
+            
+            // Save resource records to database with ImgBB URLs
+            for (int i = 0; i < uploadResults.size(); i++) {
+                ImgbbHelper.AttachmentUploadResult result = uploadResults.get(i);
+                String fileName = indexToFileNameMap.get(i);
+                
+                Resources resource = new Resources(
+                    purchaseOrderId,
+                    EntityType.PURCHASE_ORDER,
+                    fileName,
+                    result.getUrl(),
+                    result.getDeleteHash(),
+                    result.getNotes()
+                );
+                resourcesRepository.save(resource);
+            }
+        } else {
+            // ImgBB not configured - save base64 data directly to database
+            // Note: This stores base64 in the value field, which may be large
+            // Consider implementing a file storage solution for production
+            for (Map.Entry<String, String> attachment : newAttachments) {
+                Resources resource = new Resources(
+                    purchaseOrderId,
+                    EntityType.PURCHASE_ORDER,
+                    attachment.getKey(),
+                    "data:image/png;base64," + attachment.getValue(),
+                    null
+                );
+                resourcesRepository.save(resource);
+            }
+        }
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository interface for ProductPickupLocationMapping entity operations.
@@ -77,14 +78,28 @@ public interface ProductPickupLocationMappingRepository extends JpaRepository<Pr
     /**
      * Find all ProductPickupLocationMappings for a specific product across all pickup locations.
      * Fetches pickup location with address for distance calculation.
+     * Only returns locations that have a valid address (excludes bad data where address is missing).
      * 
      * @param productId The product ID
      * @return List of ProductPickupLocationMappings with pickup location and address
      */
     @Query("SELECT pplm FROM ProductPickupLocationMapping pplm " +
            "JOIN FETCH pplm.pickupLocation pl " +
-           "LEFT JOIN FETCH pl.address a " +
+           "JOIN FETCH pl.address a " +
            "WHERE pplm.productId = :productId AND pplm.isActive = true AND pl.isDeleted = false")
     List<ProductPickupLocationMapping> findByProductIdWithPickupLocationAndAddress(@Param("productId") Long productId);
+    
+    /**
+     * Find ProductPickupLocationMapping by product ID and pickup location ID.
+     * 
+     * @param productId The product ID
+     * @param pickupLocationId The pickup location ID
+     * @return Optional ProductPickupLocationMapping
+     */
+    @Query("SELECT pplm FROM ProductPickupLocationMapping pplm " +
+           "WHERE pplm.productId = :productId AND pplm.pickupLocationId = :pickupLocationId AND pplm.isActive = true")
+    Optional<ProductPickupLocationMapping> findByProductIdAndPickupLocationId(
+            @Param("productId") Long productId,
+            @Param("pickupLocationId") Long pickupLocationId);
 }
 

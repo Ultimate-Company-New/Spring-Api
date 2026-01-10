@@ -109,7 +109,8 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
             boolean includeDeleted,
             Pageable pageable) {
 
-        // Base query with JOIN FETCH for address
+        // Base query with INNER JOIN FETCH for address
+        // Uses INNER JOIN to exclude pickup locations with missing address (bad data)
         String baseQuery = "SELECT pl FROM PickupLocation pl " +
                 "JOIN FETCH pl.address a " +
                 "WHERE pl.clientId = :clientId ";
@@ -135,6 +136,7 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
         baseQuery += "ORDER BY pl.pickupLocationId DESC";
 
         // Count query (without FETCH join)
+        // Uses INNER JOIN to match main query - excludes pickup locations with missing address (bad data)
         String countQuery = "SELECT COUNT(pl) FROM PickupLocation pl " +
                 "JOIN pl.address a " +
                 "WHERE pl.clientId = :clientId ";

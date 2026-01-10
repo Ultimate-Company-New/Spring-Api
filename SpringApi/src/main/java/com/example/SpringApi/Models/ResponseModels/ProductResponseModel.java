@@ -1,7 +1,5 @@
 package com.example.SpringApi.Models.ResponseModels;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.DatabaseModels.Product;
 import com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping;
 import com.example.SpringApi.Models.DatabaseModels.User;
@@ -82,6 +80,10 @@ public class ProductResponseModel {
     
     // Related entities
     private ProductCategoryResponseModel category;
+    
+    // Shipment-specific fields (only populated when product is part of a shipment)
+    private Integer allocatedQuantity;
+    private BigDecimal allocatedPrice;
     
     /**
      * Inner class to hold created by user information.
@@ -212,6 +214,24 @@ public class ProductResponseModel {
                 }
             }
             // Note: Empty pickupLocations list is valid - products might not be assigned to locations yet
+        }
+    }
+    
+    /**
+     * Constructor that populates fields from a Product entity and ShipmentProduct entity.
+     * Used when product is part of a shipment to include allocated quantity and price.
+     * 
+     * @param product The Product entity to populate from
+     * @param shipmentProduct The ShipmentProduct entity to get allocation details from
+     */
+    public ProductResponseModel(Product product, com.example.SpringApi.Models.DatabaseModels.ShipmentProduct shipmentProduct) {
+        // First populate from Product
+        this(product);
+        
+        // Then add shipment-specific fields
+        if (shipmentProduct != null) {
+            this.allocatedQuantity = shipmentProduct.getAllocatedQuantity();
+            this.allocatedPrice = shipmentProduct.getAllocatedPrice();
         }
     }
 

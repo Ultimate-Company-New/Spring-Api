@@ -26,6 +26,10 @@ import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.hibernate.exception.SQLGrammarException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +70,8 @@ import java.util.Map;
  */
 @Service
 public class ProductService extends BaseService implements IProductSubTranslator {
+    
+    private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
     
     private final ProductRepository productRepository;
     private final ProductPickupLocationMappingRepository productPickupLocationMappingRepository;
@@ -284,28 +290,18 @@ public class ProductService extends BaseService implements IProductSubTranslator
                     throw new BadRequestException("Invalid column name: " + filter.getColumn());
                 }
 
-                // Validate operator
-                Set<String> validOperators = new HashSet<>(Arrays.asList(
-                    "equals", "notEquals", "contains", "notContains", "startsWith", "endsWith",
-                    "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual",
-                    "isEmpty", "isNotEmpty"
-                ));
-                if (filter.getOperator() != null && !validOperators.contains(filter.getOperator())) {
+                // Validate operator using centralized validation from FilterCondition
+                if (filter.getOperator() != null && !filter.isValidOperator()) {
                     throw new BadRequestException("Invalid operator: " + filter.getOperator());
                 }
 
-                // Validate column type matches operator
+                // Validate column type matches operator using centralized validation
                 String columnType = productFilterQueryBuilder.getColumnType(filter.getColumn());
-                if ("boolean".equals(columnType) && !filter.getOperator().equals("equals") && !filter.getOperator().equals("notEquals")) {
-                    throw new BadRequestException("Boolean columns only support 'equals' and 'notEquals' operators");
-                }
-                if ("date".equals(columnType) || "number".equals(columnType)) {
-                    Set<String> numericDateOperators = new HashSet<>(Arrays.asList(
-                        "equals", "notEquals", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"
-                    ));
-                    if (!numericDateOperators.contains(filter.getOperator())) {
-                        throw new BadRequestException(columnType + " columns only support numeric comparison operators");
-                    }
+                if (columnType != null && filter.getOperator() != null && !filter.isValidOperatorForType(columnType)) {
+                    throw new BadRequestException(
+                        String.format("Operator '%s' is not valid for %s column '%s'", 
+                            filter.getOperator(), columnType, filter.getColumn())
+                    );
                 }
             }
         }
@@ -1079,8 +1075,44 @@ public class ProductService extends BaseService implements IProductSubTranslator
         // Fetch product to get its dimensions
         Product product = productRepository.findById(productId).orElse(null);
         
-        java.util.List<ProductPickupLocationMapping> mappings = productPickupLocationMappingRepository
-            .findByProductIdWithPickupLocationAndAddress(productId);
+        // Fetch product pickup location mappings with error handling for missing table
+        java.util.List<ProductPickupLocationMapping> mappings;
+        try {
+            mappings = productPickupLocationMappingRepository
+                .findByProductIdWithPickupLocationAndAddress(productId);
+            
+            // Log when no mappings are found (helps debug stock availability issues)
+            if (mappings.isEmpty()) {
+                logger.info("No active ProductPickupLocationMapping found for productId: {}. " +
+                    "This could mean: 1) No stock mappings exist, 2) All mappings are inactive (isActive=false), " +
+                    "or 3) All pickup locations are deleted (isDeleted=true).", productId);
+            } else {
+                logger.debug("Found {} ProductPickupLocationMapping(s) for productId: {}", mappings.size(), productId);
+            }
+        } catch (InvalidDataAccessResourceUsageException e) {
+            // Table doesn't exist - log warning and return empty list
+            // Check if it's specifically a missing table error
+            if (e.getMessage() != null && e.getMessage().contains("doesn't exist")) {
+                logger.warn("ProductPickupLocationMapping table does not exist for productId: {}. " +
+                    "Please run the database migration script. Returning empty stock list.", productId);
+            } else {
+                logger.warn("Database resource error for productId: {}. Returning empty stock list.", productId, e);
+            }
+            mappings = new java.util.ArrayList<>();
+        } catch (SQLGrammarException e) {
+            // Catch Hibernate SQL grammar exceptions (like missing table)
+            if (e.getMessage() != null && e.getMessage().contains("doesn't exist")) {
+                logger.warn("ProductPickupLocationMapping table does not exist for productId: {}. " +
+                    "Please run the database migration script. Returning empty stock list.", productId);
+            } else {
+                logger.warn("SQL grammar error for productId: {}. Returning empty stock list.", productId, e);
+            }
+            mappings = new java.util.ArrayList<>();
+        } catch (Exception e) {
+            // Catch any other exceptions and log them
+            logger.error("Error fetching ProductPickupLocationMapping for productId: {}. Returning empty stock list.", productId, e);
+            mappings = new java.util.ArrayList<>();
+        }
         
         // Get all pickup location IDs
         java.util.List<Long> pickupLocationIds = mappings.stream()
@@ -1130,6 +1162,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
             calculatePackagingEstimate(response, product, requestedQuantity, mapping.getAvailableStock(), packageDimensions, packagingHelper);
             
             // Note: Shipping options are now calculated at the order level via ShippingController
+            // This allows combining products from the same pickup location for more accurate shipping costs
             
             responseList.add(response);
         }

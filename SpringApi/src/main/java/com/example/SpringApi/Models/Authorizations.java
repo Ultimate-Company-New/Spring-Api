@@ -100,11 +100,8 @@ public class Authorizations {
     public static final String UPDATE_PURCHASE_ORDERS_PERMISSION = "UpdatePurchaseOrders";
     public static final String TOGGLE_PURCHASE_ORDERS_PERMISSION = "TogglePurchaseOrders";
 
-    // SalesOrderPermissions
-    public static final String VIEW_SALES_ORDERS_PERMISSION = "ViewSalesOrders";
-    public static final String INSERT_SALES_ORDERS_PERMISSION = "InsertSalesOrders";
-    public static final String UPDATE_SALES_ORDERS_PERMISSION = "UpdateSalesOrders";
-    public static final String TOGGLE_SALES_ORDERS_PERMISSION = "ToggleSalesOrders";
+    // ShipmentPermissions
+    public static final String VIEW_SHIPMENTS_PERMISSION = "ViewShipments";
 
     // WebTemplatePermissions
     public static final String VIEW_WEB_TEMPLATE_PERMISSION = "ViewWebTemplate";

@@ -170,15 +170,10 @@ public class ImgbbHelper {
      */
     public ImgbbUploadResponse uploadFileToImgbb(String imageBase64, String filePath) {        
         if (imageBase64 == null || imageBase64.isEmpty()) {
-            System.err.println("ImgBB upload failed: imageBase64 is null or empty");
             return null;
         }
 
         try {
-            // Log the first 50 characters of base64 for debugging
-            String base64Preview = imageBase64.length() > 50 ? imageBase64.substring(0, 50) + "..." : imageBase64;
-            System.out.println("ImgBB upload attempt - fileName: " + filePath + ", base64 length: " + imageBase64.length() + ", preview: " + base64Preview);
-            
             // Build the POST request payload with name parameter
             String postParameters = "image=" + URLEncoder.encode(imageBase64, StandardCharsets.UTF_8);
             
@@ -189,7 +184,6 @@ public class ImgbbHelper {
 
             // Construct the full API URL including the key
             String fullUrlString = IMGBB_UPLOAD_URL + "?key=" + imgbbApiKey;
-            System.out.println("ImgBB API URL: " + IMGBB_UPLOAD_URL + "?key=" + (imgbbApiKey != null && !imgbbApiKey.isEmpty() ? "***" : "MISSING"));
             URL url = new URL(fullUrlString);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
@@ -215,15 +209,12 @@ public class ImgbbHelper {
                 String deleteHash = extractDeleteHashFromJson(jsonResponse);
                 return new ImgbbUploadResponse(imageUrl, deleteHash);
             } else {
-                // Log error response for debugging
-                String errorResponse = getResponseContent(connection.getErrorStream());
-                System.err.println("ImgBB upload failed with status " + responseCode + ": " + errorResponse);
+                // Error response - return null
+                getResponseContent(connection.getErrorStream());
                 return null;
             }
 
         } catch (IOException e) {
-            System.err.println("ImgBB upload IOException: " + e.getMessage());
-            e.printStackTrace();
             return null;
         }
     }
@@ -479,8 +470,7 @@ public class ImgbbHelper {
                         successCount++;
                     }
                 } catch (Exception e) {
-                    // Log error but continue with other deletions
-                    System.err.println("Failed to delete image from ImgBB: " + deleteHash + " - " + e.getMessage());
+                    // Error deleting image - continue with other deletions
                 }
             }
         }

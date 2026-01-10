@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PackagePickupLocationMappingRepository extends JpaRepository<PackagePickupLocationMapping, Long> {
@@ -66,4 +67,17 @@ public interface PackagePickupLocationMappingRepository extends JpaRepository<Pa
            "WHERE m.pickupLocationId IN :pickupLocationIds AND m.availableQuantity > 0 " +
            "ORDER BY p.pricePerUnit ASC")
     List<PackagePickupLocationMapping> findByPickupLocationIdsWithPackages(@Param("pickupLocationIds") List<Long> pickupLocationIds);
+    
+    /**
+     * Find PackagePickupLocationMapping by package ID and pickup location ID.
+     * 
+     * @param packageId The package ID
+     * @param pickupLocationId The pickup location ID
+     * @return Optional PackagePickupLocationMapping
+     */
+    @Query("SELECT m FROM PackagePickupLocationMapping m " +
+           "WHERE m.packageId = :packageId AND m.pickupLocationId = :pickupLocationId")
+    Optional<PackagePickupLocationMapping> findByPackageIdAndPickupLocationId(
+            @Param("packageId") Long packageId,
+            @Param("pickupLocationId") Long pickupLocationId);
 }

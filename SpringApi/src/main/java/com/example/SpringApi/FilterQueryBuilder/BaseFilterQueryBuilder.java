@@ -243,8 +243,52 @@ public abstract class BaseFilterQueryBuilder {
                 return fieldPath + " IS NULL";
             case "isNotEmpty":
                 return fieldPath + " IS NOT NULL";
+            case "isOneOf":
+                return buildNumberIsOneOfCondition(fieldPath, value, paramName, parameters, false);
+            case "isNotOneOf":
+                return buildNumberIsOneOfCondition(fieldPath, value, paramName, parameters, true);
             default:
                 return "1=1";
+        }
+    }
+    
+    /**
+     * Builds "is one of" or "is not one of" condition for semicolon or comma-separated numeric values.
+     * Example: value = "1,2,3" or "1;2;3" becomes: field IN (1, 2, 3) or field NOT IN (1, 2, 3)
+     */
+    private String buildNumberIsOneOfCondition(String fieldPath, Object value, String paramName, Map<String, Object> parameters, boolean negate) {
+        if (value == null) {
+            return "1=1";
+        }
+        
+        String valueStr = String.valueOf(value);
+        // Support both comma and semicolon as separators
+        String[] values = valueStr.contains(";") ? valueStr.split(";") : valueStr.split(",");
+        
+        // Parse and filter valid numeric values
+        List<Long> numericValues = new java.util.ArrayList<>();
+        for (String val : values) {
+            String trimmed = val.trim();
+            if (!trimmed.isEmpty()) {
+                try {
+                    numericValues.add(Long.parseLong(trimmed));
+                } catch (NumberFormatException e) {
+                    // Skip invalid numbers
+                }
+            }
+        }
+        
+        if (numericValues.isEmpty()) {
+            return "1=1";
+        }
+        
+        // Store the list of values as a parameter
+        parameters.put(paramName, numericValues);
+        
+        if (negate) {
+            return fieldPath + " NOT IN (:" + paramName + ")";
+        } else {
+            return fieldPath + " IN (:" + paramName + ")";
         }
     }
     

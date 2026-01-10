@@ -1,5 +1,7 @@
 package com.example.SpringApi.Models.RequestModels;
 
+import com.example.SpringApi.Deserializers.FlexibleLocalDateTimeDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,7 +30,6 @@ public class PurchaseOrderRequestModel {
     private Boolean isDeleted;
     private String purchaseOrderReceipt;
     private String purchaseOrderStatus;
-    private Long paymentId;
     private Long approvedByUserId;
     private LocalDateTime approvedDate;
     private Long rejectedByUserId;
@@ -54,13 +55,15 @@ public class PurchaseOrderRequestModel {
         private BigDecimal totalDiscount; // Default: 0
         private BigDecimal packagingFee; // Default: 0
         private BigDecimal totalShipping; // Default: 0
+        private BigDecimal serviceFee; // Default: 0
         private BigDecimal gstPercentage; // Default: 18.00
         private BigDecimal gstAmount; // Required (calculated from subtotal * gstPercentage)
         private BigDecimal grandTotal; // Required (calculated: subtotal + gstAmount)
         private BigDecimal pendingAmount; // Default: grandTotal (nothing paid yet)
         
         // Fulfillment Details
-        private LocalDateTime expectedDeliveryDate; // Optional
+        @JsonDeserialize(using = FlexibleLocalDateTimeDeserializer.class)
+        private LocalDateTime expectedDeliveryDate; // Optional (accepts both yyyy-MM-dd and yyyy-MM-dd'T'HH:mm:ss)
         private AddressRequestModel address; // Required: delivery/shipping address data (will check for duplicates before creating)
         private String priority; // Required: LOW, MEDIUM, HIGH, URGENT
         
@@ -80,7 +83,8 @@ public class PurchaseOrderRequestModel {
         private Long pickupLocationId; // Required
         private BigDecimal totalWeightKgs; // Required
         private Integer totalQuantity; // Required
-        private LocalDateTime expectedDeliveryDate; // Optional: expected delivery date for this shipment
+        @JsonDeserialize(using = FlexibleLocalDateTimeDeserializer.class)
+        private LocalDateTime expectedDeliveryDate; // Optional (accepts both yyyy-MM-dd and yyyy-MM-dd'T'HH:mm:ss)
         
         // Costs
         private BigDecimal packagingCost; // Required
@@ -99,6 +103,7 @@ public class PurchaseOrderRequestModel {
     
     /**
      * Courier selection data containing selected courier details and metadata.
+     * All fields are required for shipment creation.
      */
     @Getter
     @Setter
@@ -106,7 +111,8 @@ public class PurchaseOrderRequestModel {
         private Long courierCompanyId; // Required: selected courier company ID
         private String courierName; // Required: selected courier name
         private BigDecimal courierRate; // Required: selected courier rate
-        private String courierMetadata; // Optional: Full CourierOption JSON as string
+        private BigDecimal courierMinWeight; // Required: courier minimum weight in kg
+        private String courierMetadata; // Required: Full CourierOption JSON as string
     }
     
     /**

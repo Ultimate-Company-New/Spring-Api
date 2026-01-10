@@ -10,4 +10,12 @@ import java.util.Optional;
 public interface OrderSummaryRepository extends JpaRepository<OrderSummary, Long> {
     Optional<OrderSummary> findByEntityTypeAndEntityId(String entityType, Long entityId);
     Optional<OrderSummary> findByOrderSummaryIdAndClientId(Long orderSummaryId, Long clientId);
+    
+    /**
+     * Find order summary by purchase order ID.
+     * Convenience method that uses entityType='PURCHASE_ORDER' and entityId=purchaseOrderId.
+     */
+    default Optional<OrderSummary> findByPurchaseOrderId(Long purchaseOrderId) {
+        return findByEntityTypeAndEntityId("PURCHASE_ORDER", purchaseOrderId);
+    }
 }

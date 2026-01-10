@@ -41,7 +41,6 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
             case "vendorNumber": return "po.vendorNumber";
             case "purchaseOrderStatus": return "po.purchaseOrderStatus";
             case "priority": return "po.priority";
-            case "paymentId": return "po.paymentId";
             case "expectedDeliveryDate": return "po.expectedDeliveryDate";
             case "purchaseOrderReceipt": return "po.purchaseOrderReceipt";
             case "termsConditionsHtml": return "po.termsConditionsHtml";
@@ -55,8 +54,11 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
             case "modifiedUser": return "po.modifiedUser";
             case "createdAt": return "po.createdAt";
             case "updatedAt": return "po.updatedAt";
-            // Special case for address - concatenated field from joined table
-            case "address": return "CONCAT(addr.streetAddress, ' ', addr.city, ' ', addr.state, ' ', addr.postalCode, ' ', addr.country)";
+            // Special case for address - use subquery to get address from OrderSummary
+            // JPQL subquery syntax: join Address through OrderSummary
+            case "address": return "(SELECT CONCAT(COALESCE(a.streetAddress, ''), ' ', COALESCE(a.city, ''), ' ', COALESCE(a.state, ''), ' ', COALESCE(a.postalCode, ''), ' ', COALESCE(a.country, '')) " +
+                    "FROM OrderSummary os, Address a " +
+                    "WHERE os.entityType = 'PURCHASE_ORDER' AND os.entityId = po.purchaseOrderId AND a.addressId = os.entityAddressId)";
             default: return "po." + column;
         }
     }
@@ -73,7 +75,7 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     @Override
     protected List<String> getNumberColumns() {
-        return Arrays.asList("purchaseOrderId", "clientId", "paymentId", "approvedByUserId", "rejectedByUserId");
+        return Arrays.asList("purchaseOrderId", "clientId", "approvedByUserId", "rejectedByUserId");
     }
 
     /**
@@ -118,40 +120,40 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
             boolean includeDeleted,
             Pageable pageable) {
 
-        // Base query with all necessary JOINs
+        // Build dynamic filter conditions
+        QueryResult filterResult = buildFilterConditions(filters, logicOperator);
+
+        // Base query with necessary JOINs
         String baseQuery = "SELECT DISTINCT po FROM PurchaseOrder po " +
-                "LEFT JOIN FETCH po.purchaseOrderAddress addr " +
-                "LEFT JOIN FETCH po.paymentInfo payment " +
-                "LEFT JOIN FETCH po.createdByUser creator " +
-                "LEFT JOIN FETCH po.modifiedByUser modifier " +
-                "LEFT JOIN FETCH po.assignedLead lead " +
-                "LEFT JOIN FETCH po.approvedByUser approver " +
-                "LEFT JOIN FETCH po.rejectedByUser rejecter " +
-                "LEFT JOIN FETCH po.purchaseOrderQuantityPriceMaps poqm " +
-                "LEFT JOIN FETCH poqm.product prod " +
-                "LEFT JOIN FETCH prod.productPickupLocationMappings pplm " +
-                "LEFT JOIN FETCH pplm.pickupLocation pkl " +
-                "WHERE po.clientId = :clientId ";
+                "LEFT JOIN FETCH po.createdByUser " +
+                "LEFT JOIN FETCH po.modifiedByUser " +
+                "LEFT JOIN FETCH po.assignedLead " +
+                "LEFT JOIN FETCH po.approvedByUser " +
+                "LEFT JOIN FETCH po.rejectedByUser ";
+
+        // Add address join only if needed (through OrderSummary)
+        // Note: JPQL doesn't support direct joins to unrelated entities, so we'll handle address filtering in WHERE clause
+        baseQuery += "WHERE po.clientId = :clientId ";
 
         // Add selectedIds condition
         if (selectedIds != null && !selectedIds.isEmpty()) {
             baseQuery += "AND po.purchaseOrderId IN :selectedIds ";
         }
 
-        // Add selectedProductIds condition
+        // Add selectedProductIds condition - filter through ShipmentProducts via OrderSummary
         if (selectedProductIds != null && !selectedProductIds.isEmpty()) {
-            baseQuery += "AND EXISTS (SELECT 1 FROM PurchaseOrderQuantityPriceMap poqm2 " +
-                        "WHERE poqm2.purchaseOrderId = po.purchaseOrderId " +
-                        "AND poqm2.productId IN :selectedProductIds) ";
+            baseQuery += "AND EXISTS (SELECT 1 FROM OrderSummary os2, Shipment s, ShipmentProduct sp " +
+                        "WHERE os2.entityType = 'PURCHASE_ORDER' " +
+                        "AND os2.entityId = po.purchaseOrderId " +
+                        "AND s.orderSummaryId = os2.orderSummaryId " +
+                        "AND sp.shipmentId = s.shipmentId " +
+                        "AND sp.productId IN :selectedProductIds) ";
         }
 
         // Add includeDeleted condition
         if (!includeDeleted) {
             baseQuery += "AND po.isDeleted = false ";
         }
-
-        // Build dynamic filter conditions using the query builder
-        QueryResult filterResult = buildFilterConditions(filters, logicOperator);
         
         if (filterResult.hasConditions()) {
             baseQuery += "AND (" + filterResult.getWhereClause() + ") ";
@@ -161,8 +163,8 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
         baseQuery += "ORDER BY po.purchaseOrderId DESC";
 
         // Count query (without FETCH joins)
+        // Note: Address filtering will be handled via subquery in WHERE clause
         String countQuery = "SELECT COUNT(DISTINCT po) FROM PurchaseOrder po " +
-                "LEFT JOIN po.purchaseOrderAddress addr " +
                 "WHERE po.clientId = :clientId ";
 
         if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -170,9 +172,12 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
         }
 
         if (selectedProductIds != null && !selectedProductIds.isEmpty()) {
-            countQuery += "AND EXISTS (SELECT 1 FROM PurchaseOrderQuantityPriceMap poqm2 " +
-                         "WHERE poqm2.purchaseOrderId = po.purchaseOrderId " +
-                         "AND poqm2.productId IN :selectedProductIds) ";
+            countQuery += "AND EXISTS (SELECT 1 FROM OrderSummary os2, Shipment s, ShipmentProduct sp " +
+                         "WHERE os2.entityType = 'PURCHASE_ORDER' " +
+                         "AND os2.entityId = po.purchaseOrderId " +
+                         "AND s.orderSummaryId = os2.orderSummaryId " +
+                         "AND sp.shipmentId = s.shipmentId " +
+                         "AND sp.productId IN :selectedProductIds) ";
         }
 
         if (!includeDeleted) {

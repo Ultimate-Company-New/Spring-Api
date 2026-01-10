@@ -23,11 +23,6 @@ public final class EntityType {
     public static final String PURCHASE_ORDER = "PurchaseOrder";
     
     /**
-     * Entity type for Sales Order resources
-     */
-    public static final String SALES_ORDER = "SalesOrder";
-    
-    /**
      * Entity type for Lead resources
      */
     public static final String LEAD = "Lead";

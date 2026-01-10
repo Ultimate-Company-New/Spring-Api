@@ -33,7 +33,7 @@ public interface ResourcesRepository extends JpaRepository<Resources, Long> {
      * Find all resources for a specific entity filtered by entity type.
      * 
      * @param entityId The entity ID (e.g., purchaseOrderId)
-     * @param entityType The entity type (e.g., "PurchaseOrder", "SalesOrder")
+     * @param entityType The entity type (e.g., "PurchaseOrder", "Lead")
      * @return List of resources for the entity
      */
     @Query("SELECT r FROM Resources r WHERE r.entityId = :entityId AND r.entityType = :entityType ORDER BY r.createdAt DESC")

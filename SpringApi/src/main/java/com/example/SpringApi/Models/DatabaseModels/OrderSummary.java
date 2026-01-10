@@ -129,6 +129,9 @@ public class OrderSummary {
     @Column(name = "totalShipping", nullable = false, precision = 15, scale = 2)
     private BigDecimal totalShipping;
     
+    @Column(name = "serviceFee", nullable = false, precision = 15, scale = 2)
+    private BigDecimal serviceFee;
+    
     @Column(name = "subtotal", nullable = false, precision = 15, scale = 2)
     private BigDecimal subtotal;
     
@@ -232,13 +235,15 @@ public class OrderSummary {
         this.totalDiscount = orderSummaryData.getTotalDiscount() != null ? orderSummaryData.getTotalDiscount() : BigDecimal.ZERO;
         this.packagingFee = orderSummaryData.getPackagingFee() != null ? orderSummaryData.getPackagingFee() : BigDecimal.ZERO;
         this.totalShipping = orderSummaryData.getTotalShipping() != null ? orderSummaryData.getTotalShipping() : BigDecimal.ZERO;
+        this.serviceFee = orderSummaryData.getServiceFee() != null ? orderSummaryData.getServiceFee() : BigDecimal.ZERO;
         this.gstPercentage = orderSummaryData.getGstPercentage() != null ? orderSummaryData.getGstPercentage() : new BigDecimal("18.00");
         
-        // Calculate subtotal: productsSubtotal - totalDiscount + packagingFee + totalShipping
+        // Calculate subtotal: productsSubtotal - totalDiscount + packagingFee + totalShipping + serviceFee
         this.subtotal = this.productsSubtotal
                 .subtract(this.totalDiscount)
                 .add(this.packagingFee)
-                .add(this.totalShipping);
+                .add(this.totalShipping)
+                .add(this.serviceFee);
         
         // Calculate GST amount
         this.gstAmount = this.subtotal.multiply(this.gstPercentage.divide(new BigDecimal("100")))
@@ -290,13 +295,15 @@ public class OrderSummary {
         this.totalDiscount = orderSummaryData.getTotalDiscount() != null ? orderSummaryData.getTotalDiscount() : BigDecimal.ZERO;
         this.packagingFee = orderSummaryData.getPackagingFee() != null ? orderSummaryData.getPackagingFee() : BigDecimal.ZERO;
         this.totalShipping = orderSummaryData.getTotalShipping() != null ? orderSummaryData.getTotalShipping() : BigDecimal.ZERO;
+        this.serviceFee = orderSummaryData.getServiceFee() != null ? orderSummaryData.getServiceFee() : BigDecimal.ZERO;
         this.gstPercentage = orderSummaryData.getGstPercentage() != null ? orderSummaryData.getGstPercentage() : new BigDecimal("18.00");
         
         // Recalculate subtotal, GST, and grand total
         this.subtotal = this.productsSubtotal
                 .subtract(this.totalDiscount)
                 .add(this.packagingFee)
-                .add(this.totalShipping);
+                .add(this.totalShipping)
+                .add(this.serviceFee);
         
         this.gstAmount = this.subtotal.multiply(this.gstPercentage.divide(new BigDecimal("100")))
                 .setScale(2, java.math.RoundingMode.HALF_UP);
@@ -400,6 +407,11 @@ public class OrderSummary {
     
     /**
      * Sets optional fields.
+     * 
+     * @param expectedDeliveryDate The expected delivery date
+     * @param promoId The promo ID
+     * @param termsConditionsHtml The terms and conditions HTML
+     * @param notes Additional notes
      */
     public void setOptionalFields(LocalDateTime expectedDeliveryDate, Long promoId, 
                                   String termsConditionsHtml, String notes) {

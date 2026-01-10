@@ -123,10 +123,16 @@ public interface IPurchaseOrderSubTranslator {
     byte[] getPurchaseOrderPDF(long id) throws TemplateException, IOException, com.itextpdf.text.DocumentException;
     
     /**
-     * Creates multiple purchase orders in a single operation.
+     * Creates multiple purchase orders asynchronously with explicit security context.
+     * 
+     * This method runs in a separate thread using @Async annotation and processes each
+     * purchase order individually. Results are sent via message to the requesting user.
+     * Uses Propagation.NOT_SUPPORTED to prevent rollback-only issues.
      *
      * @param purchaseOrders List of PurchaseOrderRequestModel containing the purchase order data to insert
-     * @return BulkInsertResponseModel containing success/failure details for each purchase order
+     * @param requestingUserId The user ID of the user making the request (captured from security context)
+     * @param requestingUserLoginName The login name of the user making the request (captured from security context)
+     * @param requestingClientId The client ID of the user making the request (captured from security context)
      */
-    com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreatePurchaseOrders(java.util.List<PurchaseOrderRequestModel> purchaseOrders);
+    void bulkCreatePurchaseOrdersAsync(java.util.List<PurchaseOrderRequestModel> purchaseOrders, Long requestingUserId, String requestingUserLoginName, Long requestingClientId);
 }

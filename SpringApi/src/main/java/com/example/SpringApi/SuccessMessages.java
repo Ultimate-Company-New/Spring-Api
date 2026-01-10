@@ -125,19 +125,6 @@ public class SuccessMessages {
         public static final String ToggleLead = "Successfully toggled lead.";
     }
 
-    public static class SalesOrderSuccessMessages {
-        // Standard success messages for sales order operations
-        public static final String InsertSalesOrder = "Successfully inserted sales order.";
-        public static final String UpdateSalesOrder = "Successfully updated sales order.";
-        public static final String GetSalesOrder = "Successfully retrieved sales order details.";
-        public static final String ToggleSalesOrder = "Successfully toggled sales order.";
-        public static final String GetSalesOrderPdf = "Successfully retrieved sales order pdf.";
-
-        public static final String UpdatedPickupLocation = "Successfully updated pickup location for the given order.";
-        public static final String UpdatedCustomerDeliveryAddress = "Successfully updated customer delivery address on entire sales order.";
-        public static final String CancelOrder = "Successfully cancelled sales order.";
-    }
-
     public static class PurchaseOrderSuccessMessages {
         // Standard success messages for purchase order operations
         public static final String InsertPurchaseOrder = "Successfully inserted purchase order.";
@@ -156,14 +143,6 @@ public class SuccessMessages {
         public static final String ToggleProductReview = "Successfully toggled product review.";
         public static final String ScoreUpdate = "Successfully updated the review Score.";
         public static final String DeleteProductReview = "Successfully deleted the product review.";
-    }
-
-    public static class PaymentInfoSuccessMessages {
-        // Standard success messages for payment information operations
-        public static final String InsertPaymentInfo = "Successfully inserted payment information.";
-        public static final String UpdatePaymentInfo = "Successfully updated payment information.";
-        public static final String GetPaymentInfo = "Successfully retrieved payment information.";
-        public static final String TogglePaymentInfo = "Successfully toggled payment information status.";
     }
 
     public static class PackagesSuccessMessages {

@@ -286,8 +286,10 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         ShippingHelper shippingHelper = getShippingHelper();
         AddPickupLocationResponseModel addPickupLocationResponse = shippingHelper.addPickupLocation(pickupLocation);
         
-        // Set the ShipRocket ID
-        pickupLocation.setShipRocketPickupLocationId(addPickupLocationResponse.getPickup_id());
+        // Extract and set the ShipRocket ID
+        Long shipRocketPickupLocationId = extractShipRocketPickupLocationId(
+                shippingHelper, addPickupLocationResponse, pickupLocation);
+        pickupLocation.setShipRocketPickupLocationId(shipRocketPickupLocationId);
         pickupLocation = pickupLocationRepository.save(pickupLocation);
         
         // Save product mappings if provided
@@ -352,9 +354,11 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         // Only call Shiprocket if physical address fields have changed
         if (addressFieldsChanged) {
             // Create new pickup location in ShipRocket and get new ID
-        ShippingHelper shippingHelper = getShippingHelper();
-        AddPickupLocationResponseModel addPickupLocationResponse = shippingHelper.addPickupLocation(updatedPickupLocation);
-        updatedPickupLocation.setShipRocketPickupLocationId(addPickupLocationResponse.getPickup_id());
+            ShippingHelper shippingHelper = getShippingHelper();
+            AddPickupLocationResponseModel addPickupLocationResponse = shippingHelper.addPickupLocation(updatedPickupLocation);
+            Long shipRocketPickupLocationId = extractShipRocketPickupLocationId(
+                    shippingHelper, addPickupLocationResponse, updatedPickupLocation);
+            updatedPickupLocation.setShipRocketPickupLocationId(shipRocketPickupLocationId);
         } else {
             // Keep the existing Shiprocket ID
             updatedPickupLocation.setShipRocketPickupLocationId(existingPickupLocation.getShipRocketPickupLocationId());
@@ -649,8 +653,10 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         ShippingHelper shippingHelperInstance = getShippingHelper(clientId);
         AddPickupLocationResponseModel addPickupLocationResponse = shippingHelperInstance.addPickupLocation(pickupLocation);
         
-        // Set the ShipRocket ID
-        pickupLocation.setShipRocketPickupLocationId(addPickupLocationResponse.getPickup_id());
+        // Extract and set the ShipRocket ID
+        Long shipRocketPickupLocationId = extractShipRocketPickupLocationId(
+                shippingHelperInstance, addPickupLocationResponse, pickupLocation);
+        pickupLocation.setShipRocketPickupLocationId(shipRocketPickupLocationId);
         pickupLocationRepository.save(pickupLocation);
         
         // Save product and package mappings (for bulk import)
@@ -658,6 +664,33 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         savePackageMappingsInternal(pickupLocation.getPickupLocationId(), pickupLocationRequestModel.getPackageMappings(), createdUser);
         
         return pickupLocation.getPickupLocationId();
+    }
+    
+    /**
+     * Extracts the ShipRocket pickup location ID from the API response.
+     * 
+     * @param shippingHelper The ShippingHelper instance (unused, kept for compatibility)
+     * @param addPickupLocationResponse The response from adding pickup location
+     * @param pickupLocation The pickup location entity (unused, kept for compatibility)
+     * @return The ShipRocket pickup location ID from pickup_id field
+     * @throws BadRequestException if pickup_id is invalid or missing
+     */
+    private Long extractShipRocketPickupLocationId(
+            ShippingHelper shippingHelper,
+            AddPickupLocationResponseModel addPickupLocationResponse,
+            PickupLocation pickupLocation) throws Exception {
+        
+        // Extract ID from pickup_id field only
+        long pickupId = addPickupLocationResponse.getPickup_id();
+        
+        // Validate that we have a valid ShipRocket pickup location ID
+        if (pickupId <= 0) {
+            throw new BadRequestException("Failed to retrieve ShipRocket pickup location ID after creation. " +
+                    "Response pickup_id: " + pickupId + " is invalid. " +
+                    "Please verify the pickup location was created successfully in ShipRocket.");
+        }
+        
+        return pickupId;
     }
     
     /**

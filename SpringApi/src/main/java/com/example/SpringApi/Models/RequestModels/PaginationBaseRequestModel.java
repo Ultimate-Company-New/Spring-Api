@@ -30,6 +30,8 @@ public class PaginationBaseRequestModel {
     public static final String OP_GREATER_THAN_OR_EQUAL = "greaterThanOrEqual";
     public static final String OP_LESS_THAN = "lessThan";
     public static final String OP_LESS_THAN_OR_EQUAL = "lessThanOrEqual";
+    public static final String OP_NUMBER_IS_ONE_OF = "isOneOf";
+    public static final String OP_NUMBER_IS_NOT_ONE_OF = "isNotOneOf";
     
     // Symbol operators (accepted from frontend, normalized to word format)
     public static final String OP_SYMBOL_EQUAL = "=";
@@ -107,7 +109,8 @@ public class PaginationBaseRequestModel {
         
         public static final List<String> NUMBER_OPERATORS = Arrays.asList(
             OP_EQUAL, OP_NOT_EQUAL, OP_GREATER_THAN, OP_GREATER_THAN_OR_EQUAL, 
-            OP_LESS_THAN, OP_LESS_THAN_OR_EQUAL, OP_IS_EMPTY, OP_IS_NOT_EMPTY
+            OP_LESS_THAN, OP_LESS_THAN_OR_EQUAL, OP_IS_EMPTY, OP_IS_NOT_EMPTY,
+            OP_NUMBER_IS_ONE_OF, OP_NUMBER_IS_NOT_ONE_OF
         );
         
         public static final List<String> DATE_OPERATORS = Arrays.asList(

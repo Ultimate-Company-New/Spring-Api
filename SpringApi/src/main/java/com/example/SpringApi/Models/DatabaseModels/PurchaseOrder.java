@@ -7,9 +7,11 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
+import com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,10 +38,12 @@ public class PurchaseOrder {
         DRAFT("DRAFT"),
         PENDING_APPROVAL("PENDING_APPROVAL"),
         APPROVED("APPROVED"),
+        APPROVED_WITH_PARTIAL_PAYMENT("APPROVED_WITH_PARTIAL_PAYMENT"),
         REJECTED("REJECTED"),
         SENT_TO_VENDOR("SENT_TO_VENDOR"),
-        CONFIRMED_BY_VENDOR("CONFIRMED_BY_VENDOR"),
-        IN_TRANSIT("IN_TRANSIT"),
+        ACKNOWLEDGED("ACKNOWLEDGED"),
+        IN_PRODUCTION("IN_PRODUCTION"),
+        SHIPPED("SHIPPED"),
         PARTIALLY_RECEIVED("PARTIALLY_RECEIVED"),
         RECEIVED("RECEIVED"),
         COMPLETED("COMPLETED"),
@@ -91,9 +95,6 @@ public class PurchaseOrder {
 
     @Column(name = "purchaseOrderStatus", nullable = false, length = 50)
     private String purchaseOrderStatus;
-
-    @Column(name = "paymentId", nullable = false)
-    private Long paymentId;
 
     @Column(name = "clientId", nullable = false)
     private Long clientId;
@@ -194,9 +195,6 @@ public class PurchaseOrder {
         // Set clientId from existing purchase order (don't trust client-provided clientId)
         setFieldsFromRequest(request, existingPurchaseOrder.getClientId());
         
-        // Preserve paymentId from existing purchase order (payment is updated separately in service)
-        this.paymentId = existingPurchaseOrder.getPaymentId();
-        
         this.modifiedUser = modifiedUser;
     }
 
@@ -224,6 +222,34 @@ public class PurchaseOrder {
         // Validate that products list is provided and not empty
         if (request.getProducts() == null || request.getProducts().isEmpty()) {
             throw new BadRequestException("At least one product must be specified in products list");
+        }
+
+        // Validate each product entry has productId, quantity, and pricePerUnit
+        for (PurchaseOrderProductItem item : request.getProducts()) {
+            if (item == null) {
+                continue;
+            }
+
+            if (item.getProductId() == null || item.getProductId() <= 0) {
+                throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidId);
+            }
+
+            if (item.getQuantity() == null || item.getQuantity() <= 0) {
+                throw new BadRequestException(
+                    "Quantity must be greater than 0 for productId " + item.getProductId()
+                );
+            }
+
+            if (item.getPricePerUnit() == null) {
+                throw new BadRequestException(
+                    "pricePerUnit is required for productId " + item.getProductId()
+                );
+            }
+            if (item.getPricePerUnit().compareTo(BigDecimal.ZERO) < 0) {
+                throw new BadRequestException(
+                    "pricePerUnit must be greater than or equal to 0 for productId " + item.getProductId()
+                );
+            }
         }
         
         // vendorNumber is optional (can be null)
@@ -262,7 +288,6 @@ public class PurchaseOrder {
         this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : Boolean.FALSE;
         this.purchaseOrderReceipt = request.getPurchaseOrderReceipt() != null ? request.getPurchaseOrderReceipt().trim() : null;
         this.purchaseOrderStatus = request.getPurchaseOrderStatus().trim();
-        this.paymentId = request.getPaymentId();
         this.clientId = clientId;
         this.approvedByUserId = request.getApprovedByUserId();
         this.approvedDate = request.getApprovedDate();

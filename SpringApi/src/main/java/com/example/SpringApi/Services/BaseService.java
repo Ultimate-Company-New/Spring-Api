@@ -3,22 +3,16 @@ package com.example.SpringApi.Services;
 import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
 import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Repositories.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.List;
-import java.util.Map;
-
-@Service
 public class BaseService {
     @Autowired
     protected JwtTokenProvider jwtTokenProvider;

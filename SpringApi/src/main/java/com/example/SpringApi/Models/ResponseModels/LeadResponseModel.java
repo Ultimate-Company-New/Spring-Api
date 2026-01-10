@@ -1,7 +1,6 @@
 package com.example.SpringApi.Models.ResponseModels;
 
 import com.example.SpringApi.Models.DatabaseModels.Lead;
-import com.example.SpringApi.Models.DatabaseModels.Client;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
@@ -58,49 +57,78 @@ public class LeadResponseModel {
     private String companySizeDisplay;
     
     /**
+     * Minimal constructor for Purchase Order responses.
+     * Only includes leadId, firstName, lastName, and email.
+     * 
+     * @param lead The Lead entity
+     * @param minimal If true, only populate minimal fields (leadId, firstName, lastName, email)
+     */
+    public LeadResponseModel(Lead lead, boolean minimal) {
+        if (lead != null && minimal) {
+            this.leadId = lead.getLeadId();
+            this.firstName = lead.getFirstName();
+            this.lastName = lead.getLastName();
+            this.email = lead.getEmail();
+            // All other fields remain null/empty
+        } else if (lead != null) {
+            // Call full constructor logic
+            populateFullLeadData(lead);
+        }
+    }
+    
+    /**
      * Constructor to create response model from database entity.
      * 
      * @param lead The Lead entity
      */
     public LeadResponseModel(Lead lead) {
         if (lead != null) {
-            this.leadId = lead.getLeadId();
-            this.annualRevenue = lead.getAnnualRevenue();
-            this.company = lead.getCompany();
-            this.companySize = lead.getCompanySize();
-            this.email = lead.getEmail();
-            this.firstName = lead.getFirstName();
-            this.fax = lead.getFax();
-            this.lastName = lead.getLastName();
-            this.leadStatus = lead.getLeadStatus();
-            this.phone = lead.getPhone();
-            this.title = lead.getTitle();
-            this.website = lead.getWebsite();
-            this.isDeleted = lead.getIsDeleted();
-            this.clientId = lead.getClientId();
-            this.addressId = lead.getAddressId();
-            this.createdById = lead.getCreatedById();
-            this.assignedAgentId = lead.getAssignedAgentId();
-            this.createdAt = lead.getCreatedAt();
-            this.createdUser = lead.getCreatedUser();
-            this.updatedAt = lead.getUpdatedAt();
-            this.modifiedUser = lead.getModifiedUser();
-            this.notes = lead.getNotes();
-            
-            // Set related entities if loaded
-            this.address = lead.getAddress() != null ? new AddressResponseModel(lead.getAddress()) : null;
-            this.createdByUser = lead.getCreatedByUser() != null ? new UserResponseModel(lead.getCreatedByUser()) : null;
-            this.assignedAgent = lead.getAssignedAgent() != null ? new UserResponseModel(lead.getAssignedAgent()) : null;
-            
-            // Compute additional fields
-            this.fullName = lead.getFullName();
-            this.displayName = buildDisplayName();
-            this.statusColor = getStatusColor();
-            this.isAssigned = this.assignedAgentId != null;
-            this.isActive = !this.isDeleted;
-            this.daysOld = calculateDaysOld();
-            this.companySizeDisplay = buildCompanySizeDisplay();
+            populateFullLeadData(lead);
         }
+    }
+    
+    /**
+     * Helper method to populate all lead data fields.
+     * 
+     * @param lead The Lead entity
+     */
+    private void populateFullLeadData(Lead lead) {
+        this.leadId = lead.getLeadId();
+        this.annualRevenue = lead.getAnnualRevenue();
+        this.company = lead.getCompany();
+        this.companySize = lead.getCompanySize();
+        this.email = lead.getEmail();
+        this.firstName = lead.getFirstName();
+        this.fax = lead.getFax();
+        this.lastName = lead.getLastName();
+        this.leadStatus = lead.getLeadStatus();
+        this.phone = lead.getPhone();
+        this.title = lead.getTitle();
+        this.website = lead.getWebsite();
+        this.isDeleted = lead.getIsDeleted();
+        this.clientId = lead.getClientId();
+        this.addressId = lead.getAddressId();
+        this.createdById = lead.getCreatedById();
+        this.assignedAgentId = lead.getAssignedAgentId();
+        this.createdAt = lead.getCreatedAt();
+        this.createdUser = lead.getCreatedUser();
+        this.updatedAt = lead.getUpdatedAt();
+        this.modifiedUser = lead.getModifiedUser();
+        this.notes = lead.getNotes();
+        
+        // Set related entities if loaded
+        this.address = lead.getAddress() != null ? new AddressResponseModel(lead.getAddress()) : null;
+        this.createdByUser = lead.getCreatedByUser() != null ? new UserResponseModel(lead.getCreatedByUser()) : null;
+        this.assignedAgent = lead.getAssignedAgent() != null ? new UserResponseModel(lead.getAssignedAgent()) : null;
+        
+        // Compute additional fields
+        this.fullName = lead.getFullName();
+        this.displayName = buildDisplayName();
+        this.statusColor = getStatusColor();
+        this.isAssigned = this.assignedAgentId != null;
+        this.isActive = !this.isDeleted;
+        this.daysOld = calculateDaysOld();
+        this.companySizeDisplay = buildCompanySizeDisplay();
     }
     
     /**

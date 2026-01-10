@@ -328,4 +328,280 @@ public class PackagingHelper {
 
         return largest;
     }
+    
+    // ============================================================================
+    // Multi-Product Packaging Optimization
+    // ============================================================================
+    
+    /**
+     * Represents a single product item to be packed (one unit of a product)
+     */
+    public static class ProductItem {
+        private final Long productId;
+        private final double volume;
+        private final double weight;
+        
+        public ProductItem(Long productId, double volume, double weight) {
+            this.productId = productId;
+            this.volume = volume;
+            this.weight = weight;
+        }
+        
+        public Long getProductId() { return productId; }
+        public double getVolume() { return volume; }
+        public double getWeight() { return weight; }
+    }
+    
+    /**
+     * Tracks which products are in a used package
+     */
+    public static class MultiProductUsedPackage {
+        final PackageDimension packageDim;
+        double usedVolume;
+        double usedWeight;
+        Map<Long, Integer> productCounts = new HashMap<>(); // productId -> count
+        
+        MultiProductUsedPackage(PackageDimension packageDim) {
+            this.packageDim = packageDim;
+            this.usedVolume = 0;
+            this.usedWeight = 0;
+        }
+        
+        double getRemainingVolume() {
+            return packageDim.getVolume() - usedVolume;
+        }
+        
+        double getRemainingWeight() {
+            return packageDim.getMaxWeight() - usedWeight;
+        }
+        
+        boolean canFit(double productVolume, double productWeight) {
+            return getRemainingVolume() >= productVolume && getRemainingWeight() >= productWeight;
+        }
+        
+        void addProduct(Long productId, double productVolume, double productWeight) {
+            this.usedVolume += productVolume;
+            this.usedWeight += productWeight;
+            this.productCounts.merge(productId, 1, Integer::sum);
+        }
+        
+        public Map<Long, Integer> getProductCounts() { return productCounts; }
+        public PackageDimension getPackageDim() { return packageDim; }
+    }
+    
+    /**
+     * Result of multi-product packaging - includes which products are in each package
+     */
+    public static class MultiProductPackageUsageResult {
+        private final Long packageId;
+        private final String packageName;
+        private final String packageType;
+        private final int quantityUsed;
+        private final BigDecimal pricePerUnit;
+        private final BigDecimal totalCost;
+        private final Map<Long, Integer> productQuantities; // productId -> quantity in this package type
+        
+        public MultiProductPackageUsageResult(Long packageId, String packageName, String packageType,
+                                              int quantityUsed, BigDecimal pricePerUnit,
+                                              Map<Long, Integer> productQuantities) {
+            this.packageId = packageId;
+            this.packageName = packageName;
+            this.packageType = packageType;
+            this.quantityUsed = quantityUsed;
+            this.pricePerUnit = pricePerUnit;
+            this.totalCost = pricePerUnit.multiply(BigDecimal.valueOf(quantityUsed));
+            this.productQuantities = new HashMap<>(productQuantities);
+        }
+        
+        public Long getPackageId() { return packageId; }
+        public String getPackageName() { return packageName; }
+        public String getPackageType() { return packageType; }
+        public int getQuantityUsed() { return quantityUsed; }
+        public BigDecimal getPricePerUnit() { return pricePerUnit; }
+        public BigDecimal getTotalCost() { return totalCost; }
+        public Map<Long, Integer> getProductQuantities() { return productQuantities; }
+    }
+    
+    /**
+     * Complete multi-product packaging estimate result
+     */
+    public static class MultiProductPackagingResult {
+        private final List<MultiProductPackageUsageResult> packagesUsed;
+        private final BigDecimal totalPackagingCost;
+        private final int totalPackagesUsed;
+        private final Map<Long, Integer> packedItemsByProduct; // productId -> items packed
+        private final Map<Long, Integer> requestedItemsByProduct; // productId -> items requested
+        private final boolean canPackAllItems;
+        private final String errorMessage;
+        
+        public MultiProductPackagingResult(List<MultiProductPackageUsageResult> packagesUsed,
+                                           Map<Long, Integer> requestedItemsByProduct,
+                                           Map<Long, Integer> packedItemsByProduct) {
+            this.packagesUsed = packagesUsed;
+            this.totalPackagesUsed = packagesUsed.stream().mapToInt(MultiProductPackageUsageResult::getQuantityUsed).sum();
+            this.totalPackagingCost = packagesUsed.stream()
+                    .map(MultiProductPackageUsageResult::getTotalCost)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            this.requestedItemsByProduct = new HashMap<>(requestedItemsByProduct);
+            this.packedItemsByProduct = new HashMap<>(packedItemsByProduct);
+            
+            int totalRequested = requestedItemsByProduct.values().stream().mapToInt(Integer::intValue).sum();
+            int totalPacked = packedItemsByProduct.values().stream().mapToInt(Integer::intValue).sum();
+            this.canPackAllItems = totalPacked >= totalRequested;
+            this.errorMessage = canPackAllItems ? null : 
+                "Not enough packages to pack all items. Can only pack " + totalPacked + " of " + totalRequested + " items.";
+        }
+        
+        public List<MultiProductPackageUsageResult> getPackagesUsed() { return packagesUsed; }
+        public BigDecimal getTotalPackagingCost() { return totalPackagingCost; }
+        public int getTotalPackagesUsed() { return totalPackagesUsed; }
+        public Map<Long, Integer> getPackedItemsByProduct() { return packedItemsByProduct; }
+        public boolean isCanPackAllItems() { return canPackAllItems; }
+        public String getErrorMessage() { return errorMessage; }
+    }
+    
+    /**
+     * Calculate optimal packaging for multiple products together.
+     * Uses First Fit Decreasing bin-packing algorithm optimized for cost.
+     * Different products can share the same package if they fit.
+     *
+     * @param products Map of productId to ProductDimension (with quantities)
+     * @param availablePackages List of available packages at the location
+     * @return MultiProductPackagingResult with packages needed, costs, and product assignments
+     */
+    public MultiProductPackagingResult calculatePackagingForMultipleProducts(
+            Map<Long, ProductDimension> products, 
+            List<PackageDimension> availablePackages) {
+        
+        Map<Long, Integer> requestedItems = new HashMap<>();
+        Map<Long, Integer> packedItems = new HashMap<>();
+        
+        // Flatten all products into individual items
+        List<ProductItem> allItems = new ArrayList<>();
+        for (Map.Entry<Long, ProductDimension> entry : products.entrySet()) {
+            Long productId = entry.getKey();
+            ProductDimension product = entry.getValue();
+            requestedItems.put(productId, product.getQuantity());
+            packedItems.put(productId, 0);
+            
+            double volume = product.getVolume();
+            double weight = product.getWeight();
+            
+            for (int i = 0; i < product.getQuantity(); i++) {
+                allItems.add(new ProductItem(productId, volume, weight));
+            }
+        }
+        
+        if (allItems.isEmpty()) {
+            return new MultiProductPackagingResult(Collections.emptyList(), requestedItems, packedItems);
+        }
+        
+        // Sort items by volume (largest first) - First Fit Decreasing
+        allItems.sort((a, b) -> Double.compare(b.getVolume(), a.getVolume()));
+        
+        // Create mutable copies of packages sorted by cost-efficiency
+        List<PackageDimension> packages = new ArrayList<>();
+        for (PackageDimension pkg : availablePackages) {
+            packages.add(new PackageDimension(
+                    pkg.getPackageId(),
+                    pkg.getPackageName(),
+                    pkg.getPackageType(),
+                    pkg.length,
+                    pkg.breadth,
+                    pkg.height,
+                    pkg.maxWeight,
+                    pkg.pricePerUnit,
+                    pkg.getAvailableQuantity()
+            ));
+        }
+        
+        // Sort packages by cost per volume (cheapest first)
+        packages.sort((a, b) -> {
+            double costPerVolumeA = a.getVolume() > 0 ? a.getPricePerUnit().doubleValue() / a.getVolume() : Double.MAX_VALUE;
+            double costPerVolumeB = b.getVolume() > 0 ? b.getPricePerUnit().doubleValue() / b.getVolume() : Double.MAX_VALUE;
+            return Double.compare(costPerVolumeA, costPerVolumeB);
+        });
+        
+        // Track used packages
+        List<MultiProductUsedPackage> usedPackages = new ArrayList<>();
+        
+        // Pack each item using First Fit Decreasing
+        for (ProductItem item : allItems) {
+            boolean packed = false;
+            
+            // First, try to fit in an already-used package (prioritize by remaining volume - best fit)
+            usedPackages.sort((a, b) -> {
+                // Prefer packages where item fits exactly (least remaining space after)
+                double remainingA = a.getRemainingVolume() - item.getVolume();
+                double remainingB = b.getRemainingVolume() - item.getVolume();
+                // If item doesn't fit, push to end
+                if (remainingA < 0) remainingA = Double.MAX_VALUE;
+                if (remainingB < 0) remainingB = Double.MAX_VALUE;
+                return Double.compare(remainingA, remainingB);
+            });
+            
+            for (MultiProductUsedPackage usedPkg : usedPackages) {
+                if (usedPkg.canFit(item.getVolume(), item.getWeight())) {
+                    usedPkg.addProduct(item.getProductId(), item.getVolume(), item.getWeight());
+                    packedItems.merge(item.getProductId(), 1, Integer::sum);
+                    packed = true;
+                    break;
+                }
+            }
+            
+            // If not packed, get a new package
+            if (!packed) {
+                PackageDimension newPackage = getNextSuitablePackage(packages, item.getVolume(), item.getWeight());
+                if (newPackage != null) {
+                    newPackage.decrementQuantity();
+                    MultiProductUsedPackage usedPkg = new MultiProductUsedPackage(newPackage);
+                    usedPkg.addProduct(item.getProductId(), item.getVolume(), item.getWeight());
+                    usedPackages.add(usedPkg);
+                    packedItems.merge(item.getProductId(), 1, Integer::sum);
+                    packed = true;
+                }
+            }
+            
+            // If still not packed, we ran out of suitable packages
+            if (!packed) {
+                break;
+            }
+        }
+        
+        // Aggregate results by package type
+        Map<Long, Integer> packageUsageCount = new HashMap<>();
+        Map<Long, Map<Long, Integer>> productsByPackage = new HashMap<>(); // packageId -> (productId -> count)
+        
+        for (MultiProductUsedPackage usedPkg : usedPackages) {
+            Long pkgId = usedPkg.getPackageDim().getPackageId();
+            packageUsageCount.merge(pkgId, 1, Integer::sum);
+            
+            // Aggregate product counts for this package type
+            Map<Long, Integer> pkgProducts = productsByPackage.computeIfAbsent(pkgId, k -> new HashMap<>());
+            for (Map.Entry<Long, Integer> productEntry : usedPkg.getProductCounts().entrySet()) {
+                pkgProducts.merge(productEntry.getKey(), productEntry.getValue(), Integer::sum);
+            }
+        }
+        
+        // Build result
+        List<MultiProductPackageUsageResult> results = new ArrayList<>();
+        for (PackageDimension pkg : availablePackages) {
+            int count = packageUsageCount.getOrDefault(pkg.getPackageId(), 0);
+            if (count > 0) {
+                results.add(new MultiProductPackageUsageResult(
+                        pkg.getPackageId(),
+                        pkg.getPackageName(),
+                        pkg.getPackageType(),
+                        count,
+                        pkg.getPricePerUnit(),
+                        productsByPackage.getOrDefault(pkg.getPackageId(), Collections.emptyMap())
+                ));
+            }
+        }
+        
+        // Sort results by package name for consistent display
+        results.sort(Comparator.comparing(MultiProductPackageUsageResult::getPackageName));
+        
+        return new MultiProductPackagingResult(results, requestedItems, packedItems);
+    }
 }

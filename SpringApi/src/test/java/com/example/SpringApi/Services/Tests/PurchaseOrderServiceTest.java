@@ -9,7 +9,7 @@ import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
-import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
+import com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PurchaseOrderResponseModel;
 import com.example.SpringApi.Repositories.*;
@@ -32,6 +32,7 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -113,11 +114,12 @@ class PurchaseOrderServiceTest {
     private static final Long TEST_CLIENT_ID = 1L;
     private static final Long TEST_USER_ID = 1L;
     private static final Long TEST_ADDRESS_ID = 1L;
-    private static final Long TEST_PAYMENT_ID = 1L;
     private static final Long TEST_LEAD_ID = 1L;
     private static final Long TEST_PRODUCT_ID = 1L;
     private static final String CREATED_USER = "admin";
     private static final String TEST_VENDOR_NUMBER = "VEN-001";
+    private static final Long TEST_PICKUP_LOCATION_ID = 1L;
+    private static final Long TEST_PACKAGE_ID = 1L;
 
     @BeforeEach
     void setUp() {
@@ -425,13 +427,22 @@ class PurchaseOrderServiceTest {
         when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(Optional.empty());
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
         when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
-        when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(shipmentProductRepository.save(any(ShipmentProduct.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(shipmentPackageRepository.save(any(ShipmentPackage.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(shipmentPackageProductRepository.save(any(ShipmentPackageProduct.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        AtomicLong shipmentIdSeq = new AtomicLong(1L);
+        when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> {
+            Shipment s = invocation.getArgument(0);
+            s.setShipmentId(shipmentIdSeq.getAndIncrement());
+            return s;
+        });
+        when(shipmentProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+        AtomicLong shipmentPackageIdSeq = new AtomicLong(1L);
+        when(shipmentPackageRepository.save(any(ShipmentPackage.class))).thenAnswer(invocation -> {
+            ShipmentPackage p = invocation.getArgument(0);
+            p.setShipmentPackageId(shipmentPackageIdSeq.getAndIncrement());
+            return p;
+        });
+        when(shipmentPackageProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
         assertDoesNotThrow(() -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
@@ -440,7 +451,7 @@ class PurchaseOrderServiceTest {
         verify(addressRepository, atLeastOnce()).save(any(Address.class));
         verify(purchaseOrderRepository, times(1)).save(any(PurchaseOrder.class));
         verify(orderSummaryRepository, times(1)).save(any(OrderSummary.class));
-        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
+        verify(userLogService, times(1)).logDataWithContext(anyLong(), anyString(), anyLong(), anyString(), anyString());
     }
 
     @Test
@@ -457,10 +468,20 @@ class PurchaseOrderServiceTest {
         lenient().when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         lenient().when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
         lenient().when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
-        lenient().when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(shipmentProductRepository.save(any(ShipmentProduct.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(shipmentPackageRepository.save(any(ShipmentPackage.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(shipmentPackageProductRepository.save(any(ShipmentPackageProduct.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        AtomicLong shipmentIdSeq = new AtomicLong(1L);
+        lenient().when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> {
+            Shipment s = invocation.getArgument(0);
+            s.setShipmentId(shipmentIdSeq.getAndIncrement());
+            return s;
+        });
+        lenient().when(shipmentProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+        AtomicLong shipmentPackageIdSeq = new AtomicLong(1L);
+        lenient().when(shipmentPackageRepository.save(any(ShipmentPackage.class))).thenAnswer(invocation -> {
+            ShipmentPackage p = invocation.getArgument(0);
+            p.setShipmentPackageId(shipmentPackageIdSeq.getAndIncrement());
+            return p;
+        });
+        lenient().when(shipmentPackageProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(resourcesRepository.save(any(Resources.class))).thenReturn(new Resources());
 
         try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
@@ -501,17 +522,26 @@ class PurchaseOrderServiceTest {
         when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(Optional.empty());
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
         when(orderSummaryRepository.findByEntityTypeAndEntityId(
             eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
             .thenReturn(Optional.of(testOrderSummary));
         when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
         when(shipmentRepository.findByOrderSummaryId(anyLong())).thenReturn(new ArrayList<>());
-        when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(shipmentProductRepository.save(any(ShipmentProduct.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(shipmentPackageRepository.save(any(ShipmentPackage.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(shipmentPackageProductRepository.save(any(ShipmentPackageProduct.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        AtomicLong shipmentIdSeq = new AtomicLong(1L);
+        when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> {
+            Shipment s = invocation.getArgument(0);
+            s.setShipmentId(shipmentIdSeq.getAndIncrement());
+            return s;
+        });
+        when(shipmentProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+        AtomicLong shipmentPackageIdSeq = new AtomicLong(1L);
+        when(shipmentPackageRepository.save(any(ShipmentPackage.class))).thenAnswer(invocation -> {
+            ShipmentPackage p = invocation.getArgument(0);
+            p.setShipmentPackageId(shipmentPackageIdSeq.getAndIncrement());
+            return p;
+        });
+        when(shipmentPackageProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
             .thenReturn(new ArrayList<>());
 
@@ -542,8 +572,8 @@ class PurchaseOrderServiceTest {
     }
 
     @Test
-    @DisplayName("Update PO - Address Not Found")
-    void updatePurchaseOrder_AddressNotFound() {
+    @DisplayName("Update PO - Client missing for ImgBB cleanup does not fail")
+    void updatePurchaseOrder_ClientMissingForImgbbCleanup_DoesNotFail() {
         // Arrange
         testPurchaseOrderRequest.setPurchaseOrderId(TEST_PO_ID);
 
@@ -552,13 +582,35 @@ class PurchaseOrderServiceTest {
         when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
         when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(Optional.empty());
+        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+        when(orderSummaryRepository.findByEntityTypeAndEntityId(
+            eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
+            .thenReturn(Optional.of(testOrderSummary));
+        when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
+        when(shipmentRepository.findByOrderSummaryId(anyLong())).thenReturn(new ArrayList<>());
+        AtomicLong shipmentIdSeq = new AtomicLong(1L);
+        when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> {
+            Shipment s = invocation.getArgument(0);
+            s.setShipmentId(shipmentIdSeq.getAndIncrement());
+            return s;
+        });
+        when(shipmentProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+        AtomicLong shipmentPackageIdSeq = new AtomicLong(1L);
+        when(shipmentPackageRepository.save(any(ShipmentPackage.class))).thenAnswer(invocation -> {
+            ShipmentPackage p = invocation.getArgument(0);
+            p.setShipmentPackageId(shipmentPackageIdSeq.getAndIncrement());
+            return p;
+        });
+        when(shipmentPackageProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Make attachments cleanup run the "imgbb" branch and hit clientRepository (which returns empty)
+        Resources existingResource = new Resources();
+        when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
+            .thenReturn(Collections.singletonList(existingResource));
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.empty());
 
         // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class,
-            () -> purchaseOrderService.updatePurchaseOrder(testPurchaseOrderRequest));
-
-        assertTrue(exception.getMessage().contains("Client") || exception.getMessage().contains("not found"));
+        assertDoesNotThrow(() -> purchaseOrderService.updatePurchaseOrder(testPurchaseOrderRequest));
     }
 
     // ==================== getPurchaseOrderDetailsById Tests ====================
@@ -833,9 +885,53 @@ class PurchaseOrderServiceTest {
         orderSummaryData.setPriority("HIGH");
         orderSummaryData.setAddress(testAddressRequest);
         testPurchaseOrderRequest.setOrderSummary(orderSummaryData);
-        
-        // Set shipments (empty for basic tests)
-        testPurchaseOrderRequest.setShipments(new ArrayList<>());
+
+        // Set products (required)
+        List<PurchaseOrderProductItem> products = new ArrayList<>();
+        products.add(new PurchaseOrderProductItem(
+            TEST_PRODUCT_ID,
+            new BigDecimal("100.00"),
+            1
+        ));
+        testPurchaseOrderRequest.setProducts(products);
+
+        // Set shipments (required)
+        PurchaseOrderRequestModel.ShipmentProductData shipmentProduct = new PurchaseOrderRequestModel.ShipmentProductData();
+        shipmentProduct.setProductId(TEST_PRODUCT_ID);
+        shipmentProduct.setAllocatedQuantity(1);
+        // Intentionally different from products[].pricePerUnit to ensure service canonicalizes pricing
+        shipmentProduct.setAllocatedPrice(new BigDecimal("50.00"));
+
+        PurchaseOrderRequestModel.PackageProductData packageProduct = new PurchaseOrderRequestModel.PackageProductData();
+        packageProduct.setProductId(TEST_PRODUCT_ID);
+        packageProduct.setQuantity(1);
+
+        PurchaseOrderRequestModel.ShipmentPackageData shipmentPackage = new PurchaseOrderRequestModel.ShipmentPackageData();
+        shipmentPackage.setPackageId(TEST_PACKAGE_ID);
+        shipmentPackage.setQuantityUsed(1);
+        shipmentPackage.setTotalCost(new BigDecimal("0.00"));
+        shipmentPackage.setProducts(Collections.singletonList(packageProduct));
+
+        PurchaseOrderRequestModel.CourierSelectionData courierSelection = new PurchaseOrderRequestModel.CourierSelectionData();
+        courierSelection.setCourierCompanyId(1L);
+        courierSelection.setCourierName("Test Courier");
+        courierSelection.setCourierRate(new BigDecimal("0.00"));
+        courierSelection.setCourierMinWeight(new BigDecimal("0.00"));
+        courierSelection.setCourierMetadata("{}");
+
+        PurchaseOrderRequestModel.ShipmentData shipmentData = new PurchaseOrderRequestModel.ShipmentData();
+        shipmentData.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
+        shipmentData.setTotalWeightKgs(new BigDecimal("1.000"));
+        shipmentData.setTotalQuantity(1);
+        shipmentData.setExpectedDeliveryDate(LocalDateTime.now().plusDays(1));
+        shipmentData.setPackagingCost(new BigDecimal("0.00"));
+        shipmentData.setShippingCost(new BigDecimal("0.00"));
+        shipmentData.setTotalCost(new BigDecimal("0.00"));
+        shipmentData.setSelectedCourier(courierSelection);
+        shipmentData.setProducts(Collections.singletonList(shipmentProduct));
+        shipmentData.setPackages(Collections.singletonList(shipmentPackage));
+
+        testPurchaseOrderRequest.setShipments(Collections.singletonList(shipmentData));
 
         // Initialize test purchase order
         testPurchaseOrder = new PurchaseOrder();
@@ -843,7 +939,6 @@ class PurchaseOrderServiceTest {
         testPurchaseOrder.setVendorNumber(TEST_VENDOR_NUMBER);
         testPurchaseOrder.setPurchaseOrderStatus("DRAFT");
         testPurchaseOrder.setAssignedLeadId(TEST_LEAD_ID);
-        testPurchaseOrder.setPaymentId(TEST_PAYMENT_ID);
         testPurchaseOrder.setClientId(TEST_CLIENT_ID);
         testPurchaseOrder.setIsDeleted(false);
         testPurchaseOrder.setCreatedAt(LocalDateTime.now());
@@ -852,173 +947,48 @@ class PurchaseOrderServiceTest {
         testPurchaseOrder.setModifiedUser(CREATED_USER);
     }
 
-    // ==================== Bulk Create Purchase Orders Tests ====================
-
     @Test
-    @DisplayName("Bulk Create Purchase Orders - Success - All valid POs")
-    void bulkCreatePurchaseOrders_AllValid_Success() {
+    @DisplayName("Create PO - Persists canonical custom price from request.products[] into ShipmentProduct.allocatedPrice")
+    void createPurchaseOrder_PersistsCanonicalCustomPrice() {
         // Arrange
-        List<PurchaseOrderRequestModel> purchaseOrders = new ArrayList<>();
-        for (int i = 0; i < 2; i++) {
-            PurchaseOrderRequestModel poReq = new PurchaseOrderRequestModel();
-            poReq.setVendorNumber("VENDOR" + i);
-            poReq.setPurchaseOrderStatus("DRAFT");
-            poReq.setAssignedLeadId(TEST_LEAD_ID);
-            
-            PurchaseOrderRequestModel.OrderSummaryData orderSummaryData = new PurchaseOrderRequestModel.OrderSummaryData();
-            orderSummaryData.setProductsSubtotal(new BigDecimal("100.00"));
-            orderSummaryData.setTotalDiscount(new BigDecimal("0.00"));
-            orderSummaryData.setPackagingFee(new BigDecimal("5.00"));
-            orderSummaryData.setTotalShipping(new BigDecimal("10.00"));
-            orderSummaryData.setGstPercentage(new BigDecimal("18.00"));
-            orderSummaryData.setGstAmount(new BigDecimal("20.70"));
-            orderSummaryData.setGrandTotal(new BigDecimal("135.70"));
-            orderSummaryData.setPendingAmount(new BigDecimal("135.70"));
-            orderSummaryData.setPriority("HIGH");
-            orderSummaryData.setAddress(testAddressRequest);
-            poReq.setOrderSummary(orderSummaryData);
-            poReq.setShipments(new ArrayList<>());
-            
-            purchaseOrders.add(poReq);
-        }
-
-        lenient().when(leadRepository.findById(TEST_LEAD_ID)).thenReturn(java.util.Optional.of(testLead));
-        lenient().when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
+        when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(Optional.empty());
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenAnswer(invocation -> {
-            PurchaseOrder po = invocation.getArgument(0);
-            po.setPurchaseOrderId((long) (Math.random() * 1000));
-            return po;
-        });
+        when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
         when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
-        when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(any(), any()))
-            .thenReturn(Optional.of(testPurchaseOrder));
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-
-        // Act
-        BulkInsertResponseModel<Long> result = purchaseOrderService.bulkCreatePurchaseOrders(purchaseOrders);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.getTotalRequested());
-        assertEquals(2, result.getSuccessCount());
-        assertEquals(0, result.getFailureCount());
-    }
-
-    @Test
-    @DisplayName("Bulk Create Purchase Orders - Partial Success")
-    void bulkCreatePurchaseOrders_PartialSuccess() {
-        // Arrange
-        List<PurchaseOrderRequestModel> purchaseOrders = new ArrayList<>();
-        
-        // Valid PO
-        PurchaseOrderRequestModel validPO = new PurchaseOrderRequestModel();
-        validPO.setVendorNumber("VALID_VENDOR");
-        validPO.setPurchaseOrderStatus("DRAFT");
-        validPO.setAssignedLeadId(TEST_LEAD_ID);
-        
-        PurchaseOrderRequestModel.OrderSummaryData orderSummaryData = new PurchaseOrderRequestModel.OrderSummaryData();
-        orderSummaryData.setProductsSubtotal(new BigDecimal("100.00"));
-        orderSummaryData.setTotalDiscount(new BigDecimal("0.00"));
-        orderSummaryData.setPackagingFee(new BigDecimal("5.00"));
-        orderSummaryData.setTotalShipping(new BigDecimal("10.00"));
-        orderSummaryData.setGstPercentage(new BigDecimal("18.00"));
-        orderSummaryData.setGstAmount(new BigDecimal("20.70"));
-        orderSummaryData.setGrandTotal(new BigDecimal("135.70"));
-        orderSummaryData.setPendingAmount(new BigDecimal("135.70"));
-        orderSummaryData.setPriority("HIGH");
-        orderSummaryData.setAddress(testAddressRequest);
-        validPO.setOrderSummary(orderSummaryData);
-        validPO.setShipments(new ArrayList<>());
-        purchaseOrders.add(validPO);
-        
-        // Invalid PO (missing vendor number)
-        PurchaseOrderRequestModel invalidPO = new PurchaseOrderRequestModel();
-        invalidPO.setVendorNumber(null);
-        purchaseOrders.add(invalidPO);
-
-        lenient().when(leadRepository.findById(TEST_LEAD_ID)).thenReturn(java.util.Optional.of(testLead));
-        lenient().when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
-            .thenReturn(Optional.empty());
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenAnswer(invocation -> {
-            PurchaseOrder po = invocation.getArgument(0);
-            po.setPurchaseOrderId((long) (Math.random() * 1000));
-            return po;
+        AtomicLong shipmentIdSeq = new AtomicLong(1L);
+        when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> {
+            Shipment s = invocation.getArgument(0);
+            s.setShipmentId(shipmentIdSeq.getAndIncrement());
+            return s;
         });
-        when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
-        when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(any(), any()))
-            .thenReturn(Optional.of(testPurchaseOrder));
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+        // Capture saved ShipmentProducts
+        @SuppressWarnings("unchecked")
+        org.mockito.ArgumentCaptor<List<ShipmentProduct>> captor =
+            (org.mockito.ArgumentCaptor<List<ShipmentProduct>>) (org.mockito.ArgumentCaptor<?>) org.mockito.ArgumentCaptor.forClass(List.class);
+        when(shipmentProductRepository.saveAll(captor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AtomicLong shipmentPackageIdSeq = new AtomicLong(1L);
+        when(shipmentPackageRepository.save(any(ShipmentPackage.class))).thenAnswer(invocation -> {
+            ShipmentPackage p = invocation.getArgument(0);
+            p.setShipmentPackageId(shipmentPackageIdSeq.getAndIncrement());
+            return p;
+        });
+        when(shipmentPackageProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
-        BulkInsertResponseModel<Long> result = purchaseOrderService.bulkCreatePurchaseOrders(purchaseOrders);
+        assertDoesNotThrow(() -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
 
         // Assert
-        assertNotNull(result);
-        assertEquals(2, result.getTotalRequested());
-        assertEquals(1, result.getSuccessCount());
-        assertEquals(1, result.getFailureCount());
+        List<ShipmentProduct> saved = captor.getValue();
+        assertNotNull(saved);
+        assertFalse(saved.isEmpty());
+        assertEquals(new BigDecimal("100.00"), saved.get(0).getAllocatedPrice());
     }
 
-    @Test
-    @DisplayName("Bulk Create Purchase Orders - Database Error")
-    void bulkCreatePurchaseOrders_DatabaseError() {
-        // Arrange
-        List<PurchaseOrderRequestModel> purchaseOrders = new ArrayList<>();
-        PurchaseOrderRequestModel poReq = new PurchaseOrderRequestModel();
-        poReq.setVendorNumber("TEST_VENDOR");
-        poReq.setPurchaseOrderStatus("DRAFT");
-        poReq.setAssignedLeadId(TEST_LEAD_ID);
-        
-        PurchaseOrderRequestModel.OrderSummaryData orderSummaryData = new PurchaseOrderRequestModel.OrderSummaryData();
-        orderSummaryData.setProductsSubtotal(new BigDecimal("100.00"));
-        orderSummaryData.setTotalDiscount(new BigDecimal("0.00"));
-        orderSummaryData.setPackagingFee(new BigDecimal("5.00"));
-        orderSummaryData.setTotalShipping(new BigDecimal("10.00"));
-        orderSummaryData.setGstPercentage(new BigDecimal("18.00"));
-        orderSummaryData.setGstAmount(new BigDecimal("20.70"));
-        orderSummaryData.setGrandTotal(new BigDecimal("135.70"));
-        orderSummaryData.setPendingAmount(new BigDecimal("135.70"));
-        orderSummaryData.setPriority("HIGH");
-        orderSummaryData.setAddress(testAddressRequest);
-        poReq.setOrderSummary(orderSummaryData);
-        poReq.setShipments(new ArrayList<>());
-        purchaseOrders.add(poReq);
-
-        lenient().when(leadRepository.findById(TEST_LEAD_ID)).thenReturn(java.util.Optional.of(testLead));
-        lenient().when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
-            .thenReturn(Optional.empty());
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenThrow(new RuntimeException("Database error"));
-
-        // Act
-        BulkInsertResponseModel<Long> result = purchaseOrderService.bulkCreatePurchaseOrders(purchaseOrders);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getTotalRequested());
-        assertEquals(0, result.getSuccessCount());
-        assertEquals(1, result.getFailureCount());
-    }
-
-    @Test
-    @DisplayName("Bulk Create Purchase Orders - Empty List")
-    void bulkCreatePurchaseOrders_EmptyList() {
-        // Arrange
-        List<PurchaseOrderRequestModel> purchaseOrders = new ArrayList<>();
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> purchaseOrderService.bulkCreatePurchaseOrders(purchaseOrders));
-        assertTrue(exception.getMessage().contains("Purchase order list cannot be null or empty"));
-        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
-    }
+    // Note: Bulk create tests removed as the synchronous bulkCreatePurchaseOrders method was replaced
+    // with bulkCreatePurchaseOrdersAsync which requires integration/async testing setup.
+    // The async method sends results via messaging rather than returning them directly.
 }
 
