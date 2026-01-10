@@ -40,4 +40,41 @@ public interface IShippingSubTranslator {
      * @return Allocation options ranked by total cost with detailed breakdown
      */
     OrderOptimizationResponseModel optimizeOrder(OrderOptimizationRequestModel request);
+    
+    /**
+     * Cancel a shipment.
+     * Cancels the shipment in ShipRocket and updates the local shipment status to CANCELLED.
+     * 
+     * @param shipmentId The local shipment ID to cancel
+     * @throws BadRequestException if the shipment cannot be cancelled
+     */
+    void cancelShipment(Long shipmentId);
+    
+    /**
+     * Create a return order for a shipment.
+     * Creates a return shipment in ShipRocket and stores the return details locally.
+     * 
+     * @param request The return request containing shipment ID and products to return
+     * @return ReturnShipmentResponseModel with the created return details
+     * @throws BadRequestException if the return cannot be created
+     */
+    com.example.SpringApi.Models.ResponseModels.ReturnShipmentResponseModel createReturn(
+        com.example.SpringApi.Models.RequestModels.CreateReturnRequestModel request);
+    
+    /**
+     * Cancel a return shipment.
+     * Cancels the return order in ShipRocket and updates the local return shipment status to RETURN_CANCELLED.
+     * 
+     * @param returnShipmentId The local return shipment ID to cancel
+     * @throws BadRequestException if the return shipment cannot be cancelled
+     */
+    void cancelReturnShipment(Long returnShipmentId);
+    
+    /**
+     * Get the ShipRocket wallet balance for the client.
+     * 
+     * @return The wallet balance as a Double
+     * @throws BadRequestException if the wallet balance cannot be retrieved
+     */
+    Double getWalletBalance();
 }

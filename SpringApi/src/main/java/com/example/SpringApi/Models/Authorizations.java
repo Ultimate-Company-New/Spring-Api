@@ -102,6 +102,7 @@ public class Authorizations {
 
     // ShipmentPermissions
     public static final String VIEW_SHIPMENTS_PERMISSION = "ViewShipments";
+    public static final String MODIFY_SHIPMENTS_PERMISSION = "ModifyShipments";
 
     // WebTemplatePermissions
     public static final String VIEW_WEB_TEMPLATE_PERMISSION = "ViewWebTemplate";

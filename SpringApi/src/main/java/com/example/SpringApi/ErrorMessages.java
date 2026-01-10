@@ -184,6 +184,13 @@ public class ErrorMessages {
         public static final String ER009 = "Cannot schedule email in the past. Publish date must be in the future.";
         public static final String ER010 = "Cannot schedule email beyond 72 hours. SendGrid only allows scheduling within a 72-hour window from now (UTC timezone).";
         public static final String ER011 = "Cannot edit message. The scheduled email has already been sent (publish date has passed).";
+        public static final String TitleTooLong = "Message title is too long (max 500 characters).";
+        public static final String PublishDateRequiresSendAsEmail = "If publish date is set, sendAsEmail must be true.";
+        public static final String CannotDisableSendAsEmailOnce = "Cannot disable sendAsEmail once it has been enabled.";
+        public static final String CannotAddPublishDateAfterSent = "Cannot add publish date to a message that was already sent as email without scheduling.";
+        public static final String CannotModifyScheduledPublishDate = "Cannot modify publish date for a scheduled email.";
+        public static final String CannotDisableSendAsEmailScheduled = "Cannot disable sendAsEmail for a scheduled email.";
+        public static final String InvalidUserId = "Invalid user ID.";
     }
 
     public static class WebTemplatesErrorMessages{
@@ -240,6 +247,7 @@ public class ErrorMessages {
         public static final String ER001 = "Pickup location is required and should be valid.";
         public static final String ER002 = "Email on address is required and should be valid.";
         public static final String ER003 = "Phone on address is required and should be valid.";
+        public static final String LocationNameTooLong = "Location name must be 36 characters or less (Shiprocket limit).";
     }
 
     public static class PromoErrorMessages{
@@ -305,6 +313,7 @@ public class ErrorMessages {
         public static final String ER013 = "Product not found with ID: %d";
         public static final String ER014 = "Product IDs list cannot be null or empty";
         public static final String NoPickupLocationsFound = "No pickup locations found for this product.";
+        public static final String AtLeastOnePickupLocationRequired = "At least one pickup location with quantity must be provided.";
     }
 
     public static class LeadsErrorMessages{
@@ -369,6 +378,7 @@ public class ErrorMessages {
         public static final String ER004 = "There should be at least one product, quantity mapping.";
         public static final String ER005 = "Product id should be valid and present in the database and quantity for each product should be greater than 0";
         public static final String ER006 = "Purchase order has already been approved and cannot be approved again by the user";
+        public static final String MaxAttachmentsExceeded = "Maximum 30 attachments allowed per purchase order.";
     }
 
     public static class ProductReviewErrorMessages {
@@ -381,6 +391,15 @@ public class ErrorMessages {
         public static final String ER002 = "Product Review text is required.";
         public static final String ER003 = "Product Review user id is required and should be valid.";
         public static final String ER004 = "Product Review product id is required and should be valid.";
+        public static final String InvalidAuditUser = "Invalid user for audit fields.";
+    }
+
+    public static class ProductPickupLocationMappingErrorMessages {
+        public static final String ProductIdRequired = "Product ID cannot be null.";
+        public static final String PickupLocationIdRequired = "Pickup location ID cannot be null.";
+        public static final String CreatedUserRequired = "Created user cannot be null or empty.";
+        public static final String AtLeastOnePickupLocationRequired = "At least one pickup location with quantity must be provided.";
+        public static final String AvailableStockMustBePositive = "Available stock for pickup location %d must be positive.";
     }
 
     public static class EmailErrorMessages {
@@ -416,6 +435,7 @@ public class ErrorMessages {
     public static class ShipmentErrorMessages {
         // standard error messages
         public static final String InvalidId = "Invalid shipment Id.";
+        public static final String NotFound = "Shipment not found with ID: %d";
         public static final String InvalidRequest = "Shipment data is required.";
         public static final String OrderSummaryIdRequired = "Order summary ID is required and must be greater than 0.";
         public static final String TotalWeightRequired = "Total weight is required.";
@@ -426,6 +446,16 @@ public class ErrorMessages {
         public static final String ShippingCostRequired = "shippingCost is required.";
         public static final String ShippingCostInvalid = "shippingCost must be greater than or equal to 0.";
         public static final String CourierSelectionRequired = "Each shipment must have at least one courier selected.";
+        public static final String AlreadyCancelled = "Shipment is already cancelled.";
+        public static final String NoShipRocketOrderId = "Shipment does not have a ShipRocket order ID. Cannot cancel.";
+        public static final String NoShipmentsFound = "No shipments found for this purchase order.";
+        public static final String AccessDenied = "Access denied to this shipment.";
+        
+        // Courier validation errors
+        public static final String CourierCompanyIdRequired = "Courier company ID is required.";
+        public static final String CourierNameRequired = "Courier name is required.";
+        public static final String CourierRateRequired = "Courier rate is required.";
+        public static final String CourierMetadataRequired = "Courier metadata is required.";
     }
 
     public static class ShipmentProductErrorMessages {
@@ -456,6 +486,122 @@ public class ErrorMessages {
         public static final String ShipmentPackageIdRequired = "Shipment package ID is required and must be greater than 0.";
         public static final String QuantityRequired = "Quantity is required and must be greater than 0.";
         public static final String AtLeastOneProductRequired = "Each package must have at least one product.";
+    }
+
+    public static class ReturnShipmentErrorMessages {
+        // standard error messages
+        public static final String InvalidId = "Invalid return shipment Id.";
+        public static final String NotFound = "Return shipment not found with ID: %d";
+        public static final String AlreadyCancelled = "Return shipment is already cancelled.";
+        public static final String NoShipRocketOrderId = "Cannot cancel return shipment: ShipRocket return order ID not found.";
+        public static final String ShipmentIdRequired = "Shipment ID is required.";
+        public static final String AtLeastOneProductRequired = "At least one product must be selected for return.";
+        public static final String ProductIdRequired = "Product ID is required for each return item.";
+        public static final String ValidQuantityRequired = "Valid quantity is required for each return item.";
+        public static final String ReturnReasonRequired = "Return reason is required for each product.";
+        public static final String OnlyDeliveredCanReturn = "Can only create return for delivered shipments. Current status: %s";
+        public static final String ProductNotInShipment = "Product ID %d is not part of this shipment.";
+        public static final String ReturnQuantityExceeds = "Return quantity (%d) exceeds shipment quantity (%d) for product %d.";
+        public static final String ProductPastReturnWindow = "Product '%s' is past its return window of %d days.";
+        public static final String ProductNotReturnable = "Product '%s' is not returnable (return window is 0).";
+        public static final String FailedToCreateReturn = "Failed to create return order in ShipRocket: %s";
+        public static final String FailedToCancelReturn = "Failed to cancel return shipment in ShipRocket: %s";
+    }
+
+    public static class ShippingErrorMessages {
+        // ShipRocket configuration errors
+        public static final String ShipRocketCredentialsNotConfigured = "Shiprocket credentials not configured for this client.";
+        public static final String DeliveryAddressNotFound = "Delivery address not found in order summary.";
+        
+        // Wallet errors
+        public static final String WalletBalanceNotAvailable = "Wallet balance not available.";
+        
+        // Pickup location errors
+        public static final String PickupLocationNameNotConfigured = "Pickup location name (addressNickName) is not configured for pickup location ID: %d";
+        
+        // Billing address validation errors
+        public static final String BillingPostalCodeMustBeNumeric = "Billing postal code must be numeric. Provided value: %s";
+        public static final String BillingPhoneMustBe10Digits = "Billing phone number must be exactly 10 digits. Provided value: %s";
+        
+        // Shipping address validation errors
+        public static final String ShippingPostalCodeMustBeNumeric = "Shipping postal code must be numeric. Provided value: %s";
+        public static final String ShippingPhoneMustBe10Digits = "Shipping phone number must be exactly 10 digits. Provided value: %s";
+        
+        // ShipRocket API errors
+        public static final String ShipRocketApiNullResponse = "ShipRocket API returned null response for shipment ID: %d";
+        public static final String ShipRocketOrderCreationFailed = "Failed to create ShipRocket order for shipment ID: %d. Error: %s";
+        
+        // ShipRocket operation errors
+        public static final String AwbAssignmentFailed = "Failed to assign AWB code for ShipRocket shipment ID: %d. Error: %s";
+        public static final String PickupGenerationFailed = "Failed to generate pickup for ShipRocket shipment ID: %d. Error: %s";
+        public static final String ManifestGenerationFailed = "Failed to generate manifest for ShipRocket shipment ID: %d. Error: %s";
+        public static final String LabelGenerationFailed = "Failed to generate shipping label for ShipRocket shipment ID: %d. Error: %s";
+        public static final String InvoiceGenerationFailed = "Failed to generate invoice for ShipRocket shipment ID: %d. Error: %s";
+        public static final String TrackingFetchFailed = "Failed to fetch tracking information for AWB code: %s. Error: %s";
+    }
+
+    public static class PaymentErrorMessages {
+        // standard error messages
+        public static final String InvalidId = "Invalid payment Id.";
+        public static final String NotFound = "Payment not found.";
+        public static final String AccessDenied = "Access denied to this payment.";
+        public static final String CannotRefund = "This payment cannot be refunded.";
+        
+        // Configuration errors
+        public static final String RazorpayApiKeyNotConfigured = "Razorpay API Key not configured for this client. Please configure in Client Settings.";
+        public static final String RazorpayApiSecretNotConfigured = "Razorpay API Secret not configured for this client. Please configure in Client Settings.";
+        
+        // Status errors
+        public static final String OnlyPendingApprovalCanBePaid = "Only orders with PENDING_APPROVAL status can be paid.";
+        public static final String FollowUpPaymentStatusRequired = "Follow-up payments can only be made for APPROVED or APPROVED_WITH_PARTIAL_PAYMENT orders.";
+        
+        // Validation errors
+        public static final String PaymentDateRequired = "Payment date is required.";
+        public static final String ValidPaymentAmountRequired = "Valid payment amount is required.";
+        public static final String PaymentOrderNotFound = "Payment order not found. Please try again.";
+    }
+
+    public static class ConfigurationErrorMessages {
+        // ImgBB
+        public static final String ImgbbApiKeyNotConfigured = "ImgBB API key is not configured for this client.";
+        
+        // SendGrid
+        public static final String SendGridEmailNotConfigured = "Email sender address is not configured in properties.";
+        public static final String SendGridNameNotConfigured = "Email sender name is not configured in properties.";
+        public static final String SendGridApiKeyNotConfigured = "SendGrid API key is not configured in properties.";
+        
+        // Client
+        public static final String NoClientConfigurationFound = "No client configuration found.";
+    }
+
+    public static class CommonErrorMessages {
+        // Pagination errors
+        public static final String InvalidPagination = "Invalid pagination: end must be greater than start.";
+        public static final String StartIndexCannotBeNegative = "Start index cannot be negative.";
+        public static final String EndIndexMustBeGreaterThanZero = "End index must be greater than 0.";
+        public static final String StartIndexMustBeLessThanEnd = "Start index must be less than end index.";
+        
+        // Logic operator errors
+        public static final String InvalidLogicOperator = "Invalid logic operator. Must be 'AND' or 'OR'.";
+        
+        // Filter errors
+        public static final String BooleanColumnsOnlySupportEquals = "Boolean columns only support 'equals' and 'notEquals' operators.";
+        
+        // List errors
+        public static final String ListCannotBeNullOrEmpty = "%s list cannot be null or empty.";
+        
+        // Access errors
+        public static final String AccessDeniedToPurchaseOrder = "Access denied to this purchase order.";
+        
+        // Confirmation errors
+        public static final String FailedToSendConfirmationEmail = "Failed to send confirmation email.";
+        
+        // Permission errors
+        public static final String AtLeastOnePermissionRequired = "At least one permission mapping is required for the user.";
+    }
+
+    public static class OrderSummaryNotFoundMessage {
+        public static final String NotFound = "Order summary not found for purchase order.";
     }
 
 }

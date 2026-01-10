@@ -205,6 +205,8 @@ public class ProductService extends BaseService implements IProductSubTranslator
      * Toggles the return eligibility status of a product.
      * This method toggles whether a product can be returned by customers.
      * This affects the return policy displayed to customers during checkout.
+     * If returnWindowDays is 0 (no returns), it sets it to 30 days (default).
+     * If returnWindowDays is > 0 (returns allowed), it sets it to 0 (no returns).
      * 
      * @param id The ID of the product to toggle
      * @throws BadRequestException if validation fails
@@ -219,8 +221,13 @@ public class ProductService extends BaseService implements IProductSubTranslator
             throw new NotFoundException(String.format(ErrorMessages.ProductErrorMessages.ER013, id));
         }
         
-        // Toggle the returns allowed status
-        product.setReturnsAllowed(!product.getReturnsAllowed());
+        // Toggle the return window days: 0 = no returns, >0 = returns allowed
+        // Default return window is 30 days when enabling returns
+        if (product.getReturnWindowDays() == null || product.getReturnWindowDays() == 0) {
+            product.setReturnWindowDays(30); // Enable returns with 30-day window
+        } else {
+            product.setReturnWindowDays(0); // Disable returns
+        }
         product.setModifiedUser(getUser());
         
         // Save the updated product
@@ -313,7 +320,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
 
         // Validate page size
         if (pageSize <= 0) {
-            throw new BadRequestException("Invalid pagination: end must be greater than start");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
         }
 
         // Create custom Pageable with proper offset handling
@@ -366,7 +373,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
         try {
             // Validate input
             if (products == null || products.isEmpty()) {
-                throw new BadRequestException("Product list cannot be null or empty");
+                throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Product"));
             }
 
             com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
@@ -446,7 +453,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
     public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkAddProducts(java.util.List<ProductRequestModel> products) {
         // Validate input
         if (products == null || products.isEmpty()) {
-            throw new BadRequestException("Product list cannot be null or empty");
+            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Product"));
         }
 
         com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
@@ -597,7 +604,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
             .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
             
         if (client.getImgbbApiKey() == null || client.getImgbbApiKey().trim().isEmpty()) {
-            throw new BadRequestException("ImgBB API key is not configured for this client");
+            throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.ImgbbApiKeyNotConfigured);
         }
         
         ClientResponseModel clientDetails = clientService.getClientById(clientId);

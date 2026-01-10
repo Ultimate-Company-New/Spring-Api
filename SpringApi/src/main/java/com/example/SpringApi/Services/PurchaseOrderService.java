@@ -1131,7 +1131,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         try {
             // Validate input
             if (purchaseOrders == null || purchaseOrders.isEmpty()) {
-                throw new BadRequestException("Purchase order list cannot be null or empty");
+                throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Purchase order"));
             }
 
             com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 

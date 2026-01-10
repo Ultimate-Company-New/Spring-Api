@@ -18,9 +18,15 @@ import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
 import com.example.SpringApi.Models.ShippingResponseModel.TokenResponseModel;
 import com.example.SpringApi.Models.ShippingResponseModel.AddPickupLocationResponseModel;
-import com.example.SpringApi.Models.ShippingResponseModel.GetAllPickupLocationsResponseModel;
 import com.example.SpringApi.Models.ShippingResponseModel.ShippingOptionsResponseModel;
 import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderResponseModel;
+import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketAwbResponseModel;
+import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketPickupResponseModel;
+import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketManifestResponseModel;
+import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketLabelResponseModel;
+import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketInvoiceResponseModel;
+import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketTrackingResponseModel;
+import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketReturnOrderResponseModel;
 import com.example.SpringApi.Adapters.DateAdapter;
 import com.example.SpringApi.Adapters.LocalDateTimeAdapter;
 
@@ -56,20 +62,36 @@ public class ShippingHelper {
         this._email = email;
         this._password = password;
     }
+    
+    /**
+     * Creates a configured Gson instance for JSON serialization/deserialization.
+     */
+    private Gson createGson() {
+        return new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .registerTypeAdapter(Date.class, new DateAdapter())
+                .create();
+    }
 
-    public <T> T httpResponse(
+    /**
+     * Base HTTP method that returns raw JSON response string.
+     * All other HTTP methods should use this to avoid duplicating HTTP logic.
+     * 
+     * @param token Authorization token (can be null for unauthenticated requests)
+     * @param url Full URL to call
+     * @param methodType HTTP method (GET, POST, PUT, DELETE)
+     * @param content Request body object (will be serialized to JSON)
+     * @return Raw JSON response string
+     * @throws BadRequestException if HTTP status is not 200 or on any error
+     */
+    private String httpResponseRaw(
             String token,
             String url,
             String methodType,
-            Type type,
-            Object content,
-            String successMessage) {
-        try{
+            Object content) {
+        try {
             HttpClient client = createHttpClient();
-            Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                    .registerTypeAdapter(Date.class, new DateAdapter())
-                    .create();
+            Gson gson = createGson();
 
             String requestBody = content != null ? gson.toJson(content) : "";
 
@@ -79,24 +101,44 @@ public class ShippingHelper {
                     .timeout(HTTP_TIMEOUT)
                     .method(methodType, HttpRequest.BodyPublishers.ofString(requestBody));
 
-            if(org.springframework.util.StringUtils.hasText(token)){
+            if (org.springframework.util.StringUtils.hasText(token)) {
                 requestBuilder.header("Authorization", "Bearer " + token);
             }
 
             HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-            if(response.statusCode() == 200) {
-                return gson.fromJson(response.body(), type);
-            }
-            else{
+            if (response.statusCode() == 200) {
+                return response.body();
+            } else {
                 throw new BadRequestException("Shiprocket API error (status " + response.statusCode() + "): " + response.body());
             }
-        }
-        catch (BadRequestException e){
+        } catch (BadRequestException e) {
             throw e;
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             throw new BadRequestException("Exception occurred: " + e.getMessage());
         }
+    }
+
+    /**
+     * HTTP method that deserializes the response into a typed object.
+     * Uses httpResponseRaw internally for the actual HTTP call.
+     * 
+     * @param token Authorization token
+     * @param url Full URL to call
+     * @param methodType HTTP method (GET, POST, PUT, DELETE)
+     * @param type Type to deserialize response into
+     * @param content Request body object
+     * @param successMessage Unused (kept for backward compatibility)
+     * @return Deserialized response object
+     */
+    public <T> T httpResponse(
+            String token,
+            String url,
+            String methodType,
+            Type type,
+            Object content,
+            String successMessage) {
+        String rawResponse = httpResponseRaw(token, url, methodType, content);
+        return createGson().fromJson(rawResponse, type);
     }
 
     /**
@@ -188,18 +230,6 @@ public class ShippingHelper {
                 "Successfully added pickup location.");
     }
 
-    public GetAllPickupLocationsResponseModel getAllPickupLocations(
-    ) {
-        String token = getToken();
-        return httpResponse(
-                token,
-                _apiUrl + "/settings/company/pickup",
-                "GET",
-                new TypeToken<GetAllPickupLocationsResponseModel>(){}.getType(),
-                null,
-                "Successfully got all pickup locations.");
-    }
-
     /**
      * Get available shipping options/courier companies for a shipment
      * 
@@ -233,128 +263,508 @@ public class ShippingHelper {
     }
 
     /**
-     * Find the maximum weight that couriers can handle for a given route.
-     * Starts at 500kg and reduces by 100kg until couriers are found or reaches 100kg.
-     * 
-     * @param pickupPostcode Pickup location postal code
-     * @param deliveryPostcode Delivery location postal code
-     * @param isCod Whether the order is Cash on Delivery
-     * @return Maximum weight in kg that can be shipped on this route
-     * @throws RuntimeException if no couriers available even at 100kg
-     */
-    public double findMaxWeightForRoute(
-            String pickupPostcode,
-            String deliveryPostcode,
-            boolean isCod
-    ) {
-        // Start at 500kg and reduce by 100kg until we find couriers
-        double[] weightsToTry = {500, 400, 300, 200, 100};
-        
-        for (double weight : weightsToTry) {
-            try {
-                ShippingOptionsResponseModel response = getAvailableShippingOptions(
-                    pickupPostcode, deliveryPostcode, isCod, String.valueOf(weight));
-                
-                if (response != null && response.getData() != null && 
-                    response.getData().available_courier_companies != null &&
-                    !response.getData().available_courier_companies.isEmpty()) {
-                    return weight;
-                }
-            } catch (Exception e) {
-                // Error checking weight - continue to next weight
-            }
-        }
-        
-        // No couriers found even at 100kg
-        return 0; // Indicates no couriers available
-    }
-    
-    /**
      * Creates a custom order in ShipRocket.
      * 
      * Based on ShipRocket API: POST /orders/create/adhoc
      * Documentation: https://www.postman.com/shiprocketdev/shiprocket-dev-s-public-workspace/request/mydll5u/create-custom-order
      * 
-     * @param orderRequest ShipRocketOrderRequestModel containing order details
+     * Note: ShipRocket can return HTTP 200 with error data in the response body.
+     * This method validates that the response contains required fields (order_id, shipment_id).
      * 
+     * @param orderRequest ShipRocketOrderRequestModel containing order details
      * @return ShipRocketOrderResponseModel containing order details
+     * @throws BadRequestException if the response doesn't contain valid order data
      */
     public ShipRocketOrderResponseModel createCustomOrder(Object orderRequest) {
         String token = getToken();
-        return httpResponse(
+        ShipRocketOrderResponseModel response = httpResponse(
                 token,
                 _apiUrl + "/orders/create/adhoc",
                 "POST",
                 new TypeToken<ShipRocketOrderResponseModel>(){}.getType(),
                 orderRequest,
                 "Successfully created ShipRocket order.");
+        
+        // Validate response content - HTTP 200 doesn't guarantee success
+        if (response == null) {
+            throw new BadRequestException("ShipRocket create order returned null response");
+        }
+        
+        // Check for error message in response
+        if (response.getMessage() != null && !response.getMessage().isEmpty()) {
+            // ShipRocket sometimes returns success with a message, check if it's an error
+            String message = response.getMessage().toLowerCase();
+            if (message.contains("error") || message.contains("invalid") || message.contains("failed")) {
+                throw new BadRequestException("ShipRocket create order failed: " + response.getMessage());
+            }
+        }
+        
+        // Validate required fields exist
+        String orderId = response.getOrderIdAsString();
+        if (orderId == null || orderId.isEmpty()) {
+            throw new BadRequestException("ShipRocket create order response missing order_id. Response message: " + 
+                (response.getMessage() != null ? response.getMessage() : "none"));
+        }
+        
+        if (response.getShipment_id() == null) {
+            throw new BadRequestException("ShipRocket create order response missing shipment_id for order: " + orderId);
+        }
+        
+        return response;
     }
     
     /**
-     * Gets order details from ShipRocket by order ID.
+     * Assigns AWB and returns the raw JSON response for storing as metadata.
      * 
-     * Based on ShipRocket API: GET /orders/show/{order_id}
+     * Note: ShipRocket can return HTTP 200 with error data in the response body.
+     * This method validates that awb_assign_status is 1 (success) before returning.
      * 
-     * This API returns comprehensive order information including:
-     * - Order details (customer info, addresses, payment info)
-     * - Products in the order
-     * - Shipment details (AWB, courier, status)
-     * - AWB data with charges breakdown
-     * - Insurance and return pickup data
-     * 
-     * @param shipRocketOrderId The ShipRocket order ID to fetch details for
-     * @return ShipRocketOrderDetailsResponseModel containing full order details
+     * @param shipmentId The ShipRocket shipment ID
+     * @param courierId The courier company ID to assign
+     * @return Raw JSON string of the AWB assignment response
+     * @throws BadRequestException if the AWB assignment fails or response is invalid
      */
-    public com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderDetailsResponseModel getOrderDetails(String shipRocketOrderId) {
-        if (shipRocketOrderId == null || shipRocketOrderId.trim().isEmpty()) {
-            throw new BadRequestException("ShipRocket order ID is required to fetch order details");
+    public String assignAwbAsJson(Long shipmentId, Long courierId) {
+        if (shipmentId == null) {
+            throw new BadRequestException("Shipment ID is required for AWB assignment");
+        }
+        if (courierId == null) {
+            throw new BadRequestException("Courier ID is required for AWB assignment");
         }
         
         String token = getToken();
-        return httpResponse(
-                token,
-                _apiUrl + "/orders/show/" + shipRocketOrderId.trim(),
-                "GET",
-                new TypeToken<com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderDetailsResponseModel>(){}.getType(),
-                null,
-                "Successfully fetched ShipRocket order details.");
+        
+        HashMap<String, Object> jsonBody = new HashMap<>();
+        jsonBody.put("shipment_id", String.valueOf(shipmentId));
+        jsonBody.put("courier_id", String.valueOf(courierId));
+        
+        // Use base HTTP method
+        String responseBody = httpResponseRaw(token, _apiUrl + "/courier/assign/awb", "POST", jsonBody);
+        
+        // Validate response content - HTTP 200 doesn't guarantee success
+        ShipRocketAwbResponseModel awbResponse = createGson().fromJson(responseBody, ShipRocketAwbResponseModel.class);
+        
+        if (awbResponse == null) {
+            throw new BadRequestException("ShipRocket AWB assignment returned null response for shipment: " + shipmentId);
+        }
+        
+        if (!awbResponse.isSuccess()) {
+            throw new BadRequestException("ShipRocket AWB assignment failed for shipment: " + shipmentId + 
+                ". awb_assign_status: " + awbResponse.getAwbAssignStatus() + ". Response: " + responseBody);
+        }
+        
+        String awbCode = awbResponse.getAwbCode();
+        if (awbCode == null || awbCode.isEmpty()) {
+            throw new BadRequestException("ShipRocket AWB assignment returned empty AWB code for shipment: " + shipmentId);
+        }
+        
+        return responseBody;
     }
     
     /**
-     * Gets order details as raw JSON string from ShipRocket by order ID.
+     * Generates pickup for a ShipRocket shipment.
+     * 
+     * Based on ShipRocket API: POST /courier/generate/pickup
+     * 
+     * This API schedules a pickup for the shipment after AWB has been assigned.
+     * Must be called after AWB assignment.
+     * 
+     * @param shipmentId The ShipRocket shipment ID (from order creation response)
+     * @return Raw JSON string of the pickup generation response
+     * @throws BadRequestException if the pickup generation fails
+     */
+    public String generatePickupAsJson(Long shipmentId) {
+        if (shipmentId == null) {
+            throw new BadRequestException("Shipment ID is required for pickup generation");
+        }
+        
+        String token = getToken();
+        
+        // ShipRocket expects shipment_id as an array
+        HashMap<String, Object> jsonBody = new HashMap<>();
+        jsonBody.put("shipment_id", java.util.List.of(shipmentId));
+        
+        // Use base HTTP method
+        String responseBody = httpResponseRaw(token, _apiUrl + "/courier/generate/pickup", "POST", jsonBody);
+        
+        // Deserialize into typed response model
+        ShipRocketPickupResponseModel response = createGson().fromJson(responseBody, ShipRocketPickupResponseModel.class);
+        
+        if (response == null) {
+            throw new BadRequestException("ShipRocket pickup generation returned null response for shipment: " + shipmentId);
+        }
+        
+        if (!response.isSuccess()) {
+            throw new BadRequestException("ShipRocket pickup generation failed for shipment: " + shipmentId + 
+                ". pickup_status: " + response.getPickupStatus() + ". Response: " + responseBody);
+        }
+        
+        return responseBody;
+    }
+    
+    /**
+     * Generates manifest for a ShipRocket shipment.
+     * 
+     * Based on ShipRocket API: POST /manifests/generate
+     * 
+     * This API generates a manifest PDF for the shipment.
+     * Must be called after pickup has been generated.
+     * 
+     * @param shipmentId The ShipRocket shipment ID
+     * @return Manifest URL from the response, or null if generation failed
+     * @throws BadRequestException if the manifest generation fails
+     */
+    public String generateManifest(Long shipmentId) {
+        if (shipmentId == null) {
+            throw new BadRequestException("Shipment ID is required for manifest generation");
+        }
+        
+        String token = getToken();
+        
+        // ShipRocket expects shipment_id as an array
+        HashMap<String, Object> jsonBody = new HashMap<>();
+        jsonBody.put("shipment_id", java.util.List.of(shipmentId));
+        
+        // Use base HTTP method
+        String responseBody = httpResponseRaw(token, _apiUrl + "/manifests/generate", "POST", jsonBody);
+        
+        // Deserialize into typed response model
+        ShipRocketManifestResponseModel response = createGson().fromJson(responseBody, ShipRocketManifestResponseModel.class);
+        
+        if (response == null) {
+            throw new BadRequestException("ShipRocket manifest generation returned null response for shipment: " + shipmentId);
+        }
+        
+        if (!response.isSuccess()) {
+            throw new BadRequestException("ShipRocket manifest generation failed for shipment: " + shipmentId + 
+                ". status: " + response.getStatus() + ". Response: " + responseBody);
+        }
+        
+        return response.getManifestUrl();
+    }
+    
+    /**
+     * Generates shipping label for a ShipRocket shipment.
+     * 
+     * Based on ShipRocket API: POST /courier/generate/label
+     * 
+     * This API generates a shipping label PDF for the shipment.
+     * Must be called after manifest has been generated.
+     * 
+     * @param shipmentId The ShipRocket shipment ID
+     * @return Label URL from the response, or null if generation failed
+     * @throws BadRequestException if the label generation fails
+     */
+    public String generateLabel(Long shipmentId) {
+        if (shipmentId == null) {
+            throw new BadRequestException("Shipment ID is required for label generation");
+        }
+        
+        String token = getToken();
+        
+        // ShipRocket expects shipment_id as an array of strings
+        HashMap<String, Object> jsonBody = new HashMap<>();
+        jsonBody.put("shipment_id", java.util.List.of(String.valueOf(shipmentId)));
+        
+        // Use base HTTP method
+        String responseBody = httpResponseRaw(token, _apiUrl + "/courier/generate/label", "POST", jsonBody);
+        
+        // Deserialize into typed response model
+        ShipRocketLabelResponseModel response = createGson().fromJson(responseBody, ShipRocketLabelResponseModel.class);
+        
+        if (response == null) {
+            throw new BadRequestException("ShipRocket label generation returned null response for shipment: " + shipmentId);
+        }
+        
+        if (!response.isSuccess()) {
+            throw new BadRequestException("ShipRocket label generation failed for shipment: " + shipmentId + 
+                ". label_created: " + response.getLabelCreated() + ". Response: " + responseBody);
+        }
+        
+        return response.getLabelUrl();
+    }
+    
+    /**
+     * Generates invoice for a ShipRocket order.
+     * 
+     * Based on ShipRocket API: POST /orders/print/invoice
+     * 
+     * This API generates an invoice PDF for the order.
+     * Must be called after label has been generated.
+     * 
+     * @param shipmentId The ShipRocket shipment ID
+     * @return Invoice URL from the response, or null if generation failed
+     * @throws BadRequestException if the invoice generation fails
+     */
+    public String generateInvoice(Long shipmentId) {
+        if (shipmentId == null) {
+            throw new BadRequestException("Shipment ID is required for invoice generation");
+        }
+        
+        String token = getToken();
+        
+        // ShipRocket expects ids as an array of strings
+        HashMap<String, Object> jsonBody = new HashMap<>();
+        jsonBody.put("ids", java.util.List.of(String.valueOf(shipmentId)));
+        
+        // Use base HTTP method
+        String responseBody = httpResponseRaw(token, _apiUrl + "/orders/print/invoice", "POST", jsonBody);
+        
+        // Deserialize into typed response model
+        ShipRocketInvoiceResponseModel response = createGson().fromJson(responseBody, ShipRocketInvoiceResponseModel.class);
+        
+        if (response == null) {
+            throw new BadRequestException("ShipRocket invoice generation returned null response for shipment: " + shipmentId);
+        }
+        
+        if (!response.isSuccess()) {
+            throw new BadRequestException("ShipRocket invoice generation failed for shipment: " + shipmentId + 
+                ". is_invoice_created: " + response.getIsInvoiceCreated() + ". Response: " + responseBody);
+        }
+        
+        return response.getInvoiceUrl();
+    }
+    
+    /**
+     * Gets tracking information for a shipment by AWB code.
+     * 
+     * Based on ShipRocket API: GET /courier/track/awb/{awb_code}
+     * 
+     * This API returns tracking information including status, activities, and delivery details.
+     * Must be called after AWB has been assigned.
+     * 
+     * @param awbCode The AWB code for the shipment
+     * @return Raw JSON string of the tracking response
+     * @throws BadRequestException if the tracking request fails
+     */
+    public String getTrackingAsJson(String awbCode) {
+        if (awbCode == null || awbCode.trim().isEmpty()) {
+            throw new BadRequestException("AWB code is required for tracking");
+        }
+        
+        String token = getToken();
+        
+        // Use base HTTP method - GET request with AWB in URL
+        String responseBody = httpResponseRaw(token, _apiUrl + "/courier/track/awb/" + awbCode.trim(), "GET", null);
+        
+        // Deserialize into typed response model
+        ShipRocketTrackingResponseModel response = createGson().fromJson(responseBody, ShipRocketTrackingResponseModel.class);
+        
+        if (response == null) {
+            throw new BadRequestException("ShipRocket tracking returned null response for AWB: " + awbCode);
+        }
+        
+        if (response.getTrackingData() == null) {
+            throw new BadRequestException("ShipRocket tracking returned no tracking_data for AWB: " + awbCode + 
+                ". Response: " + responseBody);
+        }
+        
+        return responseBody;
+    }
+    
+    /**
      * 
      * This method returns the raw JSON response for storing as metadata.
      * 
+     * Note: ShipRocket can return HTTP 200 with error data in the response body.
+     * This method validates that the response contains valid order data.
+     * 
      * @param shipRocketOrderId The ShipRocket order ID to fetch details for
      * @return Raw JSON string of the order details response
+     * @throws BadRequestException if the response doesn't contain valid order data
      */
     public String getOrderDetailsAsJson(String shipRocketOrderId) {
         if (shipRocketOrderId == null || shipRocketOrderId.trim().isEmpty()) {
             throw new BadRequestException("ShipRocket order ID is required to fetch order details");
         }
         
-        try {
-            String token = getToken();
-            HttpClient client = createHttpClient();
-            
-            var requestBuilder = HttpRequest.newBuilder()
-                    .uri(new URI(_apiUrl + "/orders/show/" + shipRocketOrderId.trim()))
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + token)
-                    .timeout(HTTP_TIMEOUT)
-                    .GET();
-            
-            HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-            
-            if (response.statusCode() == 200) {
-                return response.body();
-            } else {
-                throw new BadRequestException("Shiprocket API error (status " + response.statusCode() + "): " + response.body());
+        String token = getToken();
+        
+        // Use base HTTP method
+        String responseBody = httpResponseRaw(token, _apiUrl + "/orders/show/" + shipRocketOrderId.trim(), "GET", null);
+        
+        // Validate response content - HTTP 200 doesn't guarantee success
+        com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderDetailsResponseModel orderDetails = 
+            createGson().fromJson(responseBody, com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderDetailsResponseModel.class);
+        
+        if (orderDetails == null) {
+            throw new BadRequestException("ShipRocket get order details returned null response for order: " + shipRocketOrderId);
+        }
+        
+        if (orderDetails.getData() == null) {
+            throw new BadRequestException("ShipRocket get order details returned empty data for order: " + shipRocketOrderId + 
+                ". Response: " + responseBody);
+        }
+        
+        if (orderDetails.getData().getId() == null) {
+            throw new BadRequestException("ShipRocket get order details returned response without order ID for: " + shipRocketOrderId);
+        }
+        
+        return responseBody;
+    }
+    
+    /**
+     * Creates a return order in ShipRocket.
+     * 
+     * Based on ShipRocket API: POST /orders/create/return
+     * 
+     * This API creates a return order for products being returned by the customer.
+     * 
+     * @param returnOrderRequest The return order request containing pickup (customer) and shipping (warehouse) details
+     * @return ShipRocketReturnOrderResponseModel with the return order details
+     * @throws BadRequestException if the return order creation fails
+     */
+    public ShipRocketReturnOrderResponseModel createReturnOrder(Object returnOrderRequest) {
+        String token = getToken();
+        
+        String responseBody = httpResponseRaw(token, _apiUrl + "/orders/create/return", "POST", returnOrderRequest);
+        
+        // Deserialize into typed response model
+        ShipRocketReturnOrderResponseModel response = createGson().fromJson(responseBody, ShipRocketReturnOrderResponseModel.class);
+        
+        if (response == null) {
+            throw new BadRequestException("ShipRocket create return order returned null response");
+        }
+        
+        // Check for error message
+        if (response.getMessage() != null && !response.getMessage().isEmpty()) {
+            String message = response.getMessage().toLowerCase();
+            if (message.contains("error") || message.contains("invalid") || message.contains("failed")) {
+                throw new BadRequestException("ShipRocket create return order failed: " + response.getMessage());
             }
-        } catch (BadRequestException e) {
-            throw e;
+        }
+        
+        // Validate required fields
+        if (!response.isSuccess()) {
+            throw new BadRequestException("ShipRocket create return order failed. Response: " + responseBody);
+        }
+        
+        return response;
+    }
+    
+    /**
+     * Creates a return order and returns raw JSON response for storing as metadata.
+     * 
+     * @param returnOrderRequest The return order request
+     * @return Raw JSON string of the return order response
+     * @throws BadRequestException if the return order creation fails
+     */
+    public String createReturnOrderAsJson(Object returnOrderRequest) {
+        String token = getToken();
+        
+        String responseBody = httpResponseRaw(token, _apiUrl + "/orders/create/return", "POST", returnOrderRequest);
+        
+        // Validate response
+        ShipRocketReturnOrderResponseModel response = createGson().fromJson(responseBody, ShipRocketReturnOrderResponseModel.class);
+        
+        if (response == null || !response.isSuccess()) {
+            throw new BadRequestException("ShipRocket create return order failed. Response: " + responseBody);
+        }
+        
+        return responseBody;
+    }
+    
+    /**
+     * Assigns AWB for a return shipment.
+     * 
+     * Based on ShipRocket API: POST /courier/assign/awb
+     * For returns, the is_return parameter should be 1.
+     * 
+     * @param shipmentId The ShipRocket return shipment ID
+     * @return Raw JSON string of the AWB assignment response
+     * @throws BadRequestException if the AWB assignment fails
+     */
+    public String assignReturnAwbAsJson(Long shipmentId) {
+        if (shipmentId == null) {
+            throw new BadRequestException("Shipment ID is required for return AWB assignment");
+        }
+        
+        String token = getToken();
+        
+        HashMap<String, Object> jsonBody = new HashMap<>();
+        jsonBody.put("shipment_id", String.valueOf(shipmentId));
+        jsonBody.put("is_return", 1);  // Indicates this is a return shipment
+        
+        // Use base HTTP method
+        String responseBody = httpResponseRaw(token, _apiUrl + "/courier/assign/awb", "POST", jsonBody);
+        
+        // Validate response content
+        ShipRocketAwbResponseModel awbResponse = createGson().fromJson(responseBody, ShipRocketAwbResponseModel.class);
+        
+        if (awbResponse == null) {
+            throw new BadRequestException("ShipRocket return AWB assignment returned null response for shipment: " + shipmentId);
+        }
+        
+        if (!awbResponse.isSuccess()) {
+            throw new BadRequestException("ShipRocket return AWB assignment failed for shipment: " + shipmentId + 
+                ". awb_assign_status: " + awbResponse.getAwbAssignStatus() + ". Response: " + responseBody);
+        }
+        
+        String awbCode = awbResponse.getAwbCode();
+        if (awbCode == null || awbCode.isEmpty()) {
+            throw new BadRequestException("ShipRocket return AWB assignment returned empty AWB code for shipment: " + shipmentId);
+        }
+        
+        return responseBody;
+    }
+    
+    /**
+     * Cancels orders in ShipRocket.
+     * 
+     * Based on ShipRocket API: POST /orders/cancel
+     * 
+     * This API cancels orders in ShipRocket. Note: This endpoint returns no response body.
+     * 
+     * @param orderIds List of ShipRocket order IDs to cancel
+     * @throws BadRequestException if the cancellation fails
+     */
+    public void cancelOrders(java.util.List<Long> orderIds) {
+        if (orderIds == null || orderIds.isEmpty()) {
+            throw new BadRequestException("Order IDs are required for cancellation");
+        }
+        
+        String token = getToken();
+        
+        // ShipRocket expects ids as an array
+        HashMap<String, Object> jsonBody = new HashMap<>();
+        jsonBody.put("ids", orderIds);
+        
+        // Use base HTTP method - this endpoint returns no response body on success
+        httpResponseRaw(token, _apiUrl + "/orders/cancel", "POST", jsonBody);
+        
+        // If we get here without exception, the cancellation was successful
+    }
+    
+    /**
+     * Gets the wallet balance from ShipRocket.
+     * 
+     * Based on ShipRocket API: GET /account/details/wallet-balance
+     * 
+     * @return The wallet balance as a Double
+     * @throws BadRequestException if the request fails
+     */
+    public Double getWalletBalance() {
+        String token = getToken();
+        
+        String responseBody = httpResponseRaw(token, _apiUrl + "/account/details/wallet-balance", "GET", null);
+        
+        try {
+            com.google.gson.JsonObject jsonResponse = com.google.gson.JsonParser.parseString(responseBody).getAsJsonObject();
+            
+            if (jsonResponse.has("data")) {
+                com.google.gson.JsonObject data = jsonResponse.getAsJsonObject("data");
+                if (data.has("balance_amount")) {
+                    String balanceStr = data.get("balance_amount").getAsString();
+                    return Double.parseDouble(balanceStr);
+                }
+            }
+            
+            throw new BadRequestException("Invalid wallet balance response from ShipRocket: missing balance_amount");
+        } catch (NumberFormatException e) {
+            throw new BadRequestException("Invalid wallet balance format from ShipRocket: " + e.getMessage());
         } catch (Exception e) {
-            throw new BadRequestException("Exception occurred while fetching order details: " + e.getMessage());
+            if (e instanceof BadRequestException) throw (BadRequestException) e;
+            throw new BadRequestException("Failed to parse wallet balance response: " + e.getMessage());
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.SpringApi.Models.DatabaseModels;
 
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -111,16 +112,16 @@ public class ProductPickupLocationMapping {
     public ProductPickupLocationMapping(Long productId, Long pickupLocationId, Integer availableStock, String createdUser) {
         // Validate inputs
         if (productId == null) {
-            throw new BadRequestException("Product ID cannot be null");
+            throw new BadRequestException(ErrorMessages.ProductPickupLocationMappingErrorMessages.ProductIdRequired);
         }
         if (pickupLocationId == null) {
-            throw new BadRequestException("Pickup location ID cannot be null");
+            throw new BadRequestException(ErrorMessages.ProductPickupLocationMappingErrorMessages.PickupLocationIdRequired);
         }
         if (availableStock == null || availableStock <= 0) {
-            throw new BadRequestException(String.format("Available stock for pickup location %d must be positive", pickupLocationId));
+            throw new BadRequestException(String.format(ErrorMessages.ProductPickupLocationMappingErrorMessages.AvailableStockMustBePositive, pickupLocationId));
         }
         if (createdUser == null || createdUser.trim().isEmpty()) {
-            throw new BadRequestException("Created user cannot be null or empty");
+            throw new BadRequestException(ErrorMessages.ProductPickupLocationMappingErrorMessages.CreatedUserRequired);
         }
         
         this.productId = productId;
@@ -151,7 +152,7 @@ public class ProductPickupLocationMapping {
                                                                     Map<Long, Integer> pickupLocationQuantities, 
                                                                     String createdUser) {
         if (pickupLocationQuantities == null || pickupLocationQuantities.isEmpty()) {
-            throw new BadRequestException("At least one pickup location with quantity must be provided");
+            throw new BadRequestException(ErrorMessages.ProductPickupLocationMappingErrorMessages.AtLeastOnePickupLocationRequired);
         }
         
         List<ProductPickupLocationMapping> mappings = new ArrayList<>();

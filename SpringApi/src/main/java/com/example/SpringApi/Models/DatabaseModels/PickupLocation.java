@@ -137,7 +137,7 @@ public class PickupLocation {
             throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickName);
         }
         if (request.getAddressNickName().trim().length() > 36) {
-            throw new BadRequestException("Location name must be 36 characters or less (Shiprocket limit)");
+            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.LocationNameTooLong);
         }
         
         // Validate pickup location address ID (required, > 0)

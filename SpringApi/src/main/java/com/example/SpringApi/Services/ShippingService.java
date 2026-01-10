@@ -21,7 +21,23 @@ import com.example.SpringApi.Models.ShippingResponseModel.ShippingOptionsRespons
 import com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository;
 import com.example.SpringApi.Repositories.ProductPickupLocationMappingRepository;
 import com.example.SpringApi.Repositories.ProductRepository;
+import com.example.SpringApi.Repositories.ShipmentRepository;
+import com.example.SpringApi.Repositories.ReturnShipmentRepository;
+import com.example.SpringApi.Repositories.ReturnShipmentProductRepository;
+import com.example.SpringApi.Models.DatabaseModels.Shipment;
+import com.example.SpringApi.Models.DatabaseModels.ReturnShipment;
+import com.example.SpringApi.Models.DatabaseModels.ReturnShipmentProduct;
+import com.example.SpringApi.Models.DatabaseModels.Address;
+import com.example.SpringApi.Models.RequestModels.CreateReturnRequestModel;
+import com.example.SpringApi.Models.RequestModels.ShipRocketReturnOrderRequestModel;
+import com.example.SpringApi.Models.ResponseModels.ReturnShipmentResponseModel;
+import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketReturnOrderResponseModel;
+import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketAwbResponseModel;
+import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Services.Interface.IShippingSubTranslator;
+import com.nimbusds.jose.shaded.gson.Gson;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -70,6 +86,9 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     private final ProductPickupLocationMappingRepository productPickupLocationMappingRepository;
     private final PackagePickupLocationMappingRepository packagePickupLocationMappingRepository;
     private final PackagingHelper packagingHelper;
+    private final ShipmentRepository shipmentRepository;
+    private final ReturnShipmentRepository returnShipmentRepository;
+    private final ReturnShipmentProductRepository returnShipmentProductRepository;
 
     @Autowired
     public ShippingService(
@@ -77,12 +96,18 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             ProductRepository productRepository,
             ProductPickupLocationMappingRepository productPickupLocationMappingRepository,
             PackagePickupLocationMappingRepository packagePickupLocationMappingRepository,
-            PackagingHelper packagingHelper) {
+            PackagingHelper packagingHelper,
+            ShipmentRepository shipmentRepository,
+            ReturnShipmentRepository returnShipmentRepository,
+            ReturnShipmentProductRepository returnShipmentProductRepository) {
         this.clientService = clientService;
         this.productRepository = productRepository;
         this.productPickupLocationMappingRepository = productPickupLocationMappingRepository;
         this.packagePickupLocationMappingRepository = packagePickupLocationMappingRepository;
         this.packagingHelper = packagingHelper;
+        this.shipmentRepository = shipmentRepository;
+        this.returnShipmentRepository = returnShipmentRepository;
+        this.returnShipmentProductRepository = returnShipmentProductRepository;
     }
 
     /**
@@ -1352,7 +1377,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 try {
                     logger.debug("Fetching max weight for route: " + postcode + " -> " + deliveryPostcode);
                     long startTime = System.currentTimeMillis();
-                    double maxWeight = shippingHelper.findMaxWeightForRoute(postcode, deliveryPostcode, isCod);
+                    double maxWeight = findMaxWeightForRoute(shippingHelper, postcode, deliveryPostcode, isCod);
                     long duration = System.currentTimeMillis() - startTime;
                     logger.debug("Max weight lookup completed for " + postcode + " in " + duration + "ms: " + maxWeight + " kg");
                     if (maxWeight > 0) {
@@ -2054,5 +2079,460 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 })
                 .collect(Collectors.joining(" + "));
         }
+    }
+    
+    /**
+     * Cancel a shipment.
+     * Cancels the shipment in ShipRocket and updates the local shipment status to CANCELLED.
+     * 
+     * @param shipmentId The local shipment ID to cancel
+     * @throws BadRequestException if the shipment cannot be cancelled
+     * @throws NotFoundException if the shipment is not found
+     */
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void cancelShipment(Long shipmentId) {
+        Long clientId = getClientId();
+        
+        // Find the shipment
+        Shipment shipment = shipmentRepository.findByShipmentIdAndClientId(shipmentId, clientId);
+        if (shipment == null) {
+            throw new NotFoundException(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, shipmentId));
+        }
+        
+        // Check if already cancelled
+        if ("CANCELLED".equals(shipment.getShipRocketStatus())) {
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.AlreadyCancelled);
+        }
+        
+        // Check if shipRocketOrderId exists
+        String shipRocketOrderId = shipment.getShipRocketOrderId();
+        if (shipRocketOrderId == null || shipRocketOrderId.isEmpty()) {
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.NoShipRocketOrderId);
+        }
+        
+        // Get client Shiprocket credentials
+        ClientResponseModel clientResponse = clientService.getClientById(clientId);
+        if (clientResponse.getShipRocketEmail() == null || clientResponse.getShipRocketPassword() == null) {
+            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured);
+        }
+        
+        // Create ShippingHelper and cancel in ShipRocket
+        ShippingHelper shippingHelper = new ShippingHelper(
+            clientResponse.getShipRocketEmail(),
+            clientResponse.getShipRocketPassword()
+        );
+        
+        try {
+            // Parse the shipRocketOrderId to Long
+            Long shipRocketOrderIdLong = Long.parseLong(shipRocketOrderId);
+            shippingHelper.cancelOrders(java.util.List.of(shipRocketOrderIdLong));
+        } catch (NumberFormatException e) {
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.InvalidId + " Format error: " + shipRocketOrderId);
+        } catch (Exception e) {
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.InvalidId + " " + e.getMessage());
+        }
+        
+        // Update local shipment status
+        shipment.setShipRocketStatus("CANCELLED");
+        shipment.setUpdatedAt(java.time.LocalDateTime.now());
+        shipment.setModifiedUser(getUser());
+        shipmentRepository.save(shipment);
+        
+        logger.info("Shipment {} cancelled successfully. ShipRocket order ID: {}", shipmentId, shipRocketOrderId);
+    }
+    
+    /**
+     * Create a return order for a shipment.
+     * Creates a return shipment in ShipRocket and stores the return details locally.
+     * 
+     * @param request The return request containing shipment ID and products to return
+     * @return ReturnShipmentResponseModel with the created return details
+     * @throws BadRequestException if the return cannot be created
+     * @throws NotFoundException if the shipment is not found
+     */
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public ReturnShipmentResponseModel createReturn(CreateReturnRequestModel request) {
+        Long clientId = getClientId();
+        String currentUser = getUser();
+        
+        // Validate request
+        if (request.getShipmentId() == null) {
+            throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.ShipmentIdRequired);
+        }
+        if (request.getProducts() == null || request.getProducts().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.AtLeastOneProductRequired);
+        }
+        
+        // Find the shipment
+        Shipment shipment = shipmentRepository.findByShipmentIdAndClientId(request.getShipmentId(), clientId);
+        if (shipment == null) {
+            throw new NotFoundException(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, request.getShipmentId()));
+        }
+        
+        // Validate shipment status is DELIVERED
+        if (!"DELIVERED".equals(shipment.getShipRocketStatus())) {
+            throw new BadRequestException(String.format(ErrorMessages.ReturnShipmentErrorMessages.OnlyDeliveredCanReturn, shipment.getShipRocketStatus()));
+        }
+        
+        // Get client Shiprocket credentials
+        ClientResponseModel clientResponse = clientService.getClientById(clientId);
+        if (clientResponse.getShipRocketEmail() == null || clientResponse.getShipRocketPassword() == null) {
+            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured);
+        }
+        
+        // Load shipment products for validation
+        org.hibernate.Hibernate.initialize(shipment.getShipmentProducts());
+        Map<Long, Integer> shipmentProductQuantities = new HashMap<>();
+        for (var sp : shipment.getShipmentProducts()) {
+            shipmentProductQuantities.put(sp.getProductId(), sp.getAllocatedQuantity());
+        }
+        
+        // Validate products and calculate totals
+        List<Product> productsToReturn = new ArrayList<>();
+        BigDecimal subTotal = BigDecimal.ZERO;
+        int totalQuantity = 0;
+        int totalReturnableQuantity = 0;
+        
+        for (CreateReturnRequestModel.ReturnProductItem item : request.getProducts()) {
+            if (item.getProductId() == null) {
+                throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.ProductIdRequired);
+            }
+            if (item.getQuantity() == null || item.getQuantity() <= 0) {
+                throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.ValidQuantityRequired);
+            }
+            if (item.getReason() == null || item.getReason().isEmpty()) {
+                throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.ReturnReasonRequired);
+            }
+            
+            // Check if product is in the shipment
+            Integer shipmentQty = shipmentProductQuantities.get(item.getProductId());
+            if (shipmentQty == null) {
+                throw new BadRequestException(String.format(ErrorMessages.ReturnShipmentErrorMessages.ProductNotInShipment, item.getProductId()));
+            }
+            
+            // Check quantity doesn't exceed shipment quantity
+            if (item.getQuantity() > shipmentQty) {
+                throw new BadRequestException(String.format(ErrorMessages.ReturnShipmentErrorMessages.ReturnQuantityExceeds, item.getQuantity(), shipmentQty, item.getProductId()));
+            }
+            
+            // Load product
+            Product product = productRepository.findById(item.getProductId())
+                .orElseThrow(() -> new NotFoundException(String.format(ErrorMessages.ProductErrorMessages.ER013, item.getProductId())));
+            
+            // Validate product is within return window
+            if (product.getReturnWindowDays() != null && product.getReturnWindowDays() > 0 && shipment.getDeliveredDate() != null) {
+                java.time.LocalDateTime returnDeadline = shipment.getDeliveredDate().plusDays(product.getReturnWindowDays());
+                if (java.time.LocalDateTime.now().isAfter(returnDeadline)) {
+                    throw new BadRequestException(String.format(ErrorMessages.ReturnShipmentErrorMessages.ProductPastReturnWindow, product.getTitle(), product.getReturnWindowDays()));
+                }
+            } else if (product.getReturnWindowDays() == null || product.getReturnWindowDays() == 0) {
+                throw new BadRequestException(String.format(ErrorMessages.ReturnShipmentErrorMessages.ProductNotReturnable, product.getTitle()));
+            }
+            
+            productsToReturn.add(product);
+            
+            BigDecimal sellingPrice = product.getPrice().subtract(product.getDiscount());
+            subTotal = subTotal.add(sellingPrice.multiply(BigDecimal.valueOf(item.getQuantity())));
+            totalQuantity += item.getQuantity();
+            totalReturnableQuantity += shipmentQty;
+        }
+        
+        // Determine return type
+        boolean isFullReturn = (totalQuantity >= totalReturnableQuantity);
+        ReturnShipment.ReturnType returnType = isFullReturn ? 
+            ReturnShipment.ReturnType.FULL_RETURN : ReturnShipment.ReturnType.PARTIAL_RETURN;
+        
+        // Initialize delivery address for pickup (customer's address)
+        org.hibernate.Hibernate.initialize(shipment.getOrderSummary());
+        org.hibernate.Hibernate.initialize(shipment.getOrderSummary().getEntityAddress());
+        Address customerAddress = shipment.getOrderSummary().getEntityAddress();
+        
+        // Initialize pickup location for shipping (warehouse address - where to return)
+        org.hibernate.Hibernate.initialize(shipment.getPickupLocation());
+        org.hibernate.Hibernate.initialize(shipment.getPickupLocation().getAddress());
+        PickupLocation warehouseLocation = shipment.getPickupLocation();
+        Address warehouseAddress = warehouseLocation.getAddress();
+        
+        // Build ShipRocket return order request
+        ShipRocketReturnOrderRequestModel shipRocketRequest = new ShipRocketReturnOrderRequestModel();
+        
+        // Generate unique order ID
+        shipRocketRequest.setOrderId("RET-" + shipment.getShipmentId() + "-" + System.currentTimeMillis());
+        shipRocketRequest.setOrderDate(java.time.LocalDate.now().toString());
+        // Note: Channel ID is not required for return orders, ShipRocket uses default channel
+        
+        // Pickup address (customer location - where to pick up)
+        shipRocketRequest.setPickupCustomerName(customerAddress.getNameOnAddress() != null ? customerAddress.getNameOnAddress() : "Customer");
+        shipRocketRequest.setPickupLastName("");
+        shipRocketRequest.setCompanyName(clientResponse.getName() != null ? clientResponse.getName() : "");
+        shipRocketRequest.setPickupAddress(customerAddress.getStreetAddress());
+        shipRocketRequest.setPickupAddress2(customerAddress.getStreetAddress2() != null ? customerAddress.getStreetAddress2() : "");
+        shipRocketRequest.setPickupCity(customerAddress.getCity());
+        shipRocketRequest.setPickupState(customerAddress.getState());
+        shipRocketRequest.setPickupCountry(customerAddress.getCountry() != null ? customerAddress.getCountry() : "India");
+        shipRocketRequest.setPickupPincode(customerAddress.getPostalCode());
+        shipRocketRequest.setPickupEmail(customerAddress.getEmailOnAddress() != null ? customerAddress.getEmailOnAddress() : "");
+        shipRocketRequest.setPickupPhone(customerAddress.getPhoneOnAddress() != null ? customerAddress.getPhoneOnAddress() : "");
+        shipRocketRequest.setPickupIsdCode("91");
+        
+        // Shipping address (warehouse location - where to deliver return)
+        shipRocketRequest.setShippingCustomerName(warehouseAddress.getNameOnAddress() != null ? warehouseAddress.getNameOnAddress() : warehouseLocation.getAddressNickName());
+        shipRocketRequest.setShippingLastName("");
+        shipRocketRequest.setShippingAddress(warehouseAddress.getStreetAddress());
+        shipRocketRequest.setShippingAddress2(warehouseAddress.getStreetAddress2() != null ? warehouseAddress.getStreetAddress2() : "");
+        shipRocketRequest.setShippingCity(warehouseAddress.getCity());
+        shipRocketRequest.setShippingState(warehouseAddress.getState());
+        shipRocketRequest.setShippingCountry(warehouseAddress.getCountry() != null ? warehouseAddress.getCountry() : "India");
+        shipRocketRequest.setShippingPincode(warehouseAddress.getPostalCode());
+        shipRocketRequest.setShippingEmail(warehouseAddress.getEmailOnAddress() != null ? warehouseAddress.getEmailOnAddress() : "");
+        shipRocketRequest.setShippingPhone(warehouseAddress.getPhoneOnAddress() != null ? warehouseAddress.getPhoneOnAddress() : "");
+        shipRocketRequest.setShippingIsdCode("91");
+        
+        // Order items
+        List<ShipRocketReturnOrderRequestModel.ReturnOrderItem> orderItems = new ArrayList<>();
+        int productIndex = 0;
+        for (CreateReturnRequestModel.ReturnProductItem item : request.getProducts()) {
+            Product product = productsToReturn.get(productIndex++);
+            
+            ShipRocketReturnOrderRequestModel.ReturnOrderItem orderItem = new ShipRocketReturnOrderRequestModel.ReturnOrderItem();
+            orderItem.setName(product.getTitle());
+            orderItem.setQcEnable(true);
+            orderItem.setQcProductName(product.getTitle());
+            orderItem.setSku(product.getUpc() != null ? product.getUpc() : "SKU-" + product.getProductId());
+            orderItem.setUnits(item.getQuantity());
+            orderItem.setSellingPrice(product.getPrice().subtract(product.getDiscount()));
+            orderItem.setDiscount(BigDecimal.ZERO);
+            orderItem.setQcBrand(product.getBrand());
+            orderItem.setQcProductImage(product.getMainImageUrl());
+            
+            orderItems.add(orderItem);
+        }
+        shipRocketRequest.setOrderItems(orderItems);
+        
+        // Payment and totals
+        shipRocketRequest.setPaymentMethod("PREPAID");
+        shipRocketRequest.setTotalDiscount("0");
+        shipRocketRequest.setSubTotal(subTotal);
+        
+        // Dimensions
+        shipRocketRequest.setLength(request.getLength() != null ? request.getLength() : BigDecimal.valueOf(11));
+        shipRocketRequest.setBreadth(request.getBreadth() != null ? request.getBreadth() : BigDecimal.valueOf(11));
+        shipRocketRequest.setHeight(request.getHeight() != null ? request.getHeight() : BigDecimal.valueOf(11));
+        shipRocketRequest.setWeight(request.getWeight() != null ? request.getWeight() : BigDecimal.valueOf(0.5));
+        
+        // Create ShippingHelper
+        ShippingHelper shippingHelper = new ShippingHelper(
+            clientResponse.getShipRocketEmail(),
+            clientResponse.getShipRocketPassword()
+        );
+        
+        // Call ShipRocket API to create return order
+        String returnOrderJson;
+        ShipRocketReturnOrderResponseModel returnOrderResponse;
+        try {
+            returnOrderJson = shippingHelper.createReturnOrderAsJson(shipRocketRequest);
+            returnOrderResponse = new Gson().fromJson(returnOrderJson, ShipRocketReturnOrderResponseModel.class);
+        } catch (Exception e) {
+            throw new BadRequestException(String.format(ErrorMessages.ReturnShipmentErrorMessages.FailedToCreateReturn, e.getMessage()));
+        }
+        
+        // Create ReturnShipment entity
+        ReturnShipment returnShipment = new ReturnShipment();
+        returnShipment.setShipmentId(shipment.getShipmentId());
+        returnShipment.setReturnType(returnType);
+        returnShipment.setShipRocketReturnOrderId(returnOrderResponse.getOrderIdAsString());
+        returnShipment.setShipRocketReturnShipmentId(returnOrderResponse.getShipmentId());
+        returnShipment.setShipRocketReturnStatus(returnOrderResponse.getStatus());
+        returnShipment.setShipRocketReturnStatusCode(returnOrderResponse.getStatusCode());
+        returnShipment.setShipRocketReturnOrderMetadata(returnOrderJson);
+        returnShipment.setReturnWeightKgs(request.getWeight() != null ? request.getWeight() : BigDecimal.valueOf(0.5));
+        returnShipment.setReturnLength(request.getLength());
+        returnShipment.setReturnBreadth(request.getBreadth());
+        returnShipment.setReturnHeight(request.getHeight());
+        returnShipment.setClientId(clientId);
+        returnShipment.setCreatedUser(currentUser);
+        returnShipment.setModifiedUser(currentUser);
+        
+        // Save return shipment to get ID
+        returnShipment = returnShipmentRepository.save(returnShipment);
+        
+        // Create ReturnShipmentProduct entities
+        productIndex = 0;
+        for (CreateReturnRequestModel.ReturnProductItem item : request.getProducts()) {
+            Product product = productsToReturn.get(productIndex++);
+            
+            ReturnShipmentProduct returnProduct = new ReturnShipmentProduct();
+            returnProduct.setReturnShipmentId(returnShipment.getReturnShipmentId());
+            returnProduct.setProductId(item.getProductId());
+            returnProduct.setReturnQuantity(item.getQuantity());
+            returnProduct.setReturnReason(item.getReason());
+            returnProduct.setReturnComments(item.getComments());
+            returnProduct.setProductName(product.getTitle());
+            returnProduct.setProductSku(product.getUpc() != null ? product.getUpc() : "SKU-" + product.getProductId());
+            returnProduct.setProductSellingPrice(product.getPrice().subtract(product.getDiscount()));
+            returnProduct.setClientId(clientId);
+            returnProduct.setCreatedUser(currentUser);
+            returnProduct.setModifiedUser(currentUser);
+            
+            returnShipmentProductRepository.save(returnProduct);
+        }
+        
+        // Assign AWB for return shipment
+        try {
+            String awbJson = shippingHelper.assignReturnAwbAsJson(returnOrderResponse.getShipmentId());
+            ShipRocketAwbResponseModel awbResponse = new Gson().fromJson(awbJson, ShipRocketAwbResponseModel.class);
+            
+            returnShipment.setShipRocketReturnAwbCode(awbResponse.getAwbCode());
+            returnShipment.setShipRocketReturnAwbMetadata(awbJson);
+            returnShipmentRepository.save(returnShipment);
+        } catch (Exception e) {
+            // Log but don't fail - AWB can be assigned later
+            logger.warn("Failed to assign AWB for return shipment: " + e.getMessage());
+        }
+        
+        // Update original shipment status
+        String newStatus = isFullReturn ? "FULL_RETURN_INITIATED" : "PARTIAL_RETURN_INITIATED";
+        shipment.setShipRocketStatus(newStatus);
+        shipment.setModifiedUser(currentUser);
+        shipmentRepository.save(shipment);
+        
+        logger.info("Return shipment created successfully. Return ID: {}, ShipRocket Order: {}, Type: {}", 
+            returnShipment.getReturnShipmentId(), 
+            returnShipment.getShipRocketReturnOrderId(),
+            returnType.getValue());
+        
+        // Reload with products for response
+        returnShipment = returnShipmentRepository.findByReturnShipmentIdAndClientId(
+            returnShipment.getReturnShipmentId(), clientId);
+        org.hibernate.Hibernate.initialize(returnShipment.getReturnProducts());
+        
+        return new ReturnShipmentResponseModel(returnShipment);
+    }
+    
+    /**
+     * Cancel a return shipment.
+     * Cancels the return order in ShipRocket and updates the local return shipment status to RETURN_CANCELLED.
+     * 
+     * @param returnShipmentId The local return shipment ID to cancel
+     * @throws BadRequestException if the return shipment cannot be cancelled
+     * @throws NotFoundException if the return shipment is not found
+     */
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void cancelReturnShipment(Long returnShipmentId) {
+        Long clientId = getClientId();
+        
+        // Find the return shipment
+        ReturnShipment returnShipment = returnShipmentRepository.findByReturnShipmentIdAndClientId(returnShipmentId, clientId);
+        if (returnShipment == null) {
+            throw new NotFoundException(String.format(ErrorMessages.ReturnShipmentErrorMessages.NotFound, returnShipmentId));
+        }
+        
+        // Check if already cancelled
+        if (ReturnShipment.ReturnStatus.RETURN_CANCELLED.getValue().equals(returnShipment.getShipRocketReturnStatus())) {
+            throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.AlreadyCancelled);
+        }
+        
+        // Check if shipRocketReturnOrderId exists
+        String shipRocketReturnOrderId = returnShipment.getShipRocketReturnOrderId();
+        if (shipRocketReturnOrderId == null || shipRocketReturnOrderId.isEmpty()) {
+            throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.NoShipRocketOrderId);
+        }
+        
+        // Get client Shiprocket credentials
+        ClientResponseModel clientResponse = clientService.getClientById(clientId);
+        if (clientResponse.getShipRocketEmail() == null || clientResponse.getShipRocketPassword() == null) {
+            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured);
+        }
+        
+        // Create ShippingHelper and cancel in ShipRocket
+        ShippingHelper shippingHelper = new ShippingHelper(
+            clientResponse.getShipRocketEmail(),
+            clientResponse.getShipRocketPassword()
+        );
+        
+        try {
+            // Parse the shipRocketReturnOrderId to Long
+            Long shipRocketReturnOrderIdLong = Long.parseLong(shipRocketReturnOrderId);
+            shippingHelper.cancelOrders(java.util.List.of(shipRocketReturnOrderIdLong));
+        } catch (NumberFormatException e) {
+            throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.InvalidId + " Format error: " + shipRocketReturnOrderId);
+        } catch (Exception e) {
+            throw new BadRequestException(String.format(ErrorMessages.ReturnShipmentErrorMessages.FailedToCancelReturn, e.getMessage()));
+        }
+        
+        // Update local return shipment status
+        returnShipment.setShipRocketReturnStatus(ReturnShipment.ReturnStatus.RETURN_CANCELLED.getValue());
+        returnShipment.setUpdatedAt(java.time.LocalDateTime.now());
+        returnShipment.setModifiedUser(getUser());
+        returnShipmentRepository.save(returnShipment);
+        
+        logger.info("Return shipment {} cancelled successfully. ShipRocket return order ID: {}", 
+            returnShipmentId, shipRocketReturnOrderId);
+    }
+    
+    /**
+     * Get the ShipRocket wallet balance for the client.
+     * 
+     * @return The wallet balance as a Double
+     * @throws BadRequestException if the wallet balance cannot be retrieved
+     */
+    @Override
+    public Double getWalletBalance() {
+        Long clientId = getClientId();
+        
+        // Get client Shiprocket credentials
+        ClientResponseModel clientResponse = clientService.getClientById(clientId);
+        if (clientResponse.getShipRocketEmail() == null || clientResponse.getShipRocketPassword() == null) {
+            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured);
+        }
+        
+        // Create ShippingHelper and get wallet balance
+        ShippingHelper shippingHelper = new ShippingHelper(
+            clientResponse.getShipRocketEmail(),
+            clientResponse.getShipRocketPassword()
+        );
+        
+        return shippingHelper.getWalletBalance();
+    }
+    
+    /**
+     * Find the maximum weight that couriers can handle for a given route.
+     * Starts at 500kg and reduces by 100kg until couriers are found or reaches 100kg.
+     * 
+     * @param shippingHelper The ShippingHelper instance to use for API calls
+     * @param pickupPostcode Pickup location postal code
+     * @param deliveryPostcode Delivery location postal code
+     * @param isCod Whether the order is Cash on Delivery
+     * @return Maximum weight in kg that can be shipped on this route, or 0 if no couriers available
+     */
+    private double findMaxWeightForRoute(
+            ShippingHelper shippingHelper,
+            String pickupPostcode,
+            String deliveryPostcode,
+            boolean isCod
+    ) {
+        // Start at 500kg and reduce by 100kg until we find couriers
+        double[] weightsToTry = {500, 400, 300, 200, 100};
+        
+        for (double weight : weightsToTry) {
+            try {
+                ShippingOptionsResponseModel response = shippingHelper.getAvailableShippingOptions(
+                    pickupPostcode, deliveryPostcode, isCod, String.valueOf(weight));
+                
+                if (response != null && response.getData() != null && 
+                    response.getData().available_courier_companies != null &&
+                    !response.getData().available_courier_companies.isEmpty()) {
+                    return weight;
+                }
+            } catch (Exception e) {
+                // Error checking weight - continue to next weight
+            }
+        }
+        
+        // No couriers found even at 100kg
+        return 0;
     }
 }

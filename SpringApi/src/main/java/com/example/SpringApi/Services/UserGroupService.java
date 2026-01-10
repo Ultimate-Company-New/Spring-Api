@@ -199,12 +199,12 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
         int pageSize = end - start;
         
         if (pageSize <= 0) {
-            throw new BadRequestException("Invalid pagination: end must be greater than start");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
         }
 
         // Validate logic operator if provided
         if (userGroupRequestModel.getLogicOperator() != null && !userGroupRequestModel.isValidLogicOperator()) {
-            throw new BadRequestException("Invalid logic operator. Must be 'AND' or 'OR'");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidLogicOperator);
         }
 
         // Validate filters if provided
@@ -293,7 +293,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
         try {
             // Validate input
             if (userGroups == null || userGroups.isEmpty()) {
-                throw new BadRequestException("User group list cannot be null or empty");
+                throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "User group"));
             }
 
             com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
@@ -371,7 +371,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
     public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateUserGroups(List<UserGroupRequestModel> userGroups) {
         // Validate input
         if (userGroups == null || userGroups.isEmpty()) {
-            throw new BadRequestException("User group list cannot be null or empty");
+            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "User group"));
         }
 
         com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 

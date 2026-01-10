@@ -364,6 +364,10 @@ public class ApiRoutes {
         public static final String GET_SHIPPING_OPTIONS = "getShippingOptions";
         public static final String CALCULATE_SHIPPING = "calculateShipping";
         public static final String OPTIMIZE_ORDER = "optimizeOrder";
+        public static final String CANCEL_SHIPMENT = "cancelShipment";
+        public static final String CREATE_RETURN = "createReturn";
+        public static final String CANCEL_RETURN = "cancelReturn";
+        public static final String GET_WALLET_BALANCE = "getWalletBalance";
     }
 
     public static class ShipmentSubRoute {

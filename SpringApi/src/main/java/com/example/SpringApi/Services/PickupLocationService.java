@@ -171,7 +171,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
 
         // Validate page size
         if (pageSize <= 0) {
-            throw new BadRequestException("Invalid pagination: end must be greater than start");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
         }
 
         // Create custom Pageable with proper offset handling
@@ -428,7 +428,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         try {
             // Validate input
             if (pickupLocations == null || pickupLocations.isEmpty()) {
-                throw new BadRequestException("Pickup location list cannot be null or empty");
+                throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Pickup location"));
             }
 
             BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
@@ -509,7 +509,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
     public BulkInsertResponseModel<Long> bulkCreatePickupLocations(List<PickupLocationRequestModel> pickupLocations) {
         // Validate input
         if (pickupLocations == null || pickupLocations.isEmpty()) {
-            throw new BadRequestException("Pickup location list cannot be null or empty");
+            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Pickup location"));
         }
 
         BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();

@@ -42,7 +42,7 @@ public class ProductResponseModel {
     private BigDecimal price;
     private BigDecimal discount;
     private Boolean isDiscountPercent;
-    private Boolean returnsAllowed;
+    private Integer returnWindowDays;  // Number of days from delivery within which returns are allowed (0 = no returns)
     private BigDecimal breadth;
     private BigDecimal height;
     private BigDecimal weightKgs;
@@ -151,7 +151,7 @@ public class ProductResponseModel {
             this.price = product.getPrice();
             this.discount = product.getDiscount();
             this.isDiscountPercent = product.getIsDiscountPercent();
-            this.returnsAllowed = product.getReturnsAllowed();
+            this.returnWindowDays = product.getReturnWindowDays();
             this.breadth = product.getBreadth();
             this.height = product.getHeight();
             this.weightKgs = product.getWeightKgs();

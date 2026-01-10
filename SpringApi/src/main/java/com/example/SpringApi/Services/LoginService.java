@@ -222,7 +222,7 @@ public class LoginService implements ILoginSubTranslator {
 
             Client client = clientRepository.findFirstByOrderByClientIdAsc();
             if (client == null) {
-                throw new RuntimeException("No client configuration found");
+                throw new RuntimeException(ErrorMessages.ConfigurationErrorMessages.NoClientConfigurationFound);
             }
             
             // Get email configuration from properties - all are required
@@ -232,13 +232,13 @@ public class LoginService implements ILoginSubTranslator {
             
             // Validate all required email configuration properties are present
             if (senderEmail == null || senderEmail.trim().isEmpty()) {
-                throw new BadRequestException("Email sender address is not configured in properties");
+                throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.SendGridEmailNotConfigured);
             }
             if (senderName == null || senderName.trim().isEmpty()) {
-                throw new BadRequestException("Email sender name is not configured in properties");
+                throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.SendGridNameNotConfigured);
             }
             if (sendGridApiKey == null || sendGridApiKey.trim().isEmpty()) {
-                throw new BadRequestException("SendGrid API key is not configured in properties");
+                throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.SendGridApiKeyNotConfigured);
             }
             
             EmailTemplates emailTemplates = new EmailTemplates(senderName, senderEmail, sendGridApiKey, environment, client);

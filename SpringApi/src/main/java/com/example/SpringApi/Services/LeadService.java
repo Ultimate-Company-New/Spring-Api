@@ -84,12 +84,12 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
 
         // Validate page size
         if (pageSize <= 0) {
-            throw new BadRequestException("Invalid pagination: end must be greater than start");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
         }
 
         // Validate logic operator if provided
         if (leadRequestModel.getLogicOperator() != null && !leadRequestModel.isValidLogicOperator()) {
-            throw new BadRequestException("Invalid logic operator. Must be 'AND' or 'OR'");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidLogicOperator);
         }
 
         // Validate filters if provided
@@ -288,7 +288,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         try {
             // Validate input
             if (leads == null || leads.isEmpty()) {
-                throw new BadRequestException("Lead list cannot be null or empty");
+                throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Lead"));
             }
 
             com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
@@ -374,7 +374,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
     public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateLeads(List<LeadRequestModel> leads) {
         // Validate input
         if (leads == null || leads.isEmpty()) {
-            throw new BadRequestException("Lead list cannot be null or empty");
+            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Lead"));
         }
 
         com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 

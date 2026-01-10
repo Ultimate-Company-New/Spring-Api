@@ -90,15 +90,15 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         int end = paginationBaseRequestModel.getEnd();
         
         if (start < 0) {
-            throw new BadRequestException("Start index cannot be negative");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.StartIndexCannotBeNegative);
         }
         
         if (end <= 0) {
-            throw new BadRequestException("End index must be greater than 0");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.EndIndexMustBeGreaterThanZero);
         }
         
         if (start >= end) {
-            throw new BadRequestException("Start index must be less than end index");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.StartIndexMustBeLessThanEnd);
         }
         
         // Validate column name
@@ -144,7 +144,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
                 // Validate column type matches operator
                 String columnType = packageFilterQueryBuilder.getColumnType(filter.getColumn());
                 if ("boolean".equals(columnType) && !filter.getOperator().equals("equals") && !filter.getOperator().equals("notEquals")) {
-                    throw new BadRequestException("Boolean columns only support 'equals' and 'notEquals' operators");
+                    throw new BadRequestException(ErrorMessages.CommonErrorMessages.BooleanColumnsOnlySupportEquals);
                 }
                 if ("date".equals(columnType) || "number".equals(columnType)) {
                     Set<String> numericDateOperators = new HashSet<>(Arrays.asList(
@@ -357,7 +357,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         try {
             // Validate input
             if (packages == null || packages.isEmpty()) {
-                throw new BadRequestException("Package list cannot be null or empty");
+                throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Package"));
             }
 
             BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
@@ -438,7 +438,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     public BulkInsertResponseModel<Long> bulkCreatePackages(List<PackageRequestModel> packages) {
         // Validate input
         if (packages == null || packages.isEmpty()) {
-            throw new BadRequestException("Package list cannot be null or empty");
+            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Package"));
         }
 
         BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();

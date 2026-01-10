@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.DatabaseModels.Client;
@@ -86,13 +87,13 @@ public class PaymentService extends BaseService {
     private Client getClientWithRazorpayCredentials() {
         Long clientId = getClientId();
         Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new NotFoundException("Client not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
         
         if (client.getRazorpayApiKey() == null || client.getRazorpayApiKey().trim().isEmpty()) {
-            throw new BadRequestException("Razorpay API Key not configured for this client. Please configure in Client Settings.");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.RazorpayApiKeyNotConfigured);
         }
         if (client.getRazorpayApiSecret() == null || client.getRazorpayApiSecret().trim().isEmpty()) {
-            throw new BadRequestException("Razorpay API Secret not configured for this client. Please configure in Client Settings.");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.RazorpayApiSecretNotConfigured);
         }
         
         return client;
@@ -139,17 +140,17 @@ public class PaymentService extends BaseService {
         // Validate purchase order exists
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(request.getPurchaseOrderId())
-                .orElseThrow(() -> new NotFoundException("Purchase order not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
 
         // Validate client access
         if (!purchaseOrder.getClientId().equals(getClientId())) {
-            throw new BadRequestException("Access denied to this purchase order");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
         }
 
         // Validate status - only PENDING_APPROVAL orders can be paid
         String status = purchaseOrder.getPurchaseOrderStatus();
         if (!PurchaseOrder.Status.PENDING_APPROVAL.getValue().equals(status)) {
-            throw new BadRequestException("Only orders with PENDING_APPROVAL status can be paid");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.OnlyPendingApprovalCanBePaid);
         }
 
         // Get amount from order summary if not provided
@@ -157,7 +158,7 @@ public class PaymentService extends BaseService {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             OrderSummary orderSummary = orderSummaryRepository
                     .findByPurchaseOrderId(purchaseOrder.getPurchaseOrderId())
-                    .orElseThrow(() -> new BadRequestException("Order summary not found"));
+                    .orElseThrow(() -> new BadRequestException(ErrorMessages.OrderSummaryNotFoundMessage.NotFound));
             amount = orderSummary.getGrandTotal();
         }
 
@@ -265,18 +266,18 @@ public class PaymentService extends BaseService {
         // Validate purchase order exists
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(request.getPurchaseOrderId())
-                .orElseThrow(() -> new NotFoundException("Purchase order not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
 
         // Validate client access
         if (!purchaseOrder.getClientId().equals(getClientId())) {
-            throw new BadRequestException("Access denied to this purchase order");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
         }
 
         // Validate status - allow APPROVED or APPROVED_WITH_PARTIAL_PAYMENT for follow-up payments
         String status = purchaseOrder.getPurchaseOrderStatus();
         if (!PurchaseOrder.Status.APPROVED.getValue().equals(status) && 
             !PurchaseOrder.Status.APPROVED_WITH_PARTIAL_PAYMENT.getValue().equals(status)) {
-            throw new BadRequestException("Follow-up payments can only be made for APPROVED or APPROVED_WITH_PARTIAL_PAYMENT orders");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.FollowUpPaymentStatusRequired);
         }
 
         // Get amount from order summary if not provided
@@ -284,7 +285,7 @@ public class PaymentService extends BaseService {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             OrderSummary orderSummary = orderSummaryRepository
                     .findByPurchaseOrderId(purchaseOrder.getPurchaseOrderId())
-                    .orElseThrow(() -> new BadRequestException("Order summary not found"));
+                    .orElseThrow(() -> new BadRequestException(ErrorMessages.OrderSummaryNotFoundMessage.NotFound));
             // For follow-up payments, use pending amount instead of grand total
             Long totalPaidPaise = paymentRepository.getTotalNetPaidPaiseForEntity(
                     Payment.EntityType.PURCHASE_ORDER.getValue(),
@@ -402,16 +403,16 @@ public class PaymentService extends BaseService {
         // Validate purchase order exists
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(request.getPurchaseOrderId())
-                .orElseThrow(() -> new NotFoundException("Purchase order not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
 
         // Validate client access
         if (!purchaseOrder.getClientId().equals(getClientId())) {
-            throw new BadRequestException("Access denied to this purchase order");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
         }
 
         // Find the payment record
         Payment payment = paymentRepository.findByRazorpayOrderId(request.getRazorpayOrderId())
-                .orElseThrow(() -> new BadRequestException("Payment order not found. Please try again."));
+                .orElseThrow(() -> new BadRequestException(ErrorMessages.PaymentErrorMessages.PaymentOrderNotFound));
 
         // Verify signature using client's secret
         boolean isValidSignature = verifyRazorpaySignature(
@@ -479,25 +480,25 @@ public class PaymentService extends BaseService {
         // Validate purchase order exists
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(request.getPurchaseOrderId())
-                .orElseThrow(() -> new NotFoundException("Purchase order not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
 
         // Validate client access
         if (!purchaseOrder.getClientId().equals(getClientId())) {
-            throw new BadRequestException("Access denied to this purchase order");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
         }
 
         // Validate status - only PENDING_APPROVAL orders can be paid
         String status = purchaseOrder.getPurchaseOrderStatus();
         if (!PurchaseOrder.Status.PENDING_APPROVAL.getValue().equals(status)) {
-            throw new BadRequestException("Only orders with PENDING_APPROVAL status can be paid");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.OnlyPendingApprovalCanBePaid);
         }
 
         // Validate required fields
         if (request.getPaymentDate() == null) {
-            throw new BadRequestException("Payment date is required");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.PaymentDateRequired);
         }
         if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BadRequestException("Valid payment amount is required");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.ValidPaymentAmountRequired);
         }
         
         // Get order summary to validate payment amount
@@ -592,23 +593,23 @@ public class PaymentService extends BaseService {
         // Validate purchase order exists
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(request.getPurchaseOrderId())
-                .orElseThrow(() -> new NotFoundException("Purchase order not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
 
         // Validate client access
         if (!purchaseOrder.getClientId().equals(getClientId())) {
-            throw new BadRequestException("Access denied to this purchase order");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
         }
 
         // Validate status - allow APPROVED or APPROVED_WITH_PARTIAL_PAYMENT for follow-up payments
         String status = purchaseOrder.getPurchaseOrderStatus();
         if (!PurchaseOrder.Status.APPROVED.getValue().equals(status) && 
             !PurchaseOrder.Status.APPROVED_WITH_PARTIAL_PAYMENT.getValue().equals(status)) {
-            throw new BadRequestException("Follow-up payments can only be made for APPROVED or APPROVED_WITH_PARTIAL_PAYMENT orders");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.FollowUpPaymentStatusRequired);
         }
 
         // Find the payment record
         Payment payment = paymentRepository.findByRazorpayOrderId(request.getRazorpayOrderId())
-                .orElseThrow(() -> new BadRequestException("Payment order not found. Please try again."));
+                .orElseThrow(() -> new BadRequestException(ErrorMessages.PaymentErrorMessages.PaymentOrderNotFound));
 
         // Verify signature using client's secret
         boolean isValidSignature = verifyRazorpaySignature(
@@ -676,26 +677,26 @@ public class PaymentService extends BaseService {
         // Validate purchase order exists
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(request.getPurchaseOrderId())
-                .orElseThrow(() -> new NotFoundException("Purchase order not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
 
         // Validate client access
         if (!purchaseOrder.getClientId().equals(getClientId())) {
-            throw new BadRequestException("Access denied to this purchase order");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
         }
 
         // Validate status - allow APPROVED or APPROVED_WITH_PARTIAL_PAYMENT for follow-up payments
         String status = purchaseOrder.getPurchaseOrderStatus();
         if (!PurchaseOrder.Status.APPROVED.getValue().equals(status) && 
             !PurchaseOrder.Status.APPROVED_WITH_PARTIAL_PAYMENT.getValue().equals(status)) {
-            throw new BadRequestException("Follow-up payments can only be made for APPROVED or APPROVED_WITH_PARTIAL_PAYMENT orders");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.FollowUpPaymentStatusRequired);
         }
 
         // Validate required fields
         if (request.getPaymentDate() == null) {
-            throw new BadRequestException("Payment date is required");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.PaymentDateRequired);
         }
         if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BadRequestException("Valid payment amount is required");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.ValidPaymentAmountRequired);
         }
         
         // Get order summary to validate payment amount
@@ -836,10 +837,10 @@ public class PaymentService extends BaseService {
         // Validate access
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(purchaseOrderId)
-                .orElseThrow(() -> new NotFoundException("Purchase order not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
 
         if (!purchaseOrder.getClientId().equals(getClientId())) {
-            throw new BadRequestException("Access denied to this purchase order");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
         }
 
         return paymentRepository.findAllByPurchaseOrderId(purchaseOrderId);
@@ -851,10 +852,10 @@ public class PaymentService extends BaseService {
     @Transactional(readOnly = true)
     public Payment getPaymentById(Long paymentId) {
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new NotFoundException("Payment not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PaymentErrorMessages.NotFound));
 
         if (!payment.getClientId().equals(getClientId())) {
-            throw new BadRequestException("Access denied to this payment");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.AccessDenied);
         }
 
         return payment;
@@ -885,14 +886,14 @@ public class PaymentService extends BaseService {
         Client client = getClientWithRazorpayCredentials();
         
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new NotFoundException("Payment not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PaymentErrorMessages.NotFound));
 
         if (!payment.getClientId().equals(getClientId())) {
-            throw new BadRequestException("Access denied to this payment");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.AccessDenied);
         }
 
         if (!payment.canBeRefunded()) {
-            throw new BadRequestException("This payment cannot be refunded");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.CannotRefund);
         }
 
         // If no amount specified, refund the remaining amount
@@ -1019,21 +1020,21 @@ public class PaymentService extends BaseService {
     public byte[] generatePaymentReceiptPDF(Long paymentId) throws TemplateException, IOException, DocumentException {
         // Fetch payment
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new NotFoundException("Payment not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PaymentErrorMessages.NotFound));
 
         // Validate client access
         if (!payment.getClientId().equals(getClientId())) {
-            throw new BadRequestException("Access denied to this payment");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.AccessDenied);
         }
 
         // Fetch purchase order (basic info only)
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(payment.getEntityId())
-                .orElseThrow(() -> new NotFoundException("Purchase order not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
 
         // Fetch client information
         Client client = clientRepository.findById(getClientId())
-                .orElseThrow(() -> new NotFoundException("Client not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
 
         // Generate HTML from template
         String htmlContent = formPaymentReceiptHtml(client, payment, purchaseOrder);

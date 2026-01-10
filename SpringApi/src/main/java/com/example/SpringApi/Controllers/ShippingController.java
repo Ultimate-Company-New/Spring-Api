@@ -11,9 +11,11 @@ import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.RequestModels.OrderOptimizationRequestModel;
 import com.example.SpringApi.Models.RequestModels.ShippingCalculationRequestModel;
+import com.example.SpringApi.Models.RequestModels.CreateReturnRequestModel;
 import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
 import com.example.SpringApi.Models.ResponseModels.OrderOptimizationResponseModel;
 import com.example.SpringApi.Models.ResponseModels.ShippingCalculationResponseModel;
+import com.example.SpringApi.Models.ResponseModels.ReturnShipmentResponseModel;
 import com.example.SpringApi.Services.Interface.IShippingSubTranslator;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,6 +117,118 @@ public class ShippingController {
         } catch (NotFoundException nfe) {
             contextualLogger.error(nfe);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (UnauthorizedException ue) {
+            contextualLogger.error(ue);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+        } catch (Exception e) {
+            contextualLogger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+    
+    /**
+     * Cancel a shipment.
+     * Cancels the shipment in ShipRocket and updates the local shipment status to CANCELLED.
+     * Requires MODIFY_SHIPMENTS_PERMISSION to access.
+     * 
+     * @param shipmentId The local shipment ID to cancel
+     * @return ResponseEntity with success message or error
+     */
+    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.MODIFY_SHIPMENTS_PERMISSION +"')")
+    @PostMapping(ApiRoutes.ShippingSubRoute.CANCEL_SHIPMENT + "/{shipmentId}")
+    public ResponseEntity<?> cancelShipment(@PathVariable Long shipmentId) {
+        try {
+            shippingService.cancelShipment(shipmentId);
+            return ResponseEntity.ok().build();
+        } catch (BadRequestException bre) {
+            contextualLogger.error(bre);
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (NotFoundException nfe) {
+            contextualLogger.error(nfe);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (UnauthorizedException ue) {
+            contextualLogger.error(ue);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+        } catch (Exception e) {
+            contextualLogger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+    
+    /**
+     * Create a return order for a shipment.
+     * Creates a return shipment in ShipRocket and stores the return details locally.
+     * Requires MODIFY_SHIPMENTS_PERMISSION to access.
+     * 
+     * @param request The return request containing shipment ID and products to return
+     * @return ResponseEntity containing the created return shipment details or error
+     */
+    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.MODIFY_SHIPMENTS_PERMISSION +"')")
+    @PostMapping(ApiRoutes.ShippingSubRoute.CREATE_RETURN)
+    public ResponseEntity<?> createReturn(@RequestBody CreateReturnRequestModel request) {
+        try {
+            ReturnShipmentResponseModel response = shippingService.createReturn(request);
+            return ResponseEntity.ok(response);
+        } catch (BadRequestException bre) {
+            contextualLogger.error(bre);
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (NotFoundException nfe) {
+            contextualLogger.error(nfe);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (UnauthorizedException ue) {
+            contextualLogger.error(ue);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+        } catch (Exception e) {
+            contextualLogger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+    
+    /**
+     * Cancel a return shipment.
+     * Cancels the return order in ShipRocket and updates the local status.
+     * Requires MODIFY_SHIPMENTS permission.
+     * 
+     * @param returnShipmentId The return shipment ID to cancel
+     * @return Empty response on success
+     */
+    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.MODIFY_SHIPMENTS_PERMISSION +"')")
+    @PostMapping(ApiRoutes.ShippingSubRoute.CANCEL_RETURN + "/{returnShipmentId}")
+    public ResponseEntity<?> cancelReturn(@PathVariable Long returnShipmentId) {
+        try {
+            shippingService.cancelReturnShipment(returnShipmentId);
+            return ResponseEntity.ok().build();
+        } catch (BadRequestException bre) {
+            contextualLogger.error(bre);
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (NotFoundException nfe) {
+            contextualLogger.error(nfe);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (UnauthorizedException ue) {
+            contextualLogger.error(ue);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+        } catch (Exception e) {
+            contextualLogger.error(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
+    }
+    
+    /**
+     * Get the ShipRocket wallet balance.
+     * Returns the current wallet balance for the client's ShipRocket account.
+     * Requires VIEW_SHIPMENTS permission to access.
+     * 
+     * @return ResponseEntity containing the wallet balance as a Double
+     */
+    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_SHIPMENTS_PERMISSION +"')")
+    @GetMapping(ApiRoutes.ShippingSubRoute.GET_WALLET_BALANCE)
+    public ResponseEntity<?> getWalletBalance() {
+        try {
+            Double balance = shippingService.getWalletBalance();
+            return ResponseEntity.ok(balance);
+        } catch (BadRequestException bre) {
+            contextualLogger.error(bre);
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (UnauthorizedException ue) {
             contextualLogger.error(ue);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));

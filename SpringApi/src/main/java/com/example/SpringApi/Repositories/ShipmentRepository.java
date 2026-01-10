@@ -10,4 +10,5 @@ import java.util.List;
 public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
     List<Shipment> findByOrderSummaryId(Long orderSummaryId);
     List<Shipment> findByOrderSummaryIdAndClientId(Long orderSummaryId, Long clientId);
+    Shipment findByShipmentIdAndClientId(Long shipmentId, Long clientId);
 }

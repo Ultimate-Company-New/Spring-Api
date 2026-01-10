@@ -36,7 +36,7 @@ public class ProductRequestModel {
     private BigDecimal price;
     private BigDecimal discount;
     private Boolean isDiscountPercent;
-    private Boolean returnsAllowed;
+    private Integer returnWindowDays;  // Number of days from delivery within which returns are allowed (0 = no returns)
     private BigDecimal breadth;
     private BigDecimal height;
     private BigDecimal weightKgs;

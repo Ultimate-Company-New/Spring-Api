@@ -211,17 +211,17 @@ public class PurchaseOrder {
         
         // Validate OrderSummary data is provided
         if (request.getOrderSummary() == null) {
-            throw new BadRequestException("OrderSummary data is required");
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.InvalidRequest);
         }
         
         // Validate max 30 attachments
         if (request.getAttachments() != null && request.getAttachments().size() > 30) {
-            throw new BadRequestException("Maximum 30 attachments allowed per purchase order");
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.MaxAttachmentsExceeded);
         }
         
         // Validate that products list is provided and not empty
         if (request.getProducts() == null || request.getProducts().isEmpty()) {
-            throw new BadRequestException("At least one product must be specified in products list");
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.ER004);
         }
 
         // Validate each product entry has productId, quantity, and pricePerUnit

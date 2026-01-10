@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Helpers.ShippingHelper;
@@ -97,15 +98,15 @@ public class ShipmentProcessingService extends BaseService {
         // Step 1: Validate purchase order exists and is in valid status
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(purchaseOrderId)
-                .orElseThrow(() -> new NotFoundException("Purchase order not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
         
         if (!purchaseOrder.getClientId().equals(getClientId())) {
-            throw new BadRequestException("Access denied to this purchase order");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
         }
         
         String status = purchaseOrder.getPurchaseOrderStatus();
         if (!PurchaseOrder.Status.PENDING_APPROVAL.getValue().equals(status)) {
-            throw new BadRequestException("Only orders with PENDING_APPROVAL status can be processed");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.OnlyPendingApprovalCanBePaid);
         }
         
         // Get order summary
@@ -113,12 +114,12 @@ public class ShipmentProcessingService extends BaseService {
                 .findByEntityTypeAndEntityId(
                     OrderSummary.EntityType.PURCHASE_ORDER.getValue(),
                     purchaseOrderId)
-                .orElseThrow(() -> new NotFoundException("Order summary not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.OrderSummaryNotFoundMessage.NotFound));
         
         // Step 2: Validate product and package availability at each location
         List<Shipment> shipments = shipmentRepository.findByOrderSummaryId(orderSummary.getOrderSummaryId());
         if (shipments == null || shipments.isEmpty()) {
-            throw new BadRequestException("No shipments found for this purchase order");
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.NoShipmentsFound);
         }
         
         validateProductAndPackageAvailability(shipments);
@@ -127,7 +128,7 @@ public class ShipmentProcessingService extends BaseService {
         PaymentVerificationResponseModel paymentResponse = paymentService.recordCashPayment(cashPaymentRequest);
         
         if (!paymentResponse.isSuccess()) {
-            throw new BadRequestException("Payment processing failed: " + paymentResponse.getMessage());
+            throw new BadRequestException(ErrorMessages.OPERATION_FAILED + " " + paymentResponse.getMessage());
         }
         
         // Step 4: Update inventory (reduce product and package quantities)
@@ -172,15 +173,15 @@ public class ShipmentProcessingService extends BaseService {
         // Step 1: Validate purchase order exists and is in valid status
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(purchaseOrderId)
-                .orElseThrow(() -> new NotFoundException("Purchase order not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
         
         if (!purchaseOrder.getClientId().equals(getClientId())) {
-            throw new BadRequestException("Access denied to this purchase order");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
         }
         
         String status = purchaseOrder.getPurchaseOrderStatus();
         if (!PurchaseOrder.Status.PENDING_APPROVAL.getValue().equals(status)) {
-            throw new BadRequestException("Only orders with PENDING_APPROVAL status can be processed");
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.OnlyPendingApprovalCanBePaid);
         }
         
         // Get order summary
@@ -188,12 +189,12 @@ public class ShipmentProcessingService extends BaseService {
                 .findByEntityTypeAndEntityId(
                     OrderSummary.EntityType.PURCHASE_ORDER.getValue(),
                     purchaseOrderId)
-                .orElseThrow(() -> new NotFoundException("Order summary not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.OrderSummaryNotFoundMessage.NotFound));
         
         // Step 2: Validate product and package availability at each location
         List<Shipment> shipments = shipmentRepository.findByOrderSummaryId(orderSummary.getOrderSummaryId());
         if (shipments == null || shipments.isEmpty()) {
-            throw new BadRequestException("No shipments found for this purchase order");
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.NoShipmentsFound);
         }
         
         validateProductAndPackageAvailability(shipments);
@@ -202,7 +203,7 @@ public class ShipmentProcessingService extends BaseService {
         PaymentVerificationResponseModel paymentResponse = paymentService.verifyPayment(razorpayVerifyRequest);
         
         if (!paymentResponse.isSuccess()) {
-            throw new BadRequestException("Payment processing failed: " + paymentResponse.getMessage());
+            throw new BadRequestException(ErrorMessages.OPERATION_FAILED + " " + paymentResponse.getMessage());
         }
         
         // Step 4: Update inventory (reduce product and package quantities)
@@ -329,11 +330,11 @@ public class ShipmentProcessingService extends BaseService {
         // Get ShipRocket credentials from client
         Long clientId = getClientId();
         Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new NotFoundException("Client not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
         
         if (client.getShipRocketEmail() == null || client.getShipRocketEmail().trim().isEmpty() ||
             client.getShipRocketPassword() == null || client.getShipRocketPassword().trim().isEmpty()) {
-            throw new BadRequestException("ShipRocket credentials not configured for this client");
+            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured);
         }
         
         ShippingHelper shippingHelper = new ShippingHelper(client.getShipRocketEmail(), client.getShipRocketPassword());
@@ -341,14 +342,14 @@ public class ShipmentProcessingService extends BaseService {
         // Get delivery address
         Address deliveryAddress = orderSummary.getEntityAddress();
         if (deliveryAddress == null) {
-            throw new BadRequestException("Delivery address not found in order summary");
+            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.DeliveryAddressNotFound);
         }
         
         // Get pickup location details (need ShipRocket pickup location ID)
         Map<Long, PickupLocation> pickupLocationMap = new HashMap<>();
         for (Shipment shipment : shipments) {
             PickupLocation pickupLocation = pickupLocationRepository.findById(shipment.getPickupLocationId())
-                    .orElseThrow(() -> new NotFoundException("Pickup location not found: " + shipment.getPickupLocationId()));
+                    .orElseThrow(() -> new NotFoundException(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, shipment.getPickupLocationId())));
             pickupLocationMap.put(shipment.getPickupLocationId(), pickupLocation);
         }
         
@@ -389,7 +390,7 @@ public class ShipmentProcessingService extends BaseService {
         
         // Get client for company name
         Client client = clientRepository.findById(getClientId())
-                .orElseThrow(() -> new NotFoundException("Client not found"));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
         
         // Order ID (required) - Format: PO_{purchaseOrderId}
         request.setOrderId("PO_" + purchaseOrder.getPurchaseOrderId());
@@ -399,8 +400,8 @@ public class ShipmentProcessingService extends BaseService {
         
         // Pickup location (REQUIRED) - Must be the NAME (string), not the ID
         if (pickupLocation.getAddressNickName() == null || pickupLocation.getAddressNickName().trim().isEmpty()) {
-            throw new BadRequestException("Pickup location name is not configured for pickup location: " + 
-                    pickupLocation.getPickupLocationId());
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.PickupLocationNameNotConfigured, 
+                    pickupLocation.getPickupLocationId()));
         }
         request.setPickupLocation(pickupLocation.getAddressNickName().trim());
         
@@ -435,7 +436,7 @@ public class ShipmentProcessingService extends BaseService {
         try {
             request.setBillingPincode(Integer.parseInt(deliveryAddress.getPostalCode()));
         } catch (NumberFormatException e) {
-            throw new BadRequestException("Billing postal code must be numeric. Got: " + deliveryAddress.getPostalCode());
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.BillingPostalCodeMustBeNumeric, deliveryAddress.getPostalCode()));
         }
         
         request.setBillingState(deliveryAddress.getState() != null ? deliveryAddress.getState() : "");
@@ -445,8 +446,8 @@ public class ShipmentProcessingService extends BaseService {
         // Clean phone number (remove formatting, keep only digits, ensure 10 digits)
         String billingPhone = cleanPhoneNumber(deliveryAddress.getPhoneOnAddress());
         if (billingPhone.length() != 10) {
-            throw new BadRequestException("Billing phone number must be exactly 10 digits. Got: " + 
-                    (deliveryAddress.getPhoneOnAddress() != null ? deliveryAddress.getPhoneOnAddress() : "empty"));
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.BillingPhoneMustBe10Digits, 
+                    (deliveryAddress.getPhoneOnAddress() != null ? deliveryAddress.getPhoneOnAddress() : "empty")));
         }
         request.setBillingPhone(Long.parseLong(billingPhone));
         
@@ -469,7 +470,7 @@ public class ShipmentProcessingService extends BaseService {
         try {
             request.setShippingPincode(Integer.parseInt(deliveryAddress.getPostalCode()));
         } catch (NumberFormatException e) {
-            throw new BadRequestException("Shipping postal code must be numeric. Got: " + deliveryAddress.getPostalCode());
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.ShippingPostalCodeMustBeNumeric, deliveryAddress.getPostalCode()));
         }
         
         request.setShippingState(deliveryAddress.getState() != null ? deliveryAddress.getState() : "");
@@ -481,8 +482,8 @@ public class ShipmentProcessingService extends BaseService {
         // Clean shipping phone number
         String shippingPhone = cleanPhoneNumber(deliveryAddress.getPhoneOnAddress());
         if (shippingPhone.length() != 10) {
-            throw new BadRequestException("Shipping phone number must be exactly 10 digits. Got: " + 
-                    (deliveryAddress.getPhoneOnAddress() != null ? deliveryAddress.getPhoneOnAddress() : "empty"));
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.ShippingPhoneMustBe10Digits, 
+                    (deliveryAddress.getPhoneOnAddress() != null ? deliveryAddress.getPhoneOnAddress() : "empty")));
         }
         request.setShippingPhone(Long.parseLong(shippingPhone));
         
@@ -541,7 +542,7 @@ public class ShipmentProcessingService extends BaseService {
         List<ShipmentPackage> shipmentPackages = shipmentPackageRepository.findByShipmentId(shipment.getShipmentId());
         for (ShipmentPackage shipmentPackage : shipmentPackages) {
             com.example.SpringApi.Models.DatabaseModels.Package packageEntity = packageRepository.findById(shipmentPackage.getPackageId())
-                    .orElseThrow(() -> new NotFoundException("Package not found: " + shipmentPackage.getPackageId()));
+                    .orElseThrow(() -> new NotFoundException(ErrorMessages.PackageErrorMessages.InvalidId + " ID: " + shipmentPackage.getPackageId()));
             
             totalLength += packageEntity.getLength() * shipmentPackage.getQuantityUsed();
             totalBreadth += packageEntity.getBreadth() * shipmentPackage.getQuantityUsed();
@@ -617,41 +618,37 @@ public class ShipmentProcessingService extends BaseService {
             Long shipmentId) {
         
         if (shipRocketResponse == null) {
-            throw new BadRequestException("ShipRocket API returned null response for shipment ID: " + shipmentId);
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.ShipRocketApiNullResponse, shipmentId));
         }
         
         // Check for error message in response
         if (shipRocketResponse.getMessage() != null && !shipRocketResponse.getMessage().trim().isEmpty()) {
-            throw new BadRequestException("ShipRocket order creation failed for shipment ID " + shipmentId + 
-                    ": " + shipRocketResponse.getMessage());
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed, shipmentId, shipRocketResponse.getMessage()));
         }
         
         // Validate required success fields
         if (shipRocketResponse.getOrder_id() == null) {
-            throw new BadRequestException("ShipRocket order creation failed for shipment ID " + shipmentId + 
-                    ": order_id is missing from response. This indicates the order was not created successfully.");
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed, shipmentId, "order_id is missing from response"));
         }
         
         if (shipRocketResponse.getShipment_id() == null) {
-            throw new BadRequestException("ShipRocket order creation failed for shipment ID " + shipmentId + 
-                    ": shipment_id is missing from response. This indicates the order was not created successfully.");
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed, shipmentId, "shipment_id is missing from response"));
         }
         
         // Status should be present (typically "NEW" for successful creation)
         if (shipRocketResponse.getStatus() == null || shipRocketResponse.getStatus().trim().isEmpty()) {
-            throw new BadRequestException("ShipRocket order creation failed for shipment ID " + shipmentId + 
-                    ": status is missing from response. This indicates the order was not created successfully.");
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed, shipmentId, "status is missing from response"));
         }
         
         // Validate that the status is a valid ShipRocket status
         if (!Shipment.ShipRocketStatus.isValid(shipRocketResponse.getStatus())) {
-            throw new BadRequestException("ShipRocket order creation failed for shipment ID " + shipmentId + 
-                    ": invalid status '" + shipRocketResponse.getStatus() + "'. Valid statuses are: " +
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed, shipmentId, 
+                    "invalid status '" + shipRocketResponse.getStatus() + "'. Valid statuses are: " +
                     String.join(", ", 
                         java.util.Arrays.stream(Shipment.ShipRocketStatus.values())
                             .map(Shipment.ShipRocketStatus::getValue)
                             .toArray(String[]::new)
-                    ));
+                    )));
         }
     }
     
@@ -668,18 +665,102 @@ public class ShipmentProcessingService extends BaseService {
             ShippingHelper shippingHelper) {
         
         // Validation should have been done before calling this method
-        // Store essential fields as columns
+        // Populate shipment with ShipRocket order response data
+        shipment.populateFromShipRocketOrderResponse(shipRocketResponse);
         String shipRocketOrderId = shipRocketResponse.getOrderIdAsString();
-        shipment.setShipRocketOrderId(shipRocketOrderId);
-        shipment.setShipRocketShipmentId(shipRocketResponse.getShipment_id());
-        shipment.setShipRocketAwbCode(shipRocketResponse.getAwb_code());
-        shipment.setShipRocketTrackingId(shipRocketResponse.getTracking_id());
-        shipment.setShipRocketStatus(shipRocketResponse.getStatus());
-        shipment.setShipRocketManifestUrl(shipRocketResponse.getManifest_url());
-        shipment.setShipRocketInvoiceUrl(shipRocketResponse.getInvoice_url());
-        shipment.setShipRocketLabelUrl(shipRocketResponse.getLabel_url());
         
-        // Fetch complete order details from ShipRocket and store as metadata
+        // Step 2: Assign AWB (Air Waybill) to the shipment
+        // This generates a tracking number for the shipment
+        try {
+            Long shipRocketShipmentId = shipRocketResponse.getShipment_id();
+            Long courierId = shipment.getSelectedCourierCompanyId();
+            
+            if (shipRocketShipmentId != null && courierId != null) {
+                // Get AWB assignment response as raw JSON and store it
+                String awbMetadataJson = shippingHelper.assignAwbAsJson(shipRocketShipmentId, courierId);
+                shipment.setShipRocketAwbMetadata(awbMetadataJson);
+                
+                // Parse the JSON to extract the AWB code using Gson
+                com.nimbusds.jose.shaded.gson.Gson gson = new com.nimbusds.jose.shaded.gson.Gson();
+                com.example.SpringApi.Models.ShippingResponseModel.ShipRocketAwbResponseModel awbResponse = 
+                    gson.fromJson(awbMetadataJson, com.example.SpringApi.Models.ShippingResponseModel.ShipRocketAwbResponseModel.class);
+                
+                // Extract AWB code from response
+                if (awbResponse != null && awbResponse.isSuccess() && awbResponse.getAwbCode() != null) {
+                    shipment.setShipRocketAwbCode(awbResponse.getAwbCode());
+                } else {
+                    // Fallback to AWB from order creation if AWB assignment doesn't return one
+                    shipment.setShipRocketAwbCode(shipRocketResponse.getAwb_code());
+                }
+            } else {
+                // If we can't assign AWB, use the one from order creation response
+                shipment.setShipRocketAwbCode(shipRocketResponse.getAwb_code());
+            }
+        } catch (Exception e) {
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.AwbAssignmentFailed, shipRocketResponse.getShipment_id(), e.getMessage()));
+        }
+        
+        // Step 3: Generate pickup for the shipment
+        // This schedules a pickup with the courier after AWB has been assigned
+        try {
+            Long shipRocketShipmentId = shipRocketResponse.getShipment_id();
+            if (shipRocketShipmentId != null) {
+                String pickupMetadataJson = shippingHelper.generatePickupAsJson(shipRocketShipmentId);
+                shipment.setShipRocketPickupMetadata(pickupMetadataJson);
+            }
+        } catch (Exception e) {
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.PickupGenerationFailed, shipRocketResponse.getShipment_id(), e.getMessage()));
+        }
+        
+        // Step 4: Generate manifest for the shipment
+        // This creates a manifest PDF for the shipment
+        try {
+            Long shipRocketShipmentId = shipRocketResponse.getShipment_id();
+            if (shipRocketShipmentId != null) {
+                String manifestUrl = shippingHelper.generateManifest(shipRocketShipmentId);
+                shipment.setShipRocketGeneratedManifestUrl(manifestUrl);
+            }
+        } catch (Exception e) {
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.ManifestGenerationFailed, shipRocketResponse.getShipment_id(), e.getMessage()));
+        }
+        
+        // Step 5: Generate shipping label for the shipment
+        // This creates a shipping label PDF for the shipment
+        try {
+            Long shipRocketShipmentId = shipRocketResponse.getShipment_id();
+            if (shipRocketShipmentId != null) {
+                String labelUrl = shippingHelper.generateLabel(shipRocketShipmentId);
+                shipment.setShipRocketGeneratedLabelUrl(labelUrl);
+            }
+        } catch (Exception e) {
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.LabelGenerationFailed, shipRocketResponse.getShipment_id(), e.getMessage()));
+        }
+        
+        // Step 6: Generate invoice for the shipment
+        // This creates an invoice PDF for the shipment
+        try {
+            Long shipRocketShipmentId = shipRocketResponse.getShipment_id();
+            if (shipRocketShipmentId != null) {
+                String invoiceUrl = shippingHelper.generateInvoice(shipRocketShipmentId);
+                shipment.setShipRocketGeneratedInvoiceUrl(invoiceUrl);
+            }
+        } catch (Exception e) {
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.InvoiceGenerationFailed, shipRocketResponse.getShipment_id(), e.getMessage()));
+        }
+        
+        // Step 7: Get tracking information for the shipment
+        // This retrieves tracking status and activities using the AWB code
+        try {
+            String awbCode = shipment.getShipRocketAwbCode();
+            if (awbCode != null && !awbCode.trim().isEmpty()) {
+                String trackingJson = shippingHelper.getTrackingAsJson(awbCode);
+                shipment.setShipRocketTrackingMetadata(trackingJson);
+            }
+        } catch (Exception e) {
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.TrackingFetchFailed, shipment.getShipRocketAwbCode(), e.getMessage()));
+        }
+        
+        // Step 8: Fetch complete order details from ShipRocket and store as metadata
         // This provides comprehensive order information including AWB data, charges, etc.
         try {
             String orderDetailsJson = shippingHelper.getOrderDetailsAsJson(shipRocketOrderId);

@@ -82,8 +82,8 @@ public class Product {
     @Column(name = "isDiscountPercent", nullable = false)
     private Boolean isDiscountPercent;
 
-    @Column(name = "returnsAllowed", nullable = false)
-    private Boolean returnsAllowed;
+    @Column(name = "returnWindowDays", nullable = false)
+    private Integer returnWindowDays;  // Number of days from delivery within which returns are allowed (0 = no returns)
 
     @Column(name = "breadth", precision = 8, scale = 2)
     private BigDecimal breadth;
@@ -340,7 +340,7 @@ public class Product {
         }
         // Note: clientId is not validated from request - it comes from security context via constructor parameter
         if (request.getPickupLocationQuantities() == null || request.getPickupLocationQuantities().isEmpty()) {
-            throw new BadRequestException("At least one pickup location with quantity must be provided");
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.AtLeastOnePickupLocationRequired);
         }
     }
 
@@ -390,7 +390,7 @@ public class Product {
         this.price = request.getPrice();
         this.discount = request.getDiscount() != null ? request.getDiscount() : BigDecimal.ZERO;
         this.isDiscountPercent = request.getIsDiscountPercent() != null ? request.getIsDiscountPercent() : Boolean.FALSE;
-        this.returnsAllowed = request.getReturnsAllowed() != null ? request.getReturnsAllowed() : Boolean.FALSE;
+        this.returnWindowDays = request.getReturnWindowDays();
         this.breadth = request.getBreadth();
         this.height = request.getHeight();
         this.weightKgs = request.getWeightKgs();

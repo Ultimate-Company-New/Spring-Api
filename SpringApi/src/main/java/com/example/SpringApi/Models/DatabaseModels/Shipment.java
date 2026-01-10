@@ -46,7 +46,9 @@ public class Shipment {
         RTO_DELIVERED("RTO_DELIVERED"),
         CANCELLED("CANCELLED"),
         PENDING("PENDING"),
-        FAILED("FAILED");
+        FAILED("FAILED"),
+        FULL_RETURN_INITIATED("FULL_RETURN_INITIATED"),
+        PARTIAL_RETURN_INITIATED("PARTIAL_RETURN_INITIATED");
         
         private final String value;
         
@@ -127,6 +129,9 @@ public class Shipment {
     
     @Column(name = "expectedDeliveryDate", nullable = false)
     private LocalDateTime expectedDeliveryDate;
+    
+    @Column(name = "deliveredDate")
+    private LocalDateTime deliveredDate;  // Actual delivery date (set when status becomes DELIVERED)
     
     // Cost Breakdown
     @Column(name = "packagingCost", nullable = false, precision = 15, scale = 2)
@@ -210,6 +215,24 @@ public class Shipment {
     @Column(name = "shipRocketFullResponse", columnDefinition = "JSON")
     private String shipRocketFullResponse; // Complete ShipRocket API response as JSON string
     
+    @Column(name = "shipRocketAwbMetadata", columnDefinition = "JSON")
+    private String shipRocketAwbMetadata; // AWB assignment API response as JSON string
+    
+    @Column(name = "shipRocketPickupMetadata", columnDefinition = "JSON")
+    private String shipRocketPickupMetadata; // Pickup generation API response as JSON string
+    
+    @Column(name = "shipRocketGeneratedManifestUrl", length = 500)
+    private String shipRocketGeneratedManifestUrl; // Manifest URL from manifest generation API
+    
+    @Column(name = "shipRocketGeneratedLabelUrl", length = 500)
+    private String shipRocketGeneratedLabelUrl; // Label URL from label generation API
+    
+    @Column(name = "shipRocketGeneratedInvoiceUrl", length = 500)
+    private String shipRocketGeneratedInvoiceUrl; // Invoice URL from invoice generation API
+    
+    @Column(name = "shipRocketTrackingMetadata", columnDefinition = "JSON")
+    private String shipRocketTrackingMetadata; // Tracking API response as JSON string
+    
     // Standard Fields
     @Column(name = "clientId", nullable = false)
     private Long clientId;
@@ -246,6 +269,9 @@ public class Shipment {
     
     @OneToMany(mappedBy = "shipment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ShipmentPackage> shipmentPackages = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "shipment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReturnShipment> returnShipments = new ArrayList<>();
     
     /**
      * Default constructor.
@@ -388,16 +414,16 @@ public class Shipment {
         
         // Validate required fields
         if (courierData.getCourierCompanyId() == null) {
-            throw new BadRequestException("Courier company ID is required");
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.CourierCompanyIdRequired);
         }
         if (courierData.getCourierName() == null || courierData.getCourierName().trim().isEmpty()) {
-            throw new BadRequestException("Courier name is required");
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.CourierNameRequired);
         }
         if (courierData.getCourierRate() == null) {
-            throw new BadRequestException("Courier rate is required");
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.CourierRateRequired);
         }
         if (courierData.getCourierMetadata() == null || courierData.getCourierMetadata().trim().isEmpty()) {
-            throw new BadRequestException("Courier metadata is required");
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.CourierMetadataRequired);
         }
         
         this.selectedCourierCompanyId = courierData.getCourierCompanyId();
@@ -413,5 +439,26 @@ public class Shipment {
             this.shippingCost = courierData.getCourierRate();
             this.totalCost = this.packagingCost.add(this.shippingCost);
         }
+    }
+    
+    /**
+     * Populates ShipRocket order details from the order creation response.
+     * Called after successfully creating an order in ShipRocket.
+     * 
+     * @param response The ShipRocket order creation response
+     */
+    public void populateFromShipRocketOrderResponse(
+            com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderResponseModel response) {
+        if (response == null) {
+            return;
+        }
+        
+        this.shipRocketOrderId = response.getOrderIdAsString();
+        this.shipRocketShipmentId = response.getShipment_id();
+        this.shipRocketTrackingId = response.getTracking_id();
+        this.shipRocketStatus = response.getStatus();
+        this.shipRocketManifestUrl = response.getManifest_url();
+        this.shipRocketInvoiceUrl = response.getInvoice_url();
+        this.shipRocketLabelUrl = response.getLabel_url();
     }
 }

@@ -141,7 +141,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
             if (ImageLocationConstants.IMGBB.equalsIgnoreCase(imageLocation)) {
                 // Validate ImgBB API key is configured
                 if (savedClient.getImgbbApiKey() == null || savedClient.getImgbbApiKey().trim().isEmpty()) {
-                    throw new BadRequestException("ImgBB API key is not configured for this client");
+                    throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.ImgbbApiKeyNotConfigured);
                 }
                 
                 // Generate custom filename for ImgBB
@@ -235,7 +235,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
                 // ImgBB-based logo management
                 
                 if (updatedClient.getImgbbApiKey() == null || updatedClient.getImgbbApiKey().trim().isEmpty()) {
-                    throw new BadRequestException("ImgBB API key is not configured for this client");
+                    throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.ImgbbApiKeyNotConfigured);
                 }
                 
                 ImgbbHelper imgbbHelper = new ImgbbHelper(updatedClient.getImgbbApiKey());

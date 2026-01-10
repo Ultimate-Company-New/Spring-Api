@@ -105,7 +105,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
 
     // Validate page size
     if (pageSize <= 0) {
-      throw new BadRequestException("Invalid pagination: end must be greater than start");
+      throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
     }
 
     // Create custom Pageable with proper offset handling
@@ -234,7 +234,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
     try {
       // Validate input
       if (promos == null || promos.isEmpty()) {
-        throw new BadRequestException("Promo list cannot be null or empty");
+        throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Promo"));
       }
 
       BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
@@ -319,7 +319,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   @Deprecated
   public BulkInsertResponseModel<Long> bulkCreatePromos(List<PromoRequestModel> promos) {
     if (promos == null || promos.isEmpty()) {
-      throw new BadRequestException("Promo list cannot be null or empty");
+      throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Promo"));
     }
 
     BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();

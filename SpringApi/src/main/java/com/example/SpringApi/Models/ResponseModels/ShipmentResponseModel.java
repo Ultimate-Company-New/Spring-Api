@@ -6,6 +6,7 @@ import com.example.SpringApi.Models.DatabaseModels.Shipment;
 import com.example.SpringApi.Models.DatabaseModels.ShipmentProduct;
 import com.example.SpringApi.Models.DatabaseModels.ShipmentPackage;
 import com.example.SpringApi.Models.DatabaseModels.ShipmentPackageProduct;
+import com.example.SpringApi.Models.DatabaseModels.ReturnShipment;
 import org.hibernate.Hibernate;
 
 import java.math.BigDecimal;
@@ -35,6 +36,7 @@ public class ShipmentResponseModel {
     private BigDecimal totalWeightKgs;
     private Integer totalQuantity;
     private LocalDateTime expectedDeliveryDate;
+    private LocalDateTime deliveredDate;  // Actual delivery date
     
     // Cost Breakdown
     private BigDecimal packagingCost;
@@ -58,6 +60,12 @@ public class ShipmentResponseModel {
     private String shipRocketInvoiceUrl;
     private String shipRocketLabelUrl;
     private String shipRocketFullResponse;  // Complete ShipRocket order details as JSON
+    private String shipRocketAwbMetadata;   // AWB assignment response as JSON
+    private String shipRocketPickupMetadata; // Pickup generation response as JSON
+    private String shipRocketGeneratedManifestUrl; // Manifest URL from manifest generation API
+    private String shipRocketGeneratedLabelUrl; // Label URL from label generation API
+    private String shipRocketGeneratedInvoiceUrl; // Invoice URL from invoice generation API
+    private String shipRocketTrackingMetadata; // Tracking API response as JSON
     
     // Audit Fields
     private Long clientId;
@@ -78,6 +86,9 @@ public class ShipmentResponseModel {
     
     // Packages in this shipment
     private List<PackageResponseModel> packages = new ArrayList<>();
+    
+    // Return shipments for this shipment
+    private List<ReturnShipmentResponseModel> returnShipments = new ArrayList<>();
     
     /**
      * Default constructor.
@@ -101,6 +112,7 @@ public class ShipmentResponseModel {
         this.totalWeightKgs = shipment.getTotalWeightKgs();
         this.totalQuantity = shipment.getTotalQuantity();
         this.expectedDeliveryDate = shipment.getExpectedDeliveryDate();
+        this.deliveredDate = shipment.getDeliveredDate();
         
         // Cost breakdown
         this.packagingCost = shipment.getPackagingCost();
@@ -124,6 +136,12 @@ public class ShipmentResponseModel {
         this.shipRocketInvoiceUrl = shipment.getShipRocketInvoiceUrl();
         this.shipRocketLabelUrl = shipment.getShipRocketLabelUrl();
         this.shipRocketFullResponse = shipment.getShipRocketFullResponse();
+        this.shipRocketAwbMetadata = shipment.getShipRocketAwbMetadata();
+        this.shipRocketPickupMetadata = shipment.getShipRocketPickupMetadata();
+        this.shipRocketGeneratedManifestUrl = shipment.getShipRocketGeneratedManifestUrl();
+        this.shipRocketGeneratedLabelUrl = shipment.getShipRocketGeneratedLabelUrl();
+        this.shipRocketGeneratedInvoiceUrl = shipment.getShipRocketGeneratedInvoiceUrl();
+        this.shipRocketTrackingMetadata = shipment.getShipRocketTrackingMetadata();
         
         // Audit fields
         this.clientId = shipment.getClientId();
@@ -177,6 +195,15 @@ public class ShipmentResponseModel {
             // Extract delivery address from OrderSummary
             if (Hibernate.isInitialized(orderSummary.getEntityAddress()) && orderSummary.getEntityAddress() != null) {
                 this.deliveryAddress = new AddressResponseModel(orderSummary.getEntityAddress());
+            }
+        }
+        
+        // Extract return shipments
+        if (Hibernate.isInitialized(shipment.getReturnShipments()) && shipment.getReturnShipments() != null) {
+            for (ReturnShipment rs : shipment.getReturnShipments()) {
+                if (!rs.getIsDeleted()) {
+                    this.returnShipments.add(new ReturnShipmentResponseModel(rs));
+                }
             }
         }
     }

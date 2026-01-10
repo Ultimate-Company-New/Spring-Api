@@ -273,7 +273,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         int limit = end - start;
         
         if (limit <= 0) {
-            throw new BadRequestException("Invalid pagination: end must be greater than start");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
         }
         
         // Define valid columns
@@ -291,7 +291,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         if (userRequestModel.hasMultipleFilters()) {
             // Validate logic operator
             if (!userRequestModel.isValidLogicOperator()) {
-                throw new BadRequestException("Invalid logicOperator. Must be 'AND' or 'OR'");
+                throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidLogicOperator);
             }
             
             // Validate each filter condition
@@ -379,12 +379,12 @@ public class UserService extends BaseService implements IUserSubTranslator {
 
         // 2. Verify the token matches
         if (user.getToken() == null || !user.getToken().equals(token)) {
-            throw new BadRequestException("Invalid or expired verification token");
+            throw new BadRequestException(ErrorMessages.LoginErrorMessages.InvalidToken);
         }
 
         // 3. Check if email is already confirmed
         if (user.getEmailConfirmed() != null && user.getEmailConfirmed()) {
-            throw new BadRequestException("Email is already confirmed");
+            throw new BadRequestException(ErrorMessages.LoginErrorMessages.AccountConfirmed);
         }
 
         // 4. Set emailConfirmed to true
@@ -434,7 +434,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         try {
             // Validate input
             if (users == null || users.isEmpty()) {
-                throw new BadRequestException("User list cannot be null or empty");
+                throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "User"));
             }
 
             BulkUserInsertResponseModel response = new BulkUserInsertResponseModel();
@@ -604,7 +604,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
      */
     private void createUserPermissions(UserRequestModel userRequestModel, User savedUser, String createdUser) {
         if (userRequestModel.getPermissionIds() == null || userRequestModel.getPermissionIds().isEmpty()) {
-            throw new BadRequestException("At least one permission mapping is required for the user.");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AtLeastOnePermissionRequired);
         }
         
         List<UserClientPermissionMapping> permissionMappings = new ArrayList<>();
@@ -685,7 +685,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
                 .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
                 
             if (client.getImgbbApiKey() == null || client.getImgbbApiKey().trim().isEmpty()) {
-                throw new BadRequestException("ImgBB API key is not configured for this client");
+                throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.ImgbbApiKeyNotConfigured);
             }
             
             String customFileName = ImgbbHelper.generateCustomFileNameForUserProfile(
@@ -765,7 +765,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
                     password);
             
             if (!sendAccountConfirmationEmailResponse) {
-                throw new BadRequestException("Failed to send confirmation email");
+                throw new BadRequestException(ErrorMessages.CommonErrorMessages.FailedToSendConfirmationEmail);
             }
         } catch (Exception e) {
             throw new BadRequestException("Failed to send confirmation email: " + e.getMessage());
@@ -819,7 +819,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
      */
     private void updateUserPermissions(UserRequestModel userRequestModel, User existingUser) {
         if (userRequestModel.getPermissionIds() == null || userRequestModel.getPermissionIds().isEmpty()) {
-            throw new BadRequestException("At least one permission mapping is required for the user.");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AtLeastOnePermissionRequired);
         }
         
         // Remove all existing permission mappings for this user and client
@@ -889,7 +889,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
                 .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
                 
             if (client.getImgbbApiKey() == null || client.getImgbbApiKey().trim().isEmpty()) {
-                throw new BadRequestException("ImgBB API key is not configured for this client");
+                throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.ImgbbApiKeyNotConfigured);
             }
             
             ImgbbHelper imgbbHelper = new ImgbbHelper(client.getImgbbApiKey());

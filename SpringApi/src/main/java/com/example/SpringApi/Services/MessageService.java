@@ -115,7 +115,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
 
         // Validate page size
         if (pageSize <= 0) {
-            throw new BadRequestException("Invalid pagination: end must be greater than start");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
         }
 
         // Create custom Pageable with proper offset handling

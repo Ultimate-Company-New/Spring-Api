@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.FilterQueryBuilder.ShipmentFilterQueryBuilder;
@@ -63,12 +64,12 @@ public class ShipmentService extends BaseService implements IShipmentSubTranslat
             for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
                 // Validate column name
                 if (filter.getColumn() != null && !VALID_COLUMNS.contains(filter.getColumn())) {
-                    throw new BadRequestException("Invalid column name: " + filter.getColumn());
+                    throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidColumnName, filter.getColumn()));
                 }
 
                 // Validate operator (FilterCondition.setOperator auto-normalizes symbols to words)
                 if (!filter.isValidOperator()) {
-                    throw new BadRequestException("Invalid operator: " + filter.getOperator());
+                    throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidOperator, filter.getOperator()));
                 }
 
                 // Validate column type matches operator
@@ -87,7 +88,7 @@ public class ShipmentService extends BaseService implements IShipmentSubTranslat
 
         // Validate page size
         if (pageSize <= 0) {
-            throw new BadRequestException("Invalid pagination: end must be greater than start");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
         }
 
         // Create custom Pageable with proper offset handling
@@ -144,6 +145,14 @@ public class ShipmentService extends BaseService implements IShipmentSubTranslat
                     }
                 }
                 
+                // Initialize return shipments and their products
+                Hibernate.initialize(shipment.getReturnShipments());
+                if (shipment.getReturnShipments() != null) {
+                    for (var rs : shipment.getReturnShipments()) {
+                        Hibernate.initialize(rs.getReturnProducts());
+                    }
+                }
+                
                 return new ShipmentResponseModel(shipment);
             })
             .collect(Collectors.toList()));
@@ -159,22 +168,22 @@ public class ShipmentService extends BaseService implements IShipmentSubTranslat
     @Transactional(readOnly = true)
     public ShipmentResponseModel getShipmentById(Long shipmentId) {
         if (shipmentId == null || shipmentId <= 0) {
-            throw new BadRequestException("Invalid shipment ID");
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.InvalidId);
         }
         
         Long clientId = getClientId();
         
         Shipment shipment = shipmentRepository.findById(shipmentId)
-            .orElseThrow(() -> new NotFoundException("Shipment not found with ID: " + shipmentId));
+            .orElseThrow(() -> new NotFoundException(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, shipmentId)));
         
         // Verify client access
         if (!shipment.getClientId().equals(clientId)) {
-            throw new NotFoundException("Shipment not found with ID: " + shipmentId);
+            throw new NotFoundException(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, shipmentId));
         }
         
         // Only return shipments with ShipRocket order ID assigned
         if (shipment.getShipRocketOrderId() == null || shipment.getShipRocketOrderId().trim().isEmpty()) {
-            throw new NotFoundException("Shipment not found with ID: " + shipmentId);
+            throw new NotFoundException(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, shipmentId));
         }
         
         // Initialize lazy-loaded entities
@@ -206,6 +215,14 @@ public class ShipmentService extends BaseService implements IShipmentSubTranslat
                         Hibernate.initialize(spp.getProduct());
                     }
                 }
+            }
+        }
+        
+        // Initialize return shipments and their products
+        Hibernate.initialize(shipment.getReturnShipments());
+        if (shipment.getReturnShipments() != null) {
+            for (var rs : shipment.getReturnShipments()) {
+                Hibernate.initialize(rs.getReturnProducts());
             }
         }
         

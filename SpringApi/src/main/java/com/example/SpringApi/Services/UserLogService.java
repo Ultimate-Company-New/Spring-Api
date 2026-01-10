@@ -8,6 +8,7 @@ import com.example.SpringApi.Repositories.UserLogRepository;
 import com.example.SpringApi.Services.Interface.IUserLogSubTranslator;
 import com.example.SpringApi.FilterQueryBuilder.UserLogFilterQueryBuilder;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,12 +116,12 @@ public class UserLogService extends BaseService implements IUserLogSubTranslator
 
         // Validate page size
         if (pageSize <= 0) {
-            throw new BadRequestException("Invalid pagination: end must be greater than start");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
         }
 
         // Validate logic operator if provided
         if (getUserLogsRequestModel.getLogicOperator() != null && !getUserLogsRequestModel.isValidLogicOperator()) {
-            throw new BadRequestException("Invalid logic operator. Must be 'AND' or 'OR'");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidLogicOperator);
         }
 
         // Validate filters if provided

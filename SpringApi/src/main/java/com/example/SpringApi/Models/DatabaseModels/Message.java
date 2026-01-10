@@ -136,7 +136,7 @@ public class Message {
      */
     private void validateRequest(MessageRequestModel request, Message existingMessage) {
         if (request == null) {
-            throw new BadRequestException("Invalid message request");
+            throw new BadRequestException(ErrorMessages.MessagesErrorMessages.InvalidId);
         }
         
         // Validate title (required, length > 0, max 500 chars)
@@ -144,7 +144,7 @@ public class Message {
             throw new BadRequestException(ErrorMessages.MessagesErrorMessages.ER003);
         }
         if (request.getTitle().trim().length() > 500) {
-            throw new BadRequestException("Message title is too long (max 500 characters)");
+            throw new BadRequestException(ErrorMessages.MessagesErrorMessages.TitleTooLong);
         }
         
         // Validate description HTML (required, length > 0)
@@ -166,7 +166,7 @@ public class Message {
         
         // Rule: If publishDate is not null, sendAsEmail must be true
         if (requestPublishDate != null && !requestSendAsEmail) {
-            throw new BadRequestException("If publish date is set, sendAsEmail must be true.");
+            throw new BadRequestException(ErrorMessages.MessagesErrorMessages.PublishDateRequiresSendAsEmail);
         }
         
         // UPDATE PATH VALIDATIONS (only if existingMessage is provided)
@@ -176,12 +176,12 @@ public class Message {
             
             // Rule 1: If existing message has sendAsEmail=true, you cannot change it to false
             if (existingSendAsEmail && !requestSendAsEmail) {
-                throw new BadRequestException("Cannot disable sendAsEmail once it has been enabled.");
+                throw new BadRequestException(ErrorMessages.MessagesErrorMessages.CannotDisableSendAsEmailOnce);
             }
             
             // Rule 2: If existing message has sendAsEmail=true, you cannot add/change publishDate
             if (existingSendAsEmail && existingPublishDate == null && requestPublishDate != null) {
-                throw new BadRequestException("Cannot add publish date to a message that was already sent as email without scheduling.");
+                throw new BadRequestException(ErrorMessages.MessagesErrorMessages.CannotAddPublishDateAfterSent);
             }
             
             // Rule 3: If existing message has both sendAsEmail=true AND publishDate set, 
@@ -189,11 +189,11 @@ public class Message {
             if (existingSendAsEmail && existingPublishDate != null) {
                 // Cannot change publishDate
                 if (requestPublishDate != null && !requestPublishDate.equals(existingPublishDate)) {
-                    throw new BadRequestException("Cannot modify publish date for a scheduled email.");
+                    throw new BadRequestException(ErrorMessages.MessagesErrorMessages.CannotModifyScheduledPublishDate);
                 }
                 // Cannot change sendAsEmail
                 if (!requestSendAsEmail) {
-                    throw new BadRequestException("Cannot disable sendAsEmail for a scheduled email.");
+                    throw new BadRequestException(ErrorMessages.MessagesErrorMessages.CannotDisableSendAsEmailScheduled);
                 }
             }
         }
@@ -234,7 +234,7 @@ public class Message {
      */
     private void validateUserId(Long userId) {
         if (userId == null || userId <= 0) {
-            throw new BadRequestException("Invalid user ID");
+            throw new BadRequestException(ErrorMessages.MessagesErrorMessages.InvalidUserId);
         }
     }
     

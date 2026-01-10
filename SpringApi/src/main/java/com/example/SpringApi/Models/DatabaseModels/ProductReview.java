@@ -156,7 +156,7 @@ public class ProductReview {
      */
     private void validateUser(String user) {
         if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException("Invalid user for audit fields.");
+            throw new BadRequestException(ErrorMessages.ProductReviewErrorMessages.InvalidAuditUser);
         }
     }
 
