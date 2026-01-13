@@ -434,8 +434,8 @@ class ProductServiceTest {
     @Test
     @DisplayName("toggleReturnProduct - Success: Toggle returns allowed")
     void testToggleReturnProduct_Success() {
-        // Arrange
-        testProduct.setReturnsAllowed(true);
+        // Arrange - set returnWindowDays to 30 (returns allowed)
+        testProduct.setReturnWindowDays(30);
         when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(testProduct);
 
         // Act
@@ -445,7 +445,8 @@ class ProductServiceTest {
         verify(productRepository, times(1)).findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID);
         verify(productRepository, times(1)).save(testProduct);
         verify(userLogService, times(1)).logData(eq(1L), anyString(), anyString());
-        assertFalse(testProduct.getReturnsAllowed());
+        // After toggle, returnWindowDays should be 0 (returns not allowed)
+        assertEquals(0, testProduct.getReturnWindowDays());
     }
 
     @Test
@@ -960,7 +961,7 @@ class ProductServiceTest {
         testProductRequest.setCategoryId(TEST_CATEGORY_ID);
         testProductRequest.setClientId(TEST_CLIENT_ID);
         testProductRequest.setIsDeleted(false);
-        testProductRequest.setReturnsAllowed(true);
+        testProductRequest.setReturnWindowDays(30);
 
         // Set pickup location quantities
         Map<Long, Integer> pickupLocationQuantities = new HashMap<>();

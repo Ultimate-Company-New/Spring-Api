@@ -16,7 +16,9 @@ import com.example.SpringApi.Repositories.UserRepository;
 import com.example.SpringApi.Services.Interface.IAddressSubTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.Exceptions.BadRequestException;
 
 import java.util.Optional;
 import java.util.List;
@@ -66,6 +68,7 @@ public class AddressService extends BaseService implements IAddressSubTranslator
      * @throws NotFoundException if the address was not found
      */
     @Override
+    @Transactional
     public void toggleAddress(long addressId) {
         Optional<Address> address = addressRepository.findById(addressId);
         if (address.isPresent()) {
@@ -90,6 +93,7 @@ public class AddressService extends BaseService implements IAddressSubTranslator
      * @throws NotFoundException if no address exists with the given ID
      */
     @Override
+    @Transactional(readOnly = true)
     public AddressResponseModel getAddressById(long addressId) {
         Optional<Address> address = addressRepository.findById(addressId);
         if (address.isPresent()) {
@@ -110,6 +114,7 @@ public class AddressService extends BaseService implements IAddressSubTranslator
      * @param addressRequest The AddressRequestModel containing the address data to insert
      */
     @Override
+    @Transactional
     public void insertAddress(AddressRequestModel addressRequest) {
         Address address = new Address(addressRequest, getUser());
         Address savedAddress = addressRepository.save(address);
@@ -129,7 +134,11 @@ public class AddressService extends BaseService implements IAddressSubTranslator
      * @throws NotFoundException if no address exists with the given ID
      */
     @Override
+    @Transactional
     public void updateAddress(AddressRequestModel addressRequest) {
+        if (addressRequest == null) {
+            throw new BadRequestException(ErrorMessages.AddressErrorMessages.ER001);
+        }
         Optional<Address> existingAddress = addressRepository.findById(addressRequest.getId());
         if (existingAddress.isPresent()) {
             Address address = new Address(addressRequest, getUser(), existingAddress.get());
@@ -155,6 +164,7 @@ public class AddressService extends BaseService implements IAddressSubTranslator
      * @throws NotFoundException if the user does not exist or is deleted
      */
     @Override
+    @Transactional(readOnly = true)
     public List<AddressResponseModel> getAddressByUserId(long userId) {
         // Validate that user exists and is not deleted
         Optional<User> user = userRepository.findById(userId);
@@ -189,6 +199,7 @@ public class AddressService extends BaseService implements IAddressSubTranslator
      * @throws NotFoundException if the client does not exist or is deleted
      */
     @Override
+    @Transactional(readOnly = true)
     public List<AddressResponseModel> getAddressByClientId(long clientId) {
         // Validate that client exists and is not deleted
         Optional<Client> client = clientRepository.findById(clientId);
