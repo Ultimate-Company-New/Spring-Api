@@ -814,4 +814,174 @@ class UserGroupServiceTest {
         assertTrue(exception.getMessage().contains("User group list cannot be null or empty"));
         verify(userGroupRepository, never()).save(any(UserGroup.class));
     }
+
+    // ==================== Additional GetUserGroupDetailsById Tests ====================
+
+    @Test
+    @DisplayName("Get User Group By ID - Negative ID - Not Found")
+    void getUserGroupDetailsById_NegativeId_ThrowsNotFoundException() {
+        when(userGroupRepository.findByUserGroupIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userGroupService.getUserGroupDetailsById(-1L));
+        assertEquals(ErrorMessages.UserGroupErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get User Group By ID - Zero ID - Not Found")
+    void getUserGroupDetailsById_ZeroId_ThrowsNotFoundException() {
+        when(userGroupRepository.findByUserGroupIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userGroupService.getUserGroupDetailsById(0L));
+        assertEquals(ErrorMessages.UserGroupErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get User Group By ID - Long.MAX_VALUE - Not Found")
+    void getUserGroupDetailsById_MaxLongId_ThrowsNotFoundException() {
+        when(userGroupRepository.findByUserGroupIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userGroupService.getUserGroupDetailsById(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.UserGroupErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get User Group By ID - Long.MIN_VALUE - Not Found")
+    void getUserGroupDetailsById_MinLongId_ThrowsNotFoundException() {
+        when(userGroupRepository.findByUserGroupIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userGroupService.getUserGroupDetailsById(Long.MIN_VALUE));
+        assertEquals(ErrorMessages.UserGroupErrorMessages.NotFound, ex.getMessage());
+    }
+
+    // ==================== Additional CreateUserGroup Tests ====================
+
+    @Test
+    @DisplayName("Create User Group - Null Request - Throws BadRequestException")
+    void createUserGroup_NullRequest_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userGroupService.createUserGroup(null));
+        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidRequest, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create User Group - Null Group Name - Throws BadRequestException")
+    void createUserGroup_NullGroupName_ThrowsBadRequestException() {
+        testUserGroupRequest.setUserGroupName(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userGroupService.createUserGroup(testUserGroupRequest));
+        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidName, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create User Group - Empty Group Name - Throws BadRequestException")
+    void createUserGroup_EmptyGroupName_ThrowsBadRequestException() {
+        testUserGroupRequest.setUserGroupName("");
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userGroupService.createUserGroup(testUserGroupRequest));
+        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidName, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create User Group - Whitespace Group Name - Throws BadRequestException")
+    void createUserGroup_WhitespaceGroupName_ThrowsBadRequestException() {
+        testUserGroupRequest.setUserGroupName("   ");
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userGroupService.createUserGroup(testUserGroupRequest));
+        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidName, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create User Group - Null Description - Throws BadRequestException")
+    void createUserGroup_NullDescription_ThrowsBadRequestException() {
+        testUserGroupRequest.setDescription(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userGroupService.createUserGroup(testUserGroupRequest));
+        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidDescription, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create User Group - Empty Description - Throws BadRequestException")
+    void createUserGroup_EmptyDescription_ThrowsBadRequestException() {
+        testUserGroupRequest.setDescription("");
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userGroupService.createUserGroup(testUserGroupRequest));
+        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidDescription, ex.getMessage());
+    }
+
+    // ==================== Additional UpdateUserGroup Tests ====================
+
+    @Test
+    @DisplayName("Update User Group - Negative ID - Not Found")
+    void updateUserGroup_NegativeId_ThrowsNotFoundException() {
+        testUserGroupRequest.setUserGroupId(-1L);
+        when(userGroupRepository.findByUserGroupIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
+        
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userGroupService.updateUserGroup(testUserGroupRequest));
+        assertEquals(ErrorMessages.UserGroupErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update User Group - Zero ID - Not Found")
+    void updateUserGroup_ZeroId_ThrowsNotFoundException() {
+        testUserGroupRequest.setUserGroupId(0L);
+        when(userGroupRepository.findByUserGroupIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
+        
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userGroupService.updateUserGroup(testUserGroupRequest));
+        assertEquals(ErrorMessages.UserGroupErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update User Group - Null Name - Throws BadRequestException")
+    void updateUserGroup_NullName_ThrowsBadRequestException() {
+        testUserGroupRequest.setUserGroupName(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userGroupService.updateUserGroup(testUserGroupRequest));
+        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidName, ex.getMessage());
+    }
+
+    // ==================== Additional ToggleUserGroup Tests ====================
+
+    @Test
+    @DisplayName("Toggle User Group - Negative ID - Not Found")
+    void toggleUserGroup_NegativeId_ThrowsNotFoundException() {
+        when(userGroupRepository.findByUserGroupIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userGroupService.toggleUserGroup(-1L));
+        assertEquals(ErrorMessages.UserGroupErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle User Group - Zero ID - Not Found")
+    void toggleUserGroup_ZeroId_ThrowsNotFoundException() {
+        when(userGroupRepository.findByUserGroupIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userGroupService.toggleUserGroup(0L));
+        assertEquals(ErrorMessages.UserGroupErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle User Group - Max Long ID - Not Found")
+    void toggleUserGroup_MaxLongId_ThrowsNotFoundException() {
+        when(userGroupRepository.findByUserGroupIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userGroupService.toggleUserGroup(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.UserGroupErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle User Group - Multiple Toggles - State Persistence")
+    void toggleUserGroup_MultipleToggles_StatePersists() {
+        testUserGroup.setIsDeleted(false);
+        when(userGroupRepository.findByUserGroupIdAndClientId(TEST_GROUP_ID, TEST_CLIENT_ID))
+                .thenReturn(testUserGroup);
+        when(userGroupRepository.save(any(UserGroup.class))).thenReturn(testUserGroup);
+        
+        userGroupService.toggleUserGroup(TEST_GROUP_ID);
+        assertTrue(testUserGroup.getIsDeleted());
+        
+        userGroupService.toggleUserGroup(TEST_GROUP_ID);
+        assertFalse(testUserGroup.getIsDeleted());
+    }
 }

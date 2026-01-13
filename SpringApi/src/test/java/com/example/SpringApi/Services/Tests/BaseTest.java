@@ -2,15 +2,18 @@ package com.example.SpringApi.Services.Tests;
 
 import com.example.SpringApi.Models.DatabaseModels.Address;
 import com.example.SpringApi.Models.DatabaseModels.Client;
+import com.example.SpringApi.Models.DatabaseModels.Lead;
 import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
+import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
 
 import java.time.LocalDateTime;
 
 /**
  * Base test class providing common helper methods and constants for unit tests.
  * 
- * This class should be extended by all service test classes to ensure consistent
+ * This class should be extended by all service test classes to ensure
+ * consistent
  * test data creation and reduce code duplication across the test suite.
  * 
  * Features:
@@ -21,13 +24,14 @@ import java.time.LocalDateTime;
  * Usage:
  * ```java
  * class MyServiceTest extends BaseTest {
- *     @BeforeEach
- *     void setUp() {
- *         testUser = createTestUser();
- *         testClient = createTestClient();
- *     }
- * }
- * ```
+ * 
+ * @BeforeEach
+ *             void setUp() {
+ *             testUser = createTestUser();
+ *             testClient = createTestClient();
+ *             }
+ *             }
+ *             ```
  * 
  * @author SpringApi Team
  * @version 1.0
@@ -36,7 +40,7 @@ import java.time.LocalDateTime;
 public abstract class BaseTest {
 
     // ==================== COMMON TEST CONSTANTS ====================
-    
+
     protected static final Long DEFAULT_ADDRESS_ID = 1L;
     protected static final Long DEFAULT_USER_ID = 1L;
     protected static final Long DEFAULT_CLIENT_ID = 100L;
@@ -56,8 +60,17 @@ public abstract class BaseTest {
     protected static final String DEFAULT_SUPPORT_EMAIL = "support@testclient.com";
     protected static final String DEFAULT_WEBSITE = "https://testclient.com";
 
+    // Lead Constants
+    protected static final Long DEFAULT_LEAD_ID = 1L;
+    protected static final String DEFAULT_PHONE = "1234567890";
+    protected static final String DEFAULT_LEAD_STATUS = "Not Contacted";
+    protected static final String DEFAULT_COMPANY = "Test Company";
+    protected static final int DEFAULT_COMPANY_SIZE = 50;
+    protected static final Long DEFAULT_CREATED_BY_ID = 1L;
+    protected static final Long DEFAULT_ASSIGNED_AGENT_ID = 2L;
+
     // ==================== USER FACTORY METHODS ====================
-    
+
     /**
      * Creates a test User with default values.
      * 
@@ -66,7 +79,7 @@ public abstract class BaseTest {
     protected User createTestUser() {
         return createTestUser(DEFAULT_USER_ID);
     }
-    
+
     /**
      * Creates a test User with a specific ID.
      * 
@@ -76,13 +89,13 @@ public abstract class BaseTest {
     protected User createTestUser(Long userId) {
         return createTestUser(userId, DEFAULT_LOGIN_NAME, DEFAULT_EMAIL);
     }
-    
+
     /**
      * Creates a fully customized test User.
      * 
-     * @param userId The user ID
+     * @param userId    The user ID
      * @param loginName The login name
-     * @param email The email address
+     * @param email     The email address
      * @return User entity with specified values
      */
     protected User createTestUser(Long userId, String loginName, String email) {
@@ -99,7 +112,7 @@ public abstract class BaseTest {
         user.setUpdatedAt(LocalDateTime.now());
         return user;
     }
-    
+
     /**
      * Creates a deleted test User.
      * 
@@ -112,7 +125,7 @@ public abstract class BaseTest {
     }
 
     // ==================== CLIENT FACTORY METHODS ====================
-    
+
     /**
      * Creates a test Client with default values.
      * 
@@ -121,7 +134,7 @@ public abstract class BaseTest {
     protected Client createTestClient() {
         return createTestClient(DEFAULT_CLIENT_ID);
     }
-    
+
     /**
      * Creates a test Client with a specific ID.
      * 
@@ -131,12 +144,12 @@ public abstract class BaseTest {
     protected Client createTestClient(Long clientId) {
         return createTestClient(clientId, DEFAULT_CLIENT_NAME);
     }
-    
+
     /**
      * Creates a fully customized test Client.
      * 
      * @param clientId The client ID
-     * @param name The client name
+     * @param name     The client name
      * @return Client entity with specified values
      */
     protected Client createTestClient(Long clientId, String name) {
@@ -153,7 +166,7 @@ public abstract class BaseTest {
         client.setUpdatedAt(LocalDateTime.now());
         return client;
     }
-    
+
     /**
      * Creates a deleted test Client.
      * 
@@ -165,8 +178,9 @@ public abstract class BaseTest {
         return client;
     }
 
-    // ==================== ADDRESS REQUEST MODEL FACTORY METHODS ====================
-    
+    // ==================== ADDRESS REQUEST MODEL FACTORY METHODS
+    // ====================
+
     /**
      * Creates a valid AddressRequestModel with default values.
      * 
@@ -175,13 +189,13 @@ public abstract class BaseTest {
     protected AddressRequestModel createValidAddressRequest() {
         return createValidAddressRequest(DEFAULT_ADDRESS_ID, DEFAULT_USER_ID, DEFAULT_CLIENT_ID);
     }
-    
+
     /**
      * Creates a valid AddressRequestModel with specific IDs.
      * 
      * @param addressId The address ID
-     * @param userId The user ID
-     * @param clientId The client ID
+     * @param userId    The user ID
+     * @param clientId  The client ID
      * @return AddressRequestModel with specified IDs and default values
      */
     protected AddressRequestModel createValidAddressRequest(Long addressId, Long userId, Long clientId) {
@@ -199,11 +213,12 @@ public abstract class BaseTest {
         request.setIsDeleted(false);
         return request;
     }
-    
+
     /**
      * Creates a valid AddressRequestModel with a specific address type.
      * 
-     * @param addressType The address type (HOME, WORK, BILLING, SHIPPING, OFFICE, WAREHOUSE)
+     * @param addressType The address type (HOME, WORK, BILLING, SHIPPING, OFFICE,
+     *                    WAREHOUSE)
      * @return AddressRequestModel with specified address type
      */
     protected AddressRequestModel createAddressRequestWithType(String addressType) {
@@ -211,7 +226,7 @@ public abstract class BaseTest {
         request.setAddressType(addressType);
         return request;
     }
-    
+
     /**
      * Creates an AddressRequestModel with all optional fields populated.
      * 
@@ -228,11 +243,11 @@ public abstract class BaseTest {
     }
 
     // ==================== ADDRESS ENTITY FACTORY METHODS ====================
-    
+
     /**
      * Creates a test Address entity from an AddressRequestModel.
      * 
-     * @param request The address request model
+     * @param request     The address request model
      * @param createdUser The user who created the address
      * @return Address entity with timestamps set
      */
@@ -244,7 +259,7 @@ public abstract class BaseTest {
         address.setUpdatedAt(LocalDateTime.now());
         return address;
     }
-    
+
     /**
      * Creates a test Address entity with default values.
      * 
@@ -253,7 +268,7 @@ public abstract class BaseTest {
     protected Address createTestAddress() {
         return createTestAddress(createValidAddressRequest(), DEFAULT_CREATED_USER);
     }
-    
+
     /**
      * Creates a test Address entity with a specific ID.
      * 
@@ -265,7 +280,7 @@ public abstract class BaseTest {
         request.setId(addressId);
         return createTestAddress(request, DEFAULT_CREATED_USER);
     }
-    
+
     /**
      * Creates a deleted test Address.
      * 
@@ -277,8 +292,57 @@ public abstract class BaseTest {
         return address;
     }
 
+    // ==================== LEAD REQUEST FACTORY METHODS ====================
+
+    protected LeadRequestModel createValidLeadRequest() {
+        return createValidLeadRequest(DEFAULT_LEAD_ID, DEFAULT_CLIENT_ID);
+    }
+
+    protected LeadRequestModel createValidLeadRequest(Long leadId, Long clientId) {
+        LeadRequestModel request = new LeadRequestModel();
+        request.setLeadId(leadId);
+        request.setClientId(clientId);
+        request.setFirstName(DEFAULT_FIRST_NAME);
+        request.setLastName(DEFAULT_LAST_NAME);
+        request.setEmail(DEFAULT_EMAIL);
+        request.setPhone(DEFAULT_PHONE);
+        request.setCompany(DEFAULT_COMPANY);
+        request.setCompanySize(DEFAULT_COMPANY_SIZE);
+        request.setLeadStatus(DEFAULT_LEAD_STATUS);
+        request.setCreatedById(DEFAULT_CREATED_BY_ID);
+        request.setAssignedAgentId(DEFAULT_ASSIGNED_AGENT_ID);
+        request.setAddress(createValidAddressRequest());
+        request.setIsDeleted(false);
+        return request;
+    }
+
+    // ==================== LEAD ENTITY FACTORY METHODS ====================
+
+    protected Lead createTestLead() {
+        return createTestLead(createValidLeadRequest(), DEFAULT_CREATED_USER);
+    }
+
+    protected Lead createTestLead(LeadRequestModel request, String createdUser) {
+        Lead lead = new Lead(request, createdUser);
+        lead.setLeadId(request.getLeadId());
+        lead.setAddressId(DEFAULT_ADDRESS_ID); // Assume relationship linked
+
+        // Mock relationships
+        User user = createTestUser(request.getCreatedById());
+        Address address = createTestAddress(request.getAddress(), createdUser);
+
+        lead.setCreatedByUser(user);
+        lead.setAssignedAgent(user); // Reusing user for agent for simplicity
+        lead.setAddress(address);
+
+        lead.setIsDeleted(false);
+        lead.setCreatedAt(LocalDateTime.now());
+        lead.setUpdatedAt(LocalDateTime.now());
+        return lead;
+    }
+
     // ==================== UTILITY METHODS ====================
-    
+
     /**
      * Gets the current timestamp for test data.
      * 
@@ -287,7 +351,7 @@ public abstract class BaseTest {
     protected LocalDateTime now() {
         return LocalDateTime.now();
     }
-    
+
     /**
      * Gets a timestamp in the past for test data.
      * 
@@ -297,7 +361,7 @@ public abstract class BaseTest {
     protected LocalDateTime daysAgo(int daysAgo) {
         return LocalDateTime.now().minusDays(daysAgo);
     }
-    
+
     /**
      * Gets a timestamp in the future for test data.
      * 

@@ -587,4 +587,376 @@ class ProductReviewServiceTest {
         verify(productReviewRepository, never()).save(any(ProductReview.class));
         verify(userLogService, never()).logData(anyLong(), any(), any());
     }
+
+    // ==================== Additional GetProductReviewsById Tests ====================
+
+    @Test
+    @DisplayName("Get Product Reviews By ID - Negative ID - Not Found")
+    void getProductReviewsById_NegativeId_ThrowsNotFoundException() {
+        when(productReviewRepository.findByReviewIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productReviewService.getProductReviewsById(-1L));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Product Reviews By ID - Zero ID - Not Found")
+    void getProductReviewsById_ZeroId_ThrowsNotFoundException() {
+        when(productReviewRepository.findByReviewIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productReviewService.getProductReviewsById(0L));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Product Reviews By ID - Long.MAX_VALUE - Not Found")
+    void getProductReviewsById_MaxLongId_ThrowsNotFoundException() {
+        when(productReviewRepository.findByReviewIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productReviewService.getProductReviewsById(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Product Reviews By ID - Long.MIN_VALUE - Not Found")
+    void getProductReviewsById_MinLongId_ThrowsNotFoundException() {
+        when(productReviewRepository.findByReviewIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productReviewService.getProductReviewsById(Long.MIN_VALUE));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+    }
+
+    // ==================== Additional InsertProductReview Tests ====================
+
+    @Test
+    @DisplayName("Insert Product Review - Null Request - Throws BadRequestException")
+    void insertProductReview_NullRequest_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(null));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.InvalidRequest, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Rating Zero - Throws BadRequestException")
+    void insertProductReview_RatingZero_ThrowsBadRequestException() {
+        ProductReviewRequestModel request = new ProductReviewRequestModel();
+        request.setRating(0);
+        request.setReviewText("Good product");
+        request.setUserId(1L);
+        request.setProductId(1L);
+        
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Rating Above 5 - Throws BadRequestException")
+    void insertProductReview_RatingAbove5_ThrowsBadRequestException() {
+        ProductReviewRequestModel request = new ProductReviewRequestModel();
+        request.setRating(6);
+        request.setReviewText("Good product");
+        request.setUserId(1L);
+        request.setProductId(1L);
+        
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Rating Negative - Throws BadRequestException")
+    void insertProductReview_RatingNegative_ThrowsBadRequestException() {
+        ProductReviewRequestModel request = new ProductReviewRequestModel();
+        request.setRating(-1);
+        request.setReviewText("Good product");
+        request.setUserId(1L);
+        request.setProductId(1L);
+        
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Rating Exactly 1 - Success")
+    void insertProductReview_RatingOne_Success() {
+        ProductReviewRequestModel request = new ProductReviewRequestModel();
+        request.setRating(1);
+        request.setReviewText("Bad product");
+        request.setUserId(1L);
+        request.setProductId(1L);
+        
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Rating Exactly 5 - Success")
+    void insertProductReview_RatingFive_Success() {
+        ProductReviewRequestModel request = new ProductReviewRequestModel();
+        request.setRating(5);
+        request.setReviewText("Excellent product");
+        request.setUserId(1L);
+        request.setProductId(1L);
+        
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Null Review Text - Throws BadRequestException")
+    void insertProductReview_NullReviewText_ThrowsBadRequestException() {
+        ProductReviewRequestModel request = new ProductReviewRequestModel();
+        request.setRating(3);
+        request.setReviewText(null);
+        request.setUserId(1L);
+        request.setProductId(1L);
+        
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER002, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Empty Review Text - Throws BadRequestException")
+    void insertProductReview_EmptyReviewText_ThrowsBadRequestException() {
+        ProductReviewRequestModel request = new ProductReviewRequestModel();
+        request.setRating(3);
+        request.setReviewText("");
+        request.setUserId(1L);
+        request.setProductId(1L);
+        
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER002, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Whitespace Review Text - Throws BadRequestException")
+    void insertProductReview_WhitespaceReviewText_ThrowsBadRequestException() {
+        ProductReviewRequestModel request = new ProductReviewRequestModel();
+        request.setRating(3);
+        request.setReviewText("   ");
+        request.setUserId(1L);
+        request.setProductId(1L);
+        
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER002, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Null User ID - Throws BadRequestException")
+    void insertProductReview_NullUserId_ThrowsBadRequestException() {
+        ProductReviewRequestModel request = new ProductReviewRequestModel();
+        request.setRating(3);
+        request.setReviewText("Good product");
+        request.setUserId(null);
+        request.setProductId(1L);
+        
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER003, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Negative User ID - Throws BadRequestException")
+    void insertProductReview_NegativeUserId_ThrowsBadRequestException() {
+        ProductReviewRequestModel request = new ProductReviewRequestModel();
+        request.setRating(3);
+        request.setReviewText("Good product");
+        request.setUserId(-1L);
+        request.setProductId(1L);
+        
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER003, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Null Product ID - Throws BadRequestException")
+    void insertProductReview_NullProductId_ThrowsBadRequestException() {
+        ProductReviewRequestModel request = new ProductReviewRequestModel();
+        request.setRating(3);
+        request.setReviewText("Good product");
+        request.setUserId(1L);
+        request.setProductId(null);
+        
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Negative Product ID - Throws BadRequestException")
+    void insertProductReview_NegativeProductId_ThrowsBadRequestException() {
+        ProductReviewRequestModel request = new ProductReviewRequestModel();
+        request.setRating(3);
+        request.setReviewText("Good product");
+        request.setUserId(1L);
+        request.setProductId(-1L);
+        
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, ex.getMessage());
+    }
+
+    // ==================== Additional ToggleProductReview Tests ====================
+
+    @Test
+    @DisplayName("Toggle Product Review - Negative ID - Not Found")
+    void toggleProductReview_NegativeId_ThrowsNotFoundException() {
+        when(productReviewRepository.findByReviewIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productReviewService.toggleProductReview(-1L));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle Product Review - Zero ID - Not Found")
+    void toggleProductReview_ZeroId_ThrowsNotFoundException() {
+        when(productReviewRepository.findByReviewIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productReviewService.toggleProductReview(0L));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle Product Review - Max Long ID - Not Found")
+    void toggleProductReview_MaxLongId_ThrowsNotFoundException() {
+        when(productReviewRepository.findByReviewIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productReviewService.toggleProductReview(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle Product Review - Multiple Toggles - State Persistence")
+    void toggleProductReview_MultipleToggles_StatePersists() {
+        testProductReview.setIsDeleted(false);
+        when(productReviewRepository.findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID))
+                .thenReturn(testProductReview);
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+        
+        productReviewService.toggleProductReview(TEST_REVIEW_ID);
+        assertTrue(testProductReview.getIsDeleted());
+        
+        productReviewService.toggleProductReview(TEST_REVIEW_ID);
+        assertFalse(testProductReview.getIsDeleted());
+    }
+
+    // ==================== Additional GetProductReviewsByProductId Tests ====================
+
+    @Test
+    @DisplayName("Get Product Reviews By Product ID - Negative Product ID")
+    void getProductReviewsByProductId_NegativeProductId_ReturnsEmpty() {
+        PaginationBaseRequestModel request = new PaginationBaseRequestModel();
+        request.setStart(0);
+        request.setEnd(10);
+        
+        List<ProductReview> emptyList = new ArrayList<>();
+        Page<ProductReview> emptyPage = new PageImpl<>(emptyList, PageRequest.of(0, 10), 0);
+        when(productReviewRepository.findByProductIdAndClientIdAndIsDeletedFalseOrderByCreatedAtDesc(
+                eq(-1L), eq(TEST_CLIENT_ID), any(Pageable.class)))
+                .thenReturn(emptyPage);
+        
+        PaginationBaseResponseModel<ProductReview> result = productReviewService.getProductReviewsByProductId(-1L, request);
+        assertNotNull(result);
+        assertEquals(0, result.getData().size());
+    }
+
+    @Test
+    @DisplayName("Get Product Reviews By Product ID - Empty Results")
+    void getProductReviewsByProductId_EmptyResults_ReturnsEmpty() {
+        PaginationBaseRequestModel request = new PaginationBaseRequestModel();
+        request.setStart(0);
+        request.setEnd(10);
+        
+        List<ProductReview> emptyList = new ArrayList<>();
+        Page<ProductReview> emptyPage = new PageImpl<>(emptyList, PageRequest.of(0, 10), 0);
+        when(productReviewRepository.findByProductIdAndClientIdAndIsDeletedFalseOrderByCreatedAtDesc(
+                eq(1L), eq(TEST_CLIENT_ID), any(Pageable.class)))
+                .thenReturn(emptyPage);
+        
+        PaginationBaseResponseModel<ProductReview> result = productReviewService.getProductReviewsByProductId(1L, request);
+        assertNotNull(result);
+        assertEquals(0, result.getData().size());
+    }
+
+    @Test
+    @DisplayName("Get Product Reviews By Product ID - Large Page Size (1000)")
+    void getProductReviewsByProductId_LargePageSize_Success() {
+        PaginationBaseRequestModel request = new PaginationBaseRequestModel();
+        request.setStart(0);
+        request.setEnd(1000);
+        
+        List<ProductReview> reviews = Arrays.asList(testProductReview);
+        Page<ProductReview> page = new PageImpl<>(reviews, PageRequest.of(0, 1000), 1);
+        when(productReviewRepository.findByProductIdAndClientIdAndIsDeletedFalseOrderByCreatedAtDesc(
+                eq(1L), eq(TEST_CLIENT_ID), any(Pageable.class)))
+                .thenReturn(page);
+        
+        PaginationBaseResponseModel<ProductReview> result = productReviewService.getProductReviewsByProductId(1L, request);
+        assertNotNull(result);
+    }
+
+    // ==================== Additional SetProductReviewScore Tests ====================
+
+    @Test
+    @DisplayName("Set Product Review Score - Negative ID - Not Found")
+    void setProductReviewScore_NegativeId_ThrowsNotFoundException() {
+        when(productReviewRepository.findByReviewIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productReviewService.setProductReviewScore(-1L, true));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Set Product Review Score - Zero ID - Not Found")
+    void setProductReviewScore_ZeroId_ThrowsNotFoundException() {
+        when(productReviewRepository.findByReviewIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productReviewService.setProductReviewScore(0L, true));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Set Product Review Score - Max Long ID - Not Found")
+    void setProductReviewScore_MaxLongId_ThrowsNotFoundException() {
+        when(productReviewRepository.findByReviewIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productReviewService.setProductReviewScore(Long.MAX_VALUE, true));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Set Product Review Score - Mark Helpful Multiple Times")
+    void setProductReviewScore_MarkHelpfulMultipleTimes_StateUpdates() {
+        testProductReview.setHelpfulCount(0);
+        when(productReviewRepository.findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID))
+                .thenReturn(testProductReview);
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+        
+        productReviewService.setProductReviewScore(TEST_REVIEW_ID, true);
+        assertEquals(1, testProductReview.getHelpfulCount());
+        
+        productReviewService.setProductReviewScore(TEST_REVIEW_ID, true);
+        assertEquals(2, testProductReview.getHelpfulCount());
+    }
+
+    @Test
+    @DisplayName("Set Product Review Score - Mark Not Helpful Multiple Times")
+    void setProductReviewScore_MarkNotHelpfulMultipleTimes_StateUpdates() {
+        testProductReview.setNotHelpfulCount(0);
+        when(productReviewRepository.findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID))
+                .thenReturn(testProductReview);
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+        
+        productReviewService.setProductReviewScore(TEST_REVIEW_ID, false);
+        assertEquals(1, testProductReview.getNotHelpfulCount());
+        
+        productReviewService.setProductReviewScore(TEST_REVIEW_ID, false);
+        assertEquals(2, testProductReview.getNotHelpfulCount());
+    }
 }

@@ -12,12 +12,11 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class LatestTestResultResponseModel {
-    
+
     private Long latestTestResultId;
     private String serviceName;
     private String testClassName;
     private String testMethodName;
-    private String displayName;
     private String status;
     private Integer durationMs;
     private String errorMessage;
@@ -28,16 +27,15 @@ public class LatestTestResultResponseModel {
     private LocalDateTime lastRunAt;
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
-    
+
     public LatestTestResultResponseModel() {
     }
-    
+
     public LatestTestResultResponseModel(LatestTestResult result) {
         this.latestTestResultId = result.getLatestTestResultId();
         this.serviceName = result.getServiceName();
         this.testClassName = result.getTestClassName();
         this.testMethodName = result.getTestMethodName();
-        this.displayName = result.getDisplayName();
         this.status = result.getStatus();
         this.durationMs = result.getDurationMs();
         this.errorMessage = result.getErrorMessage();

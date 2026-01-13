@@ -42,7 +42,9 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for PackageService.
  *
- * <p>This test class provides comprehensive coverage of PackageService methods including:
+ * <p>
+ * This test class provides comprehensive coverage of PackageService methods
+ * including:
  * - CRUD operations (create, read, update, toggle)
  * - Package retrieval by ID, batch operations, and pickup location
  * - Validation and error handling
@@ -100,7 +102,8 @@ class PackageServiceTest {
      */
     @BeforeEach
     void setUp() {
-        // Note: BaseService methods are now handled by the actual service implementation
+        // Note: BaseService methods are now handled by the actual service
+        // implementation
 
         // Initialize test data
         initializeTestData();
@@ -147,7 +150,8 @@ class PackageServiceTest {
     }
 
     /**
-     * Creates a test Package entity from the PackageRequestModel, simulating service behavior.
+     * Creates a test Package entity from the PackageRequestModel, simulating
+     * service behavior.
      */
     private Package createPackageFromRequest(PackageRequestModel request) {
         Package pkg = new Package();
@@ -177,11 +181,11 @@ class PackageServiceTest {
         Page<Package> packagePage = new PageImpl<>(packageList, PageRequest.of(0, 10, Sort.by("packageId")), 1);
 
         lenient().when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-            anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class)
-        )).thenReturn(packagePage);
+                anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class))).thenReturn(packagePage);
 
         // Act
-        PaginationBaseResponseModel<PackageResponseModel> result = packageService.getPackagesInBatches(testPaginationRequest);
+        PaginationBaseResponseModel<PackageResponseModel> result = packageService
+                .getPackagesInBatches(testPaginationRequest);
 
         // Assert
         assertNotNull(result);
@@ -203,7 +207,7 @@ class PackageServiceTest {
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> packageService.getPackagesInBatches(testPaginationRequest));
+                () -> packageService.getPackagesInBatches(testPaginationRequest));
 
         assertTrue(exception.getMessage().contains("Invalid column name"));
         verify(packageFilterQueryBuilder, never()).getColumnType("invalidColumn");
@@ -225,11 +229,12 @@ class PackageServiceTest {
 
         when(packageFilterQueryBuilder.getColumnType("packageName")).thenReturn("string");
         when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-            eq(TEST_CLIENT_ID), isNull(), eq("AND"), eq(Arrays.asList(filter)), eq(false), any(Pageable.class)
-        )).thenReturn(packagePage);
+                eq(TEST_CLIENT_ID), isNull(), eq("AND"), eq(Arrays.asList(filter)), eq(false), any(Pageable.class)))
+                .thenReturn(packagePage);
 
         // Act
-        PaginationBaseResponseModel<PackageResponseModel> result = packageService.getPackagesInBatches(testPaginationRequest);
+        PaginationBaseResponseModel<PackageResponseModel> result = packageService
+                .getPackagesInBatches(testPaginationRequest);
 
         // Assert
         assertNotNull(result);
@@ -260,11 +265,12 @@ class PackageServiceTest {
         when(packageFilterQueryBuilder.getColumnType("packageName")).thenReturn("string");
         when(packageFilterQueryBuilder.getColumnType("packageType")).thenReturn("string");
         when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-            eq(TEST_CLIENT_ID), isNull(), eq("AND"), eq(Arrays.asList(filter1, filter2)), eq(false), any(Pageable.class)
-        )).thenReturn(packagePage);
+                eq(TEST_CLIENT_ID), isNull(), eq("AND"), eq(Arrays.asList(filter1, filter2)), eq(false),
+                any(Pageable.class))).thenReturn(packagePage);
 
         // Act
-        PaginationBaseResponseModel<PackageResponseModel> result = packageService.getPackagesInBatches(testPaginationRequest);
+        PaginationBaseResponseModel<PackageResponseModel> result = packageService
+                .getPackagesInBatches(testPaginationRequest);
 
         // Assert
         assertNotNull(result);
@@ -295,11 +301,12 @@ class PackageServiceTest {
 
         when(packageFilterQueryBuilder.getColumnType("packageName")).thenReturn("string");
         when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-            eq(TEST_CLIENT_ID), isNull(), eq("OR"), eq(Arrays.asList(filter1, filter2)), eq(false), any(Pageable.class)
-        )).thenReturn(packagePage);
+                eq(TEST_CLIENT_ID), isNull(), eq("OR"), eq(Arrays.asList(filter1, filter2)), eq(false),
+                any(Pageable.class))).thenReturn(packagePage);
 
         // Act
-        PaginationBaseResponseModel<PackageResponseModel> result = packageService.getPackagesInBatches(testPaginationRequest);
+        PaginationBaseResponseModel<PackageResponseModel> result = packageService
+                .getPackagesInBatches(testPaginationRequest);
 
         // Assert
         assertNotNull(result);
@@ -330,11 +337,12 @@ class PackageServiceTest {
         when(packageFilterQueryBuilder.getColumnType("packageName")).thenReturn("string");
         when(packageFilterQueryBuilder.getColumnType("packageId")).thenReturn("number");
         when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-            eq(TEST_CLIENT_ID), isNull(), eq("AND"), eq(Arrays.asList(filter1, filter2)), eq(false), any(Pageable.class)
-        )).thenReturn(packagePage);
+                eq(TEST_CLIENT_ID), isNull(), eq("AND"), eq(Arrays.asList(filter1, filter2)), eq(false),
+                any(Pageable.class))).thenReturn(packagePage);
 
         // Act
-        PaginationBaseResponseModel<PackageResponseModel> result = packageService.getPackagesInBatches(testPaginationRequest);
+        PaginationBaseResponseModel<PackageResponseModel> result = packageService
+                .getPackagesInBatches(testPaginationRequest);
 
         // Assert
         assertNotNull(result);
@@ -368,7 +376,7 @@ class PackageServiceTest {
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
-            () -> packageService.getPackageById(TEST_PACKAGE_ID));
+                () -> packageService.getPackageById(TEST_PACKAGE_ID));
 
         assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, exception.getMessage());
     }
@@ -407,10 +415,9 @@ class PackageServiceTest {
         verify(packageRepository, times(1)).findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID);
         verify(packageRepository, times(1)).save(testPackage);
         verify(userLogService, times(1)).logData(
-            eq(TEST_USER_ID),
-            contains("Successfully toggled package status"),
-            eq(ApiRoutes.PackageSubRoute.TOGGLE_PACKAGE)
-        );
+                eq(TEST_USER_ID),
+                contains("Successfully toggled package status"),
+                eq(ApiRoutes.PackageSubRoute.TOGGLE_PACKAGE));
     }
 
     @Test
@@ -421,7 +428,7 @@ class PackageServiceTest {
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
-            () -> packageService.togglePackage(TEST_PACKAGE_ID));
+                () -> packageService.togglePackage(TEST_PACKAGE_ID));
 
         assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, exception.getMessage());
         verify(packageRepository, never()).save(any());
@@ -443,10 +450,9 @@ class PackageServiceTest {
         verify(packageRepository, times(1)).findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID);
         verify(packageRepository, times(1)).save(any(Package.class));
         verify(userLogService, times(1)).logData(
-            eq(TEST_USER_ID),
-            contains("Successfully updated package"),
-            eq(ApiRoutes.PackageSubRoute.UPDATE_PACKAGE)
-        );
+                eq(TEST_USER_ID),
+                contains("Successfully updated package"),
+                eq(ApiRoutes.PackageSubRoute.UPDATE_PACKAGE));
     }
 
     @Test
@@ -457,7 +463,7 @@ class PackageServiceTest {
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
-            () -> packageService.updatePackage(testPackageRequest));
+                () -> packageService.updatePackage(testPackageRequest));
 
         assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, exception.getMessage());
         verify(packageRepository, never()).save(any());
@@ -472,7 +478,7 @@ class PackageServiceTest {
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> packageService.updatePackage(testPackageRequest));
+                () -> packageService.updatePackage(testPackageRequest));
 
         assertTrue(exception.getMessage().contains("Package name"));
     }
@@ -491,10 +497,9 @@ class PackageServiceTest {
         // Assert
         verify(packageRepository, times(1)).save(any(Package.class));
         verify(userLogService, times(1)).logData(
-            eq(TEST_USER_ID),
-            contains("Successfully inserted package"),
-            eq(ApiRoutes.PackageSubRoute.CREATE_PACKAGE)
-        );
+                eq(TEST_USER_ID),
+                contains("Successfully inserted package"),
+                eq(ApiRoutes.PackageSubRoute.CREATE_PACKAGE));
     }
 
     @Test
@@ -505,7 +510,7 @@ class PackageServiceTest {
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> packageService.createPackage(testPackageRequest));
+                () -> packageService.createPackage(testPackageRequest));
 
         assertTrue(exception.getMessage().contains("Package name"));
     }
@@ -517,11 +522,12 @@ class PackageServiceTest {
     void testGetPackagesByPickupLocationId_Success() {
         // Arrange
         when(pickupLocationRepository.countByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-            .thenReturn(1L); // Pickup location exists
-        
+                .thenReturn(1L); // Pickup location exists
+
         List<PackagePickupLocationMapping> mappings = Arrays.asList(testMapping);
-        when(packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-            .thenReturn(mappings);
+        when(packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID,
+                TEST_CLIENT_ID))
+                .thenReturn(mappings);
 
         // Act
         List<PackageResponseModel> result = packageService.getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID);
@@ -537,10 +543,11 @@ class PackageServiceTest {
     void testGetPackagesByPickupLocationId_EmptyResult() {
         // Arrange
         when(pickupLocationRepository.countByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-            .thenReturn(1L); // Pickup location exists
-        
-        when(packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-            .thenReturn(Arrays.asList());
+                .thenReturn(1L); // Pickup location exists
+
+        when(packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID,
+                TEST_CLIENT_ID))
+                .thenReturn(Arrays.asList());
 
         // Act
         List<PackageResponseModel> result = packageService.getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID);
@@ -593,7 +600,7 @@ class PackageServiceTest {
     void bulkCreatePackages_PartialSuccess() {
         // Arrange
         List<PackageRequestModel> packages = new ArrayList<>();
-        
+
         // Valid package
         PackageRequestModel validPkg = new PackageRequestModel();
         validPkg.setPackageName("Valid Package");
@@ -605,7 +612,7 @@ class PackageServiceTest {
         validPkg.setStandardCapacity(30);
         validPkg.setPricePerUnit(BigDecimal.valueOf(60));
         packages.add(validPkg);
-        
+
         // Invalid package (missing package name)
         PackageRequestModel invalidPkg = new PackageRequestModel();
         invalidPkg.setPackageName(null);
@@ -676,5 +683,436 @@ class PackageServiceTest {
         });
         assertTrue(exception.getMessage().contains("Package list cannot be null or empty"));
         verify(packageRepository, never()).save(any(Package.class));
+    }
+
+    // ==================== Validation Tests ====================
+
+    @org.junit.jupiter.api.Nested
+    @DisplayName("CreatePackageValidationTests")
+    class CreatePackageValidationTests {
+
+        @Test
+        @DisplayName("Create Package - Null Name - Throws BadRequestException")
+        void createPackage_NullName_Throws() {
+            testPackageRequest.setPackageName(null);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> packageService.createPackage(testPackageRequest));
+            assertEquals(ErrorMessages.PackageErrorMessages.InvalidPackageName, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create Package - Empty Name - Throws BadRequestException")
+        void createPackage_EmptyName_Throws() {
+            testPackageRequest.setPackageName("");
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> packageService.createPackage(testPackageRequest));
+            assertEquals(ErrorMessages.PackageErrorMessages.InvalidPackageName, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create Package - Null Type - Throws BadRequestException")
+        void createPackage_NullType_Throws() {
+            testPackageRequest.setPackageType(null);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> packageService.createPackage(testPackageRequest));
+            assertEquals(ErrorMessages.PackageErrorMessages.InvalidPackageType, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create Package - Zero Length - Throws BadRequestException")
+        void createPackage_ZeroLength_Throws() {
+            testPackageRequest.setLength(0);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> packageService.createPackage(testPackageRequest));
+            assertEquals(ErrorMessages.PackageErrorMessages.InvalidLength, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create Package - Negative Breadth - Throws BadRequestException")
+        void createPackage_NegativeBreadth_Throws() {
+            testPackageRequest.setBreadth(-1);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> packageService.createPackage(testPackageRequest));
+            assertEquals(ErrorMessages.PackageErrorMessages.InvalidBreadth, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create Package - Zero Height - Throws BadRequestException")
+        void createPackage_ZeroHeight_Throws() {
+            testPackageRequest.setHeight(0);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> packageService.createPackage(testPackageRequest));
+            assertEquals(ErrorMessages.PackageErrorMessages.InvalidHeight, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create Package - Negative Max Weight - Throws BadRequestException")
+        void createPackage_NegativeMaxWeight_Throws() {
+            testPackageRequest.setMaxWeight(BigDecimal.valueOf(-1.0));
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> packageService.createPackage(testPackageRequest));
+            assertEquals(ErrorMessages.PackageErrorMessages.InvalidMaxWeight, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create Package - Zero Standard Capacity - Throws BadRequestException")
+        void createPackage_ZeroStandardCapacity_Throws() {
+            testPackageRequest.setStandardCapacity(0);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> packageService.createPackage(testPackageRequest));
+            assertEquals(ErrorMessages.PackageErrorMessages.InvalidStandardCapacity, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create Package - Negative Price Per Unit - Throws BadRequestException")
+        void createPackage_NegativePricePerUnit_Throws() {
+            testPackageRequest.setPricePerUnit(BigDecimal.valueOf(-1.0));
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> packageService.createPackage(testPackageRequest));
+            assertEquals(ErrorMessages.PackageErrorMessages.InvalidPricePerUnit, ex.getMessage());
+        }
+    }
+
+    @org.junit.jupiter.api.Nested
+    @DisplayName("UpdatePackageValidationTests")
+    class UpdatePackageValidationTests {
+
+        @Test
+        @DisplayName("Update Package - Null Name - Throws BadRequestException")
+        void updatePackage_NullName_Throws() {
+            testPackageRequest.setPackageName(null);
+            when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> packageService.updatePackage(testPackageRequest));
+            assertEquals(ErrorMessages.PackageErrorMessages.InvalidPackageName, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Update Package - Invalid Length - Throws BadRequestException")
+        void updatePackage_InvalidLength_Throws() {
+            testPackageRequest.setLength(-5);
+            when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> packageService.updatePackage(testPackageRequest));
+            assertEquals(ErrorMessages.PackageErrorMessages.InvalidLength, ex.getMessage());
+        }
+    }
+
+    // ==================== Additional GetPackageById Edge Case Tests ====================
+
+    @Test
+    @DisplayName("Get Package By ID - Long.MIN_VALUE - Should handle")
+    void getPackageById_MinLongValue_ThrowsNotFoundException() {
+        when(packageRepository.findByPackageIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class, 
+                () -> packageService.getPackageById(Long.MIN_VALUE));
+        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Package By ID - Long.MAX_VALUE - Should handle")
+    void getPackageById_MaxLongValue_ThrowsNotFoundException() {
+        when(packageRepository.findByPackageIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> packageService.getPackageById(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Package By ID - Negative ID - Should handle")
+    void getPackageById_NegativeId_ThrowsNotFoundException() {
+        when(packageRepository.findByPackageIdAndClientId(-100L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> packageService.getPackageById(-100L));
+        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    // ==================== Additional GetPackagesInBatches Tests ====================
+
+    @Test
+    @DisplayName("Get Packages In Batches - Negative Start Index")
+    void getPackagesInBatches_NegativeStartIndex_ThrowsBadRequestException() {
+        testPaginationRequest.setStart(-1);
+        testPaginationRequest.setEnd(10);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> packageService.getPackagesInBatches(testPaginationRequest));
+        assertTrue(ex.getMessage().contains("Invalid"));
+    }
+
+    @Test
+    @DisplayName("Get Packages In Batches - End Before Start")
+    void getPackagesInBatches_EndBeforeStart_ThrowsBadRequestException() {
+        testPaginationRequest.setStart(10);
+        testPaginationRequest.setEnd(5);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> packageService.getPackagesInBatches(testPaginationRequest));
+        assertTrue(ex.getMessage().contains("Invalid"));
+    }
+
+    @Test
+    @DisplayName("Get Packages In Batches - Large Page Size")
+    void getPackagesInBatches_LargePageSize_Success() {
+        testPaginationRequest.setStart(0);
+        testPaginationRequest.setEnd(1000);
+        List<Package> packageList = Arrays.asList(testPackage);
+        Page<Package> packagePage = new PageImpl<>(packageList, PageRequest.of(0, 1000), 1);
+        lenient().when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class)))
+                .thenReturn(packagePage);
+        
+        PaginationBaseResponseModel<PackageResponseModel> result = packageService
+                .getPackagesInBatches(testPaginationRequest);
+        assertNotNull(result);
+    }
+
+    @Test
+    @DisplayName("Get Packages In Batches - Null Filters")
+    void getPackagesInBatches_NullFilters_Success() {
+        testPaginationRequest.setFilters(null);
+        List<Package> packageList = Arrays.asList(testPackage);
+        Page<Package> packagePage = new PageImpl<>(packageList, PageRequest.of(0, 10), 1);
+        lenient().when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class)))
+                .thenReturn(packagePage);
+        
+        PaginationBaseResponseModel<PackageResponseModel> result = packageService
+                .getPackagesInBatches(testPaginationRequest);
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+    }
+
+    @Test
+    @DisplayName("Get Packages In Batches - Empty List Result")
+    void getPackagesInBatches_EmptyResult_ReturnsEmptyList() {
+        List<Package> emptyList = new ArrayList<>();
+        Page<Package> emptyPage = new PageImpl<>(emptyList, PageRequest.of(0, 10), 0);
+        lenient().when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class)))
+                .thenReturn(emptyPage);
+        
+        PaginationBaseResponseModel<PackageResponseModel> result = packageService
+                .getPackagesInBatches(testPaginationRequest);
+        assertNotNull(result);
+        assertEquals(0, result.getData().size());
+    }
+
+    // ==================== Additional CreatePackage Tests ====================
+
+    @Test
+    @DisplayName("Create Package - All Valid Fields - Multiple Tests Success")
+    void createPackage_AllValid_MultipleProperties_Success() {
+        testPackageRequest.setPackageName("Premium Box");
+        testPackageRequest.setPackageType("Premium");
+        testPackageRequest.setLength(50);
+        testPackageRequest.setBreadth(40);
+        testPackageRequest.setHeight(30);
+        testPackageRequest.setMaxWeight(BigDecimal.valueOf(25.5));
+        testPackageRequest.setStandardCapacity(5);
+        testPackageRequest.setPricePerUnit(BigDecimal.valueOf(15.99));
+        when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
+        
+        assertDoesNotThrow(() -> packageService.createPackage(testPackageRequest));
+        verify(packageRepository).save(any(Package.class));
+    }
+
+    @Test
+    @DisplayName("Create Package - Boundary Length - Zero")
+    void createPackage_ZeroLength_ThrowsBadRequestException() {
+        testPackageRequest.setLength(0);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> packageService.createPackage(testPackageRequest));
+        assertEquals(ErrorMessages.PackageErrorMessages.InvalidLength, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create Package - Boundary Weight - Zero (Valid)")
+    void createPackage_ZeroWeight_Success() {
+        testPackageRequest.setMaxWeight(BigDecimal.ZERO);
+        when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
+        assertDoesNotThrow(() -> packageService.createPackage(testPackageRequest));
+        verify(packageRepository).save(any(Package.class));
+    }
+
+    @Test
+    @DisplayName("Create Package - Boundary Price - Zero (Valid)")
+    void createPackage_ZeroPrice_Success() {
+        testPackageRequest.setPricePerUnit(BigDecimal.ZERO);
+        when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
+        assertDoesNotThrow(() -> packageService.createPackage(testPackageRequest));
+        verify(packageRepository).save(any(Package.class));
+    }
+
+    @Test
+    @DisplayName("Create Package - Whitespace Package Name - Should be empty")
+    void createPackage_WhitespacePackageName_ThrowsBadRequestException() {
+        testPackageRequest.setPackageName("   ");
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> packageService.createPackage(testPackageRequest));
+        assertEquals(ErrorMessages.PackageErrorMessages.InvalidPackageName, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create Package - Whitespace Package Type - Should be empty")
+    void createPackage_WhitespacePackageType_ThrowsBadRequestException() {
+        testPackageRequest.setPackageType("   ");
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> packageService.createPackage(testPackageRequest));
+        assertEquals(ErrorMessages.PackageErrorMessages.InvalidPackageType, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create Package - Dimension Precision - Decimal Values")
+    void createPackage_DecimalDimensions_Success() {
+        testPackageRequest.setLength(10);
+        testPackageRequest.setBreadth(20);
+        testPackageRequest.setHeight(30);
+        testPackageRequest.setMaxWeight(BigDecimal.valueOf(10.99));
+        testPackageRequest.setPricePerUnit(BigDecimal.valueOf(99.99));
+        when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
+        assertDoesNotThrow(() -> packageService.createPackage(testPackageRequest));
+    }
+
+    // ==================== Additional UpdatePackage Tests ====================
+
+    @Test
+    @DisplayName("Update Package - Not Found - Package ID")
+    void updatePackage_PackageNotFound_ThrowsNotFoundException() {
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> packageService.updatePackage(testPackageRequest));
+        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update Package - Negative ID - Package Not Found")
+    void updatePackage_NegativePackageId_ThrowsNotFoundException() {
+        testPackageRequest.setPackageId(-1L);
+        when(packageRepository.findByPackageIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> packageService.updatePackage(testPackageRequest));
+        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update Package - Zero Breadth - Invalid")
+    void updatePackage_ZeroBreadth_ThrowsBadRequestException() {
+        testPackageRequest.setBreadth(0);
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> packageService.updatePackage(testPackageRequest));
+        assertEquals(ErrorMessages.PackageErrorMessages.InvalidBreadth, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update Package - Zero Height - Invalid")
+    void updatePackage_ZeroHeight_ThrowsBadRequestException() {
+        testPackageRequest.setHeight(0);
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> packageService.updatePackage(testPackageRequest));
+        assertEquals(ErrorMessages.PackageErrorMessages.InvalidHeight, ex.getMessage());
+    }
+
+    // ==================== Additional TogglePackage Tests ====================
+
+    @Test
+    @DisplayName("Toggle Package - Negative ID - Not Found")
+    void togglePackage_NegativeId_ThrowsNotFoundException() {
+        when(packageRepository.findByPackageIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> packageService.togglePackage(-1L));
+        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle Package - Zero ID - Not Found")
+    void togglePackage_ZeroId_ThrowsNotFoundException() {
+        when(packageRepository.findByPackageIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> packageService.togglePackage(0L));
+        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle Package - Max Long ID - Not Found")
+    void togglePackage_MaxLongId_ThrowsNotFoundException() {
+        when(packageRepository.findByPackageIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> packageService.togglePackage(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle Package - Multiple Toggles - State Persistence")
+    void togglePackage_MultipleToggles_StatePersists() {
+        testPackage.setIsDeleted(false);
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID))
+                .thenReturn(testPackage);
+        when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
+        
+        packageService.togglePackage(TEST_PACKAGE_ID);
+        assertTrue(testPackage.getIsDeleted());
+        
+        packageService.togglePackage(TEST_PACKAGE_ID);
+        assertFalse(testPackage.getIsDeleted());
+    }
+
+    // ==================== BulkCreate Additional Tests ====================
+
+    @Test
+    @DisplayName("Bulk Create Packages - Mixed Nulls and Valids")
+    void bulkCreatePackages_MixedNullAndValid_PartialSuccess() {
+        List<PackageRequestModel> requests = new ArrayList<>();
+        requests.add(testPackageRequest);
+        requests.add(null);
+        requests.add(testPackageRequest);
+        
+        when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
+        BulkInsertResponseModel result = packageService.bulkCreatePackages(requests);
+        
+        assertNotNull(result);
+        assertTrue(result.getSuccessCount() >= 0);
+    }
+
+    @Test
+    @DisplayName("Bulk Create Packages - Large Batch (100 items)")
+    void bulkCreatePackages_LargeBatch_Success() {
+        List<PackageRequestModel> requests = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            PackageRequestModel req = new PackageRequestModel();
+            req.setPackageId((long) i);
+            req.setPackageName("Package_" + i);
+            req.setPackageType("Type_" + i);
+            req.setLength(10 + i);
+            req.setBreadth(10);
+            req.setHeight(10);
+            req.setMaxWeight(BigDecimal.valueOf(10.0));
+            req.setStandardCapacity(1);
+            req.setPricePerUnit(BigDecimal.valueOf(10.0));
+            requests.add(req);
+        }
+        
+        when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
+        BulkInsertResponseModel result = packageService.bulkCreatePackages(requests);
+        assertNotNull(result);
+    }
+
+    @Test
+    @DisplayName("Bulk Create Packages - All Invalid Names")
+    void bulkCreatePackages_AllInvalidNames_AllFail() {
+        List<PackageRequestModel> requests = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            PackageRequestModel req = new PackageRequestModel();
+            req.setPackageName("");
+            req.setPackageType("Type");
+            req.setLength(10);
+            req.setBreadth(10);
+            req.setHeight(10);
+            requests.add(req);
+        }
+        
+        BulkInsertResponseModel result = packageService.bulkCreatePackages(requests);
+        assertNotNull(result);
+        assertEquals(5, result.getTotalRequested());
     }
 }

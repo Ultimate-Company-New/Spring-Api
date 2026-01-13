@@ -767,4 +767,137 @@ class TodoServiceTest {
         assertEquals(1, result.size());
         assertEquals(testTodo.getTodoId(), result.get(0).getTodoId());
     }
+
+    // ==================== Additional DeleteTodo Tests ====================
+
+    @Test
+    @DisplayName("Delete Todo - Negative ID - Not Found")
+    void deleteTodo_NegativeId_ThrowsNotFoundException() {
+        when(todoRepository.findByTodoIdAndUserId(-1L, TEST_USER_ID)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.deleteTodo(-1L));
+        assertEquals(ErrorMessages.TodoErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Delete Todo - Zero ID - Not Found")
+    void deleteTodo_ZeroId_ThrowsNotFoundException() {
+        when(todoRepository.findByTodoIdAndUserId(0L, TEST_USER_ID)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.deleteTodo(0L));
+        assertEquals(ErrorMessages.TodoErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Delete Todo - Max Long ID - Not Found")
+    void deleteTodo_MaxLongId_ThrowsNotFoundException() {
+        when(todoRepository.findByTodoIdAndUserId(Long.MAX_VALUE, TEST_USER_ID)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.deleteTodo(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.TodoErrorMessages.NotFound, ex.getMessage());
+    }
+
+    // ==================== Additional ToggleTodo Tests ====================
+
+    @Test
+    @DisplayName("Toggle Todo - Negative ID - Not Found")
+    void toggleTodo_NegativeId_ThrowsNotFoundException() {
+        when(todoRepository.findByTodoIdAndUserId(-1L, TEST_USER_ID)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.toggleTodo(-1L));
+        assertEquals(ErrorMessages.TodoErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle Todo - Zero ID - Not Found")
+    void toggleTodo_ZeroId_ThrowsNotFoundException() {
+        when(todoRepository.findByTodoIdAndUserId(0L, TEST_USER_ID)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.toggleTodo(0L));
+        assertEquals(ErrorMessages.TodoErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle Todo - Max Long ID - Not Found")
+    void toggleTodo_MaxLongId_ThrowsNotFoundException() {
+        when(todoRepository.findByTodoIdAndUserId(Long.MAX_VALUE, TEST_USER_ID)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.toggleTodo(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.TodoErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle Todo - Multiple Toggles - State Persistence")
+    void toggleTodo_MultipleToggles_StatePersists() {
+        testTodo.setIsCompleted(false);
+        when(todoRepository.findByTodoIdAndUserId(TEST_TODO_ID, TEST_USER_ID)).thenReturn(Optional.of(testTodo));
+        when(todoRepository.save(any(Todo.class))).thenReturn(testTodo);
+        
+        todoService.toggleTodo(TEST_TODO_ID);
+        assertTrue(testTodo.getIsCompleted());
+        
+        todoService.toggleTodo(TEST_TODO_ID);
+        assertFalse(testTodo.getIsCompleted());
+    }
+
+    // ==================== Additional GetTodoById Tests ====================
+
+    @Test
+    @DisplayName("Get Todo By ID - Negative ID - Not Found")
+    void getTodoById_NegativeId_ThrowsNotFoundException() {
+        when(todoRepository.findByTodoIdAndUserId(-1L, TEST_USER_ID)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.getTodoById(-1L));
+        assertEquals(ErrorMessages.TodoErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Todo By ID - Zero ID - Not Found")
+    void getTodoById_ZeroId_ThrowsNotFoundException() {
+        when(todoRepository.findByTodoIdAndUserId(0L, TEST_USER_ID)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.getTodoById(0L));
+        assertEquals(ErrorMessages.TodoErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Todo By ID - Long.MAX_VALUE - Not Found")
+    void getTodoById_MaxLongId_ThrowsNotFoundException() {
+        when(todoRepository.findByTodoIdAndUserId(Long.MAX_VALUE, TEST_USER_ID)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.getTodoById(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.TodoErrorMessages.NotFound, ex.getMessage());
+    }
+
+    // ==================== Additional AddTodo Edge Cases Tests ====================
+
+    @Test
+    @DisplayName("Add Todo - Task at Max Length (500) - Success")
+    void addTodo_TaskMaxLength_Success() {
+        validRequest.setTask("T".repeat(500));
+        when(todoRepository.save(any(Todo.class))).thenReturn(testTodo);
+        
+        assertDoesNotThrow(() -> todoService.addTodo(validRequest));
+        verify(todoRepository, times(1)).save(any(Todo.class));
+    }
+
+    @Test
+    @DisplayName("Add Todo - Task with Special Characters - Success")
+    void addTodo_SpecialCharacters_Success() {
+        validRequest.setTask("Test!@#$%^&*()_+-=[]{}|;':,.<>?");
+        when(todoRepository.save(any(Todo.class))).thenReturn(testTodo);
+        
+        assertDoesNotThrow(() -> todoService.addTodo(validRequest));
+        verify(todoRepository, times(1)).save(any(Todo.class));
+    }
+
+    @Test
+    @DisplayName("Add Todo - Task with Numbers - Success")
+    void addTodo_WithNumbers_Success() {
+        validRequest.setTask("Todo 123 456 789");
+        when(todoRepository.save(any(Todo.class))).thenReturn(testTodo);
+        
+        assertDoesNotThrow(() -> todoService.addTodo(validRequest));
+        verify(todoRepository, times(1)).save(any(Todo.class));
+    }
 }

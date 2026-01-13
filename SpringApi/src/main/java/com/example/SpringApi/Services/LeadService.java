@@ -41,7 +41,7 @@ import java.util.Arrays;
  * @since 2024-01-15
  */
 @Service
-public class LeadService extends BaseService implements ILeadSubTranslator {    
+public class LeadService extends BaseService implements ILeadSubTranslator {
     private final LeadRepository leadRepository;
     private final AddressRepository addressRepository;
     private final UserLogService userLogService;
@@ -50,11 +50,11 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
 
     @Autowired
     public LeadService(
-        LeadRepository leadRepository, 
-        AddressRepository addressRepository,
-        UserLogService userLogService,
-        LeadFilterQueryBuilder leadFilterQueryBuilder,
-        MessageService messageService) {
+            LeadRepository leadRepository,
+            AddressRepository addressRepository,
+            UserLogService userLogService,
+            LeadFilterQueryBuilder leadFilterQueryBuilder,
+            MessageService messageService) {
         super();
         this.leadRepository = leadRepository;
         this.addressRepository = addressRepository;
@@ -62,18 +62,23 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         this.leadFilterQueryBuilder = leadFilterQueryBuilder;
         this.messageService = messageService;
     }
-    
+
     /**
      * Retrieves leads in paginated batches with optional filtering and sorting.
-     * Supports pagination, sorting by multiple fields, and multi-filter capabilities with AND/OR logic.
+     * Supports pagination, sorting by multiple fields, and multi-filter
+     * capabilities with AND/OR logic.
      * 
-     * Valid columns for filtering: "leadId", "firstName", "lastName", "email", "address", "website",
-     *                               "phone", "companySize", "title", "leadStatus", "company", "annualRevenue",
-     *                               "fax", "isDeleted", "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes"
+     * Valid columns for filtering: "leadId", "firstName", "lastName", "email",
+     * "address", "website",
+     * "phone", "companySize", "title", "leadStatus", "company", "annualRevenue",
+     * "fax", "isDeleted", "createdUser", "modifiedUser", "createdAt", "updatedAt",
+     * "notes"
      * 
-     * @param leadRequestModel The request model containing pagination and filter parameters
+     * @param leadRequestModel The request model containing pagination and filter
+     *                         parameters
      * @return PaginationBaseResponseModel containing paginated lead data
-     * @throws BadRequestException if an invalid column name or filter condition is provided
+     * @throws BadRequestException if an invalid column name or filter condition is
+     *                             provided
      */
     @Override
     public PaginationBaseResponseModel<LeadResponseModel> getLeadsInBatches(LeadRequestModel leadRequestModel) {
@@ -95,26 +100,23 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         // Validate filters if provided
         if (leadRequestModel.hasMultipleFilters()) {
             Set<String> validColumns = new HashSet<>(Arrays.asList(
-                "leadId", "firstName", "lastName", "email", "address", "website",
-                "phone", "companySize", "title", "leadStatus", "company", "annualRevenue",
-                "fax", "isDeleted", "clientId", "addressId", "createdById", "assignedAgentId",
-                "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes"
-            ));
+                    "leadId", "firstName", "lastName", "email", "address", "website",
+                    "phone", "companySize", "title", "leadStatus", "company", "annualRevenue",
+                    "fax", "isDeleted", "clientId", "addressId", "createdById", "assignedAgentId",
+                    "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes"));
 
             for (FilterCondition filter : leadRequestModel.getFilters()) {
                 // Validate column name
                 if (!validColumns.contains(filter.getColumn())) {
                     throw new BadRequestException(
-                        "Invalid column name: " + filter.getColumn() + 
-                        ". Valid columns: " + String.join(", ", validColumns)
-                    );
+                            "Invalid column name: " + filter.getColumn() +
+                                    ". Valid columns: " + String.join(", ", validColumns));
                 }
 
                 // Validate operator
                 if (!filter.isValidOperator()) {
                     throw new BadRequestException(
-                        "Invalid operator: " + filter.getOperator() + " for column: " + filter.getColumn()
-                    );
+                            "Invalid operator: " + filter.getOperator() + " for column: " + filter.getColumn());
                 }
 
                 // Validate operator matches column type
@@ -135,33 +137,33 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         };
 
         // Use the filter query builder for multi-filter support
-        String logicOperator = leadRequestModel.getLogicOperator() != null ? 
-            leadRequestModel.getLogicOperator() : "AND";
-        
+        String logicOperator = leadRequestModel.getLogicOperator() != null ? leadRequestModel.getLogicOperator()
+                : "AND";
+
         // Execute paginated query with clientId filter
         Page<Lead> page = leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-            getClientId(),
-            logicOperator,
-            leadRequestModel.getFilters(),
-            leadRequestModel.isIncludeDeleted(),
-            pageable
-        );
-        
+                getClientId(),
+                logicOperator,
+                leadRequestModel.getFilters(),
+                leadRequestModel.isIncludeDeleted(),
+                pageable);
+
         // Convert Lead entities to LeadResponseModel (relationships already loaded)
         PaginationBaseResponseModel<LeadResponseModel> response = new PaginationBaseResponseModel<>();
         response.setData(page.getContent().stream()
-            .map(LeadResponseModel::new)
-            .toList());
+                .map(LeadResponseModel::new)
+                .toList());
         response.setTotalDataCount(page.getTotalElements());
-        
+
         return response;
-    }    
-    
+    }
+
     /**
      * Retrieves detailed information for a specific lead by ID.
      * 
      * @param leadId The unique identifier of the lead
-     * @return LeadResponseModel with complete details including address and user information
+     * @return LeadResponseModel with complete details including address and user
+     *         information
      */
     @Override
     public LeadResponseModel getLeadDetailsById(Long leadId) {
@@ -169,15 +171,16 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         if (lead == null) {
             throw new NotFoundException(ErrorMessages.LEAD_NOT_FOUND);
         }
-        
+
         return new LeadResponseModel(lead);
     }
-    
+
     /**
      * Retrieves detailed information for a specific lead by email address.
      * 
      * @param email The email address of the lead
-     * @return LeadResponseModel with complete details including address and user information
+     * @return LeadResponseModel with complete details including address and user
+     *         information
      */
     @Override
     public LeadResponseModel getLeadDetailsByEmail(String email) {
@@ -185,10 +188,10 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         if (lead == null) {
             throw new NotFoundException(ErrorMessages.LEAD_NOT_FOUND);
         }
-        
+
         return new LeadResponseModel(lead);
     }
-    
+
     /**
      * Creates a new lead in the system.
      * 
@@ -199,11 +202,11 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
     public void createLead(LeadRequestModel leadRequestModel) {
         createLead(leadRequestModel, getUser(), true);
     }
-    
+
     /**
      * Updates an existing lead with new information.
      * 
-     * @param leadId The unique identifier of the lead to update
+     * @param leadId           The unique identifier of the lead to update
      * @param leadRequestModel The updated lead data
      */
     @Override
@@ -218,30 +221,32 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         if (existingLead == null) {
             throw new NotFoundException(ErrorMessages.LEAD_NOT_FOUND);
         }
-        
+
         // Don't allow updating deleted leads
         if (existingLead.getIsDeleted()) {
             throw new NotFoundException(ErrorMessages.LEAD_NOT_FOUND);
         }
 
-        // Set clientId and createdById from security context/existing lead (not from frontend)
+        // Set clientId and createdById from security context/existing lead (not from
+        // frontend)
         leadRequestModel.setClientId(currentClientId);
         leadRequestModel.setCreatedById(existingLead.getCreatedById()); // Preserve original creator
 
         // Update address
         updateLeadAddress(leadRequestModel, existingLead, authenticatedUser);
 
-        // Use the Lead constructor that handles validation and field mapping for updates
+        // Use the Lead constructor that handles validation and field mapping for
+        // updates
         Lead updatedLead = new Lead(leadRequestModel, authenticatedUser, existingLead);
         leadRepository.save(updatedLead);
 
         // Logging
         userLogService.logData(
-            currentUserId,
-            SuccessMessages.LeadSuccessMessages.UpdateLead + updatedLead.getLeadId(),
-            ApiRoutes.LeadsSubRoute.UPDATE_LEAD);
+                currentUserId,
+                SuccessMessages.LeadSuccessMessages.UpdateLead + updatedLead.getLeadId(),
+                ApiRoutes.LeadsSubRoute.UPDATE_LEAD);
     }
-    
+
     /**
      * Toggles the active status of a lead.
      * 
@@ -254,142 +259,153 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         if (lead == null) {
             throw new NotFoundException(ErrorMessages.LEAD_NOT_FOUND);
         }
-        
+
         // Toggle the deleted status (active/inactive)
         lead.setIsDeleted(!lead.getIsDeleted());
         lead.setModifiedUser(getUser());
-        
+
         leadRepository.save(lead);
 
         // Logging
         userLogService.logData(
-            getUserId(),
-            SuccessMessages.LeadSuccessMessages.ToggleLead + lead.getLeadId(),
-            ApiRoutes.LeadsSubRoute.TOGGLE_LEAD);
+                getUserId(),
+                SuccessMessages.LeadSuccessMessages.ToggleLead + lead.getLeadId(),
+                ApiRoutes.LeadsSubRoute.TOGGLE_LEAD);
     }
 
     /**
-     * Creates multiple leads asynchronously in the system with partial success support.
+     * Creates multiple leads asynchronously in the system with partial success
+     * support.
      * 
-     * This method processes leads in a background thread with the following characteristics:
-     * - Supports partial success: if some leads fail validation, others still succeed
-     * - Sends detailed results to user via message notification after processing completes
-     * - NOT_SUPPORTED: Runs without a transaction to avoid rollback-only issues when individual lead creations fail
+     * This method processes leads in a background thread with the following
+     * characteristics:
+     * - Supports partial success: if some leads fail validation, others still
+     * succeed
+     * - Sends detailed results to user via message notification after processing
+     * completes
+     * - NOT_SUPPORTED: Runs without a transaction to avoid rollback-only issues
+     * when individual lead creations fail
      * 
-     * @param leads List of LeadRequestModel containing the lead data to create
-     * @param requestingUserId The ID of the user making the request (captured from security context)
-     * @param requestingUserLoginName The loginName of the user making the request (captured from security context)
-     * @param requestingClientId The client ID of the user making the request (captured from security context)
+     * @param leads                   List of LeadRequestModel containing the lead
+     *                                data to create
+     * @param requestingUserId        The ID of the user making the request
+     *                                (captured from security context)
+     * @param requestingUserLoginName The loginName of the user making the request
+     *                                (captured from security context)
+     * @param requestingClientId      The client ID of the user making the request
+     *                                (captured from security context)
      */
     @Override
     @org.springframework.scheduling.annotation.Async
     @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
-    public void bulkCreateLeadsAsync(List<LeadRequestModel> leads, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
+    public void bulkCreateLeadsAsync(List<LeadRequestModel> leads, Long requestingUserId,
+            String requestingUserLoginName, Long requestingClientId) {
         try {
             // Validate input
             if (leads == null || leads.isEmpty()) {
-                throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Lead"));
+                throw new BadRequestException(
+                        String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Lead"));
             }
 
-            com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
-                new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+            com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
             response.setTotalRequested(leads.size());
-            
+
             int successCount = 0;
             int failureCount = 0;
-            
+
             // Process each lead individually
             for (LeadRequestModel leadRequest : leads) {
                 try {
-                    // Call createLead with explicit createdUser and shouldLog = false (bulk logs collectively)
+                    // Call createLead with explicit createdUser and shouldLog = false (bulk logs
+                    // collectively)
                     createLead(leadRequest, requestingUserLoginName, false);
-                    
+
                     // If we get here, lead was created successfully
                     // Fetch the created lead to get the leadId
-                    Lead createdLead = leadRepository.findLeadWithDetailsByEmail(leadRequest.getEmail(), requestingClientId);
+                    Lead createdLead = leadRepository.findLeadWithDetailsByEmail(leadRequest.getEmail(),
+                            requestingClientId);
                     if (createdLead != null) {
                         response.addSuccess(leadRequest.getEmail(), createdLead.getLeadId());
                         successCount++;
                     }
-                    
+
                 } catch (BadRequestException bre) {
                     // Validation or business logic error
                     response.addFailure(
-                        leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown", 
-                        bre.getMessage()
-                    );
+                            leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown",
+                            bre.getMessage());
                     failureCount++;
                 } catch (Exception e) {
                     // Unexpected error
                     response.addFailure(
-                        leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown", 
-                        "Error: " + e.getMessage()
-                    );
+                            leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown",
+                            "Error: " + e.getMessage());
                     failureCount++;
                 }
             }
-            
+
             // Log bulk lead creation (using captured context values)
             userLogService.logDataWithContext(
-                requestingUserId,
-                requestingUserLoginName,
-                requestingClientId,
-                SuccessMessages.LeadSuccessMessages.InsertLead + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
-                ApiRoutes.LeadsSubRoute.BULK_CREATE_LEAD
-            );
-            
+                    requestingUserId,
+                    requestingUserLoginName,
+                    requestingClientId,
+                    SuccessMessages.LeadSuccessMessages.InsertLead + " (Bulk: " + successCount + " succeeded, "
+                            + failureCount + " failed)",
+                    ApiRoutes.LeadsSubRoute.BULK_CREATE_LEAD);
+
             response.setSuccessCount(successCount);
             response.setFailureCount(failureCount);
-            
-            // Create a message with the bulk insert results using the helper (using captured context)
+
+            // Create a message with the bulk insert results using the helper (using
+            // captured context)
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
-                response, "Lead", "Leads", "Email", "Lead ID", 
-                messageService, requestingUserId, requestingUserLoginName, requestingClientId
-            );
-            
+                    response, "Lead", "Leads", "Email", "Lead ID",
+                    messageService, requestingUserId, requestingUserLoginName, requestingClientId);
+
         } catch (Exception e) {
             // Still send a message to user about the failure (using captured userId)
-            com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> errorResponse = 
-                new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+            com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> errorResponse = new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
             errorResponse.setTotalRequested(leads != null ? leads.size() : 0);
             errorResponse.setSuccessCount(0);
             errorResponse.setFailureCount(leads != null ? leads.size() : 0);
             errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
-                errorResponse, "Lead", "Leads", "Email", "Lead ID", 
-                messageService, requestingUserId, requestingUserLoginName, requestingClientId
-            );
+                    errorResponse, "Lead", "Leads", "Email", "Lead ID",
+                    messageService, requestingUserId, requestingUserLoginName, requestingClientId);
         }
     }
 
     /**
      * Creates multiple leads synchronously in a single operation (for testing).
-     * This is a synchronous wrapper that processes leads immediately and returns results.
+     * This is a synchronous wrapper that processes leads immediately and returns
+     * results.
      * 
      * @param leads List of LeadRequestModel containing the lead data to create
-     * @return BulkInsertResponseModel containing success/failure details for each lead
+     * @return BulkInsertResponseModel containing success/failure details for each
+     *         lead
      */
     @Override
     @Transactional
-    public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateLeads(List<LeadRequestModel> leads) {
+    public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateLeads(
+            List<LeadRequestModel> leads) {
         // Validate input
         if (leads == null || leads.isEmpty()) {
-            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Lead"));
+            throw new BadRequestException(
+                    String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Lead"));
         }
 
-        com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
-            new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+        com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
         response.setTotalRequested(leads.size());
-        
+
         int successCount = 0;
         int failureCount = 0;
-        
+
         // Process each lead individually
         for (LeadRequestModel leadRequest : leads) {
             try {
                 // Call createLead with current user and shouldLog = false
                 createLead(leadRequest, getUser(), false);
-                
+
                 // If we get here, lead was created successfully
                 // Fetch the created lead to get the leadId
                 Lead createdLead = leadRepository.findLeadWithDetailsByEmail(leadRequest.getEmail(), getClientId());
@@ -397,34 +413,32 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
                     response.addSuccess(leadRequest.getEmail(), createdLead.getLeadId());
                     successCount++;
                 }
-                
+
             } catch (BadRequestException bre) {
                 // Validation or business logic error
                 response.addFailure(
-                    leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown", 
-                    bre.getMessage()
-                );
+                        leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown",
+                        bre.getMessage());
                 failureCount++;
             } catch (Exception e) {
                 // Unexpected error
                 response.addFailure(
-                    leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown", 
-                    "Error: " + e.getMessage()
-                );
+                        leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown",
+                        "Error: " + e.getMessage());
                 failureCount++;
             }
         }
-        
+
         // Log bulk lead creation
         userLogService.logData(
-            getUserId(),
-            SuccessMessages.LeadSuccessMessages.InsertLead + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
-            ApiRoutes.LeadsSubRoute.BULK_CREATE_LEAD
-        );
-        
+                getUserId(),
+                SuccessMessages.LeadSuccessMessages.InsertLead + " (Bulk: " + successCount + " succeeded, "
+                        + failureCount + " failed)",
+                ApiRoutes.LeadsSubRoute.BULK_CREATE_LEAD);
+
         response.setSuccessCount(successCount);
         response.setFailureCount(failureCount);
-        
+
         return response;
     }
 
@@ -432,11 +446,14 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
 
     /**
      * Creates a new lead in the system with explicit createdUser.
-     * This variant is used for async operations where security context is not available.
+     * This variant is used for async operations where security context is not
+     * available.
      * 
      * @param leadRequestModel The lead data to create
-     * @param createdUser The loginName of the user creating this lead (for async operations)
-     * @param shouldLog Whether to log this individual lead creation (false for bulk operations)
+     * @param createdUser      The loginName of the user creating this lead (for
+     *                         async operations)
+     * @param shouldLog        Whether to log this individual lead creation (false
+     *                         for bulk operations)
      * @throws BadRequestException if the lead data is invalid or incomplete
      */
     @Transactional
@@ -449,20 +466,22 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         leadRequestModel.setClientId(currentClientId);
         leadRequestModel.setCreatedById(currentUserId);
 
-        // Create address first
-        Address savedAddress = createLeadAddress(leadRequestModel, createdUser);
+        // Create address first if provided
+        if (leadRequestModel.getAddress() != null) {
+            Address savedAddress = createLeadAddress(leadRequestModel, createdUser);
+            leadRequestModel.setAddressId(savedAddress.getAddressId());
+        }
 
         // Use the Lead constructor that handles validation and field mapping
         Lead lead = new Lead(leadRequestModel, createdUser);
-        lead.setAddressId(savedAddress.getAddressId());
         Lead savedLead = leadRepository.save(lead);
 
         // Log lead creation (skip for bulk operations as they log collectively)
         if (shouldLog) {
             userLogService.logData(
-                currentUserId,
-                SuccessMessages.LeadSuccessMessages.InsertLead + savedLead.getLeadId(),
-                ApiRoutes.LeadsSubRoute.CREATE_LEAD);
+                    currentUserId,
+                    SuccessMessages.LeadSuccessMessages.InsertLead + savedLead.getLeadId(),
+                    ApiRoutes.LeadsSubRoute.CREATE_LEAD);
         }
     }
 
@@ -470,7 +489,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      * Creates address for a lead.
      * 
      * @param leadRequestModel The lead request containing address data
-     * @param createdUser The loginName of the user creating this address
+     * @param createdUser      The loginName of the user creating this address
      * @return The saved Address entity
      */
     private Address createLeadAddress(LeadRequestModel leadRequestModel, String createdUser) {
@@ -481,14 +500,13 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      * Updates address for an existing lead.
      * 
      * @param leadRequestModel The lead request containing address data
-     * @param existingLead The existing lead entity
-     * @param modifiedUser The loginName of the user modifying this address
+     * @param existingLead     The existing lead entity
+     * @param modifiedUser     The loginName of the user modifying this address
      */
     private void updateLeadAddress(LeadRequestModel leadRequestModel, Lead existingLead, String modifiedUser) {
         if (leadRequestModel.getAddress() != null) {
             Address savedAddress = addressRepository.save(
-                new Address(leadRequestModel.getAddress(), modifiedUser, existingLead.getAddress())
-            );
+                    new Address(leadRequestModel.getAddress(), modifiedUser, existingLead.getAddress()));
             existingLead.setAddressId(savedAddress.getAddressId());
         }
     }

@@ -26,7 +26,6 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,8 +34,10 @@ import java.util.stream.Collectors;
 /**
  * Service class for QA endpoint-to-test mapping operations.
  * 
- * This service provides comprehensive information about all public service methods
- * and their associated unit tests. It uses reflection to dynamically scan service
+ * This service provides comprehensive information about all public service
+ * methods
+ * and their associated unit tests. It uses reflection to dynamically scan
+ * service
  * classes and reads test source files from the filesystem to match test methods
  * to service methods based on naming conventions.
  * 
@@ -52,48 +53,71 @@ public class QAService extends BaseService implements IQASubTranslator {
 
     // Package paths for scanning
     private static final String SERVICES_PACKAGE = "com.example.SpringApi.Services";
-    
+
     // Test source file path (relative to project root)
     private static final String TEST_SOURCE_PATH = "src/test/java/com/example/SpringApi/Services/Tests";
-    
+
+    private static final Set<String> EXCLUDED_METHODS = new HashSet<>(Arrays.asList(
+            "equals", "hashCode", "toString", "getClass", "notify", "notifyAll", "wait",
+            "getUser", "getUserId", "getClientId", "getLoginName"));
+
     // Service-to-Controller mapping for API routes
     private static final Map<String, ServiceControllerMapping> SERVICE_MAPPINGS = new LinkedHashMap<>();
 
     static {
         // Initialize service mappings with controller and base path information
-        SERVICE_MAPPINGS.put("AddressService", new ServiceControllerMapping("AddressController", "/api/Address", "AddressServiceTest"));
-        SERVICE_MAPPINGS.put("ClientService", new ServiceControllerMapping("ClientController", "/api/Client", "ClientServiceTest"));
-        SERVICE_MAPPINGS.put("LeadService", new ServiceControllerMapping("LeadController", "/api/Lead", "LeadServiceTest"));
-        SERVICE_MAPPINGS.put("LoginService", new ServiceControllerMapping("LoginController", "/api/Login", "LoginServiceTest"));
-        SERVICE_MAPPINGS.put("MessageService", new ServiceControllerMapping("MessageController", "/api/Message", "MessageServiceTest"));
-        SERVICE_MAPPINGS.put("PackageService", new ServiceControllerMapping("PackageController", "/api/Package", "PackageServiceTest"));
-        SERVICE_MAPPINGS.put("PaymentService", new ServiceControllerMapping("PaymentController", "/api/Payments", "PaymentServiceTest"));
-        SERVICE_MAPPINGS.put("PickupLocationService", new ServiceControllerMapping("PickupLocationController", "/api/PickupLocation", "PickupLocationServiceTest"));
-        SERVICE_MAPPINGS.put("ProductService", new ServiceControllerMapping("ProductController", "/api/Product", "ProductServiceTest"));
-        SERVICE_MAPPINGS.put("ProductReviewService", new ServiceControllerMapping("ProductReviewController", "/api/ProductReview", "ProductReviewServiceTest"));
-        SERVICE_MAPPINGS.put("PromoService", new ServiceControllerMapping("PromoController", "/api/Promo", "PromoServiceTest"));
-        SERVICE_MAPPINGS.put("PurchaseOrderService", new ServiceControllerMapping("PurchaseOrderController", "/api/PurchaseOrder", "PurchaseOrderServiceTest"));
-        SERVICE_MAPPINGS.put("ShipmentService", new ServiceControllerMapping("ShipmentController", "/api/Shipment", "ShipmentServiceTest"));
-        SERVICE_MAPPINGS.put("ShipmentProcessingService", new ServiceControllerMapping("ShippingController", "/api/Shipping", "ShipmentProcessingServiceTest"));
-        SERVICE_MAPPINGS.put("ShippingService", new ServiceControllerMapping("ShippingController", "/api/Shipping", "ShippingServiceTest"));
-        SERVICE_MAPPINGS.put("TodoService", new ServiceControllerMapping("TodoController", "/api/Todo", "TodoServiceTest"));
-        SERVICE_MAPPINGS.put("UserService", new ServiceControllerMapping("UserController", "/api/User", "UserServiceTest"));
-        SERVICE_MAPPINGS.put("UserGroupService", new ServiceControllerMapping("UserGroupController", "/api/UserGroup", "UserGroupServiceTest"));
-        SERVICE_MAPPINGS.put("UserLogService", new ServiceControllerMapping("UserLogController", "/api/UserLog", "UserLogServiceTest"));
+        SERVICE_MAPPINGS.put("AddressService",
+                new ServiceControllerMapping("AddressController", "/api/Address", "AddressServiceTest"));
+        SERVICE_MAPPINGS.put("ClientService",
+                new ServiceControllerMapping("ClientController", "/api/Client", "ClientServiceTest"));
+        SERVICE_MAPPINGS.put("LeadService",
+                new ServiceControllerMapping("LeadController", "/api/Lead", "LeadServiceTest"));
+        SERVICE_MAPPINGS.put("LoginService",
+                new ServiceControllerMapping("LoginController", "/api/Login", "LoginServiceTest"));
+        SERVICE_MAPPINGS.put("MessageService",
+                new ServiceControllerMapping("MessageController", "/api/Message", "MessageServiceTest"));
+        SERVICE_MAPPINGS.put("PackageService",
+                new ServiceControllerMapping("PackageController", "/api/Package", "PackageServiceTest"));
+        SERVICE_MAPPINGS.put("PaymentService",
+                new ServiceControllerMapping("PaymentController", "/api/Payments", "PaymentServiceTest"));
+        SERVICE_MAPPINGS.put("PickupLocationService", new ServiceControllerMapping("PickupLocationController",
+                "/api/PickupLocation", "PickupLocationServiceTest"));
+        SERVICE_MAPPINGS.put("ProductService",
+                new ServiceControllerMapping("ProductController", "/api/Product", "ProductServiceTest"));
+        SERVICE_MAPPINGS.put("ProductReviewService", new ServiceControllerMapping("ProductReviewController",
+                "/api/ProductReview", "ProductReviewServiceTest"));
+        SERVICE_MAPPINGS.put("PromoService",
+                new ServiceControllerMapping("PromoController", "/api/Promo", "PromoServiceTest"));
+        SERVICE_MAPPINGS.put("PurchaseOrderService", new ServiceControllerMapping("PurchaseOrderController",
+                "/api/PurchaseOrder", "PurchaseOrderServiceTest"));
+        SERVICE_MAPPINGS.put("ShipmentService",
+                new ServiceControllerMapping("ShipmentController", "/api/Shipment", "ShipmentServiceTest"));
+        SERVICE_MAPPINGS.put("ShipmentProcessingService",
+                new ServiceControllerMapping("ShippingController", "/api/Shipping", "ShipmentProcessingServiceTest"));
+        SERVICE_MAPPINGS.put("ShippingService",
+                new ServiceControllerMapping("ShippingController", "/api/Shipping", "ShippingServiceTest"));
+        SERVICE_MAPPINGS.put("TodoService",
+                new ServiceControllerMapping("TodoController", "/api/Todo", "TodoServiceTest"));
+        SERVICE_MAPPINGS.put("UserService",
+                new ServiceControllerMapping("UserController", "/api/User", "UserServiceTest"));
+        SERVICE_MAPPINGS.put("UserGroupService",
+                new ServiceControllerMapping("UserGroupController", "/api/UserGroup", "UserGroupServiceTest"));
+        SERVICE_MAPPINGS.put("UserLogService",
+                new ServiceControllerMapping("UserLogController", "/api/UserLog", "UserLogServiceTest"));
     }
 
     // ==================== REPOSITORIES ====================
 
     private static final ContextualLogger logger = ContextualLogger.getLogger(QAService.class);
-    
+
     private final TestRunRepository testRunRepository;
     private final LatestTestResultRepository latestTestResultRepository;
     private final TestExecutorService testExecutorService;
 
     @Autowired
     public QAService(TestRunRepository testRunRepository,
-                     LatestTestResultRepository latestTestResultRepository,
-                     TestExecutorService testExecutorService) {
+            LatestTestResultRepository latestTestResultRepository,
+            TestExecutorService testExecutorService) {
         this.testRunRepository = testRunRepository;
         this.latestTestResultRepository = latestTestResultRepository;
         this.testExecutorService = testExecutorService;
@@ -130,7 +154,8 @@ public class QAService extends BaseService implements IQASubTranslator {
     }
 
     /**
-     * Tracks a class scope while parsing Java source so we can map @Test methods to their declaring class
+     * Tracks a class scope while parsing Java source so we can map @Test methods to
+     * their declaring class
      * (including @Nested inner classes).
      */
     private static class ClassScope {
@@ -147,7 +172,8 @@ public class QAService extends BaseService implements IQASubTranslator {
 
     /**
      * Returns all QA dashboard data in a single response.
-     * Includes services with methods/tests, coverage summary, and available services.
+     * Includes services with methods/tests, coverage summary, and available
+     * services.
      * 
      * @return QADashboardResponseModel with all dashboard data
      */
@@ -155,44 +181,45 @@ public class QAService extends BaseService implements IQASubTranslator {
     public QADashboardResponseModel getDashboardData() {
         // Get all services with their methods, tests, and last run info
         List<QAResponseModel> services = getAllEndpointsWithTests();
-        
+
         // Calculate coverage summary
         int totalMethods = 0;
         int totalMethodsWithCoverage = 0;
         int totalTests = 0;
         List<QADashboardResponseModel.ServiceBreakdownData> serviceBreakdown = new ArrayList<>();
-        
+
         for (QAResponseModel service : services) {
             totalMethods += service.getTotalMethods();
             totalMethodsWithCoverage += service.getMethodsWithCoverage();
             totalTests += service.getTotalTests();
-            
+
             serviceBreakdown.add(new QADashboardResponseModel.ServiceBreakdownData(
-                service.getServiceName(),
-                service.getTotalMethods(),
-                service.getMethodsWithCoverage(),
-                service.getTotalTests(),
-                service.getCoveragePercentage()
-            ));
+                    service.getServiceName(),
+                    service.getTotalMethods(),
+                    service.getMethodsWithCoverage(),
+                    service.getTotalTests(),
+                    service.getCoveragePercentage()));
         }
-        
+
         QADashboardResponseModel.CoverageSummaryData coverageSummary = new QADashboardResponseModel.CoverageSummaryData();
         coverageSummary.setTotalServices(services.size());
         coverageSummary.setTotalMethods(totalMethods);
         coverageSummary.setTotalMethodsWithCoverage(totalMethodsWithCoverage);
         coverageSummary.setTotalTests(totalTests);
-        coverageSummary.setOverallCoveragePercentage(totalMethods > 0 ? 
-            Math.round(((double) totalMethodsWithCoverage / totalMethods) * 100.0 * 100.0) / 100.0 : 0.0);
+        coverageSummary.setOverallCoveragePercentage(totalMethods > 0
+                ? Math.round(((double) totalMethodsWithCoverage / totalMethods) * 100.0 * 100.0) / 100.0
+                : 0.0);
         coverageSummary.setServiceBreakdown(serviceBreakdown);
-        
+
         // Get available services
         List<String> availableServices = new ArrayList<>(SERVICE_MAPPINGS.keySet());
-        
+
         return new QADashboardResponseModel(services, coverageSummary, availableServices);
     }
 
     /**
-     * Returns a comprehensive list of all services with their public methods and associated unit tests.
+     * Returns a comprehensive list of all services with their public methods and
+     * associated unit tests.
      * 
      * @return List of QAResponseModel with full endpoint-to-test mapping
      */
@@ -216,7 +243,8 @@ public class QAService extends BaseService implements IQASubTranslator {
     /**
      * Returns endpoint-to-test mapping for a specific service.
      * 
-     * @param serviceName The name of the service (e.g., "AddressService", "UserService", or just "Address")
+     * @param serviceName The name of the service (e.g., "AddressService",
+     *                    "UserService", or just "Address")
      * @return QAResponseModel for the specified service
      * @throws NotFoundException if the service is not found
      */
@@ -230,7 +258,8 @@ public class QAService extends BaseService implements IQASubTranslator {
 
         ServiceControllerMapping mapping = SERVICE_MAPPINGS.get(normalizedServiceName);
         if (mapping == null) {
-            throw new NotFoundException("Service not found: " + serviceName + ". Available services: " + String.join(", ", SERVICE_MAPPINGS.keySet()));
+            throw new NotFoundException("Service not found: " + serviceName + ". Available services: "
+                    + String.join(", ", SERVICE_MAPPINGS.keySet()));
         }
 
         QAResponseModel serviceInfo = buildServiceInfo(normalizedServiceName, mapping);
@@ -271,8 +300,10 @@ public class QAService extends BaseService implements IQASubTranslator {
         summary.put("totalMethods", totalMethods);
         summary.put("totalMethodsWithCoverage", totalMethodsWithCoverage);
         summary.put("totalTests", totalTests);
-        summary.put("overallCoveragePercentage", totalMethods > 0 ? 
-            Math.round(((double) totalMethodsWithCoverage / totalMethods) * 100.0 * 100.0) / 100.0 : 0.0);
+        summary.put("overallCoveragePercentage",
+                totalMethods > 0
+                        ? Math.round(((double) totalMethodsWithCoverage / totalMethods) * 100.0 * 100.0) / 100.0
+                        : 0.0);
 
         // Add per-service breakdown
         List<Map<String, Object>> serviceBreakdown = new ArrayList<>();
@@ -303,18 +334,20 @@ public class QAService extends BaseService implements IQASubTranslator {
     // ==================== HELPER METHODS ====================
 
     /**
-     * Builds a QAResponseModel for a given service using reflection for service class
+     * Builds a QAResponseModel for a given service using reflection for service
+     * class
      * and filesystem scanning for test files.
      * 
      * @param serviceName The name of the service class
-     * @param mapping The controller mapping information
-     * @return QAResponseModel with method and test information, or null if class not found
+     * @param mapping     The controller mapping information
+     * @return QAResponseModel with method and test information, or null if class
+     *         not found
      */
     private QAResponseModel buildServiceInfo(String serviceName, ServiceControllerMapping mapping) {
         try {
             // Load the service class
             Class<?> serviceClass = Class.forName(SERVICES_PACKAGE + "." + serviceName);
-            
+
             // Read test methods from the test source file
             List<TestMethodInfo> allTestMethods = readTestMethodsFromFile(mapping.testClassName);
 
@@ -324,7 +357,7 @@ public class QAService extends BaseService implements IQASubTranslator {
                 Long clientId = getClientId();
                 if (clientId != null) {
                     List<LatestTestResult> latestResults = latestTestResultRepository
-                        .findByClientIdAndServiceNameOrderByTestMethodNameAsc(clientId, serviceName);
+                            .findByClientIdAndServiceNameOrderByTestMethodNameAsc(clientId, serviceName);
                     for (LatestTestResult result : latestResults) {
                         latestResultsMap.put(result.getTestMethodName(), result);
                     }
@@ -335,28 +368,24 @@ public class QAService extends BaseService implements IQASubTranslator {
 
             // Create service info
             QAResponseModel serviceInfo = new QAResponseModel(
-                serviceName,
-                mapping.controllerName,
-                mapping.basePath,
-                mapping.testClassName
-            );
+                    serviceName,
+                    mapping.controllerName,
+                    mapping.basePath,
+                    mapping.testClassName);
 
-            // Get all public methods from the service class (excluding Object methods and BaseService methods)
-            Set<String> excludedMethods = new HashSet<>(Arrays.asList(
-                "equals", "hashCode", "toString", "getClass", "notify", "notifyAll", "wait",
-                "getUser", "getUserId", "getClientId", "getLoginName"
-            ));
-
+            // Get all public methods from the service class (excluding Object methods and
+            // BaseService methods)
             for (Method method : serviceClass.getDeclaredMethods()) {
                 // Only include public methods that are not excluded
-                if (Modifier.isPublic(method.getModifiers()) && !excludedMethods.contains(method.getName())) {
+                if (Modifier.isPublic(method.getModifiers()) && !EXCLUDED_METHODS.contains(method.getName())) {
                     QAResponseModel.MethodInfo methodInfo = new QAResponseModel.MethodInfo();
                     methodInfo.setMethodName(method.getName());
                     methodInfo.setApiRoute(mapping.basePath + "/" + method.getName());
                     methodInfo.setDescription(extractMethodDescription(method));
 
                     // Find associated unit tests with their display names and last run info
-                    List<QAResponseModel.TestInfo> associatedTests = findAssociatedTests(method.getName(), allTestMethods, latestResultsMap);
+                    List<QAResponseModel.TestInfo> associatedTests = findAssociatedTests(method.getName(),
+                            allTestMethods, latestResultsMap);
                     methodInfo.addUnitTests(associatedTests);
 
                     serviceInfo.addMethod(methodInfo);
@@ -374,31 +403,32 @@ public class QAService extends BaseService implements IQASubTranslator {
      * This method scans the filesystem for the test file and extracts @Test methods
      * along with their @DisplayName annotations.
      * 
-     * @param testClassName The name of the test class file (without .java extension)
+     * @param testClassName The name of the test class file (without .java
+     *                      extension)
      * @return List of TestMethodInfo containing method names and display names
      */
     private List<TestMethodInfo> readTestMethodsFromFile(String testClassName) {
         List<TestMethodInfo> testMethods = new ArrayList<>();
-        
+
         // Try multiple possible paths for the test file
         List<Path> possiblePaths = new ArrayList<>();
-        
+
         // Current working directory based paths
         possiblePaths.add(Paths.get(TEST_SOURCE_PATH, testClassName + ".java"));
         possiblePaths.add(Paths.get("SpringApi", TEST_SOURCE_PATH, testClassName + ".java"));
-        
+
         // Try to find the project root by looking for pom.xml
         Path currentDir = Paths.get(System.getProperty("user.dir"));
         possiblePaths.add(currentDir.resolve(TEST_SOURCE_PATH).resolve(testClassName + ".java"));
         possiblePaths.add(currentDir.resolve("SpringApi").resolve(TEST_SOURCE_PATH).resolve(testClassName + ".java"));
-        
+
         // Also check parent directories
         Path parent = currentDir.getParent();
         if (parent != null) {
             possiblePaths.add(parent.resolve("SpringApi").resolve(TEST_SOURCE_PATH).resolve(testClassName + ".java"));
             possiblePaths.add(parent.resolve(TEST_SOURCE_PATH).resolve(testClassName + ".java"));
         }
-        
+
         Path testFilePath = null;
         for (Path path : possiblePaths) {
             if (Files.exists(path)) {
@@ -406,15 +436,16 @@ public class QAService extends BaseService implements IQASubTranslator {
                 break;
             }
         }
-        
+
         if (testFilePath == null || !Files.exists(testFilePath)) {
             return testMethods; // Return empty list if file doesn't exist
         }
-        
+
         try {
             List<String> lines = Files.readAllLines(testFilePath);
 
-            // Lightweight line-based parser so we can map @Test methods to their declaring class,
+            // Lightweight line-based parser so we can map @Test methods to their declaring
+            // class,
             // including @Nested inner classes (needed for Maven/Surefire selectors).
             Pattern classDeclPattern = Pattern.compile("\\bclass\\s+(\\w+)\\b");
             Pattern displayNamePattern = Pattern.compile("@DisplayName\\(\"([^\"]+)\"\\)");
@@ -439,7 +470,8 @@ public class QAService extends BaseService implements IQASubTranslator {
             for (String rawLine : lines) {
                 String line = rawLine.trim();
 
-                // If a class declaration starts, clear any pending display name (likely class-level @DisplayName)
+                // If a class declaration starts, clear any pending display name (likely
+                // class-level @DisplayName)
                 Matcher classMatcher = classDeclPattern.matcher(line);
                 if (classMatcher.find()) {
                     pendingClassName = classMatcher.group(1);
@@ -482,7 +514,8 @@ public class QAService extends BaseService implements IQASubTranslator {
                     }
                 }
 
-                // If we're in a test annotation block, the next method signature is the test method
+                // If we're in a test annotation block, the next method signature is the test
+                // method
                 if (inTestAnnotationBlock) {
                     Matcher methodMatcher = methodSignaturePattern.matcher(line);
                     if (methodMatcher.find()) {
@@ -491,7 +524,8 @@ public class QAService extends BaseService implements IQASubTranslator {
 
                         String declaringTestClassName = buildDeclaringTestClassName(testClassName, classStack);
 
-                        // Expand @ParameterizedTest + @ValueSource into individual test cases the way Surefire reports them
+                        // Expand @ParameterizedTest + @ValueSource into individual test cases the way
+                        // Surefire reports them
                         if (pendingParameterizedTest && pendingValueSourceCount > 0) {
                             String paramTypes = extractParameterTypesForSurefireName(paramList);
                             for (int i = 1; i <= pendingValueSourceCount; i++) {
@@ -500,14 +534,16 @@ public class QAService extends BaseService implements IQASubTranslator {
                                     String expandedDisplayName = pendingDisplayName != null
                                             ? pendingDisplayName + " [" + i + "]"
                                             : null;
-                                    testMethods.add(new TestMethodInfo(expandedName, expandedDisplayName, declaringTestClassName));
+                                    testMethods.add(new TestMethodInfo(expandedName, expandedDisplayName,
+                                            declaringTestClassName));
                                     foundMethods.add(expandedName);
                                 }
                             }
                         } else {
                             // Normal @Test (or @ParameterizedTest without a detectable @ValueSource)
                             if (!foundMethods.contains(methodName)) {
-                                testMethods.add(new TestMethodInfo(methodName, pendingDisplayName, declaringTestClassName));
+                                testMethods.add(
+                                        new TestMethodInfo(methodName, pendingDisplayName, declaringTestClassName));
                                 foundMethods.add(methodName);
                             }
                         }
@@ -540,16 +576,17 @@ public class QAService extends BaseService implements IQASubTranslator {
                     }
                 }
             }
-            
+
         } catch (IOException e) {
             // If we can't read the file, return empty list
         }
-        
+
         return testMethods;
     }
 
     /**
-     * Parses a @ValueSource annotation string and returns how many values it contains.
+     * Parses a @ValueSource annotation string and returns how many values it
+     * contains.
      * Supports the common pattern: @ValueSource(strings = {"a","b"}) and similar.
      */
     private int parseValueSourceCount(String valueSourceAnnotation) {
@@ -586,7 +623,8 @@ public class QAService extends BaseService implements IQASubTranslator {
     }
 
     /**
-     * Converts a Java parameter list (e.g. "String invalidPostalCode") into the Surefire-reported type list
+     * Converts a Java parameter list (e.g. "String invalidPostalCode") into the
+     * Surefire-reported type list
      * used for parameterized test case names (e.g. "String").
      */
     private String extractParameterTypesForSurefireName(String paramList) {
@@ -602,7 +640,8 @@ public class QAService extends BaseService implements IQASubTranslator {
         String[] params = trimmed.split(",");
         for (String param : params) {
             String p = param.trim();
-            if (p.isEmpty()) continue;
+            if (p.isEmpty())
+                continue;
 
             // Remove leading annotations (best-effort)
             while (p.startsWith("@")) {
@@ -613,14 +652,16 @@ public class QAService extends BaseService implements IQASubTranslator {
                 }
                 p = p.substring(space + 1).trim();
             }
-            if (p.isEmpty()) continue;
+            if (p.isEmpty())
+                continue;
 
             if (p.startsWith("final ")) {
                 p = p.substring("final ".length()).trim();
             }
 
             String[] tokens = p.split("\\s+");
-            if (tokens.length == 0) continue;
+            if (tokens.length == 0)
+                continue;
 
             String typeToken = tokens[0];
             // Remove generic args (best-effort)
@@ -638,7 +679,8 @@ public class QAService extends BaseService implements IQASubTranslator {
     }
 
     /**
-     * Builds a Maven/Surefire-friendly test class selector for the current parsing scope.
+     * Builds a Maven/Surefire-friendly test class selector for the current parsing
+     * scope.
      * Example: "AddressServiceTest$GetAddressByIdTests"
      */
     private String buildDeclaringTestClassName(String outerTestClassName, ArrayDeque<ClassScope> classStack) {
@@ -674,18 +716,18 @@ public class QAService extends BaseService implements IQASubTranslator {
      * Finds unit test methods that are associated with a given service method.
      * Tests are matched based on naming convention: methodName_Result_Outcome
      * 
-     * @param methodName The service method name to find tests for
-     * @param allTestMethods List of all test method info objects
+     * @param methodName       The service method name to find tests for
+     * @param allTestMethods   List of all test method info objects
      * @param latestResultsMap Map of test method name to latest test result
      * @return List of TestInfo that are associated with the service method
      */
-    private List<QAResponseModel.TestInfo> findAssociatedTests(String methodName, List<TestMethodInfo> allTestMethods, 
-                                                                Map<String, LatestTestResult> latestResultsMap) {
+    private List<QAResponseModel.TestInfo> findAssociatedTests(String methodName, List<TestMethodInfo> allTestMethods,
+            Map<String, LatestTestResult> latestResultsMap) {
         List<QAResponseModel.TestInfo> associatedTests = new ArrayList<>();
-        
+
         for (TestMethodInfo testInfo : allTestMethods) {
             String testName = testInfo.methodName;
-            
+
             // Primary pattern: methodName_Result_Outcome (underscore-separated)
             if (testName.startsWith(methodName + "_")) {
                 QAResponseModel.TestInfo qaTestInfo = new QAResponseModel.TestInfo(testName, testInfo.displayName);
@@ -697,8 +739,9 @@ public class QAService extends BaseService implements IQASubTranslator {
                 associatedTests.add(qaTestInfo);
                 continue;
             }
-            
-            // Secondary pattern: methodName followed by uppercase letter (camelCase variant)
+
+            // Secondary pattern: methodName followed by uppercase letter (camelCase
+            // variant)
             if (testName.startsWith(methodName) && testName.length() > methodName.length()) {
                 char nextChar = testName.charAt(methodName.length());
                 if (Character.isUpperCase(nextChar)) {
@@ -712,19 +755,20 @@ public class QAService extends BaseService implements IQASubTranslator {
                 }
             }
         }
-        
+
         return associatedTests;
     }
 
     /**
-     * Extracts a description from a method name by converting camelCase to readable format.
+     * Extracts a description from a method name by converting camelCase to readable
+     * format.
      * 
      * @param method The method to extract description for
      * @return A human-readable description string
      */
     private String extractMethodDescription(Method method) {
         String methodName = method.getName();
-        
+
         StringBuilder description = new StringBuilder();
         for (int i = 0; i < methodName.length(); i++) {
             char c = methodName.charAt(i);
@@ -737,7 +781,7 @@ public class QAService extends BaseService implements IQASubTranslator {
                 description.append(Character.toLowerCase(c));
             }
         }
-        
+
         return description.toString();
     }
 
@@ -770,12 +814,11 @@ public class QAService extends BaseService implements IQASubTranslator {
 
         // Create the test run
         TestRun testRun = new TestRun(
-            request.getServiceName(),
-            request.getRunType() != null ? request.getRunType() : "SERVICE",
-            userId,
-            userName,
-            clientId
-        );
+                request.getServiceName(),
+                request.getRunType() != null ? request.getRunType() : "SERVICE",
+                userId,
+                userName,
+                clientId);
         testRun.setEnvironment(request.getEnvironment() != null ? request.getEnvironment() : "localhost");
 
         // Save the test run first to get the ID
@@ -788,17 +831,16 @@ public class QAService extends BaseService implements IQASubTranslator {
         for (TestRunRequestModel.TestResultData resultData : request.getResults()) {
             // Create and add the result
             TestRunResult result = new TestRunResult(
-                request.getServiceName(),
-                resultData.getMethodName() != null ? resultData.getMethodName() : "",
-                testClassName,
-                resultData.getTestMethodName(),
-                resultData.getDisplayName(),
-                resultData.getStatus(),
-                resultData.getDurationMs() != null ? resultData.getDurationMs() : 0,
-                resultData.getErrorMessage(),
-                resultData.getStackTrace(),
-                clientId
-            );
+                    request.getServiceName(),
+                    resultData.getMethodName() != null ? resultData.getMethodName() : "",
+                    testClassName,
+                    resultData.getTestMethodName(),
+                    resultData.getDisplayName(),
+                    resultData.getStatus(),
+                    resultData.getDurationMs() != null ? resultData.getDurationMs() : 0,
+                    resultData.getErrorMessage(),
+                    resultData.getStackTrace(),
+                    clientId);
             testRun.addResult(result);
 
             // Update or create the latest result entry
@@ -817,7 +859,8 @@ public class QAService extends BaseService implements IQASubTranslator {
     /**
      * Returns the latest test results for a service or all services.
      * 
-     * @param serviceName The service name to filter by (null or empty for all services)
+     * @param serviceName The service name to filter by (null or empty for all
+     *                    services)
      * @return List of LatestTestResultResponseModel
      */
     @Override
@@ -832,24 +875,24 @@ public class QAService extends BaseService implements IQASubTranslator {
                 normalizedServiceName = serviceName + "Service";
             }
             results = latestTestResultRepository.findByClientIdAndServiceNameOrderByTestMethodNameAsc(
-                clientId, normalizedServiceName);
+                    clientId, normalizedServiceName);
         } else {
             results = latestTestResultRepository.findByClientIdOrderByServiceNameAscTestMethodNameAsc(clientId);
         }
 
         return results.stream()
-            .map(LatestTestResultResponseModel::new)
-            .collect(Collectors.toList());
+                .map(LatestTestResultResponseModel::new)
+                .collect(Collectors.toList());
     }
 
     /**
      * Updates or creates a LatestTestResult entry for a test.
      */
-    private void upsertLatestTestResult(TestRunResult result, Long testRunId, Long userId, 
-                                         String userName, Long clientId) {
+    private void upsertLatestTestResult(TestRunResult result, Long testRunId, Long userId,
+            String userName, Long clientId) {
         Optional<LatestTestResult> existingOpt = latestTestResultRepository
-            .findByClientIdAndServiceNameAndTestClassNameAndTestMethodName(
-                clientId, result.getServiceName(), result.getTestClassName(), result.getTestMethodName());
+                .findByClientIdAndServiceNameAndTestClassNameAndTestMethodName(
+                        clientId, result.getServiceName(), result.getTestClassName(), result.getTestMethodName());
 
         if (existingOpt.isPresent()) {
             // Update existing
@@ -859,19 +902,17 @@ public class QAService extends BaseService implements IQASubTranslator {
         } else {
             // Create new
             LatestTestResult newResult = new LatestTestResult(
-                result.getServiceName(),
-                result.getTestClassName(),
-                result.getTestMethodName(),
-                result.getDisplayName(),
-                result.getStatus(),
-                result.getDurationMs(),
-                result.getErrorMessage(),
-                result.getStackTrace(),
-                testRunId,
-                userId,
-                userName,
-                clientId
-            );
+                    result.getServiceName(),
+                    result.getTestClassName(),
+                    result.getTestMethodName(),
+                    result.getStatus(),
+                    result.getDurationMs(),
+                    result.getErrorMessage(),
+                    result.getStackTrace(),
+                    testRunId,
+                    userId,
+                    userName,
+                    clientId);
             latestTestResultRepository.save(newResult);
         }
     }
@@ -891,15 +932,15 @@ public class QAService extends BaseService implements IQASubTranslator {
         if (request == null) {
             throw new BadRequestException("Test execution request cannot be null");
         }
-        
+
         // Generate unique execution ID
         String executionId = UUID.randomUUID().toString();
-        
+
         // Determine test scope and build Maven command
         String testClassName = null;
         String testMethodFilter = null;
         String serviceName = null;
-        
+
         if (Boolean.TRUE.equals(request.getRunAll())) {
             // Run all tests - no filter
             serviceName = "ALL";
@@ -910,86 +951,128 @@ public class QAService extends BaseService implements IQASubTranslator {
                 throw new BadRequestException("testClassName is required when running specific tests");
             }
 
-            // Surefire cannot select an individual parameterized invocation (e.g. method(String)[1]).
-            // If UI passes a parameterized case name, normalize it to the base method name so the tests actually run.
+            // Surefire cannot select an individual parameterized invocation (e.g.
+            // method(String)[1]).
+            // If UI passes a parameterized case name, normalize it to the base method name
+            // so the tests actually run.
             List<String> executableTestNames = request.getTestNames().stream()
-                .filter(Objects::nonNull)
-                .map(this::stripParameterizedSuffix)
-                .distinct()
-                .collect(Collectors.toList());
+                    .filter(Objects::nonNull)
+                    .map(this::stripParameterizedSuffix)
+                    .distinct()
+                    .collect(Collectors.toList());
 
-            // If caller passed the OUTER test class (e.g. AddressServiceTest) but the method lives in a @Nested class,
+            // If caller passed the OUTER test class (e.g. AddressServiceTest) but the
+            // method lives in a @Nested class,
             // resolve to the declaring nested class so surefire can actually find the test.
             if (request.getTestNames().size() == 1 && !testClassName.contains("$")) {
-                String resolvedClass = resolveDeclaringTestClassForTestMethod(testClassName, executableTestNames.get(0));
+                String resolvedClass = resolveDeclaringTestClassForTestMethod(testClassName,
+                        executableTestNames.get(0));
                 if (resolvedClass != null && resolvedClass.contains("$")) {
                     testClassName = resolvedClass;
                 }
             }
 
             testMethodFilter = String.join("+", executableTestNames);
-            serviceName = request.getServiceName() != null ? request.getServiceName() : testClassName;
-        } else if (request.getServiceName() != null && !request.getServiceName().isEmpty()) {
-            // Normalize service name
-            String normalizedServiceName = request.getServiceName();
-            if (!normalizedServiceName.endsWith("Service")) {
-                normalizedServiceName = normalizedServiceName + "Service";
-            }
-            
-            ServiceControllerMapping mapping = SERVICE_MAPPINGS.get(normalizedServiceName);
-            if (mapping == null) {
-                throw new BadRequestException("Unknown service: " + request.getServiceName());
-            }
-            
-            testClassName = mapping.testClassName;
-            serviceName = normalizedServiceName;
-            
-            // If method name specified, filter tests by method prefix
-            if (request.getMethodName() != null && !request.getMethodName().isEmpty()) {
-                // Prefer running the @Nested test class that contains this service method's tests.
-                // This avoids running unrelated tests and works reliably with JUnit5 @Nested suites.
-                String resolvedNestedClass = resolveDeclaringTestClassForServiceMethod(mapping.testClassName, request.getMethodName());
-                if (resolvedNestedClass != null && resolvedNestedClass.contains("$")) {
-                    testClassName = resolvedNestedClass;
-                    testMethodFilter = null; // run the nested class (all tests for that method)
+            serviceName = testClassName;
+        } else if (request.getMethodName() != null && !request.getMethodName().isEmpty()) {
+
+            // 1. Determine Test Class Name
+            if (request.getTestClassName() != null && !request.getTestClassName().isEmpty()) {
+                testClassName = request.getTestClassName();
+                // If serviceName is also provided, use it; otherwise default to class name
+                serviceName = request.getServiceName() != null ? request.getServiceName() : testClassName;
+            } else if (request.getServiceName() != null && !request.getServiceName().isEmpty()) {
+                // Resolve from Service Name
+                String normalizedServiceName = request.getServiceName();
+                if (!normalizedServiceName.endsWith("Service")) {
+                    normalizedServiceName = normalizedServiceName + "Service";
+                }
+                ServiceControllerMapping mapping = SERVICE_MAPPINGS.get(normalizedServiceName);
+                if (mapping == null) {
+                    // Try to guess or fail. For now, assume strict mapping or standard naming
+                    testClassName = normalizedServiceName + "Test";
                 } else {
-                    // Fallback for non-nested test suites: use method-name prefix pattern
-                    testMethodFilter = request.getMethodName() + "_*";
+                    testClassName = mapping.testClassName;
+                }
+                serviceName = normalizedServiceName;
+            } else {
+                throw new BadRequestException(
+                        "Must specify serviceName or testClassName when running tests by method name");
+            }
+
+            String methodName = request.getMethodName();
+
+            // 2. Resolve associated unit tests
+            List<TestMethodInfo> allTestMethods = readTestMethodsFromFile(testClassName);
+            List<QAResponseModel.TestInfo> associatedTests = findAssociatedTests(methodName, allTestMethods,
+                    Collections.emptyMap());
+
+            if (associatedTests.isEmpty()) {
+                throw new BadRequestException(
+                        "No tests found for method: " + methodName + " in class " + testClassName);
+            }
+
+            // 3. Construct Surefire Filter
+            // Strip parameterized suffixes and get unique test names
+            List<String> executableTestNames = associatedTests.stream()
+                    .map(QAResponseModel.TestInfo::getTestMethodName)
+                    .map(this::stripParameterizedSuffix)
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            // If all tests are in a nested class, resolve to that nested class
+            // Check if we have a single nested class for all tests
+            String declaringClass = associatedTests.stream()
+                    .map(QAResponseModel.TestInfo::getDeclaringTestClassName)
+                    .filter(dcn -> dcn != null && dcn.contains("$"))
+                    .findFirst()
+                    .orElse(null);
+
+            if (declaringClass != null && !testClassName.contains("$")) {
+                // All tests are in a nested class, update testClassName to run that specific
+                // class
+                // But surefire -Dtest=Outer$Nested means we run everything in nested.
+                // If we also provide method names, we do -Dtest=Outer$Nested#method1+method2
+                testClassName = declaringClass;
+            } else if (associatedTests.size() == 1 && !testClassName.contains("$")) {
+                // Single test - resolve its declaring class
+                String resolvedClass = associatedTests.get(0).getDeclaringTestClassName();
+                if (resolvedClass != null && resolvedClass.contains("$")) {
+                    testClassName = resolvedClass;
                 }
             }
+
+            testMethodFilter = String.join("+", executableTestNames);
         } else {
-            throw new BadRequestException("Must specify runAll, serviceName, or testNames");
+            throw new BadRequestException("Must specify runAll, testNames, or methodName+testClassName");
         }
-        
+
         // Calculate expected test count for progress tracking
-        int expectedTestCount = calculateExpectedTestCount(serviceName, request.getMethodName(), request.getTestNames());
-        
+        int expectedTestCount = calculateExpectedTestCount(serviceName, request.getMethodName(),
+                request.getTestNames());
+
         // Create initial status
-        TestExecutionStatusModel status = new TestExecutionStatusModel();
-        status.setExecutionId(executionId);
-        status.setStatus("PENDING");
-        status.setServiceName(serviceName);
-        status.setMethodName(request.getMethodName());
-        status.setStartedAt(LocalDateTime.now());
-        status.setTotalTests(expectedTestCount);
-        status.setCompletedTests(0);
-        
+        TestExecutionStatusModel status = new TestExecutionStatusModel(executionId, serviceName,
+                request.getMethodName(), expectedTestCount);
+
         // Store in TestExecutorService (separate service so @Async works)
         testExecutorService.storeStatus(executionId, status);
-        
+
         // Start async execution in separate service (returns immediately)
         testExecutorService.executeTestsAsync(executionId, testClassName, testMethodFilter, serviceName);
-        
+
         return status;
     }
 
     /**
-     * Resolves the declaring test class selector for tests associated with a given service method.
-     * For @Nested test suites, this returns something like "AddressServiceTest$GetAddressByIdTests".
+     * Resolves the declaring test class selector for tests associated with a given
+     * service method.
+     * For @Nested test suites, this returns something like
+     * "AddressServiceTest$GetAddressByIdTests".
      */
     private String resolveDeclaringTestClassForServiceMethod(String outerTestClassName, String serviceMethodName) {
         if (outerTestClassName == null || outerTestClassName.trim().isEmpty()
-            || serviceMethodName == null || serviceMethodName.trim().isEmpty()) {
+                || serviceMethodName == null || serviceMethodName.trim().isEmpty()) {
             return null;
         }
 
@@ -998,11 +1081,13 @@ public class QAService extends BaseService implements IQASubTranslator {
             return null;
         }
 
-        // Collect unique declaring classes for tests matching the naming convention of this service method
+        // Collect unique declaring classes for tests matching the naming convention of
+        // this service method
         Set<String> declaringClasses = new LinkedHashSet<>();
         for (TestMethodInfo testInfo : testMethods) {
             String testName = testInfo.methodName;
-            if (testName == null) continue;
+            if (testName == null)
+                continue;
 
             // Same matching logic as findAssociatedTests()
             boolean matches = testName.startsWith(serviceMethodName + "_");
@@ -1020,7 +1105,8 @@ public class QAService extends BaseService implements IQASubTranslator {
             return null;
         }
 
-        // Prefer a nested selector if present (contains "$"), otherwise return the outer class
+        // Prefer a nested selector if present (contains "$"), otherwise return the
+        // outer class
         for (String cls : declaringClasses) {
             if (cls != null && cls.contains("$")) {
                 return cls;
@@ -1036,7 +1122,7 @@ public class QAService extends BaseService implements IQASubTranslator {
      */
     private String resolveDeclaringTestClassForTestMethod(String outerTestClassName, String testMethodName) {
         if (outerTestClassName == null || outerTestClassName.trim().isEmpty()
-            || testMethodName == null || testMethodName.trim().isEmpty()) {
+                || testMethodName == null || testMethodName.trim().isEmpty()) {
             return null;
         }
 
@@ -1064,7 +1150,7 @@ public class QAService extends BaseService implements IQASubTranslator {
         }
         return testName.replaceAll("\\([^)]*\\)\\[\\d+\\]$", "");
     }
-    
+
     /**
      * Calculates the expected number of tests based on the execution scope.
      */
@@ -1073,44 +1159,44 @@ public class QAService extends BaseService implements IQASubTranslator {
         if (testNames != null && !testNames.isEmpty()) {
             return testNames.size();
         }
-        
+
         // Try to get from dashboard data (which scans test files)
         try {
             QADashboardResponseModel dashboard = getDashboardData();
-            
+
             if ("ALL".equals(serviceName)) {
                 // Count all tests across all services
                 return dashboard.getServices().stream()
-                    .flatMap(s -> s.getMethods().stream())
-                    .mapToInt(QAResponseModel.MethodInfo::getTestCount)
-                    .sum();
+                        .flatMap(s -> s.getMethods().stream())
+                        .mapToInt(QAResponseModel.MethodInfo::getTestCount)
+                        .sum();
             }
-            
+
             // Find the specific service
             QAResponseModel service = dashboard.getServices().stream()
-                .filter(s -> s.getServiceName().equals(serviceName))
-                .findFirst()
-                .orElse(null);
-            
+                    .filter(s -> s.getServiceName().equals(serviceName))
+                    .findFirst()
+                    .orElse(null);
+
             if (service != null) {
                 if (methodName != null && !methodName.isEmpty()) {
                     // Count tests for specific method
                     return service.getMethods().stream()
-                        .filter(m -> m.getMethodName().equals(methodName))
-                        .mapToInt(QAResponseModel.MethodInfo::getTestCount)
-                        .sum();
+                            .filter(m -> m.getMethodName().equals(methodName))
+                            .mapToInt(QAResponseModel.MethodInfo::getTestCount)
+                            .sum();
                 } else {
                     // Count all tests for the service
                     return service.getMethods().stream()
-                        .mapToInt(QAResponseModel.MethodInfo::getTestCount)
-                        .sum();
+                            .mapToInt(QAResponseModel.MethodInfo::getTestCount)
+                            .sum();
                 }
             }
         } catch (Exception e) {
             // If we can't determine, return 0 (will be updated during execution)
             logger.error(e);
         }
-        
+
         return 0;
     }
 

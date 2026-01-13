@@ -18,6 +18,7 @@ import com.example.SpringApi.Services.UserLogService;
 import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -41,7 +42,8 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for PurchaseOrderService.
  *
- * This test class provides comprehensive coverage of PurchaseOrderService methods including:
+ * This test class provides comprehensive coverage of PurchaseOrderService
+ * methods including:
  * - CRUD operations (create, read, update, toggle)
  * - Batch retrieval with pagination and filtering
  * - Approval/rejection workflow
@@ -123,7 +125,8 @@ class PurchaseOrderServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Note: BaseService methods are now handled by the actual service implementation
+        // Note: BaseService methods are now handled by the actual service
+        // implementation
 
         // Initialize test data
         initializeTestData();
@@ -131,7 +134,7 @@ class PurchaseOrderServiceTest {
         // Setup common mocks
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         lenient().when(environment.getProperty("imageLocation")).thenReturn("imgbb");
-        lenient().when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
+        lenient().when(environment.getActiveProfiles()).thenReturn(new String[] { "test" });
     }
 
     // ==================== getPurchaseOrdersInBatches Tests ====================
@@ -149,28 +152,26 @@ class PurchaseOrderServiceTest {
         Page<PurchaseOrder> page = new PageImpl<>(purchaseOrders);
 
         lenient().when(purchaseOrderFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-            anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class)
-        )).thenReturn(page);
+                anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class))).thenReturn(page);
 
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
-            .thenReturn(new ArrayList<>());
-        
+                .thenReturn(new ArrayList<>());
+
         // Mock OrderSummary and Shipments loading
         when(orderSummaryRepository.findByEntityTypeAndEntityId(
-            eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
-            .thenReturn(Optional.empty());
+                eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
+                .thenReturn(Optional.empty());
 
         // Act
-        PaginationBaseResponseModel<PurchaseOrderResponseModel> result = 
-            purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest);
+        PaginationBaseResponseModel<PurchaseOrderResponseModel> result = purchaseOrderService
+                .getPurchaseOrdersInBatches(paginationRequest);
 
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getData().size());
         assertEquals(1L, result.getTotalDataCount());
         verify(purchaseOrderFilterQueryBuilder).findPaginatedEntitiesWithMultipleFilters(
-            anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class)
-        );
+                anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class));
     }
 
     @Test
@@ -190,7 +191,7 @@ class PurchaseOrderServiceTest {
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest));
+                () -> purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest));
 
         assertEquals("Invalid column name: invalidColumn", exception.getMessage());
     }
@@ -215,19 +216,18 @@ class PurchaseOrderServiceTest {
 
         lenient().when(purchaseOrderFilterQueryBuilder.getColumnType("vendorNumber")).thenReturn("string");
         lenient().when(purchaseOrderFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-            anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class)
-        )).thenReturn(page);
+                anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class))).thenReturn(page);
 
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
-            .thenReturn(new ArrayList<>());
-        
+                .thenReturn(new ArrayList<>());
+
         when(orderSummaryRepository.findByEntityTypeAndEntityId(
-            eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
-            .thenReturn(Optional.empty());
+                eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
+                .thenReturn(Optional.empty());
 
         // Act
-        PaginationBaseResponseModel<PurchaseOrderResponseModel> result = 
-            purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest);
+        PaginationBaseResponseModel<PurchaseOrderResponseModel> result = purchaseOrderService
+                .getPurchaseOrdersInBatches(paginationRequest);
 
         // Assert
         assertNotNull(result);
@@ -262,19 +262,18 @@ class PurchaseOrderServiceTest {
         lenient().when(purchaseOrderFilterQueryBuilder.getColumnType("vendorNumber")).thenReturn("string");
         when(purchaseOrderFilterQueryBuilder.getColumnType("purchaseOrderStatus")).thenReturn("string");
         lenient().when(purchaseOrderFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-            anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class)
-        )).thenReturn(page);
+                anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class))).thenReturn(page);
 
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
-            .thenReturn(new ArrayList<>());
-        
+                .thenReturn(new ArrayList<>());
+
         when(orderSummaryRepository.findByEntityTypeAndEntityId(
-            eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
-            .thenReturn(Optional.empty());
+                eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
+                .thenReturn(Optional.empty());
 
         // Act
-        PaginationBaseResponseModel<PurchaseOrderResponseModel> result = 
-            purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest);
+        PaginationBaseResponseModel<PurchaseOrderResponseModel> result = purchaseOrderService
+                .getPurchaseOrdersInBatches(paginationRequest);
 
         // Assert
         assertNotNull(result);
@@ -309,19 +308,18 @@ class PurchaseOrderServiceTest {
 
         when(purchaseOrderFilterQueryBuilder.getColumnType("purchaseOrderStatus")).thenReturn("string");
         lenient().when(purchaseOrderFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-            anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class)
-        )).thenReturn(page);
+                anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class))).thenReturn(page);
 
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
-            .thenReturn(new ArrayList<>());
-        
+                .thenReturn(new ArrayList<>());
+
         when(orderSummaryRepository.findByEntityTypeAndEntityId(
-            eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
-            .thenReturn(Optional.empty());
+                eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
+                .thenReturn(Optional.empty());
 
         // Act
-        PaginationBaseResponseModel<PurchaseOrderResponseModel> result = 
-            purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest);
+        PaginationBaseResponseModel<PurchaseOrderResponseModel> result = purchaseOrderService
+                .getPurchaseOrdersInBatches(paginationRequest);
 
         // Assert
         assertNotNull(result);
@@ -356,19 +354,18 @@ class PurchaseOrderServiceTest {
         lenient().when(purchaseOrderFilterQueryBuilder.getColumnType("vendorNumber")).thenReturn("string");
         when(purchaseOrderFilterQueryBuilder.getColumnType("purchaseOrderId")).thenReturn("number");
         lenient().when(purchaseOrderFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-            anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class)
-        )).thenReturn(page);
+                anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class))).thenReturn(page);
 
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
-            .thenReturn(new ArrayList<>());
-        
+                .thenReturn(new ArrayList<>());
+
         when(orderSummaryRepository.findByEntityTypeAndEntityId(
-            eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
-            .thenReturn(Optional.empty());
+                eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
+                .thenReturn(Optional.empty());
 
         // Act
-        PaginationBaseResponseModel<PurchaseOrderResponseModel> result = 
-            purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest);
+        PaginationBaseResponseModel<PurchaseOrderResponseModel> result = purchaseOrderService
+                .getPurchaseOrdersInBatches(paginationRequest);
 
         // Assert
         assertNotNull(result);
@@ -396,7 +393,7 @@ class PurchaseOrderServiceTest {
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest));
+                () -> purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest));
 
         assertEquals("Invalid operator: invalidOperator", exception.getMessage());
     }
@@ -411,7 +408,7 @@ class PurchaseOrderServiceTest {
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest));
+                () -> purchaseOrderService.getPurchaseOrdersInBatches(paginationRequest));
 
         assertEquals("Invalid pagination: end must be greater than start", exception.getMessage());
     }
@@ -424,8 +421,9 @@ class PurchaseOrderServiceTest {
         // Arrange
         testPurchaseOrderRequest.setAttachments(null);
 
-        when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
-            .thenReturn(Optional.empty());
+        when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(),
+                any(), any(), any(), any(), any()))
+                .thenReturn(Optional.empty());
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
         when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
         when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
@@ -451,7 +449,8 @@ class PurchaseOrderServiceTest {
         verify(addressRepository, atLeastOnce()).save(any(Address.class));
         verify(purchaseOrderRepository, times(1)).save(any(PurchaseOrder.class));
         verify(orderSummaryRepository, times(1)).save(any(OrderSummary.class));
-        verify(userLogService, times(1)).logDataWithContext(anyLong(), anyString(), anyLong(), anyString(), anyString());
+        verify(userLogService, times(1)).logDataWithContext(anyLong(), anyString(), anyLong(), anyString(),
+                anyString());
     }
 
     @Test
@@ -462,8 +461,10 @@ class PurchaseOrderServiceTest {
         attachments.put("receipt.pdf", "base64-data-here");
         testPurchaseOrderRequest.setAttachments(attachments);
 
-        lenient().when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
-            .thenReturn(Optional.empty());
+        lenient()
+                .when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(),
+                        any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(Optional.empty());
         lenient().when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
         lenient().when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         lenient().when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
@@ -474,27 +475,27 @@ class PurchaseOrderServiceTest {
             s.setShipmentId(shipmentIdSeq.getAndIncrement());
             return s;
         });
-        lenient().when(shipmentProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(shipmentProductRepository.saveAll(anyList()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         AtomicLong shipmentPackageIdSeq = new AtomicLong(1L);
         lenient().when(shipmentPackageRepository.save(any(ShipmentPackage.class))).thenAnswer(invocation -> {
             ShipmentPackage p = invocation.getArgument(0);
             p.setShipmentPackageId(shipmentPackageIdSeq.getAndIncrement());
             return p;
         });
-        lenient().when(shipmentPackageProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(shipmentPackageProductRepository.saveAll(anyList()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(resourcesRepository.save(any(Resources.class))).thenReturn(new Resources());
 
         try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
                 (mock, context) -> {
                     List<ImgbbHelper.AttachmentUploadResult> results = Arrays.asList(
-                        new ImgbbHelper.AttachmentUploadResult(
-                            "https://i.ibb.co/test/receipt.pdf",
-                            "delete-hash-123",
-                            null
-                        )
-                    );
+                            new ImgbbHelper.AttachmentUploadResult(
+                                    "https://i.ibb.co/test/receipt.pdf",
+                                    "delete-hash-123",
+                                    null));
                     when(mock.uploadPurchaseOrderAttachments(anyList(), anyString(), anyString(), anyLong()))
-                        .thenReturn(results);
+                            .thenReturn(results);
                 })) {
 
             // Act
@@ -518,14 +519,15 @@ class PurchaseOrderServiceTest {
         testPurchaseOrderRequest.setAttachments(null);
 
         when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.of(testPurchaseOrder));
-        when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.of(testPurchaseOrder));
+        when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(),
+                any(), any(), any(), any(), any()))
+                .thenReturn(Optional.empty());
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
         when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
         when(orderSummaryRepository.findByEntityTypeAndEntityId(
-            eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
-            .thenReturn(Optional.of(testOrderSummary));
+                eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
+                .thenReturn(Optional.of(testOrderSummary));
         when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
         when(shipmentRepository.findByOrderSummaryId(anyLong())).thenReturn(new ArrayList<>());
         AtomicLong shipmentIdSeq = new AtomicLong(1L);
@@ -543,7 +545,7 @@ class PurchaseOrderServiceTest {
         });
         when(shipmentPackageProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
-            .thenReturn(new ArrayList<>());
+                .thenReturn(new ArrayList<>());
 
         // Act
         assertDoesNotThrow(() -> purchaseOrderService.updatePurchaseOrder(testPurchaseOrderRequest));
@@ -561,11 +563,11 @@ class PurchaseOrderServiceTest {
         // Arrange
         testPurchaseOrderRequest.setPurchaseOrderId(TEST_PO_ID);
         when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
-            () -> purchaseOrderService.updatePurchaseOrder(testPurchaseOrderRequest));
+                () -> purchaseOrderService.updatePurchaseOrder(testPurchaseOrderRequest));
 
         assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, exception.getMessage());
         verify(purchaseOrderRepository, never()).save(any());
@@ -578,14 +580,15 @@ class PurchaseOrderServiceTest {
         testPurchaseOrderRequest.setPurchaseOrderId(TEST_PO_ID);
 
         when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.of(testPurchaseOrder));
+                .thenReturn(Optional.of(testPurchaseOrder));
         when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
-        when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
-            .thenReturn(Optional.empty());
+        when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(),
+                any(), any(), any(), any(), any()))
+                .thenReturn(Optional.empty());
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
         when(orderSummaryRepository.findByEntityTypeAndEntityId(
-            eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
-            .thenReturn(Optional.of(testOrderSummary));
+                eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
+                .thenReturn(Optional.of(testOrderSummary));
         when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
         when(shipmentRepository.findByOrderSummaryId(anyLong())).thenReturn(new ArrayList<>());
         AtomicLong shipmentIdSeq = new AtomicLong(1L);
@@ -603,10 +606,11 @@ class PurchaseOrderServiceTest {
         });
         when(shipmentPackageProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // Make attachments cleanup run the "imgbb" branch and hit clientRepository (which returns empty)
+        // Make attachments cleanup run the "imgbb" branch and hit clientRepository
+        // (which returns empty)
         Resources existingResource = new Resources();
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
-            .thenReturn(Collections.singletonList(existingResource));
+                .thenReturn(Collections.singletonList(existingResource));
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.empty());
 
         // Act & Assert
@@ -620,12 +624,12 @@ class PurchaseOrderServiceTest {
     void getPurchaseOrderDetailsById_Success() {
         // Arrange
         when(purchaseOrderRepository.findByPurchaseOrderIdAndClientIdWithAllRelations(TEST_PO_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.of(testPurchaseOrder));
+                .thenReturn(Optional.of(testPurchaseOrder));
         when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
-            .thenReturn(new ArrayList<>());
+                .thenReturn(new ArrayList<>());
         when(orderSummaryRepository.findByEntityTypeAndEntityId(
-            eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
-            .thenReturn(Optional.of(testOrderSummary));
+                eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
+                .thenReturn(Optional.of(testOrderSummary));
         when(shipmentRepository.findByOrderSummaryId(anyLong())).thenReturn(new ArrayList<>());
 
         // Act
@@ -635,7 +639,7 @@ class PurchaseOrderServiceTest {
         assertNotNull(result);
         assertEquals(TEST_PO_ID, result.getPurchaseOrderId());
         verify(purchaseOrderRepository, times(1))
-            .findByPurchaseOrderIdAndClientIdWithAllRelations(TEST_PO_ID, TEST_CLIENT_ID);
+                .findByPurchaseOrderIdAndClientIdWithAllRelations(TEST_PO_ID, TEST_CLIENT_ID);
     }
 
     @Test
@@ -643,11 +647,11 @@ class PurchaseOrderServiceTest {
     void getPurchaseOrderDetailsById_NotFound() {
         // Arrange
         when(purchaseOrderRepository.findByPurchaseOrderIdAndClientIdWithAllRelations(TEST_PO_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
-            () -> purchaseOrderService.getPurchaseOrderDetailsById(TEST_PO_ID));
+                () -> purchaseOrderService.getPurchaseOrderDetailsById(TEST_PO_ID));
 
         assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, exception.getMessage());
     }
@@ -660,7 +664,7 @@ class PurchaseOrderServiceTest {
         // Arrange
         testPurchaseOrder.setIsDeleted(false);
         when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.of(testPurchaseOrder));
+                .thenReturn(Optional.of(testPurchaseOrder));
         when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
 
         // Act
@@ -678,7 +682,7 @@ class PurchaseOrderServiceTest {
         // Arrange
         testPurchaseOrder.setIsDeleted(true);
         when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.of(testPurchaseOrder));
+                .thenReturn(Optional.of(testPurchaseOrder));
         when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
 
         // Act
@@ -694,11 +698,11 @@ class PurchaseOrderServiceTest {
     void togglePurchaseOrder_NotFound() {
         // Arrange
         when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
-            () -> purchaseOrderService.togglePurchaseOrder(TEST_PO_ID));
+                () -> purchaseOrderService.togglePurchaseOrder(TEST_PO_ID));
 
         assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, exception.getMessage());
         verify(purchaseOrderRepository, never()).save(any());
@@ -712,7 +716,7 @@ class PurchaseOrderServiceTest {
         // Arrange
         testPurchaseOrder.setApprovedByUserId(null);
         when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.of(testPurchaseOrder));
+                .thenReturn(Optional.of(testPurchaseOrder));
         when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
 
         // Act
@@ -730,11 +734,11 @@ class PurchaseOrderServiceTest {
         // Arrange
         testPurchaseOrder.setApprovedByUserId(TEST_USER_ID);
         when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.of(testPurchaseOrder));
+                .thenReturn(Optional.of(testPurchaseOrder));
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> purchaseOrderService.approvedByPurchaseOrder(TEST_PO_ID));
+                () -> purchaseOrderService.approvedByPurchaseOrder(TEST_PO_ID));
 
         assertEquals(ErrorMessages.PurchaseOrderErrorMessages.AlreadyApproved, exception.getMessage());
         verify(purchaseOrderRepository, never()).save(any());
@@ -745,11 +749,11 @@ class PurchaseOrderServiceTest {
     void approvedByPurchaseOrder_NotFound() {
         // Arrange
         when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
-            () -> purchaseOrderService.approvedByPurchaseOrder(TEST_PO_ID));
+                () -> purchaseOrderService.approvedByPurchaseOrder(TEST_PO_ID));
 
         assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, exception.getMessage());
     }
@@ -762,7 +766,7 @@ class PurchaseOrderServiceTest {
         // Arrange
         testPurchaseOrder.setRejectedByUserId(null);
         when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.of(testPurchaseOrder));
+                .thenReturn(Optional.of(testPurchaseOrder));
         when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
 
         // Act
@@ -780,11 +784,11 @@ class PurchaseOrderServiceTest {
         // Arrange
         testPurchaseOrder.setRejectedByUserId(TEST_USER_ID);
         when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.of(testPurchaseOrder));
+                .thenReturn(Optional.of(testPurchaseOrder));
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> purchaseOrderService.rejectedByPurchaseOrder(TEST_PO_ID));
+                () -> purchaseOrderService.rejectedByPurchaseOrder(TEST_PO_ID));
 
         assertEquals(ErrorMessages.PurchaseOrderErrorMessages.AlreadyRejected, exception.getMessage());
         verify(purchaseOrderRepository, never()).save(any());
@@ -795,13 +799,217 @@ class PurchaseOrderServiceTest {
     void rejectedByPurchaseOrder_NotFound() {
         // Arrange
         when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
-            () -> purchaseOrderService.rejectedByPurchaseOrder(TEST_PO_ID));
+                () -> purchaseOrderService.rejectedByPurchaseOrder(TEST_PO_ID));
 
         assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, exception.getMessage());
+    }
+
+    // ==================== Validation Tests ====================
+
+    @Nested
+    @DisplayName("Create Purchase Order - Validation Tests")
+    class ValidationTests {
+
+        @Test
+        @DisplayName("Create PO - Null Request - Throws BadRequestException")
+        void createPurchaseOrder_NullRequest_ThrowsBadRequestException() {
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(null));
+            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidRequest, exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create PO - Null Order Summary - Throws BadRequestException")
+        void createPurchaseOrder_NullOrderSummary_ThrowsBadRequestException() {
+            testPurchaseOrderRequest.setOrderSummary(null);
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertEquals(ErrorMessages.OrderSummaryErrorMessages.InvalidRequest, exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create PO - Max Attachments Exceeded - Throws BadRequestException")
+        void createPurchaseOrder_MaxAttachmentsExceeded_ThrowsBadRequestException() {
+            Map<String, String> attachments = new HashMap<>();
+            for (int i = 0; i < 31; i++) {
+                attachments.put("file" + i + ".txt", "data");
+            }
+            testPurchaseOrderRequest.setAttachments(attachments);
+
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.MaxAttachmentsExceeded, exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create PO - Null Products List - Throws BadRequestException")
+        void createPurchaseOrder_NullProducts_ThrowsBadRequestException() {
+            testPurchaseOrderRequest.setProducts(null);
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.ER004, exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create PO - Empty Products List - Throws BadRequestException")
+        void createPurchaseOrder_EmptyProducts_ThrowsBadRequestException() {
+            testPurchaseOrderRequest.setProducts(new ArrayList<>());
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.ER004, exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create PO - Invalid Product ID - Throws BadRequestException")
+        void createPurchaseOrder_InvalidProductId_ThrowsBadRequestException() {
+            testPurchaseOrderRequest.getProducts().get(0).setProductId(0L);
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertEquals(ErrorMessages.ProductErrorMessages.InvalidId, exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create PO - Invalid Quantity - Throws BadRequestException")
+        void createPurchaseOrder_InvalidQuantity_ThrowsBadRequestException() {
+            testPurchaseOrderRequest.getProducts().get(0).setQuantity(0);
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertTrue(exception.getMessage().contains("Quantity must be greater than 0"));
+        }
+
+        @Test
+        @DisplayName("Create PO - Null Price Per Unit - Throws BadRequestException")
+        void createPurchaseOrder_NullPricePerUnit_ThrowsBadRequestException() {
+            testPurchaseOrderRequest.getProducts().get(0).setPricePerUnit(null);
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertTrue(exception.getMessage().contains("pricePerUnit is required"));
+        }
+
+        @Test
+        @DisplayName("Create PO - Negative Price Per Unit - Throws BadRequestException")
+        void createPurchaseOrder_NegativePricePerUnit_ThrowsBadRequestException() {
+            testPurchaseOrderRequest.getProducts().get(0).setPricePerUnit(new BigDecimal("-1.00"));
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertTrue(exception.getMessage().contains("pricePerUnit must be greater than or equal to 0"));
+        }
+
+        @Test
+        @DisplayName("Create PO - Null Order Status - Throws BadRequestException")
+        void createPurchaseOrder_NullOrderStatus_ThrowsBadRequestException() {
+            testPurchaseOrderRequest.setPurchaseOrderStatus(null);
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidOrderStatus, exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create PO - Empty Order Status - Throws BadRequestException")
+        void createPurchaseOrder_EmptyOrderStatus_ThrowsBadRequestException() {
+            testPurchaseOrderRequest.setPurchaseOrderStatus("");
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidOrderStatus, exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create PO - Invalid Order Status Value - Throws BadRequestException")
+        void createPurchaseOrder_InvalidOrderStatusValue_ThrowsBadRequestException() {
+            testPurchaseOrderRequest.setPurchaseOrderStatus("INVALID_STATUS");
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidOrderStatusValue, exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create PO - Null Assigned Lead ID - Throws BadRequestException")
+        void createPurchaseOrder_NullAssignedLeadId_ThrowsBadRequestException() {
+            testPurchaseOrderRequest.setAssignedLeadId(null);
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidAssignedLeadId, exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create PO - No Shipments - Throws BadRequestException")
+        void createPurchaseOrder_NoShipments_ThrowsBadRequestException() {
+            lenient()
+                    .when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(),
+                            any(), any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Optional.empty());
+            lenient().when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            lenient().when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+            lenient().when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
+
+            testPurchaseOrderRequest.setShipments(null);
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.AtLeastOneShipmentRequired, exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create PO - Shipment Missing Courier - Throws BadRequestException")
+        void createPurchaseOrder_ShipmentMissingCourier_ThrowsBadRequestException() {
+            lenient()
+                    .when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(),
+                            any(), any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Optional.empty());
+            lenient().when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            lenient().when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+            lenient().when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
+
+            testPurchaseOrderRequest.getShipments().get(0).setSelectedCourier(null);
+
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertEquals(ErrorMessages.ShipmentErrorMessages.CourierSelectionRequired, exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create PO - Shipment Missing Packages - Throws BadRequestException")
+        void createPurchaseOrder_ShipmentMissingPackages_ThrowsBadRequestException() {
+            lenient()
+                    .when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(),
+                            any(), any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Optional.empty());
+            lenient().when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            lenient().when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+            lenient().when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
+            lenient().when(shipmentRepository.save(any(Shipment.class))).thenReturn(new Shipment());
+
+            testPurchaseOrderRequest.getShipments().get(0).setPackages(null);
+
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertEquals(ErrorMessages.ShipmentPackageErrorMessages.AtLeastOnePackageRequired, exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create PO - Package Missing Products - Throws BadRequestException")
+        void createPurchaseOrder_PackageMissingProducts_ThrowsBadRequestException() {
+            lenient()
+                    .when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(),
+                            any(), any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Optional.empty());
+            lenient().when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            lenient().when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+            lenient().when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
+            lenient().when(shipmentRepository.save(any(Shipment.class))).thenReturn(new Shipment());
+            lenient().when(shipmentPackageRepository.save(any(ShipmentPackage.class)))
+                    .thenReturn(new ShipmentPackage());
+
+            testPurchaseOrderRequest.getShipments().get(0).getPackages().get(0).setProducts(null);
+
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertEquals(ErrorMessages.ShipmentPackageProductErrorMessages.AtLeastOneProductRequired,
+                    exception.getMessage());
+        }
     }
 
     // ==================== Helper Methods ====================
@@ -871,7 +1079,7 @@ class PurchaseOrderServiceTest {
         testPurchaseOrderRequest.setVendorNumber(TEST_VENDOR_NUMBER);
         testPurchaseOrderRequest.setPurchaseOrderStatus("DRAFT");
         testPurchaseOrderRequest.setAssignedLeadId(TEST_LEAD_ID);
-        
+
         // Set OrderSummary data
         PurchaseOrderRequestModel.OrderSummaryData orderSummaryData = new PurchaseOrderRequestModel.OrderSummaryData();
         orderSummaryData.setProductsSubtotal(new BigDecimal("100.00"));
@@ -889,17 +1097,17 @@ class PurchaseOrderServiceTest {
         // Set products (required)
         List<PurchaseOrderProductItem> products = new ArrayList<>();
         products.add(new PurchaseOrderProductItem(
-            TEST_PRODUCT_ID,
-            new BigDecimal("100.00"),
-            1
-        ));
+                TEST_PRODUCT_ID,
+                new BigDecimal("100.00"),
+                1));
         testPurchaseOrderRequest.setProducts(products);
 
         // Set shipments (required)
         PurchaseOrderRequestModel.ShipmentProductData shipmentProduct = new PurchaseOrderRequestModel.ShipmentProductData();
         shipmentProduct.setProductId(TEST_PRODUCT_ID);
         shipmentProduct.setAllocatedQuantity(1);
-        // Intentionally different from products[].pricePerUnit to ensure service canonicalizes pricing
+        // Intentionally different from products[].pricePerUnit to ensure service
+        // canonicalizes pricing
         shipmentProduct.setAllocatedPrice(new BigDecimal("50.00"));
 
         PurchaseOrderRequestModel.PackageProductData packageProduct = new PurchaseOrderRequestModel.PackageProductData();
@@ -951,8 +1159,9 @@ class PurchaseOrderServiceTest {
     @DisplayName("Create PO - Persists canonical custom price from request.products[] into ShipmentProduct.allocatedPrice")
     void createPurchaseOrder_PersistsCanonicalCustomPrice() {
         // Arrange
-        when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
-            .thenReturn(Optional.empty());
+        when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(),
+                any(), any(), any(), any(), any()))
+                .thenReturn(Optional.empty());
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
         when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
         when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
@@ -965,8 +1174,8 @@ class PurchaseOrderServiceTest {
 
         // Capture saved ShipmentProducts
         @SuppressWarnings("unchecked")
-        org.mockito.ArgumentCaptor<List<ShipmentProduct>> captor =
-            (org.mockito.ArgumentCaptor<List<ShipmentProduct>>) (org.mockito.ArgumentCaptor<?>) org.mockito.ArgumentCaptor.forClass(List.class);
+        org.mockito.ArgumentCaptor<List<ShipmentProduct>> captor = (org.mockito.ArgumentCaptor<List<ShipmentProduct>>) (org.mockito.ArgumentCaptor<?>) org.mockito.ArgumentCaptor
+                .forClass(List.class);
         when(shipmentProductRepository.saveAll(captor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
 
         AtomicLong shipmentPackageIdSeq = new AtomicLong(1L);
@@ -987,8 +1196,164 @@ class PurchaseOrderServiceTest {
         assertEquals(new BigDecimal("100.00"), saved.get(0).getAllocatedPrice());
     }
 
-    // Note: Bulk create tests removed as the synchronous bulkCreatePurchaseOrders method was replaced
-    // with bulkCreatePurchaseOrdersAsync which requires integration/async testing setup.
-    // The async method sends results via messaging rather than returning them directly.
-}
+    // ==================== Additional GetPurchaseOrderDetailsById Tests ====================
 
+    @Test
+    @DisplayName("Get Purchase Order By ID - Negative ID - Not Found")
+    void getPurchaseOrderDetailsById_NegativeId_ThrowsNotFoundException() {
+        when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.getPurchaseOrderDetailsById(-1L));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Purchase Order By ID - Zero ID - Not Found")
+    void getPurchaseOrderDetailsById_ZeroId_ThrowsNotFoundException() {
+        when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.getPurchaseOrderDetailsById(0L));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Purchase Order By ID - Long.MAX_VALUE - Not Found")
+    void getPurchaseOrderDetailsById_MaxLongId_ThrowsNotFoundException() {
+        when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.getPurchaseOrderDetailsById(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    // ==================== Additional CreatePurchaseOrder Tests ====================
+
+    @Test
+    @DisplayName("Create Purchase Order - Null Request - Throws BadRequestException")
+    void createPurchaseOrder_NullRequest_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.createPurchaseOrder(null));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidRequest, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create Purchase Order - Empty Products - Throws BadRequestException")
+    void createPurchaseOrder_EmptyProducts_ThrowsBadRequestException() {
+        testPurchaseOrderRequest.setProducts(new ArrayList<>());
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidRequest, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create Purchase Order - Null Lead ID - Throws BadRequestException")
+    void createPurchaseOrder_NullLeadId_ThrowsBadRequestException() {
+        testPurchaseOrderRequest.setLeadId(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+        assertEquals(ErrorMessages.LeadErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create Purchase Order - Negative Lead ID - Throws BadRequestException")
+    void createPurchaseOrder_NegativeLeadId_ThrowsBadRequestException() {
+        testPurchaseOrderRequest.setLeadId(-1L);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+        assertEquals(ErrorMessages.LeadErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create Purchase Order - Lead Not Found - Throws NotFoundException")
+    void createPurchaseOrder_LeadNotFound_ThrowsNotFoundException() {
+        when(leadRepository.findByLeadIdAndClientId(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+        assertEquals(ErrorMessages.LeadErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create Purchase Order - Address Not Found - Throws NotFoundException")
+    void createPurchaseOrder_AddressNotFound_ThrowsNotFoundException() {
+        when(leadRepository.findByLeadIdAndClientId(TEST_LEAD_ID, TEST_CLIENT_ID)).thenReturn(testLead);
+        when(addressRepository.findByAddressIdAndClientId(TEST_ADDRESS_ID, TEST_CLIENT_ID)).thenReturn(null);
+        
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+        assertTrue(ex.getMessage().contains("not found") || ex.getMessage().contains("Address"));
+    }
+
+    // ==================== Additional UpdatePurchaseOrder Tests ====================
+
+    @Test
+    @DisplayName("Update Purchase Order - Negative ID - Not Found")
+    void updatePurchaseOrder_NegativeId_ThrowsNotFoundException() {
+        testPurchaseOrderRequest.setPurchaseOrderId(-1L);
+        when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.updatePurchaseOrder(testPurchaseOrderRequest));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update Purchase Order - Zero ID - Not Found")
+    void updatePurchaseOrder_ZeroId_ThrowsNotFoundException() {
+        testPurchaseOrderRequest.setPurchaseOrderId(0L);
+        when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.updatePurchaseOrder(testPurchaseOrderRequest));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    // ==================== Additional TogglePurchaseOrder Tests ====================
+
+    @Test
+    @DisplayName("Toggle Purchase Order - Negative ID - Not Found")
+    void togglePurchaseOrder_NegativeId_ThrowsNotFoundException() {
+        when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.togglePurchaseOrder(-1L));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle Purchase Order - Zero ID - Not Found")
+    void togglePurchaseOrder_ZeroId_ThrowsNotFoundException() {
+        when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.togglePurchaseOrder(0L));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle Purchase Order - Max Long ID - Not Found")
+    void togglePurchaseOrder_MaxLongId_ThrowsNotFoundException() {
+        when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.togglePurchaseOrder(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle Purchase Order - Multiple Toggles - State Persistence")
+    void togglePurchaseOrder_MultipleToggles_StatePersists() {
+        testPurchaseOrder.setIsDeleted(false);
+        when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
+                .thenReturn(Optional.of(testPurchaseOrder));
+        when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+        
+        purchaseOrderService.togglePurchaseOrder(TEST_PO_ID);
+        assertTrue(testPurchaseOrder.getIsDeleted());
+        
+        purchaseOrderService.togglePurchaseOrder(TEST_PO_ID);
+        assertFalse(testPurchaseOrder.getIsDeleted());
+    }
+
+    // Note: Bulk create tests removed as the synchronous bulkCreatePurchaseOrders
+    // method was replaced
+    // with bulkCreatePurchaseOrdersAsync which requires integration/async testing
+    // setup.
+    // The async method sends results via messaging rather than returning them
+    // directly.
+}

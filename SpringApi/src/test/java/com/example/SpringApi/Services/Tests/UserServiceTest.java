@@ -1309,4 +1309,230 @@ class UserServiceTest {
         verify(userRepository, times(1)).findById(TEST_USER_ID);
         verify(userRepository, times(1)).save(userWithNullConfirmed);
     }
+
+    // ==================== Additional GetUserById Tests ====================
+
+    @Test
+    @DisplayName("Get User By ID - Negative ID - Not Found")
+    void getUserById_NegativeId_ThrowsNotFoundException() {
+        when(userRepository.findById(-1L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.getUserById(-1L));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get User By ID - Zero ID - Not Found")
+    void getUserById_ZeroId_ThrowsNotFoundException() {
+        when(userRepository.findById(0L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.getUserById(0L));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get User By ID - Long.MAX_VALUE ID - Not Found")
+    void getUserById_MaxLongId_ThrowsNotFoundException() {
+        when(userRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.getUserById(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get User By ID - Long.MIN_VALUE ID - Not Found")
+    void getUserById_MinLongId_ThrowsNotFoundException() {
+        when(userRepository.findById(Long.MIN_VALUE)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.getUserById(Long.MIN_VALUE));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
+
+    // ==================== Additional CreateUser Tests ====================
+
+    @Test
+    @DisplayName("Create User - Null Request - Throws BadRequestException")
+    void createUser_NullRequest_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(null));
+        assertEquals(ErrorMessages.UserErrorMessages.InvalidRequest, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create User - Null Email - Throws BadRequestException")
+    void createUser_NullEmail_ThrowsBadRequestException() {
+        testCreateUserRequest.setEmail(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testCreateUserRequest));
+        assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create User - Empty Email - Throws BadRequestException")
+    void createUser_EmptyEmail_ThrowsBadRequestException() {
+        testCreateUserRequest.setEmail("");
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testCreateUserRequest));
+        assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create User - Invalid Email Format - Throws BadRequestException")
+    void createUser_InvalidEmailFormat_ThrowsBadRequestException() {
+        testCreateUserRequest.setEmail("invalid-email");
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testCreateUserRequest));
+        assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create User - Null Name - Throws BadRequestException")
+    void createUser_NullName_ThrowsBadRequestException() {
+        testCreateUserRequest.setName(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testCreateUserRequest));
+        assertEquals(ErrorMessages.UserErrorMessages.InvalidName, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create User - Empty Name - Throws BadRequestException")
+    void createUser_EmptyName_ThrowsBadRequestException() {
+        testCreateUserRequest.setName("");
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testCreateUserRequest));
+        assertEquals(ErrorMessages.UserErrorMessages.InvalidName, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Create User - Duplicate Email - Throws BadRequestException")
+    void createUser_DuplicateEmail_ThrowsBadRequestException() {
+        when(userRepository.existsByEmail(TEST_EMAIL)).thenReturn(true);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testCreateUserRequest));
+        assertEquals(ErrorMessages.UserErrorMessages.EmailAlreadyExists, ex.getMessage());
+    }
+
+    // ==================== Additional UpdateUser Tests ====================
+
+    @Test
+    @DisplayName("Update User - Negative ID - Not Found")
+    void updateUser_NegativeId_ThrowsNotFoundException() {
+        testUpdateUserRequest.setUserId(-1L);
+        when(userRepository.findById(-1L)).thenReturn(Optional.empty());
+        
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.updateUser(testUpdateUserRequest));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update User - Zero ID - Not Found")
+    void updateUser_ZeroId_ThrowsNotFoundException() {
+        testUpdateUserRequest.setUserId(0L);
+        when(userRepository.findById(0L)).thenReturn(Optional.empty());
+        
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.updateUser(testUpdateUserRequest));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update User - Null Name - Throws BadRequestException")
+    void updateUser_NullName_ThrowsBadRequestException() {
+        testUpdateUserRequest.setName(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.updateUser(testUpdateUserRequest));
+        assertEquals(ErrorMessages.UserErrorMessages.InvalidName, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update User - Null Email - Throws BadRequestException")
+    void updateUser_NullEmail_ThrowsBadRequestException() {
+        testUpdateUserRequest.setEmail(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.updateUser(testUpdateUserRequest));
+        assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail, ex.getMessage());
+    }
+
+    // ==================== Additional ToggleUser Tests ====================
+
+    @Test
+    @DisplayName("Toggle User - Negative ID - Not Found")
+    void toggleUser_NegativeId_ThrowsNotFoundException() {
+        when(userRepository.findById(-1L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.toggleUser(-1L));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle User - Zero ID - Not Found")
+    void toggleUser_ZeroId_ThrowsNotFoundException() {
+        when(userRepository.findById(0L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.toggleUser(0L));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle User - Max Long ID - Not Found")
+    void toggleUser_MaxLongId_ThrowsNotFoundException() {
+        when(userRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.toggleUser(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle User - Multiple Toggles - State Persistence")
+    void toggleUser_MultipleToggles_StatePersists() {
+        testUser.setIsDeleted(false);
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        
+        userService.toggleUser(TEST_USER_ID);
+        assertTrue(testUser.getIsDeleted());
+        
+        userService.toggleUser(TEST_USER_ID);
+        assertFalse(testUser.getIsDeleted());
+    }
+
+    // ==================== Additional GetUserByEmail Tests ====================
+
+    @Test
+    @DisplayName("Get User By Email - Null Email - Not Found")
+    void getUserByEmail_NullEmail_ThrowsNotFoundException() {
+        when(userRepository.findByEmail(null)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.getUserByEmail(null));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get User By Email - Empty Email - Not Found")
+    void getUserByEmail_EmptyEmail_ThrowsNotFoundException() {
+        when(userRepository.findByEmail("")).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.getUserByEmail(""));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get User By Email - Invalid Email Format - Not Found")
+    void getUserByEmail_InvalidEmailFormat_ThrowsNotFoundException() {
+        when(userRepository.findByEmail("invalid-email")).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.getUserByEmail("invalid-email"));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get User By Email - Nonexistent Email - Not Found")
+    void getUserByEmail_NonexistentEmail_ThrowsNotFoundException() {
+        when(userRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.getUserByEmail("nonexistent@example.com"));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
 }
