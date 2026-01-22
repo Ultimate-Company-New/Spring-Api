@@ -1,13 +1,12 @@
 package com.example.SpringApi.Services.Tests;
 
-import com.example.SpringApi.Models.DatabaseModels.Address;
-import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.DatabaseModels.Lead;
-import com.example.SpringApi.Models.DatabaseModels.User;
-import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
-import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
-
+import com.example.SpringApi.Models.DatabaseModels.*;
+import com.example.SpringApi.Models.RequestModels.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Base test class providing common helper methods and constants for unit tests.
@@ -68,6 +67,69 @@ public abstract class BaseTest {
     protected static final int DEFAULT_COMPANY_SIZE = 50;
     protected static final Long DEFAULT_CREATED_BY_ID = 1L;
     protected static final Long DEFAULT_ASSIGNED_AGENT_ID = 2L;
+
+    // Payment Constants
+    protected static final Long DEFAULT_PAYMENT_ID = 1L;
+    protected static final BigDecimal DEFAULT_AMOUNT = new BigDecimal("1000.00");
+    protected static final String DEFAULT_PAYMENT_METHOD = "RAZORPAY";
+    protected static final String DEFAULT_PAYMENT_STATUS = "PENDING";
+
+    // PurchaseOrder Constants
+    protected static final Long DEFAULT_PURCHASE_ORDER_ID = 1L;
+    protected static final String DEFAULT_PO_STATUS = "DRAFT";
+    protected static final BigDecimal DEFAULT_SUBTOTAL = new BigDecimal("5000.00");
+    protected static final BigDecimal DEFAULT_TAX = new BigDecimal("500.00");
+    protected static final BigDecimal DEFAULT_SHIPPING_CHARGE = new BigDecimal("100.00");
+    protected static final BigDecimal DEFAULT_TOTAL = new BigDecimal("5600.00");
+
+    // Shipment Constants
+    protected static final Long DEFAULT_SHIPMENT_ID = 1L;
+    protected static final String DEFAULT_SHIPMENT_STATUS = "PENDING";
+    protected static final BigDecimal DEFAULT_WEIGHT = new BigDecimal("10.00");
+    protected static final String DEFAULT_TRACKING_NUMBER = "TRK123456";
+
+    // Todo Constants
+    protected static final Long DEFAULT_TODO_ID = 1L;
+    protected static final String DEFAULT_TODO_TITLE = "Test Todo";
+    protected static final String DEFAULT_TODO_DESCRIPTION = "This is a test todo";
+    protected static final Boolean DEFAULT_TODO_COMPLETED = false;
+
+    // UserGroup Constants
+    protected static final Long DEFAULT_USER_GROUP_ID = 1L;
+    protected static final String DEFAULT_USER_GROUP_NAME = "Test User Group";
+    protected static final String DEFAULT_USER_GROUP_DESCRIPTION = "Test Description";
+
+    // UserLog Constants
+    protected static final Long DEFAULT_USER_LOG_ID = 1L;
+    protected static final String DEFAULT_ACTION = "LOGIN";
+    protected static final String DEFAULT_LOG_DETAILS = "User logged in successfully";
+
+    // Package Constants
+    protected static final Long DEFAULT_PACKAGE_ID = 1L;
+    protected static final String DEFAULT_PACKAGE_NAME = "Test Package";
+    protected static final BigDecimal DEFAULT_PACKAGE_PRICE = new BigDecimal("999.99");
+
+    // Promo Constants
+    protected static final Long DEFAULT_PROMO_ID = 1L;
+    protected static final String DEFAULT_PROMO_CODE = "PROMO100";
+    protected static final Integer DEFAULT_DISCOUNT_PERCENTAGE = 10;
+    protected static final BigDecimal DEFAULT_MIN_CART_VALUE = new BigDecimal("500.00");
+
+    // PickupLocation Constants
+    protected static final Long DEFAULT_PICKUP_LOCATION_ID = 1L;
+    protected static final String DEFAULT_LOCATION_NAME = "Main Pickup";
+    protected static final String DEFAULT_LOCATION_ADDRESS = "123 Pickup St";
+
+    // Product Constants
+    protected static final Long DEFAULT_PRODUCT_ID = 1L;
+    protected static final String DEFAULT_PRODUCT_NAME = "Test Product";
+    protected static final BigDecimal DEFAULT_PRODUCT_PRICE = new BigDecimal("599.99");
+    protected static final Integer DEFAULT_STOCK_QUANTITY = 100;
+
+    // ProductReview Constants
+    protected static final Long DEFAULT_REVIEW_ID = 1L;
+    protected static final Integer DEFAULT_RATING = 5;
+    protected static final String DEFAULT_REVIEW_TEXT = "Excellent product!";
 
     // ==================== USER FACTORY METHODS ====================
 
@@ -370,5 +432,355 @@ public abstract class BaseTest {
      */
     protected LocalDateTime daysFromNow(int daysFromNow) {
         return LocalDateTime.now().plusDays(daysFromNow);
+    }
+
+    // ==================== PAYMENT FACTORY METHODS ====================
+
+    protected PaymentRequestModel createValidPaymentRequest() {
+        PaymentRequestModel request = new PaymentRequestModel();
+        request.setPaymentId(DEFAULT_PAYMENT_ID);
+        request.setAmount(DEFAULT_AMOUNT);
+        request.setPaymentMethod(DEFAULT_PAYMENT_METHOD);
+        request.setPaymentStatus(DEFAULT_PAYMENT_STATUS);
+        request.setPurchaseOrderId(DEFAULT_PURCHASE_ORDER_ID);
+        return request;
+    }
+
+    protected Payment createTestPayment() {
+        Payment payment = new Payment();
+        payment.setPaymentId(DEFAULT_PAYMENT_ID);
+        payment.setAmount(DEFAULT_AMOUNT);
+        payment.setPaymentMethod(DEFAULT_PAYMENT_METHOD);
+        payment.setPaymentStatus(DEFAULT_PAYMENT_STATUS);
+        payment.setIsDeleted(false);
+        payment.setCreatedAt(LocalDateTime.now());
+        payment.setUpdatedAt(LocalDateTime.now());
+        return payment;
+    }
+
+    // ==================== PURCHASE ORDER FACTORY METHODS ====================
+
+    protected PurchaseOrderRequestModel createValidPurchaseOrderRequest() {
+        PurchaseOrderRequestModel request = new PurchaseOrderRequestModel();
+        request.setPurchaseOrderId(DEFAULT_PURCHASE_ORDER_ID);
+        request.setClientId(DEFAULT_CLIENT_ID);
+        request.setLeadId(DEFAULT_LEAD_ID);
+        request.setBillingAddressId(DEFAULT_ADDRESS_ID);
+        request.setShippingAddressId(DEFAULT_ADDRESS_ID);
+        request.setStatus(DEFAULT_PO_STATUS);
+        
+        PurchaseOrderRequestModel.OrderSummaryData orderSummary = new PurchaseOrderRequestModel.OrderSummaryData();
+        orderSummary.setSubtotal(DEFAULT_SUBTOTAL);
+        orderSummary.setTax(DEFAULT_TAX);
+        orderSummary.setShippingCharge(DEFAULT_SHIPPING_CHARGE);
+        orderSummary.setTotal(DEFAULT_TOTAL);
+        request.setOrderSummary(orderSummary);
+        
+        request.setProducts(new ArrayList<>());
+        request.setIsDeleted(false);
+        return request;
+    }
+
+    protected PurchaseOrder createTestPurchaseOrder() {
+        PurchaseOrder po = new PurchaseOrder();
+        po.setPurchaseOrderId(DEFAULT_PURCHASE_ORDER_ID);
+        po.setClientId(DEFAULT_CLIENT_ID);
+        po.setLeadId(DEFAULT_LEAD_ID);
+        po.setStatus(DEFAULT_PO_STATUS);
+        po.setSubtotal(DEFAULT_SUBTOTAL);
+        po.setTax(DEFAULT_TAX);
+        po.setShippingCharge(DEFAULT_SHIPPING_CHARGE);
+        po.setTotal(DEFAULT_TOTAL);
+        po.setIsDeleted(false);
+        po.setCreatedAt(LocalDateTime.now());
+        po.setUpdatedAt(LocalDateTime.now());
+        return po;
+    }
+
+    // ==================== SHIPMENT FACTORY METHODS ====================
+
+    protected ShipmentRequestModel createValidShipmentRequest() {
+        ShipmentRequestModel request = new ShipmentRequestModel();
+        request.setShipmentId(DEFAULT_SHIPMENT_ID);
+        request.setPurchaseOrderId(DEFAULT_PURCHASE_ORDER_ID);
+        request.setStatus(DEFAULT_SHIPMENT_STATUS);
+        request.setWeight(DEFAULT_WEIGHT);
+        request.setTrackingNumber(DEFAULT_TRACKING_NUMBER);
+        return request;
+    }
+
+    protected Shipment createTestShipment() {
+        Shipment shipment = new Shipment();
+        shipment.setShipmentId(DEFAULT_SHIPMENT_ID);
+        shipment.setPurchaseOrderId(DEFAULT_PURCHASE_ORDER_ID);
+        shipment.setStatus(DEFAULT_SHIPMENT_STATUS);
+        shipment.setWeight(DEFAULT_WEIGHT);
+        shipment.setTrackingNumber(DEFAULT_TRACKING_NUMBER);
+        shipment.setIsDeleted(false);
+        shipment.setCreatedAt(LocalDateTime.now());
+        shipment.setUpdatedAt(LocalDateTime.now());
+        return shipment;
+    }
+
+    // ==================== TODO FACTORY METHODS ====================
+
+    protected TodoRequestModel createValidTodoRequest() {
+        TodoRequestModel request = new TodoRequestModel();
+        request.setTodoId(DEFAULT_TODO_ID);
+        request.setTitle(DEFAULT_TODO_TITLE);
+        request.setDescription(DEFAULT_TODO_DESCRIPTION);
+        request.setCompleted(DEFAULT_TODO_COMPLETED);
+        request.setClientId(DEFAULT_CLIENT_ID);
+        return request;
+    }
+
+    protected Todo createTestTodo() {
+        Todo todo = new Todo();
+        todo.setTodoId(DEFAULT_TODO_ID);
+        todo.setTitle(DEFAULT_TODO_TITLE);
+        todo.setDescription(DEFAULT_TODO_DESCRIPTION);
+        todo.setCompleted(DEFAULT_TODO_COMPLETED);
+        todo.setClientId(DEFAULT_CLIENT_ID);
+        todo.setIsDeleted(false);
+        todo.setCreatedAt(LocalDateTime.now());
+        todo.setUpdatedAt(LocalDateTime.now());
+        return todo;
+    }
+
+    // ==================== USER GROUP FACTORY METHODS ====================
+
+    protected UserGroupRequestModel createValidUserGroupRequest() {
+        UserGroupRequestModel request = new UserGroupRequestModel();
+        request.setUserGroupId(DEFAULT_USER_GROUP_ID);
+        request.setUserGroupName(DEFAULT_USER_GROUP_NAME);
+        request.setDescription(DEFAULT_USER_GROUP_DESCRIPTION);
+        request.setClientId(DEFAULT_CLIENT_ID);
+        return request;
+    }
+
+    protected UserGroup createTestUserGroup() {
+        UserGroup userGroup = new UserGroup();
+        userGroup.setUserGroupId(DEFAULT_USER_GROUP_ID);
+        userGroup.setUserGroupName(DEFAULT_USER_GROUP_NAME);
+        userGroup.setDescription(DEFAULT_USER_GROUP_DESCRIPTION);
+        userGroup.setClientId(DEFAULT_CLIENT_ID);
+        userGroup.setIsDeleted(false);
+        userGroup.setCreatedAt(LocalDateTime.now());
+        userGroup.setUpdatedAt(LocalDateTime.now());
+        return userGroup;
+    }
+
+    // ==================== USER LOG FACTORY METHODS ====================
+
+    protected UserLogRequestModel createValidUserLogRequest() {
+        UserLogRequestModel request = new UserLogRequestModel();
+        request.setUserLogId(DEFAULT_USER_LOG_ID);
+        request.setUserId(DEFAULT_USER_ID);
+        request.setAction(DEFAULT_ACTION);
+        request.setDetails(DEFAULT_LOG_DETAILS);
+        request.setClientId(DEFAULT_CLIENT_ID);
+        return request;
+    }
+
+    protected UserLog createTestUserLog() {
+        UserLog userLog = new UserLog();
+        userLog.setUserLogId(DEFAULT_USER_LOG_ID);
+        userLog.setUserId(DEFAULT_USER_ID);
+        userLog.setAction(DEFAULT_ACTION);
+        userLog.setDetails(DEFAULT_LOG_DETAILS);
+        userLog.setClientId(DEFAULT_CLIENT_ID);
+        userLog.setIsDeleted(false);
+        userLog.setCreatedAt(LocalDateTime.now());
+        userLog.setUpdatedAt(LocalDateTime.now());
+        return userLog;
+    }
+
+    // ==================== PACKAGE FACTORY METHODS ====================
+
+    protected PackageRequestModel createValidPackageRequest() {
+        PackageRequestModel request = new PackageRequestModel();
+        request.setPackageId(DEFAULT_PACKAGE_ID);
+        request.setPackageName(DEFAULT_PACKAGE_NAME);
+        request.setPrice(DEFAULT_PACKAGE_PRICE);
+        request.setClientId(DEFAULT_CLIENT_ID);
+        return request;
+    }
+
+    protected Package createTestPackage() {
+        Package pkg = new Package();
+        pkg.setPackageId(DEFAULT_PACKAGE_ID);
+        pkg.setPackageName(DEFAULT_PACKAGE_NAME);
+        pkg.setPrice(DEFAULT_PACKAGE_PRICE);
+        pkg.setClientId(DEFAULT_CLIENT_ID);
+        pkg.setIsDeleted(false);
+        pkg.setCreatedAt(LocalDateTime.now());
+        pkg.setUpdatedAt(LocalDateTime.now());
+        return pkg;
+    }
+
+    // ==================== PROMO FACTORY METHODS ====================
+
+    protected PromoRequestModel createValidPromoRequest() {
+        PromoRequestModel request = new PromoRequestModel();
+        request.setPromoId(DEFAULT_PROMO_ID);
+        request.setPromoCode(DEFAULT_PROMO_CODE);
+        request.setDiscountPercentage(DEFAULT_DISCOUNT_PERCENTAGE);
+        request.setMinimumCartValue(DEFAULT_MIN_CART_VALUE);
+        request.setClientId(DEFAULT_CLIENT_ID);
+        request.setStartDate(LocalDate.now());
+        request.setExpiryDate(LocalDate.now().plusDays(30));
+        return request;
+    }
+
+    protected Promo createTestPromo() {
+        Promo promo = new Promo();
+        promo.setPromoId(DEFAULT_PROMO_ID);
+        promo.setPromoCode(DEFAULT_PROMO_CODE);
+        promo.setDiscountPercentage(DEFAULT_DISCOUNT_PERCENTAGE);
+        promo.setMinimumCartValue(DEFAULT_MIN_CART_VALUE);
+        promo.setClientId(DEFAULT_CLIENT_ID);
+        promo.setStartDate(LocalDate.now());
+        promo.setExpiryDate(LocalDate.now().plusDays(30));
+        promo.setIsDeleted(false);
+        promo.setCreatedAt(LocalDateTime.now());
+        promo.setUpdatedAt(LocalDateTime.now());
+        return promo;
+    }
+
+    // ==================== PICKUP LOCATION FACTORY METHODS ====================
+
+    protected PickupLocationRequestModel createValidPickupLocationRequest() {
+        PickupLocationRequestModel request = new PickupLocationRequestModel();
+        request.setPickupLocationId(DEFAULT_PICKUP_LOCATION_ID);
+        request.setLocationName(DEFAULT_LOCATION_NAME);
+        request.setAddress(DEFAULT_LOCATION_ADDRESS);
+        request.setClientId(DEFAULT_CLIENT_ID);
+        return request;
+    }
+
+    protected PickupLocation createTestPickupLocation() {
+        PickupLocation location = new PickupLocation();
+        location.setPickupLocationId(DEFAULT_PICKUP_LOCATION_ID);
+        location.setLocationName(DEFAULT_LOCATION_NAME);
+        location.setAddress(DEFAULT_LOCATION_ADDRESS);
+        location.setClientId(DEFAULT_CLIENT_ID);
+        location.setIsDeleted(false);
+        location.setCreatedAt(LocalDateTime.now());
+        location.setUpdatedAt(LocalDateTime.now());
+        return location;
+    }
+
+    // ==================== PRODUCT FACTORY METHODS ====================
+
+    protected ProductRequestModel createValidProductRequest() {
+        ProductRequestModel request = new ProductRequestModel();
+        request.setProductId(DEFAULT_PRODUCT_ID);
+        request.setProductName(DEFAULT_PRODUCT_NAME);
+        request.setPrice(DEFAULT_PRODUCT_PRICE);
+        request.setStockQuantity(DEFAULT_STOCK_QUANTITY);
+        request.setClientId(DEFAULT_CLIENT_ID);
+        return request;
+    }
+
+    protected Product createTestProduct() {
+        Product product = new Product();
+        product.setProductId(DEFAULT_PRODUCT_ID);
+        product.setProductName(DEFAULT_PRODUCT_NAME);
+        product.setPrice(DEFAULT_PRODUCT_PRICE);
+        product.setStockQuantity(DEFAULT_STOCK_QUANTITY);
+        product.setClientId(DEFAULT_CLIENT_ID);
+        product.setIsDeleted(false);
+        product.setCreatedAt(LocalDateTime.now());
+        product.setUpdatedAt(LocalDateTime.now());
+        return product;
+    }
+
+    // ==================== PRODUCT REVIEW FACTORY METHODS ====================
+
+    protected ProductReviewRequestModel createValidProductReviewRequest() {
+        ProductReviewRequestModel request = new ProductReviewRequestModel();
+        request.setReviewId(DEFAULT_REVIEW_ID);
+        request.setProductId(DEFAULT_PRODUCT_ID);
+        request.setRating(DEFAULT_RATING);
+        request.setReviewText(DEFAULT_REVIEW_TEXT);
+        request.setUserId(DEFAULT_USER_ID);
+        request.setClientId(DEFAULT_CLIENT_ID);
+        return request;
+    }
+
+    protected ProductReview createTestProductReview() {
+        ProductReview review = new ProductReview();
+        review.setReviewId(DEFAULT_REVIEW_ID);
+        review.setProductId(DEFAULT_PRODUCT_ID);
+        review.setRating(DEFAULT_RATING);
+        review.setReviewText(DEFAULT_REVIEW_TEXT);
+        review.setUserId(DEFAULT_USER_ID);
+        review.setClientId(DEFAULT_CLIENT_ID);
+        review.setIsDeleted(false);
+        review.setCreatedAt(LocalDateTime.now());
+        review.setUpdatedAt(LocalDateTime.now());
+        return review;
+    }
+
+    // ==================== MESSAGE FACTORY METHODS ====================
+
+    protected MessageRequestModel createValidMessageRequest() {
+        MessageRequestModel request = new MessageRequestModel();
+        request.setMessageId(1L);
+        request.setContent("Test message");
+        request.setSenderId(DEFAULT_USER_ID);
+        request.setRecipientId(2L);
+        request.setClientId(DEFAULT_CLIENT_ID);
+        return request;
+    }
+
+    protected Message createTestMessage() {
+        Message message = new Message();
+        message.setMessageId(1L);
+        message.setContent("Test message");
+        message.setSenderId(DEFAULT_USER_ID);
+        message.setRecipientId(2L);
+        message.setClientId(DEFAULT_CLIENT_ID);
+        message.setIsDeleted(false);
+        message.setCreatedAt(LocalDateTime.now());
+        message.setUpdatedAt(LocalDateTime.now());
+        return message;
+    }
+
+    // ==================== LOGIN REQUEST FACTORY METHODS ====================
+
+    protected LoginRequestModel createValidLoginRequest() {
+        LoginRequestModel request = new LoginRequestModel();
+        request.setLoginName(DEFAULT_LOGIN_NAME);
+        request.setPassword("testPassword123");
+        return request;
+    }
+
+    // ==================== PAGINATION REQUEST FACTORY METHODS ====================
+
+    protected PaginationBaseRequestModel createValidPaginationRequest() {
+        PaginationBaseRequestModel request = new PaginationBaseRequestModel();
+        request.setStart(0);
+        request.setEnd(10);
+        request.setFilters(new ArrayList<>());
+        return request;
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    /**
+     * Joins multiple arrays into a single combined array.
+     * 
+     * @param arrays Variable number of arrays to join
+     * @return Single combined array
+     */
+    protected String[] joinArrays(String[]... arrays) {
+        List<String> combined = new ArrayList<>();
+        for (String[] array : arrays) {
+            for (String item : array) {
+                combined.add(item);
+            }
+        }
+        return combined.toArray(new String[0]);
     }
 }

@@ -57,7 +57,7 @@
 		<dependency>
 			<groupId>com.mysql</groupId>
 			<artifactId>mysql-connector-j</artifactId>
-			<version>9.1.0</version>
+			<version>9.3.0</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -163,6 +163,10 @@
 				<configuration>
 					<source>21</source>
 					<target>21</target>
+                    <compilerArgs>
+                        <arg>-Werror</arg>
+                    </compilerArgs>
+                    <showWarnings>true</showWarnings>
 					<annotationProcessorPaths>
 						<path>
 							<groupId>org.projectlombok</groupId>
