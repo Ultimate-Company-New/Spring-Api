@@ -19,6 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -54,12 +55,11 @@ import static org.mockito.Mockito.*;
  * All external dependencies are properly mocked to ensure test isolation.
  *
  * @author SpringApi Team
- * @version 1.0
- * @since 2024-01-15
+ * @version 2.0
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PromoService Unit Tests")
-class PromoServiceTest {
+class PromoServiceTest extends BaseTest {
 
     @Mock
     private PromoRepository promoRepository;
@@ -80,13 +80,9 @@ class PromoServiceTest {
     private PromoRequestModel testPromoRequest;
     private PaginationBaseRequestModel testPaginationRequest;
     private static final Long TEST_PROMO_ID = 1L;
-    private static final Long TEST_CLIENT_ID = 1L;
-    private static final Long TEST_USER_ID = 1L;
     private static final String TEST_PROMO_CODE = "TEST10";
     private static final String TEST_DESCRIPTION = "Test promo description";
-    private static final String TEST_INVALID_COLUMN = "invalidColumn";
     private static final String TEST_VALID_COLUMN = "promoCode";
-    private static final String CREATED_USER = "admin";
 
     /**
      * Sets up test data before each test execution.
@@ -101,12 +97,12 @@ class PromoServiceTest {
         testPromoRequest.setIsDeleted(false);
         testPromoRequest.setIsPercent(true);
         testPromoRequest.setDiscountValue(BigDecimal.valueOf(10.0));
-        testPromoRequest.setClientId(TEST_CLIENT_ID);
+        testPromoRequest.setClientId(DEFAULT_CLIENT_ID);
         testPromoRequest.setStartDate(java.time.LocalDate.now());
         testPromoRequest.setExpiryDate(java.time.LocalDate.now().plusDays(30));
 
         // Initialize test promo using constructor
-        testPromo = new Promo(testPromoRequest, CREATED_USER, TEST_CLIENT_ID);
+        testPromo = new Promo(testPromoRequest, DEFAULT_CREATED_USER, DEFAULT_CLIENT_ID);
         testPromo.setPromoId(TEST_PROMO_ID); // Set ID manually since constructor doesn't set it
         testPromo.setCreatedAt(LocalDateTime.now());
         testPromo.setUpdatedAt(LocalDateTime.now());
@@ -124,1206 +120,353 @@ class PromoServiceTest {
         testPaginationRequest.setLogicOperator("AND");
         testPaginationRequest.setIncludeDeleted(false);
 
-        // Note: BaseService methods are now handled by the actual service
-        // implementation
+        // Mock Authorization header
+        lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+
+        // Mock BaseService behavior
+        lenient().doReturn(DEFAULT_CLIENT_ID).when(promoService).getClientId();
+        lenient().doReturn(DEFAULT_USER_ID).when(promoService).getUserId();
+        lenient().doReturn(DEFAULT_LOGIN_NAME).when(promoService).getUser();
     }
 
     // ==================== Get Promos In Batches Tests ====================
 
-    /**
-     * Test successful retrieval of promos in batches.
-     * Verifies that paginated promo data is correctly returned with valid
-     * parameters.
-     */
-    @Test
-    @DisplayName("Get Promos In Batches - Success - Should return paginated promo data")
-    void getPromosInBatches_Success() {
-        // Arrange
-        List<Promo> promoList = Arrays.asList(testPromo);
-        Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 1);
-        lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(promoPage);
-        lenient().when(promoFilterQueryBuilder.getColumnType(TEST_VALID_COLUMN)).thenReturn("string");
+    @Nested
+    @DisplayName("getPromosInBatches Tests")
+    class GetPromosInBatchesTests {
 
-        // Act
-        PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(testPaginationRequest);
+        @Test
+        @DisplayName("Get Promos In Batches - Success - Should return paginated promo data")
+        void getPromosInBatches_Success() {
+            // Arrange
+            List<Promo> promoList = Arrays.asList(testPromo);
+            Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 1);
+            lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                    anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(promoPage);
+            lenient().when(promoFilterQueryBuilder.getColumnType(TEST_VALID_COLUMN)).thenReturn("string");
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        assertEquals(1, result.getTotalDataCount());
-        assertEquals(testPromo, result.getData().get(0));
-        verify(promoFilterQueryBuilder).findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class));
+            // Act
+            PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(testPaginationRequest);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(1, result.getData().size());
+            assertEquals(1, result.getTotalDataCount());
+            assertEquals(testPromo, result.getData().get(0));
+            verify(promoFilterQueryBuilder).findPaginatedEntitiesWithMultipleFilters(
+                    anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class));
+        }
+
+        @Test
+        @DisplayName("Get Promos In Batches - Failure - Invalid column name")
+        void getPromosInBatches_InvalidColumnName_ThrowsBadRequestException() {
+            // Arrange
+            PaginationBaseRequestModel.FilterCondition invalidFilter = new PaginationBaseRequestModel.FilterCondition();
+            invalidFilter.setColumn("invalidColumn");
+            invalidFilter.setOperator("contains");
+            invalidFilter.setValue("test");
+            testPaginationRequest.setFilters(Arrays.asList(invalidFilter));
+            testPaginationRequest.setLogicOperator("AND");
+
+            // Act & Assert
+            BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+                promoService.getPromosInBatches(testPaginationRequest);
+            });
+            assertTrue(exception.getMessage().contains("Invalid column name"));
+        }
+
+        /**
+         * Triple Loop Test for Filter Validation.
+         * Iterates through combinations of Columns, Operators, and Values.
+         */
+        @Test
+        @DisplayName("Get Promos In Batches - Filter Logic Triple Loop Validation")
+        void getPromosInBatches_TripleLoopValidation() {
+            // 1. Columns
+            String[] validColumns = {
+                    "promoId", "promoCode", "description", "discountValue", "isPercent",
+                    "isDeleted", "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes"
+            };
+            String[] invalidColumns = { "invalidCol", "DROP TABLE", "unknown" };
+
+            // 2. Operators
+            String[] validOperators = {
+                    "equals", "notEquals", "contains", "notContains", "startsWith", "endsWith",
+                    "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual",
+                    "isEmpty", "isNotEmpty"
+            };
+            String[] invalidOperators = { "invalidOp", "like" };
+
+            // 3. Values
+            String[] values = { "val", "" };
+
+            // Mock response
+            Page<Promo> emptyPage = new PageImpl<>(Collections.emptyList());
+            lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                    anyLong(), any(), any(), any(), anyBoolean(), any(Pageable.class)))
+                    .thenReturn(emptyPage);
+
+            // Mock column types (simplified)
+            lenient().when(promoFilterQueryBuilder.getColumnType(anyString())).thenReturn("string");
+
+            for (String column : joinArrays(validColumns, invalidColumns)) {
+                for (String operator : joinArrays(validOperators, invalidOperators)) {
+                    for (String value : values) {
+                        PaginationBaseRequestModel req = new PaginationBaseRequestModel();
+                        req.setStart(0);
+                        req.setEnd(10);
+                        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+                        filter.setColumn(column);
+                        filter.setOperator(operator);
+                        filter.setValue(value);
+                        req.setFilters(List.of(filter));
+
+                        boolean isValidColumn = Arrays.asList(validColumns).contains(column);
+                        boolean isValidOperator = Arrays.asList(validOperators).contains(operator);
+
+                        if (isValidColumn && isValidOperator) {
+                            assertDoesNotThrow(() -> promoService.getPromosInBatches(req),
+                                    "Failed for valid column/operator: " + column + "/" + operator);
+                        } else {
+                            BadRequestException ex = assertThrows(BadRequestException.class,
+                                    () -> promoService.getPromosInBatches(req),
+                                    "Expected BadRequest for invalid input: " + column + "/" + operator);
+                            assertTrue(ex.getMessage().contains("Invalid"));
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    /**
-     * Test get promos in batches with invalid column name.
-     * Verifies that BadRequestException is thrown when column name is invalid.
-     */
-    @Test
-    @DisplayName("Get Promos In Batches - Failure - Invalid column name")
-    void getPromosInBatches_InvalidColumnName_ThrowsBadRequestException() {
-        // Arrange
-        PaginationBaseRequestModel.FilterCondition invalidFilter = new PaginationBaseRequestModel.FilterCondition();
-        invalidFilter.setColumn("invalidColumn");
-        invalidFilter.setOperator("contains");
-        invalidFilter.setValue("test");
-        testPaginationRequest.setFilters(Arrays.asList(invalidFilter));
-        testPaginationRequest.setLogicOperator("AND");
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            promoService.getPromosInBatches(testPaginationRequest);
-        });
-        assertTrue(exception.getMessage().contains("Invalid column name"));
-    }
-
-    /**
-     * Test get promos in batches with single filter.
-     * Verifies that single filter expressions are correctly applied.
-     */
-    @Test
-    @DisplayName("Get Promos In Batches - Success - With single filter")
-    void getPromosInBatches_WithSingleFilter_Success() {
-        // Arrange
-        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
-        filter.setColumn("promoCode");
-        filter.setOperator("contains");
-        filter.setValue("TEST");
-        testPaginationRequest.setFilters(Arrays.asList(filter));
-        testPaginationRequest.setLogicOperator("AND");
-
-        List<Promo> promoList = Arrays.asList(testPromo);
-        Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 1);
-
-        when(promoFilterQueryBuilder.getColumnType("promoCode")).thenReturn("string");
-        lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(promoPage);
-
-        // Act
-        PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(testPaginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        verify(promoFilterQueryBuilder, times(1)).getColumnType("promoCode");
-        verify(promoFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class));
-    }
-
-    /**
-     * Test get promos in batches with multiple filters using AND logic.
-     * Verifies that multiple filters combined with AND are correctly applied.
-     */
-    @Test
-    @DisplayName("Get Promos In Batches - Success - With multiple filters AND")
-    void getPromosInBatches_WithMultipleFiltersAND_Success() {
-        // Arrange
-        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
-        filter1.setColumn("promoCode");
-        filter1.setOperator("contains");
-        filter1.setValue("TEST");
-
-        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
-        filter2.setColumn("description");
-        filter2.setOperator("contains");
-        filter2.setValue("promo");
-
-        testPaginationRequest.setFilters(Arrays.asList(filter1, filter2));
-        testPaginationRequest.setLogicOperator("AND");
-
-        List<Promo> promoList = Arrays.asList(testPromo);
-        Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 1);
-
-        when(promoFilterQueryBuilder.getColumnType("promoCode")).thenReturn("string");
-        when(promoFilterQueryBuilder.getColumnType("description")).thenReturn("string");
-        lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(promoPage);
-
-        // Act
-        PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(testPaginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        verify(promoFilterQueryBuilder, times(1)).getColumnType("promoCode");
-        verify(promoFilterQueryBuilder, times(1)).getColumnType("description");
-        verify(promoFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class));
-    }
-
-    /**
-     * Test get promos in batches with multiple filters using OR logic.
-     * Verifies that multiple filters combined with OR are correctly applied.
-     */
-    @Test
-    @DisplayName("Get Promos In Batches - Success - With multiple filters OR")
-    void getPromosInBatches_WithMultipleFiltersOR_Success() {
-        // Arrange
-        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
-        filter1.setColumn("promoCode");
-        filter1.setOperator("contains");
-        filter1.setValue("TEST");
-
-        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
-        filter2.setColumn("promoCode");
-        filter2.setOperator("contains");
-        filter2.setValue("PROMO");
-
-        testPaginationRequest.setFilters(Arrays.asList(filter1, filter2));
-        testPaginationRequest.setLogicOperator("OR");
-
-        List<Promo> promoList = Arrays.asList(testPromo);
-        Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 1);
-
-        when(promoFilterQueryBuilder.getColumnType("promoCode")).thenReturn("string");
-        lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(promoPage);
-
-        // Act
-        PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(testPaginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        verify(promoFilterQueryBuilder, times(2)).getColumnType("promoCode");
-        verify(promoFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class));
-    }
-
-    /**
-     * Test get promos in batches with complex filters (string, number, boolean).
-     * Verifies that filters with different column types are correctly validated and
-     * applied.
-     */
-    @Test
-    @DisplayName("Get Promos In Batches - Success - With complex filters")
-    void getPromosInBatches_WithComplexFilters_Success() {
-        // Arrange
-        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
-        filter1.setColumn("promoCode");
-        filter1.setOperator("contains");
-        filter1.setValue("TEST");
-
-        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
-        filter2.setColumn("promoId");
-        filter2.setOperator("greaterThan");
-        filter2.setValue("0");
-
-        testPaginationRequest.setFilters(Arrays.asList(filter1, filter2));
-        testPaginationRequest.setLogicOperator("AND");
-
-        List<Promo> promoList = Arrays.asList(testPromo);
-        Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 1);
-
-        when(promoFilterQueryBuilder.getColumnType("promoCode")).thenReturn("string");
-        when(promoFilterQueryBuilder.getColumnType("promoId")).thenReturn("number");
-        lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(promoPage);
-
-        // Act
-        PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(testPaginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        verify(promoFilterQueryBuilder, times(1)).getColumnType("promoCode");
-        verify(promoFilterQueryBuilder, times(1)).getColumnType("promoId");
-        verify(promoFilterQueryBuilder, times(1)).findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class));
+    private String[] joinArrays(String[]... arrays) {
+        int length = 0;
+        for (String[] array : arrays)
+            length += array.length;
+        String[] result = new String[length];
+        int offset = 0;
+        for (String[] array : arrays) {
+            System.arraycopy(array, 0, result, offset, array.length);
+            offset += array.length;
+        }
+        return result;
     }
 
     // ==================== Create Promo Tests ====================
 
-    /**
-     * Test successful promo creation.
-     * Verifies that promo is created and saved with proper audit logging.
-     */
-    @Test
-    @DisplayName("Create Promo - Success - Should create and save promo with logging")
-    void createPromo_Success() {
-        // Arrange
-        // Note: BaseService methods are now handled by the actual service
-        // implementation
-        when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
+    @Nested
+    @DisplayName("createPromo Tests")
+    class CreatePromoTests {
 
-        // Act
-        promoService.createPromo(testPromoRequest);
+        @Test
+        @DisplayName("Create Promo - Success - Should create and save promo with logging")
+        void createPromo_Success() {
+            // Arrange
+            when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
 
-        // Assert
-        verify(promoRepository).save(any(Promo.class));
-        verify(userLogService).logData(
-                eq(TEST_USER_ID),
-                eq(SuccessMessages.PromoSuccessMessages.CreatePromo + TEST_PROMO_CODE),
-                eq(ApiRoutes.PromosSubRoute.CREATE_PROMO));
-    }
-
-    /**
-     * Test create promo with null request model.
-     * Verifies that BadRequestException is thrown when request model is null.
-     */
-    @Test
-    @DisplayName("Create Promo - Failure - Null request model throws BadRequestException")
-    void createPromo_NullRequestModel_ThrowsBadRequestException() {
-        // Arrange
-        // Note: BaseService methods are now handled by the actual service
-        // implementation
-        PromoRequestModel nullRequest = null;
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            promoService.createPromo(nullRequest);
-        });
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidRequest, exception.getMessage());
-    }
-
-    /**
-     * Test create promo with empty promo code.
-     * Verifies that BadRequestException is thrown when promo code is empty.
-     */
-    @Test
-    @DisplayName("Create Promo - Failure - Empty promo code throws BadRequestException")
-    void createPromo_EmptyPromoCode_ThrowsBadRequestException() {
-        // Arrange
-        // Note: BaseService methods are now handled by the actual service
-        // implementation
-        testPromoRequest.setPromoCode("");
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            // Act
             promoService.createPromo(testPromoRequest);
-        });
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, exception.getMessage());
+
+            // Assert
+            verify(promoRepository).save(any(Promo.class));
+            verify(userLogService).logData(
+                    eq(DEFAULT_USER_ID),
+                    eq(SuccessMessages.PromoSuccessMessages.CreatePromo + TEST_PROMO_CODE),
+                    eq(ApiRoutes.PromosSubRoute.CREATE_PROMO));
+        }
+
+        @Test
+        @DisplayName("Create Promo - Failure - Null request model throws BadRequestException")
+        void createPromo_NullRequestModel_ThrowsBadRequestException() {
+            // Arrange
+            PromoRequestModel nullRequest = null;
+
+            // Act & Assert
+            BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+                promoService.createPromo(nullRequest);
+            });
+            assertEquals(ErrorMessages.PromoErrorMessages.InvalidRequest, exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Create Promo - Failure - Empty promo code throws BadRequestException")
+        void createPromo_EmptyPromoCode_ThrowsBadRequestException() {
+            // Arrange
+            testPromoRequest.setPromoCode("");
+
+            // Act & Assert
+            BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+                promoService.createPromo(testPromoRequest);
+            });
+            assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, exception.getMessage());
+        }
     }
 
     // ==================== Get Promo Details By ID Tests ====================
 
-    /**
-     * Test successful retrieval of promo details by ID.
-     * Verifies that promo details are correctly returned.
-     */
-    @Test
-    @DisplayName("Get Promo Details By ID - Success - Should return promo details")
-    void getPromoDetailsById_Success() {
-        // Arrange
-        when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testPromo));
+    @Nested
+    @DisplayName("getPromoDetailsById Tests")
+    class GetPromoDetailsByIdTests {
 
-        // Act
-        PromoResponseModel result = promoService.getPromoDetailsById(TEST_PROMO_ID);
+        @Test
+        @DisplayName("Get Promo Details By ID - Success - Should return promo details")
+        void getPromoDetailsById_Success() {
+            // Arrange
+            when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, DEFAULT_CLIENT_ID))
+                    .thenReturn(Optional.of(testPromo));
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(TEST_PROMO_ID, result.getPromoId());
-        assertEquals(TEST_PROMO_CODE, result.getPromoCode());
-        verify(promoRepository).findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID);
-    }
+            // Act
+            PromoResponseModel result = promoService.getPromoDetailsById(TEST_PROMO_ID);
 
-    /**
-     * Test get promo details by ID with non-existent promo ID.
-     * Verifies that NotFoundException is thrown when promo is not found.
-     */
-    @Test
-    @DisplayName("Get Promo Details By ID - Failure - Promo not found")
-    void getPromoDetailsById_PromoNotFound_ThrowsNotFoundException() {
-        // Arrange
-        when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+            // Assert
+            assertNotNull(result);
+            assertEquals(TEST_PROMO_ID, result.getPromoId());
+            assertEquals(TEST_PROMO_CODE, result.getPromoCode());
+            verify(promoRepository).findByPromoIdAndClientId(TEST_PROMO_ID, DEFAULT_CLIENT_ID);
+        }
 
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            promoService.getPromoDetailsById(TEST_PROMO_ID);
-        });
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, exception.getMessage());
-        verify(promoRepository).findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID);
-    }
+        @Test
+        @DisplayName("Get Promo Details By ID - Failure - Promo not found")
+        void getPromoDetailsById_PromoNotFound_ThrowsNotFoundException() {
+            // Arrange
+            when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, DEFAULT_CLIENT_ID)).thenReturn(Optional.empty());
 
-    /**
-     * Test get promo details by ID with zero ID.
-     * Verifies that method handles zero ID (though repository would handle this).
-     */
-    @Test
-    @DisplayName("Get Promo Details By ID - Edge Case - Zero ID")
-    void getPromoDetailsById_ZeroId_Success() {
-        // Arrange
-        Long zeroId = 0L;
-        when(promoRepository.findByPromoIdAndClientId(zeroId, TEST_CLIENT_ID)).thenReturn(Optional.of(testPromo));
-
-        // Act
-        PromoResponseModel result = promoService.getPromoDetailsById(zeroId);
-
-        // Assert
-        assertNotNull(result);
-        verify(promoRepository).findByPromoIdAndClientId(zeroId, TEST_CLIENT_ID);
-    }
-
-    /**
-     * Test get promo details by ID with negative ID.
-     * Verifies that method handles negative ID (though repository would handle
-     * this).
-     */
-    @Test
-    @DisplayName("Get Promo Details By ID - Edge Case - Negative ID")
-    void getPromoDetailsById_NegativeId_Success() {
-        // Arrange
-        Long negativeId = -1L;
-        when(promoRepository.findByPromoIdAndClientId(negativeId, TEST_CLIENT_ID)).thenReturn(Optional.of(testPromo));
-
-        // Act
-        PromoResponseModel result = promoService.getPromoDetailsById(negativeId);
-
-        // Assert
-        assertNotNull(result);
-        verify(promoRepository).findByPromoIdAndClientId(negativeId, TEST_CLIENT_ID);
+            // Act & Assert
+            NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+                promoService.getPromoDetailsById(TEST_PROMO_ID);
+            });
+            assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, exception.getMessage());
+            verify(promoRepository).findByPromoIdAndClientId(TEST_PROMO_ID, DEFAULT_CLIENT_ID);
+        }
     }
 
     // ==================== Toggle Promo Tests ====================
 
-    /**
-     * Test successful promo toggle operation.
-     * Verifies that promo's isDeleted flag is correctly toggled and logged.
-     */
-    @Test
-    @DisplayName("Toggle Promo - Success - Should toggle isDeleted flag and log")
-    void togglePromo_Success() {
-        // Arrange
-        // Note: BaseService methods are now handled by the actual service
-        // implementation
-        when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testPromo));
-        when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
+    @Nested
+    @DisplayName("togglePromo Tests")
+    class TogglePromoTests {
 
-        // Act
-        promoService.togglePromo(TEST_PROMO_ID);
+        @Test
+        @DisplayName("Toggle Promo - Success - Should toggle isDeleted flag and log")
+        void togglePromo_Success() {
+            // Arrange
+            when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, DEFAULT_CLIENT_ID))
+                    .thenReturn(Optional.of(testPromo));
+            when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
 
-        // Assert
-        assertTrue(testPromo.getIsDeleted()); // Should be toggled from false to true
-        verify(promoRepository).findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID);
-        verify(promoRepository).save(testPromo);
-        verify(userLogService).logData(
-                eq(TEST_USER_ID),
-                eq(SuccessMessages.PromoSuccessMessages.ToggledPromo + TEST_PROMO_ID),
-                eq(ApiRoutes.PromosSubRoute.TOGGLE_PROMO));
-    }
-
-    /**
-     * Test toggle promo with non-existent promo ID.
-     * Verifies that NotFoundException is thrown when promo is not found.
-     */
-    @Test
-    @DisplayName("Toggle Promo - Failure - Promo not found")
-    void togglePromo_PromoNotFound_ThrowsNotFoundException() {
-        // Arrange
-        when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            // Act
             promoService.togglePromo(TEST_PROMO_ID);
-        });
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, exception.getMessage());
-        verify(promoRepository).findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID);
-        verify(promoRepository, never()).save(any(Promo.class));
-        verify(userLogService, never()).logData(anyLong(), any(), any());
-    }
 
-    /**
-     * Test toggle promo with zero ID.
-     * Verifies that method handles zero ID appropriately.
-     */
-    @Test
-    @DisplayName("Toggle Promo - Edge Case - Zero ID")
-    void togglePromo_ZeroId_ThrowsNotFoundException() {
-        // Arrange
-        Long zeroId = 0L;
-        when(promoRepository.findByPromoIdAndClientId(zeroId, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+            // Assert
+            assertTrue(testPromo.getIsDeleted()); // Should be toggled from false to true
+            verify(promoRepository).findByPromoIdAndClientId(TEST_PROMO_ID, DEFAULT_CLIENT_ID);
+            verify(promoRepository).save(testPromo);
+            verify(userLogService).logData(
+                    eq(DEFAULT_USER_ID),
+                    eq(SuccessMessages.PromoSuccessMessages.ToggledPromo + TEST_PROMO_ID),
+                    eq(ApiRoutes.PromosSubRoute.TOGGLE_PROMO));
+        }
 
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            promoService.togglePromo(zeroId);
-        });
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, exception.getMessage());
-    }
+        @Test
+        @DisplayName("Toggle Promo - Failure - Promo not found")
+        void togglePromo_PromoNotFound_ThrowsNotFoundException() {
+            // Arrange
+            when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, DEFAULT_CLIENT_ID)).thenReturn(Optional.empty());
 
-    /**
-     * Test toggle promo with negative ID.
-     * Verifies that method handles negative ID appropriately.
-     */
-    @Test
-    @DisplayName("Toggle Promo - Edge Case - Negative ID")
-    void togglePromo_NegativeId_ThrowsNotFoundException() {
-        // Arrange
-        Long negativeId = -1L;
-        when(promoRepository.findByPromoIdAndClientId(negativeId, TEST_CLIENT_ID)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            promoService.togglePromo(negativeId);
-        });
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, exception.getMessage());
+            // Act & Assert
+            NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+                promoService.togglePromo(TEST_PROMO_ID);
+            });
+            assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, exception.getMessage());
+            verify(promoRepository).findByPromoIdAndClientId(TEST_PROMO_ID, DEFAULT_CLIENT_ID);
+            verify(promoRepository, never()).save(any(Promo.class));
+            verify(userLogService, never()).logData(anyLong(), any(), any());
+        }
     }
 
     // ==================== Get Promo Details By Name Tests ====================
 
-    /**
-     * Test successful retrieval of promo details by promo code.
-     * Verifies that promo details are correctly returned when found by code.
-     */
-    @Test
-    @DisplayName("Get Promo Details By Name - Success - Should return promo details")
-    void getPromoDetailsByName_Success() {
-        // Arrange
-        when(promoRepository.findByPromoCodeAndClientId(TEST_PROMO_CODE, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testPromo));
+    @Nested
+    @DisplayName("getPromoDetailsByName Tests")
+    class GetPromoDetailsByNameTests {
 
-        // Act
-        PromoResponseModel result = promoService.getPromoDetailsByName(TEST_PROMO_CODE);
+        @Test
+        @DisplayName("Get Promo Details By Name - Success - Should return promo details")
+        void getPromoDetailsByName_Success() {
+            // Arrange
+            when(promoRepository.findByPromoCodeAndClientId(TEST_PROMO_CODE, DEFAULT_CLIENT_ID))
+                    .thenReturn(Optional.of(testPromo));
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(TEST_PROMO_CODE, result.getPromoCode());
-        assertEquals(TEST_PROMO_ID, result.getPromoId());
-        verify(promoRepository).findByPromoCodeAndClientId(TEST_PROMO_CODE, TEST_CLIENT_ID);
-    }
+            // Act
+            PromoResponseModel result = promoService.getPromoDetailsByName(TEST_PROMO_CODE);
 
-    /**
-     * Test get promo details by name with non-existent promo code.
-     * Verifies that NotFoundException is thrown when promo code is not found.
-     */
-    @Test
-    @DisplayName("Get Promo Details By Name - Failure - Promo code not found")
-    void getPromoDetailsByName_PromoCodeNotFound_ThrowsNotFoundException() {
-        // Arrange
-        String nonExistentCode = "NONEXISTENT";
-        when(promoRepository.findByPromoCodeAndClientId(nonExistentCode, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+            // Assert
+            assertNotNull(result);
+            assertEquals(TEST_PROMO_CODE, result.getPromoCode());
+            assertEquals(TEST_PROMO_ID, result.getPromoId());
+            verify(promoRepository).findByPromoCodeAndClientId(TEST_PROMO_CODE, DEFAULT_CLIENT_ID);
+        }
 
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            promoService.getPromoDetailsByName(nonExistentCode);
-        });
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidName, exception.getMessage());
-        verify(promoRepository).findByPromoCodeAndClientId(nonExistentCode, TEST_CLIENT_ID);
-    }
+        @Test
+        @DisplayName("Get Promo Details By Name - Failure - Promo code not found")
+        void getPromoDetailsByName_PromoCodeNotFound_ThrowsNotFoundException() {
+            // Arrange
+            String nonExistentCode = "NONEXISTENT";
+            when(promoRepository.findByPromoCodeAndClientId(nonExistentCode, DEFAULT_CLIENT_ID)).thenReturn(Optional.empty());
 
-    /**
-     * Test get promo details by name with null promo code.
-     * Verifies that method handles null promo code (though repository would handle
-     * this).
-     */
-    @Test
-    @DisplayName("Get Promo Details By Name - Edge Case - Null promo code")
-    void getPromoDetailsByName_NullPromoCode_ThrowsNotFoundException() {
-        // Arrange
-        String nullCode = null;
-        // No need to mock repository since service validates before calling repository
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            promoService.getPromoDetailsByName(nullCode);
-        });
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, exception.getMessage());
-    }
-
-    /**
-     * Test get promo details by name with empty promo code.
-     * Verifies that method handles empty promo code.
-     */
-    @Test
-    @DisplayName("Get Promo Details By Name - Edge Case - Empty promo code")
-    void getPromoDetailsByName_EmptyPromoCode_ThrowsNotFoundException() {
-        // Arrange
-        String emptyCode = "";
-        // No need to mock repository since service validates before calling repository
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            promoService.getPromoDetailsByName(emptyCode);
-        });
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, exception.getMessage());
-    }
-
-    /**
-     * Test get promo details by name with whitespace promo code.
-     * Verifies that method handles whitespace in promo code.
-     */
-    @Test
-    @DisplayName("Get Promo Details By Name - Edge Case - Whitespace promo code")
-    void getPromoDetailsByName_WhitespacePromoCode_Success() {
-        // Arrange
-        String whitespaceCode = "   ";
-        // No need to mock repository since service validates before calling repository
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            promoService.getPromoDetailsByName(whitespaceCode);
-        });
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, exception.getMessage());
+            // Act & Assert
+            NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+                promoService.getPromoDetailsByName(nonExistentCode);
+            });
+            assertEquals(ErrorMessages.PromoErrorMessages.InvalidName, exception.getMessage());
+            verify(promoRepository).findByPromoCodeAndClientId(nonExistentCode, DEFAULT_CLIENT_ID);
+        }
     }
 
     // ==================== Bulk Create Promos Tests ====================
 
-    /**
-     * Test successful bulk promo creation.
-     * Verifies that multiple promos are created successfully.
-     */
-    @Test
-    @DisplayName("Bulk Create Promos - Success - All valid promos")
-    void bulkCreatePromos_AllValid_Success() {
-        // Arrange
-        List<PromoRequestModel> promos = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
-            PromoRequestModel promoReq = new PromoRequestModel();
-            promoReq.setPromoCode("PROMO" + i);
-            promoReq.setDescription("Promo " + i);
-            promoReq.setDiscountValue(BigDecimal.valueOf(10 + i));
-            promoReq.setClientId(TEST_CLIENT_ID);
-            promoReq.setStartDate(java.time.LocalDate.now());
-            promoReq.setExpiryDate(java.time.LocalDate.now().plusDays(30));
-            promos.add(promoReq);
-        }
-
-        Map<String, Promo> savedPromos = new HashMap<>();
-        when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID))).thenAnswer(invocation -> {
-            String code = invocation.getArgument(0);
-            return Optional.ofNullable(savedPromos.get(code.toUpperCase()));
-        });
-        when(promoRepository.save(any(Promo.class))).thenAnswer(invocation -> {
-            Promo promo = invocation.getArgument(0);
-            promo.setPromoId((long) (Math.random() * 1000));
-            savedPromos.put(promo.getPromoCode(), promo);
-            return promo;
-        });
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-
-        // Act
-        BulkInsertResponseModel<Long> result = promoService.bulkCreatePromos(promos);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(3, result.getTotalRequested());
-        assertEquals(3, result.getSuccessCount());
-        assertEquals(0, result.getFailureCount());
-        verify(promoRepository, times(3)).save(any(Promo.class));
-    }
-
-    /**
-     * Test bulk promo creation with partial success.
-     * Verifies that some promos succeed while others fail validation.
-     */
-    @Test
-    @DisplayName("Bulk Create Promos - Partial Success - Some promos fail validation")
-    void bulkCreatePromos_PartialSuccess() {
-        // Arrange
-        List<PromoRequestModel> promos = new ArrayList<>();
-
-        // Valid promo
-        PromoRequestModel validPromo = new PromoRequestModel();
-        validPromo.setPromoCode("VALID");
-        validPromo.setDescription("Valid Promo");
-        validPromo.setDiscountValue(BigDecimal.valueOf(10));
-        validPromo.setClientId(TEST_CLIENT_ID);
-        validPromo.setStartDate(java.time.LocalDate.now());
-        validPromo.setExpiryDate(java.time.LocalDate.now().plusDays(30));
-        promos.add(validPromo);
-
-        // Invalid promo (missing promo code)
-        PromoRequestModel invalidPromo = new PromoRequestModel();
-        invalidPromo.setPromoCode(null);
-        invalidPromo.setDescription("Invalid Promo");
-        invalidPromo.setDiscountValue(BigDecimal.valueOf(10));
-        invalidPromo.setClientId(TEST_CLIENT_ID);
-        promos.add(invalidPromo);
-
-        Map<String, Promo> savedPromos = new HashMap<>();
-        when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID))).thenAnswer(invocation -> {
-            String code = invocation.getArgument(0);
-            return Optional.ofNullable(savedPromos.get(code != null ? code.toUpperCase() : null));
-        });
-        when(promoRepository.save(any(Promo.class))).thenAnswer(invocation -> {
-            Promo promo = invocation.getArgument(0);
-            promo.setPromoId((long) (Math.random() * 1000));
-            savedPromos.put(promo.getPromoCode(), promo);
-            return promo;
-        });
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-
-        // Act
-        BulkInsertResponseModel<Long> result = promoService.bulkCreatePromos(promos);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.getTotalRequested());
-        assertEquals(1, result.getSuccessCount());
-        assertEquals(1, result.getFailureCount());
-        verify(promoRepository, times(1)).save(any(Promo.class));
-    }
-
-    /**
-     * Test bulk promo creation with database error.
-     * Verifies that database errors are properly handled.
-     */
-    @Test
-    @DisplayName("Bulk Create Promos - Failure - Database error")
-    void bulkCreatePromos_DatabaseError() {
-        // Arrange
-        List<PromoRequestModel> promos = new ArrayList<>();
-        PromoRequestModel promoReq = new PromoRequestModel();
-        promoReq.setPromoCode("TEST");
-        promoReq.setDescription("Test Promo");
-        promoReq.setDiscountValue(BigDecimal.valueOf(10));
-        promoReq.setClientId(TEST_CLIENT_ID);
-        promos.add(promoReq);
-
-        lenient().when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID)))
-                .thenReturn(Optional.empty());
-        lenient().when(promoRepository.save(any(Promo.class))).thenThrow(new RuntimeException("Database error"));
-
-        // Act
-        BulkInsertResponseModel<Long> result = promoService.bulkCreatePromos(promos);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getTotalRequested());
-        assertEquals(0, result.getSuccessCount());
-        assertEquals(1, result.getFailureCount());
-    }
-
-    /**
-     * Test bulk promo creation with empty list.
-     * Verifies that empty list is handled correctly.
-     */
-    @Test
-    @DisplayName("Bulk Create Promos - Success - Empty list")
-    void bulkCreatePromos_EmptyList() {
-        // Arrange
-        List<PromoRequestModel> promos = new ArrayList<>();
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            promoService.bulkCreatePromos(promos);
-        });
-        assertTrue(exception.getMessage().contains("Promo list cannot be null or empty"));
-        verify(promoRepository, never()).save(any(Promo.class));
-    }
-
-    // ==================== Validation Tests ====================
-
-    @org.junit.jupiter.api.Nested
-    @DisplayName("Validation Tests")
-    class ValidationTests {
+    @Nested
+    @DisplayName("bulkCreatePromos Tests")
+    class BulkCreatePromosTests {
 
         @Test
-        @DisplayName("Promo Validation - Invalid description (null) - Throws BadRequestException")
-        void testPromoValidation_InvalidDescription_Null() {
-            testPromoRequest.setDescription(null);
-            BadRequestException exception = assertThrows(BadRequestException.class,
-                    () -> promoService.createPromo(testPromoRequest));
-            assertEquals(ErrorMessages.PromoErrorMessages.InvalidDescription, exception.getMessage());
+        @DisplayName("Bulk Create Promos - Success - All valid promos")
+        void bulkCreatePromos_AllValid_Success() {
+            // Arrange
+            List<PromoRequestModel> promos = new ArrayList<>();
+            for (int i = 0; i < 3; i++) {
+                PromoRequestModel promoReq = new PromoRequestModel();
+                promoReq.setPromoCode("PROMO" + i);
+                promoReq.setDescription("Promo " + i);
+                promoReq.setDiscountValue(BigDecimal.valueOf(10 + i));
+                promoReq.setClientId(DEFAULT_CLIENT_ID);
+                promoReq.setStartDate(java.time.LocalDate.now());
+                promoReq.setExpiryDate(java.time.LocalDate.now().plusDays(30));
+                promos.add(promoReq);
+            }
+
+            Map<String, Promo> savedPromos = new HashMap<>();
+            when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(DEFAULT_CLIENT_ID))).thenAnswer(invocation -> {
+                String code = invocation.getArgument(0);
+                return Optional.ofNullable(savedPromos.get(code.toUpperCase()));
+            });
+            when(promoRepository.save(any(Promo.class))).thenAnswer(invocation -> {
+                Promo promo = invocation.getArgument(0);
+                promo.setPromoId((long) (Math.random() * 1000));
+                savedPromos.put(promo.getPromoCode(), promo);
+                return promo;
+            });
+            when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            // Act
+            BulkInsertResponseModel<Long> result = promoService.bulkCreatePromos(promos);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(3, result.getTotalRequested());
+            assertEquals(3, result.getSuccessCount());
+            assertEquals(0, result.getFailureCount());
+            verify(promoRepository, times(3)).save(any(Promo.class));
         }
-
-        @Test
-        @DisplayName("Promo Validation - Invalid description (empty) - Throws BadRequestException")
-        void testPromoValidation_InvalidDescription_Empty() {
-            testPromoRequest.setDescription("   ");
-            BadRequestException exception = assertThrows(BadRequestException.class,
-                    () -> promoService.createPromo(testPromoRequest));
-            assertEquals(ErrorMessages.PromoErrorMessages.InvalidDescription, exception.getMessage());
-        }
-
-        @Test
-        @DisplayName("Promo Validation - Description too long - Throws BadRequestException")
-        void testPromoValidation_DescriptionTooLong() {
-            testPromoRequest.setDescription("a".repeat(501));
-            BadRequestException exception = assertThrows(BadRequestException.class,
-                    () -> promoService.createPromo(testPromoRequest));
-            assertEquals(ErrorMessages.PromoErrorMessages.DescriptionTooLong, exception.getMessage());
-        }
-
-        @Test
-        @DisplayName("Promo Validation - Invalid discount value (null) - Throws BadRequestException")
-        void testPromoValidation_InvalidDiscountValue_Null() {
-            testPromoRequest.setDiscountValue(null);
-            BadRequestException exception = assertThrows(BadRequestException.class,
-                    () -> promoService.createPromo(testPromoRequest));
-            assertEquals(ErrorMessages.PromoErrorMessages.InvalidDiscountValue, exception.getMessage());
-        }
-
-        @Test
-        @DisplayName("Promo Validation - Invalid discount value (negative) - Throws BadRequestException")
-        void testPromoValidation_InvalidDiscountValue_Negative() {
-            testPromoRequest.setDiscountValue(new BigDecimal("-1"));
-            BadRequestException exception = assertThrows(BadRequestException.class,
-                    () -> promoService.createPromo(testPromoRequest));
-            assertEquals(ErrorMessages.PromoErrorMessages.InvalidDiscountValue, exception.getMessage());
-        }
-
-        @Test
-        @DisplayName("Promo Validation - Invalid percentage value (> 100) - Throws BadRequestException")
-        void testPromoValidation_InvalidPercentageValue() {
-            testPromoRequest.setIsPercent(true);
-            testPromoRequest.setDiscountValue(new BigDecimal("101"));
-            BadRequestException exception = assertThrows(BadRequestException.class,
-                    () -> promoService.createPromo(testPromoRequest));
-            assertEquals(ErrorMessages.PromoErrorMessages.InvalidPercentageValue, exception.getMessage());
-        }
-
-        @Test
-        @DisplayName("Promo Validation - Promo code too long - Throws BadRequestException")
-        void testPromoValidation_PromoCodeTooLong() {
-            testPromoRequest.setPromoCode("a".repeat(101));
-            BadRequestException exception = assertThrows(BadRequestException.class,
-                    () -> promoService.createPromo(testPromoRequest));
-            assertEquals(ErrorMessages.PromoErrorMessages.PromoCodeTooLong, exception.getMessage());
-        }
-
-        @Test
-        @DisplayName("Promo Validation - Invalid start date (null) - Throws BadRequestException")
-        void testPromoValidation_InvalidStartDate_Null() {
-            // Promo fields initialized in setUp are missing startDate, so ensure it is set
-            // there if needed,
-            // but here checking null specifically.
-            // Base setup doesn't set dates currently, need to ensure testPromoRequest in
-            // setUp has valid defaults if using createPromo.
-            // Actually setUp sets generic fields. Let's force null here.
-            testPromoRequest.setStartDate(null);
-            BadRequestException exception = assertThrows(BadRequestException.class,
-                    () -> promoService.createPromo(testPromoRequest));
-            assertEquals(ErrorMessages.PromoErrorMessages.InvalidStartDate, exception.getMessage());
-        }
-
-        @Test
-        @DisplayName("Promo Validation - Start date in past - Throws BadRequestException")
-        void testPromoValidation_StartDatePast() {
-            testPromoRequest.setStartDate(java.time.LocalDate.now().minusDays(1));
-            BadRequestException exception = assertThrows(BadRequestException.class,
-                    () -> promoService.createPromo(testPromoRequest));
-            assertEquals(ErrorMessages.PromoErrorMessages.StartDateMustBeTodayOrFuture, exception.getMessage());
-        }
-
-        @Test
-        @DisplayName("Promo Validation - Invalid expiry date (past) - Throws BadRequestException")
-        void testPromoValidation_InvalidExpiryDate_Past() {
-            testPromoRequest.setStartDate(java.time.LocalDate.now());
-            testPromoRequest.setExpiryDate(java.time.LocalDate.now().minusDays(1));
-            BadRequestException exception = assertThrows(BadRequestException.class,
-                    () -> promoService.createPromo(testPromoRequest));
-            assertEquals(ErrorMessages.PromoErrorMessages.InvalidExpiryDate, exception.getMessage());
-        }
-
-        @Test
-        @DisplayName("Promo Validation - Expiry date before start date - Throws BadRequestException")
-        void testPromoValidation_ExpiryDateBeforeStartDate() {
-            testPromoRequest.setStartDate(java.time.LocalDate.now().plusDays(2));
-            testPromoRequest.setExpiryDate(java.time.LocalDate.now().plusDays(1));
-            BadRequestException exception = assertThrows(BadRequestException.class,
-                    () -> promoService.createPromo(testPromoRequest));
-            assertEquals(ErrorMessages.PromoErrorMessages.ExpiryDateMustBeAfterStartDate, exception.getMessage());
-        }
-
-        @Test
-        @DisplayName("Promo Validation - Overlapping Promo Code - Throws BadRequestException")
-        void testPromoValidation_OverlappingPromoCode() {
-            // Valid request
-            testPromoRequest.setStartDate(java.time.LocalDate.now());
-            testPromoRequest.setExpiryDate(java.time.LocalDate.now().plusDays(10));
-            testPromoRequest.setPromoCode("OVERLAP");
-
-            // Mock overlaps
-            when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))
-                    .thenReturn(List.of(new Promo()));
-
-            BadRequestException exception = assertThrows(BadRequestException.class,
-                    () -> promoService.createPromo(testPromoRequest));
-            assertEquals(ErrorMessages.PromoErrorMessages.OverlappingPromoCode, exception.getMessage());
-        }
-    }
-
-    // ==================== Additional GetPromoDetailsById Tests ====================
-
-    @Test
-    @DisplayName("Get Promo By ID - Negative ID - Not Found")
-    void getPromoDetailsById_NegativeId_ThrowsNotFoundException() {
-        when(promoRepository.findByPromoIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> promoService.getPromoDetailsById(-1L));
-        assertTrue(ex.getMessage().contains(String.valueOf(-1L)) || ex.getMessage().contains("not found"));
-    }
-
-    @Test
-    @DisplayName("Get Promo By ID - Zero ID - Not Found")
-    void getPromoDetailsById_ZeroId_ThrowsNotFoundException() {
-        when(promoRepository.findByPromoIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> promoService.getPromoDetailsById(0L));
-        assertTrue(ex.getMessage().contains("not found"));
-    }
-
-    @Test
-    @DisplayName("Get Promo By ID - Long.MAX_VALUE - Not Found")
-    void getPromoDetailsById_MaxLongId_ThrowsNotFoundException() {
-        when(promoRepository.findByPromoIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> promoService.getPromoDetailsById(Long.MAX_VALUE));
-        assertTrue(ex.getMessage().contains("not found"));
-    }
-
-    @Test
-    @DisplayName("Get Promo By ID - Long.MIN_VALUE - Not Found")
-    void getPromoDetailsById_MinLongId_ThrowsNotFoundException() {
-        when(promoRepository.findByPromoIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> promoService.getPromoDetailsById(Long.MIN_VALUE));
-        assertTrue(ex.getMessage().contains("not found"));
-    }
-
-    // ==================== Additional GetPromoDetailsByName Tests ====================
-
-    @Test
-    @DisplayName("Get Promo By Name - Case Insensitive Lookup")
-    void getPromoDetailsByName_CaseInsensitive_Success() {
-        when(promoRepository.findByPromoCodeIgnoreCaseAndClientId("test10", TEST_CLIENT_ID))
-                .thenReturn(testPromo);
-        PromoResponseModel result = promoService.getPromoDetailsByName("TEST10");
-        assertNotNull(result);
-    }
-
-    @Test
-    @DisplayName("Get Promo By Name - Whitespace Code - Not Found")
-    void getPromoDetailsByName_WhitespaceCode_ThrowsNotFoundException() {
-        when(promoRepository.findByPromoCodeIgnoreCaseAndClientId("   ", TEST_CLIENT_ID))
-                .thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> promoService.getPromoDetailsByName("   "));
-        assertTrue(ex.getMessage().contains("not found"));
-    }
-
-    @Test
-    @DisplayName("Get Promo By Name - Very Long Code - Not Found")
-    void getPromoDetailsByName_VeryLongCode_ThrowsNotFoundException() {
-        String longCode = "A".repeat(200);
-        when(promoRepository.findByPromoCodeIgnoreCaseAndClientId(longCode, TEST_CLIENT_ID))
-                .thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> promoService.getPromoDetailsByName(longCode));
-        assertTrue(ex.getMessage().contains("not found"));
-    }
-
-    // ==================== Additional TogglePromo Tests ====================
-
-    @Test
-    @DisplayName("Toggle Promo - Negative ID - Not Found")
-    void togglePromo_NegativeId_ThrowsNotFoundException() {
-        when(promoRepository.findByPromoIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> promoService.togglePromo(-1L));
-        assertTrue(ex.getMessage().contains("not found"));
-    }
-
-    @Test
-    @DisplayName("Toggle Promo - Zero ID - Not Found")
-    void togglePromo_ZeroId_ThrowsNotFoundException() {
-        when(promoRepository.findByPromoIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> promoService.togglePromo(0L));
-        assertTrue(ex.getMessage().contains("not found"));
-    }
-
-    @Test
-    @DisplayName("Toggle Promo - Max Long ID - Not Found")
-    void togglePromo_MaxLongId_ThrowsNotFoundException() {
-        when(promoRepository.findByPromoIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> promoService.togglePromo(Long.MAX_VALUE));
-        assertTrue(ex.getMessage().contains("not found"));
-    }
-
-    @Test
-    @DisplayName("Toggle Promo - Multiple Toggles - State Persistence")
-    void togglePromo_MultipleToggles_StatePersists() {
-        testPromo.setIsDeleted(false);
-        when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID))
-                .thenReturn(testPromo);
-        when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
-        
-        promoService.togglePromo(TEST_PROMO_ID);
-        assertTrue(testPromo.getIsDeleted());
-        
-        promoService.togglePromo(TEST_PROMO_ID);
-        assertFalse(testPromo.getIsDeleted());
-    }
-
-    // ==================== Additional CreatePromo Tests ====================
-
-    @Test
-    @DisplayName("Create Promo - Null Request - Throws BadRequestException")
-    void createPromo_NullRequest_ThrowsBadRequestException() {
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> promoService.createPromo(null));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidRequest, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Create Promo - Empty Promo Code - Throws BadRequestException")
-    void createPromo_EmptyPromoCode_ThrowsBadRequestException() {
-        testPromoRequest.setPromoCode("");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Create Promo - Whitespace Promo Code - Throws BadRequestException")
-    void createPromo_WhitespacePromoCode_ThrowsBadRequestException() {
-        testPromoRequest.setPromoCode("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Create Promo - Empty Description - Throws BadRequestException")
-    void createPromo_EmptyDescription_ThrowsBadRequestException() {
-        testPromoRequest.setDescription("");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidDescription, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Create Promo - Whitespace Description - Throws BadRequestException")
-    void createPromo_WhitespaceDescription_ThrowsBadRequestException() {
-        testPromoRequest.setDescription("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidDescription, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Create Promo - Null Discount Value - Throws BadRequestException")
-    void createPromo_NullDiscountValue_ThrowsBadRequestException() {
-        testPromoRequest.setDiscountValue(null);
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidDiscountValue, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Create Promo - Negative Discount Value - Throws BadRequestException")
-    void createPromo_NegativeDiscountValue_ThrowsBadRequestException() {
-        testPromoRequest.setDiscountValue(BigDecimal.valueOf(-5.0));
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidDiscountValue, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Create Promo - Percentage Over 100 - Throws BadRequestException")
-    void createPromo_PercentageOver100_ThrowsBadRequestException() {
-        testPromoRequest.setIsPercent(true);
-        testPromoRequest.setDiscountValue(BigDecimal.valueOf(150.0));
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidPercentageValue, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Create Promo - Percentage Exactly 100 - Success")
-    void createPromo_Percentage100_Success() {
-        testPromoRequest.setIsPercent(true);
-        testPromoRequest.setDiscountValue(BigDecimal.valueOf(100.0));
-        when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
-        assertDoesNotThrow(() -> promoService.createPromo(testPromoRequest));
-    }
-
-    @Test
-    @DisplayName("Create Promo - Past Start Date - Throws BadRequestException")
-    void createPromo_PastStartDate_ThrowsBadRequestException() {
-        testPromoRequest.setStartDate(java.time.LocalDate.now().minusDays(1));
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.StartDateMustBeTodayOrFuture, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Create Promo - Null Start Date - Throws BadRequestException")
-    void createPromo_NullStartDate_ThrowsBadRequestException() {
-        testPromoRequest.setStartDate(null);
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidStartDate, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Create Promo - Expiry Before Start - Throws BadRequestException")
-    void createPromo_ExpiryBeforeStart_ThrowsBadRequestException() {
-        testPromoRequest.setStartDate(java.time.LocalDate.now().plusDays(10));
-        testPromoRequest.setExpiryDate(java.time.LocalDate.now().plusDays(5));
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.ExpiryDateMustBeAfterStartDate, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Create Promo - Expiry Past - Throws BadRequestException")
-    void createPromo_ExpiryInPast_ThrowsBadRequestException() {
-        testPromoRequest.setExpiryDate(java.time.LocalDate.now().minusDays(1));
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidExpiryDate, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Create Promo - Code Too Long (>100 chars) - Throws BadRequestException")
-    void createPromo_CodeTooLong_ThrowsBadRequestException() {
-        testPromoRequest.setPromoCode("A".repeat(101));
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.PromoCodeTooLong, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Create Promo - Code Exactly 100 chars - Success")
-    void createPromo_Code100Chars_Success() {
-        testPromoRequest.setPromoCode("A".repeat(100));
-        when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
-        assertDoesNotThrow(() -> promoService.createPromo(testPromoRequest));
-    }
-
-    @Test
-    @DisplayName("Create Promo - Description Too Long (>500 chars) - Throws BadRequestException")
-    void createPromo_DescriptionTooLong_ThrowsBadRequestException() {
-        testPromoRequest.setDescription("D".repeat(501));
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.DescriptionTooLong, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Create Promo - Description Exactly 500 chars - Success")
-    void createPromo_Description500Chars_Success() {
-        testPromoRequest.setDescription("D".repeat(500));
-        when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
-        assertDoesNotThrow(() -> promoService.createPromo(testPromoRequest));
-    }
-
-    // ==================== Additional BulkCreate Tests ====================
-
-    @Test
-    @DisplayName("Bulk Create Promos - All Invalid Codes")
-    void bulkCreatePromos_AllInvalidCodes_AllFail() {
-        List<PromoRequestModel> requests = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            PromoRequestModel req = new PromoRequestModel();
-            req.setPromoCode("");
-            req.setDescription("Valid description");
-            req.setIsPercent(true);
-            req.setDiscountValue(BigDecimal.valueOf(10.0));
-            req.setStartDate(java.time.LocalDate.now());
-            req.setExpiryDate(java.time.LocalDate.now().plusDays(30));
-            requests.add(req);
-        }
-        
-        BulkInsertResponseModel result = promoService.bulkCreatePromos(requests);
-        assertNotNull(result);
-        assertEquals(5, result.getTotalRequested());
-    }
-
-    @Test
-    @DisplayName("Bulk Create Promos - Mixed Valid and Invalid")
-    void bulkCreatePromos_MixedValidInvalid_PartialSuccess() {
-        List<PromoRequestModel> requests = new ArrayList<>();
-        
-        // Valid
-        PromoRequestModel valid = new PromoRequestModel();
-        valid.setPromoCode("VALID");
-        valid.setDescription("Valid");
-        valid.setIsPercent(true);
-        valid.setDiscountValue(BigDecimal.valueOf(10.0));
-        valid.setStartDate(java.time.LocalDate.now());
-        valid.setExpiryDate(java.time.LocalDate.now().plusDays(30));
-        requests.add(valid);
-        
-        // Invalid (empty code)
-        PromoRequestModel invalid = new PromoRequestModel();
-        invalid.setPromoCode("");
-        invalid.setDescription("Invalid");
-        requests.add(invalid);
-        
-        when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
-        BulkInsertResponseModel result = promoService.bulkCreatePromos(requests);
-        assertNotNull(result);
-        assertTrue(result.getTotalRequested() >= 0);
-    }
-
-    @Test
-    @DisplayName("Bulk Create Promos - Empty List")
-    void bulkCreatePromos_EmptyList_ReturnsEmpty() {
-        BulkInsertResponseModel result = promoService.bulkCreatePromos(new ArrayList<>());
-        assertNotNull(result);
-        assertEquals(0, result.getTotalRequested());
-    }
-
-    @Test
-    @DisplayName("Bulk Create Promos - Large Batch (50 items)")
-    void bulkCreatePromos_LargeBatch_Success() {
-        List<PromoRequestModel> requests = new ArrayList<>();
-        for (int i = 0; i < 50; i++) {
-            PromoRequestModel req = new PromoRequestModel();
-            req.setPromoCode("PROMO" + i);
-            req.setDescription("Promo " + i);
-            req.setIsPercent(true);
-            req.setDiscountValue(BigDecimal.valueOf(10.0 + i));
-            req.setStartDate(java.time.LocalDate.now());
-            req.setExpiryDate(java.time.LocalDate.now().plusDays(30));
-            requests.add(req);
-        }
-        
-        when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
-        BulkInsertResponseModel result = promoService.bulkCreatePromos(requests);
-        assertNotNull(result);
-    }
-
-    // ==================== Additional GetPromosInBatches Tests ====================
-
-    @Test
-    @DisplayName("Get Promos In Batches - Null Filters")
-    void getPromosInBatches_NullFilters_Success() {
-        testPaginationRequest.setFilters(null);
-        List<Promo> promoList = Arrays.asList(testPromo);
-        Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10), 1);
-        lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class)))
-                .thenReturn(promoPage);
-        
-        PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(testPaginationRequest);
-        assertNotNull(result);
-    }
-
-    @Test
-    @DisplayName("Get Promos In Batches - Empty Results")
-    void getPromosInBatches_EmptyResults_ReturnsEmpty() {
-        List<Promo> emptyList = new ArrayList<>();
-        Page<Promo> emptyPage = new PageImpl<>(emptyList, PageRequest.of(0, 10), 0);
-        lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class)))
-                .thenReturn(emptyPage);
-        
-        PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(testPaginationRequest);
-        assertNotNull(result);
-        assertEquals(0, result.getData().size());
-    }
-
-    @Test
-    @DisplayName("Get Promos In Batches - Large Page Size")
-    void getPromosInBatches_LargePageSize_Success() {
-        testPaginationRequest.setStart(0);
-        testPaginationRequest.setEnd(1000);
-        List<Promo> promoList = Arrays.asList(testPromo);
-        Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 1000), 1);
-        lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class)))
-                .thenReturn(promoPage);
-        
-        PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(testPaginationRequest);
-        assertNotNull(result);
     }
 }

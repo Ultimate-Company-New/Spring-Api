@@ -538,6 +538,11 @@ public class ErrorMessages {
         public static final String LabelGenerationFailed = "Failed to generate shipping label for ShipRocket shipment ID: %d. Error: %s";
         public static final String InvoiceGenerationFailed = "Failed to generate invoice for ShipRocket shipment ID: %d. Error: %s";
         public static final String TrackingFetchFailed = "Failed to fetch tracking information for AWB code: %s. Error: %s";
+
+        public static final String InvalidRequest = "Invalid shipping calculation request.";
+        public static final String InvalidDeliveryPostcode = "Delivery postcode is required.";
+        public static final String NoPickupLocations = "At least one pickup location is required.";
+        public static final String InvalidWeight = "Weight must be greater than 0.";
     }
 
     public static class PaymentErrorMessages {

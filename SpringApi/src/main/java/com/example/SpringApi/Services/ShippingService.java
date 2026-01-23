@@ -119,12 +119,18 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
      */
     @Override
     public ShippingCalculationResponseModel calculateShipping(ShippingCalculationRequestModel request) {
+        if (request == null) {
+            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.InvalidRequest);
+        }
+        if (request.getDeliveryPostcode() == null || request.getDeliveryPostcode().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.InvalidDeliveryPostcode);
+        }
+        if (request.getPickupLocations() == null || request.getPickupLocations().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.NoPickupLocations);
+        }
+
         ShippingCalculationResponseModel response = new ShippingCalculationResponseModel();
         response.setLocationOptions(new ArrayList<>());
-        
-        if (request.getPickupLocations() == null || request.getPickupLocations().isEmpty()) {
-            return response;
-        }
         
         // Get Shiprocket credentials from client
         ShippingHelper shippingHelper = getShippingHelper();
@@ -145,9 +151,13 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             locationOptions.setProductIds(location.getProductIds());
             locationOptions.setAvailableCouriers(new ArrayList<>());
             
+            if (location.getTotalWeightKgs() == null || location.getTotalWeightKgs().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new BadRequestException(ErrorMessages.ShippingErrorMessages.InvalidWeight);
+            }
+
             // Get weight for shipping calculation (minimum 0.5 kg)
             BigDecimal weight = location.getTotalWeightKgs();
-            if (weight == null || weight.compareTo(BigDecimal.valueOf(0.5)) < 0) {
+            if (weight.compareTo(BigDecimal.valueOf(0.5)) < 0) {
                 weight = BigDecimal.valueOf(0.5);
             }
             

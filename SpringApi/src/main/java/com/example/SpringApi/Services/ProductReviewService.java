@@ -104,12 +104,23 @@ public class ProductReviewService extends BaseService implements IProductReviewS
             }
         };
 
-        // Get paginated reviews for the product (without filtering for now)
+        String columnName = null;
+        String condition = null;
+        String filterExpr = null;
+
+        if (paginationBaseRequestModel.getFilters() != null && !paginationBaseRequestModel.getFilters().isEmpty()) {
+            PaginationBaseRequestModel.FilterCondition firstFilter = paginationBaseRequestModel.getFilters().get(0);
+            columnName = firstFilter.getColumn();
+            condition = firstFilter.getOperator();
+            filterExpr = String.valueOf(firstFilter.getValue());
+        }
+
+        // Get paginated reviews for the product
         Page<ProductReview> reviewPage = productReviewRepository.findPaginatedProductReviews(
             getClientId(),
-            null,
-            null,
-            null,
+            columnName,
+            condition,
+            filterExpr,
             paginationBaseRequestModel.isIncludeDeleted(),
             pageable
         );

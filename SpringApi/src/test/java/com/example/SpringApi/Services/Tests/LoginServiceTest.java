@@ -7,7 +7,6 @@ import com.example.SpringApi.Models.DatabaseModels.GoogleCred;
 import com.example.SpringApi.Models.DatabaseModels.UserClientMapping;
 import com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping;
 import com.example.SpringApi.Models.RequestModels.LoginRequestModel;
-import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import com.example.SpringApi.Repositories.ClientRepository;
 import com.example.SpringApi.Repositories.GoogleCredRepository;
 import com.example.SpringApi.Repositories.UserClientMappingRepository;
@@ -20,9 +19,11 @@ import com.example.SpringApi.Helpers.PasswordHelper;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Exceptions.UnauthorizedException;
+import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -30,7 +31,6 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
 
-import java.time.LocalDate;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -57,12 +57,11 @@ import org.mockito.MockedConstruction;
  * mocked.
  * 
  * @author SpringApi Team
- * @version 1.0
- * @since 2024-01-15
+ * @version 2.0
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("LoginService Unit Tests")
-class LoginServiceTest {
+class LoginServiceTest extends BaseTest {
 
     @Mock
     private UserRepository userRepository;
@@ -88,9 +87,6 @@ class LoginServiceTest {
     @Mock
     private Environment environment;
 
-    @Mock
-    private GoogleCred googleCred;
-
     // Mock helper classes to prevent external service calls during testing
     @Mock
     private EmailTemplates emailTemplates;
@@ -100,12 +96,8 @@ class LoginServiceTest {
 
     private User testUser;
     private LoginRequestModel testLoginRequest;
-    private UserRequestModel testUserRequest;
     private Client testClient;
     private UserClientMapping testUserClientMapping;
-    private static final Long TEST_USER_ID = 1L;
-    private static final Long TEST_CLIENT_ID = 1L;
-    private static final String TEST_LOGIN_NAME = "testuser";
     private static final String TEST_PASSWORD = "password123";
     private static final String TEST_TOKEN = "test-token-123";
     private static final String TEST_API_KEY = "test-api-key-123";
@@ -116,18 +108,8 @@ class LoginServiceTest {
      */
     @BeforeEach
     void setUp() {
-        // Initialize test user with proper constructor
-        testUserRequest = new UserRequestModel();
-        testUserRequest.setLoginName(TEST_LOGIN_NAME);
-        testUserRequest.setPassword(TEST_PASSWORD);
-        testUserRequest.setFirstName("Test");
-        testUserRequest.setLastName("User");
-        testUserRequest.setPhone("1234567890");
-        testUserRequest.setRole("Customer");
-        testUserRequest.setDob(LocalDate.of(1990, 1, 1));
-
-        testUser = new User(testUserRequest);
-        testUser.setUserId(TEST_USER_ID);
+        // Initialize test user using BaseTest factory
+        testUser = createTestUser(DEFAULT_USER_ID, DEFAULT_LOGIN_NAME, DEFAULT_EMAIL);
         testUser.setToken(TEST_TOKEN);
         testUser.setEmailConfirmed(true);
         testUser.setLocked(false);
@@ -137,25 +119,22 @@ class LoginServiceTest {
 
         // Initialize test login request
         testLoginRequest = new LoginRequestModel();
-        testLoginRequest.setUserId(TEST_USER_ID);
-        testLoginRequest.setLoginName(TEST_LOGIN_NAME);
+        testLoginRequest.setUserId(DEFAULT_USER_ID);
+        testLoginRequest.setLoginName(DEFAULT_LOGIN_NAME);
         testLoginRequest.setPassword(TEST_PASSWORD);
-        testLoginRequest.setClientId(TEST_CLIENT_ID);
+        testLoginRequest.setClientId(DEFAULT_CLIENT_ID);
         testLoginRequest.setToken(TEST_TOKEN);
         testLoginRequest.setApiKey(TEST_API_KEY);
 
-        // Initialize test client
-        testClient = new Client();
-        testClient.setClientId(TEST_CLIENT_ID);
-        testClient.setName("Test Client");
-        testClient.setSupportEmail("support@test.com");
+        // Initialize test client using BaseTest factory
+        testClient = createTestClient(DEFAULT_CLIENT_ID);
         testClient.setSendGridApiKey("test-sendgrid-key");
 
         // Initialize test UserClientMapping
         testUserClientMapping = new UserClientMapping();
         testUserClientMapping.setMappingId(1L);
-        testUserClientMapping.setUserId(TEST_USER_ID);
-        testUserClientMapping.setClientId(TEST_CLIENT_ID);
+        testUserClientMapping.setUserId(DEFAULT_USER_ID);
+        testUserClientMapping.setClientId(DEFAULT_CLIENT_ID);
         testUserClientMapping.setApiKey(TEST_API_KEY);
 
         // Initialize test GoogleCred
@@ -167,865 +146,880 @@ class LoginServiceTest {
 
     // ==================== Confirm Email Tests ====================
 
-    /**
-     * Test successful email confirmation.
-     * Verifies that user's email is confirmed when valid token is provided.
-     */
-    @Test
-    @DisplayName("Confirm Email - Success - Should confirm user email")
-    void confirmEmail_Success() {
-        // Arrange
-        testUser.setEmailConfirmed(false);
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
+    @Nested
+    @DisplayName("confirmEmail Tests")
+    class ConfirmEmailTests {
 
-        // Act
-        assertDoesNotThrow(() -> loginService.confirmEmail(testLoginRequest));
+        /**
+         * Test successful email confirmation.
+         * Verifies that user's email is confirmed when valid token is provided.
+         */
+        @Test
+        @DisplayName("Confirm Email - Success - Should confirm user email")
+        void confirmEmail_Success() {
+            // Arrange
+            testUser.setEmailConfirmed(false);
+            when(userRepository.findById(DEFAULT_USER_ID)).thenReturn(Optional.of(testUser));
+            when(userRepository.save(any(User.class))).thenReturn(testUser);
 
-        // Assert
-        verify(userRepository, times(1)).findById(TEST_USER_ID);
-        verify(userRepository, times(1)).save(any(User.class));
-    }
+            // Act
+            assertDoesNotThrow(() -> loginService.confirmEmail(testLoginRequest));
 
-    /**
-     * Test confirm email with invalid token.
-     * Verifies that UnauthorizedException is thrown when token doesn't match.
-     */
-    @Test
-    @DisplayName("Confirm Email - Failure - Invalid token")
-    void confirmEmail_InvalidToken_ThrowsUnauthorizedException() {
-        // Arrange
-        testUser.setToken("different-token");
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+            // Assert
+            verify(userRepository, times(1)).findById(DEFAULT_USER_ID);
+            verify(userRepository, times(1)).save(any(User.class));
+        }
 
-        // Act & Assert
-        UnauthorizedException exception = assertThrows(
-                UnauthorizedException.class,
-                () -> loginService.confirmEmail(testLoginRequest));
+        /**
+         * Test confirm email with invalid token.
+         * Verifies that UnauthorizedException is thrown when token doesn't match.
+         */
+        @Test
+        @DisplayName("Confirm Email - Failure - Invalid token")
+        void confirmEmail_InvalidToken_ThrowsUnauthorizedException() {
+            // Arrange
+            testUser.setToken("different-token");
+            when(userRepository.findById(DEFAULT_USER_ID)).thenReturn(Optional.of(testUser));
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidToken, exception.getMessage());
-        verify(userRepository, times(1)).findById(TEST_USER_ID);
-        verify(userRepository, never()).save(any(User.class));
-    }
+            // Act & Assert
+            UnauthorizedException exception = assertThrows(
+                    UnauthorizedException.class,
+                    () -> loginService.confirmEmail(testLoginRequest));
 
-    /**
-     * Test confirm email with non-existent user.
-     * Verifies that NotFoundException is thrown when user is not found.
-     */
-    @Test
-    @DisplayName("Confirm Email - Failure - User not found")
-    void confirmEmail_UserNotFound_ThrowsNotFoundException() {
-        // Arrange
-        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.empty());
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidToken, exception.getMessage());
+            verify(userRepository, times(1)).findById(DEFAULT_USER_ID);
+            verify(userRepository, never()).save(any(User.class));
+        }
 
-        // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
-                () -> loginService.confirmEmail(testLoginRequest));
+        /**
+         * Test confirm email with non-existent user.
+         * Verifies that NotFoundException is thrown when user is not found.
+         */
+        @Test
+        @DisplayName("Confirm Email - Failure - User not found")
+        void confirmEmail_UserNotFound_ThrowsNotFoundException() {
+            // Arrange
+            when(userRepository.findById(DEFAULT_USER_ID)).thenReturn(Optional.empty());
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidId, exception.getMessage());
-        verify(userRepository, times(1)).findById(TEST_USER_ID);
-        verify(userRepository, never()).save(any(User.class));
+            // Act & Assert
+            NotFoundException exception = assertThrows(
+                    NotFoundException.class,
+                    () -> loginService.confirmEmail(testLoginRequest));
+
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidId, exception.getMessage());
+            verify(userRepository, times(1)).findById(DEFAULT_USER_ID);
+            verify(userRepository, never()).save(any(User.class));
+        }
     }
 
     // ==================== Sign In Tests ====================
 
-    /**
-     * Test successful user sign-in.
-     * Verifies that user can sign in and returns list of clients they have access
-     * to.
-     */
-    @Test
-    @DisplayName("Sign In - Success - Should return list of clients")
-    void signIn_Success() {
-        // Arrange
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(userClientMappingRepository.findByUserId(TEST_USER_ID)).thenReturn(List.of(testUserClientMapping));
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+    @Nested
+    @DisplayName("signIn Tests")
+    class SignInTests {
 
-        // Mock PasswordHelper static method to return true for valid password
-        try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
-            mockedPasswordHelper.when(() -> PasswordHelper.checkPassword(anyString(), anyString(), anyString()))
-                    .thenReturn(true);
+        /**
+         * Test successful user sign-in.
+         * Verifies that user can sign in and returns list of clients they have access
+         * to.
+         */
+        @Test
+        @DisplayName("Sign In - Success - Should return list of clients")
+        void signIn_Success() {
+            // Arrange
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(testUser);
+            when(userClientMappingRepository.findByUserId(DEFAULT_USER_ID)).thenReturn(List.of(testUserClientMapping));
+            when(clientRepository.findById(DEFAULT_CLIENT_ID)).thenReturn(Optional.of(testClient));
 
-            // Act
-            List<com.example.SpringApi.Models.ResponseModels.ClientResponseModel> result = loginService
-                    .signIn(testLoginRequest);
-
-            // Assert
-            assertNotNull(result);
-            assertEquals(1, result.size());
-
-            com.example.SpringApi.Models.ResponseModels.ClientResponseModel clientResponse = result.get(0);
-            assertEquals(TEST_CLIENT_ID, clientResponse.getClientId());
-            assertEquals("Test Client", clientResponse.getName());
-            assertEquals(TEST_API_KEY, clientResponse.getApiKey());
-
-            verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-            verify(userClientMappingRepository, times(1)).findByUserId(TEST_USER_ID);
-            verify(clientRepository, times(1)).findById(TEST_CLIENT_ID);
-        }
-    }
-
-    /**
-     * Test sign-in with missing login name.
-     * Verifies that BadRequestException is thrown.
-     */
-    @Test
-    @DisplayName("Sign In - Failure - Missing login name")
-    void signIn_MissingLoginName_ThrowsBadRequestException() {
-        // Arrange
-        testLoginRequest.setLoginName("");
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> loginService.signIn(testLoginRequest));
-
-        assertEquals(com.example.SpringApi.ErrorMessages.UserErrorMessages.InvalidLoginName, exception.getMessage());
-        // Note: findByLoginName is called before validation, so we don't verify never()
-    }
-
-    /**
-     * Test sign-in with null login name.
-     * Verifies that BadRequestException is thrown.
-     */
-    @Test
-    @DisplayName("Sign In - Failure - Null login name")
-    void signIn_NullLoginName_ThrowsBadRequestException() {
-        // Arrange
-        testLoginRequest.setLoginName(null);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> loginService.signIn(testLoginRequest));
-
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
-    }
-
-    /**
-     * Test sign-in with whitespace-only login name.
-     * Verifies that BadRequestException is thrown.
-     */
-    @Test
-    @DisplayName("Sign In - Failure - Whitespace only login name")
-    void signIn_WhitespaceLoginName_ThrowsBadRequestException() {
-        // Arrange
-        testLoginRequest.setLoginName("   ");
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> loginService.signIn(testLoginRequest));
-
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
-    }
-
-    /**
-     * Test sign-in with missing password.
-     * Verifies that BadRequestException is thrown.
-     */
-    @Test
-    @DisplayName("Sign In - Failure - Missing password")
-    void signIn_MissingPassword_ThrowsBadRequestException() {
-        // Arrange
-        testLoginRequest.setPassword("");
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> loginService.signIn(testLoginRequest));
-
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
-        // Note: findByLoginName is called before validation, so we don't verify never()
-    }
-
-    /**
-     * Test sign-in with null password.
-     * Verifies that BadRequestException is thrown.
-     */
-    @Test
-    @DisplayName("Sign In - Failure - Null password")
-    void signIn_NullPassword_ThrowsBadRequestException() {
-        // Arrange
-        testLoginRequest.setPassword(null);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> loginService.signIn(testLoginRequest));
-
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
-    }
-
-    /**
-     * Test sign-in with null request.
-     * Verifies that appropriate exception is thrown.
-     */
-    @Test
-    @DisplayName("Sign In - Failure - Null request")
-    void signIn_NullRequest_ThrowsException() {
-        // Act & Assert
-        assertThrows(Exception.class, () -> loginService.signIn(null));
-    }
-
-    /**
-     * Test sign-in with non-existent user.
-     * Verifies that NotFoundException is thrown.
-     */
-    @Test
-    @DisplayName("Sign In - Failure - User not found")
-    void signIn_UserNotFound_ThrowsNotFoundException() {
-        // Arrange
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(null);
-
-        // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
-                () -> loginService.signIn(testLoginRequest));
-
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidEmail, exception.getMessage());
-        verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-    }
-
-    /**
-     * Test sign-in with non-existent user by different login name.
-     * Verifies that NotFoundException is thrown consistently.
-     */
-    @Test
-    @DisplayName("Sign In - Failure - Different user not found")
-    void signIn_DifferentUserNotFound_ThrowsNotFoundException() {
-        // Arrange
-        when(userRepository.findByLoginName("unknownuser")).thenReturn(null);
-        testLoginRequest.setLoginName("unknownuser");
-
-        // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
-                () -> loginService.signIn(testLoginRequest));
-
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidEmail, exception.getMessage());
-        verify(userRepository, times(1)).findByLoginName("unknownuser");
-    }
-
-    /**
-     * Test sign-in with unconfirmed email.
-     * Verifies that UnauthorizedException is thrown.
-     */
-    @Test
-    @DisplayName("Sign In - Failure - Email not confirmed")
-    void signIn_EmailNotConfirmed_ThrowsUnauthorizedException() {
-        // Arrange
-        testUser.setEmailConfirmed(false);
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-
-        // Act & Assert
-        UnauthorizedException exception = assertThrows(
-                UnauthorizedException.class,
-                () -> loginService.signIn(testLoginRequest));
-
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER005, exception.getMessage());
-        verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-    }
-
-    /**
-     * Test sign-in with locked account.
-     * Verifies that UnauthorizedException is thrown.
-     */
-    @Test
-    @DisplayName("Sign In - Failure - Account locked")
-    void signIn_AccountLocked_ThrowsUnauthorizedException() {
-        // Arrange
-        testUser.setLocked(true);
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-
-        // Act & Assert
-        UnauthorizedException exception = assertThrows(
-                UnauthorizedException.class,
-                () -> loginService.signIn(testLoginRequest));
-
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER006, exception.getMessage());
-        verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-    }
-
-    /**
-     * Test sign-in with account locked after multiple failed attempts.
-     * Verifies that account state is checked properly.
-     */
-    @Test
-    @DisplayName("Sign In - Failure - Account locked from previous attempts")
-    void signIn_AccountLockedFromPreviousAttempts_ThrowsUnauthorizedException() {
-        // Arrange
-        testUser.setLocked(true);
-        testUser.setLoginAttempts(0);
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-
-        // Act & Assert
-        UnauthorizedException exception = assertThrows(
-                UnauthorizedException.class,
-                () -> loginService.signIn(testLoginRequest));
-
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER006, exception.getMessage());
-        verify(userRepository, never()).save(any(User.class));
-    }
-
-    /**
-     * Test sign-in with no password set.
-     * Verifies that UnauthorizedException is thrown.
-     */
-    @Test
-    @DisplayName("Sign In - Failure - No password set")
-    void signIn_NoPasswordSet_ThrowsUnauthorizedException() {
-        // Arrange
-        testUser.setPassword("");
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> loginService.signIn(testLoginRequest));
-
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER016, exception.getMessage());
-        verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-    }
-
-    /**
-     * Test sign-in with invalid password.
-     * Verifies that user locked attempts are decremented and account is locked if
-     * attempts reach zero.
-     */
-    @Test
-    @DisplayName("Sign In - Failure - Invalid password")
-    void signIn_InvalidPassword_DecrementsAttemptsAndThrowsUnauthorized() {
-        // Arrange
-        testUser.setLoginAttempts(1); // Will become 0 after failed attempt
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
-
-        // Mock PasswordHelper static method to return false
-        try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
-            mockedPasswordHelper.when(() -> PasswordHelper.checkPassword(anyString(), anyString(), anyString()))
-                    .thenReturn(false);
-
-            // Act & Assert
-            UnauthorizedException exception = assertThrows(
-                    UnauthorizedException.class,
-                    () -> loginService.signIn(testLoginRequest));
-
-            assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER007, exception.getMessage());
-            verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-            verify(userRepository, times(1)).save(any(User.class));
-        }
-    }
-
-    /**
-     * Test sign-in with invalid password multiple times.
-     * Verifies that attempts are decremented correctly.
-     */
-    @Test
-    @DisplayName("Sign In - Failure - Invalid password with multiple attempts remaining")
-    void signIn_InvalidPasswordMultipleAttemptsRemaining_ThrowsUnauthorized() {
-        // Arrange
-        testUser.setLoginAttempts(3); // Multiple attempts remaining
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
-
-        try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
-            mockedPasswordHelper.when(() -> PasswordHelper.checkPassword(anyString(), anyString(), anyString()))
-                    .thenReturn(false);
-
-            // Act & Assert
-            UnauthorizedException exception = assertThrows(
-                    UnauthorizedException.class,
-                    () -> loginService.signIn(testLoginRequest));
-
-            assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER007, exception.getMessage());
-            verify(userRepository, times(1)).save(any(User.class));
-        }
-    }
-
-    /**
-     * Test sign-in with valid password and multiple clients.
-     * Verifies that all accessible clients are returned.
-     */
-    @Test
-    @DisplayName("Sign In - Success - Multiple accessible clients")
-    void signIn_MultipleAccessibleClients_Success() {
-        // Arrange
-        Client client2 = new Client();
-        client2.setClientId(2L);
-        client2.setName("Client 2");
-
-        UserClientMapping mapping2 = new UserClientMapping();
-        mapping2.setMappingId(2L);
-        mapping2.setUserId(TEST_USER_ID);
-        mapping2.setClientId(2L);
-        mapping2.setApiKey("api-key-2");
-
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(userClientMappingRepository.findByUserId(TEST_USER_ID))
-                .thenReturn(List.of(testUserClientMapping, mapping2));
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(clientRepository.findById(2L)).thenReturn(Optional.of(client2));
-
-        try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
-            mockedPasswordHelper.when(() -> PasswordHelper.checkPassword(anyString(), anyString(), anyString()))
-                    .thenReturn(true);
-
-            // Act
-            List<com.example.SpringApi.Models.ResponseModels.ClientResponseModel> result = loginService
-                    .signIn(testLoginRequest);
-
-            // Assert
-            assertNotNull(result);
-            assertEquals(2, result.size());
-            verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-            verify(userClientMappingRepository, times(1)).findByUserId(TEST_USER_ID);
-        }
-    }
-
-    // ==================== Sign Up Tests ====================
-    // Note: signUp method has been removed from the API - no tests needed
-
-    // ==================== Reset Password Tests ====================
-
-    /**
-     * Test successful password reset.
-     * Verifies that password is reset and user is notified.
-     */
-    @Test
-    @DisplayName("Reset Password - Success - Should reset password and send email")
-    void resetPassword_Success() {
-        // Arrange
-        testUser.setPassword("oldHashedPassword"); // User has password set
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        lenient().when(userRepository.save(any(User.class))).thenReturn(testUser);
-        when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
-
-        // Mock environment properties for email configuration
-        when(environment.getProperty("email.sender.address")).thenReturn("test@example.com");
-        when(environment.getProperty("email.sender.name")).thenReturn("Test Sender");
-        when(environment.getProperty("sendgrid.api.key")).thenReturn("test-api-key");
-        lenient().when(emailTemplates.sendResetPasswordEmail(anyString(), anyString()))
-                .thenReturn(true);
-
-        // Mock static PasswordHelper methods
-        try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
-            mockedPasswordHelper.when(PasswordHelper::getRandomPassword).thenReturn("newPassword123");
-            mockedPasswordHelper.when(() -> PasswordHelper.getHashedPasswordAndSalt(anyString()))
-                    .thenReturn(new String[] { "newSalt", "newHashedPassword" });
-
-            // Mock EmailTemplates constructor - avoid using argument matchers
-            try (MockedConstruction<EmailTemplates> mockedEmailTemplates = mockConstruction(EmailTemplates.class,
-                    (mock, context) -> {
-                        when(mock.sendResetPasswordEmail(anyString(), anyString())).thenReturn(true);
-                    })) {
+            // Mock PasswordHelper static method to return true for valid password
+            try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
+                mockedPasswordHelper.when(() -> PasswordHelper.checkPassword(anyString(), anyString(), anyString()))
+                        .thenReturn(true);
 
                 // Act
-                Boolean result = loginService.resetPassword(testLoginRequest);
+                List<com.example.SpringApi.Models.ResponseModels.ClientResponseModel> result = loginService
+                        .signIn(testLoginRequest);
 
                 // Assert
-                assertTrue(result);
-                verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-                // Note: resetPassword doesn't save the user, so no save verification
-                verify(clientRepository, times(1)).findFirstByOrderByClientIdAsc();
+                assertNotNull(result);
+                assertEquals(1, result.size());
+
+                com.example.SpringApi.Models.ResponseModels.ClientResponseModel clientResponse = result.get(0);
+                assertEquals(DEFAULT_CLIENT_ID, clientResponse.getClientId());
+                assertEquals(DEFAULT_CLIENT_NAME, clientResponse.getName());
+                assertEquals(TEST_API_KEY, clientResponse.getApiKey());
+
+                verify(userRepository, times(1)).findByLoginName(DEFAULT_LOGIN_NAME);
+                verify(userClientMappingRepository, times(1)).findByUserId(DEFAULT_USER_ID);
+                verify(clientRepository, times(1)).findById(DEFAULT_CLIENT_ID);
+            }
+        }
+
+        /**
+         * Test sign-in with missing login name.
+         * Verifies that BadRequestException is thrown.
+         */
+        @Test
+        @DisplayName("Sign In - Failure - Missing login name")
+        void signIn_MissingLoginName_ThrowsBadRequestException() {
+            // Arrange
+            testLoginRequest.setLoginName("");
+
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> loginService.signIn(testLoginRequest));
+
+            assertEquals(ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
+        }
+
+        /**
+         * Test sign-in with null login name.
+         * Verifies that BadRequestException is thrown.
+         */
+        @Test
+        @DisplayName("Sign In - Failure - Null login name")
+        void signIn_NullLoginName_ThrowsBadRequestException() {
+            // Arrange
+            testLoginRequest.setLoginName(null);
+
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> loginService.signIn(testLoginRequest));
+
+            assertEquals(ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
+        }
+
+        /**
+         * Test sign-in with whitespace-only login name.
+         * Verifies that BadRequestException is thrown.
+         */
+        @Test
+        @DisplayName("Sign In - Failure - Whitespace only login name")
+        void signIn_WhitespaceLoginName_ThrowsBadRequestException() {
+            // Arrange
+            testLoginRequest.setLoginName("   ");
+
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> loginService.signIn(testLoginRequest));
+
+            assertEquals(ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
+        }
+
+        /**
+         * Test sign-in with missing password.
+         * Verifies that BadRequestException is thrown.
+         */
+        @Test
+        @DisplayName("Sign In - Failure - Missing password")
+        void signIn_MissingPassword_ThrowsBadRequestException() {
+            // Arrange
+            testLoginRequest.setPassword("");
+
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> loginService.signIn(testLoginRequest));
+
+            assertEquals(ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
+        }
+
+        /**
+         * Test sign-in with null password.
+         * Verifies that BadRequestException is thrown.
+         */
+        @Test
+        @DisplayName("Sign In - Failure - Null password")
+        void signIn_NullPassword_ThrowsBadRequestException() {
+            // Arrange
+            testLoginRequest.setPassword(null);
+
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> loginService.signIn(testLoginRequest));
+
+            assertEquals(ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
+        }
+
+        /**
+         * Test sign-in with null request.
+         * Verifies that appropriate exception is thrown.
+         */
+        @Test
+        @DisplayName("Sign In - Failure - Null request - Throws NullPointerException")
+        void signIn_NullRequest_ThrowsNullPointerException() {
+            // Act & Assert
+            assertThrows(NullPointerException.class, () -> loginService.signIn(null));
+        }
+
+        /**
+         * Test sign-in with non-existent user.
+         * Verifies that NotFoundException is thrown.
+         */
+        @Test
+        @DisplayName("Sign In - Failure - User not found")
+        void signIn_UserNotFound_ThrowsNotFoundException() {
+            // Arrange
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(null);
+
+            // Act & Assert
+            NotFoundException exception = assertThrows(
+                    NotFoundException.class,
+                    () -> loginService.signIn(testLoginRequest));
+
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidEmail, exception.getMessage());
+            verify(userRepository, times(1)).findByLoginName(DEFAULT_LOGIN_NAME);
+        }
+
+        /**
+         * Test sign-in with non-existent user by different login name.
+         * Verifies that NotFoundException is thrown consistently.
+         */
+        @Test
+        @DisplayName("Sign In - Failure - Different user not found")
+        void signIn_DifferentUserNotFound_ThrowsNotFoundException() {
+            // Arrange
+            when(userRepository.findByLoginName("unknownuser")).thenReturn(null);
+            testLoginRequest.setLoginName("unknownuser");
+
+            // Act & Assert
+            NotFoundException exception = assertThrows(
+                    NotFoundException.class,
+                    () -> loginService.signIn(testLoginRequest));
+
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidEmail, exception.getMessage());
+            verify(userRepository, times(1)).findByLoginName("unknownuser");
+        }
+
+        /**
+         * Test sign-in with unconfirmed email.
+         * Verifies that UnauthorizedException is thrown.
+         */
+        @Test
+        @DisplayName("Sign In - Failure - Email not confirmed")
+        void signIn_EmailNotConfirmed_ThrowsUnauthorizedException() {
+            // Arrange
+            testUser.setEmailConfirmed(false);
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(testUser);
+
+            // Act & Assert
+            UnauthorizedException exception = assertThrows(
+                    UnauthorizedException.class,
+                    () -> loginService.signIn(testLoginRequest));
+
+            assertEquals(ErrorMessages.LoginErrorMessages.ER005, exception.getMessage());
+            verify(userRepository, times(1)).findByLoginName(DEFAULT_LOGIN_NAME);
+        }
+
+        /**
+         * Test sign-in with locked account.
+         * Verifies that UnauthorizedException is thrown.
+         */
+        @Test
+        @DisplayName("Sign In - Failure - Account locked")
+        void signIn_AccountLocked_ThrowsUnauthorizedException() {
+            // Arrange
+            testUser.setLocked(true);
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(testUser);
+
+            // Act & Assert
+            UnauthorizedException exception = assertThrows(
+                    UnauthorizedException.class,
+                    () -> loginService.signIn(testLoginRequest));
+
+            assertEquals(ErrorMessages.LoginErrorMessages.ER006, exception.getMessage());
+            verify(userRepository, times(1)).findByLoginName(DEFAULT_LOGIN_NAME);
+        }
+
+        /**
+         * Test sign-in with account locked after multiple failed attempts.
+         * Verifies that account state is checked properly.
+         */
+        @Test
+        @DisplayName("Sign In - Failure - Account locked from previous attempts")
+        void signIn_AccountLockedFromPreviousAttempts_ThrowsUnauthorizedException() {
+            // Arrange
+            testUser.setLocked(true);
+            testUser.setLoginAttempts(0);
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(testUser);
+
+            // Act & Assert
+            UnauthorizedException exception = assertThrows(
+                    UnauthorizedException.class,
+                    () -> loginService.signIn(testLoginRequest));
+
+            assertEquals(ErrorMessages.LoginErrorMessages.ER006, exception.getMessage());
+            verify(userRepository, never()).save(any(User.class));
+        }
+
+        /**
+         * Test sign-in with no password set.
+         * Verifies that UnauthorizedException is thrown.
+         */
+        @Test
+        @DisplayName("Sign In - Failure - No password set")
+        void signIn_NoPasswordSet_ThrowsUnauthorizedException() {
+            // Arrange
+            testUser.setPassword("");
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(testUser);
+
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> loginService.signIn(testLoginRequest));
+
+            assertEquals(ErrorMessages.LoginErrorMessages.ER016, exception.getMessage());
+            verify(userRepository, times(1)).findByLoginName(DEFAULT_LOGIN_NAME);
+        }
+
+        /**
+         * Test sign-in with invalid password.
+         * Verifies that user locked attempts are decremented and account is locked if
+         * attempts reach zero.
+         */
+        @Test
+        @DisplayName("Sign In - Failure - Invalid password")
+        void signIn_InvalidPassword_DecrementsAttemptsAndThrowsUnauthorized() {
+            // Arrange
+            testUser.setLoginAttempts(1); // Will become 0 after failed attempt
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(testUser);
+            when(userRepository.save(any(User.class))).thenReturn(testUser);
+
+            // Mock PasswordHelper static method to return false
+            try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
+                mockedPasswordHelper.when(() -> PasswordHelper.checkPassword(anyString(), anyString(), anyString()))
+                        .thenReturn(false);
+
+                // Act & Assert
+                UnauthorizedException exception = assertThrows(
+                        UnauthorizedException.class,
+                        () -> loginService.signIn(testLoginRequest));
+
+                assertEquals(ErrorMessages.LoginErrorMessages.ER007, exception.getMessage());
+                verify(userRepository, times(1)).findByLoginName(DEFAULT_LOGIN_NAME);
+                verify(userRepository, times(1)).save(any(User.class));
+            }
+        }
+
+        /**
+         * Test sign-in with invalid password multiple times.
+         * Verifies that attempts are decremented correctly.
+         */
+        @Test
+        @DisplayName("Sign In - Failure - Invalid password with multiple attempts remaining")
+        void signIn_InvalidPasswordMultipleAttemptsRemaining_ThrowsUnauthorized() {
+            // Arrange
+            testUser.setLoginAttempts(3); // Multiple attempts remaining
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(testUser);
+            when(userRepository.save(any(User.class))).thenReturn(testUser);
+
+            try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
+                mockedPasswordHelper.when(() -> PasswordHelper.checkPassword(anyString(), anyString(), anyString()))
+                        .thenReturn(false);
+
+                // Act & Assert
+                UnauthorizedException exception = assertThrows(
+                        UnauthorizedException.class,
+                        () -> loginService.signIn(testLoginRequest));
+
+                assertEquals(ErrorMessages.LoginErrorMessages.InvalidCredentials, exception.getMessage());
+                verify(userRepository, times(1)).save(any(User.class));
+            }
+        }
+
+        /**
+         * Test sign-in with valid password and multiple clients.
+         * Verifies that all accessible clients are returned.
+         */
+        @Test
+        @DisplayName("Sign In - Success - Multiple accessible clients")
+        void signIn_MultipleAccessibleClients_Success() {
+            // Arrange
+            Client client2 = new Client();
+            client2.setClientId(2L);
+            client2.setName("Client 2");
+
+            UserClientMapping mapping2 = new UserClientMapping();
+            mapping2.setMappingId(2L);
+            mapping2.setUserId(DEFAULT_USER_ID);
+            mapping2.setClientId(2L);
+            mapping2.setApiKey("api-key-2");
+
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(testUser);
+            when(userClientMappingRepository.findByUserId(DEFAULT_USER_ID))
+                    .thenReturn(List.of(testUserClientMapping, mapping2));
+            when(clientRepository.findById(DEFAULT_CLIENT_ID)).thenReturn(Optional.of(testClient));
+            when(clientRepository.findById(2L)).thenReturn(Optional.of(client2));
+
+            try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
+                mockedPasswordHelper.when(() -> PasswordHelper.checkPassword(anyString(), anyString(), anyString()))
+                        .thenReturn(true);
+
+                // Act
+                List<com.example.SpringApi.Models.ResponseModels.ClientResponseModel> result = loginService
+                        .signIn(testLoginRequest);
+
+                // Assert
+                assertNotNull(result);
+                assertEquals(2, result.size());
+                verify(userRepository, times(1)).findByLoginName(DEFAULT_LOGIN_NAME);
+                verify(userClientMappingRepository, times(1)).findByUserId(DEFAULT_USER_ID);
             }
         }
     }
 
-    /**
-     * Test reset password with missing login name.
-     * Verifies that BadRequestException is thrown.
-     */
-    @Test
-    @DisplayName("Reset Password - Failure - Missing login name")
-    void resetPassword_MissingLoginName_ThrowsBadRequestException() {
-        // Arrange
-        testLoginRequest.setLoginName("");
+    // ==================== Reset Password Tests ====================
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> loginService.resetPassword(testLoginRequest));
+    @Nested
+    @DisplayName("resetPassword Tests")
+    class ResetPasswordTests {
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER014, exception.getMessage());
-        verify(userRepository, never()).findByLoginName(anyString());
-    }
+        /**
+         * Test successful password reset.
+         * Verifies that password is reset and user is notified.
+         */
+        @Test
+        @DisplayName("Reset Password - Success - Should reset password and send email")
+        void resetPassword_Success() {
+            // Arrange
+            testUser.setPassword("oldHashedPassword"); // User has password set
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(testUser);
+            lenient().when(userRepository.save(any(User.class))).thenReturn(testUser);
+            when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
 
-    /**
-     * Test reset password with null login name.
-     * Verifies that BadRequestException is thrown.
-     */
-    @Test
-    @DisplayName("Reset Password - Failure - Null login name")
-    void resetPassword_NullLoginName_ThrowsBadRequestException() {
-        // Arrange
-        testLoginRequest.setLoginName(null);
+            // Mock environment properties for email configuration
+            when(environment.getProperty("email.sender.address")).thenReturn("test@example.com");
+            when(environment.getProperty("email.sender.name")).thenReturn("Test Sender");
+            when(environment.getProperty("sendgrid.api.key")).thenReturn("test-api-key");
+            lenient().when(emailTemplates.sendResetPasswordEmail(anyString(), anyString()))
+                    .thenReturn(true);
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> loginService.resetPassword(testLoginRequest));
+            // Mock static PasswordHelper methods
+            try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
+                mockedPasswordHelper.when(PasswordHelper::getRandomPassword).thenReturn("newPassword123");
+                mockedPasswordHelper.when(() -> PasswordHelper.getHashedPasswordAndSalt(anyString()))
+                        .thenReturn(new String[] { "newSalt", "newHashedPassword" });
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER014, exception.getMessage());
-        verify(userRepository, never()).findByLoginName(anyString());
-    }
+                // Mock EmailTemplates constructor - avoid using argument matchers
+                try (MockedConstruction<EmailTemplates> mockedEmailTemplates = mockConstruction(EmailTemplates.class,
+                        (mock, context) -> {
+                            when(mock.sendResetPasswordEmail(anyString(), anyString())).thenReturn(true);
+                        })) {
 
-    /**
-     * Test reset password with whitespace-only login name.
-     * Verifies that BadRequestException is thrown.
-     */
-    @Test
-    @DisplayName("Reset Password - Failure - Whitespace only login name")
-    void resetPassword_WhitespaceLoginName_ThrowsBadRequestException() {
-        // Arrange
-        testLoginRequest.setLoginName("   ");
+                    // Act
+                    Boolean result = loginService.resetPassword(testLoginRequest);
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> loginService.resetPassword(testLoginRequest));
+                    // Assert
+                    assertTrue(result);
+                    verify(userRepository, times(1)).findByLoginName(DEFAULT_LOGIN_NAME);
+                    // Note: resetPassword doesn't save the user, so no save verification
+                    verify(clientRepository, times(1)).findFirstByOrderByClientIdAsc();
+                }
+            }
+        }
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER014, exception.getMessage());
-        verify(userRepository, never()).findByLoginName(anyString());
-    }
+        /**
+         * Test reset password with missing login name.
+         * Verifies that BadRequestException is thrown.
+         */
+        @Test
+        @DisplayName("Reset Password - Failure - Missing login name")
+        void resetPassword_MissingLoginName_ThrowsBadRequestException() {
+            // Arrange
+            testLoginRequest.setLoginName("");
 
-    /**
-     * Test reset password with non-existent user.
-     * Verifies that NotFoundException is thrown.
-     */
-    @Test
-    @DisplayName("Reset Password - Failure - User not found")
-    void resetPassword_UserNotFound_ThrowsNotFoundException() {
-        // Arrange
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(null);
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> loginService.resetPassword(testLoginRequest));
 
-        // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
-                () -> loginService.resetPassword(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.ER014, exception.getMessage());
+            verify(userRepository, never()).findByLoginName(anyString());
+        }
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidEmail, exception.getMessage());
-        verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-    }
+        /**
+         * Test reset password with null login name.
+         * Verifies that BadRequestException is thrown.
+         */
+        @Test
+        @DisplayName("Reset Password - Failure - Null login name")
+        void resetPassword_NullLoginName_ThrowsBadRequestException() {
+            // Arrange
+            testLoginRequest.setLoginName(null);
 
-    /**
-     * Test reset password with different non-existent user.
-     * Verifies consistent error handling.
-     */
-    @Test
-    @DisplayName("Reset Password - Failure - Different user not found")
-    void resetPassword_DifferentUserNotFound_ThrowsNotFoundException() {
-        // Arrange
-        when(userRepository.findByLoginName("unknownuser")).thenReturn(null);
-        testLoginRequest.setLoginName("unknownuser");
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> loginService.resetPassword(testLoginRequest));
 
-        // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
-                () -> loginService.resetPassword(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.ER014, exception.getMessage());
+            verify(userRepository, never()).findByLoginName(anyString());
+        }
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidEmail, exception.getMessage());
-        verify(userRepository, times(1)).findByLoginName("unknownuser");
-    }
+        /**
+         * Test reset password with whitespace-only login name.
+         * Verifies that BadRequestException is thrown.
+         */
+        @Test
+        @DisplayName("Reset Password - Failure - Whitespace only login name")
+        void resetPassword_WhitespaceLoginName_ThrowsBadRequestException() {
+            // Arrange
+            testLoginRequest.setLoginName("   ");
 
-    /**
-     * Test reset password for user without password set.
-     * Verifies that BadRequestException is thrown.
-     */
-    @Test
-    @DisplayName("Reset Password - Failure - User has no password set")
-    void resetPassword_NoPasswordSet_ThrowsBadRequestException() {
-        // Arrange
-        testUser.setPassword(null);
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> loginService.resetPassword(testLoginRequest));
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> loginService.resetPassword(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.ER014, exception.getMessage());
+            verify(userRepository, never()).findByLoginName(anyString());
+        }
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER003, exception.getMessage());
-        verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-        verify(userRepository, never()).save(any(User.class));
-    }
+        /**
+         * Test reset password with non-existent user.
+         * Verifies that NotFoundException is thrown.
+         */
+        @Test
+        @DisplayName("Reset Password - Failure - User not found")
+        void resetPassword_UserNotFound_ThrowsNotFoundException() {
+            // Arrange
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(null);
 
-    /**
-     * Test reset password for user with empty password.
-     * Verifies that BadRequestException is thrown.
-     */
-    @Test
-    @DisplayName("Reset Password - Failure - User has empty password")
-    void resetPassword_EmptyPasswordSet_ThrowsBadRequestException() {
-        // Arrange
-        testUser.setPassword("");
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+            // Act & Assert
+            NotFoundException exception = assertThrows(
+                    NotFoundException.class,
+                    () -> loginService.resetPassword(testLoginRequest));
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> loginService.resetPassword(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidEmail, exception.getMessage());
+            verify(userRepository, times(1)).findByLoginName(DEFAULT_LOGIN_NAME);
+        }
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER003, exception.getMessage());
-        verify(userRepository, never()).save(any(User.class));
-    }
+        /**
+         * Test reset password with different non-existent user.
+         * Verifies consistent error handling.
+         */
+        @Test
+        @DisplayName("Reset Password - Failure - Different user not found")
+        void resetPassword_DifferentUserNotFound_ThrowsNotFoundException() {
+            // Arrange
+            when(userRepository.findByLoginName("unknownuser")).thenReturn(null);
+            testLoginRequest.setLoginName("unknownuser");
 
-    /**
-     * Test reset password with null request.
-     * Verifies that exception is thrown.
-     */
-    @Test
-    @DisplayName("Reset Password - Failure - Null request")
-    void resetPassword_NullRequest_ThrowsException() {
-        // Act & Assert
-        assertThrows(Exception.class, () -> loginService.resetPassword(null));
+            // Act & Assert
+            NotFoundException exception = assertThrows(
+                    NotFoundException.class,
+                    () -> loginService.resetPassword(testLoginRequest));
+
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidEmail, exception.getMessage());
+            verify(userRepository, times(1)).findByLoginName("unknownuser");
+        }
+
+        /**
+         * Test reset password for user without password set.
+         * Verifies that BadRequestException is thrown.
+         */
+        @Test
+        @DisplayName("Reset Password - Failure - User has no password set")
+        void resetPassword_NoPasswordSet_ThrowsBadRequestException() {
+            // Arrange
+            testUser.setPassword(null);
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(testUser);
+
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> loginService.resetPassword(testLoginRequest));
+
+            assertEquals(ErrorMessages.LoginErrorMessages.ER003, exception.getMessage());
+            verify(userRepository, times(1)).findByLoginName(DEFAULT_LOGIN_NAME);
+            verify(userRepository, never()).save(any(User.class));
+        }
+
+        /**
+         * Test reset password for user with empty password.
+         * Verifies that BadRequestException is thrown.
+         */
+        @Test
+        @DisplayName("Reset Password - Failure - User has empty password")
+        void resetPassword_EmptyPasswordSet_ThrowsBadRequestException() {
+            // Arrange
+            testUser.setPassword("");
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(testUser);
+
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> loginService.resetPassword(testLoginRequest));
+
+            assertEquals(ErrorMessages.LoginErrorMessages.ER003, exception.getMessage());
+            verify(userRepository, never()).save(any(User.class));
+        }
+
+        /**
+         * Test reset password with null request.
+         * Verifies that exception is thrown.
+         */
+        @Test
+        @DisplayName("Reset Password - Failure - Null request - Throws NullPointerException")
+        void resetPassword_NullRequest_ThrowsNullPointerException() {
+            // Act & Assert
+            assertThrows(NullPointerException.class, () -> loginService.resetPassword(null));
+        }
     }
 
     // ==================== Get Token Tests ====================
 
-    /**
-     * Test successful token generation.
-     * Verifies that JWT token is generated with user permissions.
-     */
-    @Test
-    @DisplayName("Get Token - Success - Should generate JWT token")
-    void getToken_Success() {
-        // Arrange
-        List<UserClientPermissionMapping> permissions = new ArrayList<>();
-        UserClientPermissionMapping permission = new UserClientPermissionMapping(
-                TEST_USER_ID, 1L, TEST_CLIENT_ID, "admin");
-        permissions.add(permission);
+    @Nested
+    @DisplayName("getToken Tests")
+    class GetTokenTests {
 
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(userClientMappingRepository.findByApiKey(TEST_API_KEY)).thenReturn(Optional.of(testUserClientMapping));
-        when(userClientPermissionMappingRepository.findClientPermissionMappingByUserId(TEST_USER_ID))
-                .thenReturn(permissions);
-        when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyLong())).thenReturn("jwt-token-123");
+        /**
+         * Test successful token generation.
+         * Verifies that JWT token is generated with user permissions.
+         */
+        @Test
+        @DisplayName("Get Token - Success - Should generate JWT token")
+        void getToken_Success() {
+            // Arrange
+            List<UserClientPermissionMapping> permissions = new ArrayList<>();
+            UserClientPermissionMapping permission = new UserClientPermissionMapping(
+                    DEFAULT_USER_ID, 1L, DEFAULT_CLIENT_ID, "admin");
+            permissions.add(permission);
 
-        // Act
-        String result = loginService.getToken(testLoginRequest);
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(testUser);
+            when(userClientMappingRepository.findByApiKey(TEST_API_KEY)).thenReturn(Optional.of(testUserClientMapping));
+            when(userClientPermissionMappingRepository.findClientPermissionMappingByUserId(DEFAULT_USER_ID))
+                    .thenReturn(permissions);
+            when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyLong())).thenReturn("jwt-token-123");
 
-        // Assert
-        assertEquals("jwt-token-123", result);
-        verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-        verify(userClientMappingRepository, times(1)).findByApiKey(TEST_API_KEY);
-        verify(userClientPermissionMappingRepository, times(1)).findClientPermissionMappingByUserId(TEST_USER_ID);
-        verify(jwtTokenProvider, times(1)).generateToken(any(User.class), anyList(), anyLong());
-    }
+            // Act
+            String result = loginService.getToken(testLoginRequest);
 
-    /**
-     * Test get token with missing login name.
-     * Verifies that BadRequestException is thrown.
-     */
-    @Test
-    @DisplayName("Get Token - Failure - Missing login name")
-    void getToken_MissingLoginName_ThrowsBadRequestException() {
-        // Arrange
-        testLoginRequest.setLoginName("");
+            // Assert
+            assertEquals("jwt-token-123", result);
+            verify(userRepository, times(1)).findByLoginName(DEFAULT_LOGIN_NAME);
+            verify(userClientMappingRepository, times(1)).findByApiKey(TEST_API_KEY);
+            verify(userClientPermissionMappingRepository, times(1)).findClientPermissionMappingByUserId(DEFAULT_USER_ID);
+            verify(jwtTokenProvider, times(1)).generateToken(any(User.class), anyList(), anyLong());
+        }
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> loginService.getToken(testLoginRequest));
+        /**
+         * Test get token with missing login name.
+         * Verifies that BadRequestException is thrown.
+         */
+        @Test
+        @DisplayName("Get Token - Failure - Missing login name")
+        void getToken_MissingLoginName_ThrowsBadRequestException() {
+            // Arrange
+            testLoginRequest.setLoginName("");
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER015, exception.getMessage());
-        verify(userRepository, never()).findByLoginName(anyString());
-    }
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> loginService.getToken(testLoginRequest));
 
-    /**
-     * Test get token with null login name.
-     * Verifies that BadRequestException is thrown.
-     */
-    @Test
-    @DisplayName("Get Token - Failure - Null login name")
-    void getToken_NullLoginName_ThrowsBadRequestException() {
-        // Arrange
-        testLoginRequest.setLoginName(null);
+            assertEquals(ErrorMessages.LoginErrorMessages.ER015, exception.getMessage());
+            verify(userRepository, never()).findByLoginName(anyString());
+        }
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> loginService.getToken(testLoginRequest));
+        /**
+         * Test get token with null login name.
+         * Verifies that BadRequestException is thrown.
+         */
+        @Test
+        @DisplayName("Get Token - Failure - Null login name")
+        void getToken_NullLoginName_ThrowsBadRequestException() {
+            // Arrange
+            testLoginRequest.setLoginName(null);
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER015, exception.getMessage());
-        verify(userRepository, never()).findByLoginName(anyString());
-    }
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> loginService.getToken(testLoginRequest));
 
-    /**
-     * Test get token with missing API key.
-     * Verifies that BadRequestException is thrown.
-     */
-    @Test
-    @DisplayName("Get Token - Failure - Missing API key")
-    void getToken_MissingApiKey_ThrowsBadRequestException() {
-        // Arrange
-        testLoginRequest.setApiKey("");
+            assertEquals(ErrorMessages.LoginErrorMessages.ER015, exception.getMessage());
+            verify(userRepository, never()).findByLoginName(anyString());
+        }
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> loginService.getToken(testLoginRequest));
+        /**
+         * Test get token with missing API key.
+         * Verifies that BadRequestException is thrown.
+         */
+        @Test
+        @DisplayName("Get Token - Failure - Missing API key")
+        void getToken_MissingApiKey_ThrowsBadRequestException() {
+            // Arrange
+            testLoginRequest.setApiKey("");
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER015, exception.getMessage());
-        verify(userRepository, never()).findByLoginName(anyString());
-    }
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> loginService.getToken(testLoginRequest));
 
-    /**
-     * Test get token with null API key.
-     * Verifies that BadRequestException is thrown.
-     */
-    @Test
-    @DisplayName("Get Token - Failure - Null API key")
-    void getToken_NullApiKey_ThrowsBadRequestException() {
-        // Arrange
-        testLoginRequest.setApiKey(null);
+            assertEquals(ErrorMessages.LoginErrorMessages.ER015, exception.getMessage());
+            verify(userRepository, never()).findByLoginName(anyString());
+        }
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> loginService.getToken(testLoginRequest));
+        /**
+         * Test get token with null API key.
+         * Verifies that BadRequestException is thrown.
+         */
+        @Test
+        @DisplayName("Get Token - Failure - Null API key")
+        void getToken_NullApiKey_ThrowsBadRequestException() {
+            // Arrange
+            testLoginRequest.setApiKey(null);
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER015, exception.getMessage());
-        verify(userRepository, never()).findByLoginName(anyString());
-    }
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> loginService.getToken(testLoginRequest));
 
-    /**
-     * Test get token with non-existent user.
-     * Verifies that UnauthorizedException is thrown.
-     */
-    @Test
-    @DisplayName("Get Token - Failure - User not found")
-    void getToken_UserNotFound_ThrowsUnauthorizedException() {
-        // Arrange
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(null);
+            assertEquals(ErrorMessages.LoginErrorMessages.ER015, exception.getMessage());
+            verify(userRepository, never()).findByLoginName(anyString());
+        }
 
-        // Act & Assert
-        UnauthorizedException exception = assertThrows(
-                UnauthorizedException.class,
-                () -> loginService.getToken(testLoginRequest));
+        /**
+         * Test get token with non-existent user.
+         * Verifies that UnauthorizedException is thrown.
+         */
+        @Test
+        @DisplayName("Get Token - Failure - User not found")
+        void getToken_UserNotFound_ThrowsUnauthorizedException() {
+            // Arrange
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(null);
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidCredentials, exception.getMessage());
-        verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-    }
+            // Act & Assert
+            UnauthorizedException exception = assertThrows(
+                    UnauthorizedException.class,
+                    () -> loginService.getToken(testLoginRequest));
 
-    /**
-     * Test get token with different non-existent user.
-     * Verifies consistent error handling.
-     */
-    @Test
-    @DisplayName("Get Token - Failure - Different user not found")
-    void getToken_DifferentUserNotFound_ThrowsUnauthorizedException() {
-        // Arrange
-        when(userRepository.findByLoginName("unknownuser")).thenReturn(null);
-        testLoginRequest.setLoginName("unknownuser");
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidCredentials, exception.getMessage());
+            verify(userRepository, times(1)).findByLoginName(DEFAULT_LOGIN_NAME);
+        }
 
-        // Act & Assert
-        UnauthorizedException exception = assertThrows(
-                UnauthorizedException.class,
-                () -> loginService.getToken(testLoginRequest));
+        /**
+         * Test get token with different non-existent user.
+         * Verifies consistent error handling.
+         */
+        @Test
+        @DisplayName("Get Token - Failure - Different user not found")
+        void getToken_DifferentUserNotFound_ThrowsUnauthorizedException() {
+            // Arrange
+            when(userRepository.findByLoginName("unknownuser")).thenReturn(null);
+            testLoginRequest.setLoginName("unknownuser");
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidCredentials, exception.getMessage());
-        verify(userRepository, times(1)).findByLoginName("unknownuser");
-    }
+            // Act & Assert
+            UnauthorizedException exception = assertThrows(
+                    UnauthorizedException.class,
+                    () -> loginService.getToken(testLoginRequest));
 
-    /**
-     * Test get token with invalid API key.
-     * Verifies that UnauthorizedException is thrown.
-     */
-    @Test
-    @DisplayName("Get Token - Failure - Invalid API key")
-    void getToken_InvalidApiKey_ThrowsUnauthorizedException() {
-        // Arrange
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(userClientMappingRepository.findByApiKey(TEST_API_KEY)).thenReturn(Optional.empty());
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidCredentials, exception.getMessage());
+            verify(userRepository, times(1)).findByLoginName("unknownuser");
+        }
 
-        // Act & Assert
-        UnauthorizedException exception = assertThrows(
-                UnauthorizedException.class,
-                () -> loginService.getToken(testLoginRequest));
+        /**
+         * Test get token with invalid API key.
+         * Verifies that UnauthorizedException is thrown.
+         */
+        @Test
+        @DisplayName("Get Token - Failure - Invalid API key")
+        void getToken_InvalidApiKey_ThrowsUnauthorizedException() {
+            // Arrange
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(testUser);
+            when(userClientMappingRepository.findByApiKey(TEST_API_KEY)).thenReturn(Optional.empty());
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidCredentials, exception.getMessage());
-        verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-        verify(userClientMappingRepository, times(1)).findByApiKey(TEST_API_KEY);
-        verify(userClientPermissionMappingRepository, never()).findClientPermissionMappingByUserId(anyLong());
-    }
+            // Act & Assert
+            UnauthorizedException exception = assertThrows(
+                    UnauthorizedException.class,
+                    () -> loginService.getToken(testLoginRequest));
 
-    /**
-     * Test get token with API key belonging to different user.
-     * Verifies that UnauthorizedException is thrown.
-     */
-    @Test
-    @DisplayName("Get Token - Failure - API key belongs to different user")
-    void getToken_ApiKeyBelongsToDifferentUser_ThrowsUnauthorizedException() {
-        // Arrange
-        UserClientMapping differentUserMapping = new UserClientMapping();
-        differentUserMapping.setUserId(999L); // Different user ID
-        differentUserMapping.setClientId(TEST_CLIENT_ID);
-        differentUserMapping.setApiKey(TEST_API_KEY);
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidCredentials, exception.getMessage());
+            verify(userRepository, times(1)).findByLoginName(DEFAULT_LOGIN_NAME);
+            verify(userClientMappingRepository, times(1)).findByApiKey(TEST_API_KEY);
+            verify(userClientPermissionMappingRepository, never()).findClientPermissionMappingByUserId(anyLong());
+        }
 
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(userClientMappingRepository.findByApiKey(TEST_API_KEY)).thenReturn(Optional.of(differentUserMapping));
+        /**
+         * Test get token with API key belonging to different user.
+         * Verifies that UnauthorizedException is thrown.
+         */
+        @Test
+        @DisplayName("Get Token - Failure - API key belongs to different user")
+        void getToken_ApiKeyBelongsToDifferentUser_ThrowsUnauthorizedException() {
+            // Arrange
+            UserClientMapping differentUserMapping = new UserClientMapping();
+            differentUserMapping.setUserId(999L); // Different user ID
+            differentUserMapping.setClientId(DEFAULT_CLIENT_ID);
+            differentUserMapping.setApiKey(TEST_API_KEY);
 
-        // Act & Assert
-        UnauthorizedException exception = assertThrows(
-                UnauthorizedException.class,
-                () -> loginService.getToken(testLoginRequest));
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(testUser);
+            when(userClientMappingRepository.findByApiKey(TEST_API_KEY)).thenReturn(Optional.of(differentUserMapping));
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidCredentials, exception.getMessage());
-        verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-        verify(userClientMappingRepository, times(1)).findByApiKey(TEST_API_KEY);
-        verify(userClientPermissionMappingRepository, never()).findClientPermissionMappingByUserId(anyLong());
-    }
+            // Act & Assert
+            UnauthorizedException exception = assertThrows(
+                    UnauthorizedException.class,
+                    () -> loginService.getToken(testLoginRequest));
 
-    /**
-     * Test get token with no permissions.
-     * Verifies that token is generated with empty permissions list.
-     */
-    @Test
-    @DisplayName("Get Token - Success - No permissions")
-    void getToken_NoPermissions_Success() {
-        // Arrange
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(userClientMappingRepository.findByApiKey(TEST_API_KEY)).thenReturn(Optional.of(testUserClientMapping));
-        when(userClientPermissionMappingRepository.findClientPermissionMappingByUserId(TEST_USER_ID))
-                .thenReturn(new ArrayList<>());
-        when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyLong())).thenReturn("jwt-token-123");
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidCredentials, exception.getMessage());
+            verify(userRepository, times(1)).findByLoginName(DEFAULT_LOGIN_NAME);
+            verify(userClientMappingRepository, times(1)).findByApiKey(TEST_API_KEY);
+            verify(userClientPermissionMappingRepository, never()).findClientPermissionMappingByUserId(anyLong());
+        }
 
-        // Act
-        String result = loginService.getToken(testLoginRequest);
+        /**
+         * Test get token with no permissions.
+         * Verifies that token is generated with empty permissions list.
+         */
+        @Test
+        @DisplayName("Get Token - Success - No permissions")
+        void getToken_NoPermissions_Success() {
+            // Arrange
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(testUser);
+            when(userClientMappingRepository.findByApiKey(TEST_API_KEY)).thenReturn(Optional.of(testUserClientMapping));
+            when(userClientPermissionMappingRepository.findClientPermissionMappingByUserId(DEFAULT_USER_ID))
+                    .thenReturn(new ArrayList<>());
+            when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyLong())).thenReturn("jwt-token-123");
 
-        // Assert
-        assertEquals("jwt-token-123", result);
-        verify(userClientPermissionMappingRepository, times(1)).findClientPermissionMappingByUserId(TEST_USER_ID);
-    }
+            // Act
+            String result = loginService.getToken(testLoginRequest);
 
-    /**
-     * Test get token with multiple permissions.
-     * Verifies that all permissions are included in token generation.
-     */
-    @Test
-    @DisplayName("Get Token - Success - Multiple permissions")
-    void getToken_MultiplePermissions_Success() {
-        // Arrange
-        List<UserClientPermissionMapping> permissions = new ArrayList<>();
-        permissions.add(new UserClientPermissionMapping(TEST_USER_ID, 1L, TEST_CLIENT_ID, "admin"));
-        permissions.add(new UserClientPermissionMapping(TEST_USER_ID, 2L, TEST_CLIENT_ID, "editor"));
-        permissions.add(new UserClientPermissionMapping(TEST_USER_ID, 3L, TEST_CLIENT_ID, "viewer"));
+            // Assert
+            assertEquals("jwt-token-123", result);
+            verify(userClientPermissionMappingRepository, times(1)).findClientPermissionMappingByUserId(DEFAULT_USER_ID);
+        }
 
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(userClientMappingRepository.findByApiKey(TEST_API_KEY)).thenReturn(Optional.of(testUserClientMapping));
-        when(userClientPermissionMappingRepository.findClientPermissionMappingByUserId(TEST_USER_ID))
-                .thenReturn(permissions);
-        when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyLong())).thenReturn("jwt-token-123");
+        /**
+         * Test get token with multiple permissions.
+         * Verifies that all permissions are included in token generation.
+         */
+        @Test
+        @DisplayName("Get Token - Success - Multiple permissions")
+        void getToken_MultiplePermissions_Success() {
+            // Arrange
+            List<UserClientPermissionMapping> permissions = new ArrayList<>();
+            permissions.add(new UserClientPermissionMapping(DEFAULT_USER_ID, DEFAULT_CLIENT_ID, 1L, "admin"));
+            permissions.add(new UserClientPermissionMapping(DEFAULT_USER_ID, DEFAULT_CLIENT_ID, 2L, "editor"));
+            permissions.add(new UserClientPermissionMapping(DEFAULT_USER_ID, DEFAULT_CLIENT_ID, 3L, "viewer"));
 
-        // Act
-        String result = loginService.getToken(testLoginRequest);
+            when(userRepository.findByLoginName(DEFAULT_LOGIN_NAME)).thenReturn(testUser);
+            when(userClientMappingRepository.findByApiKey(TEST_API_KEY)).thenReturn(Optional.of(testUserClientMapping));
+            when(userClientPermissionMappingRepository.findClientPermissionMappingByUserId(DEFAULT_USER_ID))
+                    .thenReturn(permissions);
+            when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyLong())).thenReturn("jwt-token-123");
 
-        // Assert
-        assertEquals("jwt-token-123", result);
-        verify(userClientPermissionMappingRepository, times(1)).findClientPermissionMappingByUserId(TEST_USER_ID);
-        verify(jwtTokenProvider, times(1)).generateToken(any(User.class),
-                argThat(list -> list.size() == 3), anyLong());
+            // Act
+            String result = loginService.getToken(testLoginRequest);
+
+            // Assert
+            assertEquals("jwt-token-123", result);
+            verify(userClientPermissionMappingRepository, times(1)).findClientPermissionMappingByUserId(DEFAULT_USER_ID);
+            verify(jwtTokenProvider, times(1)).generateToken(any(User.class),
+                    argThat(list -> list.size() == 3), anyLong());
+        }
     }
 }

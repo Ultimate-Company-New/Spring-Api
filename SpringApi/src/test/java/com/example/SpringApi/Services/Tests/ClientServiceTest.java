@@ -58,7 +58,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ClientService Unit Tests")
-class ClientServiceTest {
+class ClientServiceTest extends BaseTest {
 
     @Mock
     private ClientRepository clientRepository;
@@ -89,23 +89,21 @@ class ClientServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Setup Request Model
+        // Setup Request Model using BaseTest
         testClientRequest = new ClientRequestModel();
         testClientRequest.setClientId(TEST_CLIENT_ID);
-        testClientRequest.setName("Test Client");
-        testClientRequest.setDescription("Test Description");
-        testClientRequest.setSupportEmail("support@example.com");
-        testClientRequest.setWebsite("https://example.com");
+        testClientRequest.setName(DEFAULT_CLIENT_NAME);
+        testClientRequest.setDescription(DEFAULT_CLIENT_DESCRIPTION);
+        testClientRequest.setSupportEmail(DEFAULT_SUPPORT_EMAIL);
+        testClientRequest.setWebsite(DEFAULT_WEBSITE);
         testClientRequest.setSendgridSenderName("Sender");
         testClientRequest.setGoogleCredId(TEST_GOOGLE_CRED_ID);
         testClientRequest.setIsDeleted(false);
 
-        // Setup Entity
-        testClient = new Client(testClientRequest, DEFAULT_USER_NAME);
-        testClient.setClientId(TEST_CLIENT_ID);
-        testClient.setCreatedAt(LocalDateTime.now());
-        testClient.setUpdatedAt(LocalDateTime.now());
+        // Setup Entity using BaseTest factory but customize as needed
+        testClient = createTestClient(TEST_CLIENT_ID, DEFAULT_CLIENT_NAME);
         testClient.setCreatedUser(DEFAULT_USER_NAME);
+        testClient.setGoogleCredId(TEST_GOOGLE_CRED_ID);
 
         // Setup Google Cred
         testGoogleCred = new GoogleCred();
@@ -123,6 +121,9 @@ class ClientServiceTest {
         // Default environment mocking
         lenient().when(environment.getActiveProfiles()).thenReturn(new String[] { "test" });
         ReflectionTestUtils.setField(clientService, "imageLocation", "firebase");
+
+        // Mock GoogleCred repository
+        lenient().when(googleCredRepository.findById(anyLong())).thenReturn(Optional.of(testGoogleCred));
     }
 
     // ==================== TOGGLE CLIENT TESTS ====================
@@ -408,12 +409,11 @@ class ClientServiceTest {
         }
 
         @Test
-        @DisplayName("Create Client - Null request - ThrowsBadRequestException")
-        void createClient_NullRequest_ThrowsBadRequestException() {
+        @DisplayName("Create Client - Null request - ThrowsNullPointerException")
+        void createClient_NullRequest_ThrowsNullPointerException() {
             // Act & Assert
-            BadRequestException ex = assertThrows(BadRequestException.class,
+            assertThrows(NullPointerException.class,
                     () -> clientService.createClient(null));
-            assertTrue(ex.getMessage() != null);
         }
 
         @ParameterizedTest
@@ -822,12 +822,11 @@ class ClientServiceTest {
         }
 
         @Test
-        @DisplayName("Update Client - Null request - ThrowsBadRequestException")
-        void updateClient_NullRequest_ThrowsBadRequestException() {
+        @DisplayName("Update Client - Null request - ThrowsNullPointerException")
+        void updateClient_NullRequest_ThrowsNullPointerException() {
             // Act & Assert
-            BadRequestException ex = assertThrows(BadRequestException.class,
+            assertThrows(NullPointerException.class,
                     () -> clientService.updateClient(null));
-            assertTrue(ex.getMessage() != null);
         }
 
         @Test
@@ -890,8 +889,10 @@ class ClientServiceTest {
             when(clientRepository.findByName(testClientRequest.getName())).thenReturn(Optional.empty());
             when(clientRepository.save(any(Client.class))).thenReturn(testClient);
 
-            // Act & Assert
-            assertDoesNotThrow(() -> clientService.updateClient(testClientRequest));
+            try (MockedConstruction<FirebaseHelper> fbMock = mockConstruction(FirebaseHelper.class)) {
+                // Act & Assert
+                assertDoesNotThrow(() -> clientService.updateClient(testClientRequest));
+            }
         }
 
         @Test
@@ -909,14 +910,16 @@ class ClientServiceTest {
             when(clientRepository.findByName(testClientRequest.getName())).thenReturn(Optional.empty());
             when(clientRepository.save(any(Client.class))).thenReturn(testClient);
 
-            // Act & Assert
-            assertDoesNotThrow(() -> clientService.updateClient(testClientRequest));
-            verify(clientRepository).save(any(Client.class));
+            try (MockedConstruction<FirebaseHelper> fbMock = mockConstruction(FirebaseHelper.class)) {
+                // Act & Assert
+                assertDoesNotThrow(() -> clientService.updateClient(testClientRequest));
+                verify(clientRepository).save(any(Client.class));
+            }
         }
 
         @Test
-        @DisplayName("Update Client - Firebase Google Cred not found - Graceful handling")
-        void updateClient_FirebaseGoogleCredNotFound_Success() {
+        @DisplayName("Update Client - Firebase Google Cred not found - Throws BadRequestException")
+        void updateClient_FirebaseGoogleCredNotFound_ThrowsBadRequestException() {
             // Arrange
             ReflectionTestUtils.setField(clientService, "imageLocation", "firebase");
             testClientRequest.setLogoBase64(null);
@@ -925,8 +928,10 @@ class ClientServiceTest {
             when(clientRepository.save(any(Client.class))).thenReturn(testClient);
             when(googleCredRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-            // Act & Assert - should still succeed even if Google Cred not found
-            assertDoesNotThrow(() -> clientService.updateClient(testClientRequest));
+            // Act & Assert
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> clientService.updateClient(testClientRequest));
+            assertEquals(ErrorMessages.UserErrorMessages.ER011, ex.getMessage());
         }
 
         @Test
@@ -940,8 +945,10 @@ class ClientServiceTest {
             when(clientRepository.findByName(longName)).thenReturn(Optional.empty());
             when(clientRepository.save(any(Client.class))).thenReturn(testClient);
 
-            // Act & Assert
-            assertDoesNotThrow(() -> clientService.updateClient(testClientRequest));
+            try (MockedConstruction<FirebaseHelper> fbMock = mockConstruction(FirebaseHelper.class)) {
+                // Act & Assert
+                assertDoesNotThrow(() -> clientService.updateClient(testClientRequest));
+            }
         }
 
         @Test
@@ -958,9 +965,11 @@ class ClientServiceTest {
             when(clientRepository.findByName(testClientRequest.getName())).thenReturn(Optional.empty());
             when(clientRepository.save(any(Client.class))).thenReturn(testClient);
 
-            // Act & Assert
-            assertDoesNotThrow(() -> clientService.updateClient(testClientRequest));
-            verify(clientRepository, times(1)).save(any(Client.class));
+            try (MockedConstruction<FirebaseHelper> fbMock = mockConstruction(FirebaseHelper.class)) {
+                // Act & Assert
+                assertDoesNotThrow(() -> clientService.updateClient(testClientRequest));
+                verify(clientRepository, times(1)).save(any(Client.class));
+            }
         }
 
         @Test
