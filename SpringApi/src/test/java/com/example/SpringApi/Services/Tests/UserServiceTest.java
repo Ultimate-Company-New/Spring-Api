@@ -1535,4 +1535,349 @@ class UserServiceTest {
                 () -> userService.getUserByEmail("nonexistent@example.com"));
         assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
     }
+
+    // ==================== Comprehensive Validation Tests - Added ====================
+
+    @Test
+    @DisplayName("Create User - Null Request - Throws BadRequestException")
+    void createUser_NullRequest_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(null));
+        assertTrue(ex.getMessage().contains("request") || ex.getMessage().contains("invalid"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Create User - Null Login Name - Throws BadRequestException")
+    void createUser_NullLoginName_ThrowsBadRequestException() {
+        testUserRequest.setLoginName(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testUserRequest));
+        assertTrue(ex.getMessage().contains("login") || ex.getMessage().contains("invalid"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Create User - Empty Login Name - Throws BadRequestException")
+    void createUser_EmptyLoginName_ThrowsBadRequestException() {
+        testUserRequest.setLoginName("");
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testUserRequest));
+        assertTrue(ex.getMessage().contains("login") || ex.getMessage().contains("empty"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Create User - Duplicate Login Name - Throws BadRequestException")
+    void createUser_DuplicateLoginName_ThrowsBadRequestException() {
+        when(userRepository.findByLoginName(testUserRequest.getLoginName())).thenReturn(testUser);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testUserRequest));
+        assertTrue(ex.getMessage().contains("exist") || ex.getMessage().contains("duplicate"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Create User - Null Email - Throws BadRequestException")
+    void createUser_NullEmail_ThrowsBadRequestException() {
+        testUserRequest.setEmail(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testUserRequest));
+        assertTrue(ex.getMessage().contains("email") || ex.getMessage().contains("invalid"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Create User - Empty Email - Throws BadRequestException")
+    void createUser_EmptyEmail_ThrowsBadRequestException() {
+        testUserRequest.setEmail("");
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testUserRequest));
+        assertTrue(ex.getMessage().contains("email") || ex.getMessage().contains("empty"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Create User - Invalid Email Format - Throws BadRequestException")
+    void createUser_InvalidEmailFormat_ThrowsBadRequestException() {
+        testUserRequest.setEmail("invalid-email");
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testUserRequest));
+        assertTrue(ex.getMessage().contains("email") || ex.getMessage().contains("invalid"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Create User - Duplicate Email - Throws BadRequestException")
+    void createUser_DuplicateEmail_ThrowsBadRequestException() {
+        when(userRepository.findByEmail(testUserRequest.getEmail())).thenReturn(Optional.of(testUser));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testUserRequest));
+        assertTrue(ex.getMessage().contains("exist") || ex.getMessage().contains("duplicate"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Create User - Null First Name - Throws BadRequestException")
+    void createUser_NullFirstName_ThrowsBadRequestException() {
+        testUserRequest.setFirstName(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testUserRequest));
+        assertTrue(ex.getMessage().contains("first") || ex.getMessage().contains("name"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Create User - Empty First Name - Throws BadRequestException")
+    void createUser_EmptyFirstName_ThrowsBadRequestException() {
+        testUserRequest.setFirstName("");
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testUserRequest));
+        assertTrue(ex.getMessage().contains("first") || ex.getMessage().contains("empty"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Create User - Null Last Name - Throws BadRequestException")
+    void createUser_NullLastName_ThrowsBadRequestException() {
+        testUserRequest.setLastName(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testUserRequest));
+        assertTrue(ex.getMessage().contains("last") || ex.getMessage().contains("name"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Create User - Empty Last Name - Throws BadRequestException")
+    void createUser_EmptyLastName_ThrowsBadRequestException() {
+        testUserRequest.setLastName("");
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.createUser(testUserRequest));
+        assertTrue(ex.getMessage().contains("last") || ex.getMessage().contains("empty"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Update User - Negative ID - Throws NotFoundException")
+    void updateUser_NegativeId_ThrowsNotFoundException() {
+        testUserRequest.setUserId(-1L);
+        when(userRepository.findById(-1L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.updateUser(testUserRequest));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Update User - Zero ID - Throws NotFoundException")
+    void updateUser_ZeroId_ThrowsNotFoundException() {
+        testUserRequest.setUserId(0L);
+        when(userRepository.findById(0L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.updateUser(testUserRequest));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Update User - Long.MAX_VALUE ID - Throws NotFoundException")
+    void updateUser_MaxLongId_ThrowsNotFoundException() {
+        testUserRequest.setUserId(Long.MAX_VALUE);
+        when(userRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.updateUser(testUserRequest));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Update User - Null First Name - Throws BadRequestException")
+    void updateUser_NullFirstName_ThrowsBadRequestException() {
+        testUserRequest.setFirstName(null);
+        when(userRepository.findById(DEFAULT_USER_ID)).thenReturn(Optional.of(testUser));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.updateUser(testUserRequest));
+        assertTrue(ex.getMessage().contains("first") || ex.getMessage().contains("name"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Update User - Null Last Name - Throws BadRequestException")
+    void updateUser_NullLastName_ThrowsBadRequestException() {
+        testUserRequest.setLastName(null);
+        when(userRepository.findById(DEFAULT_USER_ID)).thenReturn(Optional.of(testUser));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.updateUser(testUserRequest));
+        assertTrue(ex.getMessage().contains("last") || ex.getMessage().contains("name"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Delete User - Negative ID - Throws NotFoundException")
+    void deleteUser_NegativeId_ThrowsNotFoundException() {
+        when(userRepository.findById(-1L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.deleteUser(-1L));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Delete User - Zero ID - Throws NotFoundException")
+    void deleteUser_ZeroId_ThrowsNotFoundException() {
+        when(userRepository.findById(0L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.deleteUser(0L));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Get User By ID - Negative ID - Throws NotFoundException")
+    void getUserById_NegativeId_ThrowsNotFoundException() {
+        when(userRepository.findById(-1L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.getUserById(-1L));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get User By ID - Zero ID - Throws NotFoundException")
+    void getUserById_ZeroId_ThrowsNotFoundException() {
+        when(userRepository.findById(0L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.getUserById(0L));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get User By ID - Long.MAX_VALUE ID - Throws NotFoundException")
+    void getUserById_MaxLongId_ThrowsNotFoundException() {
+        when(userRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.getUserById(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get User By Login Name - Null Login Name - Throws BadRequestException")
+    void getUserByLoginName_NullLoginName_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.getUserByLoginName(null));
+        assertTrue(ex.getMessage().contains("login") || ex.getMessage().contains("invalid"));
+        verify(userRepository, never()).findByLoginName(anyString());
+    }
+
+    @Test
+    @DisplayName("Get User By Login Name - Empty Login Name - Throws BadRequestException")
+    void getUserByLoginName_EmptyLoginName_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.getUserByLoginName(""));
+        assertTrue(ex.getMessage().contains("login") || ex.getMessage().contains("empty"));
+        verify(userRepository, never()).findByLoginName(anyString());
+    }
+
+    @Test
+    @DisplayName("Get User By Login Name - Nonexistent Login - Throws NotFoundException")
+    void getUserByLoginName_NonexistentLogin_ThrowsNotFoundException() {
+        when(userRepository.findByLoginName("nonexistent")).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.getUserByLoginName("nonexistent"));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get User By Email - Null Email - Throws BadRequestException")
+    void getUserByEmail_NullEmail_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.getUserByEmail(null));
+        assertTrue(ex.getMessage().contains("email") || ex.getMessage().contains("invalid"));
+        verify(userRepository, never()).findByEmail(anyString());
+    }
+
+    @Test
+    @DisplayName("Get User By Email - Empty Email - Throws BadRequestException")
+    void getUserByEmail_EmptyEmail_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.getUserByEmail(""));
+        assertTrue(ex.getMessage().contains("email") || ex.getMessage().contains("empty"));
+        verify(userRepository, never()).findByEmail(anyString());
+    }
+
+    @Test
+    @DisplayName("Get Users In Batches - Null Request - Throws BadRequestException")
+    void getUsersInBatches_NullRequest_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.getUsersInBatches(null));
+        assertTrue(ex.getMessage().contains("request") || ex.getMessage().contains("invalid"));
+    }
+
+    @Test
+    @DisplayName("Get Users In Batches - Start Greater Than End - Throws BadRequestException")
+    void getUsersInBatches_StartGreaterThanEnd_ThrowsBadRequestException() {
+        testPaginationRequest.setStart(100);
+        testPaginationRequest.setEnd(10);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.getUsersInBatches(testPaginationRequest));
+        assertTrue(ex.getMessage().contains("start") || ex.getMessage().contains("end"));
+    }
+
+    @Test
+    @DisplayName("Bulk Create Users - Empty List - Throws BadRequestException")
+    void bulkCreateUsers_EmptyList_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.bulkCreateUsers(new java.util.ArrayList<>()));
+        assertTrue(ex.getMessage().contains("empty") || ex.getMessage().contains("null"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Bulk Create Users - Null List - Throws BadRequestException")
+    void bulkCreateUsers_NullList_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> userService.bulkCreateUsers(null));
+        assertTrue(ex.getMessage().contains("empty") || ex.getMessage().contains("null"));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Lock User - Negative ID - Throws NotFoundException")
+    void lockUser_NegativeId_ThrowsNotFoundException() {
+        when(userRepository.findById(-1L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.lockUser(-1L));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Lock User - Zero ID - Throws NotFoundException")
+    void lockUser_ZeroId_ThrowsNotFoundException() {
+        when(userRepository.findById(0L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.lockUser(0L));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Unlock User - Negative ID - Throws NotFoundException")
+    void unlockUser_NegativeId_ThrowsNotFoundException() {
+        when(userRepository.findById(-1L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.unlockUser(-1L));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Unlock User - Zero ID - Throws NotFoundException")
+    void unlockUser_ZeroId_ThrowsNotFoundException() {
+        when(userRepository.findById(0L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userService.unlockUser(0L));
+        assertEquals(ErrorMessages.UserErrorMessages.NotFound, ex.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+}
 }

@@ -5,6 +5,7 @@ import com.example.SpringApi.Models.ResponseModels.MessageResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.MessageRequestModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
 import com.example.SpringApi.Repositories.*;
 import com.example.SpringApi.Services.MessageService;
 import com.example.SpringApi.Services.UserLogService;
@@ -16,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -53,7 +55,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("MessageService Unit Tests")
-class MessageServiceTest {
+class MessageServiceTest extends BaseTest {
 
     @Mock
     private MessageRepository messageRepository;
@@ -87,12 +89,12 @@ class MessageServiceTest {
     private Client testClient;
     private User testUser;
     
-    private static final Long TEST_MESSAGE_ID = 1L;
-    private static final Long TEST_CLIENT_ID = 1L;
-    private static final Long TEST_USER_ID = 1L;
+    private static final Long TEST_MESSAGE_ID = DEFAULT_MESSAGE_ID;
+    private static final Long TEST_CLIENT_ID = DEFAULT_CLIENT_ID;
+    private static final Long TEST_USER_ID = DEFAULT_USER_ID;
     private static final String TEST_TITLE = "Test Message Title";
     private static final String TEST_DESC_HTML = "<p>Test message description</p>";
-    private static final String CREATED_USER = "testuser";
+    private static final String CREATED_USER = DEFAULT_CREATED_USER;
     private static final String TEST_EMAIL = "test@example.com";
     
     /**
@@ -102,7 +104,7 @@ class MessageServiceTest {
     @BeforeEach
     void setUp() {
         // Initialize valid request
-        validRequest = new MessageRequestModel();
+        validRequest = createValidMessageRequest();
         validRequest.setMessageId(TEST_MESSAGE_ID);
         validRequest.setTitle(TEST_TITLE);
         validRequest.setDescriptionHtml(TEST_DESC_HTML);
@@ -113,20 +115,20 @@ class MessageServiceTest {
         validRequest.setUserGroupIds(Arrays.asList(1L, 2L));
 
         // Initialize test message
-        testMessage = new Message(validRequest, TEST_USER_ID, CREATED_USER, TEST_CLIENT_ID);
+        testMessage = createTestMessage();
         testMessage.setMessageId(TEST_MESSAGE_ID);
         testMessage.setCreatedAt(LocalDateTime.now());
         testMessage.setUpdatedAt(LocalDateTime.now());
 
         // Initialize test client
-        testClient = new Client();
+        testClient = createTestClient();
         testClient.setClientId(TEST_CLIENT_ID);
         testClient.setSendGridApiKey("test-api-key");
         testClient.setSendGridEmailAddress("test@sendgrid.com");
         testClient.setSendgridSenderName("Test Sender");
 
         // Initialize test user
-        testUser = new User();
+        testUser = createTestUser();
         testUser.setUserId(TEST_USER_ID);
         testUser.setEmail(TEST_EMAIL);
         testUser.setIsDeleted(false);
@@ -134,156 +136,139 @@ class MessageServiceTest {
 
     // ==================== GET MESSAGES IN BATCHES TESTS ====================
 
-    @Test
-    @DisplayName("Should successfully retrieve messages in batches")
-    void testGetMessagesInBatches_Success() {
-        // Note: BaseService methods are now handled by the actual service implementation
+    @Nested
+    @DisplayName("GetMessagesInBatches Tests")
+    class GetMessagesInBatchesTests {
+        @Test
+        @DisplayName("Get Messages In Batches - Invalid pagination, success no filters, and column validation")
+        void getMessagesInBatches_SingleComprehensiveTest() {
+            PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
+            
+            // (1) Invalid pagination: end <= start
+            paginationRequest.setStart(10);
+            paginationRequest.setEnd(5);
+            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                    () -> messageService.getMessagesInBatches(paginationRequest));
 
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
-        // Set up filters using new FilterCondition structure
-        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
-        filter.setColumn("title");
-        filter.setOperator("contains");
-        filter.setValue("Test");
-        paginationRequest.setFilters(List.of(filter));
-        paginationRequest.setLogicOperator("AND");
-        paginationRequest.setIncludeDeleted(false);
+            // (2) Success: simple retrieval without filters
+            paginationRequest.setStart(0);
+            paginationRequest.setEnd(10);
+            paginationRequest.setFilters(null);
+            paginationRequest.setIncludeDeleted(false);
 
-        List<Message> messages = Arrays.asList(testMessage);
-        Page<Message> messagePage = new PageImpl<>(messages);
+            List<Message> messages = Arrays.asList(testMessage);
+            Page<Message> messagePage = new PageImpl<>(messages);
 
-        lenient().when(messageRepository.findPaginatedMessages(
-            anyLong(), isNull(), isNull(), isNull(), anyBoolean(), any(Pageable.class)))
-            .thenReturn(messagePage);
+            lenient().when(messageRepository.findPaginatedMessages(
+                anyLong(), isNull(), isNull(), isNull(), anyBoolean(), any(Pageable.class)))
+                .thenReturn(messagePage);
 
-        PaginationBaseResponseModel<MessageResponseModel> result = 
-            messageService.getMessagesInBatches(paginationRequest);
+            PaginationBaseResponseModel<MessageResponseModel> result = 
+                messageService.getMessagesInBatches(paginationRequest);
 
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        assertEquals(1, result.getTotalDataCount());
-        assertEquals(TEST_MESSAGE_ID, result.getData().get(0).getMessageId());
-    }
+            assertNotNull(result);
+            assertEquals(1, result.getData().size());
+            assertEquals(1, result.getTotalDataCount());
+            assertEquals(TEST_MESSAGE_ID, result.getData().get(0).getMessageId());
 
-    @Test
-    @DisplayName("Should throw BadRequestException for invalid column name")
-    void testGetMessagesInBatches_InvalidColumnName() {
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
-        // Set up filters with invalid column
-        PaginationBaseRequestModel.FilterCondition invalidFilter = new PaginationBaseRequestModel.FilterCondition();
-        invalidFilter.setColumn("invalidColumn");
-        invalidFilter.setOperator("equals");
-        invalidFilter.setValue("Test");
-        paginationRequest.setFilters(List.of(invalidFilter));
+            // (3) Invalid column name validation
+            String[] validColumns = {
+                "messageId", "title", "publishDate", "descriptionHtml", "sendAsEmail",
+                "isDeleted", "createdByUserId", "sendgridEmailBatchId", "createdAt",
+                "updatedAt", "notes", "createdUser", "modifiedUser"
+            };
+            String[] invalidColumns = {"invalidColumn", "nonExistentField", "wrongField"};
 
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            messageService.getMessagesInBatches(paginationRequest);
-        });
+            // Test invalid columns
+            for (String invalidCol : invalidColumns) {
+                paginationRequest.setFilters(List.of(createFilterCondition(invalidCol, "equals", "test")));
+                assertThrowsBadRequest("Invalid column name: " + invalidCol,
+                        () -> messageService.getMessagesInBatches(paginationRequest));
+            }
 
-        assertTrue(exception.getMessage().contains("Invalid column name"));
-    }
-
-    @Test
-    @DisplayName("Should throw BadRequestException for invalid pagination (end <= start)")
-    void testGetMessagesInBatches_InvalidPagination() {
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(10);
-        paginationRequest.setEnd(5);
-
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            messageService.getMessagesInBatches(paginationRequest);
-        });
-
-        assertEquals("Invalid pagination: end must be greater than start", exception.getMessage());
+            // Test valid columns (should not throw for column validation)
+            for (String validCol : validColumns) {
+                paginationRequest.setFilters(List.of(createFilterCondition(validCol, "equals", "test")));
+                // Note: MessageService only validates column names, not operators/types
+                // So valid columns should pass column validation (may fail later in repository if operator/value invalid)
+                lenient().when(messageRepository.findPaginatedMessages(
+                    anyLong(), isNull(), isNull(), isNull(), anyBoolean(), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(Arrays.asList()));
+                assertDoesNotThrow(() -> messageService.getMessagesInBatches(paginationRequest));
+            }
+        }
     }
 
     // ==================== CREATE MESSAGE TESTS ====================
 
-    @Test
-    @DisplayName("Should successfully create message without email")
-    void testCreateMessage_Success_NoEmail() {
-        // Note: BaseService methods are now handled by the actual service implementation
-        // Note: BaseService methods are now handled by the actual service implementation
-        // Note: BaseService methods are now handled by the actual service implementation
+    @Nested
+    @DisplayName("CreateMessage Tests")
+    class CreateMessageTests {
+        @Test
+        @DisplayName("Create Message - Success - No email")
+        void createMessage_Success_NoEmail() {
+            when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+            when(messageRepository.save(any(Message.class))).thenReturn(testMessage);
+            when(messageUserMapRepository.save(any(MessageUserMap.class))).thenReturn(new MessageUserMap());
+            when(messageUserGroupMapRepository.save(any(MessageUserGroupMap.class))).thenReturn(new MessageUserGroupMap());
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any(Message.class))).thenReturn(testMessage);
-        when(messageUserMapRepository.save(any(MessageUserMap.class))).thenReturn(new MessageUserMap());
-        when(messageUserGroupMapRepository.save(any(MessageUserGroupMap.class))).thenReturn(new MessageUserGroupMap());
+            assertDoesNotThrow(() -> messageService.createMessage(validRequest));
 
-        assertDoesNotThrow(() -> messageService.createMessage(validRequest));
+            verify(messageRepository).save(any(Message.class));
+            verify(messageUserMapRepository, times(1)).save(any(MessageUserMap.class));
+            verify(messageUserGroupMapRepository, times(2)).save(any(MessageUserGroupMap.class));
+            verify(userLogService).logData(
+                eq(TEST_USER_ID),
+                contains("Successfully inserted message"),
+                eq(ApiRoutes.MessagesSubRoute.CREATE_MESSAGE)
+            );
+        }
 
-        verify(messageRepository).save(any(Message.class));
-        verify(messageUserMapRepository, times(1)).save(any(MessageUserMap.class));
-        verify(messageUserGroupMapRepository, times(2)).save(any(MessageUserGroupMap.class));
-        verify(userLogService).logData(
-            eq(TEST_USER_ID),
-            contains("Successfully inserted message"),
-            eq(ApiRoutes.MessagesSubRoute.CREATE_MESSAGE)
-        );
-    }
+        @Test
+        @DisplayName("Create Message - Client not found - Throws NotFoundException")
+        void createMessage_ClientNotFound_ThrowsNotFoundException() {
+            when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.empty());
 
-    @Test
-    @DisplayName("Should throw NotFoundException when client not found")
-    void testCreateMessage_ClientNotFound() {
-        // Note: BaseService methods are now handled by the actual service implementation
+            assertThrowsNotFound(ErrorMessages.ClientErrorMessages.InvalidId,
+                    () -> messageService.createMessage(validRequest));
+        }
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        @Test
+        @DisplayName("Create Message - Email in past - Throws BadRequestException")
+        void createMessage_EmailInPast_ThrowsBadRequestException() {
+            validRequest.setSendAsEmail(true);
+            validRequest.setPublishDate(LocalDateTime.now().minusHours(1));
 
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            messageService.createMessage(validRequest);
-        });
+            when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
 
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, exception.getMessage());
-    }
+            assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.ER009,
+                    () -> messageService.createMessage(validRequest));
+        }
 
-    @Test
-    @DisplayName("Should throw BadRequestException when scheduling email in the past")
-    void testCreateMessage_EmailInPast() {
-        // Note: BaseService methods are now handled by the actual service implementation
-        // Note: BaseService methods are now handled by the actual service implementation
-        // Note: BaseService methods are now handled by the actual service implementation
+        @Test
+        @DisplayName("Create Message - Email beyond 72 hours - Throws BadRequestException")
+        void createMessage_EmailBeyond72Hours_ThrowsBadRequestException() {
+            validRequest.setSendAsEmail(true);
+            validRequest.setPublishDate(LocalDateTime.now().plusHours(73));
 
-        validRequest.setSendAsEmail(true);
-        validRequest.setPublishDate(LocalDateTime.now().minusHours(1));
+            when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+            BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+                messageService.createMessage(validRequest);
+            });
 
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            messageService.createMessage(validRequest);
-        });
-
-        assertEquals(ErrorMessages.MessagesErrorMessages.ER009, exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Should throw BadRequestException when scheduling email beyond 72 hours")
-    void testCreateMessage_EmailBeyond72Hours() {
-        // Note: BaseService methods are now handled by the actual service implementation
-        // Note: BaseService methods are now handled by the actual service implementation
-        // Note: BaseService methods are now handled by the actual service implementation
-
-        validRequest.setSendAsEmail(true);
-        validRequest.setPublishDate(LocalDateTime.now().plusHours(73));
-
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            messageService.createMessage(validRequest);
-        });
-
-        assertTrue(exception.getMessage().contains("Failed to generate batch ID"));
+            assertTrue(exception.getMessage().contains("Failed to generate batch ID"));
+        }
     }
 
     // ==================== UPDATE MESSAGE TESTS ====================
 
-    @Test
-    @DisplayName("Should successfully update message")
-    void testUpdateMessage_Success() {
+    @Nested
+    @DisplayName("UpdateMessage Tests")
+    class UpdateMessageTests {
+        @Test
+        @DisplayName("Update Message - Success")
+        void updateMessage_Success() {
         // Note: BaseService methods are now handled by the actual service implementation
         // Note: BaseService methods are now handled by the actual service implementation
         // Note: BaseService methods are now handled by the actual service implementation
@@ -307,58 +292,50 @@ class MessageServiceTest {
         );
     }
 
-    @Test
-    @DisplayName("Should throw BadRequestException when messageId is null")
-    void testUpdateMessage_NullMessageId() {
-        validRequest.setMessageId(null);
+        @Test
+        @DisplayName("Update Message - Null message ID - Throws BadRequestException")
+        void updateMessage_NullMessageId_ThrowsBadRequestException() {
+            validRequest.setMessageId(null);
 
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            messageService.updateMessage(validRequest);
-        });
+            assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.InvalidId,
+                    () -> messageService.updateMessage(validRequest));
+        }
 
-        assertEquals(ErrorMessages.MessagesErrorMessages.InvalidId, exception.getMessage());
-    }
+        @Test
+        @DisplayName("Update Message - Message not found - Throws NotFoundException")
+        void updateMessage_MessageNotFound_ThrowsNotFoundException() {
+            when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+            when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
+                .thenReturn(Optional.empty());
 
-    @Test
-    @DisplayName("Should throw NotFoundException when message not found")
-    void testUpdateMessage_MessageNotFound() {
-        // Note: BaseService methods are now handled by the actual service implementation
+            assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
+                    () -> messageService.updateMessage(validRequest));
+        }
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.empty());
+        @Test
+        @DisplayName("Update Message - Message already sent - Throws BadRequestException")
+        void updateMessage_MessageAlreadySent_ThrowsBadRequestException() {
+            testMessage.setSendAsEmail(true);
+            testMessage.setPublishDate(LocalDateTime.now().minusHours(1));
 
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            messageService.updateMessage(validRequest);
-        });
+            when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+            when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
+                .thenReturn(Optional.of(testMessage));
 
-        assertEquals(ErrorMessages.MessagesErrorMessages.InvalidId, exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Should throw BadRequestException when trying to edit sent message")
-    void testUpdateMessage_MessageAlreadySent() {
-        // Note: BaseService methods are now handled by the actual service implementation
-
-        testMessage.setSendAsEmail(true);
-        testMessage.setPublishDate(LocalDateTime.now().minusHours(1));
-
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.of(testMessage));
-
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            messageService.updateMessage(validRequest);
-        });
-
-        assertEquals(ErrorMessages.MessagesErrorMessages.ER011, exception.getMessage());
+            assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.ER011,
+                    () -> messageService.updateMessage(validRequest));
+        }
     }
 
     // ==================== TOGGLE MESSAGE TESTS ====================
 
-    @Test
-    @DisplayName("Should successfully toggle message")
-    void testToggleMessage_Success() {
+    @Nested
+    @DisplayName("ToggleMessage Tests")
+    class ToggleMessageTests {
+
+        @Test
+        @DisplayName("Toggle Message - Success")
+        void toggleMessage_Success() {
         testMessage.setIsDeleted(false);
 
         when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(eq(TEST_MESSAGE_ID), eq(TEST_CLIENT_ID)))
@@ -376,26 +353,26 @@ class MessageServiceTest {
         );
     }
 
-    @Test
-    @DisplayName("Should throw NotFoundException when toggling non-existent message")
-    void testToggleMessage_MessageNotFound() {
-        // Note: BaseService methods are now handled by the actual service implementation
+        @Test
+        @DisplayName("Toggle Message - Message not found - Throws NotFoundException")
+        void toggleMessage_MessageNotFound_ThrowsNotFoundException() {
+            lenient().when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(TEST_MESSAGE_ID, TEST_CLIENT_ID))
+                .thenReturn(Optional.empty());
 
-        lenient().when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.empty());
-
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            messageService.toggleMessage(TEST_MESSAGE_ID);
-        });
-
-        assertEquals(ErrorMessages.MessagesErrorMessages.InvalidId, exception.getMessage());
+            assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
+                    () -> messageService.toggleMessage(TEST_MESSAGE_ID));
+        }
     }
 
     // ==================== GET MESSAGE DETAILS BY ID TESTS ====================
 
-    @Test
-    @DisplayName("Should successfully get message details by ID")
-    void testGetMessageDetailsById_Success() {
+    @Nested
+    @DisplayName("GetMessageDetailsById Tests")
+    class GetMessageDetailsByIdTests {
+
+        @Test
+        @DisplayName("Get Message Details By ID - Success")
+        void getMessageDetailsById_Success() {
         // Note: BaseService methods are now handled by the actual service implementation
 
         when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
@@ -408,32 +385,28 @@ class MessageServiceTest {
         assertEquals(TEST_TITLE, result.getTitle());
     }
 
-    @Test
-    @DisplayName("Should throw NotFoundException when getting details of non-existent message")
-    void testGetMessageDetailsById_MessageNotFound() {
-        // Note: BaseService methods are now handled by the actual service implementation
+        @Test
+        @DisplayName("Get Message Details By ID - Message not found - Throws NotFoundException")
+        void getMessageDetailsById_MessageNotFound_ThrowsNotFoundException() {
+            when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
+                .thenReturn(Optional.empty());
 
-        when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.empty());
-
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            messageService.getMessageDetailsById(TEST_MESSAGE_ID);
-        });
-
-        assertEquals(ErrorMessages.MessagesErrorMessages.InvalidId, exception.getMessage());
+            assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
+                    () -> messageService.getMessageDetailsById(TEST_MESSAGE_ID));
+        }
     }
 
     // ==================== GET MESSAGES BY USER ID TESTS ====================
 
-    @Test
-    @DisplayName("Should successfully get messages by user ID")
-    void testGetMessagesByUserId_Success() {
-        // Note: BaseService methods are now handled by the actual service implementation
+    @Nested
+    @DisplayName("GetMessagesByUserId Tests")
+    class GetMessagesByUserIdTests {
 
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setId(TEST_USER_ID);
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
+        @Test
+        @DisplayName("Get Messages By User ID - Success")
+        void getMessagesByUserId_Success() {
+            PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
+            paginationRequest.setId(TEST_USER_ID);
 
         List<Message> messages = Arrays.asList(testMessage);
         Page<Message> messagePage = new PageImpl<>(messages);
@@ -455,31 +428,29 @@ class MessageServiceTest {
         assertFalse(result.getData().get(0).getIsRead());
     }
 
-    @Test
-    @DisplayName("Should throw NotFoundException when user not found")
-    void testGetMessagesByUserId_UserNotFound() {
-        // Note: BaseService methods are now handled by the actual service implementation
+        @Test
+        @DisplayName("Get Messages By User ID - User not found - Throws NotFoundException")
+        void getMessagesByUserId_UserNotFound_ThrowsNotFoundException() {
+            PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
+            paginationRequest.setId(TEST_USER_ID);
 
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setId(TEST_USER_ID);
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
+            when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID))
+                .thenReturn(Optional.empty());
 
-        when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.empty());
-
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            messageService.getMessagesByUserId(paginationRequest);
-        });
-
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, exception.getMessage());
+            assertThrowsNotFound(ErrorMessages.UserErrorMessages.InvalidId,
+                    () -> messageService.getMessagesByUserId(paginationRequest));
+        }
     }
 
     // ==================== SET MESSAGE READ TESTS ====================
 
-    @Test
-    @DisplayName("Should successfully mark message as read")
-    void testSetMessageReadByUserIdAndMessageId_Success() {
+    @Nested
+    @DisplayName("SetMessageRead Tests")
+    class SetMessageReadTests {
+
+        @Test
+        @DisplayName("Set Message Read - Success")
+        void setMessageReadByUserIdAndMessageId_Success() {
         // Note: BaseService methods are now handled by the actual service implementation
         // Note: BaseService methods are now handled by the actual service implementation
         // Note: BaseService methods are now handled by the actual service implementation
@@ -504,9 +475,9 @@ class MessageServiceTest {
         );
     }
 
-    @Test
-    @DisplayName("Should not create duplicate read record when already marked as read")
-    void testSetMessageReadByUserIdAndMessageId_AlreadyRead() {
+        @Test
+        @DisplayName("Set Message Read - Already read - No duplicate")
+        void setMessageReadByUserIdAndMessageId_AlreadyRead_NoDuplicate() {
         // Note: BaseService methods are now handled by the actual service implementation
 
         MessageUserReadMap existingRead = new MessageUserReadMap();
@@ -524,9 +495,9 @@ class MessageServiceTest {
         verify(messageUserReadMapRepository, never()).save(any(MessageUserReadMap.class));
     }
 
-    @Test
-    @DisplayName("Should throw NotFoundException when user not found for setting read status")
-    void testSetMessageReadByUserIdAndMessageId_UserNotFound() {
+        @Test
+        @DisplayName("Set Message Read - User not found - Throws NotFoundException")
+        void setMessageReadByUserIdAndMessageId_UserNotFound_ThrowsNotFoundException() {
         // Note: BaseService methods are now handled by the actual service implementation
 
         when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID))
@@ -539,9 +510,9 @@ class MessageServiceTest {
         assertEquals(ErrorMessages.UserErrorMessages.InvalidId, exception.getMessage());
     }
 
-    @Test
-    @DisplayName("Should throw NotFoundException when message not found for setting read status")
-    void testSetMessageReadByUserIdAndMessageId_MessageNotFound() {
+        @Test
+        @DisplayName("Set Message Read - Message not found - Throws NotFoundException")
+        void setMessageReadByUserIdAndMessageId_MessageNotFound_ThrowsNotFoundException() {
         // Note: BaseService methods are now handled by the actual service implementation
 
         when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID))
@@ -554,13 +525,18 @@ class MessageServiceTest {
         });
 
         assertEquals(ErrorMessages.MessagesErrorMessages.InvalidId, exception.getMessage());
+        }
     }
 
     // ==================== GET UNREAD MESSAGE COUNT TESTS ====================
 
-    @Test
-    @DisplayName("Should successfully get unread message count")
-    void testGetUnreadMessageCount_Success() {
+    @Nested
+    @DisplayName("GetUnreadMessageCount Tests")
+    class GetUnreadMessageCountTests {
+
+        @Test
+        @DisplayName("Get Unread Message Count - Success")
+        void getUnreadMessageCount_Success() {
         // Note: BaseService methods are now handled by the actual service implementation
 
         when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
@@ -572,9 +548,9 @@ class MessageServiceTest {
         verify(messageRepository).countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID);
     }
 
-    @Test
-    @DisplayName("Should return zero when no unread messages")
-    void testGetUnreadMessageCount_NoUnreadMessages() {
+        @Test
+        @DisplayName("Get Unread Message Count - No unread messages - Returns zero")
+        void getUnreadMessageCount_NoUnreadMessages_ReturnsZero() {
         // Note: BaseService methods are now handled by the actual service implementation
 
         when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
@@ -586,18 +562,288 @@ class MessageServiceTest {
         verify(messageRepository).countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID);
     }
 
-    @Test
-    @DisplayName("Should handle large unread message counts")
-    void testGetUnreadMessageCount_LargeCount() {
-        // Note: BaseService methods are now handled by the actual service implementation
+        @Test
+        @DisplayName("Get Unread Message Count - Large count - Success")
+        void getUnreadMessageCount_LargeCount_Success() {
+            when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
+                .thenReturn(1000L);
 
-        when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
-            .thenReturn(1000L);
+            int result = messageService.getUnreadMessageCount();
 
-        int result = messageService.getUnreadMessageCount();
+            assertEquals(1000, result);
+            verify(messageRepository).countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID);
+        }
+    }
 
-        assertEquals(1000, result);
-        verify(messageRepository).countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID);
+    @Nested
+    @DisplayName("Message Service - Comprehensive Validation Tests")
+    class MessageValidationTests {
+
+        @Nested
+        @DisplayName("Get Messages In Batches - Pagination Validation")
+        class GetMessagesInBatchesPaginationTests {
+
+            @Test
+            @DisplayName("Get Messages - Null pagination request - Throws BadRequestException")
+            void getMessagesInBatches_NullRequest_ThrowsBadRequest() {
+                assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                        () -> messageService.getMessagesInBatches(null));
+            }
+
+            @Test
+            @DisplayName("Get Messages - Invalid pagination (end <= start) - Throws BadRequestException")
+            void getMessagesInBatches_InvalidPagination_EndLessThanStart() {
+                PaginationBaseRequestModel request = createValidPaginationRequest();
+                request.setStart(20);
+                request.setEnd(10);
+
+                assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                        () -> messageService.getMessagesInBatches(request));
+            }
+
+            @Test
+            @DisplayName("Get Messages - Invalid pagination (start equals end) - Throws BadRequestException")
+            void getMessagesInBatches_InvalidPagination_StartEqualsEnd() {
+                PaginationBaseRequestModel request = createValidPaginationRequest();
+                request.setStart(10);
+                request.setEnd(10);
+
+                assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                        () -> messageService.getMessagesInBatches(request));
+            }
+
+            @Test
+            @DisplayName("Get Messages - Negative start - Throws BadRequestException")
+            void getMessagesInBatches_NegativeStart_ThrowsBadRequest() {
+                PaginationBaseRequestModel request = createValidPaginationRequest();
+                request.setStart(-5);
+                request.setEnd(10);
+
+                assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                        () -> messageService.getMessagesInBatches(request));
+            }
+
+            @Test
+            @DisplayName("Get Messages - Negative end - Throws BadRequestException")
+            void getMessagesInBatches_NegativeEnd_ThrowsBadRequest() {
+                PaginationBaseRequestModel request = createValidPaginationRequest();
+                request.setStart(0);
+                request.setEnd(-10);
+
+                assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                        () -> messageService.getMessagesInBatches(request));
+            }
+
+            @Test
+            @DisplayName("Get Messages - Zero start and end - Throws BadRequestException")
+            void getMessagesInBatches_ZeroPagination_ThrowsBadRequest() {
+                PaginationBaseRequestModel request = createValidPaginationRequest();
+                request.setStart(0);
+                request.setEnd(0);
+
+                assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                        () -> messageService.getMessagesInBatches(request));
+            }
+
+            @Test
+            @DisplayName("Get Messages - Valid pagination - Success")
+            void getMessagesInBatches_ValidPagination_Success() {
+                PaginationBaseRequestModel request = createValidPaginationRequest();
+                request.setStart(0);
+                request.setEnd(10);
+
+                Page<Message> page = new PageImpl<>(Collections.singletonList(testMessage));
+                when(messageRepository.findByClientIdAndIsDeletedFalse(eq(TEST_CLIENT_ID), any(Pageable.class)))
+                        .thenReturn(page);
+
+                PaginationBaseResponseModel<MessageResponseModel> result = messageService.getMessagesInBatches(request);
+
+                assertNotNull(result);
+                verify(messageRepository).findByClientIdAndIsDeletedFalse(eq(TEST_CLIENT_ID), any(Pageable.class));
+            }
+        }
+
+        @Nested
+        @DisplayName("Schedule Message - Email Validation")
+        class ScheduleMessageEmailTests {
+
+            @Test
+            @DisplayName("Schedule Message - Null request - Throws BadRequestException")
+            void scheduleMessage_NullRequest_ThrowsBadRequest() {
+                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.InvalidRequest,
+                        () -> messageService.scheduleMessage(null));
+            }
+
+            @Test
+            @DisplayName("Schedule Message - Null recipients - Throws BadRequestException")
+            void scheduleMessage_NullRecipients_ThrowsBadRequest() {
+                testMessageRequest.setRecipients(null);
+
+                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.InvalidRecipients,
+                        () -> messageService.scheduleMessage(testMessageRequest));
+            }
+
+            @Test
+            @DisplayName("Schedule Message - Empty recipients list - Throws BadRequestException")
+            void scheduleMessage_EmptyRecipients_ThrowsBadRequest() {
+                testMessageRequest.setRecipients(Collections.emptyList());
+
+                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.InvalidRecipients,
+                        () -> messageService.scheduleMessage(testMessageRequest));
+            }
+
+            @Test
+            @DisplayName("Schedule Message - Null subject - Throws BadRequestException")
+            void scheduleMessage_NullSubject_ThrowsBadRequest() {
+                testMessageRequest.setSubject(null);
+
+                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.InvalidSubject,
+                        () -> messageService.scheduleMessage(testMessageRequest));
+            }
+
+            @Test
+            @DisplayName("Schedule Message - Empty subject - Throws BadRequestException")
+            void scheduleMessage_EmptySubject_ThrowsBadRequest() {
+                testMessageRequest.setSubject("");
+
+                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.InvalidSubject,
+                        () -> messageService.scheduleMessage(testMessageRequest));
+            }
+
+            @Test
+            @DisplayName("Schedule Message - Null body - Throws BadRequestException")
+            void scheduleMessage_NullBody_ThrowsBadRequest() {
+                testMessageRequest.setBody(null);
+
+                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.InvalidBody,
+                        () -> messageService.scheduleMessage(testMessageRequest));
+            }
+
+            @Test
+            @DisplayName("Schedule Message - Empty body - Throws BadRequestException")
+            void scheduleMessage_EmptyBody_ThrowsBadRequest() {
+                testMessageRequest.setBody("");
+
+                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.InvalidBody,
+                        () -> messageService.scheduleMessage(testMessageRequest));
+            }
+
+            @Test
+            @DisplayName("Schedule Message - Null scheduled date - Throws BadRequestException")
+            void scheduleMessage_NullScheduledDate_ThrowsBadRequest() {
+                testMessageRequest.setScheduledDate(null);
+
+                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.InvalidScheduledDate,
+                        () -> messageService.scheduleMessage(testMessageRequest));
+            }
+
+            @Test
+            @DisplayName("Schedule Message - Past scheduled date - Throws BadRequestException")
+            void scheduleMessage_PastScheduledDate_ThrowsBadRequest() {
+                testMessageRequest.setScheduledDate(ZonedDateTime.now(ZoneOffset.UTC).minusDays(1));
+
+                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.ScheduledDatePast,
+                        () -> messageService.scheduleMessage(testMessageRequest));
+            }
+
+            @Test
+            @DisplayName("Schedule Message - Very large recipient count - Success")
+            void scheduleMessage_LargeRecipientCount_Success() {
+                List<Long> manyRecipients = new ArrayList<>();
+                for (int i = 1; i <= 1000; i++) {
+                    manyRecipients.add((long) i);
+                }
+                testMessageRequest.setRecipients(manyRecipients);
+
+                when(userRepository.findByUserIdAndIsDeletedFalse(anyLong()))
+                        .thenReturn(Optional.of(testUser));
+                when(messageRepository.save(any(Message.class)))
+                        .thenReturn(testMessage);
+
+                Message result = messageService.scheduleMessage(testMessageRequest);
+
+                assertNotNull(result);
+                verify(messageRepository).save(any(Message.class));
+            }
+        }
+
+        @Nested
+        @DisplayName("Send Message - User Validation")
+        class SendMessageUserTests {
+
+            @Test
+            @DisplayName("Send Message - User not found - Throws NotFoundException")
+            void sendMessage_UserNotFound_ThrowsNotFound() {
+                when(userRepository.findByUserIdAndIsDeletedFalse(TEST_USER_ID))
+                        .thenReturn(Optional.empty());
+
+                assertThrowsNotFound(String.format(ErrorMessages.UserErrorMessages.NotFound, TEST_USER_ID),
+                        () -> messageService.sendMessage(testMessageRequest, TEST_USER_ID));
+            }
+
+            @Test
+            @DisplayName("Send Message - Message not found - Throws NotFoundException")
+            void sendMessage_MessageNotFound_ThrowsNotFound() {
+                when(userRepository.findByUserIdAndIsDeletedFalse(TEST_USER_ID))
+                        .thenReturn(Optional.of(testUser));
+                when(messageRepository.findByMessageIdAndIsDeletedFalse(TEST_MESSAGE_ID))
+                        .thenReturn(Optional.empty());
+
+                assertThrowsNotFound(String.format(ErrorMessages.MessageErrorMessages.NotFound, TEST_MESSAGE_ID),
+                        () -> messageService.sendMessage(testMessageRequest, TEST_USER_ID));
+            }
+
+            @Test
+            @DisplayName("Send Message - Message already sent - Throws BadRequestException")
+            void sendMessage_AlreadySent_ThrowsBadRequest() {
+                testMessage.setSentAt(ZonedDateTime.now(ZoneOffset.UTC));
+                when(userRepository.findByUserIdAndIsDeletedFalse(TEST_USER_ID))
+                        .thenReturn(Optional.of(testUser));
+                when(messageRepository.findByMessageIdAndIsDeletedFalse(TEST_MESSAGE_ID))
+                        .thenReturn(Optional.of(testMessage));
+
+                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.AlreadySent,
+                        () -> messageService.sendMessage(testMessageRequest, TEST_USER_ID));
+            }
+        }
+
+        @Nested
+        @DisplayName("Get Unread Message Count - Validation")
+        class GetUnreadMessageCountTests {
+
+            @Test
+            @DisplayName("Get Unread Message Count - Zero unread - Returns 0")
+            void getUnreadMessageCount_NoUnread_ReturnsZero() {
+                when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
+                        .thenReturn(0);
+
+                int result = messageService.getUnreadMessageCount();
+
+                assertEquals(0, result);
+            }
+
+            @Test
+            @DisplayName("Get Unread Message Count - One unread - Returns 1")
+            void getUnreadMessageCount_OneUnread_ReturnsOne() {
+                when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
+                        .thenReturn(1);
+
+                int result = messageService.getUnreadMessageCount();
+
+                assertEquals(1, result);
+            }
+
+            @Test
+            @DisplayName("Get Unread Message Count - Large count - Success")
+            void getUnreadMessageCount_LargeCount_Success() {
+                when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
+                        .thenReturn(999999);
+
+                int result = messageService.getUnreadMessageCount();
+
+                assertEquals(999999, result);
+            }
+        }
     }
 }
 

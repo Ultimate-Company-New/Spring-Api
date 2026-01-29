@@ -324,23 +324,17 @@ class AddressServiceTest extends BaseTest {
         @Test
         @DisplayName("Get Address By ID - Negative ID - ThrowsNotFoundException")
         void getAddressById_NegativeId_ThrowsNotFoundException() {
-            // Arrange
             long negativeId = -1L;
             when(addressRepository.findById(negativeId)).thenReturn(Optional.empty());
-
-            // Act & Assert
-            assertThrows(NotFoundException.class, () -> addressService.getAddressById(negativeId));
+            assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound, () -> addressService.getAddressById(negativeId));
         }
 
         @Test
         @DisplayName("Get Address By ID - Zero ID - ThrowsNotFoundException")
         void getAddressById_ZeroId_ThrowsNotFoundException() {
-            // Arrange
             long zeroId = 0L;
             when(addressRepository.findById(zeroId)).thenReturn(Optional.empty());
-
-            // Act & Assert
-            assertThrows(NotFoundException.class, () -> addressService.getAddressById(zeroId));
+            assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound, () -> addressService.getAddressById(zeroId));
         }
 
         @Test
@@ -381,21 +375,15 @@ class AddressServiceTest extends BaseTest {
         @Test
         @DisplayName("Get Address By ID - Max Long value - ThrowsNotFoundException")
         void getAddressById_MaxLongValue_ThrowsNotFoundException() {
-            // Arrange
             when(addressRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
-
-            // Act & Assert
-            assertThrows(NotFoundException.class, () -> addressService.getAddressById(Long.MAX_VALUE));
+            assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound, () -> addressService.getAddressById(Long.MAX_VALUE));
         }
 
         @Test
         @DisplayName("Get Address By ID - Min Long value - ThrowsNotFoundException")
         void getAddressById_MinLongValue_ThrowsNotFoundException() {
-            // Arrange
             when(addressRepository.findById(Long.MIN_VALUE)).thenReturn(Optional.empty());
-
-            // Act & Assert
-            assertThrows(NotFoundException.class, () -> addressService.getAddressById(Long.MIN_VALUE));
+            assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound, () -> addressService.getAddressById(Long.MIN_VALUE));
         }
     }
 
@@ -1368,13 +1356,8 @@ class AddressServiceTest extends BaseTest {
         @Test
         @DisplayName("Get Address By User ID - Multiple addresses found - Success returns list")
         void getAddressByUserId_MultipleAddressesFound_Success() {
-            // Arrange
             when(userRepository.findById(DEFAULT_USER_ID)).thenReturn(Optional.of(testUser));
-
-            Address secondAddress = new Address(testAddressRequest, DEFAULT_CREATED_USER);
-            secondAddress.setAddressId(2L);
-            secondAddress.setAddressType("WORK");
-
+            Address secondAddress = createTestAddress(2L, "WORK");
             List<Address> addresses = Arrays.asList(testAddress, secondAddress);
             when(addressRepository.findByUserIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_USER_ID, false))
                     .thenReturn(addresses);
@@ -1526,13 +1509,8 @@ class AddressServiceTest extends BaseTest {
         @Test
         @DisplayName("Get Address By Client ID - Multiple addresses found - Success returns list")
         void getAddressByClientId_MultipleAddressesFound_Success() {
-            // Arrange
             when(clientRepository.findById(DEFAULT_CLIENT_ID)).thenReturn(Optional.of(testClient));
-
-            Address secondAddress = new Address(testAddressRequest, DEFAULT_CREATED_USER);
-            secondAddress.setAddressId(2L);
-            secondAddress.setAddressType("BILLING");
-
+            Address secondAddress = createTestAddress(2L, "BILLING");
             List<Address> addresses = Arrays.asList(testAddress, secondAddress);
             when(addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_CLIENT_ID, false))
                     .thenReturn(addresses);
@@ -1607,38 +1585,13 @@ class AddressServiceTest extends BaseTest {
         @Test
         @DisplayName("Get Address By Client ID - All address types - Success returns all types")
         void getAddressByClientId_AllAddressTypes_Success() {
-            // Arrange
             when(clientRepository.findById(DEFAULT_CLIENT_ID)).thenReturn(Optional.of(testClient));
-
-            Address homeAddress = new Address(testAddressRequest, DEFAULT_CREATED_USER);
-            homeAddress.setAddressId(1L);
-            homeAddress.setAddressType("HOME");
-
-            AddressRequestModel workRequest = createValidAddressRequest();
-            workRequest.setAddressType("WORK");
-            Address workAddress = new Address(workRequest, DEFAULT_CREATED_USER);
-            workAddress.setAddressId(2L);
-
-            AddressRequestModel billingRequest = createValidAddressRequest();
-            billingRequest.setAddressType("BILLING");
-            Address billingAddress = new Address(billingRequest, DEFAULT_CREATED_USER);
-            billingAddress.setAddressId(3L);
-
-            AddressRequestModel shippingRequest = createValidAddressRequest();
-            shippingRequest.setAddressType("SHIPPING");
-            Address shippingAddress = new Address(shippingRequest, DEFAULT_CREATED_USER);
-            shippingAddress.setAddressId(4L);
-
-            AddressRequestModel officeRequest = createValidAddressRequest();
-            officeRequest.setAddressType("OFFICE");
-            Address officeAddress = new Address(officeRequest, DEFAULT_CREATED_USER);
-            officeAddress.setAddressId(5L);
-
-            AddressRequestModel warehouseRequest = createValidAddressRequest();
-            warehouseRequest.setAddressType("WAREHOUSE");
-            Address warehouseAddress = new Address(warehouseRequest, DEFAULT_CREATED_USER);
-            warehouseAddress.setAddressId(6L);
-
+            Address homeAddress = createTestAddress(1L, "HOME");
+            Address workAddress = createTestAddress(2L, "WORK");
+            Address billingAddress = createTestAddress(3L, "BILLING");
+            Address shippingAddress = createTestAddress(4L, "SHIPPING");
+            Address officeAddress = createTestAddress(5L, "OFFICE");
+            Address warehouseAddress = createTestAddress(6L, "WAREHOUSE");
             List<Address> addresses = Arrays.asList(
                     homeAddress, workAddress, billingAddress,
                     shippingAddress, officeAddress, warehouseAddress);
@@ -1757,10 +1710,7 @@ class AddressServiceTest extends BaseTest {
 
             List<Address> addresses = new ArrayList<>();
             for (int i = 1; i <= 100; i++) {
-                Address address = new Address(testAddressRequest, DEFAULT_CREATED_USER);
-                address.setAddressId((long) i);
-                address.setAddressType(i % 2 == 0 ? "HOME" : "WORK");
-                addresses.add(address);
+                addresses.add(createTestAddress((long) i, i % 2 == 0 ? "HOME" : "WORK"));
             }
             when(addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_CLIENT_ID, false))
                     .thenReturn(addresses);
@@ -1790,6 +1740,266 @@ class AddressServiceTest extends BaseTest {
             // Assert
             assertNotNull(result);
             assertEquals(1, result.size());
+        }
+
+        // ==================== Comprehensive Validation Tests - Added ====================
+
+        @Test
+        @DisplayName("Insert Address - Null Request - Throws BadRequestException")
+        void insertAddress_NullRequest_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> addressService.insertAddress(null));
+            assertTrue(ex.getMessage().contains("request") || ex.getMessage().contains("invalid"));
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Insert Address - Null Street Address - Throws BadRequestException")
+        void insertAddress_NullStreetAddress_ThrowsBadRequestException() {
+            testAddressRequest.setStreetAddress(null);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> addressService.insertAddress(testAddressRequest));
+            assertTrue(ex.getMessage().contains("street") || ex.getMessage().contains("invalid"));
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Insert Address - Empty Street Address - Throws BadRequestException")
+        void insertAddress_EmptyStreetAddress_ThrowsBadRequestException() {
+            testAddressRequest.setStreetAddress("");
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> addressService.insertAddress(testAddressRequest));
+            assertTrue(ex.getMessage().contains("street") || ex.getMessage().contains("empty"));
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Insert Address - Null City - Throws BadRequestException")
+        void insertAddress_NullCity_ThrowsBadRequestException() {
+            testAddressRequest.setCity(null);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> addressService.insertAddress(testAddressRequest));
+            assertTrue(ex.getMessage().contains("city") || ex.getMessage().contains("invalid"));
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Insert Address - Empty City - Throws BadRequestException")
+        void insertAddress_EmptyCity_ThrowsBadRequestException() {
+            testAddressRequest.setCity("");
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> addressService.insertAddress(testAddressRequest));
+            assertTrue(ex.getMessage().contains("city") || ex.getMessage().contains("empty"));
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Insert Address - Null State - Throws BadRequestException")
+        void insertAddress_NullState_ThrowsBadRequestException() {
+            testAddressRequest.setState(null);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> addressService.insertAddress(testAddressRequest));
+            assertTrue(ex.getMessage().contains("state") || ex.getMessage().contains("invalid"));
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Insert Address - Empty State - Throws BadRequestException")
+        void insertAddress_EmptyState_ThrowsBadRequestException() {
+            testAddressRequest.setState("");
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> addressService.insertAddress(testAddressRequest));
+            assertTrue(ex.getMessage().contains("state") || ex.getMessage().contains("empty"));
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Insert Address - Null Country - Throws BadRequestException")
+        void insertAddress_NullCountry_ThrowsBadRequestException() {
+            testAddressRequest.setCountry(null);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> addressService.insertAddress(testAddressRequest));
+            assertTrue(ex.getMessage().contains("country") || ex.getMessage().contains("invalid"));
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Insert Address - Empty Country - Throws BadRequestException")
+        void insertAddress_EmptyCountry_ThrowsBadRequestException() {
+            testAddressRequest.setCountry("");
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> addressService.insertAddress(testAddressRequest));
+            assertTrue(ex.getMessage().contains("country") || ex.getMessage().contains("empty"));
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Insert Address - Null Postal Code - Throws BadRequestException")
+        void insertAddress_NullPostalCode_ThrowsBadRequestException() {
+            testAddressRequest.setPostalCode(null);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> addressService.insertAddress(testAddressRequest));
+            assertTrue(ex.getMessage().contains("postal") || ex.getMessage().contains("zip"));
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Insert Address - Empty Postal Code - Throws BadRequestException")
+        void insertAddress_EmptyPostalCode_ThrowsBadRequestException() {
+            testAddressRequest.setPostalCode("");
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> addressService.insertAddress(testAddressRequest));
+            assertTrue(ex.getMessage().contains("postal") || ex.getMessage().contains("zip"));
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Update Address - Negative ID - Throws NotFoundException")
+        void updateAddress_NegativeId_ThrowsNotFoundException() {
+            testAddressRequest.setId(-1L);
+            when(addressRepository.findById(-1L)).thenReturn(Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> addressService.updateAddress(testAddressRequest));
+            assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Update Address - Zero ID - Throws NotFoundException")
+        void updateAddress_ZeroId_ThrowsNotFoundException() {
+            testAddressRequest.setId(0L);
+            when(addressRepository.findById(0L)).thenReturn(Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> addressService.updateAddress(testAddressRequest));
+            assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Update Address - Long.MAX_VALUE ID - Throws NotFoundException")
+        void updateAddress_MaxLongId_ThrowsNotFoundException() {
+            testAddressRequest.setId(Long.MAX_VALUE);
+            when(addressRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> addressService.updateAddress(testAddressRequest));
+            assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Update Address - Null Street Address - Throws BadRequestException")
+        void updateAddress_NullStreetAddress_ThrowsBadRequestException() {
+            testAddressRequest.setId(DEFAULT_ADDRESS_ID);
+            testAddressRequest.setStreetAddress(null);
+            when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> addressService.updateAddress(testAddressRequest));
+            assertTrue(ex.getMessage().contains("street") || ex.getMessage().contains("invalid"));
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Toggle Address - Negative ID (Duplicate Test) - Throws NotFoundException")
+        void toggleAddress_NegativeId_ThrowsNotFoundException2() {
+            when(addressRepository.findById(-1L)).thenReturn(Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> addressService.toggleAddress(-1L));
+            assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Toggle Address - Zero ID (Duplicate Test) - Throws NotFoundException")
+        void toggleAddress_ZeroId_ThrowsNotFoundException2() {
+            when(addressRepository.findById(0L)).thenReturn(Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> addressService.toggleAddress(0L));
+            assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Get Address By ID - Negative ID - Throws NotFoundException")
+        void getAddressById_NegativeId_ThrowsNotFoundException() {
+            when(addressRepository.findById(-1L)).thenReturn(Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> addressService.getAddressById(-1L));
+            assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Get Address By ID - Zero ID - Throws NotFoundException")
+        void getAddressById_ZeroId_ThrowsNotFoundException() {
+            when(addressRepository.findById(0L)).thenReturn(Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> addressService.getAddressById(0L));
+            assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Get Address By ID - Long.MAX_VALUE ID - Throws NotFoundException")
+        void getAddressById_MaxLongId_ThrowsNotFoundException() {
+            when(addressRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> addressService.getAddressById(Long.MAX_VALUE));
+            assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Toggle Address - Negative ID - Throws NotFoundException")
+        void toggleAddress_NegativeId_ThrowsNotFoundException() {
+            when(addressRepository.findById(-1L)).thenReturn(Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> addressService.toggleAddress(-1L));
+            assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Toggle Address - Zero ID - Throws NotFoundException")
+        void toggleAddress_ZeroId_ThrowsNotFoundException() {
+            when(addressRepository.findById(0L)).thenReturn(Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> addressService.toggleAddress(0L));
+            assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
+            verify(addressRepository, never()).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Toggle Address - Multiple Toggles - State Transitions")
+        void toggleAddress_MultipleToggles_StateTransitions() {
+            testAddress.setIsDeleted(false);
+            when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+
+            // First toggle: false -> true
+            addressService.toggleAddress(DEFAULT_ADDRESS_ID);
+            assertTrue(testAddress.getIsDeleted());
+
+            // Second toggle: true -> false
+            testAddress.setIsDeleted(true);
+            addressService.toggleAddress(DEFAULT_ADDRESS_ID);
+            assertFalse(testAddress.getIsDeleted());
+
+            verify(addressRepository, times(2)).save(any(Address.class));
+        }
+
+        @Test
+        @DisplayName("Get Address By Client ID - Negative Client ID - Throws BadRequestException")
+        void getAddressByClientId_NegativeClientId_ThrowsBadRequestException() {
+            when(clientRepository.findById(-1L)).thenReturn(Optional.empty());
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> addressService.getAddressByClientId(-1L));
+            assertTrue(ex.getMessage().contains("client") || ex.getMessage().contains("invalid"));
+        }
+
+        @Test
+        @DisplayName("Get Address By Client ID - Zero Client ID - Throws BadRequestException")
+        void getAddressByClientId_ZeroClientId_ThrowsBadRequestException() {
+            when(clientRepository.findById(0L)).thenReturn(Optional.empty());
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> addressService.getAddressByClientId(0L));
+            assertTrue(ex.getMessage().contains("client") || ex.getMessage().contains("invalid"));
         }
     }
 }

@@ -111,10 +111,8 @@ class ShippingServiceTest {
                 @Test
                 @DisplayName("Calculate Shipping - Null Request - Throws BadRequestException")
                 void calculateShipping_NullRequest_ThrowsBadRequestException() {
-                        BadRequestException exception = assertThrows(BadRequestException.class,
-                                        () -> shippingService.calculateShipping(null));
-
-                        assertNotNull(exception.getMessage());
+                        assertThrowsBadRequest(ErrorMessages.ShippingErrorMessages.NullRequest,
+                                () -> shippingService.calculateShipping(null));
                 }
 
                 @Test
@@ -122,10 +120,8 @@ class ShippingServiceTest {
                 void calculateShipping_NullDeliveryPostcode_ThrowsBadRequestException() {
                         testShippingRequest.setDeliveryPostcode(null);
 
-                        BadRequestException exception = assertThrows(BadRequestException.class,
-                                        () -> shippingService.calculateShipping(testShippingRequest));
-
-                        assertNotNull(exception.getMessage());
+                        assertThrowsBadRequest(ErrorMessages.ShippingErrorMessages.InvalidDeliveryPostcode,
+                                () -> shippingService.calculateShipping(testShippingRequest));
                 }
 
                 @Test
@@ -133,10 +129,8 @@ class ShippingServiceTest {
                 void calculateShipping_EmptyDeliveryPostcode_ThrowsBadRequestException() {
                         testShippingRequest.setDeliveryPostcode("");
 
-                        BadRequestException exception = assertThrows(BadRequestException.class,
-                                        () -> shippingService.calculateShipping(testShippingRequest));
-
-                        assertNotNull(exception.getMessage());
+                        assertThrowsBadRequest(ErrorMessages.ShippingErrorMessages.InvalidDeliveryPostcode,
+                                () -> shippingService.calculateShipping(testShippingRequest));
                 }
 
                 @Test
@@ -144,10 +138,8 @@ class ShippingServiceTest {
                 void calculateShipping_NullPickupLocations_ThrowsBadRequestException() {
                         testShippingRequest.setPickupLocations(null);
 
-                        BadRequestException exception = assertThrows(BadRequestException.class,
-                                        () -> shippingService.calculateShipping(testShippingRequest));
-
-                        assertNotNull(exception.getMessage());
+                        assertThrowsBadRequest(ErrorMessages.ShippingErrorMessages.InvalidPickupLocations,
+                                () -> shippingService.calculateShipping(testShippingRequest));
                 }
 
                 @Test
@@ -155,10 +147,8 @@ class ShippingServiceTest {
                 void calculateShipping_EmptyPickupLocations_ThrowsBadRequestException() {
                         testShippingRequest.setPickupLocations(Collections.emptyList());
 
-                        BadRequestException exception = assertThrows(BadRequestException.class,
-                                        () -> shippingService.calculateShipping(testShippingRequest));
-
-                        assertNotNull(exception.getMessage());
+                        assertThrowsBadRequest(ErrorMessages.ShippingErrorMessages.InvalidPickupLocations,
+                                () -> shippingService.calculateShipping(testShippingRequest));
                 }
 
                 @Test
@@ -181,10 +171,8 @@ class ShippingServiceTest {
                 void calculateShipping_InvalidPickupLocationWeight_ThrowsBadRequestException() {
                         testShippingRequest.getPickupLocations().get(0).setTotalWeightKgs(null);
 
-                        BadRequestException exception = assertThrows(BadRequestException.class,
-                                        () -> shippingService.calculateShipping(testShippingRequest));
-
-                        assertNotNull(exception.getMessage());
+                        assertThrowsBadRequest(ErrorMessages.ShippingErrorMessages.InvalidWeight,
+                                () -> shippingService.calculateShipping(testShippingRequest));
                 }
 
                 @Test
@@ -192,10 +180,8 @@ class ShippingServiceTest {
                 void calculateShipping_NegativeWeight_ThrowsBadRequestException() {
                         testShippingRequest.getPickupLocations().get(0).setTotalWeightKgs(new BigDecimal("-1.00"));
 
-                        BadRequestException exception = assertThrows(BadRequestException.class,
-                                        () -> shippingService.calculateShipping(testShippingRequest));
-
-                        assertNotNull(exception.getMessage());
+                        assertThrowsBadRequest(ErrorMessages.ShippingErrorMessages.InvalidWeight,
+                                () -> shippingService.calculateShipping(testShippingRequest));
                 }
         }
 

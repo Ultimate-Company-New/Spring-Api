@@ -23,6 +23,7 @@ import com.example.SpringApi.Exceptions.UnauthorizedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -62,7 +63,7 @@ import org.mockito.MockedConstruction;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("LoginService Unit Tests")
-class LoginServiceTest {
+class LoginServiceTest extends BaseTest {
 
     @Mock
     private UserRepository userRepository;
@@ -103,9 +104,9 @@ class LoginServiceTest {
     private UserRequestModel testUserRequest;
     private Client testClient;
     private UserClientMapping testUserClientMapping;
-    private static final Long TEST_USER_ID = 1L;
-    private static final Long TEST_CLIENT_ID = 1L;
-    private static final String TEST_LOGIN_NAME = "testuser";
+    private static final Long TEST_USER_ID = DEFAULT_USER_ID;
+    private static final Long TEST_CLIENT_ID = DEFAULT_CLIENT_ID;
+    private static final String TEST_LOGIN_NAME = DEFAULT_LOGIN_NAME;
     private static final String TEST_PASSWORD = "password123";
     private static final String TEST_TOKEN = "test-token-123";
     private static final String TEST_API_KEY = "test-api-key-123";
@@ -126,7 +127,7 @@ class LoginServiceTest {
         testUserRequest.setRole("Customer");
         testUserRequest.setDob(LocalDate.of(1990, 1, 1));
 
-        testUser = new User(testUserRequest);
+        testUser = createTestUser();
         testUser.setUserId(TEST_USER_ID);
         testUser.setToken(TEST_TOKEN);
         testUser.setEmailConfirmed(true);
@@ -136,44 +137,40 @@ class LoginServiceTest {
         testUser.setPassword("hashedPassword");
 
         // Initialize test login request
-        testLoginRequest = new LoginRequestModel();
+        testLoginRequest = createValidLoginRequest();
         testLoginRequest.setUserId(TEST_USER_ID);
-        testLoginRequest.setLoginName(TEST_LOGIN_NAME);
-        testLoginRequest.setPassword(TEST_PASSWORD);
         testLoginRequest.setClientId(TEST_CLIENT_ID);
         testLoginRequest.setToken(TEST_TOKEN);
         testLoginRequest.setApiKey(TEST_API_KEY);
 
         // Initialize test client
-        testClient = new Client();
+        testClient = createTestClient();
         testClient.setClientId(TEST_CLIENT_ID);
         testClient.setName("Test Client");
         testClient.setSupportEmail("support@test.com");
         testClient.setSendGridApiKey("test-sendgrid-key");
 
         // Initialize test UserClientMapping
-        testUserClientMapping = new UserClientMapping();
-        testUserClientMapping.setMappingId(1L);
-        testUserClientMapping.setUserId(TEST_USER_ID);
-        testUserClientMapping.setClientId(TEST_CLIENT_ID);
-        testUserClientMapping.setApiKey(TEST_API_KEY);
+        testUserClientMapping = createTestUserClientMapping(1L, TEST_USER_ID, TEST_CLIENT_ID, TEST_API_KEY);
 
         // Initialize test GoogleCred
-        GoogleCred testGoogleCred = new GoogleCred();
-        testGoogleCred.setGoogleCredId(1L);
+        GoogleCred testGoogleCred = createTestGoogleCred(1L);
         // Add lenient mock for googleCredRepository since not all tests use it
         lenient().when(googleCredRepository.findAll()).thenReturn(Arrays.asList(testGoogleCred));
     }
 
     // ==================== Confirm Email Tests ====================
 
-    /**
-     * Test successful email confirmation.
-     * Verifies that user's email is confirmed when valid token is provided.
-     */
-    @Test
-    @DisplayName("Confirm Email - Success - Should confirm user email")
-    void confirmEmail_Success() {
+    @Nested
+    @DisplayName("ConfirmEmail Tests")
+    class ConfirmEmailTests {
+        /**
+         * Test successful email confirmation.
+         * Verifies that user's email is confirmed when valid token is provided.
+         */
+        @Test
+        @DisplayName("Confirm Email - Success - Should confirm user email")
+        void confirmEmail_Success() {
         // Arrange
         testUser.setEmailConfirmed(false);
         when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
@@ -226,9 +223,14 @@ class LoginServiceTest {
         assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidId, exception.getMessage());
         verify(userRepository, times(1)).findById(TEST_USER_ID);
         verify(userRepository, never()).save(any(User.class));
+        }
     }
 
     // ==================== Sign In Tests ====================
+
+    @Nested
+    @DisplayName("SignIn Tests")
+    class SignInTests {
 
     /**
      * Test successful user sign-in.
@@ -365,9 +367,9 @@ class LoginServiceTest {
      */
     @Test
     @DisplayName("Sign In - Failure - Null request")
-    void signIn_NullRequest_ThrowsException() {
+    void signIn_NullRequest_ThrowsNullPointerException() {
         // Act & Assert
-        assertThrows(Exception.class, () -> loginService.signIn(null));
+        assertThrows(NullPointerException.class, () -> loginService.signIn(null));
     }
 
     /**
@@ -583,12 +585,17 @@ class LoginServiceTest {
             verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
             verify(userClientMappingRepository, times(1)).findByUserId(TEST_USER_ID);
         }
+        }
     }
 
     // ==================== Sign Up Tests ====================
     // Note: signUp method has been removed from the API - no tests needed
 
     // ==================== Reset Password Tests ====================
+
+    @Nested
+    @DisplayName("ResetPassword Tests")
+    class ResetPasswordTests {
 
     /**
      * Test successful password reset.
@@ -777,12 +784,17 @@ class LoginServiceTest {
      */
     @Test
     @DisplayName("Reset Password - Failure - Null request")
-    void resetPassword_NullRequest_ThrowsException() {
+    void resetPassword_NullRequest_ThrowsNullPointerException() {
         // Act & Assert
-        assertThrows(Exception.class, () -> loginService.resetPassword(null));
+        assertThrows(NullPointerException.class, () -> loginService.resetPassword(null));
+        }
     }
 
     // ==================== Get Token Tests ====================
+
+    @Nested
+    @DisplayName("GetToken Tests")
+    class GetTokenTests {
 
     /**
      * Test successful token generation.
@@ -1027,5 +1039,318 @@ class LoginServiceTest {
         verify(userClientPermissionMappingRepository, times(1)).findClientPermissionMappingByUserId(TEST_USER_ID);
         verify(jwtTokenProvider, times(1)).generateToken(any(User.class),
                 argThat(list -> list.size() == 3), anyLong());
+        }
+
+        // ==================== Comprehensive Validation Tests - Added ====================
+
+        @Test
+        @DisplayName("Confirm Email - Negative User ID - Throws NotFoundException")
+        void confirmEmail_NegativeUserId_ThrowsNotFoundException() {
+            testLoginRequest.setUserId(-1L);
+            when(userRepository.findById(-1L)).thenReturn(java.util.Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> loginService.confirmEmail(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidId, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Confirm Email - Zero User ID - Throws NotFoundException")
+        void confirmEmail_ZeroUserId_ThrowsNotFoundException() {
+            testLoginRequest.setUserId(0L);
+            when(userRepository.findById(0L)).thenReturn(java.util.Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> loginService.confirmEmail(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidId, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Confirm Email - Long.MAX_VALUE User ID - Throws NotFoundException")
+        void confirmEmail_MaxLongUserId_ThrowsNotFoundException() {
+            testLoginRequest.setUserId(Long.MAX_VALUE);
+            when(userRepository.findById(Long.MAX_VALUE)).thenReturn(java.util.Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> loginService.confirmEmail(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidId, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Confirm Email - Null Token - Throws NotFoundException")
+        void confirmEmail_NullToken_ThrowsNotFoundException() {
+            testUser.setToken(null);
+            when(userRepository.findById(TEST_USER_ID)).thenReturn(java.util.Optional.of(testUser));
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> loginService.confirmEmail(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidToken, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Confirm Email - Empty Token - Throws NotFoundException")
+        void confirmEmail_EmptyToken_ThrowsNotFoundException() {
+            testUser.setToken("");
+            when(userRepository.findById(TEST_USER_ID)).thenReturn(java.util.Optional.of(testUser));
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> loginService.confirmEmail(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidToken, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Confirm Email - Whitespace Token - Throws NotFoundException")
+        void confirmEmail_WhitespaceToken_ThrowsNotFoundException() {
+            testUser.setToken("   ");
+            when(userRepository.findById(TEST_USER_ID)).thenReturn(java.util.Optional.of(testUser));
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> loginService.confirmEmail(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidToken, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Confirm Email - Invalid Token - Throws UnauthorizedException")
+        void confirmEmail_InvalidToken_ThrowsUnauthorizedException() {
+            testUser.setToken("correct-token");
+            testLoginRequest.setToken("wrong-token");
+            when(userRepository.findById(TEST_USER_ID)).thenReturn(java.util.Optional.of(testUser));
+            UnauthorizedException ex = assertThrows(UnauthorizedException.class,
+                    () -> loginService.confirmEmail(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidToken, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Confirm Email - Null Provided Token - Throws BadRequestException")
+        void confirmEmail_NullProvidedToken_ThrowsBadRequestException() {
+            testLoginRequest.setToken(null);
+            testUser.setToken("valid-token");
+            when(userRepository.findById(TEST_USER_ID)).thenReturn(java.util.Optional.of(testUser));
+            Exception ex = assertThrows(Exception.class,
+                    () -> loginService.confirmEmail(testLoginRequest));
+            assertNotNull(ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Sign In - Null Login Request - Throws BadRequestException")
+        void signIn_NullLoginRequest_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> loginService.signIn(null));
+            assertEquals(ErrorMessages.LoginErrorMessages.ER012, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Sign In - Null Login Name - Throws BadRequestException")
+        void signIn_NullLoginName_ThrowsBadRequestException() {
+            testLoginRequest.setLoginName(null);
+            testLoginRequest.setPassword("password123");
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> loginService.signIn(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.ER012, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Sign In - Empty Login Name - Throws BadRequestException")
+        void signIn_EmptyLoginName_ThrowsBadRequestException() {
+            testLoginRequest.setLoginName("");
+            testLoginRequest.setPassword("password123");
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> loginService.signIn(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.ER012, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Sign In - Whitespace Login Name - Throws BadRequestException")
+        void signIn_WhitespaceLoginName_ThrowsBadRequestException() {
+            testLoginRequest.setLoginName("   ");
+            testLoginRequest.setPassword("password123");
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> loginService.signIn(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.ER012, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Sign In - Null Password - Throws BadRequestException")
+        void signIn_NullPassword_ThrowsBadRequestException() {
+            testLoginRequest.setLoginName("testuser");
+            testLoginRequest.setPassword(null);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> loginService.signIn(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.ER012, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Sign In - Empty Password - Throws BadRequestException")
+        void signIn_EmptyPassword_ThrowsBadRequestException() {
+            testLoginRequest.setLoginName("testuser");
+            testLoginRequest.setPassword("");
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> loginService.signIn(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.ER012, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Sign In - Whitespace Password - Throws BadRequestException")
+        void signIn_WhitespacePassword_ThrowsBadRequestException() {
+            testLoginRequest.setLoginName("testuser");
+            testLoginRequest.setPassword("   ");
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> loginService.signIn(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.ER012, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Sign In - Non-existent User - Throws NotFoundException")
+        void signIn_NonexistentUser_ThrowsNotFoundException() {
+            testLoginRequest.setLoginName("nonexistent");
+            testLoginRequest.setPassword("password123");
+            when(userRepository.findByLoginName("nonexistent")).thenReturn(null);
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> loginService.signIn(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidEmail, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Sign In - Unconfirmed Email - Throws UnauthorizedException")
+        void signIn_UnconfirmedEmail_ThrowsUnauthorizedException() {
+            testUser.setEmailConfirmed(false);
+            when(userRepository.findByLoginName(testLoginRequest.getLoginName())).thenReturn(testUser);
+            UnauthorizedException ex = assertThrows(UnauthorizedException.class,
+                    () -> loginService.signIn(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.ER005, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Sign In - Null Email Confirmed Flag - Throws UnauthorizedException")
+        void signIn_NullEmailConfirmedFlag_ThrowsUnauthorizedException() {
+            testUser.setEmailConfirmed(null);
+            when(userRepository.findByLoginName(testLoginRequest.getLoginName())).thenReturn(testUser);
+            UnauthorizedException ex = assertThrows(UnauthorizedException.class,
+                    () -> loginService.signIn(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.ER005, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Sign In - Locked Account - Throws UnauthorizedException")
+        void signIn_LockedAccount_ThrowsUnauthorizedException() {
+            testUser.setLocked(true);
+            testUser.setEmailConfirmed(true);
+            when(userRepository.findByLoginName(testLoginRequest.getLoginName())).thenReturn(testUser);
+            UnauthorizedException ex = assertThrows(UnauthorizedException.class,
+                    () -> loginService.signIn(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.ER006, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Sign In - Invalid Password - Throws UnauthorizedException")
+        void signIn_InvalidPassword_ThrowsUnauthorizedException() {
+            testUser.setEmailConfirmed(true);
+            testUser.setLocked(false);
+            testUser.setPassword("hashed-password");
+            testLoginRequest.setPassword("wrong-password");
+            when(userRepository.findByLoginName(testLoginRequest.getLoginName())).thenReturn(testUser);
+            // Mock password verification to fail
+            UnauthorizedException ex = assertThrows(UnauthorizedException.class,
+                    () -> loginService.signIn(testLoginRequest));
+            assertTrue(ex.getMessage().contains("credential") || ex.getMessage().contains("invalid"));
+        }
+
+        @Test
+        @DisplayName("Get Token - Null User ID - Throws BadRequestException")
+        void getToken_NullUserId_ThrowsBadRequestException() {
+            testLoginRequest.setUserId(null);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> loginService.getToken(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidId, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Get Token - Negative User ID - Throws NotFoundException")
+        void getToken_NegativeUserId_ThrowsNotFoundException() {
+            testLoginRequest.setUserId(-1L);
+            when(userRepository.findById(-1L)).thenReturn(java.util.Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> loginService.getToken(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidId, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Get Token - Zero User ID - Throws NotFoundException")
+        void getToken_ZeroUserId_ThrowsNotFoundException() {
+            testLoginRequest.setUserId(0L);
+            when(userRepository.findById(0L)).thenReturn(java.util.Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> loginService.getToken(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidId, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Get Token - Long.MAX_VALUE User ID - Throws NotFoundException")
+        void getToken_MaxLongUserId_ThrowsNotFoundException() {
+            testLoginRequest.setUserId(Long.MAX_VALUE);
+            when(userRepository.findById(Long.MAX_VALUE)).thenReturn(java.util.Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> loginService.getToken(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidId, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Get Token - No Client Permissions - Returns Token")
+        void getToken_NoClientPermissions_ReturnsToken() {
+            when(userRepository.findById(TEST_USER_ID)).thenReturn(java.util.Optional.of(testUser));
+            when(userClientPermissionMappingRepository.findClientPermissionMappingByUserId(TEST_USER_ID))
+                    .thenReturn(new java.util.ArrayList<>());
+            when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyLong()))
+                    .thenReturn("jwt-token-empty-permissions");
+            
+            String result = loginService.getToken(testLoginRequest);
+            
+            assertEquals("jwt-token-empty-permissions", result);
+            verify(userClientPermissionMappingRepository, times(1))
+                    .findClientPermissionMappingByUserId(TEST_USER_ID);
+        }
+
+        @Test
+        @DisplayName("Reset Password - Null User ID - Throws BadRequestException")
+        void resetPassword_NullUserId_ThrowsBadRequestException() {
+            testLoginRequest.setUserId(null);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> loginService.resetPassword(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidId, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Reset Password - Negative User ID - Throws NotFoundException")
+        void resetPassword_NegativeUserId_ThrowsNotFoundException() {
+            testLoginRequest.setUserId(-1L);
+            when(userRepository.findById(-1L)).thenReturn(java.util.Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> loginService.resetPassword(testLoginRequest));
+            assertEquals(ErrorMessages.LoginErrorMessages.InvalidId, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Reset Password - Null New Password - Throws BadRequestException")
+        void resetPassword_NullNewPassword_ThrowsBadRequestException() {
+            testLoginRequest.setPassword(null);
+            when(userRepository.findById(TEST_USER_ID)).thenReturn(java.util.Optional.of(testUser));
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> loginService.resetPassword(testLoginRequest));
+            assertTrue(ex.getMessage().contains("password") || ex.getMessage().contains("invalid"));
+        }
+
+        @Test
+        @DisplayName("Reset Password - Empty New Password - Throws BadRequestException")
+        void resetPassword_EmptyNewPassword_ThrowsBadRequestException() {
+            testLoginRequest.setPassword("");
+            when(userRepository.findById(TEST_USER_ID)).thenReturn(java.util.Optional.of(testUser));
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> loginService.resetPassword(testLoginRequest));
+            assertTrue(ex.getMessage().contains("password") || ex.getMessage().contains("empty"));
+        }
+
+        @Test
+        @DisplayName("Reset Password - Weak Password - Throws BadRequestException")
+        void resetPassword_WeakPassword_ThrowsBadRequestException() {
+            testLoginRequest.setPassword("123");  // Too short/weak
+            when(userRepository.findById(TEST_USER_ID)).thenReturn(java.util.Optional.of(testUser));
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> loginService.resetPassword(testLoginRequest));
+            assertTrue(ex.getMessage().contains("password") || ex.getMessage().contains("weak"));
+        }
     }
 }

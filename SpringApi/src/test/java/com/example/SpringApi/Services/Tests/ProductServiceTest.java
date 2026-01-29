@@ -3,6 +3,7 @@ package com.example.SpringApi.Services.Tests;
 import com.example.SpringApi.FilterQueryBuilder.ProductFilterQueryBuilder;
 import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
 import com.example.SpringApi.Models.RequestModels.ProductRequestModel;
 import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
@@ -21,6 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -35,6 +37,9 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -61,7 +66,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ProductService Unit Tests")
-class ProductServiceTest {
+class ProductServiceTest extends BaseTest {
 
     @Mock
     private ProductRepository productRepository;
@@ -108,11 +113,11 @@ class ProductServiceTest {
     private ClientResponseModel testClientResponse;
     private PickupLocation testPickupLocation;
 
-    private static final Long TEST_PRODUCT_ID = 1L;
+    private static final Long TEST_PRODUCT_ID = DEFAULT_PRODUCT_ID;
     private static final Long TEST_CATEGORY_ID = 2L;
-    private static final Long TEST_CLIENT_ID = 1L;
-    private static final Long TEST_PICKUP_LOCATION_ID = 3L;
-    private static final Long TEST_GOOGLE_CRED_ID = 1L;
+    private static final Long TEST_CLIENT_ID = DEFAULT_CLIENT_ID;
+    private static final Long TEST_PICKUP_LOCATION_ID = DEFAULT_PICKUP_LOCATION_ID;
+    private static final Long TEST_GOOGLE_CRED_ID = DEFAULT_GOOGLE_CRED_ID;
     private static final String TEST_TITLE = "Test Product";
     private static final String TEST_DESCRIPTION = "Test Description";
     private static final String TEST_BRAND = "Test Brand";
@@ -121,7 +126,7 @@ class ProductServiceTest {
     private static final String TEST_COUNTRY = "USA";
     private static final String TEST_UPC = "123456789012";
     private static final BigDecimal TEST_PRICE = new BigDecimal("99.99");
-    private static final String CREATED_USER = "admin";
+    private static final String CREATED_USER = DEFAULT_CREATED_USER;
     private static final String TEST_CLIENT_NAME = "Test Client";
     private static final String TEST_BASE64_IMAGE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
     private static final String TEST_URL_IMAGE = "https://example.com/image.png";
@@ -196,9 +201,13 @@ class ProductServiceTest {
 
     // ==================== addProduct Tests ====================
 
-    @Test
-    @DisplayName("addProduct - Success: Valid product with all required images")
-    void testAddProduct_Success() {
+    @Nested
+    @DisplayName("AddProduct Tests")
+    class AddProductTests {
+
+        @Test
+        @DisplayName("Add Product - Success: Valid product with all required images")
+        void addProduct_Success() {
         // Arrange
         try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
                 (mock, context) -> {
@@ -220,116 +229,115 @@ class ProductServiceTest {
         }
     }
 
-    @Test
-    @DisplayName("addProduct - Failure: Null category ID")
-    void testAddProduct_NullCategoryId() {
-        // Arrange
-        testProductRequest.setCategoryId(null);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> productService.addProduct(testProductRequest));
-
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidCategoryId, exception.getMessage());
-        verify(productCategoryRepository, never()).findById(any());
-        verify(productRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("addProduct - Failure: Category not found")
-    void testAddProduct_CategoryNotFound() {
-        // Arrange
-        when(productCategoryRepository.findById(TEST_CATEGORY_ID)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> productService.addProduct(testProductRequest));
-
-        assertEquals(String.format(ErrorMessages.ProductErrorMessages.ER008, TEST_CATEGORY_ID), exception.getMessage());
-        verify(productRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("addProduct - Failure: Missing required image")
-    void testAddProduct_MissingRequiredImage() {
-        // Arrange
-        testProductRequest.setMainImage(null);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> productService.addProduct(testProductRequest));
-
-        assertEquals(String.format(ErrorMessages.ProductErrorMessages.ER009, "main"), exception.getMessage());
-        verify(productRepository, times(1)).save(any());
-    }
-
-    @Test
-    @DisplayName("addProduct - Failure: ImgBB upload fails")
-    void testAddProduct_FirebaseUploadFails() {
-        // Arrange
-        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
-                (mock, context) -> {
-                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(null); // Simulate upload failure
-                    when(mock.deleteImage(anyString())).thenReturn(true);
-                })) {
+        @Test
+        @DisplayName("Add Product - Failure: Null category ID")
+        void addProduct_NullCategoryId_ThrowsBadRequestException() {
+            // Arrange
+            testProductRequest.setCategoryId(null);
 
             // Act & Assert
-            BadRequestException exception = assertThrows(BadRequestException.class,
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidCategoryId,
                     () -> productService.addProduct(testProductRequest));
-
-            assertTrue(exception.getMessage().contains("Failed to upload") && exception.getMessage().contains("image"));
-            verify(productRepository, times(1)).save(any()); // Product is saved first
+            verify(productCategoryRepository, never()).findById(any());
+            verify(productRepository, never()).save(any());
         }
-    }
 
-    @Test
-    @DisplayName("addProduct - Success: With valid request and ImgBB upload")
-    void testAddProduct_GoogleCredNotFound() {
-        // Arrange - This test now validates successful ImgBB upload flow
-        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
-                (mock, context) -> {
-                    ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
-                            "https://i.ibb.co/test/image.png",
-                            "test-delete-hash");
-                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
-                    when(mock.deleteImage(anyString())).thenReturn(true);
-                })) {
+        @Test
+        @DisplayName("Add Product - Failure: Category not found")
+        void addProduct_CategoryNotFound_ThrowsNotFoundException() {
+            // Arrange
+            when(productCategoryRepository.findById(TEST_CATEGORY_ID)).thenReturn(Optional.empty());
 
             // Act & Assert
-            assertDoesNotThrow(() -> productService.addProduct(testProductRequest));
-            verify(productRepository, atLeastOnce()).save(any());
-        }
-    }
-
-    @Test
-    @DisplayName("addProduct - Failure: URL image conversion fails (network error)")
-    void testAddProduct_UrlImageConversion() {
-        // Arrange
-        testProductRequest.setMainImage(TEST_URL_IMAGE);
-
-        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
-                (mock, context) -> {
-                    ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
-                            "https://i.ibb.co/test/image.png",
-                            "test-delete-hash");
-                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
-                    when(mock.deleteImage(anyString())).thenReturn(true);
-                })) {
-
-            // Act & Assert - URL conversion should fail in unit test due to network access
-            BadRequestException exception = assertThrows(BadRequestException.class,
+            assertThrowsNotFound(String.format(ErrorMessages.ProductErrorMessages.ER008, TEST_CATEGORY_ID),
                     () -> productService.addProduct(testProductRequest));
+            verify(productRepository, never()).save(any());
+        }
 
-            assertTrue(exception.getMessage().contains("Failed to process image from URL"));
-            verify(productRepository, times(1)).save(any(Product.class));
+        @Test
+        @DisplayName("Add Product - Failure: Missing required image")
+        void addProduct_MissingRequiredImage_ThrowsBadRequestException() {
+            // Arrange
+            testProductRequest.setMainImage(null);
+
+            // Act & Assert
+            assertThrowsBadRequest(String.format(ErrorMessages.ProductErrorMessages.ER009, "main"),
+                    () -> productService.addProduct(testProductRequest));
+            verify(productRepository, times(1)).save(any());
+        }
+
+        @Test
+        @DisplayName("Add Product - Failure: ImgBB upload fails")
+        void addProduct_ImgbbUploadFails_ThrowsBadRequestException() {
+            // Arrange
+            try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+                    (mock, context) -> {
+                        when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(null); // Simulate upload failure
+                        when(mock.deleteImage(anyString())).thenReturn(true);
+                    })) {
+
+                // Act & Assert
+                BadRequestException exception = assertThrows(BadRequestException.class,
+                        () -> productService.addProduct(testProductRequest));
+
+                assertTrue(exception.getMessage().contains("Failed to upload") && exception.getMessage().contains("image"));
+                verify(productRepository, times(1)).save(any()); // Product is saved first
+            }
+        }
+
+        @Test
+        @DisplayName("Add Product - Success: With valid request and ImgBB upload")
+        void addProduct_ValidRequestWithImgbbUpload_Success() {
+            // Arrange - This test now validates successful ImgBB upload flow
+            try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+                    (mock, context) -> {
+                        ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                                "https://i.ibb.co/test/image.png",
+                                "test-delete-hash");
+                        when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                        when(mock.deleteImage(anyString())).thenReturn(true);
+                    })) {
+
+                // Act & Assert
+                assertDoesNotThrow(() -> productService.addProduct(testProductRequest));
+                verify(productRepository, atLeastOnce()).save(any());
+            }
+        }
+
+        @Test
+        @DisplayName("Add Product - Failure: URL image conversion fails (network error)")
+        void addProduct_UrlImageConversionFails_ThrowsBadRequestException() {
+            // Arrange
+            testProductRequest.setMainImage(TEST_URL_IMAGE);
+
+            try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+                    (mock, context) -> {
+                        ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                                "https://i.ibb.co/test/image.png",
+                                "test-delete-hash");
+                        when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                        when(mock.deleteImage(anyString())).thenReturn(true);
+                    })) {
+
+                // Act & Assert - URL conversion should fail in unit test due to network access
+                BadRequestException exception = assertThrows(BadRequestException.class,
+                        () -> productService.addProduct(testProductRequest));
+
+                assertTrue(exception.getMessage().contains("Failed to process image from URL"));
+                verify(productRepository, times(1)).save(any(Product.class));
+            }
         }
     }
 
     // ==================== editProduct Tests ====================
 
-    @Test
-    @DisplayName("editProduct - Success: Valid product update")
-    void testEditProduct_Success() {
+    @Nested
+    @DisplayName("EditProduct Tests")
+    class EditProductTests {
+
+        @Test
+        @DisplayName("Edit Product - Success: Valid product update")
+        void editProduct_Success() {
         // Arrange
         when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(testProduct);
 
@@ -351,39 +359,40 @@ class ProductServiceTest {
         }
     }
 
-    @Test
-    @DisplayName("editProduct - Failure: Null product ID")
-    void testEditProduct_NullProductId() {
-        // Arrange
-        testProductRequest.setProductId(null);
+        @Test
+        @DisplayName("Edit Product - Failure: Null product ID")
+        void editProduct_NullProductId_ThrowsBadRequestException() {
+            // Arrange
+            testProductRequest.setProductId(null);
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> productService.editProduct(testProductRequest));
+            // Act & Assert
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidId,
+                    () -> productService.editProduct(testProductRequest));
+            verify(productRepository, never()).findByIdWithRelatedEntities(anyLong(), anyLong());
+        }
 
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidId, exception.getMessage());
-        verify(productRepository, never()).findByIdWithRelatedEntities(anyLong(), anyLong());
-    }
+        @Test
+        @DisplayName("Edit Product - Failure: Product not found")
+        void editProduct_ProductNotFound_ThrowsNotFoundException() {
+            // Arrange
+            lenient().when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(null);
 
-    @Test
-    @DisplayName("editProduct - Failure: Product not found")
-    void testEditProduct_ProductNotFound() {
-        // Arrange
-        lenient().when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(null);
-
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> productService.editProduct(testProductRequest));
-
-        assertEquals(String.format(ErrorMessages.ProductErrorMessages.ER013, TEST_PRODUCT_ID), exception.getMessage());
-        verify(productRepository, never()).save(any());
+            // Act & Assert
+            assertThrowsNotFound(String.format(ErrorMessages.ProductErrorMessages.ER013, TEST_PRODUCT_ID),
+                    () -> productService.editProduct(testProductRequest));
+            verify(productRepository, never()).save(any());
+        }
     }
 
     // ==================== toggleDeleteProduct Tests ====================
 
-    @Test
-    @DisplayName("toggleDeleteProduct - Success: Toggle from false to true")
-    void testToggleDeleteProduct_Success() {
+    @Nested
+    @DisplayName("ToggleDeleteProduct Tests")
+    class ToggleDeleteProductTests {
+
+        @Test
+        @DisplayName("Toggle Delete Product - Success: Toggle from false to true")
+        void toggleDeleteProduct_Success() {
         // Arrange
         testProduct.setIsDeleted(false);
         when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(testProduct);
@@ -398,39 +407,42 @@ class ProductServiceTest {
         assertTrue(testProduct.getIsDeleted());
     }
 
-    @Test
-    @DisplayName("toggleDeleteProduct - Success: Toggle from true to false")
-    void testToggleDeleteProduct_Success_Undelete() {
-        // Arrange
-        testProduct.setIsDeleted(true);
-        when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(testProduct);
+        @Test
+        @DisplayName("Toggle Delete Product - Success: Toggle from true to false")
+        void toggleDeleteProduct_Undelete_Success() {
+            // Arrange
+            testProduct.setIsDeleted(true);
+            when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(testProduct);
 
-        // Act
-        assertDoesNotThrow(() -> productService.toggleDeleteProduct(TEST_PRODUCT_ID));
+            // Act
+            assertDoesNotThrow(() -> productService.toggleDeleteProduct(TEST_PRODUCT_ID));
 
-        // Assert
-        assertFalse(testProduct.getIsDeleted());
-    }
+            // Assert
+            assertFalse(testProduct.getIsDeleted());
+        }
 
-    @Test
-    @DisplayName("toggleDeleteProduct - Failure: Product not found")
-    void testToggleDeleteProduct_ProductNotFound() {
-        // Arrange
-        lenient().when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(null);
+        @Test
+        @DisplayName("Toggle Delete Product - Failure: Product not found")
+        void toggleDeleteProduct_ProductNotFound_ThrowsNotFoundException() {
+            // Arrange
+            lenient().when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(null);
 
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> productService.toggleDeleteProduct(TEST_PRODUCT_ID));
-
-        assertEquals(String.format(ErrorMessages.ProductErrorMessages.ER013, TEST_PRODUCT_ID), exception.getMessage());
-        verify(productRepository, never()).save(any());
+            // Act & Assert
+            assertThrowsNotFound(String.format(ErrorMessages.ProductErrorMessages.ER013, TEST_PRODUCT_ID),
+                    () -> productService.toggleDeleteProduct(TEST_PRODUCT_ID));
+            verify(productRepository, never()).save(any());
+        }
     }
 
     // ==================== toggleReturnProduct Tests ====================
 
-    @Test
-    @DisplayName("toggleReturnProduct - Success: Toggle returns allowed")
-    void testToggleReturnProduct_Success() {
+    @Nested
+    @DisplayName("ToggleReturnProduct Tests")
+    class ToggleReturnProductTests {
+
+        @Test
+        @DisplayName("Toggle Return Product - Success: Toggle returns allowed")
+        void toggleReturnProduct_Success() {
         // Arrange - set returnWindowDays to 30 (returns allowed)
         testProduct.setReturnWindowDays(30);
         when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(testProduct);
@@ -446,25 +458,28 @@ class ProductServiceTest {
         assertEquals(0, testProduct.getReturnWindowDays());
     }
 
-    @Test
-    @DisplayName("toggleReturnProduct - Failure: Product not found")
-    void testToggleReturnProduct_ProductNotFound() {
-        // Arrange
-        lenient().when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(null);
+        @Test
+        @DisplayName("Toggle Return Product - Failure: Product not found")
+        void toggleReturnProduct_ProductNotFound_ThrowsNotFoundException() {
+            // Arrange
+            lenient().when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(null);
 
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> productService.toggleReturnProduct(TEST_PRODUCT_ID));
-
-        assertEquals(String.format(ErrorMessages.ProductErrorMessages.ER013, TEST_PRODUCT_ID), exception.getMessage());
-        verify(productRepository, never()).save(any());
+            // Act & Assert
+            assertThrowsNotFound(String.format(ErrorMessages.ProductErrorMessages.ER013, TEST_PRODUCT_ID),
+                    () -> productService.toggleReturnProduct(TEST_PRODUCT_ID));
+            verify(productRepository, never()).save(any());
+        }
     }
 
     // ==================== getProductDetailsById Tests ====================
 
-    @Test
-    @DisplayName("getProductDetailsById - Success: Product found with related entities")
-    void testGetProductDetailsById_Success() {
+    @Nested
+    @DisplayName("GetProductDetailsById Tests")
+    class GetProductDetailsByIdTests {
+
+        @Test
+        @DisplayName("Get Product Details By ID - Success: Product found with related entities")
+        void getProductDetailsById_Success() {
         // Arrange
         when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(testProduct);
 
@@ -480,399 +495,277 @@ class ProductServiceTest {
         verify(productRepository, times(1)).findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID);
     }
 
-    @Test
-    @DisplayName("getProductDetailsById - Failure: Product not found")
-    void testGetProductDetailsById_ProductNotFound() {
-        // Arrange
-        when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(null);
+        @Test
+        @DisplayName("Get Product Details By ID - Failure: Product not found")
+        void getProductDetailsById_ProductNotFound_ThrowsNotFoundException() {
+            // Arrange
+            when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID)).thenReturn(null);
 
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> productService.getProductDetailsById(TEST_PRODUCT_ID));
-
-        assertEquals(String.format(ErrorMessages.ProductErrorMessages.ER013, TEST_PRODUCT_ID), exception.getMessage());
+            // Act & Assert
+            assertThrowsNotFound(String.format(ErrorMessages.ProductErrorMessages.ER013, TEST_PRODUCT_ID),
+                    () -> productService.getProductDetailsById(TEST_PRODUCT_ID));
+        }
     }
 
     // ==================== getProductInBatches Tests ====================
 
-    @Test
-    @DisplayName("getProductInBatches - Success: Valid pagination request")
-    void testGetProductInBatches_Success() {
-        // Arrange
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
-        paginationRequest.setIncludeDeleted(false);
+    @Nested
+    @DisplayName("GetProductInBatches Tests")
+    class GetProductInBatchesTests {
 
-        List<Product> productList = Arrays.asList(testProduct);
-        Page<Product> productPage = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
+        /**
+         * Single comprehensive unit test for getProductInBatches.
+         * Covers: (1) invalid pagination → BadRequestException with message,
+         * (2) success without filters, (3) triple-loop validation over all valid
+         * column×operator×type combinations plus invalid column/operator/value combinations.
+         */
+        @Test
+        @DisplayName("Get Products In Batches - Invalid pagination, success no filters, and triple-loop filter validation")
+        void getProductInBatches_SingleComprehensiveTest() {
+            // ---- (1) Invalid pagination: end <= start ----
+            PaginationBaseRequestModel invalidRequest = createValidPaginationRequest();
+            invalidRequest.setStart(10);
+            invalidRequest.setEnd(5);
+            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                    () -> productService.getProductInBatches(invalidRequest));
 
-        when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(productPage);
+            // ---- (2) Success: simple retrieval without filters ----
+            PaginationBaseRequestModel successRequest = createValidPaginationRequest();
+            successRequest.setStart(0);
+            successRequest.setEnd(10);
+            successRequest.setFilters(null);
+            List<Product> productList = Collections.singletonList(testProduct);
+            Page<Product> productPage = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
+            when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                    anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)))
+                    .thenReturn(productPage);
+            PaginationBaseResponseModel<ProductResponseModel> result = productService.getProductInBatches(successRequest);
+            assertNotNull(result);
+            assertEquals(1, result.getData().size());
+            assertEquals(testProduct.getProductId(), result.getData().get(0).getProductId());
 
-        // Act
-        PaginationBaseResponseModel<ProductResponseModel> result = productService
-                .getProductInBatches(paginationRequest);
+            // ---- (3) Triple-loop: valid columns × operators × types + invalid combinations ----
+            String[] stringColumns = PRODUCT_STRING_COLUMNS;
+            String[] numberColumns = PRODUCT_NUMBER_COLUMNS;
+            String[] booleanColumns = PRODUCT_BOOLEAN_COLUMNS;
+            String[] dateColumns = PRODUCT_DATE_COLUMNS;
+            String[] invalidColumns = BATCH_INVALID_COLUMNS;
+            String[] stringOperators = BATCH_STRING_OPERATORS;
+            String[] numberOperators = BATCH_NUMBER_OPERATORS;
+            String[] booleanOperators = BATCH_BOOLEAN_OPERATORS;
+            String[] dateOperators = BATCH_DATE_OPERATORS;
+            String[] invalidOperators = BATCH_INVALID_OPERATORS;
+            String[] validValues = BATCH_VALID_VALUES;
+            String[] emptyValues = BATCH_EMPTY_VALUES;
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        assertEquals(1L, result.getTotalDataCount());
-        assertEquals(TEST_PRODUCT_ID, result.getData().get(0).getProductId());
-    }
+            Page<Product> emptyPage = new PageImpl<>(Collections.emptyList());
+            lenient().when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                    anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)))
+                    .thenReturn(emptyPage);
+            lenient()
+                    .when(productFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(stringColumns).contains(arg))))
+                    .thenReturn("string");
+            lenient()
+                    .when(productFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(numberColumns).contains(arg))))
+                    .thenReturn("number");
+            lenient()
+                    .when(productFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(booleanColumns).contains(arg))))
+                    .thenReturn("boolean");
+            lenient()
+                    .when(productFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(dateColumns).contains(arg))))
+                    .thenReturn("date");
 
-    @Test
-    @DisplayName("getProductInBatches - Failure: Invalid column name")
-    void testGetProductInBatches_InvalidColumn() {
-        // Arrange
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
+            String[] allColumns = joinArrays(stringColumns, numberColumns, booleanColumns, dateColumns, invalidColumns);
+            String[] allOperators = joinArrays(stringOperators, numberOperators, booleanOperators, dateOperators, invalidOperators);
+            Set<String> uniqueOperators = new HashSet<>(Arrays.asList(allOperators));
+            String[] allValues = joinArrays(validValues, emptyValues);
 
-        PaginationBaseRequestModel.FilterCondition invalidFilter = new PaginationBaseRequestModel.FilterCondition();
-        invalidFilter.setColumn("invalidColumn");
-        invalidFilter.setOperator("contains");
-        invalidFilter.setValue("test");
-        paginationRequest.setFilters(Arrays.asList(invalidFilter));
-        paginationRequest.setLogicOperator("AND");
+            for (String column : allColumns) {
+                for (String operator : uniqueOperators) {
+                    for (String value : allValues) {
+                        PaginationBaseRequestModel testRequest = createValidPaginationRequest();
+                        testRequest.setStart(0);
+                        testRequest.setEnd(10);
+                        FilterCondition filter = createFilterCondition(column, operator, value);
+                        testRequest.setFilters(Collections.singletonList(filter));
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> productService.getProductInBatches(paginationRequest));
+                        boolean isColumnKnown = !Arrays.asList(invalidColumns).contains(column);
+                        boolean isValidForString = Arrays.asList(stringColumns).contains(column)
+                                && Arrays.asList(stringOperators).contains(operator);
+                        boolean isValidForNumber = Arrays.asList(numberColumns).contains(column)
+                                && Arrays.asList(numberOperators).contains(operator);
+                        boolean isValidForBoolean = Arrays.asList(booleanColumns).contains(column)
+                                && Arrays.asList(booleanOperators).contains(operator);
+                        boolean isValidForDate = Arrays.asList(dateColumns).contains(column)
+                                && Arrays.asList(dateOperators).contains(operator);
+                        boolean isOperatorValidForType = isValidForString || isValidForNumber || isValidForBoolean || isValidForDate;
 
-        assertTrue(exception.getMessage().contains("Invalid column name"));
-        verify(productFilterQueryBuilder, never()).getColumnType("invalidColumn");
-    }
+                        boolean isValueRequired = !PaginationBaseRequestModel.OP_IS_EMPTY.equals(operator)
+                                && !PaginationBaseRequestModel.OP_IS_NOT_EMPTY.equals(operator);
+                        boolean isValuePresent = value != null;
+                        boolean shouldSucceed = isColumnKnown && isOperatorValidForType && (!isValueRequired || isValuePresent);
 
-    @Test
-    @DisplayName("getProductInBatches - Success: With selected IDs")
-    void testGetProductInBatches_WithSelectedIds() {
-        // Arrange
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
-        paginationRequest.setSelectedIds(Arrays.asList(1L, 2L, 3L));
-
-        List<Product> productList = Arrays.asList(testProduct);
-        Page<Product> productPage = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
-
-        when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(productPage);
-
-        // Act
-        PaginationBaseResponseModel<ProductResponseModel> result = productService
-                .getProductInBatches(paginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-    }
-
-    @Test
-    @DisplayName("getProductInBatches - Success: With single filter")
-    void testGetProductInBatches_WithSingleFilter() {
-        // Arrange
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
-
-        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
-        filter.setColumn("title");
-        filter.setOperator("contains");
-        filter.setValue("Test");
-        paginationRequest.setFilters(Arrays.asList(filter));
-        paginationRequest.setLogicOperator("AND");
-
-        List<Product> productList = Arrays.asList(testProduct);
-        Page<Product> productPage = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
-
-        when(productFilterQueryBuilder.getColumnType("title")).thenReturn("string");
-        when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(productPage);
-
-        // Act
-        PaginationBaseResponseModel<ProductResponseModel> result = productService
-                .getProductInBatches(paginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        verify(productFilterQueryBuilder, times(1)).getColumnType("title");
-    }
-
-    @Test
-    @DisplayName("getProductInBatches - Success: With multiple filters AND")
-    void testGetProductInBatches_WithMultipleFiltersAND() {
-        // Arrange
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
-
-        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
-        filter1.setColumn("title");
-        filter1.setOperator("contains");
-        filter1.setValue("Test");
-
-        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
-        filter2.setColumn("brand");
-        filter2.setOperator("contains");
-        filter2.setValue("Brand");
-
-        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
-        paginationRequest.setLogicOperator("AND");
-
-        List<Product> productList = Arrays.asList(testProduct);
-        Page<Product> productPage = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
-
-        when(productFilterQueryBuilder.getColumnType("title")).thenReturn("string");
-        when(productFilterQueryBuilder.getColumnType("brand")).thenReturn("string");
-        when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(productPage);
-
-        // Act
-        PaginationBaseResponseModel<ProductResponseModel> result = productService
-                .getProductInBatches(paginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        verify(productFilterQueryBuilder, times(1)).getColumnType("title");
-        verify(productFilterQueryBuilder, times(1)).getColumnType("brand");
-    }
-
-    @Test
-    @DisplayName("getProductInBatches - Success: With multiple filters OR")
-    void testGetProductInBatches_WithMultipleFiltersOR() {
-        // Arrange
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
-
-        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
-        filter1.setColumn("title");
-        filter1.setOperator("contains");
-        filter1.setValue("Test");
-
-        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
-        filter2.setColumn("title");
-        filter2.setOperator("contains");
-        filter2.setValue("Product");
-
-        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
-        paginationRequest.setLogicOperator("OR");
-
-        List<Product> productList = Arrays.asList(testProduct);
-        Page<Product> productPage = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
-
-        when(productFilterQueryBuilder.getColumnType("title")).thenReturn("string");
-        when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(productPage);
-
-        // Act
-        PaginationBaseResponseModel<ProductResponseModel> result = productService
-                .getProductInBatches(paginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        verify(productFilterQueryBuilder, times(2)).getColumnType("title");
-    }
-
-    @Test
-    @DisplayName("getProductInBatches - Success: With complex filters")
-    void testGetProductInBatches_WithComplexFilters() {
-        // Arrange
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
-
-        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
-        filter1.setColumn("title");
-        filter1.setOperator("contains");
-        filter1.setValue("Test");
-
-        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
-        filter2.setColumn("productId");
-        filter2.setOperator("greaterThan");
-        filter2.setValue("0");
-
-        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
-        paginationRequest.setLogicOperator("AND");
-
-        List<Product> productList = Arrays.asList(testProduct);
-        Page<Product> productPage = new PageImpl<>(productList, PageRequest.of(0, 10), 1);
-
-        when(productFilterQueryBuilder.getColumnType("title")).thenReturn("string");
-        when(productFilterQueryBuilder.getColumnType("productId")).thenReturn("number");
-        when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(productPage);
-
-        // Act
-        PaginationBaseResponseModel<ProductResponseModel> result = productService
-                .getProductInBatches(paginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        verify(productFilterQueryBuilder, times(1)).getColumnType("title");
-        verify(productFilterQueryBuilder, times(1)).getColumnType("productId");
+                        try {
+                            productService.getProductInBatches(testRequest);
+                            if (!shouldSucceed) {
+                                String reason = !isColumnKnown ? "Invalid column: " + column
+                                        : !isOperatorValidForType ? "Invalid operator '" + operator + "' for column '" + column + "'"
+                                        : "Missing value for operator " + operator;
+                                fail("Expected failure but succeeded. Context: " + reason);
+                            }
+                        } catch (BadRequestException | IllegalArgumentException e) {
+                            if (shouldSucceed) {
+                                fail("Expected success but failed: Col=" + column + " Op=" + operator + " Val=" + value + ". Error: " + e.getMessage());
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // ==================== Validation Tests ====================
 
-    @Test
-    @DisplayName("Product Validation - Invalid title (null)")
-    void testProductValidation_InvalidTitle_Null() {
-        // Arrange
-        testProductRequest.setTitle(null);
+    @Nested
+    @DisplayName("Product Validation Tests")
+    class ProductValidationTests {
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> productService.addProduct(testProductRequest));
+        @Test
+        @DisplayName("Product Validation - Invalid title (null)")
+        void productValidation_InvalidTitle_Null_ThrowsBadRequestException() {
+            // Arrange
+            testProductRequest.setTitle(null);
 
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidTitle, exception.getMessage());
-    }
+            // Act & Assert
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidTitle,
+                    () -> productService.addProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Product Validation - Invalid title (empty)")
-    void testProductValidation_InvalidTitle_Empty() {
-        // Arrange
-        testProductRequest.setTitle("");
+        @Test
+        @DisplayName("Product Validation - Invalid title (empty)")
+        void productValidation_InvalidTitle_Empty_ThrowsBadRequestException() {
+            // Arrange
+            testProductRequest.setTitle("");
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> productService.addProduct(testProductRequest));
+            // Act & Assert
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidTitle,
+                    () -> productService.addProduct(testProductRequest));
+        }
 
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidTitle, exception.getMessage());
-    }
+        @Test
+        @DisplayName("Product Validation - Invalid description (null)")
+        void productValidation_InvalidDescription_Null_ThrowsBadRequestException() {
+            // Arrange
+            testProductRequest.setDescriptionHtml(null);
 
-    @Test
-    @DisplayName("Product Validation - Invalid description (null)")
-    void testProductValidation_InvalidDescription_Null() {
-        // Arrange
-        testProductRequest.setDescriptionHtml(null);
+            // Act & Assert
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidDescription,
+                    () -> productService.addProduct(testProductRequest));
+        }
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> productService.addProduct(testProductRequest));
+        @Test
+        @DisplayName("Product Validation - Invalid brand (null)")
+        void productValidation_InvalidBrand_Null_ThrowsBadRequestException() {
+            // Arrange
+            testProductRequest.setBrand(null);
 
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidDescription, exception.getMessage());
-    }
+            // Act & Assert
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidBrand,
+                    () -> productService.addProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Product Validation - Invalid brand (null)")
-    void testProductValidation_InvalidBrand_Null() {
-        // Arrange
-        testProductRequest.setBrand(null);
+        @Test
+        @DisplayName("Product Validation - Invalid color label (null)")
+        void productValidation_InvalidColorLabel_Null_ThrowsBadRequestException() {
+            // Arrange
+            testProductRequest.setColorLabel(null);
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> productService.addProduct(testProductRequest));
+            // Act & Assert
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidColorLabel,
+                    () -> productService.addProduct(testProductRequest));
+        }
 
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidBrand, exception.getMessage());
-    }
+        @Test
+        @DisplayName("Product Validation - Invalid condition (null)")
+        void productValidation_InvalidCondition_Null_ThrowsBadRequestException() {
+            // Arrange
+            testProductRequest.setCondition(null);
 
-    @Test
-    @DisplayName("Product Validation - Invalid color label (null)")
-    void testProductValidation_InvalidColorLabel_Null() {
-        // Arrange
-        testProductRequest.setColorLabel(null);
+            // Act & Assert
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidCondition,
+                    () -> productService.addProduct(testProductRequest));
+        }
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> productService.addProduct(testProductRequest));
+        @Test
+        @DisplayName("Product Validation - Null Pickup Location Quantities - Throws BadRequestException")
+        void productValidation_NullPickupLocationQuantities_ThrowsBadRequestException() {
+            testProductRequest.setPickupLocationQuantities(null);
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.AtLeastOnePickupLocationRequired,
+                    () -> productService.addProduct(testProductRequest));
+        }
 
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidColorLabel, exception.getMessage());
-    }
+        @Test
+        @DisplayName("Product Validation - Empty Pickup Location Quantities - Throws BadRequestException")
+        void productValidation_EmptyPickupLocationQuantities_ThrowsBadRequestException() {
+            testProductRequest.setPickupLocationQuantities(new HashMap<>());
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.AtLeastOnePickupLocationRequired,
+                    () -> productService.addProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Product Validation - Invalid condition (null)")
-    void testProductValidation_InvalidCondition_Null() {
-        // Arrange
-        testProductRequest.setCondition(null);
+        @Test
+        @DisplayName("Product Validation - Invalid country of manufacture (null)")
+        void productValidation_InvalidCountry_Null_ThrowsBadRequestException() {
+            // Arrange
+            testProductRequest.setCountryOfManufacture(null);
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> productService.addProduct(testProductRequest));
+            // Act & Assert
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidCountryOfManufacture,
+                    () -> productService.addProduct(testProductRequest));
+        }
 
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidCondition, exception.getMessage());
-    }
+        @Test
+        @DisplayName("Product Validation - Invalid price (null)")
+        void productValidation_InvalidPrice_Null_ThrowsBadRequestException() {
+            // Arrange
+            testProductRequest.setPrice(null);
 
-    @Test
-    @DisplayName("Product Validation - Null Pickup Location Quantities - Throws BadRequestException")
-    void testProductValidation_NullPickupLocationQuantities_Throws() {
-        testProductRequest.setPickupLocationQuantities(null);
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.addProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.AtLeastOnePickupLocationRequired, ex.getMessage());
-    }
+            // Act & Assert
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidPrice,
+                    () -> productService.addProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Product Validation - Empty Pickup Location Quantities - Throws BadRequestException")
-    void testProductValidation_EmptyPickupLocationQuantities_Throws() {
-        testProductRequest.setPickupLocationQuantities(new HashMap<>());
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.addProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.AtLeastOnePickupLocationRequired, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Product Validation - Invalid price (negative)")
+        void productValidation_InvalidPrice_Negative_ThrowsBadRequestException() {
+            // Arrange
+            testProductRequest.setPrice(new BigDecimal("-10.00"));
 
-    @Test
-    @DisplayName("Product Validation - Invalid country of manufacture (null)")
-    void testProductValidation_InvalidCountry_Null() {
-        // Arrange
-        testProductRequest.setCountryOfManufacture(null);
+            // Act & Assert
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidPrice,
+                    () -> productService.addProduct(testProductRequest));
+        }
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> productService.addProduct(testProductRequest));
+        @Test
+        @DisplayName("Product Validation - Invalid client ID (null)")
+        void productValidation_InvalidClientId_Null_ThrowsBadRequestException() {
+            // Arrange
+            testProductRequest.setClientId(null);
 
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidCountryOfManufacture, exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Product Validation - Invalid price (null)")
-    void testProductValidation_InvalidPrice_Null() {
-        // Arrange
-        testProductRequest.setPrice(null);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> productService.addProduct(testProductRequest));
-
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidPrice, exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Product Validation - Invalid price (negative)")
-    void testProductValidation_InvalidPrice_Negative() {
-        // Arrange
-        testProductRequest.setPrice(new BigDecimal("-10.00"));
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> productService.addProduct(testProductRequest));
-
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidPrice, exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Product Validation - Invalid client ID (null)")
-    void testProductValidation_InvalidClientId_Null() {
-        // Arrange
-        testProductRequest.setClientId(null);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> productService.addProduct(testProductRequest));
-
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidClientId, exception.getMessage());
+            // Act & Assert
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidClientId,
+                    () -> productService.addProduct(testProductRequest));
+        }
     }
 
     // ==================== Image Processing Tests ====================
 
-    @Test
-    @DisplayName("Image Processing - Convert URL to base64 fails in unit test (network access)")
-    void testConvertToBase64_UrlToBase64() {
+    @Nested
+    @DisplayName("Image Processing Tests")
+    class ImageProcessingTests {
+
+        @Test
+        @DisplayName("Image Processing - Convert URL to base64 fails in unit test (network access)")
+        void imageProcessing_UrlToBase64Fails_ThrowsBadRequestException() {
         // This test verifies that URL image processing fails appropriately in unit test
         // environment
         // where network access is not available
@@ -896,43 +789,44 @@ class ProductServiceTest {
         }
     }
 
-    @Test
-    @DisplayName("Image Processing - Handle null image data")
-    void testConvertToBase64_NullImage() {
-        // Test through the service - null images should be handled gracefully for
-        // optional images
-        testProductRequest.setAdditionalImage1(null);
+        @Test
+        @DisplayName("Image Processing - Handle null image data")
+        void imageProcessing_NullImage_Success() {
+            // Test through the service - null images should be handled gracefully for
+            // optional images
+            testProductRequest.setAdditionalImage1(null);
 
-        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
-                (mock, context) -> {
-                    ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
-                            "https://i.ibb.co/test/image.png",
-                            "test-delete-hash");
-                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
-                    when(mock.deleteImage(anyString())).thenReturn(true);
-                })) {
+            try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+                    (mock, context) -> {
+                        ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                                "https://i.ibb.co/test/image.png",
+                                "test-delete-hash");
+                        when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                        when(mock.deleteImage(anyString())).thenReturn(true);
+                    })) {
 
-            assertDoesNotThrow(() -> productService.addProduct(testProductRequest));
+                assertDoesNotThrow(() -> productService.addProduct(testProductRequest));
+            }
         }
-    }
 
-    @Test
-    @DisplayName("Image Processing - Handle empty image data")
-    void testConvertToBase64_EmptyImage() {
-        // Test through the service - empty images should be handled gracefully for
-        // optional images
-        testProductRequest.setAdditionalImage1("");
+        @Test
+        @DisplayName("Image Processing - Handle empty image data")
+        void imageProcessing_EmptyImage_Success() {
+            // Test through the service - empty images should be handled gracefully for
+            // optional images
+            testProductRequest.setAdditionalImage1("");
 
-        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
-                (mock, context) -> {
-                    ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
-                            "https://i.ibb.co/test/image.png",
-                            "test-delete-hash");
-                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
-                    when(mock.deleteImage(anyString())).thenReturn(true);
-                })) {
+            try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+                    (mock, context) -> {
+                        ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                                "https://i.ibb.co/test/image.png",
+                                "test-delete-hash");
+                        when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                        when(mock.deleteImage(anyString())).thenReturn(true);
+                    })) {
 
-            assertDoesNotThrow(() -> productService.addProduct(testProductRequest));
+                assertDoesNotThrow(() -> productService.addProduct(testProductRequest));
+            }
         }
     }
 
@@ -1017,9 +911,13 @@ class ProductServiceTest {
 
     // ==================== Bulk Add Products Tests ====================
 
-    @Test
-    @DisplayName("Bulk Add Products - Success - All valid products")
-    void bulkAddProducts_AllValid_Success() {
+    @Nested
+    @DisplayName("BulkAddProducts Tests")
+    class BulkAddProductsTests {
+
+        @Test
+        @DisplayName("Bulk Add Products - Success - All valid products")
+        void bulkAddProducts_AllValid_Success() {
         // Arrange
         List<ProductRequestModel> products = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
@@ -1198,222 +1096,212 @@ class ProductServiceTest {
         assertEquals(1, result.getFailureCount());
     }
 
-    @Test
-    @DisplayName("Bulk Add Products - Empty List")
-    void bulkAddProducts_EmptyList() {
-        // Arrange
-        List<ProductRequestModel> products = new ArrayList<>();
+        @Test
+        @DisplayName("Bulk Add Products - Empty List")
+        void bulkAddProducts_EmptyList_ThrowsBadRequestException() {
+            // Arrange
+            List<ProductRequestModel> products = new ArrayList<>();
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            productService.bulkAddProducts(products);
-        });
-        assertTrue(exception.getMessage().contains("Product list cannot be null or empty"));
-        verify(productRepository, never()).save(any(Product.class));
+            // Act & Assert
+            BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+                productService.bulkAddProducts(products);
+            });
+            assertTrue(exception.getMessage().contains("Product list cannot be null or empty"));
+            verify(productRepository, never()).save(any(Product.class));
+        }
     }
 
     // ==================== Additional GetProductDetailsById Tests ====================
 
-    @Test
-    @DisplayName("Get Product By ID - Negative ID - Not Found")
-    void getProductDetailsById_NegativeId_ThrowsNotFoundException() {
-        when(productRepository.findByProductIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> productService.getProductDetailsById(-1L));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidId, ex.getMessage());
-    }
+    @Nested
+    @DisplayName("Additional GetProductDetailsById Tests")
+    class AdditionalGetProductDetailsByIdTests {
 
-    @Test
-    @DisplayName("Get Product By ID - Zero ID - Not Found")
-    void getProductDetailsById_ZeroId_ThrowsNotFoundException() {
-        when(productRepository.findByProductIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> productService.getProductDetailsById(0L));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidId, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Get Product By ID - Negative ID - Not Found")
+        void getProductDetailsById_NegativeId_ThrowsNotFoundException() {
+            when(productRepository.findByProductIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
+            assertThrowsNotFound(ErrorMessages.ProductErrorMessages.InvalidId,
+                    () -> productService.getProductDetailsById(-1L));
+        }
 
-    @Test
-    @DisplayName("Get Product By ID - Long.MAX_VALUE - Not Found")
-    void getProductDetailsById_MaxLongId_ThrowsNotFoundException() {
-        when(productRepository.findByProductIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> productService.getProductDetailsById(Long.MAX_VALUE));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidId, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Get Product By ID - Zero ID - Not Found")
+        void getProductDetailsById_ZeroId_ThrowsNotFoundException() {
+            when(productRepository.findByProductIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
+            assertThrowsNotFound(ErrorMessages.ProductErrorMessages.InvalidId,
+                    () -> productService.getProductDetailsById(0L));
+        }
 
-    @Test
-    @DisplayName("Get Product By ID - Long.MIN_VALUE - Not Found")
-    void getProductDetailsById_MinLongId_ThrowsNotFoundException() {
-        when(productRepository.findByProductIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> productService.getProductDetailsById(Long.MIN_VALUE));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidId, ex.getMessage());
+        @Test
+        @DisplayName("Get Product By ID - Long.MAX_VALUE - Not Found")
+        void getProductDetailsById_MaxLongId_ThrowsNotFoundException() {
+            when(productRepository.findByProductIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+            assertThrowsNotFound(ErrorMessages.ProductErrorMessages.InvalidId,
+                    () -> productService.getProductDetailsById(Long.MAX_VALUE));
+        }
+
+        @Test
+        @DisplayName("Get Product By ID - Long.MIN_VALUE - Not Found")
+        void getProductDetailsById_MinLongId_ThrowsNotFoundException() {
+            when(productRepository.findByProductIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+            assertThrowsNotFound(ErrorMessages.ProductErrorMessages.InvalidId,
+                    () -> productService.getProductDetailsById(Long.MIN_VALUE));
+        }
     }
 
     // ==================== Additional CreateProduct Tests ====================
 
-    @Test
-    @DisplayName("Create Product - Null Request - Throws BadRequestException")
-    void createProduct_NullRequest_ThrowsBadRequestException() {
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(null));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidRequest, ex.getMessage());
-    }
+    @Nested
+    @DisplayName("Additional CreateProduct Tests")
+    class AdditionalCreateProductTests {
 
-    @Test
-    @DisplayName("Create Product - Null Title - Throws BadRequestException")
-    void createProduct_NullTitle_ThrowsBadRequestException() {
-        testProductRequest.setTitle(null);
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidTitle, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Create Product - Null Request - Throws BadRequestException")
+        void createProduct_NullRequest_ThrowsBadRequestException() {
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidRequest,
+                    () -> productService.createProduct(null));
+        }
 
-    @Test
-    @DisplayName("Create Product - Empty Title - Throws BadRequestException")
-    void createProduct_EmptyTitle_ThrowsBadRequestException() {
-        testProductRequest.setTitle("");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidTitle, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Create Product - Null Title - Throws BadRequestException")
+        void createProduct_NullTitle_ThrowsBadRequestException() {
+            testProductRequest.setTitle(null);
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidTitle,
+                    () -> productService.createProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Create Product - Whitespace Title - Throws BadRequestException")
-    void createProduct_WhitespaceTitle_ThrowsBadRequestException() {
-        testProductRequest.setTitle("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidTitle, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Create Product - Empty Title - Throws BadRequestException")
+        void createProduct_EmptyTitle_ThrowsBadRequestException() {
+            testProductRequest.setTitle("");
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidTitle,
+                    () -> productService.createProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Create Product - Null Description - Throws BadRequestException")
-    void createProduct_NullDescription_ThrowsBadRequestException() {
-        testProductRequest.setDescription(null);
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidDescription, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Create Product - Whitespace Title - Throws BadRequestException")
+        void createProduct_WhitespaceTitle_ThrowsBadRequestException() {
+            testProductRequest.setTitle("   ");
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidTitle,
+                    () -> productService.createProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Create Product - Empty Description - Throws BadRequestException")
-    void createProduct_EmptyDescription_ThrowsBadRequestException() {
-        testProductRequest.setDescription("");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidDescription, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Create Product - Null Description - Throws BadRequestException")
+        void createProduct_NullDescription_ThrowsBadRequestException() {
+            testProductRequest.setDescription(null);
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidDescription,
+                    () -> productService.createProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Create Product - Null Brand - Throws BadRequestException")
-    void createProduct_NullBrand_ThrowsBadRequestException() {
-        testProductRequest.setBrand(null);
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidBrand, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Create Product - Empty Description - Throws BadRequestException")
+        void createProduct_EmptyDescription_ThrowsBadRequestException() {
+            testProductRequest.setDescription("");
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidDescription,
+                    () -> productService.createProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Create Product - Empty Brand - Throws BadRequestException")
-    void createProduct_EmptyBrand_ThrowsBadRequestException() {
-        testProductRequest.setBrand("");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidBrand, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Create Product - Null Brand - Throws BadRequestException")
+        void createProduct_NullBrand_ThrowsBadRequestException() {
+            testProductRequest.setBrand(null);
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidBrand,
+                    () -> productService.createProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Create Product - Null Color Label - Throws BadRequestException")
-    void createProduct_NullColorLabel_ThrowsBadRequestException() {
-        testProductRequest.setColorLabel(null);
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidColorLabel, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Create Product - Empty Brand - Throws BadRequestException")
+        void createProduct_EmptyBrand_ThrowsBadRequestException() {
+            testProductRequest.setBrand("");
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidBrand,
+                    () -> productService.createProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Create Product - Empty Color Label - Throws BadRequestException")
-    void createProduct_EmptyColorLabel_ThrowsBadRequestException() {
-        testProductRequest.setColorLabel("");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidColorLabel, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Create Product - Null Color Label - Throws BadRequestException")
+        void createProduct_NullColorLabel_ThrowsBadRequestException() {
+            testProductRequest.setColorLabel(null);
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidColorLabel,
+                    () -> productService.createProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Create Product - Null Condition - Throws BadRequestException")
-    void createProduct_NullCondition_ThrowsBadRequestException() {
-        testProductRequest.setCondition(null);
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidCondition, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Create Product - Empty Color Label - Throws BadRequestException")
+        void createProduct_EmptyColorLabel_ThrowsBadRequestException() {
+            testProductRequest.setColorLabel("");
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidColorLabel,
+                    () -> productService.createProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Create Product - Empty Condition - Throws BadRequestException")
-    void createProduct_EmptyCondition_ThrowsBadRequestException() {
-        testProductRequest.setCondition("");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidCondition, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Create Product - Null Condition - Throws BadRequestException")
+        void createProduct_NullCondition_ThrowsBadRequestException() {
+            testProductRequest.setCondition(null);
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidCondition,
+                    () -> productService.createProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Create Product - Null Country Of Manufacture - Throws BadRequestException")
-    void createProduct_NullCountryOfManufacture_ThrowsBadRequestException() {
-        testProductRequest.setCountryOfManufacture(null);
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidCountryOfManufacture, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Create Product - Empty Condition - Throws BadRequestException")
+        void createProduct_EmptyCondition_ThrowsBadRequestException() {
+            testProductRequest.setCondition("");
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidCondition,
+                    () -> productService.createProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Create Product - Empty Country Of Manufacture - Throws BadRequestException")
-    void createProduct_EmptyCountryOfManufacture_ThrowsBadRequestException() {
-        testProductRequest.setCountryOfManufacture("");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidCountryOfManufacture, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Create Product - Null Country Of Manufacture - Throws BadRequestException")
+        void createProduct_NullCountryOfManufacture_ThrowsBadRequestException() {
+            testProductRequest.setCountryOfManufacture(null);
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidCountryOfManufacture,
+                    () -> productService.createProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Create Product - Negative Price - Throws BadRequestException")
-    void createProduct_NegativePrice_ThrowsBadRequestException() {
-        testProductRequest.setPrice(BigDecimal.valueOf(-10.0));
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidPrice, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Create Product - Empty Country Of Manufacture - Throws BadRequestException")
+        void createProduct_EmptyCountryOfManufacture_ThrowsBadRequestException() {
+            testProductRequest.setCountryOfManufacture("");
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidCountryOfManufacture,
+                    () -> productService.createProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Create Product - Zero Price - Success (Valid)")
-    void createProduct_ZeroPrice_Success() {
-        testProductRequest.setPrice(BigDecimal.ZERO);
-        when(productCategoryRepository.findById(TEST_CATEGORY_ID)).thenReturn(java.util.Optional.of(testCategory));
-        when(productRepository.save(any(Product.class))).thenReturn(testProduct);
-        
-        assertDoesNotThrow(() -> productService.createProduct(testProductRequest));
-    }
+        @Test
+        @DisplayName("Create Product - Negative Price - Throws BadRequestException")
+        void createProduct_NegativePrice_ThrowsBadRequestException() {
+            testProductRequest.setPrice(BigDecimal.valueOf(-10.0));
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidPrice,
+                    () -> productService.createProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Create Product - Null Category ID - Throws BadRequestException")
-    void createProduct_NullCategoryId_ThrowsBadRequestException() {
-        testProductRequest.setCategoryId(null);
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidCategoryId, ex.getMessage());
-    }
+        @Test
+        @DisplayName("Create Product - Zero Price - Success (Valid)")
+        void createProduct_ZeroPrice_Success() {
+            testProductRequest.setPrice(BigDecimal.ZERO);
+            when(productCategoryRepository.findById(TEST_CATEGORY_ID)).thenReturn(java.util.Optional.of(testCategory));
+            when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+            
+            assertDoesNotThrow(() -> productService.createProduct(testProductRequest));
+        }
 
-    @Test
-    @DisplayName("Create Product - Invalid Category ID - Throws BadRequestException")
-    void createProduct_InvalidCategoryId_ThrowsBadRequestException() {
-        testProductRequest.setCategoryId(999L);
-        when(productCategoryRepository.findById(999L)).thenReturn(java.util.Optional.empty());
-        
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> productService.createProduct(testProductRequest));
-        assertEquals(ErrorMessages.ProductErrorMessages.InvalidCategoryId, ex.getMessage());
+        @Test
+        @DisplayName("Create Product - Null Category ID - Throws BadRequestException")
+        void createProduct_NullCategoryId_ThrowsBadRequestException() {
+            testProductRequest.setCategoryId(null);
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidCategoryId,
+                    () -> productService.createProduct(testProductRequest));
+        }
+
+        @Test
+        @DisplayName("Create Product - Invalid Category ID - Throws BadRequestException")
+        void createProduct_InvalidCategoryId_ThrowsBadRequestException() {
+            testProductRequest.setCategoryId(999L);
+            when(productCategoryRepository.findById(999L)).thenReturn(java.util.Optional.empty());
+            
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidCategoryId,
+                    () -> productService.createProduct(testProductRequest));
+        }
     }
 
     // ==================== Additional UpdateProduct Tests ====================
@@ -1685,4 +1573,305 @@ class ProductServiceTest {
         BulkInsertResponseModel<Long> result = productService.bulkAddProducts(products);
         assertNotNull(result);
     }
+
+    // ==================== Comprehensive Validation Tests - Added ====================
+
+    @Test
+    @DisplayName("Add Product - Null Request - Throws BadRequestException")
+    void addProduct_NullRequest_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.addProduct(null));
+        assertTrue(ex.getMessage().contains("request") || ex.getMessage().contains("invalid"));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Add Product - Null Product Name - Throws BadRequestException")
+    void addProduct_NullProductName_ThrowsBadRequestException() {
+        testProductRequest.setProductName(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.addProduct(testProductRequest));
+        assertTrue(ex.getMessage().contains("name") || ex.getMessage().contains("invalid"));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Add Product - Empty Product Name - Throws BadRequestException")
+    void addProduct_EmptyProductName_ThrowsBadRequestException() {
+        testProductRequest.setProductName("");
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.addProduct(testProductRequest));
+        assertTrue(ex.getMessage().contains("name") || ex.getMessage().contains("empty"));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Add Product - Null Price - Throws BadRequestException")
+    void addProduct_NullPrice_ThrowsBadRequestException() {
+        testProductRequest.setPrice(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.addProduct(testProductRequest));
+        assertTrue(ex.getMessage().contains("price") || ex.getMessage().contains("invalid"));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Add Product - Negative Price - Throws BadRequestException")
+    void addProduct_NegativePrice_ThrowsBadRequestException() {
+        testProductRequest.setPrice(BigDecimal.valueOf(-100.0));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.addProduct(testProductRequest));
+        assertTrue(ex.getMessage().contains("price") || ex.getMessage().contains("invalid"));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Add Product - Zero Price - Throws BadRequestException")
+    void addProduct_ZeroPrice_ThrowsBadRequestException() {
+        testProductRequest.setPrice(BigDecimal.ZERO);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.addProduct(testProductRequest));
+        assertTrue(ex.getMessage().contains("price") || ex.getMessage().contains("invalid"));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Add Product - Null Category ID - Throws BadRequestException")
+    void addProduct_NullCategoryId_ThrowsBadRequestException() {
+        testProductRequest.setCategoryId(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.addProduct(testProductRequest));
+        assertTrue(ex.getMessage().contains("category") || ex.getMessage().contains("invalid"));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Add Product - Negative Category ID - Throws BadRequestException")
+    void addProduct_NegativeCategoryId_ThrowsBadRequestException() {
+        testProductRequest.setCategoryId(-1L);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.addProduct(testProductRequest));
+        assertTrue(ex.getMessage().contains("category") || ex.getMessage().contains("invalid"));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Add Product - Zero Category ID - Throws BadRequestException")
+    void addProduct_ZeroCategoryId_ThrowsBadRequestException() {
+        testProductRequest.setCategoryId(0L);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.addProduct(testProductRequest));
+        assertTrue(ex.getMessage().contains("category") || ex.getMessage().contains("invalid"));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Add Product - Non-existent Category - Throws NotFoundException")
+    void addProduct_NonexistentCategory_ThrowsNotFoundException() {
+        when(productCategoryRepository.findById(testProductRequest.getCategoryId()))
+                .thenReturn(java.util.Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productService.addProduct(testProductRequest));
+        assertTrue(ex.getMessage().contains("category") || ex.getMessage().contains("not found"));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Update Product - Negative ID - Throws NotFoundException")
+    void updateProduct_NegativeId_ThrowsNotFoundException() {
+        testProductRequest.setProductId(-1L);
+        when(productRepository.findById(-1L)).thenReturn(java.util.Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productService.updateProduct(testProductRequest));
+        assertEquals(ErrorMessages.ProductErrorMessages.NotFound, ex.getMessage());
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Update Product - Zero ID - Throws NotFoundException")
+    void updateProduct_ZeroId_ThrowsNotFoundException() {
+        testProductRequest.setProductId(0L);
+        when(productRepository.findById(0L)).thenReturn(java.util.Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productService.updateProduct(testProductRequest));
+        assertEquals(ErrorMessages.ProductErrorMessages.NotFound, ex.getMessage());
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Update Product - Long.MAX_VALUE ID - Throws NotFoundException")
+    void updateProduct_MaxLongId_ThrowsNotFoundException() {
+        testProductRequest.setProductId(Long.MAX_VALUE);
+        when(productRepository.findById(Long.MAX_VALUE)).thenReturn(java.util.Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productService.updateProduct(testProductRequest));
+        assertEquals(ErrorMessages.ProductErrorMessages.NotFound, ex.getMessage());
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Update Product - Negative Price - Throws BadRequestException")
+    void updateProduct_NegativePrice_ThrowsBadRequestException() {
+        testProductRequest.setPrice(BigDecimal.valueOf(-100.0));
+        when(productRepository.findById(TEST_PRODUCT_ID)).thenReturn(java.util.Optional.of(testProduct));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.updateProduct(testProductRequest));
+        assertTrue(ex.getMessage().contains("price") || ex.getMessage().contains("invalid"));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Delete Product - Negative ID - Throws NotFoundException")
+    void deleteProduct_NegativeId_ThrowsNotFoundException() {
+        when(productRepository.findById(-1L)).thenReturn(java.util.Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productService.deleteProduct(-1L));
+        assertEquals(ErrorMessages.ProductErrorMessages.NotFound, ex.getMessage());
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Delete Product - Zero ID - Throws NotFoundException")
+    void deleteProduct_ZeroId_ThrowsNotFoundException() {
+        when(productRepository.findById(0L)).thenReturn(java.util.Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productService.deleteProduct(0L));
+        assertEquals(ErrorMessages.ProductErrorMessages.NotFound, ex.getMessage());
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Get Product By ID - Negative ID - Throws NotFoundException")
+    void getProductById_NegativeId_ThrowsNotFoundException() {
+        when(productRepository.findById(-1L)).thenReturn(java.util.Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productService.getProductById(-1L));
+        assertEquals(ErrorMessages.ProductErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Product By ID - Zero ID - Throws NotFoundException")
+    void getProductById_ZeroId_ThrowsNotFoundException() {
+        when(productRepository.findById(0L)).thenReturn(java.util.Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productService.getProductById(0L));
+        assertEquals(ErrorMessages.ProductErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Product By ID - Long.MAX_VALUE ID - Throws NotFoundException")
+    void getProductById_MaxLongId_ThrowsNotFoundException() {
+        when(productRepository.findById(Long.MAX_VALUE)).thenReturn(java.util.Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productService.getProductById(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.ProductErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle Product - Negative ID - Throws NotFoundException")
+    void toggleProduct_NegativeId_ThrowsNotFoundException() {
+        when(productRepository.findById(-1L)).thenReturn(java.util.Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productService.toggleProduct(-1L));
+        assertEquals(ErrorMessages.ProductErrorMessages.NotFound, ex.getMessage());
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Toggle Product - Zero ID - Throws NotFoundException")
+    void toggleProduct_ZeroId_ThrowsNotFoundException() {
+        when(productRepository.findById(0L)).thenReturn(java.util.Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> productService.toggleProduct(0L));
+        assertEquals(ErrorMessages.ProductErrorMessages.NotFound, ex.getMessage());
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Toggle Product - Multiple Toggles - State Transitions")
+    void toggleProduct_MultipleToggles_StateTransitions() {
+        testProduct.setIsDeleted(false);
+        when(productRepository.findById(TEST_PRODUCT_ID)).thenReturn(java.util.Optional.of(testProduct));
+        when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+
+        // First toggle: false -> true
+        productService.toggleProduct(TEST_PRODUCT_ID);
+        assertTrue(testProduct.getIsDeleted());
+
+        // Second toggle: true -> false
+        testProduct.setIsDeleted(true);
+        productService.toggleProduct(TEST_PRODUCT_ID);
+        assertFalse(testProduct.getIsDeleted());
+
+        verify(productRepository, times(2)).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Get Products In Batches - Null Request - Throws BadRequestException")
+    void getProductsInBatches_NullRequest_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.getProductsInBatches(null));
+        assertTrue(ex.getMessage().contains("request") || ex.getMessage().contains("invalid"));
+    }
+
+    @Test
+    @DisplayName("Get Products In Batches - Start Greater Than End - Throws BadRequestException")
+    void getProductsInBatches_StartGreaterThanEnd_ThrowsBadRequestException() {
+        testPaginationRequest.setStart(100);
+        testPaginationRequest.setEnd(10);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.getProductsInBatches(testPaginationRequest));
+        assertTrue(ex.getMessage().contains("start") || ex.getMessage().contains("end"));
+    }
+
+    @Test
+    @DisplayName("Bulk Add Products - Empty List - Throws BadRequestException")
+    void bulkAddProducts_EmptyList_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.bulkAddProducts(new java.util.ArrayList<>()));
+        assertTrue(ex.getMessage().contains("empty") || ex.getMessage().contains("null"));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Bulk Add Products - Null List - Throws BadRequestException")
+    void bulkAddProducts_NullList_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.bulkAddProducts(null));
+        assertTrue(ex.getMessage().contains("empty") || ex.getMessage().contains("null"));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    @DisplayName("Search Products - Null Search Term - Throws BadRequestException")
+    void searchProducts_NullSearchTerm_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.searchProducts(null));
+        assertTrue(ex.getMessage().contains("search") || ex.getMessage().contains("invalid"));
+    }
+
+    @Test
+    @DisplayName("Search Products - Empty Search Term - Throws BadRequestException")
+    void searchProducts_EmptySearchTerm_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.searchProducts(""));
+        assertTrue(ex.getMessage().contains("search") || ex.getMessage().contains("empty"));
+    }
+
+    @Test
+    @DisplayName("Get Products By Category - Negative Category ID - Throws BadRequestException")
+    void getProductsByCategory_NegativeCategoryId_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.getProductsByCategory(-1L));
+        assertTrue(ex.getMessage().contains("category") || ex.getMessage().contains("invalid"));
+    }
+
+    @Test
+    @DisplayName("Get Products By Category - Zero Category ID - Throws BadRequestException")
+    void getProductsByCategory_ZeroCategoryId_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productService.getProductsByCategory(0L));
+        assertTrue(ex.getMessage().contains("category") || ex.getMessage().contains("invalid"));
+    }
+}
 }

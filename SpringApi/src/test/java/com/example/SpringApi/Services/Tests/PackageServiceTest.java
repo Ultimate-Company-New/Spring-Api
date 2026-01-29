@@ -5,6 +5,7 @@ import com.example.SpringApi.Models.DatabaseModels.Package;
 import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
 import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
 import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PackageResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
@@ -18,6 +19,7 @@ import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.ApiRoutes;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +35,10 @@ import org.springframework.data.domain.Sort;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -41,18 +46,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for PackageService.
- *
- * <p>
- * This test class provides comprehensive coverage of PackageService methods
- * including:
- * - CRUD operations (create, read, update, toggle)
- * - Package retrieval by ID, batch operations, and pickup location
- * - Validation and error handling
- * - Pagination and filtering
- *
- * Each test method follows the AAA (Arrange-Act-Assert) pattern and includes
- * both success and failure scenarios to ensure robust error handling.
- * All external dependencies are properly mocked to ensure test isolation.
+ * Test naming: methodName_Scenario_ExpectedOutcome. All data from BaseTest.
  *
  * @author SpringApi Team
  * @version 1.0
@@ -60,7 +54,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PackageService Unit Tests")
-class PackageServiceTest {
+class PackageServiceTest extends BaseTest {
 
     @Mock
     private PackageRepository packageRepository;
@@ -92,266 +86,131 @@ class PackageServiceTest {
     private static final Long TEST_PICKUP_LOCATION_ID = 2L;
     private static final Long TEST_CLIENT_ID = 1L;
     private static final Long TEST_USER_ID = 1L;
-    private static final String TEST_PACKAGE_NAME = "Test Package";
-    private static final String TEST_PACKAGE_TYPE = "Box";
-    private static final String CREATED_USER = "testuser";
 
-    /**
-     * Sets up test data before each test execution.
-     * Initializes common test objects and configures mock behaviors.
-     */
     @BeforeEach
     void setUp() {
-        // Note: BaseService methods are now handled by the actual service
-        // implementation
-
-        // Initialize test data
-        initializeTestData();
-
-        // Create test package from request model (simulating service behavior)
-        testPackage = createPackageFromRequest(testPackageRequest);
-
-        // Initialize test mapping (needs testPackage to be created first)
-        testMapping = new PackagePickupLocationMapping();
-        testMapping.setPackagePickupLocationMappingId(1L);
-        testMapping.setPackageId(TEST_PACKAGE_ID);
-        testMapping.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
-        testMapping.setAvailableQuantity(10);
-        testMapping.setReorderLevel(5);
-        testMapping.setMaxStockLevel(20);
-        testMapping.setPackageEntity(testPackage);
-
-        // Setup common mock behaviors
-        lenient().when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
-    }
-
-    /**
-     * Initializes test data objects used across multiple tests.
-     */
-    private void initializeTestData() {
-        // Initialize test package request first
-        testPackageRequest = new PackageRequestModel();
+        testPackageRequest = createValidPackageRequest();
         testPackageRequest.setPackageId(TEST_PACKAGE_ID);
-        testPackageRequest.setPackageName(TEST_PACKAGE_NAME);
-        testPackageRequest.setPackageType(TEST_PACKAGE_TYPE);
-        testPackageRequest.setLength(10);
-        testPackageRequest.setBreadth(10);
-        testPackageRequest.setHeight(10);
-        testPackageRequest.setMaxWeight(BigDecimal.valueOf(5.0));
-        testPackageRequest.setStandardCapacity(1);
-        testPackageRequest.setPricePerUnit(BigDecimal.valueOf(10.0));
-        testPackageRequest.setIsDeleted(false);
-
-        // Initialize test pagination request
-        testPaginationRequest = new PaginationBaseRequestModel();
-        testPaginationRequest.setIncludeDeleted(false);
+        testPackage = createTestPackage();
+        testPackage.setPackageId(TEST_PACKAGE_ID);
+        testPaginationRequest = createValidPaginationRequest();
         testPaginationRequest.setStart(0);
         testPaginationRequest.setEnd(10);
+        testPaginationRequest.setIncludeDeleted(false);
+        testMapping = createTestPackagePickupLocationMapping();
+        testMapping.setPackageId(TEST_PACKAGE_ID);
+        testMapping.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
+        testMapping.setPackageEntity(testPackage);
+
+        lenient().when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
+        lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
     }
 
-    /**
-     * Creates a test Package entity from the PackageRequestModel, simulating
-     * service behavior.
-     */
-    private Package createPackageFromRequest(PackageRequestModel request) {
-        Package pkg = new Package();
-        pkg.setPackageId(request.getPackageId());
-        pkg.setPackageName(request.getPackageName());
-        pkg.setLength(request.getLength());
-        pkg.setBreadth(request.getBreadth());
-        pkg.setHeight(request.getHeight());
-        pkg.setMaxWeight(request.getMaxWeight());
-        pkg.setStandardCapacity(request.getStandardCapacity());
-        pkg.setPricePerUnit(request.getPricePerUnit());
-        pkg.setPackageType(request.getPackageType());
-        pkg.setClientId(TEST_CLIENT_ID);
-        pkg.setIsDeleted(request.getIsDeleted() != null ? request.getIsDeleted() : Boolean.FALSE);
-        pkg.setCreatedUser(CREATED_USER);
-        pkg.setModifiedUser(CREATED_USER);
-        return pkg;
+    @Nested
+    @DisplayName("GetPackagesInBatches Tests")
+    class GetPackagesInBatchesTests {
+
+        /**
+         * Single comprehensive unit test for getPackagesInBatches: invalid pagination,
+         * success without filters, and triple-loop over valid/invalid column x operator x value.
+         */
+        @Test
+        @DisplayName("Get Packages In Batches - Invalid pagination, success no filters, triple-loop filter validation")
+        void getPackagesInBatches_SingleComprehensiveTest() {
+            // (1) Invalid pagination
+            testPaginationRequest.setStart(-1);
+            testPaginationRequest.setEnd(10);
+            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.StartIndexCannotBeNegative,
+                    () -> packageService.getPackagesInBatches(testPaginationRequest));
+
+            testPaginationRequest.setStart(0);
+            testPaginationRequest.setEnd(0);
+            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.EndIndexMustBeGreaterThanZero,
+                    () -> packageService.getPackagesInBatches(testPaginationRequest));
+
+            testPaginationRequest.setStart(10);
+            testPaginationRequest.setEnd(5);
+            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.StartIndexMustBeLessThanEnd,
+                    () -> packageService.getPackagesInBatches(testPaginationRequest));
+
+            // (2) Success without filters
+            testPaginationRequest.setStart(0);
+            testPaginationRequest.setEnd(10);
+            testPaginationRequest.setFilters(null);
+            List<Package> list = Arrays.asList(testPackage);
+            Page<Package> page = new PageImpl<>(list, PageRequest.of(0, 10, Sort.by("packageId").descending()), 1);
+            when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                    eq(TEST_CLIENT_ID), isNull(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(page);
+            PaginationBaseResponseModel<PackageResponseModel> res = packageService.getPackagesInBatches(testPaginationRequest);
+            assertNotNull(res);
+            assertEquals(1, res.getData().size());
+            assertEquals(DEFAULT_PACKAGE_NAME, res.getData().get(0).getPackageName());
+
+            // (3) Triple-loop: valid/invalid column x operator x value
+            String[] stringCols = PACKAGE_STRING_COLUMNS;
+            String[] numberCols = PACKAGE_NUMBER_COLUMNS;
+            String[] boolCols = PACKAGE_BOOLEAN_COLUMNS;
+            String[] dateCols = PACKAGE_DATE_COLUMNS;
+            String[] invalidCols = BATCH_INVALID_COLUMNS;
+            Set<String> validOps = new HashSet<>(Arrays.asList(
+                    "equals", "notEquals", "contains", "notContains", "startsWith", "endsWith",
+                    "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual", "isEmpty", "isNotEmpty"));
+            Set<String> numericDateOps = new HashSet<>(Arrays.asList(
+                    "equals", "notEquals", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"));
+            String[] invalidOps = BATCH_INVALID_OPERATORS;
+            String[] allCols = joinArrays(stringCols, numberCols, boolCols, dateCols, invalidCols);
+            String[] allOps = joinArrays(
+                    validOps.toArray(new String[0]), invalidOps);
+            Set<String> uniqueOps = new HashSet<>(Arrays.asList(allOps));
+            String[] vals = joinArrays(BATCH_VALID_VALUES, BATCH_EMPTY_VALUES);
+
+            Page<Package> emptyPage = new PageImpl<>(Collections.emptyList());
+            lenient().when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                    anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(emptyPage);
+            for (String c : stringCols)
+                lenient().when(packageFilterQueryBuilder.getColumnType(c)).thenReturn("string");
+            for (String c : numberCols)
+                lenient().when(packageFilterQueryBuilder.getColumnType(c)).thenReturn("number");
+            for (String c : boolCols)
+                lenient().when(packageFilterQueryBuilder.getColumnType(c)).thenReturn("boolean");
+            for (String c : dateCols)
+                lenient().when(packageFilterQueryBuilder.getColumnType(c)).thenReturn("date");
+
+            for (String column : allCols) {
+                for (String op : uniqueOps) {
+                    for (String val : vals) {
+                        testPaginationRequest.setStart(0);
+                        testPaginationRequest.setEnd(10);
+                        FilterCondition fc = createFilterCondition(column, op, val);
+                        testPaginationRequest.setFilters(Collections.singletonList(fc));
+
+                        boolean known = !Arrays.asList(invalidCols).contains(column);
+                        boolean opValid = validOps.contains(op);
+                        boolean numberMatch = Arrays.asList(numberCols).contains(column);
+                        boolean boolMatch = Arrays.asList(boolCols).contains(column);
+                        boolean dateMatch = Arrays.asList(dateCols).contains(column);
+                        boolean boolOk = !boolMatch || "equals".equals(op) || "notEquals".equals(op);
+                        boolean numDateOk = !(numberMatch || dateMatch) || numericDateOps.contains(op);
+                        boolean valueOk = "isEmpty".equals(op) || "isNotEmpty".equals(op) || val != null;
+                        boolean shouldPass = known && opValid && boolOk && numDateOk && valueOk;
+
+                        try {
+                            packageService.getPackagesInBatches(testPaginationRequest);
+                            if (!shouldPass)
+                                fail("Expected failure: col=" + column + " op=" + op + " val=" + val);
+                        } catch (BadRequestException e) {
+                            if (shouldPass)
+                                fail("Expected success: col=" + column + " op=" + op + " val=" + val + " err=" + e.getMessage());
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    // ==================== getPackagesInBatches Tests ====================
-
-    @Test
-    @DisplayName("getPackagesInBatches - Success: Valid pagination request")
-    void testGetPackagesInBatches_Success() {
-        // Arrange
-        List<Package> packageList = Arrays.asList(testPackage);
-        Page<Package> packagePage = new PageImpl<>(packageList, PageRequest.of(0, 10, Sort.by("packageId")), 1);
-
-        lenient().when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class))).thenReturn(packagePage);
-
-        // Act
-        PaginationBaseResponseModel<PackageResponseModel> result = packageService
-                .getPackagesInBatches(testPaginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        assertEquals(1, result.getTotalDataCount());
-        assertEquals(TEST_PACKAGE_NAME, result.getData().get(0).getPackageName());
-    }
-
-    @Test
-    @DisplayName("getPackagesInBatches - Failure: Invalid column name")
-    void testGetPackagesInBatches_InvalidColumnName() {
-        // Arrange
-        PaginationBaseRequestModel.FilterCondition invalidFilter = new PaginationBaseRequestModel.FilterCondition();
-        invalidFilter.setColumn("invalidColumn");
-        invalidFilter.setOperator("contains");
-        invalidFilter.setValue("test");
-        testPaginationRequest.setFilters(Arrays.asList(invalidFilter));
-        testPaginationRequest.setLogicOperator("AND");
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> packageService.getPackagesInBatches(testPaginationRequest));
-
-        assertTrue(exception.getMessage().contains("Invalid column name"));
-        verify(packageFilterQueryBuilder, never()).getColumnType("invalidColumn");
-    }
-
-    @Test
-    @DisplayName("getPackagesInBatches - Success: With single filter")
-    void testGetPackagesInBatches_WithSingleFilter() {
-        // Arrange
-        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
-        filter.setColumn("packageName");
-        filter.setOperator("contains");
-        filter.setValue("Test");
-        testPaginationRequest.setFilters(Arrays.asList(filter));
-        testPaginationRequest.setLogicOperator("AND");
-
-        List<Package> packageList = Arrays.asList(testPackage);
-        Page<Package> packagePage = new PageImpl<>(packageList, PageRequest.of(0, 10, Sort.by("packageId")), 1);
-
-        when(packageFilterQueryBuilder.getColumnType("packageName")).thenReturn("string");
-        when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                eq(TEST_CLIENT_ID), isNull(), eq("AND"), eq(Arrays.asList(filter)), eq(false), any(Pageable.class)))
-                .thenReturn(packagePage);
-
-        // Act
-        PaginationBaseResponseModel<PackageResponseModel> result = packageService
-                .getPackagesInBatches(testPaginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        verify(packageFilterQueryBuilder, times(1)).getColumnType("packageName");
-    }
-
-    @Test
-    @DisplayName("getPackagesInBatches - Success: With multiple filters AND")
-    void testGetPackagesInBatches_WithMultipleFiltersAND() {
-        // Arrange
-        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
-        filter1.setColumn("packageName");
-        filter1.setOperator("contains");
-        filter1.setValue("Test");
-
-        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
-        filter2.setColumn("packageType");
-        filter2.setOperator("contains");
-        filter2.setValue("Box");
-
-        testPaginationRequest.setFilters(Arrays.asList(filter1, filter2));
-        testPaginationRequest.setLogicOperator("AND");
-
-        List<Package> packageList = Arrays.asList(testPackage);
-        Page<Package> packagePage = new PageImpl<>(packageList, PageRequest.of(0, 10, Sort.by("packageId")), 1);
-
-        when(packageFilterQueryBuilder.getColumnType("packageName")).thenReturn("string");
-        when(packageFilterQueryBuilder.getColumnType("packageType")).thenReturn("string");
-        when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                eq(TEST_CLIENT_ID), isNull(), eq("AND"), eq(Arrays.asList(filter1, filter2)), eq(false),
-                any(Pageable.class))).thenReturn(packagePage);
-
-        // Act
-        PaginationBaseResponseModel<PackageResponseModel> result = packageService
-                .getPackagesInBatches(testPaginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        verify(packageFilterQueryBuilder, times(1)).getColumnType("packageName");
-        verify(packageFilterQueryBuilder, times(1)).getColumnType("packageType");
-    }
-
-    @Test
-    @DisplayName("getPackagesInBatches - Success: With multiple filters OR")
-    void testGetPackagesInBatches_WithMultipleFiltersOR() {
-        // Arrange
-        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
-        filter1.setColumn("packageName");
-        filter1.setOperator("contains");
-        filter1.setValue("Test");
-
-        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
-        filter2.setColumn("packageName");
-        filter2.setOperator("contains");
-        filter2.setValue("Package");
-
-        testPaginationRequest.setFilters(Arrays.asList(filter1, filter2));
-        testPaginationRequest.setLogicOperator("OR");
-
-        List<Package> packageList = Arrays.asList(testPackage);
-        Page<Package> packagePage = new PageImpl<>(packageList, PageRequest.of(0, 10, Sort.by("packageId")), 1);
-
-        when(packageFilterQueryBuilder.getColumnType("packageName")).thenReturn("string");
-        when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                eq(TEST_CLIENT_ID), isNull(), eq("OR"), eq(Arrays.asList(filter1, filter2)), eq(false),
-                any(Pageable.class))).thenReturn(packagePage);
-
-        // Act
-        PaginationBaseResponseModel<PackageResponseModel> result = packageService
-                .getPackagesInBatches(testPaginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        verify(packageFilterQueryBuilder, times(2)).getColumnType("packageName");
-    }
-
-    @Test
-    @DisplayName("getPackagesInBatches - Success: With complex filters")
-    void testGetPackagesInBatches_WithComplexFilters() {
-        // Arrange
-        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
-        filter1.setColumn("packageName");
-        filter1.setOperator("contains");
-        filter1.setValue("Test");
-
-        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
-        filter2.setColumn("packageId");
-        filter2.setOperator("greaterThan");
-        filter2.setValue("0");
-
-        testPaginationRequest.setFilters(Arrays.asList(filter1, filter2));
-        testPaginationRequest.setLogicOperator("AND");
-
-        List<Package> packageList = Arrays.asList(testPackage);
-        Page<Package> packagePage = new PageImpl<>(packageList, PageRequest.of(0, 10, Sort.by("packageId")), 1);
-
-        when(packageFilterQueryBuilder.getColumnType("packageName")).thenReturn("string");
-        when(packageFilterQueryBuilder.getColumnType("packageId")).thenReturn("number");
-        when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                eq(TEST_CLIENT_ID), isNull(), eq("AND"), eq(Arrays.asList(filter1, filter2)), eq(false),
-                any(Pageable.class))).thenReturn(packagePage);
-
-        // Act
-        PaginationBaseResponseModel<PackageResponseModel> result = packageService
-                .getPackagesInBatches(testPaginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        verify(packageFilterQueryBuilder, times(1)).getColumnType("packageName");
-        verify(packageFilterQueryBuilder, times(1)).getColumnType("packageId");
-    }
-
-    // ==================== getPackageById Tests ====================
+    @Nested
+    @DisplayName("GetPackageById Tests")
+    class GetPackageByIdTests {
 
     @Test
     @DisplayName("getPackageById - Success: Valid package ID")
@@ -365,7 +224,7 @@ class PackageServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(TEST_PACKAGE_ID, result.getPackageId());
-        assertEquals(TEST_PACKAGE_NAME, result.getPackageName());
+        assertEquals(DEFAULT_PACKAGE_NAME, result.getPackageName());
     }
 
     @Test
@@ -380,12 +239,15 @@ class PackageServiceTest {
 
         assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, exception.getMessage());
     }
+    }
 
-    // ==================== getAllPackagesInSystem Tests ====================
+    @Nested
+    @DisplayName("GetAllPackagesInSystem Tests")
+    class GetAllPackagesInSystemTests {
 
     @Test
-    @DisplayName("getAllPackagesInSystem - Success: Returns all packages")
-    void testGetAllPackagesInSystem_Success() {
+    @DisplayName("Get All Packages In System - Success - Returns all packages")
+    void getAllPackagesInSystem_Success() {
         // Arrange
         List<Package> packageList = Arrays.asList(testPackage);
         when(packageRepository.findAll()).thenReturn(packageList);
@@ -398,12 +260,15 @@ class PackageServiceTest {
         assertEquals(1, result.size());
         assertEquals(TEST_PACKAGE_ID, result.get(0).getPackageId());
     }
+    }
 
-    // ==================== togglePackage Tests ====================
+    @Nested
+    @DisplayName("TogglePackage Tests")
+    class TogglePackageTests {
 
     @Test
-    @DisplayName("togglePackage - Success: Toggle package status")
-    void testTogglePackage_Success() {
+    @DisplayName("Toggle Package - Success - Toggles package status")
+    void togglePackage_Success() {
         // Arrange
         when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
         when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
@@ -433,12 +298,15 @@ class PackageServiceTest {
         assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, exception.getMessage());
         verify(packageRepository, never()).save(any());
     }
+    }
 
-    // ==================== updatePackage Tests ====================
+    @Nested
+    @DisplayName("UpdatePackage Tests")
+    class UpdatePackageTests {
 
     @Test
-    @DisplayName("updatePackage - Success: Valid update request")
-    void testUpdatePackage_Success() {
+    @DisplayName("Update Package - Success - Valid update request")
+    void updatePackage_Success() {
         // Arrange
         when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
         when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
@@ -477,17 +345,18 @@ class PackageServiceTest {
         testPackageRequest.setPackageName(null);
 
         // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> packageService.updatePackage(testPackageRequest));
-
-        assertTrue(exception.getMessage().contains("Package name"));
+        assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidPackageName,
+            () -> packageService.updatePackage(testPackageRequest));
+    }
     }
 
-    // ==================== createPackage Tests ====================
+    @Nested
+    @DisplayName("CreatePackage Tests")
+    class CreatePackageTests {
 
     @Test
-    @DisplayName("createPackage - Success: Valid create request")
-    void testCreatePackage_Success() {
+    @DisplayName("Create Package - Success - Valid create request")
+    void createPackage_Success() {
         // Arrange
         when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
 
@@ -509,17 +378,18 @@ class PackageServiceTest {
         testPackageRequest.setPackageName(null);
 
         // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> packageService.createPackage(testPackageRequest));
-
-        assertTrue(exception.getMessage().contains("Package name"));
+        assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidPackageName,
+            () -> packageService.createPackage(testPackageRequest));
+    }
     }
 
-    // ==================== getPackagesByPickupLocationId Tests ====================
+    @Nested
+    @DisplayName("GetPackagesByPickupLocationId Tests")
+    class GetPackagesByPickupLocationIdTests {
 
     @Test
-    @DisplayName("getPackagesByPickupLocationId - Success: Returns packages for pickup location")
-    void testGetPackagesByPickupLocationId_Success() {
+    @DisplayName("Get Packages By Pickup Location Id - Success - Returns packages for pickup location")
+    void getPackagesByPickupLocationId_Success() {
         // Arrange
         when(pickupLocationRepository.countByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
                 .thenReturn(1L); // Pickup location exists
@@ -556,8 +426,11 @@ class PackageServiceTest {
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
+    }
 
-    // ==================== Bulk Create Packages Tests ====================
+    @Nested
+    @DisplayName("BulkCreatePackages Tests")
+    class BulkCreatePackagesTests {
 
     @Test
     @DisplayName("Bulk Create Packages - Success - All valid packages")
@@ -1068,7 +941,7 @@ class PackageServiceTest {
         requests.add(testPackageRequest);
         
         when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
-        BulkInsertResponseModel result = packageService.bulkCreatePackages(requests);
+        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
         
         assertNotNull(result);
         assertTrue(result.getSuccessCount() >= 0);
@@ -1093,7 +966,7 @@ class PackageServiceTest {
         }
         
         when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
-        BulkInsertResponseModel result = packageService.bulkCreatePackages(requests);
+        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
         assertNotNull(result);
     }
 
@@ -1111,8 +984,323 @@ class PackageServiceTest {
             requests.add(req);
         }
         
-        BulkInsertResponseModel result = packageService.bulkCreatePackages(requests);
+        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
         assertNotNull(result);
         assertEquals(5, result.getTotalRequested());
     }
+
+    // ==================== Comprehensive Package Validation Tests ====================
+
+    @Nested
+    @DisplayName("Get Packages - Pagination Validation Tests")
+    class GetPackagesPaginationTests {
+
+        @Test
+        @DisplayName("Get Packages - Invalid pagination (end <= start) - Throws BadRequestException")
+        void getPackages_EndLessThanStart_ThrowsBadRequest() {
+            PaginationBaseRequestModel request = createValidPaginationRequest();
+            request.setStart(100);
+            request.setEnd(50);
+
+            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                    () -> packageService.getPackagesInBatches(request));
+        }
+
+        @Test
+        @DisplayName("Get Packages - Start equals End - Throws BadRequestException")
+        void getPackages_StartEqualsEnd_ThrowsBadRequest() {
+            PaginationBaseRequestModel request = createValidPaginationRequest();
+            request.setStart(50);
+            request.setEnd(50);
+
+            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                    () -> packageService.getPackagesInBatches(request));
+        }
+
+        @Test
+        @DisplayName("Get Packages - Negative start - Throws BadRequestException")
+        void getPackages_NegativeStart_ThrowsBadRequest() {
+            PaginationBaseRequestModel request = createValidPaginationRequest();
+            request.setStart(-10);
+            request.setEnd(20);
+
+            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                    () -> packageService.getPackagesInBatches(request));
+        }
+
+        @Test
+        @DisplayName("Get Packages - Valid pagination - Success")
+        void getPackages_ValidPagination_Success() {
+            PaginationBaseRequestModel request = createValidPaginationRequest();
+            request.setStart(0);
+            request.setEnd(15);
+
+            Page<Package> page = new PageImpl<>(Collections.singletonList(testPackage));
+            when(packageRepository.findByClientIdAndIsDeletedFalse(eq(TEST_CLIENT_ID), any(Pageable.class)))
+                    .thenReturn(page);
+
+            PaginationBaseResponseModel<PackageResponseModel> result = packageService.getPackagesInBatches(request);
+
+            assertNotNull(result);
+            assertEquals(1, result.getData().size());
+        }
+    }
+
+    @Nested
+    @DisplayName("Create Package - Validation Tests")
+    class CreatePackageValidationTests {
+
+        @Test
+        @DisplayName("Create Package - Null request - Throws BadRequestException")
+        void createPackage_NullRequest_ThrowsBadRequest() {
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidRequest,
+                    () -> packageService.createPackage(null));
+        }
+
+        @Test
+        @DisplayName("Create Package - Null package name - Throws BadRequestException")
+        void createPackage_NullName_ThrowsBadRequest() {
+            testPackageRequest.setPackageName(null);
+
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidPackageName,
+                    () -> packageService.createPackage(testPackageRequest));
+        }
+
+        @Test
+        @DisplayName("Create Package - Empty package name - Throws BadRequestException")
+        void createPackage_EmptyName_ThrowsBadRequest() {
+            testPackageRequest.setPackageName("");
+
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidPackageName,
+                    () -> packageService.createPackage(testPackageRequest));
+        }
+
+        @Test
+        @DisplayName("Create Package - Null package type - Throws BadRequestException")
+        void createPackage_NullType_ThrowsBadRequest() {
+            testPackageRequest.setPackageType(null);
+
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidPackageType,
+                    () -> packageService.createPackage(testPackageRequest));
+        }
+
+        @Test
+        @DisplayName("Create Package - Empty package type - Throws BadRequestException")
+        void createPackage_EmptyType_ThrowsBadRequest() {
+            testPackageRequest.setPackageType("");
+
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidPackageType,
+                    () -> packageService.createPackage(testPackageRequest));
+        }
+
+        @Test
+        @DisplayName("Create Package - Zero length - Throws BadRequestException")
+        void createPackage_ZeroLength_ThrowsBadRequest() {
+            testPackageRequest.setLength(0);
+
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidDimensions,
+                    () -> packageService.createPackage(testPackageRequest));
+        }
+
+        @Test
+        @DisplayName("Create Package - Negative length - Throws BadRequestException")
+        void createPackage_NegativeLength_ThrowsBadRequest() {
+            testPackageRequest.setLength(-5);
+
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidDimensions,
+                    () -> packageService.createPackage(testPackageRequest));
+        }
+
+        @Test
+        @DisplayName("Create Package - Zero breadth - Throws BadRequestException")
+        void createPackage_ZeroBreadth_ThrowsBadRequest() {
+            testPackageRequest.setBreadth(0);
+
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidDimensions,
+                    () -> packageService.createPackage(testPackageRequest));
+        }
+
+        @Test
+        @DisplayName("Create Package - Negative breadth - Throws BadRequestException")
+        void createPackage_NegativeBreadth_ThrowsBadRequest() {
+            testPackageRequest.setBreadth(-10);
+
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidDimensions,
+                    () -> packageService.createPackage(testPackageRequest));
+        }
+
+        @Test
+        @DisplayName("Create Package - Zero height - Throws BadRequestException")
+        void createPackage_ZeroHeight_ThrowsBadRequest() {
+            testPackageRequest.setHeight(0);
+
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidDimensions,
+                    () -> packageService.createPackage(testPackageRequest));
+        }
+
+        @Test
+        @DisplayName("Create Package - Negative height - Throws BadRequestException")
+        void createPackage_NegativeHeight_ThrowsBadRequest() {
+            testPackageRequest.setHeight(-20);
+
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidDimensions,
+                    () -> packageService.createPackage(testPackageRequest));
+        }
+
+        @Test
+        @DisplayName("Create Package - Zero price - Throws BadRequestException")
+        void createPackage_ZeroPrice_ThrowsBadRequest() {
+            testPackageRequest.setPricePerUnit(BigDecimal.ZERO);
+
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidPrice,
+                    () -> packageService.createPackage(testPackageRequest));
+        }
+
+        @Test
+        @DisplayName("Create Package - Negative price - Throws BadRequestException")
+        void createPackage_NegativePrice_ThrowsBadRequest() {
+            testPackageRequest.setPricePerUnit(BigDecimal.valueOf(-100));
+
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidPrice,
+                    () -> packageService.createPackage(testPackageRequest));
+        }
+
+        @Test
+        @DisplayName("Create Package - Zero capacity - Throws BadRequestException")
+        void createPackage_ZeroCapacity_ThrowsBadRequest() {
+            testPackageRequest.setStandardCapacity(0);
+
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidCapacity,
+                    () -> packageService.createPackage(testPackageRequest));
+        }
+
+        @Test
+        @DisplayName("Create Package - Negative capacity - Throws BadRequestException")
+        void createPackage_NegativeCapacity_ThrowsBadRequest() {
+            testPackageRequest.setStandardCapacity(-5);
+
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidCapacity,
+                    () -> packageService.createPackage(testPackageRequest));
+        }
+
+        @Test
+        @DisplayName("Create Package - Valid request - Success")
+        void createPackage_ValidRequest_Success() {
+            when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
+
+            PackageResponseModel result = packageService.createPackage(testPackageRequest);
+
+            assertNotNull(result);
+            verify(packageRepository).save(any(Package.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("Get Package By ID - Validation Tests")
+    class GetPackageByIdValidationTests {
+
+        @Test
+        @DisplayName("Get Package - Null ID - Throws BadRequestException")
+        void getPackageById_NullId_ThrowsBadRequest() {
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidId,
+                    () -> packageService.getPackageById(null));
+        }
+
+        @Test
+        @DisplayName("Get Package - Zero ID - Throws BadRequestException")
+        void getPackageById_ZeroId_ThrowsBadRequest() {
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidId,
+                    () -> packageService.getPackageById(0L));
+        }
+
+        @Test
+        @DisplayName("Get Package - Negative ID - Throws BadRequestException")
+        void getPackageById_NegativeId_ThrowsBadRequest() {
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidId,
+                    () -> packageService.getPackageById(-100L));
+        }
+
+        @Test
+        @DisplayName("Get Package - Not found - Throws NotFoundException")
+        void getPackageById_NotFound_ThrowsNotFound() {
+            when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThrowsNotFound(String.format(ErrorMessages.PackageErrorMessages.NotFound, TEST_PACKAGE_ID),
+                    () -> packageService.getPackageById(TEST_PACKAGE_ID));
+        }
+
+        @Test
+        @DisplayName("Get Package - Success - Returns package")
+        void getPackageById_ValidId_Success() {
+            when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID))
+                    .thenReturn(Optional.of(testPackage));
+
+            PackageResponseModel result = packageService.getPackageById(TEST_PACKAGE_ID);
+
+            assertNotNull(result);
+        }
+    }
+
+    @Nested
+    @DisplayName("Bulk Create Packages - Validation Tests")
+    class BulkCreatePackagesValidationTests {
+
+        @Test
+        @DisplayName("Bulk Create - Null list - Throws BadRequestException")
+        void bulkCreate_NullList_ThrowsBadRequest() {
+            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidRequest,
+                    () -> packageService.bulkCreatePackages(null));
+        }
+
+        @Test
+        @DisplayName("Bulk Create - Empty list - Success (returns empty)")
+        void bulkCreate_EmptyList_Success() {
+            BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(Collections.emptyList());
+
+            assertNotNull(result);
+            assertEquals(0, result.getTotalRequested());
+        }
+
+        @Test
+        @DisplayName("Bulk Create - Mixed valid and invalid items - Partial success")
+        void bulkCreate_MixedValidInvalid_PartialSuccess() {
+            List<PackageRequestModel> requests = new ArrayList<>();
+            
+            // Valid item
+            requests.add(createValidPackageRequest(1L, TEST_CLIENT_ID));
+            
+            // Invalid item (null name)
+            PackageRequestModel invalid = createValidPackageRequest(2L, TEST_CLIENT_ID);
+            invalid.setPackageName(null);
+            requests.add(invalid);
+            
+            // Valid item
+            requests.add(createValidPackageRequest(3L, TEST_CLIENT_ID));
+
+            when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
+
+            BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
+
+            assertNotNull(result);
+            assertEquals(3, result.getTotalRequested());
+        }
+
+        @Test
+        @DisplayName("Bulk Create - 50 valid items - All succeed")
+        void bulkCreate_ManyValidItems_Success() {
+            List<PackageRequestModel> requests = new ArrayList<>();
+            for (int i = 0; i < 50; i++) {
+                requests.add(createValidPackageRequest((long)i, TEST_CLIENT_ID));
+            }
+
+            when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
+
+            BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
+
+            assertNotNull(result);
+            assertEquals(50, result.getTotalRequested());
+        }
+    }
+
 }

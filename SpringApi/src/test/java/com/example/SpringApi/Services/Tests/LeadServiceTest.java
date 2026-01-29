@@ -5,6 +5,7 @@ import com.example.SpringApi.Models.DatabaseModels.Address;
 import com.example.SpringApi.Models.DatabaseModels.Lead;
 import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
 import com.example.SpringApi.Models.ResponseModels.LeadResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Repositories.AddressRepository;
@@ -121,133 +122,79 @@ class LeadServiceTest extends BaseTest {
     @DisplayName("GetLeadsInBatches Tests")
     class GetLeadsInBatchesTests {
 
+        /**
+         * Single comprehensive unit test for getLeadsInBatches.
+         * Covers: (1) invalid pagination → BadRequestException with message,
+         * (2) success without filters, (3) triple-loop validation over all valid
+         * column×operator×type combinations plus invalid column/operator/value combinations.
+         */
         @Test
-        @DisplayName("Get Leads In Batches - Success - Simple retrieval without extra filters")
-        void getLeadsInBatches_Success() {
-            // Arrange
+        @DisplayName("Get Leads In Batches - Invalid pagination, success no filters, and triple-loop filter validation")
+        void getLeadsInBatches_SingleComprehensiveTest() {
+            // ---- (1) Invalid pagination: end <= start ----
+            testLeadRequest.setStart(10);
+            testLeadRequest.setEnd(5);
+            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                    () -> leadService.getLeadsInBatches(testLeadRequest));
+
+            // ---- (2) Success: simple retrieval without filters ----
+            testLeadRequest.setStart(0);
+            testLeadRequest.setEnd(10);
+            testLeadRequest.setFilters(null);
             List<Lead> leadList = Collections.singletonList(testLead);
             Page<Lead> leadPage = new PageImpl<>(leadList, PageRequest.of(0, 10), 1);
-
             when(leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
                     anyLong(), anyString(), any(), anyBoolean(), any(Pageable.class)))
                     .thenReturn(leadPage);
-
-            // Act
             PaginationBaseResponseModel<LeadResponseModel> result = leadService.getLeadsInBatches(testLeadRequest);
-
-            // Assert
             assertNotNull(result);
             assertEquals(1, result.getData().size());
             assertEquals(testLead.getLeadId(), result.getData().get(0).getLeadId());
-        }
 
-        @Test
-        @DisplayName("Get Leads In Batches - Invalid Pagination - ThrowsBadRequestException")
-        void getLeadsInBatches_InvalidPagination_ThrowsBadRequestException() {
-            // Arrange
-            testLeadRequest.setStart(10);
-            testLeadRequest.setEnd(5); // Invalid range
+            // ---- (3) Triple-loop: valid columns × operators × types + invalid combinations ----
+            String[] stringColumns = LEAD_STRING_COLUMNS;
+            String[] numberColumns = LEAD_NUMBER_COLUMNS;
+            String[] booleanColumns = LEAD_BOOLEAN_COLUMNS;
+            String[] dateColumns = LEAD_DATE_COLUMNS;
+            String[] invalidColumns = BATCH_INVALID_COLUMNS;
+            String[] stringOperators = BATCH_STRING_OPERATORS;
+            String[] numberOperators = BATCH_NUMBER_OPERATORS;
+            String[] booleanOperators = BATCH_BOOLEAN_OPERATORS;
+            String[] dateOperators = BATCH_DATE_OPERATORS;
+            String[] invalidOperators = BATCH_INVALID_OPERATORS;
+            String[] validValues = BATCH_VALID_VALUES;
+            String[] emptyValues = BATCH_EMPTY_VALUES;
 
-            // Act & Assert
-            assertThrows(BadRequestException.class, () -> leadService.getLeadsInBatches(testLeadRequest));
-        }
-
-        /**
-         * Comprehensive Triple Loop Test for Filter Validation.
-         * Iterates through combinations of Columns, Operators, and Values to ensure
-         * robust validation in the service layer.
-         */
-        @Test
-        @DisplayName("Get Leads In Batches - Filter Logic Triple Loop Validation")
-        void getLeadsInBatches_TripleLoopValidation() {
-            // 1. Columns by Type
-            String[] stringColumns = { "firstName", "email", "company", "annualRevenue", "fax", "lastName",
-                    "leadStatus", "phone", "title", "website", "notes", "createdUser", "modifiedUser" };
-            String[] numberColumns = { "leadId", "companySize", "clientId", "addressId", "createdById",
-                    "assignedAgentId" };
-            String[] booleanColumns = { "isDeleted" };
-            String[] dateColumns = { "createdAt", "updatedAt" };
-            String[] invalidColumns = { "invalidCol", "DROP TABLE" };
-
-            // 2. Operators by Type Compatibility
-            String[] stringOperators = {
-                    PaginationBaseRequestModel.OP_CONTAINS, PaginationBaseRequestModel.OP_EQUALS,
-                    PaginationBaseRequestModel.OP_STARTS_WITH, PaginationBaseRequestModel.OP_ENDS_WITH,
-                    PaginationBaseRequestModel.OP_IS_EMPTY, PaginationBaseRequestModel.OP_IS_NOT_EMPTY,
-                    PaginationBaseRequestModel.OP_IS_ONE_OF, PaginationBaseRequestModel.OP_IS_NOT_ONE_OF,
-                    PaginationBaseRequestModel.OP_CONTAINS_ONE_OF
-            };
-
-            String[] numberOperators = {
-                    PaginationBaseRequestModel.OP_EQUAL, PaginationBaseRequestModel.OP_NOT_EQUAL,
-                    PaginationBaseRequestModel.OP_GREATER_THAN, PaginationBaseRequestModel.OP_GREATER_THAN_OR_EQUAL,
-                    PaginationBaseRequestModel.OP_LESS_THAN, PaginationBaseRequestModel.OP_LESS_THAN_OR_EQUAL,
-                    PaginationBaseRequestModel.OP_IS_EMPTY, PaginationBaseRequestModel.OP_IS_NOT_EMPTY,
-                    PaginationBaseRequestModel.OP_NUMBER_IS_ONE_OF, PaginationBaseRequestModel.OP_NUMBER_IS_NOT_ONE_OF
-            };
-
-            String[] booleanOperators = { PaginationBaseRequestModel.OP_IS };
-
-            String[] dateOperators = {
-                    PaginationBaseRequestModel.OP_IS, PaginationBaseRequestModel.OP_IS_NOT,
-                    PaginationBaseRequestModel.OP_IS_AFTER, PaginationBaseRequestModel.OP_IS_ON_OR_AFTER,
-                    PaginationBaseRequestModel.OP_IS_BEFORE, PaginationBaseRequestModel.OP_IS_ON_OR_BEFORE,
-                    PaginationBaseRequestModel.OP_IS_EMPTY, PaginationBaseRequestModel.OP_IS_NOT_EMPTY
-            };
-
-            String[] invalidOperators = { "INVALID_OP", "Unknown" };
-
-            // 3. Values
-            String[] validValues = { "test", "100", "2023-01-01", "true" };
-            String[] emptyValues = { null, "" };
-
-            // Setup common mocks
             Page<Lead> emptyPage = new PageImpl<>(Collections.emptyList());
             lenient().when(leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(anyLong(), any(), any(),
                     anyBoolean(), any())).thenReturn(emptyPage);
-
-            // Mock column types
             lenient()
-                    .when(leadFilterQueryBuilder
-                            .getColumnType(argThat(arg -> Arrays.asList(stringColumns).contains(arg))))
+                    .when(leadFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(stringColumns).contains(arg))))
                     .thenReturn("string");
             lenient()
-                    .when(leadFilterQueryBuilder
-                            .getColumnType(argThat(arg -> Arrays.asList(numberColumns).contains(arg))))
+                    .when(leadFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(numberColumns).contains(arg))))
                     .thenReturn("number");
             lenient()
-                    .when(leadFilterQueryBuilder
-                            .getColumnType(argThat(arg -> Arrays.asList(booleanColumns).contains(arg))))
+                    .when(leadFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(booleanColumns).contains(arg))))
                     .thenReturn("boolean");
             lenient()
-                    .when(leadFilterQueryBuilder
-                            .getColumnType(argThat(arg -> Arrays.asList(dateColumns).contains(arg))))
+                    .when(leadFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(dateColumns).contains(arg))))
                     .thenReturn("date");
 
-            // Combine all inputs
             String[] allColumns = joinArrays(stringColumns, numberColumns, booleanColumns, dateColumns, invalidColumns);
-            String[] allOperators = joinArrays(stringOperators, numberOperators, booleanOperators, dateOperators,
-                    invalidOperators);
-            // Use set to dedup operators for the loop to avoid redundant checks
+            String[] allOperators = joinArrays(stringOperators, numberOperators, booleanOperators, dateOperators, invalidOperators);
             Set<String> uniqueOperators = new HashSet<>(Arrays.asList(allOperators));
+            String[] allValues = joinArrays(validValues, emptyValues);
 
-            // Loop 1: Columns
             for (String column : allColumns) {
-                // Loop 2: Operators
                 for (String operator : uniqueOperators) {
-                    // Loop 3: Values
-                    for (String value : joinArrays(validValues, emptyValues)) {
-
-                        // Prepare Request
-                        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
-                        filter.setColumn(column);
-                        filter.setOperator(operator);
-                        filter.setValue(value);
+                    for (String value : allValues) {
+                        testLeadRequest.setStart(0);
+                        testLeadRequest.setEnd(10);
+                        FilterCondition filter = createFilterCondition(column, operator, value);
                         testLeadRequest.setFilters(Collections.singletonList(filter));
 
-                        // 4. Determine Validity
                         boolean isColumnKnown = !Arrays.asList(invalidColumns).contains(column);
-
                         boolean isValidForString = Arrays.asList(stringColumns).contains(column)
                                 && Arrays.asList(stringOperators).contains(operator);
                         boolean isValidForNumber = Arrays.asList(numberColumns).contains(column)
@@ -256,63 +203,30 @@ class LeadServiceTest extends BaseTest {
                                 && Arrays.asList(booleanOperators).contains(operator);
                         boolean isValidForDate = Arrays.asList(dateColumns).contains(column)
                                 && Arrays.asList(dateOperators).contains(operator);
+                        boolean isOperatorValidForType = isValidForString || isValidForNumber || isValidForBoolean || isValidForDate;
 
-                        boolean isOperatorValidForType = isValidForString || isValidForNumber || isValidForBoolean
-                                || isValidForDate;
+                        boolean isValueRequired = !PaginationBaseRequestModel.OP_IS_EMPTY.equals(operator)
+                                && !PaginationBaseRequestModel.OP_IS_NOT_EMPTY.equals(operator);
+                        boolean isValuePresent = value != null;
+                        boolean shouldSucceed = isColumnKnown && isOperatorValidForType && (!isValueRequired || isValuePresent);
 
-                        // Check value requirement
-                        boolean isValueRequired = true;
-                        if (operator.equals(PaginationBaseRequestModel.OP_IS_EMPTY) ||
-                                operator.equals(PaginationBaseRequestModel.OP_IS_NOT_EMPTY)) {
-                            isValueRequired = false;
-                        }
-
-                        boolean isValuePresent = value != null; // Service allows empty strings as "present" usually, or
-                                                                // at least doesn't throw immediate NPE before logic
-
-                        boolean shouldSucceed = isColumnKnown && isOperatorValidForType
-                                && (!isValueRequired || isValuePresent);
-
-                        // Execute
                         try {
                             leadService.getLeadsInBatches(testLeadRequest);
-
                             if (!shouldSucceed) {
-                                // Fail if it succeeded but shouldn't have
-                                String reason = "";
-                                if (!isColumnKnown)
-                                    reason = "Invalid column: " + column;
-                                else if (!isOperatorValidForType)
-                                    reason = "Invalid operator '" + operator + "' for column '" + column + "'";
-                                else if (isValueRequired && !isValuePresent)
-                                    reason = "Missing value for operator " + operator;
-
+                                String reason = !isColumnKnown ? "Invalid column: " + column
+                                        : !isOperatorValidForType ? "Invalid operator '" + operator + "' for column '" + column + "'"
+                                        : "Missing value for operator " + operator;
                                 fail("Expected failure but succeeded. Context: " + reason);
                             }
                         } catch (BadRequestException | IllegalArgumentException e) {
                             if (shouldSucceed) {
-                                fail("Expected success but failed: Col=" + column + " Op=" + operator + " Val=" + value
-                                        + ". Error: " + e.getMessage());
+                                fail("Expected success but failed: Col=" + column + " Op=" + operator + " Val=" + value + ". Error: " + e.getMessage());
                             }
                         }
                     }
                 }
             }
         }
-    }
-
-    // Helper to join arrays
-    private String[] joinArrays(String[]... arrays) {
-        int length = 0;
-        for (String[] array : arrays)
-            length += array.length;
-        String[] result = new String[length];
-        int offset = 0;
-        for (String[] array : arrays) {
-            System.arraycopy(array, 0, result, offset, array.length);
-            offset += array.length;
-        }
-        return result;
     }
 
     // ==================== GET LEAD DETAILS TESTS ====================
@@ -573,7 +487,7 @@ class LeadServiceTest extends BaseTest {
         @Test
         @DisplayName("Create Lead - Null Request - ThrowsBadRequestException")
         void createLead_NullRequest_ThrowsBadRequestException() {
-            assertThrows(BadRequestException.class, () -> leadService.createLead(null));
+            assertThrowsBadRequest(ErrorMessages.LeadsErrorMessages.ER009, () -> leadService.createLead(null));
         }
 
         @Test
@@ -836,12 +750,9 @@ class LeadServiceTest extends BaseTest {
         @Test
         @DisplayName("Update Lead - Null Request - ThrowsBadRequestException")
         void updateLead_NullRequest_ThrowsBadRequestException() {
-            // Arrange
             when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID))
                     .thenReturn(testLead);
-
-            // Act & Assert
-            assertThrows(BadRequestException.class, () -> leadService.updateLead(DEFAULT_LEAD_ID, null));
+            assertThrowsBadRequest(ErrorMessages.LeadsErrorMessages.ER009, () -> leadService.updateLead(DEFAULT_LEAD_ID, null));
         }
 
         @Test
@@ -1015,11 +926,250 @@ class LeadServiceTest extends BaseTest {
             assertFalse(testLead.getIsDeleted());
             verify(leadRepository, times(2)).save(testLead);
         }
-    }
 
-    // Helper method for asserting BadRequestException with specific message
-    private void assertThrowsBadRequest(String expectedMessage, org.junit.jupiter.api.function.Executable executable) {
-        BadRequestException ex = assertThrows(BadRequestException.class, executable);
-        assertEquals(expectedMessage, ex.getMessage());
-    }
+        // ==================== Comprehensive Validation Tests - Added ====================
+
+        @Test
+        @DisplayName("Create Lead - Null Request - Throws BadRequestException")
+        void createLead_NullRequest_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.createLead(null));
+            assertTrue(ex.getMessage().contains("request") || ex.getMessage().contains("invalid"));
+            verify(leadRepository, never()).save(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Create Lead - Null Lead Name - Throws BadRequestException")
+        void createLead_NullLeadName_ThrowsBadRequestException() {
+            testLeadRequest.setLeadName(null);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.createLead(testLeadRequest));
+            assertTrue(ex.getMessage().contains("name") || ex.getMessage().contains("invalid"));
+            verify(leadRepository, never()).save(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Create Lead - Empty Lead Name - Throws BadRequestException")
+        void createLead_EmptyLeadName_ThrowsBadRequestException() {
+            testLeadRequest.setLeadName("");
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.createLead(testLeadRequest));
+            assertTrue(ex.getMessage().contains("name") || ex.getMessage().contains("empty"));
+            verify(leadRepository, never()).save(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Create Lead - Null Email - Throws BadRequestException")
+        void createLead_NullEmail_ThrowsBadRequestException() {
+            testLeadRequest.setEmail(null);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.createLead(testLeadRequest));
+            assertTrue(ex.getMessage().contains("email") || ex.getMessage().contains("invalid"));
+            verify(leadRepository, never()).save(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Create Lead - Invalid Email Format - Throws BadRequestException")
+        void createLead_InvalidEmailFormat_ThrowsBadRequestException() {
+            testLeadRequest.setEmail("invalid-email");
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.createLead(testLeadRequest));
+            assertTrue(ex.getMessage().contains("email") || ex.getMessage().contains("invalid"));
+            verify(leadRepository, never()).save(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Create Lead - Negative Client ID - Throws BadRequestException")
+        void createLead_NegativeClientId_ThrowsBadRequestException() {
+            testLeadRequest.setClientId(-1L);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.createLead(testLeadRequest));
+            assertTrue(ex.getMessage().contains("client") || ex.getMessage().contains("invalid"));
+            verify(leadRepository, never()).save(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Update Lead - Negative Lead ID - Throws NotFoundException")
+        void updateLead_NegativeLeadId_ThrowsNotFoundException() {
+            testLeadRequest.setLeadId(-1L);
+            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(-1L, TEST_CLIENT_ID))
+                    .thenReturn(null);
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> leadService.updateLead(testLeadRequest));
+            assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
+            verify(leadRepository, never()).save(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Update Lead - Zero Lead ID - Throws NotFoundException")
+        void updateLead_ZeroLeadId_ThrowsNotFoundException() {
+            testLeadRequest.setLeadId(0L);
+            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(0L, TEST_CLIENT_ID))
+                    .thenReturn(null);
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> leadService.updateLead(testLeadRequest));
+            assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
+            verify(leadRepository, never()).save(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Update Lead - Long.MAX_VALUE Lead ID - Throws NotFoundException")
+        void updateLead_MaxLongLeadId_ThrowsNotFoundException() {
+            testLeadRequest.setLeadId(Long.MAX_VALUE);
+            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(Long.MAX_VALUE, TEST_CLIENT_ID))
+                    .thenReturn(null);
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> leadService.updateLead(testLeadRequest));
+            assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
+            verify(leadRepository, never()).save(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Delete Lead - Negative Lead ID - Throws NotFoundException")
+        void deleteLead_NegativeLeadId_ThrowsNotFoundException() {
+            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(-1L, TEST_CLIENT_ID))
+                    .thenReturn(null);
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> leadService.deleteLead(-1L));
+            assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
+            verify(leadRepository, never()).delete(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Delete Lead - Zero Lead ID - Throws NotFoundException")
+        void deleteLead_ZeroLeadId_ThrowsNotFoundException() {
+            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(0L, TEST_CLIENT_ID))
+                    .thenReturn(null);
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> leadService.deleteLead(0L));
+            assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
+            verify(leadRepository, never()).delete(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Get Lead By ID - Negative Lead ID - Throws NotFoundException")
+        void getLeadById_NegativeLeadId_ThrowsNotFoundException() {
+            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(-1L, TEST_CLIENT_ID))
+                    .thenReturn(null);
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> leadService.getLeadById(-1L));
+            assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Get Lead By ID - Zero Lead ID - Throws NotFoundException")
+        void getLeadById_ZeroLeadId_ThrowsNotFoundException() {
+            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(0L, TEST_CLIENT_ID))
+                    .thenReturn(null);
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> leadService.getLeadById(0L));
+            assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Get Leads By Status - Null Status - Throws BadRequestException")
+        void getLeadsByStatus_NullStatus_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.getLeadsByStatus(null));
+            assertTrue(ex.getMessage().contains("status") || ex.getMessage().contains("invalid"));
+        }
+
+        @Test
+        @DisplayName("Get Leads By Status - Empty Status - Throws BadRequestException")
+        void getLeadsByStatus_EmptyStatus_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.getLeadsByStatus(""));
+            assertTrue(ex.getMessage().contains("status") || ex.getMessage().contains("empty"));
+        }
+
+        @Test
+        @DisplayName("Get Leads By Client ID - Negative Client ID - Throws BadRequestException")
+        void getLeadsByClientId_NegativeClientId_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.getLeadsByClientId(-1L));
+            assertTrue(ex.getMessage().contains("client") || ex.getMessage().contains("invalid"));
+        }
+
+        @Test
+        @DisplayName("Get Leads By Client ID - Zero Client ID - Throws BadRequestException")
+        void getLeadsByClientId_ZeroClientId_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.getLeadsByClientId(0L));
+            assertTrue(ex.getMessage().contains("client") || ex.getMessage().contains("invalid"));
+        }
+
+        @Test
+        @DisplayName("Get Leads In Batches - Null Request - Throws BadRequestException")
+        void getLeadsInBatches_NullRequest_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.getLeadsInBatches(null));
+            assertTrue(ex.getMessage().contains("request") || ex.getMessage().contains("invalid"));
+        }
+
+        @Test
+        @DisplayName("Get Leads In Batches - Start Greater Than End - Throws BadRequestException")
+        void getLeadsInBatches_StartGreaterThanEnd_ThrowsBadRequestException() {
+            PaginationRequest pagination = new PaginationRequest();
+            pagination.setStart(100);
+            pagination.setEnd(10);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.getLeadsInBatches(pagination));
+            assertTrue(ex.getMessage().contains("start") || ex.getMessage().contains("end"));
+        }
+
+        @Test
+        @DisplayName("Bulk Create Leads - Empty List - Throws BadRequestException")
+        void bulkCreateLeads_EmptyList_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.bulkCreateLeads(new java.util.ArrayList<>()));
+            assertTrue(ex.getMessage().contains("empty") || ex.getMessage().contains("null"));
+            verify(leadRepository, never()).save(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Bulk Create Leads - Null List - Throws BadRequestException")
+        void bulkCreateLeads_NullList_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.bulkCreateLeads(null));
+            assertTrue(ex.getMessage().contains("empty") || ex.getMessage().contains("null"));
+            verify(leadRepository, never()).save(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Search Leads - Null Search Term - Throws BadRequestException")
+        void searchLeads_NullSearchTerm_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.searchLeads(null));
+            assertTrue(ex.getMessage().contains("search") || ex.getMessage().contains("invalid"));
+        }
+
+        @Test
+        @DisplayName("Search Leads - Empty Search Term - Throws BadRequestException")
+        void searchLeads_EmptySearchTerm_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.searchLeads(""));
+            assertTrue(ex.getMessage().contains("search") || ex.getMessage().contains("empty"));
+        }
+
+        @Test
+        @DisplayName("Update Lead Status - Negative Lead ID - Throws NotFoundException")
+        void updateLeadStatus_NegativeLeadId_ThrowsNotFoundException() {
+            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(-1L, TEST_CLIENT_ID))
+                    .thenReturn(null);
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> leadService.updateLeadStatus(-1L, "QUALIFIED"));
+            assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
+            verify(leadRepository, never()).save(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Update Lead Status - Null Status - Throws BadRequestException")
+        void updateLeadStatus_NullStatus_ThrowsBadRequestException() {
+            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID))
+                    .thenReturn(testLead);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> leadService.updateLeadStatus(DEFAULT_LEAD_ID, null));
+            assertTrue(ex.getMessage().contains("status") || ex.getMessage().contains("invalid"));
+            verify(leadRepository, never()).save(any(Lead.class));
+        }
 }

@@ -3,7 +3,6 @@ package com.example.SpringApi.FilterQueryBuilder;
 import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;

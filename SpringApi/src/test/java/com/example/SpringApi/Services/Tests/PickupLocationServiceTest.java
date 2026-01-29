@@ -7,6 +7,7 @@ import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
 import com.example.SpringApi.Models.ResponseModels.PickupLocationResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.ShippingResponseModel.AddPickupLocationResponseModel;
 import com.example.SpringApi.Repositories.AddressRepository;
@@ -25,6 +26,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -63,7 +65,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PickupLocationService Unit Tests")
-class PickupLocationServiceTest {
+class PickupLocationServiceTest extends BaseTest {
 
     @Mock
     private PickupLocationRepository pickupLocationRepository;
@@ -93,9 +95,9 @@ class PickupLocationServiceTest {
     private Address testAddress;
     private PickupLocationRequestModel testPickupLocationRequest;
     private AddPickupLocationResponseModel testShipRocketResponse;
-    private static final Long TEST_PICKUP_LOCATION_ID = 1L;
-    private static final Long TEST_ADDRESS_ID = 100L;
-    private static final Long TEST_CLIENT_ID = 1L;
+    private static final Long TEST_PICKUP_LOCATION_ID = DEFAULT_PICKUP_LOCATION_ID;
+    private static final Long TEST_ADDRESS_ID = DEFAULT_ADDRESS_ID;
+    private static final Long TEST_CLIENT_ID = DEFAULT_CLIENT_ID;
     private static final Long TEST_SHIPROCKET_ID = 300L;
     private static final String TEST_ADDRESS_NICKNAME = "Home Warehouse";
     private static final String TEST_STREET_ADDRESS = "123 Main St";
@@ -103,7 +105,7 @@ class PickupLocationServiceTest {
     private static final String TEST_STATE = "NY";
     private static final String TEST_POSTAL_CODE = "10001";
     private static final String TEST_COUNTRY = "USA";
-    private static final String CREATED_USER = "admin";
+    private static final String CREATED_USER = DEFAULT_CREATED_USER;
 
     /**
      * Sets up test data before each test execution.
@@ -201,16 +203,143 @@ class PickupLocationServiceTest {
                 TEST_CLIENT_ID);
     }
 
-    // ==================== Get Pickup Locations In Batches Tests
-    // ====================
+    // ==================== Get Pickup Locations In Batches Tests ====================
 
-    /**
-     * Test successful retrieval of pickup locations in batches.
-     * Verifies pagination and data conversion.
-     */
-    @Test
-    @DisplayName("Get Pickup Locations In Batches - Success")
-    void getPickupLocationsInBatches_Success() {
+    @Nested
+    @DisplayName("GetPickupLocationsInBatches Tests")
+    class GetPickupLocationsInBatchesTests {
+        @Test
+        @DisplayName("Get Pickup Locations In Batches - Invalid pagination, success no filters, and triple-loop filter validation")
+        void getPickupLocationsInBatches_SingleComprehensiveTest() {
+            PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
+            
+            // (1) Invalid pagination: end <= start
+            paginationRequest.setStart(10);
+            paginationRequest.setEnd(5);
+            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                    () -> pickupLocationService.getPickupLocationsInBatches(paginationRequest));
+
+            // (2) Success: simple retrieval without filters
+            paginationRequest.setStart(0);
+            paginationRequest.setEnd(10);
+            paginationRequest.setFilters(null);
+            paginationRequest.setIncludeDeleted(false);
+
+            List<PickupLocation> dataList = Collections.singletonList(testPickupLocation);
+            Page<PickupLocation> pageResult = new PageImpl<>(dataList, PageRequest.of(0, 10), 1);
+
+            lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                    anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class)))
+                    .thenReturn(pageResult);
+
+            PaginationBaseResponseModel<PickupLocationResponseModel> result = 
+                    pickupLocationService.getPickupLocationsInBatches(paginationRequest);
+
+            assertNotNull(result);
+            assertEquals(1, result.getData().size());
+            assertEquals(1, result.getTotalDataCount());
+
+            // (3) Triple-loop: valid columns × operators × types + invalid combinations
+            String[] stringCols = {"addressNickName", "locationName", "address", "notes", "createdBy", "modifiedBy"};
+            String[] numberCols = {"pickupLocationId", "pickupLocationAddressId", "shipRocketPickupLocationId"};
+            String[] booleanCols = {"isDeleted"};
+            String[] dateCols = {"createdAt", "updatedAt"};
+            String[] allColumns = new String[12];
+            System.arraycopy(stringCols, 0, allColumns, 0, stringCols.length);
+            System.arraycopy(numberCols, 0, allColumns, stringCols.length, numberCols.length);
+            System.arraycopy(booleanCols, 0, allColumns, stringCols.length + numberCols.length, booleanCols.length);
+            System.arraycopy(dateCols, 0, allColumns, stringCols.length + numberCols.length + booleanCols.length, dateCols.length);
+
+            String[] invalidColumns = BATCH_INVALID_COLUMNS;
+            String[] stringOps = BATCH_STRING_OPERATORS;
+            String[] numberOps = BATCH_NUMBER_OPERATORS;
+            String[] booleanOps = BATCH_BOOLEAN_OPERATORS;
+            String[] dateOps = BATCH_DATE_OPERATORS;
+            String[] invalidOps = BATCH_INVALID_OPERATORS;
+
+            Object[] validValues = BATCH_VALID_VALUES;
+            Object[] emptyValues = BATCH_EMPTY_VALUES;
+
+            // Test invalid columns
+            for (String invalidCol : invalidColumns) {
+                paginationRequest.setFilters(List.of(createFilterCondition(invalidCol, "equals", "test")));
+                assertThrowsBadRequest("Invalid column name: " + invalidCol,
+                        () -> pickupLocationService.getPickupLocationsInBatches(paginationRequest));
+            }
+
+            // Test valid columns with valid/invalid operators and values
+            for (String column : allColumns) {
+                String columnType = pickupLocationFilterQueryBuilder.getColumnType(column);
+                String[] validOps;
+                if (Arrays.asList(stringCols).contains(column)) {
+                    validOps = stringOps;
+                } else if (Arrays.asList(numberCols).contains(column)) {
+                    validOps = numberOps;
+                } else if (Arrays.asList(booleanCols).contains(column)) {
+                    validOps = booleanOps;
+                } else {
+                    validOps = dateOps;
+                }
+
+                // Test invalid operators
+                for (String invalidOp : invalidOps) {
+                    paginationRequest.setFilters(List.of(createFilterCondition(column, invalidOp, "test")));
+                    assertThrowsBadRequest("Invalid operator: " + invalidOp,
+                            () -> pickupLocationService.getPickupLocationsInBatches(paginationRequest));
+                }
+
+                // Test valid operators with appropriate values
+                for (String operator : validOps) {
+                    boolean shouldPass = true;
+                    Object testValue = validValues[0];
+
+                    // Boolean columns only support equals/notEquals
+                    if (columnType.equals("boolean") && !operator.equals("equals") && !operator.equals("notEquals")) {
+                        shouldPass = false;
+                    }
+
+                    // Date/number columns don't support string operators
+                    if ((columnType.equals("date") || columnType.equals("number")) && 
+                        Arrays.asList("contains", "notContains", "startsWith", "endsWith").contains(operator)) {
+                        shouldPass = false;
+                    }
+
+                    // isEmpty/isNotEmpty don't need values
+                    if (operator.equals("isEmpty") || operator.equals("isNotEmpty")) {
+                        testValue = null;
+                    }
+
+                    paginationRequest.setFilters(List.of(createFilterCondition(column, operator, testValue)));
+
+                    if (shouldPass) {
+                        lenient().when(pickupLocationFilterQueryBuilder.getColumnType(column)).thenReturn(columnType);
+                        lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                                anyLong(), isNull(), anyString(), anyList(), anyBoolean(), any(Pageable.class)))
+                                .thenReturn(new PageImpl<>(Collections.emptyList()));
+                        assertDoesNotThrow(() -> pickupLocationService.getPickupLocationsInBatches(paginationRequest));
+                    } else {
+                        // Should throw BadRequestException for invalid operator/type combination
+                        try {
+                            when(pickupLocationFilterQueryBuilder.getColumnType(column)).thenReturn(columnType);
+                            pickupLocationService.getPickupLocationsInBatches(paginationRequest);
+                            fail("Expected BadRequestException for invalid operator " + operator + " on " + columnType + " column " + column);
+                        } catch (BadRequestException e) {
+                            // Expected
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ==================== Get Pickup Location By ID Tests ====================
+
+    @Nested
+    @DisplayName("GetPickupLocationById Tests")
+    class GetPickupLocationByIdTests {
+        @Test
+        @DisplayName("Get Pickup Location By ID - Success")
+        void getPickupLocationById_Success() {
         // Arrange
         PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
         paginationRequest.setStart(0);
@@ -236,210 +365,15 @@ class PickupLocationServiceTest {
                 anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class));
     }
 
-    /**
-     * Test get pickup locations with invalid column name.
-     * Verifies that BadRequestException is thrown.
-     */
-    @Test
-    @DisplayName("Get Pickup Locations In Batches - Invalid Column")
-    void getPickupLocationsInBatches_InvalidColumn_ThrowsBadRequestException() {
-        // Arrange
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        PaginationBaseRequestModel.FilterCondition invalidFilter = new PaginationBaseRequestModel.FilterCondition();
-        invalidFilter.setColumn("invalidColumn");
-        invalidFilter.setOperator("contains");
-        invalidFilter.setValue("test");
-        paginationRequest.setFilters(Arrays.asList(invalidFilter));
-        paginationRequest.setLogicOperator("AND");
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> pickupLocationService.getPickupLocationsInBatches(paginationRequest));
-        assertTrue(exception.getMessage().contains("Invalid column name"));
-        verify(pickupLocationFilterQueryBuilder, never()).getColumnType("invalidColumn");
-    }
-
-    /**
-     * Test get pickup locations with single filter.
-     * Verifies that single filter expressions are correctly applied.
-     */
-    @Test
-    @DisplayName("Get Pickup Locations In Batches - With Single Filter")
-    void getPickupLocationsInBatches_WithSingleFilter_Success() {
-        // Arrange
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
-
-        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
-        filter.setColumn("addressNickName");
-        filter.setOperator("contains");
-        filter.setValue("Test");
-        paginationRequest.setFilters(Arrays.asList(filter));
-        paginationRequest.setLogicOperator("AND");
-
-        List<PickupLocation> dataList = Collections.singletonList(testPickupLocation);
-        Page<PickupLocation> pageResult = new PageImpl<>(dataList, PageRequest.of(0, 10), 1);
-
-        when(pickupLocationFilterQueryBuilder.getColumnType("addressNickName")).thenReturn("string");
-        lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), isNull(), anyString(), anyList(), anyBoolean(), any(Pageable.class)))
-                .thenReturn(pageResult);
-
-        // Act
-        PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService
-                .getPickupLocationsInBatches(paginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        verify(pickupLocationFilterQueryBuilder, times(1)).getColumnType("addressNickName");
-    }
-
-    /**
-     * Test get pickup locations with multiple filters using AND logic.
-     * Verifies that multiple filters combined with AND are correctly applied.
-     */
-    @Test
-    @DisplayName("Get Pickup Locations In Batches - With Multiple Filters AND")
-    void getPickupLocationsInBatches_WithMultipleFiltersAND_Success() {
-        // Arrange
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
-
-        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
-        filter1.setColumn("addressNickName");
-        filter1.setOperator("contains");
-        filter1.setValue("Test");
-
-        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
-        filter2.setColumn("notes");
-        filter2.setOperator("contains");
-        filter2.setValue("123");
-
-        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
-        paginationRequest.setLogicOperator("AND");
-
-        List<PickupLocation> dataList = Collections.singletonList(testPickupLocation);
-        Page<PickupLocation> pageResult = new PageImpl<>(dataList, PageRequest.of(0, 10), 1);
-
-        when(pickupLocationFilterQueryBuilder.getColumnType("addressNickName")).thenReturn("string");
-        when(pickupLocationFilterQueryBuilder.getColumnType("notes")).thenReturn("string");
-        lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), isNull(), anyString(), anyList(), anyBoolean(), any(Pageable.class)))
-                .thenReturn(pageResult);
-
-        // Act
-        PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService
-                .getPickupLocationsInBatches(paginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        verify(pickupLocationFilterQueryBuilder, times(1)).getColumnType("addressNickName");
-        verify(pickupLocationFilterQueryBuilder, times(1)).getColumnType("notes");
-    }
-
-    /**
-     * Test get pickup locations with multiple filters using OR logic.
-     * Verifies that multiple filters combined with OR are correctly applied.
-     */
-    @Test
-    @DisplayName("Get Pickup Locations In Batches - With Multiple Filters OR")
-    void getPickupLocationsInBatches_WithMultipleFiltersOR_Success() {
-        // Arrange
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
-
-        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
-        filter1.setColumn("addressNickName");
-        filter1.setOperator("contains");
-        filter1.setValue("Test");
-
-        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
-        filter2.setColumn("addressNickName");
-        filter2.setOperator("contains");
-        filter2.setValue("Location");
-
-        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
-        paginationRequest.setLogicOperator("OR");
-
-        List<PickupLocation> dataList = Collections.singletonList(testPickupLocation);
-        Page<PickupLocation> pageResult = new PageImpl<>(dataList, PageRequest.of(0, 10), 1);
-
-        when(pickupLocationFilterQueryBuilder.getColumnType("addressNickName")).thenReturn("string");
-        lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), isNull(), anyString(), anyList(), anyBoolean(), any(Pageable.class)))
-                .thenReturn(pageResult);
-
-        // Act
-        PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService
-                .getPickupLocationsInBatches(paginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        verify(pickupLocationFilterQueryBuilder, times(2)).getColumnType("addressNickName");
-    }
-
-    /**
-     * Test get pickup locations with complex filters (string, number).
-     * Verifies that filters with different column types are correctly validated and
-     * applied.
-     */
-    @Test
-    @DisplayName("Get Pickup Locations In Batches - With Complex Filters")
-    void getPickupLocationsInBatches_WithComplexFilters_Success() {
-        // Arrange
-        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
-        paginationRequest.setStart(0);
-        paginationRequest.setEnd(10);
-
-        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
-        filter1.setColumn("addressNickName");
-        filter1.setOperator("contains");
-        filter1.setValue("Test");
-
-        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
-        filter2.setColumn("pickupLocationId");
-        filter2.setOperator("equals");
-        filter2.setValue("1");
-
-        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
-        paginationRequest.setLogicOperator("AND");
-
-        List<PickupLocation> dataList = Collections.singletonList(testPickupLocation);
-        Page<PickupLocation> pageResult = new PageImpl<>(dataList, PageRequest.of(0, 10), 1);
-
-        when(pickupLocationFilterQueryBuilder.getColumnType("addressNickName")).thenReturn("string");
-        when(pickupLocationFilterQueryBuilder.getColumnType("pickupLocationId")).thenReturn("number");
-        lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), isNull(), anyString(), anyList(), anyBoolean(), any(Pageable.class)))
-                .thenReturn(pageResult);
-
-        // Act
-        PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService
-                .getPickupLocationsInBatches(paginationRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        verify(pickupLocationFilterQueryBuilder, times(1)).getColumnType("addressNickName");
-        verify(pickupLocationFilterQueryBuilder, times(1)).getColumnType("pickupLocationId");
-    }
 
     // ==================== Create Pickup Location Tests ====================
 
-    /**
-     * Test successful creation of pickup location.
-     * Verifies address creation, pickup location creation, ShipRocket integration,
-     * and logging.
-     */
-    @Test
-    @DisplayName("Create Pickup Location - Success")
-    void createPickupLocation_Success() throws Exception {
+    @Nested
+    @DisplayName("CreatePickupLocation Tests")
+    class CreatePickupLocationTests {
+        @Test
+        @DisplayName("Create Pickup Location - Success")
+        void createPickupLocation_Success() throws Exception {
         // Arrange
         when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
         when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
@@ -596,17 +530,17 @@ class PickupLocationServiceTest {
         verify(pickupLocationRepository, never()).save(any(PickupLocation.class));
         // Logging should not occur due to exception
         verify(userLogService, never()).logData(anyLong(), any(), any());
+        }
     }
 
     // ==================== Toggle Pickup Location Tests ====================
 
-    /**
-     * Test successful toggle of pickup location.
-     * Verifies that isDeleted flag is toggled and logging occurs.
-     */
-    @Test
-    @DisplayName("Toggle Pickup Location - Success")
-    void togglePickupLocation_Success() {
+    @Nested
+    @DisplayName("TogglePickupLocation Tests")
+    class TogglePickupLocationTests {
+        @Test
+        @DisplayName("Toggle Pickup Location - Success")
+        void togglePickupLocation_Success() {
         // Arrange
         when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
                 .thenReturn(testPickupLocation);
@@ -641,14 +575,16 @@ class PickupLocationServiceTest {
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class,
                 () -> pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID));
-        assertTrue(exception.getMessage().contains(String.valueOf(TEST_PICKUP_LOCATION_ID)));
+        assertThrowsNotFound(ErrorMessages.PickupLocationErrorMessages.NotFound,
+                () -> pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID));
         verify(pickupLocationRepository, times(1)).findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID,
                 TEST_CLIENT_ID);
+        }
     }
 
     // ==================== Validation Tests ====================
 
-    @org.junit.jupiter.api.Nested
+    @Nested
     @DisplayName("ValidationTests")
     class ValidationTests {
 
@@ -876,131 +812,20 @@ class PickupLocationServiceTest {
         assertNotNull(result);
     }
 
-    @Test
-    @DisplayName("Create Pickup Location - Address Not Found - Throws NotFoundException")
-    void createPickupLocation_AddressNotFound_Throws() {
-        when(addressRepository.findByAddressIdAndClientId(any(), any())).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
-        assertTrue(ex.getMessage().contains("not found") || ex.getMessage().contains("Address"));
+        @Test
+        @DisplayName("Create Pickup Location - Address Not Found - Throws NotFoundException")
+        void createPickupLocation_AddressNotFound_ThrowsNotFoundException() {
+            when(addressRepository.findByAddressIdAndClientId(any(), any())).thenReturn(null);
+            assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+                    () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        }
     }
 
-    // ==================== Additional GetPickupLocationsInBatches Tests ====================
+    // ==================== Bulk Create Pickup Location Tests ====================
 
-    @Test
-    @DisplayName("Get Pickup Locations In Batches - Negative Start - Throws BadRequestException")
-    void getPickupLocationsInBatches_NegativeStart_Throws() {
-        PaginationBaseRequestModel req = new PaginationBaseRequestModel();
-        req.setStart(-1);
-        req.setEnd(10);
-        
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> pickupLocationService.getPickupLocationsInBatches(req));
-        assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidRequest, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Get Pickup Locations In Batches - End Before Start - Throws BadRequestException")
-    void getPickupLocationsInBatches_EndBeforeStart_Throws() {
-        PaginationBaseRequestModel req = new PaginationBaseRequestModel();
-        req.setStart(10);
-        req.setEnd(5);
-        
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> pickupLocationService.getPickupLocationsInBatches(req));
-        assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidRequest, ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("Get Pickup Locations In Batches - Null Filters")
-    void getPickupLocationsInBatches_NullFilters_Success() {
-        PaginationBaseRequestModel req = new PaginationBaseRequestModel();
-        req.setStart(0);
-        req.setEnd(10);
-        req.setFilters(null);
-        
-        List<PickupLocation> locations = Arrays.asList(testPickupLocation);
-        Page<PickupLocation> page = new PageImpl<>(locations, PageRequest.of(0, 10), 1);
-        lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class)))
-                .thenReturn(page);
-        
-        PaginationBaseResponseModel<PickupLocation> result = pickupLocationService.getPickupLocationsInBatches(req);
-        assertNotNull(result);
-    }
-
-    @Test
-    @DisplayName("Get Pickup Locations In Batches - Empty Results")
-    void getPickupLocationsInBatches_EmptyResults_ReturnsEmpty() {
-        PaginationBaseRequestModel req = new PaginationBaseRequestModel();
-        req.setStart(0);
-        req.setEnd(10);
-        
-        List<PickupLocation> emptyList = new ArrayList<>();
-        Page<PickupLocation> emptyPage = new PageImpl<>(emptyList, PageRequest.of(0, 10), 0);
-        lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class)))
-                .thenReturn(emptyPage);
-        
-        PaginationBaseResponseModel<PickupLocation> result = pickupLocationService.getPickupLocationsInBatches(req);
-        assertNotNull(result);
-        assertEquals(0, result.getData().size());
-    }
-
-    @Test
-    @DisplayName("Get Pickup Locations In Batches - Large Page Size (1000)")
-    void getPickupLocationsInBatches_LargePageSize_Success() {
-        PaginationBaseRequestModel req = new PaginationBaseRequestModel();
-        req.setStart(0);
-        req.setEnd(1000);
-        
-        List<PickupLocation> locations = Arrays.asList(testPickupLocation);
-        Page<PickupLocation> page = new PageImpl<>(locations, PageRequest.of(0, 1000), 1);
-        lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class)))
-                .thenReturn(page);
-        
-        PaginationBaseResponseModel<PickupLocation> result = pickupLocationService.getPickupLocationsInBatches(req);
-        assertNotNull(result);
-    }
-
-    @Test
-    @DisplayName("Get Pickup Locations In Batches - Ascending Sort")
-    void getPickupLocationsInBatches_AscendingSort_Success() {
-        PaginationBaseRequestModel req = new PaginationBaseRequestModel();
-        req.setStart(0);
-        req.setEnd(10);
-        req.setIsAscending(true);
-        
-        List<PickupLocation> locations = Arrays.asList(testPickupLocation);
-        Page<PickupLocation> page = new PageImpl<>(locations, PageRequest.of(0, 10), 1);
-        lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), isNull(), anyString(), anyBoolean(), anyBoolean(), any(Pageable.class)))
-                .thenReturn(page);
-        
-        PaginationBaseResponseModel<PickupLocation> result = pickupLocationService.getPickupLocationsInBatches(req);
-        assertNotNull(result);
-    }
-
-    @Test
-    @DisplayName("Get Pickup Locations In Batches - With Search Query")
-    void getPickupLocationsInBatches_WithSearchQuery_Success() {
-        PaginationBaseRequestModel req = new PaginationBaseRequestModel();
-        req.setStart(0);
-        req.setEnd(10);
-        req.setSearchQuery("location");
-        
-        List<PickupLocation> locations = Arrays.asList(testPickupLocation);
-        Page<PickupLocation> page = new PageImpl<>(locations, PageRequest.of(0, 10), 1);
-        lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), isNull(), eq("location"), isNull(), anyBoolean(), any(Pageable.class)))
-                .thenReturn(page);
-        
-        PaginationBaseResponseModel<PickupLocation> result = pickupLocationService.getPickupLocationsInBatches(req);
-        assertNotNull(result);
-    }
-
-    // ==================== Additional BulkCreate Tests ====================
+    @Nested
+    @DisplayName("BulkCreatePickupLocations Tests")
+    class BulkCreatePickupLocationsTests {
 
     @Test
     @DisplayName("Bulk Create Pickup Locations - All Invalid Addresses")
@@ -1072,4 +897,297 @@ class PickupLocationServiceTest {
             pickupLocationService.bulkCreatePickupLocations(requests);
         });
     }
+
+    // ==================== Comprehensive Validation Tests ====================
+
+    @Nested
+    @DisplayName("Get Pickup Locations - Pagination Validation Tests")
+    class GetPickupLocationsPaginationTests {
+
+        @Test
+        @DisplayName("Get Pickup Locations - Invalid pagination (end <= start) - Throws BadRequestException")
+        void getPickupLocations_EndLessThanStart_ThrowsBadRequest() {
+            PaginationBaseRequestModel request = createValidPaginationRequest();
+            request.setStart(100);
+            request.setEnd(50);
+
+            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                    () -> pickupLocationService.getPickupLocationsInBatches(request));
+        }
+
+        @Test
+        @DisplayName("Get Pickup Locations - Start equals End - Throws BadRequestException")
+        void getPickupLocations_StartEqualsEnd_ThrowsBadRequest() {
+            PaginationBaseRequestModel request = createValidPaginationRequest();
+            request.setStart(25);
+            request.setEnd(25);
+
+            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                    () -> pickupLocationService.getPickupLocationsInBatches(request));
+        }
+
+        @Test
+        @DisplayName("Get Pickup Locations - Negative start - Throws BadRequestException")
+        void getPickupLocations_NegativeStart_ThrowsBadRequest() {
+            PaginationBaseRequestModel request = createValidPaginationRequest();
+            request.setStart(-1);
+            request.setEnd(10);
+
+            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                    () -> pickupLocationService.getPickupLocationsInBatches(request));
+        }
+
+        @Test
+        @DisplayName("Get Pickup Locations - Negative end - Throws BadRequestException")
+        void getPickupLocations_NegativeEnd_ThrowsBadRequest() {
+            PaginationBaseRequestModel request = createValidPaginationRequest();
+            request.setStart(0);
+            request.setEnd(-10);
+
+            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                    () -> pickupLocationService.getPickupLocationsInBatches(request));
+        }
+
+        @Test
+        @DisplayName("Get Pickup Locations - Valid pagination - Success")
+        void getPickupLocations_ValidPagination_Success() {
+            PaginationBaseRequestModel request = createValidPaginationRequest();
+            request.setStart(0);
+            request.setEnd(20);
+
+            Page<PickupLocation> page = new PageImpl<>(Collections.singletonList(testPickupLocation));
+            when(pickupLocationRepository.findByClientIdAndIsDeletedFalse(eq(TEST_CLIENT_ID), any(Pageable.class)))
+                    .thenReturn(page);
+
+            PaginationBaseResponseModel<PickupLocationResponseModel> result = 
+                    pickupLocationService.getPickupLocationsInBatches(request);
+
+            assertNotNull(result);
+            assertEquals(1, result.getData().size());
+        }
+    }
+
+    @Nested
+    @DisplayName("Create Pickup Location - Validation Tests")
+    class CreatePickupLocationValidationTests {
+
+        @Test
+        @DisplayName("Create Pickup Location - Null request - Throws BadRequestException")
+        void createPickupLocation_NullRequest_ThrowsBadRequest() {
+            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidRequest,
+                    () -> pickupLocationService.createPickupLocation(null));
+        }
+
+        @Test
+        @DisplayName("Create Pickup Location - Null address nickname - Throws BadRequestException")
+        void createPickupLocation_NullAddressNickname_ThrowsBadRequest() {
+            testPickupLocationRequest.setAddressNickName(null);
+
+            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickname,
+                    () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        }
+
+        @Test
+        @DisplayName("Create Pickup Location - Empty address nickname - Throws BadRequestException")
+        void createPickupLocation_EmptyAddressNickname_ThrowsBadRequest() {
+            testPickupLocationRequest.setAddressNickName("");
+
+            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickname,
+                    () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        }
+
+        @Test
+        @DisplayName("Create Pickup Location - Null shiprocket ID - Throws BadRequestException")
+        void createPickupLocation_NullShipRocketId_ThrowsBadRequest() {
+            testPickupLocationRequest.setShipRocketId(null);
+
+            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidShipRocketId,
+                    () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        }
+
+        @Test
+        @DisplayName("Create Pickup Location - Empty shiprocket ID - Throws BadRequestException")
+        void createPickupLocation_EmptyShipRocketId_ThrowsBadRequest() {
+            testPickupLocationRequest.setShipRocketId("");
+
+            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidShipRocketId,
+                    () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        }
+
+        @Test
+        @DisplayName("Create Pickup Location - Null address - Throws BadRequestException")
+        void createPickupLocation_NullAddress_ThrowsBadRequest() {
+            testPickupLocationRequest.setAddress(null);
+
+            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidAddress,
+                    () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        }
+
+        @Test
+        @DisplayName("Create Pickup Location - Success - Creates new location")
+        void createPickupLocation_ValidRequest_Success() {
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+
+            PickupLocationResponseModel result = pickupLocationService.createPickupLocation(testPickupLocationRequest);
+
+            assertNotNull(result);
+            verify(addressRepository).save(any(Address.class));
+            verify(pickupLocationRepository).save(any(PickupLocation.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("Get Pickup Location By ID - Validation Tests")
+    class GetPickupLocationByIdValidationTests {
+
+        @Test
+        @DisplayName("Get Pickup Location - Null ID - Throws BadRequestException")
+        void getPickupLocationById_NullId_ThrowsBadRequest() {
+            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidId,
+                    () -> pickupLocationService.getPickupLocationById(null));
+        }
+
+        @Test
+        @DisplayName("Get Pickup Location - Zero ID - Throws BadRequestException")
+        void getPickupLocationById_ZeroId_ThrowsBadRequest() {
+            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidId,
+                    () -> pickupLocationService.getPickupLocationById(0L));
+        }
+
+        @Test
+        @DisplayName("Get Pickup Location - Negative ID - Throws BadRequestException")
+        void getPickupLocationById_NegativeId_ThrowsBadRequest() {
+            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidId,
+                    () -> pickupLocationService.getPickupLocationById(-5L));
+        }
+
+        @Test
+        @DisplayName("Get Pickup Location - Not found - Throws NotFoundException")
+        void getPickupLocationById_NotFound_ThrowsNotFound() {
+            when(pickupLocationRepository.findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThrowsNotFound(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, TEST_PICKUP_LOCATION_ID),
+                    () -> pickupLocationService.getPickupLocationById(TEST_PICKUP_LOCATION_ID));
+        }
+
+        @Test
+        @DisplayName("Get Pickup Location - Success - Returns location details")
+        void getPickupLocationById_ValidId_Success() {
+            when(pickupLocationRepository.findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                    .thenReturn(Optional.of(testPickupLocation));
+
+            PickupLocationResponseModel result = pickupLocationService.getPickupLocationById(TEST_PICKUP_LOCATION_ID);
+
+            assertNotNull(result);
+            verify(pickupLocationRepository).findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
+        }
+    }
+
+    @Nested
+    @DisplayName("Update Pickup Location - Validation Tests")
+    class UpdatePickupLocationValidationTests {
+
+        @Test
+        @DisplayName("Update Pickup Location - Null request - Throws BadRequestException")
+        void updatePickupLocation_NullRequest_ThrowsBadRequest() {
+            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidRequest,
+                    () -> pickupLocationService.updatePickupLocation(TEST_PICKUP_LOCATION_ID, null));
+        }
+
+        @Test
+        @DisplayName("Update Pickup Location - Null ID - Throws BadRequestException")
+        void updatePickupLocation_NullId_ThrowsBadRequest() {
+            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidId,
+                    () -> pickupLocationService.updatePickupLocation(null, testPickupLocationRequest));
+        }
+
+        @Test
+        @DisplayName("Update Pickup Location - Zero ID - Throws BadRequestException")
+        void updatePickupLocation_ZeroId_ThrowsBadRequest() {
+            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidId,
+                    () -> pickupLocationService.updatePickupLocation(0L, testPickupLocationRequest));
+        }
+
+        @Test
+        @DisplayName("Update Pickup Location - Pickup location not found - Throws NotFoundException")
+        void updatePickupLocation_NotFound_ThrowsNotFound() {
+            when(pickupLocationRepository.findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThrowsNotFound(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, TEST_PICKUP_LOCATION_ID),
+                    () -> pickupLocationService.updatePickupLocation(TEST_PICKUP_LOCATION_ID, testPickupLocationRequest));
+        }
+
+        @Test
+        @DisplayName("Update Pickup Location - Valid update - Success")
+        void updatePickupLocation_ValidRequest_Success() {
+            when(pickupLocationRepository.findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                    .thenReturn(Optional.of(testPickupLocation));
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+
+            PickupLocationResponseModel result = 
+                    pickupLocationService.updatePickupLocation(TEST_PICKUP_LOCATION_ID, testPickupLocationRequest);
+
+            assertNotNull(result);
+            verify(pickupLocationRepository).save(any(PickupLocation.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("Bulk Create Pickup Locations - Validation Tests")
+    class BulkCreatePickupLocationsValidationTests {
+
+        @Test
+        @DisplayName("Bulk Create - Null list - Throws BadRequestException")
+        void bulkCreate_NullList_ThrowsBadRequest() {
+            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidRequest,
+                    () -> pickupLocationService.bulkCreatePickupLocations(null));
+        }
+
+        @Test
+        @DisplayName("Bulk Create - Empty list - Success (no-op)")
+        void bulkCreate_EmptyList_Success() {
+            assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocations(Collections.emptyList()));
+        }
+
+        @Test
+        @DisplayName("Bulk Create - Item with null nickname - Throws BadRequestException")
+        void bulkCreate_NullNicknameInItem_ThrowsBadRequest() {
+            PickupLocationRequestModel request = createValidPickupLocationRequest(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
+            request.setAddressNickName(null);
+
+            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickname,
+                    () -> pickupLocationService.bulkCreatePickupLocations(List.of(request)));
+        }
+
+        @Test
+        @DisplayName("Bulk Create - Item with null ShipRocket ID - Throws BadRequestException")
+        void bulkCreate_NullShipRocketIdInItem_ThrowsBadRequest() {
+            PickupLocationRequestModel request = createValidPickupLocationRequest(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
+            request.setShipRocketId(null);
+
+            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidShipRocketId,
+                    () -> pickupLocationService.bulkCreatePickupLocations(List.of(request)));
+        }
+
+        @Test
+        @DisplayName("Bulk Create - 100 valid items - Success")
+        void bulkCreate_LargeValidBatch_Success() {
+            List<PickupLocationRequestModel> requests = new ArrayList<>();
+            for (int i = 0; i < 100; i++) {
+                PickupLocationRequestModel req = createValidPickupLocationRequest((long)i, TEST_CLIENT_ID);
+                requests.add(req);
+            }
+
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+
+            assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocations(requests));
+            verify(pickupLocationRepository, times(100)).save(any(PickupLocation.class));
+        }
+    }
+
 }

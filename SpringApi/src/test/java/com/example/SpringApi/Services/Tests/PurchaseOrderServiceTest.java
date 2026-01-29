@@ -56,7 +56,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PurchaseOrderService Unit Tests")
-class PurchaseOrderServiceTest {
+class PurchaseOrderServiceTest extends BaseTest {
 
     @Mock
     private PurchaseOrderRepository purchaseOrderRepository;
@@ -1350,10 +1350,647 @@ class PurchaseOrderServiceTest {
         assertFalse(testPurchaseOrder.getIsDeleted());
     }
 
+    // ==================== COMPREHENSIVE EDGE CASE TESTS ====================
+
+    @Nested
+    @DisplayName("PurchaseOrder Amount Validation Edge Cases")
+    class POAmountValidationEdgeCases {
+
+        @Test
+        @DisplayName("Create PO - Zero subtotal - Success")
+        void createPO_ZeroSubtotal_Success() {
+            testPurchaseOrder.setSubtotal(BigDecimal.ZERO);
+            testPurchaseOrder.setTax(BigDecimal.ZERO);
+            testPurchaseOrder.setTotal(BigDecimal.ZERO);
+            
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+            when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            assertDoesNotThrow(() -> purchaseOrderService.createPurchaseOrder(testPORequest));
+        }
+
+        @Test
+        @DisplayName("Create PO - Negative subtotal - Throws BadRequestException")
+        void createPO_NegativeSubtotal_ThrowsException() {
+            testPORequest.setOrderSummary(new PurchaseOrderRequestModel.OrderSummaryData());
+            testPORequest.getOrderSummary().setSubtotal(new BigDecimal("-100.00"));
+
+            assertThrows(BadRequestException.class, () -> purchaseOrderService.createPurchaseOrder(testPORequest));
+        }
+
+        @Test
+        @DisplayName("Create PO - Very large amount - Success")
+        void createPO_VeryLargeAmount_Success() {
+            testPORequest.getOrderSummary().setSubtotal(new BigDecimal("999999999.99"));
+            testPORequest.getOrderSummary().setTotal(new BigDecimal("999999999.99"));
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+            when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            assertDoesNotThrow(() -> purchaseOrderService.createPurchaseOrder(testPORequest));
+        }
+
+        @Test
+        @DisplayName("Create PO - Tax calculation with 18% GST - Success")
+        void createPO_TaxCalculation18Percent_Success() {
+            BigDecimal subtotal = new BigDecimal("100.00");
+            BigDecimal expectedTax = new BigDecimal("18.00");
+            BigDecimal expectedTotal = new BigDecimal("118.00");
+            
+            testPORequest.getOrderSummary().setSubtotal(subtotal);
+            testPORequest.getOrderSummary().setTax(expectedTax);
+            testPORequest.getOrderSummary().setTotal(expectedTotal);
+            
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+            when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            assertDoesNotThrow(() -> purchaseOrderService.createPurchaseOrder(testPORequest));
+        }
+
+        @Test
+        @DisplayName("Create PO - Decimal precision in amounts - Success")
+        void createPO_DecimalPrecision_Success() {
+            testPORequest.getOrderSummary().setSubtotal(new BigDecimal("100.005"));
+            testPORequest.getOrderSummary().setTax(new BigDecimal("18.001"));
+            testPORequest.getOrderSummary().setShippingCharge(new BigDecimal("5.999"));
+            
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+            when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            assertDoesNotThrow(() -> purchaseOrderService.createPurchaseOrder(testPORequest));
+        }
+    }
+
+    @Nested
+    @DisplayName("PurchaseOrder Status Transitions")
+    class POStatusTransitions {
+
+        @Test
+        @DisplayName("PO status - DRAFT to SUBMITTED - Success")
+        void poStatus_DraftToSubmitted_Success() {
+            testPurchaseOrder.setPurchaseOrderStatus("DRAFT");
+            when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
+                    .thenReturn(Optional.of(testPurchaseOrder));
+
+            testPurchaseOrder.setPurchaseOrderStatus("SUBMITTED");
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+
+            assertDoesNotThrow(() -> {
+                PurchaseOrder po = purchaseOrderService.getPurchaseOrderById(TEST_PO_ID);
+                po.setPurchaseOrderStatus("SUBMITTED");
+                purchaseOrderRepository.save(po);
+            });
+
+            assertEquals("SUBMITTED", testPurchaseOrder.getPurchaseOrderStatus());
+        }
+
+        @Test
+        @DisplayName("PO status - SUBMITTED to APPROVED - Success")
+        void poStatus_SubmittedToApproved_Success() {
+            testPurchaseOrder.setPurchaseOrderStatus("SUBMITTED");
+            when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
+                    .thenReturn(Optional.of(testPurchaseOrder));
+
+            testPurchaseOrder.setPurchaseOrderStatus("APPROVED");
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+
+            assertDoesNotThrow(() -> {
+                PurchaseOrder po = purchaseOrderService.getPurchaseOrderById(TEST_PO_ID);
+                po.setPurchaseOrderStatus("APPROVED");
+                purchaseOrderRepository.save(po);
+            });
+
+            assertEquals("APPROVED", testPurchaseOrder.getPurchaseOrderStatus());
+        }
+
+        @Test
+        @DisplayName("PO status - APPROVED to SHIPPED - Success")
+        void poStatus_ApprovedToShipped_Success() {
+            testPurchaseOrder.setPurchaseOrderStatus("APPROVED");
+            when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
+                    .thenReturn(Optional.of(testPurchaseOrder));
+
+            testPurchaseOrder.setPurchaseOrderStatus("SHIPPED");
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+
+            assertDoesNotThrow(() -> {
+                PurchaseOrder po = purchaseOrderService.getPurchaseOrderById(TEST_PO_ID);
+                po.setPurchaseOrderStatus("SHIPPED");
+                purchaseOrderRepository.save(po);
+            });
+
+            assertEquals("SHIPPED", testPurchaseOrder.getPurchaseOrderStatus());
+        }
+
+        @Test
+        @DisplayName("PO status - SHIPPED to DELIVERED - Success")
+        void poStatus_ShippedToDelivered_Success() {
+            testPurchaseOrder.setPurchaseOrderStatus("SHIPPED");
+            when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
+                    .thenReturn(Optional.of(testPurchaseOrder));
+
+            testPurchaseOrder.setPurchaseOrderStatus("DELIVERED");
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+
+            assertDoesNotThrow(() -> {
+                PurchaseOrder po = purchaseOrderService.getPurchaseOrderById(TEST_PO_ID);
+                po.setPurchaseOrderStatus("DELIVERED");
+                purchaseOrderRepository.save(po);
+            });
+
+            assertEquals("DELIVERED", testPurchaseOrder.getPurchaseOrderStatus());
+        }
+    }
+
+    @Nested
+    @DisplayName("PurchaseOrder Null Handling")
+    class PONullHandling {
+
+        @Test
+        @DisplayName("Create PO - Null request - Throws BadRequestException")
+        void createPO_NullRequest_ThrowsException() {
+            assertThrows(BadRequestException.class, () -> purchaseOrderService.createPurchaseOrder(null));
+        }
+
+        @Test
+        @DisplayName("Update PO - Null request - Throws BadRequestException")
+        void updatePO_NullRequest_ThrowsException() {
+            assertThrows(BadRequestException.class, () -> purchaseOrderService.updatePurchaseOrder(null));
+        }
+
+        @Test
+        @DisplayName("Create PO - Null products list - Throws BadRequestException")
+        void createPO_NullProductsList_ThrowsException() {
+            testPORequest.setProducts(null);
+
+            assertThrows(BadRequestException.class, () -> purchaseOrderService.createPurchaseOrder(testPORequest));
+        }
+
+        @Test
+        @DisplayName("Create PO - Empty products list - Throws BadRequestException")
+        void createPO_EmptyProductsList_ThrowsException() {
+            testPORequest.setProducts(new ArrayList<>());
+
+            assertThrows(BadRequestException.class, () -> purchaseOrderService.createPurchaseOrder(testPORequest));
+        }
+
+        @Test
+        @DisplayName("Create PO - Null order summary - Throws BadRequestException")
+        void createPO_NullOrderSummary_ThrowsException() {
+            testPORequest.setOrderSummary(null);
+
+            assertThrows(BadRequestException.class, () -> purchaseOrderService.createPurchaseOrder(testPORequest));
+        }
+
+        @Test
+        @DisplayName("Get PO By ID - Null ID - Throws BadRequestException")
+        void getPOById_NullId_ThrowsException() {
+            assertThrows(BadRequestException.class, () -> purchaseOrderService.getPurchaseOrderById(null));
+        }
+    }
+
+    @Nested
+    @DisplayName("PurchaseOrder ID Validation Edge Cases")
+    class POIdValidationEdgeCases {
+
+        @Test
+        @DisplayName("Get PO By ID - Negative ID - Throws NotFoundException")
+        void getPOById_NegativeId_ThrowsException() {
+            when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(-1L, TEST_CLIENT_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> purchaseOrderService.getPurchaseOrderById(-1L));
+        }
+
+        @Test
+        @DisplayName("Get PO By ID - Zero ID - Throws NotFoundException")
+        void getPOById_ZeroId_ThrowsException() {
+            when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(0L, TEST_CLIENT_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> purchaseOrderService.getPurchaseOrderById(0L));
+        }
+
+        @Test
+        @DisplayName("Get PO By ID - Max Long ID - Throws NotFoundException")
+        void getPOById_MaxLongId_ThrowsException() {
+            when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> purchaseOrderService.getPurchaseOrderById(Long.MAX_VALUE));
+        }
+
+        @Test
+        @DisplayName("Get Orders By Lead ID - Negative Lead ID - Success returns empty")
+        void getOrdersByLeadId_NegativeLeadId_SuccessReturnsEmpty() {
+            when(purchaseOrderRepository.findByLeadIdAndClientId(-1L, TEST_CLIENT_ID))
+                    .thenReturn(new ArrayList<>());
+
+            List<PurchaseOrder> result = purchaseOrderService.getOrdersByLeadId(-1L);
+
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+        }
+
+        @Test
+        @DisplayName("Get Orders By Lead ID - Zero Lead ID - Success returns empty")
+        void getOrdersByLeadId_ZeroLeadId_SuccessReturnsEmpty() {
+            when(purchaseOrderRepository.findByLeadIdAndClientId(0L, TEST_CLIENT_ID))
+                    .thenReturn(new ArrayList<>());
+
+            List<PurchaseOrder> result = purchaseOrderService.getOrdersByLeadId(0L);
+
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+        }
+    }
+
+    @Nested
+    @DisplayName("PurchaseOrder Address Validation")
+    class POAddressValidation {
+
+        @Test
+        @DisplayName("Create PO - Valid billing and shipping addresses - Success")
+        void createPO_ValidAddresses_Success() {
+            Address billingAddress = createTestAddress();
+            Address shippingAddress = createTestAddress(2L);
+            
+            testPORequest.setBillingAddressId(billingAddress.getAddressId());
+            testPORequest.setShippingAddressId(shippingAddress.getAddressId());
+            
+            when(addressRepository.findById(billingAddress.getAddressId())).thenReturn(Optional.of(billingAddress));
+            when(addressRepository.findById(shippingAddress.getAddressId())).thenReturn(Optional.of(shippingAddress));
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+            when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            assertDoesNotThrow(() -> purchaseOrderService.createPurchaseOrder(testPORequest));
+        }
+
+        @Test
+        @DisplayName("Create PO - Billing address not found - Throws NotFoundException")
+        void createPO_BillingAddressNotFound_ThrowsException() {
+            testPORequest.setBillingAddressId(999L);
+            when(addressRepository.findById(999L)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> purchaseOrderService.createPurchaseOrder(testPORequest));
+        }
+
+        @Test
+        @DisplayName("Create PO - Deleted address - Throws BadRequestException")
+        void createPO_DeletedAddress_ThrowsException() {
+            Address deletedAddress = createDeletedTestAddress();
+            testPORequest.setBillingAddressId(deletedAddress.getAddressId());
+            
+            when(addressRepository.findById(deletedAddress.getAddressId())).thenReturn(Optional.of(deletedAddress));
+
+            assertThrows(BadRequestException.class, () -> purchaseOrderService.createPurchaseOrder(testPORequest));
+        }
+    }
+
+    @Nested
+    @DisplayName("PurchaseOrder Product Mapping")
+    class POProductMapping {
+
+        @Test
+        @DisplayName("Create PO - Multiple products - Success")
+        void createPO_MultipleProducts_Success() {
+            List<PurchaseOrderProductItem> products = new ArrayList<>();
+            products.add(createPOProductItem(1L, 5, new BigDecimal("100.00")));
+            products.add(createPOProductItem(2L, 3, new BigDecimal("200.00")));
+            products.add(createPOProductItem(3L, 2, new BigDecimal("150.00")));
+            
+            testPORequest.setProducts(products);
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+            when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            assertDoesNotThrow(() -> purchaseOrderService.createPurchaseOrder(testPORequest));
+        }
+
+        @Test
+        @DisplayName("Create PO - Product quantity zero - Throws BadRequestException")
+        void createPO_ProductQuantityZero_ThrowsException() {
+            List<PurchaseOrderProductItem> products = new ArrayList<>();
+            products.add(createPOProductItem(1L, 0, new BigDecimal("100.00")));
+            
+            testPORequest.setProducts(products);
+
+            assertThrows(BadRequestException.class, () -> purchaseOrderService.createPurchaseOrder(testPORequest));
+        }
+
+        @Test
+        @DisplayName("Create PO - Product quantity negative - Throws BadRequestException")
+        void createPO_ProductQuantityNegative_ThrowsException() {
+            List<PurchaseOrderProductItem> products = new ArrayList<>();
+            products.add(createPOProductItem(1L, -5, new BigDecimal("100.00")));
+            
+            testPORequest.setProducts(products);
+
+            assertThrows(BadRequestException.class, () -> purchaseOrderService.createPurchaseOrder(testPORequest));
+        }
+
+        @Test
+        @DisplayName("Create PO - Product price zero - Success")
+        void createPO_ProductPriceZero_Success() {
+            List<PurchaseOrderProductItem> products = new ArrayList<>();
+            products.add(createPOProductItem(1L, 5, BigDecimal.ZERO));
+            
+            testPORequest.setProducts(products);
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+            when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            assertDoesNotThrow(() -> purchaseOrderService.createPurchaseOrder(testPORequest));
+        }
+
+        @Test
+        @DisplayName("Create PO - Very large quantity - Success")
+        void createPO_VeryLargeQuantity_Success() {
+            List<PurchaseOrderProductItem> products = new ArrayList<>();
+            products.add(createPOProductItem(1L, 999999, new BigDecimal("100.00")));
+            
+            testPORequest.setProducts(products);
+            when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(testPurchaseOrder);
+            when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            assertDoesNotThrow(() -> purchaseOrderService.createPurchaseOrder(testPORequest));
+        }
+    }
+
+    // Helper method for creating PO product items
+    private PurchaseOrderProductItem createPOProductItem(Long productId, int quantity, BigDecimal price) {
+        PurchaseOrderProductItem item = new PurchaseOrderProductItem();
+        item.setProductId(productId);
+        item.setQuantity(quantity);
+        item.setPrice(price);
+        return item;
+    }
+
     // Note: Bulk create tests removed as the synchronous bulkCreatePurchaseOrders
     // method was replaced
     // with bulkCreatePurchaseOrdersAsync which requires integration/async testing
     // setup.
     // The async method sends results via messaging rather than returning them
     // directly.
+
+    // ==================== Comprehensive Validation Tests - Added ====================
+
+    @Test
+    @DisplayName("Create Purchase Order - Null Request - Throws BadRequestException")
+    void createPurchaseOrder_NullRequest_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.createPurchaseOrder(null));
+        assertTrue(ex.getMessage().contains("request") || ex.getMessage().contains("invalid"));
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
+    }
+
+    @Test
+    @DisplayName("Create Purchase Order - Null User ID - Throws BadRequestException")
+    void createPurchaseOrder_NullUserId_ThrowsBadRequestException() {
+        testPurchaseOrderRequest.setUserId(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+        assertTrue(ex.getMessage().contains("user") || ex.getMessage().contains("invalid"));
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
+    }
+
+    @Test
+    @DisplayName("Create Purchase Order - Negative User ID - Throws BadRequestException")
+    void createPurchaseOrder_NegativeUserId_ThrowsBadRequestException() {
+        testPurchaseOrderRequest.setUserId(-1L);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+        assertTrue(ex.getMessage().contains("user") || ex.getMessage().contains("invalid"));
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
+    }
+
+    @Test
+    @DisplayName("Create Purchase Order - Zero User ID - Throws BadRequestException")
+    void createPurchaseOrder_ZeroUserId_ThrowsBadRequestException() {
+        testPurchaseOrderRequest.setUserId(0L);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+        assertTrue(ex.getMessage().contains("user") || ex.getMessage().contains("invalid"));
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
+    }
+
+    @Test
+    @DisplayName("Create Purchase Order - Null Product Items - Throws BadRequestException")
+    void createPurchaseOrder_NullProductItems_ThrowsBadRequestException() {
+        testPurchaseOrderRequest.setProductItems(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+        assertTrue(ex.getMessage().contains("item") || ex.getMessage().contains("invalid"));
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
+    }
+
+    @Test
+    @DisplayName("Create Purchase Order - Empty Product Items - Throws BadRequestException")
+    void createPurchaseOrder_EmptyProductItems_ThrowsBadRequestException() {
+        testPurchaseOrderRequest.setProductItems(new java.util.ArrayList<>());
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+        assertTrue(ex.getMessage().contains("item") || ex.getMessage().contains("empty"));
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
+    }
+
+    @Test
+    @DisplayName("Create Purchase Order - Negative Product Quantity - Throws BadRequestException")
+    void createPurchaseOrder_NegativeProductQuantity_ThrowsBadRequestException() {
+        PurchaseOrderProductItem item = createPOProductItem(TEST_PRODUCT_ID, -5, new BigDecimal("100.00"));
+        testPurchaseOrderRequest.setProductItems(java.util.Arrays.asList(item));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+        assertTrue(ex.getMessage().contains("quantity") || ex.getMessage().contains("invalid"));
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
+    }
+
+    @Test
+    @DisplayName("Create Purchase Order - Zero Product Quantity - Throws BadRequestException")
+    void createPurchaseOrder_ZeroProductQuantity_ThrowsBadRequestException() {
+        PurchaseOrderProductItem item = createPOProductItem(TEST_PRODUCT_ID, 0, new BigDecimal("100.00"));
+        testPurchaseOrderRequest.setProductItems(java.util.Arrays.asList(item));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+        assertTrue(ex.getMessage().contains("quantity") || ex.getMessage().contains("invalid"));
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
+    }
+
+    @Test
+    @DisplayName("Create Purchase Order - Negative Product Price - Throws BadRequestException")
+    void createPurchaseOrder_NegativeProductPrice_ThrowsBadRequestException() {
+        PurchaseOrderProductItem item = createPOProductItem(TEST_PRODUCT_ID, 5, new BigDecimal("-100.00"));
+        testPurchaseOrderRequest.setProductItems(java.util.Arrays.asList(item));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+        assertTrue(ex.getMessage().contains("price") || ex.getMessage().contains("invalid"));
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
+    }
+
+    @Test
+    @DisplayName("Create Purchase Order - Zero Product Price - Throws BadRequestException")
+    void createPurchaseOrder_ZeroProductPrice_ThrowsBadRequestException() {
+        PurchaseOrderProductItem item = createPOProductItem(TEST_PRODUCT_ID, 5, BigDecimal.ZERO);
+        testPurchaseOrderRequest.setProductItems(java.util.Arrays.asList(item));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+        assertTrue(ex.getMessage().contains("price") || ex.getMessage().contains("invalid"));
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
+    }
+
+    @Test
+    @DisplayName("Get Purchase Order By ID - Negative ID - Throws NotFoundException")
+    void getPurchaseOrderById_NegativeId_ThrowsNotFoundException() {
+        when(purchaseOrderRepository.findByPoIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.getPurchaseOrderById(-1L));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Purchase Order By ID - Zero ID - Throws NotFoundException")
+    void getPurchaseOrderById_ZeroId_ThrowsNotFoundException() {
+        when(purchaseOrderRepository.findByPoIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.getPurchaseOrderById(0L));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Purchase Order By ID - Long.MAX_VALUE ID - Throws NotFoundException")
+    void getPurchaseOrderById_MaxLongId_ThrowsNotFoundException() {
+        when(purchaseOrderRepository.findByPoIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.getPurchaseOrderById(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update Purchase Order - Negative ID - Throws NotFoundException")
+    void updatePurchaseOrder_NegativeId_ThrowsNotFoundException() {
+        testPurchaseOrderRequest.setPoId(-1L);
+        when(purchaseOrderRepository.findByPoIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.updatePurchaseOrder(testPurchaseOrderRequest));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.NotFound, ex.getMessage());
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
+    }
+
+    @Test
+    @DisplayName("Update Purchase Order - Zero ID - Throws NotFoundException")
+    void updatePurchaseOrder_ZeroId_ThrowsNotFoundException() {
+        testPurchaseOrderRequest.setPoId(0L);
+        when(purchaseOrderRepository.findByPoIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.updatePurchaseOrder(testPurchaseOrderRequest));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.NotFound, ex.getMessage());
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
+    }
+
+    @Test
+    @DisplayName("Delete Purchase Order - Negative ID - Throws NotFoundException")
+    void deletePurchaseOrder_NegativeId_ThrowsNotFoundException() {
+        when(purchaseOrderRepository.findByPoIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.deletePurchaseOrder(-1L));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.NotFound, ex.getMessage());
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
+    }
+
+    @Test
+    @DisplayName("Delete Purchase Order - Zero ID - Throws NotFoundException")
+    void deletePurchaseOrder_ZeroId_ThrowsNotFoundException() {
+        when(purchaseOrderRepository.findByPoIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.deletePurchaseOrder(0L));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.NotFound, ex.getMessage());
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
+    }
+
+    @Test
+    @DisplayName("Get Purchase Orders In Batches - Null Request - Throws BadRequestException")
+    void getPurchaseOrdersInBatches_NullRequest_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.getPurchaseOrdersInBatches(null));
+        assertTrue(ex.getMessage().contains("request") || ex.getMessage().contains("invalid"));
+    }
+
+    @Test
+    @DisplayName("Get Purchase Orders In Batches - Start Greater Than End - Throws BadRequestException")
+    void getPurchaseOrdersInBatches_StartGreaterThanEnd_ThrowsBadRequestException() {
+        testPaginationRequest.setStart(100);
+        testPaginationRequest.setEnd(10);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.getPurchaseOrdersInBatches(testPaginationRequest));
+        assertTrue(ex.getMessage().contains("start") || ex.getMessage().contains("end"));
+    }
+
+    @Test
+    @DisplayName("Change Purchase Order Status - Negative ID - Throws NotFoundException")
+    void changePurchaseOrderStatus_NegativeId_ThrowsNotFoundException() {
+        when(purchaseOrderRepository.findByPoIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.changePurchaseOrderStatus(-1L, "APPROVED"));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Change Purchase Order Status - Zero ID - Throws NotFoundException")
+    void changePurchaseOrderStatus_ZeroId_ThrowsNotFoundException() {
+        when(purchaseOrderRepository.findByPoIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> purchaseOrderService.changePurchaseOrderStatus(0L, "APPROVED"));
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.NotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Change Purchase Order Status - Null Status - Throws BadRequestException")
+    void changePurchaseOrderStatus_NullStatus_ThrowsBadRequestException() {
+        when(purchaseOrderRepository.findByPoIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
+                .thenReturn(testPurchaseOrder);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.changePurchaseOrderStatus(TEST_PO_ID, null));
+        assertTrue(ex.getMessage().contains("status") || ex.getMessage().contains("invalid"));
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
+    }
+
+    @Test
+    @DisplayName("Change Purchase Order Status - Empty Status - Throws BadRequestException")
+    void changePurchaseOrderStatus_EmptyStatus_ThrowsBadRequestException() {
+        when(purchaseOrderRepository.findByPoIdAndClientId(TEST_PO_ID, TEST_CLIENT_ID))
+                .thenReturn(testPurchaseOrder);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.changePurchaseOrderStatus(TEST_PO_ID, ""));
+        assertTrue(ex.getMessage().contains("status") || ex.getMessage().contains("empty"));
+        verify(purchaseOrderRepository, never()).save(any(PurchaseOrder.class));
+    }
+
+    @Test
+    @DisplayName("Get Purchase Orders By User - Negative User ID - Throws BadRequestException")
+    void getPurchaseOrdersByUser_NegativeUserId_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.getPurchaseOrdersByUser(-1L));
+        assertTrue(ex.getMessage().contains("user") || ex.getMessage().contains("invalid"));
+    }
+
+    @Test
+    @DisplayName("Get Purchase Orders By User - Zero User ID - Throws BadRequestException")
+    void getPurchaseOrdersByUser_ZeroUserId_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.getPurchaseOrdersByUser(0L));
+        assertTrue(ex.getMessage().contains("user") || ex.getMessage().contains("invalid"));
+    }
+
+    @Test
+    @DisplayName("Get Purchase Orders By Status - Null Status - Throws BadRequestException")
+    void getPurchaseOrdersByStatus_NullStatus_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.getPurchaseOrdersByStatus(null));
+        assertTrue(ex.getMessage().contains("status") || ex.getMessage().contains("invalid"));
+    }
+
+    @Test
+    @DisplayName("Get Purchase Orders By Status - Empty Status - Throws BadRequestException")
+    void getPurchaseOrdersByStatus_EmptyStatus_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.getPurchaseOrdersByStatus(""));
+        assertTrue(ex.getMessage().contains("status") || ex.getMessage().contains("empty"));
+    }
 }

@@ -373,4 +373,209 @@ class ShipmentProcessingServiceTest {
                 () -> shipmentProcessingService.processShipmentsAfterPaymentApproval(TEST_PO_ID, razorpayRequest));
         assertNotNull(exception.getMessage());
     }
+
+    // ==================== Comprehensive Validation Tests - Added ====================
+
+    @Test
+    @DisplayName("Process Shipments - Negative PO ID - Throws NotFoundException")
+    void processShipmentsAfterPaymentApproval_NegativePOId_ThrowsNotFoundException() {
+        RazorpayVerifyRequestModel razorpayRequest = new RazorpayVerifyRequestModel();
+        razorpayRequest.setRazorpayOrderId("order_123");
+        razorpayRequest.setRazorpayPaymentId("pay_123");
+        razorpayRequest.setRazorpaySignature("sig_123");
+        
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> shipmentProcessingService.processShipmentsAfterPaymentApproval(-1L, razorpayRequest));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Process Shipments - Zero PO ID - Throws NotFoundException")
+    void processShipmentsAfterPaymentApproval_ZeroPOId_ThrowsNotFoundException() {
+        RazorpayVerifyRequestModel razorpayRequest = new RazorpayVerifyRequestModel();
+        razorpayRequest.setRazorpayOrderId("order_123");
+        razorpayRequest.setRazorpayPaymentId("pay_123");
+        razorpayRequest.setRazorpaySignature("sig_123");
+        
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> shipmentProcessingService.processShipmentsAfterPaymentApproval(0L, razorpayRequest));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Process Shipments - Long.MAX_VALUE PO ID - Throws NotFoundException")
+    void processShipmentsAfterPaymentApproval_MaxPOId_ThrowsNotFoundException() {
+        RazorpayVerifyRequestModel razorpayRequest = new RazorpayVerifyRequestModel();
+        razorpayRequest.setRazorpayOrderId("order_123");
+        razorpayRequest.setRazorpayPaymentId("pay_123");
+        razorpayRequest.setRazorpaySignature("sig_123");
+        
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> shipmentProcessingService.processShipmentsAfterPaymentApproval(Long.MAX_VALUE, razorpayRequest));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Process Shipments - Null Request - Throws BadRequestException")
+    void processShipmentsAfterPaymentApproval_NullRequest_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> shipmentProcessingService.processShipmentsAfterPaymentApproval(TEST_PO_ID, null));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Process Shipments - Null Order ID - Throws BadRequestException")
+    void processShipmentsAfterPaymentApproval_NullOrderId_ThrowsBadRequestException() {
+        RazorpayVerifyRequestModel razorpayRequest = new RazorpayVerifyRequestModel();
+        razorpayRequest.setRazorpayOrderId(null);
+        razorpayRequest.setRazorpayPaymentId("pay_123");
+        razorpayRequest.setRazorpaySignature("sig_123");
+        
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> shipmentProcessingService.processShipmentsAfterPaymentApproval(TEST_PO_ID, razorpayRequest));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Process Shipments - Empty Order ID - Throws BadRequestException")
+    void processShipmentsAfterPaymentApproval_EmptyOrderId_ThrowsBadRequestException() {
+        RazorpayVerifyRequestModel razorpayRequest = new RazorpayVerifyRequestModel();
+        razorpayRequest.setRazorpayOrderId("");
+        razorpayRequest.setRazorpayPaymentId("pay_123");
+        razorpayRequest.setRazorpaySignature("sig_123");
+        
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> shipmentProcessingService.processShipmentsAfterPaymentApproval(TEST_PO_ID, razorpayRequest));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Process Shipments - Null Payment ID - Throws BadRequestException")
+    void processShipmentsAfterPaymentApproval_NullPaymentId_ThrowsBadRequestException() {
+        RazorpayVerifyRequestModel razorpayRequest = new RazorpayVerifyRequestModel();
+        razorpayRequest.setRazorpayOrderId("order_123");
+        razorpayRequest.setRazorpayPaymentId(null);
+        razorpayRequest.setRazorpaySignature("sig_123");
+        
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> shipmentProcessingService.processShipmentsAfterPaymentApproval(TEST_PO_ID, razorpayRequest));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Process Shipments - Null Signature - Throws BadRequestException")
+    void processShipmentsAfterPaymentApproval_NullSignature_ThrowsBadRequestException() {
+        RazorpayVerifyRequestModel razorpayRequest = new RazorpayVerifyRequestModel();
+        razorpayRequest.setRazorpayOrderId("order_123");
+        razorpayRequest.setRazorpayPaymentId("pay_123");
+        razorpayRequest.setRazorpaySignature(null);
+        
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> shipmentProcessingService.processShipmentsAfterPaymentApproval(TEST_PO_ID, razorpayRequest));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update Shipment Status - Negative Shipment ID - Throws NotFoundException")
+    void updateShipmentStatus_NegativeShipmentId_ThrowsNotFoundException() {
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> shipmentProcessingService.updateShipmentStatus(-1L, "DELIVERED"));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update Shipment Status - Zero Shipment ID - Throws NotFoundException")
+    void updateShipmentStatus_ZeroShipmentId_ThrowsNotFoundException() {
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> shipmentProcessingService.updateShipmentStatus(0L, "DELIVERED"));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update Shipment Status - Null Status - Throws BadRequestException")
+    void updateShipmentStatus_NullStatus_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> shipmentProcessingService.updateShipmentStatus(TEST_SHIPMENT_ID, null));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Update Shipment Status - Empty Status - Throws BadRequestException")
+    void updateShipmentStatus_EmptyStatus_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> shipmentProcessingService.updateShipmentStatus(TEST_SHIPMENT_ID, ""));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Cancel Shipment - Negative Shipment ID - Throws NotFoundException")
+    void cancelShipment_NegativeShipmentId_ThrowsNotFoundException() {
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> shipmentProcessingService.cancelShipment(-1L));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Cancel Shipment - Zero Shipment ID - Throws NotFoundException")
+    void cancelShipment_ZeroShipmentId_ThrowsNotFoundException() {
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> shipmentProcessingService.cancelShipment(0L));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Shipment By ID - Negative ID - Throws NotFoundException")
+    void getShipmentById_NegativeId_ThrowsNotFoundException() {
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> shipmentProcessingService.getShipmentById(-1L));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Shipment By ID - Zero ID - Throws NotFoundException")
+    void getShipmentById_ZeroId_ThrowsNotFoundException() {
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> shipmentProcessingService.getShipmentById(0L));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Shipments By PO ID - Negative PO ID - Throws NotFoundException")
+    void getShipmentsByPOId_NegativePOId_ThrowsNotFoundException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> shipmentProcessingService.getShipmentsByPOId(-1L));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Shipments By Status - Null Status - Throws BadRequestException")
+    void getShipmentsByStatus_NullStatus_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> shipmentProcessingService.getShipmentsByStatus(null));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Shipments By Status - Empty Status - Throws BadRequestException")
+    void getShipmentsByStatus_EmptyStatus_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> shipmentProcessingService.getShipmentsByStatus(""));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Track Shipment - Negative Tracking ID - Throws NotFoundException")
+    void trackShipment_NegativeTrackingId_ThrowsNotFoundException() {
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> shipmentProcessingService.trackShipment(-1L));
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Track Shipment - Zero Tracking ID - Throws NotFoundException")
+    void trackShipment_ZeroTrackingId_ThrowsNotFoundException() {
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> shipmentProcessingService.trackShipment(0L));
+        assertNotNull(ex.getMessage());
+    }
 }

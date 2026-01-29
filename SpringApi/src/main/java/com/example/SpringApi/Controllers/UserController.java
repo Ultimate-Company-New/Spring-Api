@@ -5,7 +5,6 @@ import com.example.SpringApi.Services.UserService;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
-import com.example.SpringApi.Models.ResponseModels.BulkUserInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.UserResponseModel;
 import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;

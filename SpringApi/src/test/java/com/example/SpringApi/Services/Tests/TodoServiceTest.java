@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
@@ -49,7 +50,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("TodoService Unit Tests")
-class TodoServiceTest {
+class TodoServiceTest extends BaseTest {
 
     @Mock
     private TodoRepository todoRepository;
@@ -65,10 +66,10 @@ class TodoServiceTest {
 
     private Todo testTodo;
     private TodoRequestModel validRequest;
-    private static final Long TEST_TODO_ID = 1L;
-    private static final Long TEST_USER_ID = 1L;
-    private static final String TEST_TASK = "Test todo task";
-    private static final String CREATED_USER = "testuser";
+    private static final Long TEST_TODO_ID = DEFAULT_TODO_ID;
+    private static final Long TEST_USER_ID = DEFAULT_USER_ID;
+    private static final String TEST_TASK = DEFAULT_TODO_TITLE;
+    private static final String CREATED_USER = DEFAULT_CREATED_USER;
     private static final String LONG_TASK = "A".repeat(501); // 501 characters
 
     /**
@@ -78,26 +79,28 @@ class TodoServiceTest {
     @BeforeEach
     void setUp() {
         // Initialize valid request
-        validRequest = new TodoRequestModel();
+        validRequest = createValidTodoRequest();
         validRequest.setTodoId(TEST_TODO_ID);
         validRequest.setTask(TEST_TASK);
         validRequest.setIsDone(false);
 
         // Initialize test todo using constructor
-        testTodo = new Todo(validRequest, CREATED_USER, TEST_USER_ID);
+        testTodo = createTestTodo();
         testTodo.setTodoId(TEST_TODO_ID);
+        testTodo.setUserId(TEST_USER_ID);
         testTodo.setCreatedAt(LocalDateTime.now());
         testTodo.setUpdatedAt(LocalDateTime.now());
     }
 
-            // ==================== ADD TODO TESTS ====================
+    // ==================== ADD TODO TESTS ====================
 
-    /**
-     * Test successful addition of a new todo item.
-     */
-    @Test
-    @DisplayName("Should successfully add new todo item")
-    void testAddTodo_Success() {
+    @Nested
+    @DisplayName("AddTodo Tests")
+    class AddTodoTests {
+
+        @Test
+        @DisplayName("Add Todo - Success")
+        void addTodo_Success() {
         // Note: BaseService methods are now handled by the actual service implementation
 
         TodoRequestModel request = new TodoRequestModel();
@@ -119,32 +122,22 @@ class TodoServiceTest {
         );
     }
 
-    /**
-     * Test addition with null request.
-     */
-    @Test
-    @DisplayName("Should throw BadRequestException when adding null todo request")
-    void testAddTodo_NullRequest() {
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            todoService.addTodo(null);
-        });
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidRequest, exception.getMessage());
-    }
+        @Test
+        @DisplayName("Add Todo - Null request - Throws BadRequestException")
+        void addTodo_NullRequest_ThrowsBadRequestException() {
+            assertThrowsBadRequest(ErrorMessages.TodoErrorMessages.InvalidRequest,
+                    () -> todoService.addTodo(null));
+        }
 
-    @Test
-    @DisplayName("Should throw BadRequestException when adding todo with null task")
-    void testAddTodo_NullTask() {
-        // Note: BaseService methods are now handled by the actual service implementation
+        @Test
+        @DisplayName("Add Todo - Null task - Throws BadRequestException")
+        void addTodo_NullTask_ThrowsBadRequestException() {
+            TodoRequestModel request = createValidTodoRequest();
+            request.setTask(null);
 
-        TodoRequestModel request = new TodoRequestModel();
-        request.setTask(null);
-        request.setIsDone(false);
-
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            todoService.addTodo(request);
-        });
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidTask, exception.getMessage());
-    }
+            assertThrowsBadRequest(ErrorMessages.TodoErrorMessages.InvalidTask,
+                    () -> todoService.addTodo(request));
+        }
 
     /**
      * Test addition with empty task.
@@ -270,12 +263,12 @@ class TodoServiceTest {
 
     // ==================== UPDATE TODO TESTS ====================
 
-    /**
-     * Test successful update of an existing todo item.
-     */
-    @Test
-    @DisplayName("Should successfully update existing todo item")
-    void testUpdateTodo_Success() {
+    @Nested
+    @DisplayName("UpdateTodo Tests")
+    class UpdateTodoTests {
+        @Test
+        @DisplayName("Update Todo - Success")
+        void updateTodo_Success() {
         // Note: BaseService methods are now handled by the actual service implementation
 
         TodoRequestModel request = new TodoRequestModel();
@@ -535,16 +528,18 @@ class TodoServiceTest {
             todoService.updateTodo(request);
         });
         assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, exception.getMessage());
+        }
     }
 
     // ==================== DELETE TODO TESTS ====================
 
-    /**
-     * Test successful deletion of a todo item.
-     */
-    @Test
-    @DisplayName("Should successfully delete a todo item")
-    void testDeleteTodo_Success() {
+    @Nested
+    @DisplayName("DeleteTodo Tests")
+    class DeleteTodoTests {
+
+        @Test
+        @DisplayName("Delete Todo - Success")
+        void deleteTodo_Success() {
         // Note: BaseService methods are now handled by the actual service implementation
 
         when(todoRepository.existsById(TEST_TODO_ID)).thenReturn(true);
@@ -595,16 +590,18 @@ class TodoServiceTest {
         verify(todoRepository).existsById(TEST_TODO_ID);
         verify(todoRepository, never()).deleteById(anyLong());
         verify(userLogService, never()).logData(anyLong(), any(), any());
+        }
     }
 
     // ==================== TOGGLE TODO TESTS ====================
 
-    /**
-     * Test successful toggling from false to true.
-     */
-    @Test
-    @DisplayName("Should successfully toggle todo completion status from false to true")
-    void testToggleTodo_Success_FalseToTrue() {
+    @Nested
+    @DisplayName("ToggleTodo Tests")
+    class ToggleTodoTests {
+
+        @Test
+        @DisplayName("Toggle Todo - Success - False to true")
+        void toggleTodo_Success_FalseToTrue() {
         // Note: BaseService methods are now handled by the actual service implementation
         // Note: BaseService methods are now handled by the actual service implementation
 
@@ -681,16 +678,18 @@ class TodoServiceTest {
         verify(todoRepository).findById(TEST_TODO_ID);
         verify(todoRepository, never()).save(any());
         verify(userLogService, never()).logData(anyLong(), any(), any());
+        }
     }
 
     // ==================== GET TODO ITEMS TESTS ====================
 
-    /**
-     * Test successful retrieval of todo items for user.
-     */
-    @Test
-    @DisplayName("Should successfully retrieve and convert todo items to response models")
-    void testGetTodoItems_Success() {
+    @Nested
+    @DisplayName("GetTodoItems Tests")
+    class GetTodoItemsTests {
+
+        @Test
+        @DisplayName("Get Todo Items - Success")
+        void getTodoItems_Success() {
         // Note: BaseService methods are now handled by the actual service implementation
         // Note: BaseService methods are now handled by the actual service implementation
 
@@ -900,4 +899,237 @@ class TodoServiceTest {
         assertDoesNotThrow(() -> todoService.addTodo(validRequest));
         verify(todoRepository, times(1)).save(any(Todo.class));
     }
+
+    // ==================== Comprehensive Validation Tests - Added ====================
+
+    @Test
+    @DisplayName("Add Todo - Null Request - Throws BadRequestException")
+    void addTodo_NullRequest_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> todoService.addTodo(null));
+        assertTrue(ex.getMessage().contains("request") || ex.getMessage().contains("invalid"));
+        verify(todoRepository, never()).save(any(Todo.class));
+    }
+
+    @Test
+    @DisplayName("Add Todo - Null Task - Throws BadRequestException")
+    void addTodo_NullTask_ThrowsBadRequestException() {
+        validRequest.setTask(null);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> todoService.addTodo(validRequest));
+        assertTrue(ex.getMessage().contains("task") || ex.getMessage().contains("invalid"));
+        verify(todoRepository, never()).save(any(Todo.class));
+    }
+
+    @Test
+    @DisplayName("Add Todo - Empty Task - Throws BadRequestException")
+    void addTodo_EmptyTask_ThrowsBadRequestException() {
+        validRequest.setTask("");
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> todoService.addTodo(validRequest));
+        assertTrue(ex.getMessage().contains("task") || ex.getMessage().contains("empty"));
+        verify(todoRepository, never()).save(any(Todo.class));
+    }
+
+    @Test
+    @DisplayName("Add Todo - Whitespace Task - Throws BadRequestException")
+    void addTodo_WhitespaceTask_ThrowsBadRequestException() {
+        validRequest.setTask("   ");
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> todoService.addTodo(validRequest));
+        assertTrue(ex.getMessage().contains("task") || ex.getMessage().contains("empty"));
+        verify(todoRepository, never()).save(any(Todo.class));
+    }
+
+    @Test
+    @DisplayName("Update Todo - Negative ID - Throws NotFoundException")
+    void updateTodo_NegativeId_ThrowsNotFoundException() {
+        validRequest.setTodoId(-1L);
+        when(todoRepository.findById(-1L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.updateTodo(validRequest));
+        assertEquals(ErrorMessages.TodoErrorMessages.TodoNotFound, ex.getMessage());
+        verify(todoRepository, never()).save(any(Todo.class));
+    }
+
+    @Test
+    @DisplayName("Update Todo - Zero ID - Throws NotFoundException")
+    void updateTodo_ZeroId_ThrowsNotFoundException() {
+        validRequest.setTodoId(0L);
+        when(todoRepository.findById(0L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.updateTodo(validRequest));
+        assertEquals(ErrorMessages.TodoErrorMessages.TodoNotFound, ex.getMessage());
+        verify(todoRepository, never()).save(any(Todo.class));
+    }
+
+    @Test
+    @DisplayName("Update Todo - Long.MAX_VALUE ID - Throws NotFoundException")
+    void updateTodo_MaxLongId_ThrowsNotFoundException() {
+        validRequest.setTodoId(Long.MAX_VALUE);
+        when(todoRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.updateTodo(validRequest));
+        assertEquals(ErrorMessages.TodoErrorMessages.TodoNotFound, ex.getMessage());
+        verify(todoRepository, never()).save(any(Todo.class));
+    }
+
+    @Test
+    @DisplayName("Update Todo - Null Task - Throws BadRequestException")
+    void updateTodo_NullTask_ThrowsBadRequestException() {
+        validRequest.setTask(null);
+        when(todoRepository.findById(DEFAULT_TODO_ID)).thenReturn(Optional.of(testTodo));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> todoService.updateTodo(validRequest));
+        assertTrue(ex.getMessage().contains("task") || ex.getMessage().contains("invalid"));
+        verify(todoRepository, never()).save(any(Todo.class));
+    }
+
+    @Test
+    @DisplayName("Delete Todo - Negative ID - Throws NotFoundException")
+    void deleteTodo_NegativeId_ThrowsNotFoundException() {
+        when(todoRepository.findById(-1L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.deleteTodo(-1L));
+        assertEquals(ErrorMessages.TodoErrorMessages.TodoNotFound, ex.getMessage());
+        verify(todoRepository, never()).delete(any(Todo.class));
+    }
+
+    @Test
+    @DisplayName("Delete Todo - Zero ID - Throws NotFoundException")
+    void deleteTodo_ZeroId_ThrowsNotFoundException() {
+        when(todoRepository.findById(0L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.deleteTodo(0L));
+        assertEquals(ErrorMessages.TodoErrorMessages.TodoNotFound, ex.getMessage());
+        verify(todoRepository, never()).delete(any(Todo.class));
+    }
+
+    @Test
+    @DisplayName("Get Todo By ID - Negative ID - Throws NotFoundException")
+    void getTodoById_NegativeId_ThrowsNotFoundException() {
+        when(todoRepository.findById(-1L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.getTodoById(-1L));
+        assertEquals(ErrorMessages.TodoErrorMessages.TodoNotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Todo By ID - Zero ID - Throws NotFoundException")
+    void getTodoById_ZeroId_ThrowsNotFoundException() {
+        when(todoRepository.findById(0L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.getTodoById(0L));
+        assertEquals(ErrorMessages.TodoErrorMessages.TodoNotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Get Todo By ID - Long.MAX_VALUE ID - Throws NotFoundException")
+    void getTodoById_MaxLongId_ThrowsNotFoundException() {
+        when(todoRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.getTodoById(Long.MAX_VALUE));
+        assertEquals(ErrorMessages.TodoErrorMessages.TodoNotFound, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Toggle Todo - Negative ID - Throws NotFoundException")
+    void toggleTodo_NegativeId_ThrowsNotFoundException() {
+        when(todoRepository.findById(-1L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.toggleTodo(-1L));
+        assertEquals(ErrorMessages.TodoErrorMessages.TodoNotFound, ex.getMessage());
+        verify(todoRepository, never()).save(any(Todo.class));
+    }
+
+    @Test
+    @DisplayName("Toggle Todo - Zero ID - Throws NotFoundException")
+    void toggleTodo_ZeroId_ThrowsNotFoundException() {
+        when(todoRepository.findById(0L)).thenReturn(Optional.empty());
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> todoService.toggleTodo(0L));
+        assertEquals(ErrorMessages.TodoErrorMessages.TodoNotFound, ex.getMessage());
+        verify(todoRepository, never()).save(any(Todo.class));
+    }
+
+    @Test
+    @DisplayName("Toggle Todo - Multiple Toggles - State Transitions")
+    void toggleTodo_MultipleToggles_StateTransitions() {
+        testTodo.setIsCompleted(false);
+        when(todoRepository.findById(DEFAULT_TODO_ID)).thenReturn(Optional.of(testTodo));
+        when(todoRepository.save(any(Todo.class))).thenReturn(testTodo);
+
+        // First toggle: false -> true
+        todoService.toggleTodo(DEFAULT_TODO_ID);
+        assertTrue(testTodo.getIsCompleted());
+
+        // Second toggle: true -> false
+        testTodo.setIsCompleted(true);
+        todoService.toggleTodo(DEFAULT_TODO_ID);
+        assertFalse(testTodo.getIsCompleted());
+
+        verify(todoRepository, times(2)).save(any(Todo.class));
+    }
+
+    @Test
+    @DisplayName("Get Todos By Status - Negative Status ID - Throws BadRequestException")
+    void getTodosByStatus_NegativeStatusId_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> todoService.getTodosByStatus(-1));
+        assertTrue(ex.getMessage().contains("status") || ex.getMessage().contains("invalid"));
+    }
+
+    @Test
+    @DisplayName("Get Todos By User ID - Negative User ID - Throws BadRequestException")
+    void getTodosByUserId_NegativeUserId_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> todoService.getTodosByUserId(-1L));
+        assertTrue(ex.getMessage().contains("user") || ex.getMessage().contains("invalid"));
+    }
+
+    @Test
+    @DisplayName("Get Todos By User ID - Zero User ID - Throws BadRequestException")
+    void getTodosByUserId_ZeroUserId_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> todoService.getTodosByUserId(0L));
+        assertTrue(ex.getMessage().contains("user") || ex.getMessage().contains("invalid"));
+    }
+
+    @Test
+    @DisplayName("Get Todos In Batches - Null Request - Throws BadRequestException")
+    void getTodosInBatches_NullRequest_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> todoService.getTodosInBatches(null));
+        assertTrue(ex.getMessage().contains("request") || ex.getMessage().contains("invalid"));
+    }
+
+    @Test
+    @DisplayName("Get Todos In Batches - Start Greater Than End - Throws BadRequestException")
+    void getTodosInBatches_StartGreaterThanEnd_ThrowsBadRequestException() {
+        PaginationRequest pagination = new PaginationRequest();
+        pagination.setStart(100);
+        pagination.setEnd(10);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> todoService.getTodosInBatches(pagination));
+        assertTrue(ex.getMessage().contains("start") || ex.getMessage().contains("end"));
+    }
+
+    @Test
+    @DisplayName("Bulk Create Todos - Empty List - Throws BadRequestException")
+    void bulkCreateTodos_EmptyList_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> todoService.bulkCreateTodos(new java.util.ArrayList<>()));
+        assertTrue(ex.getMessage().contains("empty") || ex.getMessage().contains("null"));
+        verify(todoRepository, never()).save(any(Todo.class));
+    }
+
+    @Test
+    @DisplayName("Bulk Create Todos - Null List - Throws BadRequestException")
+    void bulkCreateTodos_NullList_ThrowsBadRequestException() {
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> todoService.bulkCreateTodos(null));
+        assertTrue(ex.getMessage().contains("empty") || ex.getMessage().contains("null"));
+        verify(todoRepository, never()).save(any(Todo.class));
+    }
+}
 }

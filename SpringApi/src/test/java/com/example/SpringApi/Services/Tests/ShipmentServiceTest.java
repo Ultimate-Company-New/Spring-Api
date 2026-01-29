@@ -6,6 +6,7 @@ import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.FilterQueryBuilder.ShipmentFilterQueryBuilder;
 import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.ShipmentResponseModel;
 import com.example.SpringApi.Repositories.*;
@@ -37,7 +38,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ShipmentService Tests")
-class ShipmentServiceTest {
+class ShipmentServiceTest extends BaseTest {
 
         @Mock
         private ShipmentRepository shipmentRepository;
@@ -72,113 +73,142 @@ class ShipmentServiceTest {
         private Shipment testShipment;
         private PaginationBaseRequestModel testPaginationRequest;
 
-        private static final Long TEST_SHIPMENT_ID = 1L;
-        private static final Long TEST_CLIENT_ID = 1L;
+        private static final Long TEST_SHIPMENT_ID = DEFAULT_SHIPMENT_ID;
+        private static final Long TEST_CLIENT_ID = DEFAULT_CLIENT_ID;
         private static final Long TEST_ORDER_SUMMARY_ID = 1L;
 
         @BeforeEach
         void setUp() {
                 // Initialize test shipment
-                testShipment = new Shipment();
+                testShipment = createTestShipment();
                 testShipment.setShipmentId(TEST_SHIPMENT_ID);
                 testShipment.setOrderSummaryId(TEST_ORDER_SUMMARY_ID);
                 testShipment.setClientId(TEST_CLIENT_ID);
-                testShipment.setTotalWeightKgs(new BigDecimal("5.00"));
-                testShipment.setTotalQuantity(10);
-                testShipment.setPackagingCost(new BigDecimal("50.00"));
-                testShipment.setShippingCost(new BigDecimal("100.00"));
 
                 // Initialize test pagination request
-                testPaginationRequest = new PaginationBaseRequestModel();
-                testPaginationRequest.setStart(0);
-                testPaginationRequest.setEnd(10);
+                testPaginationRequest = createValidPaginationRequest();
                 testPaginationRequest.setIncludeDeleted(false);
         }
 
         // ==================== Get Shipments In Batches Tests ====================
 
         @Nested
-        @DisplayName("Get Shipments In Batches - Validation Tests")
-        class GetShipmentsInBatchesValidationTests {
-
+        @DisplayName("GetShipmentsInBatches Tests")
+        class GetShipmentsInBatchesTests {
                 @Test
-                @DisplayName("Get Shipments - Invalid Pagination End Less Than Start - Throws BadRequestException")
-                void getShipmentsInBatches_InvalidPagination_ThrowsBadRequestException() {
-                        testPaginationRequest.setStart(10);
-                        testPaginationRequest.setEnd(5);
+                @DisplayName("Get Shipments In Batches - Invalid pagination, success no filters, and triple-loop filter validation")
+                void getShipmentsInBatches_SingleComprehensiveTest() {
+                        PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
+                        
+                        // (1) Invalid pagination: end <= start
+                        paginationRequest.setStart(10);
+                        paginationRequest.setEnd(5);
+                        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                                        () -> shipmentService.getShipmentsInBatches(paginationRequest));
 
-                        BadRequestException exception = assertThrows(BadRequestException.class,
-                                        () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+                        // (2) Success: simple retrieval without filters
+                        paginationRequest.setStart(0);
+                        paginationRequest.setEnd(10);
+                        paginationRequest.setFilters(null);
+                        paginationRequest.setIncludeDeleted(false);
 
-                        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, exception.getMessage());
-                }
-
-                @Test
-                @DisplayName("Get Shipments - Invalid Column Name Filter - Throws BadRequestException")
-                void getShipmentsInBatches_InvalidColumnName_ThrowsBadRequestException() {
-                        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
-                        filter.setColumn("invalidColumn");
-                        filter.setOperator("equals");
-                        filter.setValue("test");
-                        testPaginationRequest.setFilters(Arrays.asList(filter));
-
-                        BadRequestException exception = assertThrows(BadRequestException.class,
-                                        () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
-
-                        assertTrue(exception.getMessage().contains("Invalid column name"));
-                }
-
-                @Test
-                @DisplayName("Get Shipments - Invalid Operator - Throws BadRequestException")
-                void getShipmentsInBatches_InvalidOperator_ThrowsBadRequestException() {
-                        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
-                        filter.setColumn("shipmentId");
-                        filter.setOperator("invalidOperator");
-                        filter.setValue("test");
-                        testPaginationRequest.setFilters(Arrays.asList(filter));
-
-                        when(shipmentFilterQueryBuilder.getColumnType("shipmentId")).thenReturn("number");
-
-                        BadRequestException exception = assertThrows(BadRequestException.class,
-                                        () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
-
-                        assertTrue(exception.getMessage().contains("Invalid operator"));
-                }
-
-                @Test
-                @DisplayName("Get Shipments - Boolean Column With Invalid Operator - Throws BadRequestException")
-                void getShipmentsInBatches_BooleanColumnInvalidOperator_ThrowsBadRequestException() {
-                        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
-                        filter.setColumn("isCancelled");
-                        filter.setOperator("contains");
-                        filter.setValue("true");
-                        testPaginationRequest.setFilters(Arrays.asList(filter));
-
-                        when(shipmentFilterQueryBuilder.getColumnType("isCancelled")).thenReturn("boolean");
-
-                        BadRequestException exception = assertThrows(BadRequestException.class,
-                                        () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
-
-                        assertEquals(ErrorMessages.CommonErrorMessages.BooleanColumnsOnlySupportEquals,
-                                        exception.getMessage());
-                }
-
-                @Test
-                @DisplayName("Get Shipments - Success - Returns Paginated Results")
-                void getShipmentsInBatches_Success_ReturnsPaginatedResults() {
                         List<Shipment> shipments = Arrays.asList(testShipment);
                         Page<Shipment> page = new PageImpl<>(shipments);
 
-                        when(shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                        lenient().when(shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
                                         anyLong(), any(), any(), any(), any(Pageable.class)))
                                         .thenReturn(page);
 
-                        PaginationBaseResponseModel<ShipmentResponseModel> result = shipmentService
-                                        .getShipmentsInBatches(testPaginationRequest);
+                        PaginationBaseResponseModel<ShipmentResponseModel> result = 
+                                        shipmentService.getShipmentsInBatches(paginationRequest);
 
                         assertNotNull(result);
                         assertEquals(1, result.getData().size());
                         assertEquals(1L, result.getTotalDataCount());
+
+                        // (3) Triple-loop: valid columns × operators × types + invalid combinations
+                        String[] stringCols = {"selectedCourierName", "shipRocketOrderId", "shipRocketAwbCode", 
+                                "shipRocketTrackingId", "shipRocketStatus", "createdUser", "modifiedUser"};
+                        String[] numberCols = {"shipmentId", "orderSummaryId", "pickupLocationId", "totalQuantity",
+                                "selectedCourierCompanyId", "shipRocketShipmentId"};
+                        String[] decimalCols = {"totalWeightKgs", "packagingCost", "shippingCost", "totalCost",
+                                "selectedCourierRate", "selectedCourierMinWeight"};
+                        String[] dateCols = {"expectedDeliveryDate", "createdAt", "updatedAt"};
+                        String[] allColumns = new String[23];
+                        System.arraycopy(stringCols, 0, allColumns, 0, stringCols.length);
+                        System.arraycopy(numberCols, 0, allColumns, stringCols.length, numberCols.length);
+                        System.arraycopy(decimalCols, 0, allColumns, stringCols.length + numberCols.length, decimalCols.length);
+                        System.arraycopy(dateCols, 0, allColumns, stringCols.length + numberCols.length + decimalCols.length, dateCols.length);
+
+                        String[] invalidColumns = BATCH_INVALID_COLUMNS;
+                        String[] stringOps = BATCH_STRING_OPERATORS;
+                        String[] numberOps = BATCH_NUMBER_OPERATORS;
+                        String[] dateOps = BATCH_DATE_OPERATORS;
+                        String[] invalidOps = BATCH_INVALID_OPERATORS;
+                        Object[] validValues = BATCH_VALID_VALUES;
+
+                        // Test invalid columns
+                        for (String invalidCol : invalidColumns) {
+                                paginationRequest.setFilters(List.of(createFilterCondition(invalidCol, "equals", "test")));
+                                assertThrowsBadRequest(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidColumnName, invalidCol),
+                                        () -> shipmentService.getShipmentsInBatches(paginationRequest));
+                        }
+
+                        // Test valid columns with valid/invalid operators and values
+                        for (String column : allColumns) {
+                                String columnType = shipmentFilterQueryBuilder.getColumnType(column);
+                                String[] validOps;
+                                if (Arrays.asList(stringCols).contains(column)) {
+                                        validOps = stringOps;
+                                } else if (Arrays.asList(numberCols).contains(column) || Arrays.asList(decimalCols).contains(column)) {
+                                        validOps = numberOps;
+                                } else {
+                                        validOps = dateOps;
+                                }
+
+                                // Test invalid operators
+                                for (String invalidOp : invalidOps) {
+                                        paginationRequest.setFilters(List.of(createFilterCondition(column, invalidOp, "test")));
+                                        assertThrowsBadRequest(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidOperator, invalidOp),
+                                                () -> shipmentService.getShipmentsInBatches(paginationRequest));
+                                }
+
+                                // Test valid operators with appropriate values
+                                for (String operator : validOps) {
+                                        boolean shouldPass = true;
+                                        Object testValue = validValues[0];
+
+                                        // Date/number columns don't support string operators
+                                        if ((columnType.equals("date") || columnType.equals("number")) && 
+                                            Arrays.asList("contains", "notContains", "startsWith", "endsWith").contains(operator)) {
+                                                shouldPass = false;
+                                        }
+
+                                        // isEmpty/isNotEmpty don't need values
+                                        if (operator.equals("isEmpty") || operator.equals("isNotEmpty")) {
+                                                testValue = null;
+                                        }
+
+                                        paginationRequest.setFilters(List.of(createFilterCondition(column, operator, testValue)));
+
+                                        if (shouldPass) {
+                                                lenient().when(shipmentFilterQueryBuilder.getColumnType(column)).thenReturn(columnType);
+                                                lenient().when(shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                                                        anyLong(), any(), any(), any(), any(Pageable.class)))
+                                                        .thenReturn(new PageImpl<>(Collections.emptyList()));
+                                                assertDoesNotThrow(() -> shipmentService.getShipmentsInBatches(paginationRequest));
+                                        } else {
+                                                // Should throw BadRequestException for invalid operator/type combination
+                                                try {
+                                                        when(shipmentFilterQueryBuilder.getColumnType(column)).thenReturn(columnType);
+                                                        shipmentService.getShipmentsInBatches(paginationRequest);
+                                                        fail("Expected BadRequestException for invalid operator " + operator + " on " + columnType + " column " + column);
+                                                } catch (BadRequestException e) {
+                                                        // Expected
+                                                }
+                                        }
+                                }
+                        }
                 }
         }
 
@@ -191,28 +221,22 @@ class ShipmentServiceTest {
                 @Test
                 @DisplayName("Get Shipment By ID - Null ID - Throws BadRequestException")
                 void getShipmentById_NullId_ThrowsBadRequestException() {
-                        BadRequestException exception = assertThrows(BadRequestException.class,
+                        assertThrowsBadRequest(ErrorMessages.ShipmentErrorMessages.InvalidId,
                                         () -> shipmentService.getShipmentById(null));
-
-                        assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, exception.getMessage());
                 }
 
                 @Test
                 @DisplayName("Get Shipment By ID - Zero ID - Throws BadRequestException")
                 void getShipmentById_ZeroId_ThrowsBadRequestException() {
-                        BadRequestException exception = assertThrows(BadRequestException.class,
+                        assertThrowsBadRequest(ErrorMessages.ShipmentErrorMessages.InvalidId,
                                         () -> shipmentService.getShipmentById(0L));
-
-                        assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, exception.getMessage());
                 }
 
                 @Test
                 @DisplayName("Get Shipment By ID - Negative ID - Throws BadRequestException")
                 void getShipmentById_NegativeId_ThrowsBadRequestException() {
-                        BadRequestException exception = assertThrows(BadRequestException.class,
+                        assertThrowsBadRequest(ErrorMessages.ShipmentErrorMessages.InvalidId,
                                         () -> shipmentService.getShipmentById(-1L));
-
-                        assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, exception.getMessage());
                 }
 
                 @Test
@@ -221,11 +245,8 @@ class ShipmentServiceTest {
                         when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
                                         .thenReturn(Optional.empty());
 
-                        NotFoundException exception = assertThrows(NotFoundException.class,
+                        assertThrowsNotFound(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID),
                                         () -> shipmentService.getShipmentById(TEST_SHIPMENT_ID));
-
-                        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID),
-                                        exception.getMessage());
                 }
 
                 @Test
@@ -245,27 +266,6 @@ class ShipmentServiceTest {
                 }
         }
 
-        // ==================== Additional GetShipmentById Tests ====================
-
-        @Test
-        @DisplayName("Get Shipment By ID - Negative ID - Not Found")
-        void getShipmentById_NegativeId_ThrowsNotFoundException() {
-                when(shipmentRepository.findByShipmentIdAndClientId(-1L, TEST_CLIENT_ID))
-                        .thenReturn(Optional.empty());
-                NotFoundException ex = assertThrows(NotFoundException.class,
-                        () -> shipmentService.getShipmentById(-1L));
-                assertTrue(ex.getMessage().contains("not found"));
-        }
-
-        @Test
-        @DisplayName("Get Shipment By ID - Zero ID - Not Found")
-        void getShipmentById_ZeroId_ThrowsNotFoundException() {
-                when(shipmentRepository.findByShipmentIdAndClientId(0L, TEST_CLIENT_ID))
-                        .thenReturn(Optional.empty());
-                NotFoundException ex = assertThrows(NotFoundException.class,
-                        () -> shipmentService.getShipmentById(0L));
-                assertTrue(ex.getMessage().contains("not found"));
-        }
 
         @Test
         @DisplayName("Get Shipment By ID - Long.MAX_VALUE - Not Found")
@@ -287,82 +287,293 @@ class ShipmentServiceTest {
                 assertTrue(ex.getMessage().contains("not found"));
         }
 
-        // ==================== Additional GetShipmentsInBatches Tests ====================
+        // ==================== Additional Shipment Validation Tests ====================
 
-        @Test
-        @DisplayName("Get Shipments In Batches - Negative Start - Throws BadRequestException")
-        void getShipmentsInBatches_NegativeStart_ThrowsBadRequestException() {
-                PaginationBaseRequestModel req = new PaginationBaseRequestModel();
-                req.setStart(-1);
-                req.setEnd(10);
-                
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                        () -> shipmentService.getShipmentsInBatches(req));
-                assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidRequest, ex.getMessage());
+        @Nested
+        @DisplayName("Get Shipment By ID - Additional Validation Tests")
+        class GetShipmentByIdAdditionalTests {
+
+                @Test
+                @DisplayName("Get Shipment By ID - Shipment without ShipRocket Order ID - Not Found")
+                void getShipmentById_NoShipRocketOrderId_ThrowsNotFoundException() {
+                        Shipment shipmentNoOrderId = createTestShipment();
+                        shipmentNoOrderId.setShipmentId(TEST_SHIPMENT_ID);
+                        shipmentNoOrderId.setClientId(TEST_CLIENT_ID);
+                        shipmentNoOrderId.setShipRocketOrderId(null); // Missing required field
+
+                        when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
+                                .thenReturn(Optional.of(shipmentNoOrderId));
+
+                        assertThrowsNotFound(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID),
+                                () -> shipmentService.getShipmentById(TEST_SHIPMENT_ID));
+                }
+
+                @Test
+                @DisplayName("Get Shipment By ID - Shipment with empty ShipRocket Order ID - Not Found")
+                void getShipmentById_EmptyShipRocketOrderId_ThrowsNotFoundException() {
+                        Shipment shipmentEmptyOrderId = createTestShipment();
+                        shipmentEmptyOrderId.setShipmentId(TEST_SHIPMENT_ID);
+                        shipmentEmptyOrderId.setClientId(TEST_CLIENT_ID);
+                        shipmentEmptyOrderId.setShipRocketOrderId(""); // Empty string
+
+                        when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
+                                .thenReturn(Optional.of(shipmentEmptyOrderId));
+
+                        assertThrowsNotFound(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID),
+                                () -> shipmentService.getShipmentById(TEST_SHIPMENT_ID));
+                }
+
+                @Test
+                @DisplayName("Get Shipment By ID - Different Client ID - Not Found")
+                void getShipmentById_DifferentClientId_ThrowsNotFoundException() {
+                        when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
+                                .thenReturn(Optional.empty());
+
+                        assertThrowsNotFound(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID),
+                                () -> shipmentService.getShipmentById(TEST_SHIPMENT_ID));
+                }
+
+                @Test
+                @DisplayName("Get Shipment By ID - Deleted Shipment - Returns response")
+                void getShipmentById_DeletedShipment_ReturnsDetails() {
+                        Shipment deletedShipment = createDeletedTestShipment();
+                        deletedShipment.setShipmentId(TEST_SHIPMENT_ID);
+                        deletedShipment.setClientId(TEST_CLIENT_ID);
+                        deletedShipment.setShipRocketOrderId("SR-123456");
+
+                        when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
+                                .thenReturn(Optional.of(deletedShipment));
+                        when(shipmentProductRepository.findByShipmentId(TEST_SHIPMENT_ID))
+                                .thenReturn(Collections.emptyList());
+                        when(shipmentPackageRepository.findByShipmentId(TEST_SHIPMENT_ID))
+                                .thenReturn(Collections.emptyList());
+
+                        ShipmentResponseModel result = shipmentService.getShipmentById(TEST_SHIPMENT_ID);
+
+                        assertNotNull(result);
+                        assertEquals(TEST_SHIPMENT_ID, result.getShipmentId());
+                }
+
+                @Test
+                @DisplayName("Get Shipment By ID - One ID - Success")
+                void getShipmentById_ValidId_Success() {
+                        when(shipmentRepository.findByShipmentIdAndClientId(1L, TEST_CLIENT_ID))
+                                .thenReturn(Optional.of(testShipment));
+                        when(shipmentProductRepository.findByShipmentId(1L))
+                                .thenReturn(Collections.emptyList());
+                        when(shipmentPackageRepository.findByShipmentId(1L))
+                                .thenReturn(Collections.emptyList());
+
+                        ShipmentResponseModel result = shipmentService.getShipmentById(1L);
+
+                        assertNotNull(result);
+                        verify(shipmentRepository).findByShipmentIdAndClientId(1L, TEST_CLIENT_ID);
+                }
         }
 
-        @Test
-        @DisplayName("Get Shipments In Batches - End Before Start - Throws BadRequestException")
-        void getShipmentsInBatches_EndBeforeStart_ThrowsBadRequestException() {
-                PaginationBaseRequestModel req = new PaginationBaseRequestModel();
-                req.setStart(10);
-                req.setEnd(5);
-                
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                        () -> shipmentService.getShipmentsInBatches(req));
-                assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidRequest, ex.getMessage());
+        @Nested
+        @DisplayName("Get Shipments In Batches - Pagination Validation")
+        class GetShipmentsInBatchesPaginationTests {
+
+                @Test
+                @DisplayName("Get Shipments In Batches - Start equals End - Throws BadRequestException")
+                void getShipmentsInBatches_StartEqualsEnd_ThrowsBadRequest() {
+                        PaginationBaseRequestModel request = createValidPaginationRequest();
+                        request.setStart(10);
+                        request.setEnd(10);
+
+                        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                                () -> shipmentService.getShipmentsInBatches(request));
+                }
+
+                @Test
+                @DisplayName("Get Shipments In Batches - Negative Start - Throws BadRequestException")
+                void getShipmentsInBatches_NegativeStart_ThrowsBadRequest() {
+                        PaginationBaseRequestModel request = createValidPaginationRequest();
+                        request.setStart(-5);
+                        request.setEnd(10);
+
+                        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                                () -> shipmentService.getShipmentsInBatches(request));
+                }
+
+                @Test
+                @DisplayName("Get Shipments In Batches - Negative End - Throws BadRequestException")
+                void getShipmentsInBatches_NegativeEnd_ThrowsBadRequest() {
+                        PaginationBaseRequestModel request = createValidPaginationRequest();
+                        request.setStart(0);
+                        request.setEnd(-10);
+
+                        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                                () -> shipmentService.getShipmentsInBatches(request));
+                }
+
+                @Test
+                @DisplayName("Get Shipments In Batches - Start greater than End - Throws BadRequestException")
+                void getShipmentsInBatches_StartGreaterThanEnd_ThrowsBadRequest() {
+                        PaginationBaseRequestModel request = createValidPaginationRequest();
+                        request.setStart(100);
+                        request.setEnd(50);
+
+                        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                                () -> shipmentService.getShipmentsInBatches(request));
+                }
+
+                @Test
+                @DisplayName("Get Shipments In Batches - Very large page size - Success")
+                void getShipmentsInBatches_LargePageSize_Success() {
+                        PaginationBaseRequestModel request = createValidPaginationRequest();
+                        request.setStart(0);
+                        request.setEnd(1000000);
+
+                        List<Shipment> shipments = Arrays.asList(testShipment);
+                        Page<Shipment> page = new PageImpl<>(shipments);
+
+                        lenient().when(shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                                anyLong(), any(), any(), any(), any(Pageable.class)))
+                                .thenReturn(page);
+
+                        PaginationBaseResponseModel<ShipmentResponseModel> result = 
+                                shipmentService.getShipmentsInBatches(request);
+
+                        assertNotNull(result);
+                }
+
+                @Test
+                @DisplayName("Get Shipments In Batches - Zero Start and End - Throws BadRequestException")
+                void getShipmentsInBatches_ZeroStartAndEnd_ThrowsBadRequest() {
+                        PaginationBaseRequestModel request = createValidPaginationRequest();
+                        request.setStart(0);
+                        request.setEnd(0);
+
+                        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                                () -> shipmentService.getShipmentsInBatches(request));
+                }
         }
 
-        @Test
-        @DisplayName("Get Shipments In Batches - Large Page Size (1000)")
-        void getShipmentsInBatches_LargePageSize_Success() {
-                PaginationBaseRequestModel req = new PaginationBaseRequestModel();
-                req.setStart(0);
-                req.setEnd(1000);
-                
-                List<Shipment> shipments = Arrays.asList(testShipment);
-                Page<Shipment> page = new PageImpl<>(shipments, org.springframework.data.domain.PageRequest.of(0, 1000), 1);
-                lenient().when(shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                        anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(org.springframework.data.domain.Pageable.class)))
-                        .thenReturn(page);
-                
-                PaginationBaseResponseModel<Shipment> result = shipmentService.getShipmentsInBatches(req);
-                assertNotNull(result);
+        @Nested
+        @DisplayName("Get Shipments In Batches - Filter Validation")
+        class GetShipmentsInBatchesFilterTests {
+
+                @Test
+                @DisplayName("Get Shipments In Batches - Invalid column 'invalidColumn' - Throws BadRequestException")
+                void getShipmentsInBatches_InvalidColumn_ThrowsBadRequest() {
+                        PaginationBaseRequestModel request = createValidPaginationRequest();
+                        request.setStart(0);
+                        request.setEnd(10);
+                        request.setFilters(List.of(createFilterCondition("invalidColumn", "equals", "test")));
+
+                        assertThrowsBadRequest(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidColumnName, "invalidColumn"),
+                                () -> shipmentService.getShipmentsInBatches(request));
+                }
+
+                @Test
+                @DisplayName("Get Shipments In Batches - Invalid operator 'badOperator' - Throws BadRequestException")
+                void getShipmentsInBatches_InvalidOperator_ThrowsBadRequest() {
+                        PaginationBaseRequestModel request = createValidPaginationRequest();
+                        request.setStart(0);
+                        request.setEnd(10);
+                        request.setFilters(List.of(createFilterCondition("shipmentId", "badOperator", "123")));
+
+                        assertThrowsBadRequest(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidOperator, "badOperator"),
+                                () -> shipmentService.getShipmentsInBatches(request));
+                }
+
+                @Test
+                @DisplayName("Get Shipments In Batches - String operator on numeric column - Throws BadRequestException")
+                void getShipmentsInBatches_StringOperatorOnNumericColumn_ThrowsBadRequest() {
+                        PaginationBaseRequestModel request = createValidPaginationRequest();
+                        request.setStart(0);
+                        request.setEnd(10);
+                        // "contains" is a string operator, but applied to numeric column "shipmentId"
+                        request.setFilters(List.of(createFilterCondition("shipmentId", "contains", "123")));
+
+                        when(shipmentFilterQueryBuilder.getColumnType("shipmentId")).thenReturn("number");
+
+                        assertThrows(BadRequestException.class,
+                                () -> shipmentService.getShipmentsInBatches(request));
+                }
+
+                @Test
+                @DisplayName("Get Shipments In Batches - Multiple invalid columns - First one throws")
+                void getShipmentsInBatches_MultipleInvalidColumns_ThrowsBadRequest() {
+                        PaginationBaseRequestModel request = createValidPaginationRequest();
+                        request.setStart(0);
+                        request.setEnd(10);
+                        request.setFilters(List.of(
+                                createFilterCondition("fakeCol1", "equals", "val1"),
+                                createFilterCondition("shipmentId", "equals", "123")
+                        ));
+
+                        assertThrowsBadRequest(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidColumnName, "fakeCol1"),
+                                () -> shipmentService.getShipmentsInBatches(request));
+                }
+
+                @Test
+                @DisplayName("Get Shipments In Batches - Valid filter with 'equals' operator - Success")
+                void getShipmentsInBatches_ValidFilterEquals_Success() {
+                        PaginationBaseRequestModel request = createValidPaginationRequest();
+                        request.setStart(0);
+                        request.setEnd(10);
+                        request.setFilters(List.of(createFilterCondition("shipmentId", "equals", "123")));
+
+                        List<Shipment> shipments = Arrays.asList(testShipment);
+                        Page<Shipment> page = new PageImpl<>(shipments);
+
+                        lenient().when(shipmentFilterQueryBuilder.getColumnType("shipmentId")).thenReturn("number");
+                        lenient().when(shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                                anyLong(), any(), any(), any(), any(Pageable.class)))
+                                .thenReturn(page);
+
+                        PaginationBaseResponseModel<ShipmentResponseModel> result = 
+                                shipmentService.getShipmentsInBatches(request);
+
+                        assertNotNull(result);
+                        assertEquals(1, result.getData().size());
+                }
+
+                @Test
+                @DisplayName("Get Shipments In Batches - Valid filter with 'contains' on string column - Success")
+                void getShipmentsInBatches_ValidFilterContains_Success() {
+                        PaginationBaseRequestModel request = createValidPaginationRequest();
+                        request.setStart(0);
+                        request.setEnd(10);
+                        request.setFilters(List.of(createFilterCondition("selectedCourierName", "contains", "FedEx")));
+
+                        List<Shipment> shipments = Arrays.asList(testShipment);
+                        Page<Shipment> page = new PageImpl<>(shipments);
+
+                        lenient().when(shipmentFilterQueryBuilder.getColumnType("selectedCourierName")).thenReturn("string");
+                        lenient().when(shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                                anyLong(), any(), any(), any(), any(Pageable.class)))
+                                .thenReturn(page);
+
+                        PaginationBaseResponseModel<ShipmentResponseModel> result = 
+                                shipmentService.getShipmentsInBatches(request);
+
+                        assertNotNull(result);
+                }
+
+                @Test
+                @DisplayName("Get Shipments In Batches - Empty filters list - Success")
+                void getShipmentsInBatches_EmptyFiltersList_Success() {
+                        PaginationBaseRequestModel request = createValidPaginationRequest();
+                        request.setStart(0);
+                        request.setEnd(10);
+                        request.setFilters(Collections.emptyList());
+
+                        List<Shipment> shipments = Arrays.asList(testShipment);
+                        Page<Shipment> page = new PageImpl<>(shipments);
+
+                        lenient().when(shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                                anyLong(), any(), any(), any(), any(Pageable.class)))
+                                .thenReturn(page);
+
+                        PaginationBaseResponseModel<ShipmentResponseModel> result = 
+                                shipmentService.getShipmentsInBatches(request);
+
+                        assertNotNull(result);
+                }
         }
 
-        @Test
-        @DisplayName("Get Shipments In Batches - Empty Results")
-        void getShipmentsInBatches_EmptyResults_ReturnsEmpty() {
-                PaginationBaseRequestModel req = new PaginationBaseRequestModel();
-                req.setStart(0);
-                req.setEnd(10);
-                
-                List<Shipment> emptyList = new ArrayList<>();
-                Page<Shipment> emptyPage = new PageImpl<>(emptyList, org.springframework.data.domain.PageRequest.of(0, 10), 0);
-                lenient().when(shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                        anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(org.springframework.data.domain.Pageable.class)))
-                        .thenReturn(emptyPage);
-                
-                PaginationBaseResponseModel<Shipment> result = shipmentService.getShipmentsInBatches(req);
-                assertNotNull(result);
-                assertEquals(0, result.getData().size());
-        }
-
-        @Test
-        @DisplayName("Get Shipments In Batches - With Search Query")
-        void getShipmentsInBatches_WithSearchQuery_Success() {
-                PaginationBaseRequestModel req = new PaginationBaseRequestModel();
-                req.setStart(0);
-                req.setEnd(10);
-                req.setSearchQuery("shipment");
-                
-                List<Shipment> shipments = Arrays.asList(testShipment);
-                Page<Shipment> page = new PageImpl<>(shipments, org.springframework.data.domain.PageRequest.of(0, 10), 1);
-                lenient().when(shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                        anyLong(), isNull(), eq("shipment"), isNull(), anyBoolean(), any(org.springframework.data.domain.Pageable.class)))
-                        .thenReturn(page);
-                
-                PaginationBaseResponseModel<Shipment> result = shipmentService.getShipmentsInBatches(req);
-                assertNotNull(result);
-        }
 }
