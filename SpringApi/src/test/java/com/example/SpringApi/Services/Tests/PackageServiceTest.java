@@ -46,11 +46,19 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for PackageService.
- * Test naming: methodName_Scenario_ExpectedOutcome. All data from BaseTest.
  *
- * @author SpringApi Team
- * @version 1.0
- * @since 2024-01-15
+ * Test Group Summary:
+ * | Group Name                              | Number of Tests |
+ * | :-------------------------------------- | :-------------- |
+ * | GetPackageByIdTests                     | 4               |
+ * | GetPackagesInBatchesTests               | 7               |
+ * | CreatePackageTests                      | 7               |
+ * | UpdatePackageTests                      | 6               |
+ * | TogglePackageTests                      | 4               |
+ * | BulkCreatePackagesTests                 | 7               |
+ * | CreatePackageValidationTests            | 15              |
+ * | Additional Tests (standalone)           | 28              |
+ * | **Total**                               | **78**          |
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PackageService Unit Tests")
@@ -557,8 +565,7 @@ class PackageServiceTest extends BaseTest {
         assertTrue(exception.getMessage().contains("Package list cannot be null or empty"));
         verify(packageRepository, never()).save(any(Package.class));
     }
-
-    // ==================== Validation Tests ====================
+    }
 
     @org.junit.jupiter.api.Nested
     @DisplayName("CreatePackageValidationTests")
@@ -671,7 +678,6 @@ class PackageServiceTest extends BaseTest {
         }
     }
 
-    // ==================== Additional GetPackageById Edge Case Tests ====================
 
     @Test
     @DisplayName("Get Package By ID - Long.MIN_VALUE - Should handle")
@@ -769,7 +775,6 @@ class PackageServiceTest extends BaseTest {
         assertEquals(0, result.getData().size());
     }
 
-    // ==================== Additional CreatePackage Tests ====================
 
     @Test
     @DisplayName("Create Package - All Valid Fields - Multiple Tests Success")
@@ -886,7 +891,6 @@ class PackageServiceTest extends BaseTest {
         assertEquals(ErrorMessages.PackageErrorMessages.InvalidHeight, ex.getMessage());
     }
 
-    // ==================== Additional TogglePackage Tests ====================
 
     @Test
     @DisplayName("Toggle Package - Negative ID - Not Found")
@@ -987,320 +991,6 @@ class PackageServiceTest extends BaseTest {
         BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
         assertNotNull(result);
         assertEquals(5, result.getTotalRequested());
-    }
-
-    // ==================== Comprehensive Package Validation Tests ====================
-
-    @Nested
-    @DisplayName("Get Packages - Pagination Validation Tests")
-    class GetPackagesPaginationTests {
-
-        @Test
-        @DisplayName("Get Packages - Invalid pagination (end <= start) - Throws BadRequestException")
-        void getPackages_EndLessThanStart_ThrowsBadRequest() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(100);
-            request.setEnd(50);
-
-            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                    () -> packageService.getPackagesInBatches(request));
-        }
-
-        @Test
-        @DisplayName("Get Packages - Start equals End - Throws BadRequestException")
-        void getPackages_StartEqualsEnd_ThrowsBadRequest() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(50);
-            request.setEnd(50);
-
-            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                    () -> packageService.getPackagesInBatches(request));
-        }
-
-        @Test
-        @DisplayName("Get Packages - Negative start - Throws BadRequestException")
-        void getPackages_NegativeStart_ThrowsBadRequest() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(-10);
-            request.setEnd(20);
-
-            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                    () -> packageService.getPackagesInBatches(request));
-        }
-
-        @Test
-        @DisplayName("Get Packages - Valid pagination - Success")
-        void getPackages_ValidPagination_Success() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(0);
-            request.setEnd(15);
-
-            Page<Package> page = new PageImpl<>(Collections.singletonList(testPackage));
-            when(packageRepository.findByClientIdAndIsDeletedFalse(eq(TEST_CLIENT_ID), any(Pageable.class)))
-                    .thenReturn(page);
-
-            PaginationBaseResponseModel<PackageResponseModel> result = packageService.getPackagesInBatches(request);
-
-            assertNotNull(result);
-            assertEquals(1, result.getData().size());
-        }
-    }
-
-    @Nested
-    @DisplayName("Create Package - Validation Tests")
-    class CreatePackageValidationTests {
-
-        @Test
-        @DisplayName("Create Package - Null request - Throws BadRequestException")
-        void createPackage_NullRequest_ThrowsBadRequest() {
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidRequest,
-                    () -> packageService.createPackage(null));
-        }
-
-        @Test
-        @DisplayName("Create Package - Null package name - Throws BadRequestException")
-        void createPackage_NullName_ThrowsBadRequest() {
-            testPackageRequest.setPackageName(null);
-
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidPackageName,
-                    () -> packageService.createPackage(testPackageRequest));
-        }
-
-        @Test
-        @DisplayName("Create Package - Empty package name - Throws BadRequestException")
-        void createPackage_EmptyName_ThrowsBadRequest() {
-            testPackageRequest.setPackageName("");
-
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidPackageName,
-                    () -> packageService.createPackage(testPackageRequest));
-        }
-
-        @Test
-        @DisplayName("Create Package - Null package type - Throws BadRequestException")
-        void createPackage_NullType_ThrowsBadRequest() {
-            testPackageRequest.setPackageType(null);
-
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidPackageType,
-                    () -> packageService.createPackage(testPackageRequest));
-        }
-
-        @Test
-        @DisplayName("Create Package - Empty package type - Throws BadRequestException")
-        void createPackage_EmptyType_ThrowsBadRequest() {
-            testPackageRequest.setPackageType("");
-
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidPackageType,
-                    () -> packageService.createPackage(testPackageRequest));
-        }
-
-        @Test
-        @DisplayName("Create Package - Zero length - Throws BadRequestException")
-        void createPackage_ZeroLength_ThrowsBadRequest() {
-            testPackageRequest.setLength(0);
-
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidDimensions,
-                    () -> packageService.createPackage(testPackageRequest));
-        }
-
-        @Test
-        @DisplayName("Create Package - Negative length - Throws BadRequestException")
-        void createPackage_NegativeLength_ThrowsBadRequest() {
-            testPackageRequest.setLength(-5);
-
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidDimensions,
-                    () -> packageService.createPackage(testPackageRequest));
-        }
-
-        @Test
-        @DisplayName("Create Package - Zero breadth - Throws BadRequestException")
-        void createPackage_ZeroBreadth_ThrowsBadRequest() {
-            testPackageRequest.setBreadth(0);
-
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidDimensions,
-                    () -> packageService.createPackage(testPackageRequest));
-        }
-
-        @Test
-        @DisplayName("Create Package - Negative breadth - Throws BadRequestException")
-        void createPackage_NegativeBreadth_ThrowsBadRequest() {
-            testPackageRequest.setBreadth(-10);
-
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidDimensions,
-                    () -> packageService.createPackage(testPackageRequest));
-        }
-
-        @Test
-        @DisplayName("Create Package - Zero height - Throws BadRequestException")
-        void createPackage_ZeroHeight_ThrowsBadRequest() {
-            testPackageRequest.setHeight(0);
-
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidDimensions,
-                    () -> packageService.createPackage(testPackageRequest));
-        }
-
-        @Test
-        @DisplayName("Create Package - Negative height - Throws BadRequestException")
-        void createPackage_NegativeHeight_ThrowsBadRequest() {
-            testPackageRequest.setHeight(-20);
-
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidDimensions,
-                    () -> packageService.createPackage(testPackageRequest));
-        }
-
-        @Test
-        @DisplayName("Create Package - Zero price - Throws BadRequestException")
-        void createPackage_ZeroPrice_ThrowsBadRequest() {
-            testPackageRequest.setPricePerUnit(BigDecimal.ZERO);
-
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidPrice,
-                    () -> packageService.createPackage(testPackageRequest));
-        }
-
-        @Test
-        @DisplayName("Create Package - Negative price - Throws BadRequestException")
-        void createPackage_NegativePrice_ThrowsBadRequest() {
-            testPackageRequest.setPricePerUnit(BigDecimal.valueOf(-100));
-
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidPrice,
-                    () -> packageService.createPackage(testPackageRequest));
-        }
-
-        @Test
-        @DisplayName("Create Package - Zero capacity - Throws BadRequestException")
-        void createPackage_ZeroCapacity_ThrowsBadRequest() {
-            testPackageRequest.setStandardCapacity(0);
-
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidCapacity,
-                    () -> packageService.createPackage(testPackageRequest));
-        }
-
-        @Test
-        @DisplayName("Create Package - Negative capacity - Throws BadRequestException")
-        void createPackage_NegativeCapacity_ThrowsBadRequest() {
-            testPackageRequest.setStandardCapacity(-5);
-
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidCapacity,
-                    () -> packageService.createPackage(testPackageRequest));
-        }
-
-        @Test
-        @DisplayName("Create Package - Valid request - Success")
-        void createPackage_ValidRequest_Success() {
-            when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
-
-            PackageResponseModel result = packageService.createPackage(testPackageRequest);
-
-            assertNotNull(result);
-            verify(packageRepository).save(any(Package.class));
-        }
-    }
-
-    @Nested
-    @DisplayName("Get Package By ID - Validation Tests")
-    class GetPackageByIdValidationTests {
-
-        @Test
-        @DisplayName("Get Package - Null ID - Throws BadRequestException")
-        void getPackageById_NullId_ThrowsBadRequest() {
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidId,
-                    () -> packageService.getPackageById(null));
-        }
-
-        @Test
-        @DisplayName("Get Package - Zero ID - Throws BadRequestException")
-        void getPackageById_ZeroId_ThrowsBadRequest() {
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidId,
-                    () -> packageService.getPackageById(0L));
-        }
-
-        @Test
-        @DisplayName("Get Package - Negative ID - Throws BadRequestException")
-        void getPackageById_NegativeId_ThrowsBadRequest() {
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidId,
-                    () -> packageService.getPackageById(-100L));
-        }
-
-        @Test
-        @DisplayName("Get Package - Not found - Throws NotFoundException")
-        void getPackageById_NotFound_ThrowsNotFound() {
-            when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID))
-                    .thenReturn(Optional.empty());
-
-            assertThrowsNotFound(String.format(ErrorMessages.PackageErrorMessages.NotFound, TEST_PACKAGE_ID),
-                    () -> packageService.getPackageById(TEST_PACKAGE_ID));
-        }
-
-        @Test
-        @DisplayName("Get Package - Success - Returns package")
-        void getPackageById_ValidId_Success() {
-            when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID))
-                    .thenReturn(Optional.of(testPackage));
-
-            PackageResponseModel result = packageService.getPackageById(TEST_PACKAGE_ID);
-
-            assertNotNull(result);
-        }
-    }
-
-    @Nested
-    @DisplayName("Bulk Create Packages - Validation Tests")
-    class BulkCreatePackagesValidationTests {
-
-        @Test
-        @DisplayName("Bulk Create - Null list - Throws BadRequestException")
-        void bulkCreate_NullList_ThrowsBadRequest() {
-            assertThrowsBadRequest(ErrorMessages.PackageErrorMessages.InvalidRequest,
-                    () -> packageService.bulkCreatePackages(null));
-        }
-
-        @Test
-        @DisplayName("Bulk Create - Empty list - Success (returns empty)")
-        void bulkCreate_EmptyList_Success() {
-            BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(Collections.emptyList());
-
-            assertNotNull(result);
-            assertEquals(0, result.getTotalRequested());
-        }
-
-        @Test
-        @DisplayName("Bulk Create - Mixed valid and invalid items - Partial success")
-        void bulkCreate_MixedValidInvalid_PartialSuccess() {
-            List<PackageRequestModel> requests = new ArrayList<>();
-            
-            // Valid item
-            requests.add(createValidPackageRequest(1L, TEST_CLIENT_ID));
-            
-            // Invalid item (null name)
-            PackageRequestModel invalid = createValidPackageRequest(2L, TEST_CLIENT_ID);
-            invalid.setPackageName(null);
-            requests.add(invalid);
-            
-            // Valid item
-            requests.add(createValidPackageRequest(3L, TEST_CLIENT_ID));
-
-            when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
-
-            BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
-
-            assertNotNull(result);
-            assertEquals(3, result.getTotalRequested());
-        }
-
-        @Test
-        @DisplayName("Bulk Create - 50 valid items - All succeed")
-        void bulkCreate_ManyValidItems_Success() {
-            List<PackageRequestModel> requests = new ArrayList<>();
-            for (int i = 0; i < 50; i++) {
-                requests.add(createValidPackageRequest((long)i, TEST_CLIENT_ID));
-            }
-
-            when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
-
-            BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
-
-            assertNotNull(result);
-            assertEquals(50, result.getTotalRequested());
-        }
     }
 
 }

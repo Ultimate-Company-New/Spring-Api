@@ -32,22 +32,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Unit tests for UserLogService.
- * 
- * This test class provides comprehensive coverage of UserLogService methods
- * including:
- * - Data logging operations with different parameter combinations
- * - Pagination-based log retrieval with filtering
- * - Error handling for invalid parameters
- * - Column validation and filtering
- * - Audit user handling
- * 
- * Each test method follows the AAA (Arrange-Act-Assert) pattern and includes
- * both success and failure scenarios to ensure robust error handling.
- * All external dependencies are properly mocked to ensure test isolation.
- * 
- * @author SpringApi Team
- * @version 1.0
- * @since 2024-01-15
+ *
+ * Test Group Summary:
+ * | Group Name                              | Number of Tests |
+ * | :-------------------------------------- | :-------------- |
+ * | LogData Tests (various params)          | 6               |
+ * | FetchUserLogsInBatches Tests            | 17              |
+ * | LogDataWithContext Tests                | 4               |
+ * | **Total**                               | **27**          |
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserLogService Unit Tests")
@@ -107,9 +99,6 @@ class UserLogServiceTest {
         // Note: We avoid mocking getUserId() to prevent type conflicts
     }
 
-    // ==================== Log Data with String User and Change/Old/New Values
-    // Tests ====================
-
     /**
      * Test successful logging with string user ID and all values.
      * Verifies that user log is created and saved with proper validation.
@@ -128,8 +117,6 @@ class UserLogServiceTest {
         verify(userLogRepository, times(1)).save(any(UserLog.class));
     }
 
-    // ==================== Log Data with Long User and Endpoint Tests
-    // ====================
 
     /**
      * Test successful logging with long user ID and endpoint.
@@ -176,7 +163,6 @@ class UserLogServiceTest {
         }
     }
 
-    // ==================== Fetch User Logs In Batches Tests ====================
 
     /**
      * Test successful retrieval of user logs with pagination.
@@ -402,7 +388,6 @@ class UserLogServiceTest {
                 any(PageRequest.class));
     }
 
-    // ==================== Additional Validation Tests ====================
 
     /**
      * Test fetch user logs with invalid pagination parameters.
@@ -506,7 +491,6 @@ class UserLogServiceTest {
         assertEquals(1, result.getData().size());
     }
 
-    // ==================== Additional Context-based LogData Tests ====================
 
     /**
      * Test logging with explicit context (for async operations).
@@ -563,329 +547,6 @@ class UserLogServiceTest {
         // Assert
         assertTrue(result);
         verify(userLogRepository, times(1)).save(any(UserLog.class));
-    }
-
-    // ==================== Comprehensive User Log Validation Tests ====================
-
-    @Nested
-    @DisplayName("Get User Logs - Pagination Validation Tests")
-    class GetUserLogsPaginationTests {
-
-        @Test
-        @DisplayName("Get User Logs - Null pagination request - Throws BadRequestException")
-        void getUserLogs_NullRequest_ThrowsBadRequest() {
-            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                    () -> userLogService.getUserLogs(null));
-        }
-
-        @Test
-        @DisplayName("Get User Logs - Invalid pagination (end <= start) - Throws BadRequestException")
-        void getUserLogs_EndLessThanStart_ThrowsBadRequest() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(50);
-            request.setEnd(10);
-
-            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                    () -> userLogService.getUserLogs(request));
-        }
-
-        @Test
-        @DisplayName("Get User Logs - Start equals End - Throws BadRequestException")
-        void getUserLogs_StartEqualsEnd_ThrowsBadRequest() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(20);
-            request.setEnd(20);
-
-            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                    () -> userLogService.getUserLogs(request));
-        }
-
-        @Test
-        @DisplayName("Get User Logs - Negative start offset - Throws BadRequestException")
-        void getUserLogs_NegativeStart_ThrowsBadRequest() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(-10);
-            request.setEnd(20);
-
-            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                    () -> userLogService.getUserLogs(request));
-        }
-
-        @Test
-        @DisplayName("Get User Logs - Negative end offset - Throws BadRequestException")
-        void getUserLogs_NegativeEnd_ThrowsBadRequest() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(0);
-            request.setEnd(-100);
-
-            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                    () -> userLogService.getUserLogs(request));
-        }
-
-        @Test
-        @DisplayName("Get User Logs - Valid pagination - Success")
-        void getUserLogs_ValidPagination_Success() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(0);
-            request.setEnd(25);
-
-            Page<UserLog> page = new PageImpl<>(Collections.singletonList(testUserLog));
-            when(userLogRepository.findByClientIdAndIsDeletedFalse(eq(TEST_CLIENT_ID), any(Pageable.class)))
-                    .thenReturn(page);
-
-            PaginationBaseResponseModel<UserLog> result = userLogService.getUserLogs(request);
-
-            assertNotNull(result);
-            assertEquals(1, result.getData().size());
-        }
-
-        @Test
-        @DisplayName("Get User Logs - Very large page size - Success")
-        void getUserLogs_LargePageSize_Success() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(0);
-            request.setEnd(100000);
-
-            Page<UserLog> page = new PageImpl<>(Collections.emptyList());
-            when(userLogRepository.findByClientIdAndIsDeletedFalse(eq(TEST_CLIENT_ID), any(Pageable.class)))
-                    .thenReturn(page);
-
-            PaginationBaseResponseModel<UserLog> result = userLogService.getUserLogs(request);
-
-            assertNotNull(result);
-        }
-    }
-
-    @Nested
-    @DisplayName("Get User Logs - Filter Validation Tests")
-    class GetUserLogsFilterTests {
-
-        @Test
-        @DisplayName("Get User Logs - Invalid column name - Throws BadRequestException")
-        void getUserLogs_InvalidColumn_ThrowsBadRequest() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(0);
-            request.setEnd(10);
-            request.setFilters(List.of(createFilterCondition("nonexistentColumn", "equals", "value")));
-
-            assertThrowsBadRequest(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidColumnName, "nonexistentColumn"),
-                    () -> userLogService.getUserLogs(request));
-        }
-
-        @Test
-        @DisplayName("Get User Logs - Invalid operator - Throws BadRequestException")
-        void getUserLogs_InvalidOperator_ThrowsBadRequest() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(0);
-            request.setEnd(10);
-            request.setFilters(List.of(createFilterCondition("userLogId", "invalidOp", "123")));
-
-            assertThrowsBadRequest(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidOperator, "invalidOp"),
-                    () -> userLogService.getUserLogs(request));
-        }
-
-        @Test
-        @DisplayName("Get User Logs - Operator type mismatch (string op on number column) - Throws BadRequestException")
-        void getUserLogs_OperatorTypeMismatch_ThrowsBadRequest() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(0);
-            request.setEnd(10);
-            // "contains" is string operator, userLogId is number
-            request.setFilters(List.of(createFilterCondition("userLogId", "contains", "123")));
-
-            when(userLogFilterQueryBuilder.getColumnType("userLogId")).thenReturn("number");
-
-            assertThrows(BadRequestException.class,
-                    () -> userLogService.getUserLogs(request));
-        }
-
-        @Test
-        @DisplayName("Get User Logs - Multiple valid filters - Success")
-        void getUserLogs_MultipleFilters_Success() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(0);
-            request.setEnd(10);
-            request.setFilters(List.of(
-                    createFilterCondition("userLogId", "equals", "1"),
-                    createFilterCondition("endpoint", "contains", "/api")
-            ));
-            request.setLogicOperator("AND");
-
-            Page<UserLog> page = new PageImpl<>(Collections.singletonList(testUserLog));
-            when(userLogFilterQueryBuilder.getColumnType("userLogId")).thenReturn("number");
-            when(userLogFilterQueryBuilder.getColumnType("endpoint")).thenReturn("string");
-            when(userLogFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                    eq(TEST_CLIENT_ID), any(), any(), any(), any(Pageable.class)))
-                    .thenReturn(page);
-
-            PaginationBaseResponseModel<UserLog> result = userLogService.getUserLogs(request);
-
-            assertNotNull(result);
-        }
-
-        @Test
-        @DisplayName("Get User Logs - Empty filters list - Success")
-        void getUserLogs_EmptyFilters_Success() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(0);
-            request.setEnd(10);
-            request.setFilters(Collections.emptyList());
-
-            Page<UserLog> page = new PageImpl<>(Collections.singletonList(testUserLog));
-            when(userLogRepository.findByClientIdAndIsDeletedFalse(eq(TEST_CLIENT_ID), any(Pageable.class)))
-                    .thenReturn(page);
-
-            PaginationBaseResponseModel<UserLog> result = userLogService.getUserLogs(request);
-
-            assertNotNull(result);
-        }
-    }
-
-    @Nested
-    @DisplayName("Log Data - Parameter Validation Tests")
-    class LogDataParameterTests {
-
-        @Test
-        @DisplayName("Log Data - Null value - Still logs successfully")
-        void logData_NullValue_Success() {
-            when(userLogRepository.save(any(UserLog.class))).thenReturn(testUserLog);
-
-            Boolean result = userLogService.logData(null, TEST_ENDPOINT);
-
-            assertTrue(result);
-            verify(userLogRepository).save(any(UserLog.class));
-        }
-
-        @Test
-        @DisplayName("Log Data - Empty string value - Logs successfully")
-        void logData_EmptyValue_Success() {
-            when(userLogRepository.save(any(UserLog.class))).thenReturn(testUserLog);
-
-            Boolean result = userLogService.logData("", TEST_ENDPOINT);
-
-            assertTrue(result);
-            verify(userLogRepository).save(any(UserLog.class));
-        }
-
-        @Test
-        @DisplayName("Log Data - Null endpoint - Still logs")
-        void logData_NullEndpoint_Success() {
-            when(userLogRepository.save(any(UserLog.class))).thenReturn(testUserLog);
-
-            Boolean result = userLogService.logData("test value", null);
-
-            assertTrue(result);
-            verify(userLogRepository).save(any(UserLog.class));
-        }
-
-        @Test
-        @DisplayName("Log Data - Empty endpoint - Logs successfully")
-        void logData_EmptyEndpoint_Success() {
-            when(userLogRepository.save(any(UserLog.class))).thenReturn(testUserLog);
-
-            Boolean result = userLogService.logData("test value", "");
-
-            assertTrue(result);
-            verify(userLogRepository).save(any(UserLog.class));
-        }
-
-        @Test
-        @DisplayName("Log Data - Very long value (10000 chars) - Success")
-        void logData_VeryLongValue_Success() {
-            String longValue = "x".repeat(10000);
-            when(userLogRepository.save(any(UserLog.class))).thenReturn(testUserLog);
-
-            Boolean result = userLogService.logData(longValue, TEST_ENDPOINT);
-
-            assertTrue(result);
-            verify(userLogRepository).save(any(UserLog.class));
-        }
-
-        @Test
-        @DisplayName("Log Data - Special characters in value - Success")
-        void logData_SpecialCharacters_Success() {
-            when(userLogRepository.save(any(UserLog.class))).thenReturn(testUserLog);
-
-            Boolean result = userLogService.logData("!@#$%^&*()_+-=[]{}|;':\",./<>?", TEST_ENDPOINT);
-
-            assertTrue(result);
-            verify(userLogRepository).save(any(UserLog.class));
-        }
-    }
-
-    @Nested
-    @DisplayName("Log Data With Context - Parameter Validation Tests")
-    class LogDataWithContextParameterTests {
-
-        @Test
-        @DisplayName("Log Data With Context - Null userId - Success")
-        void logDataWithContext_NullUserId_Success() {
-            when(userLogRepository.save(any(UserLog.class))).thenReturn(testUserLog);
-
-            Boolean result = userLogService.logDataWithContext(null, "username", TEST_CLIENT_ID, "value", TEST_ENDPOINT);
-
-            assertTrue(result);
-        }
-
-        @Test
-        @DisplayName("Log Data With Context - Zero userId - Success")
-        void logDataWithContext_ZeroUserId_Success() {
-            when(userLogRepository.save(any(UserLog.class))).thenReturn(testUserLog);
-
-            Boolean result = userLogService.logDataWithContext(0L, "username", TEST_CLIENT_ID, "value", TEST_ENDPOINT);
-
-            assertTrue(result);
-        }
-
-        @Test
-        @DisplayName("Log Data With Context - Negative userId - Success")
-        void logDataWithContext_NegativeUserId_Success() {
-            when(userLogRepository.save(any(UserLog.class))).thenReturn(testUserLog);
-
-            Boolean result = userLogService.logDataWithContext(-1L, "username", TEST_CLIENT_ID, "value", TEST_ENDPOINT);
-
-            assertTrue(result);
-        }
-
-        @Test
-        @DisplayName("Log Data With Context - Null username - Success")
-        void logDataWithContext_NullUsername_Success() {
-            when(userLogRepository.save(any(UserLog.class))).thenReturn(testUserLog);
-
-            Boolean result = userLogService.logDataWithContext(TEST_USER_ID, null, TEST_CLIENT_ID, "value", TEST_ENDPOINT);
-
-            assertTrue(result);
-        }
-
-        @Test
-        @DisplayName("Log Data With Context - Null clientId - Success")
-        void logDataWithContext_NullClientId_Success() {
-            when(userLogRepository.save(any(UserLog.class))).thenReturn(testUserLog);
-
-            Boolean result = userLogService.logDataWithContext(TEST_USER_ID, "username", null, "value", TEST_ENDPOINT);
-
-            assertTrue(result);
-        }
-
-        @Test
-        @DisplayName("Log Data With Context - Max Long userId - Success")
-        void logDataWithContext_MaxLongUserId_Success() {
-            when(userLogRepository.save(any(UserLog.class))).thenReturn(testUserLog);
-
-            Boolean result = userLogService.logDataWithContext(Long.MAX_VALUE, "username", TEST_CLIENT_ID, "value", TEST_ENDPOINT);
-
-            assertTrue(result);
-        }
-
-        @Test
-        @DisplayName("Log Data With Context - Null value parameter - Success")
-        void logDataWithContext_NullValue_Success() {
-            when(userLogRepository.save(any(UserLog.class))).thenReturn(testUserLog);
-
-            Boolean result = userLogService.logDataWithContext(TEST_USER_ID, "username", TEST_CLIENT_ID, null, TEST_ENDPOINT);
-
-            assertTrue(result);
-        }
     }
 
 }

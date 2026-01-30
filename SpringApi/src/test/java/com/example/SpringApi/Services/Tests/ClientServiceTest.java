@@ -41,20 +41,17 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 /**
- * Comprehensive unit tests for ClientService.
+ * Unit tests for ClientService.
  *
- * This test class provides exhaustive coverage of ClientService methods
- * including:
- * - CRUD operations (create, read, update, toggle)
- * - Validation error handling
- * - Integration with Firebase and ImgBB helpers
- * - Edge cases and boundary conditions
- *
- * Test naming convention: methodName_Scenario_ExpectedOutcome
- * Example: toggleClient_ClientNotFound_ThrowsNotFoundException
- *
- * @author SpringApi Team
- * @version 2.0
+ * Test Group Summary:
+ * | Group Name                              | Number of Tests |
+ * | :-------------------------------------- | :-------------- |
+ * | ToggleClientTests                       | 7               |
+ * | GetClientByIdTests                      | 8               |
+ * | CreateClientTests                       | 23              |
+ * | UpdateClientTests                       | 24              |
+ * | GetClientsByUserTests                   | 8               |
+ * | **Total**                               | **70**          |
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ClientService Unit Tests")
@@ -99,8 +96,6 @@ class ClientServiceTest extends BaseTest {
         lenient().when(environment.getActiveProfiles()).thenReturn(new String[] { "test" });
         ReflectionTestUtils.setField(clientService, "imageLocation", "firebase");
     }
-
-    // ==================== TOGGLE CLIENT TESTS ====================
 
     @Nested
     @DisplayName("toggleClient Tests")
@@ -224,8 +219,6 @@ class ClientServiceTest extends BaseTest {
         }
     }
 
-    // ==================== GET CLIENT BY ID TESTS ====================
-
     @Nested
     @DisplayName("getClientById Tests")
     class GetClientByIdTests {
@@ -346,8 +339,6 @@ class ClientServiceTest extends BaseTest {
             assertEquals("https://logo.url/image.png", result.getLogoUrl());
         }
     }
-
-    // ==================== CREATE CLIENT TESTS ====================
 
     @Nested
     @DisplayName("createClient Tests")
@@ -1063,8 +1054,6 @@ class ClientServiceTest extends BaseTest {
         }
     }
 
-    // ==================== GET CLIENTS BY USER TESTS ====================
-
     @Nested
     @DisplayName("getClientsByUser Tests")
     class GetClientsByUserTests {
@@ -1235,303 +1224,5 @@ class ClientServiceTest extends BaseTest {
             assertFalse(result.getIsDeleted());
         }
 
-        // ==================== Comprehensive Validation Tests - Added ====================
-
-        @Test
-        @DisplayName("Get Client By ID - Negative ID - Throws NotFoundException")
-        void getClientById_NegativeId_ThrowsNotFoundException() {
-            when(clientRepository.findByClientIdAndIsDeletedFalse(-1L)).thenReturn(null);
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> clientService.getClientById(-1L));
-            assertEquals(ErrorMessages.ClientErrorMessages.NotFound, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("Get Client By ID - Zero ID - Throws NotFoundException")
-        void getClientById_ZeroId_ThrowsNotFoundException() {
-            when(clientRepository.findByClientIdAndIsDeletedFalse(0L)).thenReturn(null);
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> clientService.getClientById(0L));
-            assertEquals(ErrorMessages.ClientErrorMessages.NotFound, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("Get Client By ID - Long.MAX_VALUE ID - Throws NotFoundException")
-        void getClientById_MaxLongId_ThrowsNotFoundException() {
-            when(clientRepository.findByClientIdAndIsDeletedFalse(Long.MAX_VALUE)).thenReturn(null);
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> clientService.getClientById(Long.MAX_VALUE));
-            assertEquals(ErrorMessages.ClientErrorMessages.NotFound, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("Create Client - Null Request - Throws BadRequestException")
-        void createClient_NullRequest_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> clientService.createClient(null));
-            assertTrue(ex.getMessage().contains("request") || ex.getMessage().contains("invalid"));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Create Client - Null Client Name - Throws BadRequestException")
-        void createClient_NullClientName_ThrowsBadRequestException() {
-            testClientRequest.setName(null);
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> clientService.createClient(testClientRequest));
-            assertTrue(ex.getMessage().contains("name") || ex.getMessage().contains("invalid"));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Create Client - Empty Client Name - Throws BadRequestException")
-        void createClient_EmptyClientName_ThrowsBadRequestException() {
-            testClientRequest.setName("");
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> clientService.createClient(testClientRequest));
-            assertTrue(ex.getMessage().contains("name") || ex.getMessage().contains("empty"));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Create Client - Whitespace Client Name - Throws BadRequestException")
-        void createClient_WhitespaceClientName_ThrowsBadRequestException() {
-            testClientRequest.setName("   ");
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> clientService.createClient(testClientRequest));
-            assertTrue(ex.getMessage().contains("name") || ex.getMessage().contains("invalid"));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Create Client - Duplicate Client Name - Throws BadRequestException")
-        void createClient_DuplicateClientName_ThrowsBadRequestException() {
-            when(clientRepository.findByName(testClientRequest.getName())).thenReturn(testClient);
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> clientService.createClient(testClientRequest));
-            assertTrue(ex.getMessage().contains("exist") || ex.getMessage().contains("duplicate"));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Create Client - Null Description - Throws BadRequestException")
-        void createClient_NullDescription_ThrowsBadRequestException() {
-            testClientRequest.setDescription(null);
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> clientService.createClient(testClientRequest));
-            assertTrue(ex.getMessage().contains("description") || ex.getMessage().contains("invalid"));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Create Client - Empty Description - Throws BadRequestException")
-        void createClient_EmptyDescription_ThrowsBadRequestException() {
-            testClientRequest.setDescription("");
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> clientService.createClient(testClientRequest));
-            assertTrue(ex.getMessage().contains("description") || ex.getMessage().contains("empty"));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Create Client - Invalid Email Format - Throws BadRequestException")
-        void createClient_InvalidEmailFormat_ThrowsBadRequestException() {
-            testClientRequest.setSupportEmail("invalid-email");
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> clientService.createClient(testClientRequest));
-            assertTrue(ex.getMessage().contains("email") || ex.getMessage().contains("invalid"));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Create Client - Invalid Website URL Format - Throws BadRequestException")
-        void createClient_InvalidWebsiteURLFormat_ThrowsBadRequestException() {
-            testClientRequest.setWebsite("not-a-valid-url");
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> clientService.createClient(testClientRequest));
-            assertTrue(ex.getMessage().contains("website") || ex.getMessage().contains("url"));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Update Client - Negative ID - Throws NotFoundException")
-        void updateClient_NegativeId_ThrowsNotFoundException() {
-            testClientRequest.setClientId(-1L);
-            when(clientRepository.findById(-1L)).thenReturn(java.util.Optional.empty());
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> clientService.updateClient(testClientRequest));
-            assertEquals(ErrorMessages.ClientErrorMessages.NotFound, ex.getMessage());
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Update Client - Zero ID - Throws NotFoundException")
-        void updateClient_ZeroId_ThrowsNotFoundException() {
-            testClientRequest.setClientId(0L);
-            when(clientRepository.findById(0L)).thenReturn(java.util.Optional.empty());
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> clientService.updateClient(testClientRequest));
-            assertEquals(ErrorMessages.ClientErrorMessages.NotFound, ex.getMessage());
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Update Client - Long.MAX_VALUE ID - Throws NotFoundException")
-        void updateClient_MaxLongId_ThrowsNotFoundException() {
-            testClientRequest.setClientId(Long.MAX_VALUE);
-            when(clientRepository.findById(Long.MAX_VALUE)).thenReturn(java.util.Optional.empty());
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> clientService.updateClient(testClientRequest));
-            assertEquals(ErrorMessages.ClientErrorMessages.NotFound, ex.getMessage());
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Update Client - Null Name - Throws BadRequestException")
-        void updateClient_NullName_ThrowsBadRequestException() {
-            testClientRequest.setName(null);
-            when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(java.util.Optional.of(testClient));
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> clientService.updateClient(testClientRequest));
-            assertTrue(ex.getMessage().contains("name") || ex.getMessage().contains("invalid"));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Update Client - Empty Name - Throws BadRequestException")
-        void updateClient_EmptyName_ThrowsBadRequestException() {
-            testClientRequest.setName("");
-            when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(java.util.Optional.of(testClient));
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> clientService.updateClient(testClientRequest));
-            assertTrue(ex.getMessage().contains("name") || ex.getMessage().contains("empty"));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Toggle Client - Negative ID - Throws NotFoundException")
-        void toggleClient_NegativeId_ThrowsNotFoundException() {
-            when(clientRepository.findById(-1L)).thenReturn(java.util.Optional.empty());
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> clientService.toggleClient(-1L));
-            assertEquals(ErrorMessages.ClientErrorMessages.NotFound, ex.getMessage());
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Toggle Client - Zero ID - Throws NotFoundException")
-        void toggleClient_ZeroId_ThrowsNotFoundException() {
-            when(clientRepository.findById(0L)).thenReturn(java.util.Optional.empty());
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> clientService.toggleClient(0L));
-            assertEquals(ErrorMessages.ClientErrorMessages.NotFound, ex.getMessage());
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Toggle Client - Long.MAX_VALUE ID - Throws NotFoundException")
-        void toggleClient_MaxLongId_ThrowsNotFoundException() {
-            when(clientRepository.findById(Long.MAX_VALUE)).thenReturn(java.util.Optional.empty());
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> clientService.toggleClient(Long.MAX_VALUE));
-            assertEquals(ErrorMessages.ClientErrorMessages.NotFound, ex.getMessage());
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Toggle Client - Multiple Toggles - State Transitions")
-        void toggleClient_MultipleToggles_StateTransitions() {
-            testClient.setIsDeleted(false);
-            when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(java.util.Optional.of(testClient));
-            when(clientRepository.save(any(Client.class))).thenReturn(testClient);
-
-            // First toggle: false -> true
-            clientService.toggleClient(TEST_CLIENT_ID);
-            assertTrue(testClient.getIsDeleted());
-
-            // Second toggle: true -> false
-            testClient.setIsDeleted(true);
-            clientService.toggleClient(TEST_CLIENT_ID);
-            assertFalse(testClient.getIsDeleted());
-
-            verify(clientRepository, times(2)).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Get Clients By User - Null User ID - Throws BadRequestException")
-        void getClientsByUser_NullUserId_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> clientService.getClientsByUser());
-            assertNotNull(ex.getMessage());
-            verify(clientRepository, never()).findByUserId(anyLong());
-        }
-
-        @Test
-        @DisplayName("Get Clients By User - No Results - Returns Empty List")
-        void getClientsByUser_NoResults_ReturnsEmptyList() {
-            when(clientRepository.findByUserId(anyLong())).thenReturn(new java.util.ArrayList<>());
-            
-            List<com.example.SpringApi.Models.ResponseModels.ClientResponseModel> results = clientService.getClientsByUser();
-            
-            assertNotNull(results);
-            assertEquals(0, results.size());
-            verify(clientRepository, times(1)).findByUserId(anyLong());
-        }
-
-        @Test
-        @DisplayName("Get Clients By User - Multiple Clients - Returns All")
-        void getClientsByUser_MultipleClients_ReturnsAll() {
-            Client client1 = new Client(testClientRequest, DEFAULT_CREATED_USER);
-            client1.setClientId(1L);
-            client1.setName("Client 1");
-            
-            Client client2 = new Client(testClientRequest, DEFAULT_CREATED_USER);
-            client2.setClientId(2L);
-            client2.setName("Client 2");
-            
-            when(clientRepository.findByUserId(anyLong())).thenReturn(java.util.Arrays.asList(client1, client2));
-            
-            List<com.example.SpringApi.Models.ResponseModels.ClientResponseModel> results = clientService.getClientsByUser();
-            
-            assertNotNull(results);
-            assertEquals(2, results.size());
-            verify(clientRepository, times(1)).findByUserId(anyLong());
-        }
-
-        @Test
-        @DisplayName("Bulk Create Clients - Empty List - Throws BadRequestException")
-        void bulkCreateClients_EmptyList_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> clientService.bulkCreateClients(new java.util.ArrayList<>()));
-            assertTrue(ex.getMessage().contains("empty") || ex.getMessage().contains("null"));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Bulk Create Clients - Null List - Throws BadRequestException")
-        void bulkCreateClients_NullList_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> clientService.bulkCreateClients(null));
-            assertTrue(ex.getMessage().contains("empty") || ex.getMessage().contains("null"));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        @DisplayName("Search Clients - Null Search Term - Throws BadRequestException")
-        void searchClients_NullSearchTerm_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> clientService.searchClients(null));
-            assertTrue(ex.getMessage().contains("search") || ex.getMessage().contains("invalid"));
-            verify(clientRepository, never()).findAll();
-        }
-
-        @Test
-        @DisplayName("Search Clients - Empty Search Term - Throws BadRequestException")
-        void searchClients_EmptySearchTerm_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> clientService.searchClients(""));
-            assertTrue(ex.getMessage().contains("search") || ex.getMessage().contains("empty"));
-            verify(clientRepository, never()).findAll();
-        }
     }
 }

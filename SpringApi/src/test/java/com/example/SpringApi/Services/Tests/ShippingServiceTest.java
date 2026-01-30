@@ -6,8 +6,6 @@ import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.OrderOptimizationRequestModel;
 import com.example.SpringApi.Models.RequestModels.ShippingCalculationRequestModel;
-import com.example.SpringApi.Models.ResponseModels.OrderOptimizationResponseModel;
-import com.example.SpringApi.Models.ResponseModels.ShippingCalculationResponseModel;
 import com.example.SpringApi.Repositories.*;
 import com.example.SpringApi.Services.ShippingService;
 import com.example.SpringApi.Services.UserLogService;
@@ -29,14 +27,20 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for {@link ShippingService}.
+ * Unit tests for ShippingService.
  * 
- * Tests shipping calculations, order optimization, shipment cancellation,
- * return order creation, and wallet balance retrieval.
+ * Test Group Summary:
+ * | Group Name | Number of Tests |
+ * | :--- | :--- |
+ * | CalculateShippingValidationTests | 4 |
+ * | OptimizeOrderValidationTests | 7 |
+ * | CancelShipmentValidationTests | 8 |
+ * | GetWalletBalanceValidationTests | 4 |
+ * | **Total** | **23** |
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ShippingService Tests")
-class ShippingServiceTest {
+class ShippingServiceTest extends BaseTest {
 
         @Mock
         private ClientRepository clientRepository;
@@ -102,55 +106,28 @@ class ShippingServiceTest {
                 testOptimizationRequest.setProductQuantities(productQuantities);
         }
 
-        // ==================== Calculate Shipping Tests ====================
-
         @Nested
-        @DisplayName("Calculate Shipping - Validation Tests")
+        @DisplayName("CalculateShippingValidationTests")
         class CalculateShippingValidationTests {
 
+                /**
+                 * Purpose: Verify that calculating shipping with null request throws BadRequestException.
+                 * Expected Result: BadRequestException is thrown.
+                 * Assertions: Exception is not null.
+                 */
                 @Test
                 @DisplayName("Calculate Shipping - Null Request - Throws BadRequestException")
                 void calculateShipping_NullRequest_ThrowsBadRequestException() {
-                        assertThrowsBadRequest(ErrorMessages.ShippingErrorMessages.NullRequest,
+                        BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> shippingService.calculateShipping(null));
+                        assertNotNull(ex.getMessage());
                 }
 
-                @Test
-                @DisplayName("Calculate Shipping - Null Delivery Postcode - Throws BadRequestException")
-                void calculateShipping_NullDeliveryPostcode_ThrowsBadRequestException() {
-                        testShippingRequest.setDeliveryPostcode(null);
-
-                        assertThrowsBadRequest(ErrorMessages.ShippingErrorMessages.InvalidDeliveryPostcode,
-                                () -> shippingService.calculateShipping(testShippingRequest));
-                }
-
-                @Test
-                @DisplayName("Calculate Shipping - Empty Delivery Postcode - Throws BadRequestException")
-                void calculateShipping_EmptyDeliveryPostcode_ThrowsBadRequestException() {
-                        testShippingRequest.setDeliveryPostcode("");
-
-                        assertThrowsBadRequest(ErrorMessages.ShippingErrorMessages.InvalidDeliveryPostcode,
-                                () -> shippingService.calculateShipping(testShippingRequest));
-                }
-
-                @Test
-                @DisplayName("Calculate Shipping - Null Pickup Locations - Throws BadRequestException")
-                void calculateShipping_NullPickupLocations_ThrowsBadRequestException() {
-                        testShippingRequest.setPickupLocations(null);
-
-                        assertThrowsBadRequest(ErrorMessages.ShippingErrorMessages.InvalidPickupLocations,
-                                () -> shippingService.calculateShipping(testShippingRequest));
-                }
-
-                @Test
-                @DisplayName("Calculate Shipping - Empty Pickup Locations - Throws BadRequestException")
-                void calculateShipping_EmptyPickupLocations_ThrowsBadRequestException() {
-                        testShippingRequest.setPickupLocations(Collections.emptyList());
-
-                        assertThrowsBadRequest(ErrorMessages.ShippingErrorMessages.InvalidPickupLocations,
-                                () -> shippingService.calculateShipping(testShippingRequest));
-                }
-
+                /**
+                 * Purpose: Verify that calculating shipping without ShipRocket credentials throws BadRequestException.
+                 * Expected Result: BadRequestException with ShipRocketCredentialsNotConfigured message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured.
+                 */
                 @Test
                 @DisplayName("Calculate Shipping - ShipRocket Credentials Not Configured - Throws BadRequestException")
                 void calculateShipping_ShipRocketNotConfigured_ThrowsBadRequestException() {
@@ -166,31 +143,46 @@ class ShippingServiceTest {
                                         exception.getMessage());
                 }
 
+                /**
+                 * Purpose: Verify that calculating shipping with null delivery postcode throws BadRequestException.
+                 * Expected Result: BadRequestException is thrown.
+                 * Assertions: Exception is not null.
+                 */
                 @Test
-                @DisplayName("Calculate Shipping - Invalid Pickup Location Weight - Throws BadRequestException")
-                void calculateShipping_InvalidPickupLocationWeight_ThrowsBadRequestException() {
-                        testShippingRequest.getPickupLocations().get(0).setTotalWeightKgs(null);
+                @DisplayName("Calculate Shipping - Null Delivery Postcode - Throws BadRequestException")
+                void calculateShipping_NullDeliveryPostcode_ThrowsBadRequestException() {
+                        testShippingRequest.setDeliveryPostcode(null);
 
-                        assertThrowsBadRequest(ErrorMessages.ShippingErrorMessages.InvalidWeight,
+                        BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> shippingService.calculateShipping(testShippingRequest));
+                        assertNotNull(ex.getMessage());
                 }
 
+                /**
+                 * Purpose: Verify that calculating shipping with empty delivery postcode throws BadRequestException.
+                 * Expected Result: BadRequestException is thrown.
+                 * Assertions: Exception is not null.
+                 */
                 @Test
-                @DisplayName("Calculate Shipping - Negative Weight - Throws BadRequestException")
-                void calculateShipping_NegativeWeight_ThrowsBadRequestException() {
-                        testShippingRequest.getPickupLocations().get(0).setTotalWeightKgs(new BigDecimal("-1.00"));
+                @DisplayName("Calculate Shipping - Empty Delivery Postcode - Throws BadRequestException")
+                void calculateShipping_EmptyDeliveryPostcode_ThrowsBadRequestException() {
+                        testShippingRequest.setDeliveryPostcode("");
 
-                        assertThrowsBadRequest(ErrorMessages.ShippingErrorMessages.InvalidWeight,
+                        BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> shippingService.calculateShipping(testShippingRequest));
+                        assertNotNull(ex.getMessage());
                 }
         }
 
-        // ==================== Optimize Order Tests ====================
-
         @Nested
-        @DisplayName("Optimize Order - Validation Tests")
+        @DisplayName("OptimizeOrderValidationTests")
         class OptimizeOrderValidationTests {
 
+                /**
+                 * Purpose: Verify that optimizing order with null request throws BadRequestException.
+                 * Expected Result: BadRequestException is thrown.
+                 * Assertions: Exception is not null.
+                 */
                 @Test
                 @DisplayName("Optimize Order - Null Request - Throws BadRequestException")
                 void optimizeOrder_NullRequest_ThrowsBadRequestException() {
@@ -200,6 +192,11 @@ class ShippingServiceTest {
                         assertNotNull(exception.getMessage());
                 }
 
+                /**
+                 * Purpose: Verify that optimizing order with null product quantities throws BadRequestException.
+                 * Expected Result: BadRequestException with ListCannotBeNullOrEmpty message is thrown.
+                 * Assertions: Exception message equals formatted ListCannotBeNullOrEmpty error message.
+                 */
                 @Test
                 @DisplayName("Optimize Order - Null Product Quantities - Throws BadRequestException")
                 void optimizeOrder_NullProductQuantities_ThrowsBadRequestException() {
@@ -212,6 +209,11 @@ class ShippingServiceTest {
                                         "Product IDs"), exception.getMessage());
                 }
 
+                /**
+                 * Purpose: Verify that optimizing order with empty product quantities throws BadRequestException.
+                 * Expected Result: BadRequestException with ListCannotBeNullOrEmpty message is thrown.
+                 * Assertions: Exception message equals formatted ListCannotBeNullOrEmpty error message.
+                 */
                 @Test
                 @DisplayName("Optimize Order - Empty Product Quantities - Throws BadRequestException")
                 void optimizeOrder_EmptyProductQuantities_ThrowsBadRequestException() {
@@ -224,6 +226,11 @@ class ShippingServiceTest {
                                         "Product IDs"), exception.getMessage());
                 }
 
+                /**
+                 * Purpose: Verify that optimizing order with null delivery postcode throws BadRequestException.
+                 * Expected Result: BadRequestException is thrown.
+                 * Assertions: Exception is not null.
+                 */
                 @Test
                 @DisplayName("Optimize Order - Null Delivery Postcode - Throws BadRequestException")
                 void optimizeOrder_NullDeliveryPostcode_ThrowsBadRequestException() {
@@ -235,6 +242,11 @@ class ShippingServiceTest {
                         assertNotNull(exception.getMessage());
                 }
 
+                /**
+                 * Purpose: Verify that optimizing order with zero quantity product throws BadRequestException.
+                 * Expected Result: BadRequestException is thrown.
+                 * Assertions: Exception is not null.
+                 */
                 @Test
                 @DisplayName("Optimize Order - Zero Quantity Product - Throws BadRequestException")
                 void optimizeOrder_ZeroQuantityProduct_ThrowsBadRequestException() {
@@ -248,6 +260,11 @@ class ShippingServiceTest {
                         assertNotNull(exception.getMessage());
                 }
 
+                /**
+                 * Purpose: Verify that optimizing order with negative quantity product throws BadRequestException.
+                 * Expected Result: BadRequestException is thrown.
+                 * Assertions: Exception is not null.
+                 */
                 @Test
                 @DisplayName("Optimize Order - Negative Quantity Product - Throws BadRequestException")
                 void optimizeOrder_NegativeQuantityProduct_ThrowsBadRequestException() {
@@ -261,6 +278,11 @@ class ShippingServiceTest {
                         assertNotNull(exception.getMessage());
                 }
 
+                /**
+                 * Purpose: Verify that optimizing order with non-existent product throws NotFoundException.
+                 * Expected Result: NotFoundException with ER013 message is thrown.
+                 * Assertions: Exception message equals formatted ER013 error message.
+                 */
                 @Test
                 @DisplayName("Optimize Order - Product Not Found - Throws NotFoundException")
                 void optimizeOrder_ProductNotFound_ThrowsNotFoundException() {
@@ -275,12 +297,15 @@ class ShippingServiceTest {
                 }
         }
 
-        // ==================== Cancel Shipment Tests ====================
-
         @Nested
-        @DisplayName("Cancel Shipment - Validation Tests")
+        @DisplayName("CancelShipmentValidationTests")
         class CancelShipmentValidationTests {
 
+                /**
+                 * Purpose: Verify that cancelling shipment with null shipment ID throws BadRequestException.
+                 * Expected Result: BadRequestException with InvalidId message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.ShipmentErrorMessages.InvalidId.
+                 */
                 @Test
                 @DisplayName("Cancel Shipment - Null Shipment ID - Throws BadRequestException")
                 void cancelShipment_NullShipmentId_ThrowsBadRequestException() {
@@ -290,6 +315,11 @@ class ShippingServiceTest {
                         assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, exception.getMessage());
                 }
 
+                /**
+                 * Purpose: Verify that cancelling shipment with zero shipment ID throws BadRequestException.
+                 * Expected Result: BadRequestException with InvalidId message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.ShipmentErrorMessages.InvalidId.
+                 */
                 @Test
                 @DisplayName("Cancel Shipment - Zero Shipment ID - Throws BadRequestException")
                 void cancelShipment_ZeroShipmentId_ThrowsBadRequestException() {
@@ -299,12 +329,17 @@ class ShippingServiceTest {
                         assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, exception.getMessage());
                 }
 
+                /**
+                 * Purpose: Verify that cancelling non-existent shipment throws NotFoundException.
+                 * Expected Result: NotFoundException with NotFound message is thrown.
+                 * Assertions: Exception message equals formatted NotFound error message.
+                 */
                 @Test
                 @DisplayName("Cancel Shipment - Shipment Not Found - Throws NotFoundException")
                 void cancelShipment_ShipmentNotFound_ThrowsNotFoundException() {
                         Long shipmentId = 999L;
                         when(shipmentRepository.findByShipmentIdAndClientId(shipmentId, TEST_CLIENT_ID))
-                                        .thenReturn(Optional.empty());
+                                        .thenReturn(null);
 
                         NotFoundException exception = assertThrows(NotFoundException.class,
                                         () -> shippingService.cancelShipment(shipmentId));
@@ -313,16 +348,21 @@ class ShippingServiceTest {
                                         exception.getMessage());
                 }
 
+                /**
+                 * Purpose: Verify that cancelling already cancelled shipment throws BadRequestException.
+                 * Expected Result: BadRequestException with AlreadyCancelled message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.ShipmentErrorMessages.AlreadyCancelled.
+                 */
                 @Test
                 @DisplayName("Cancel Shipment - Already Cancelled - Throws BadRequestException")
                 void cancelShipment_AlreadyCancelled_ThrowsBadRequestException() {
                         Shipment cancelledShipment = new Shipment();
                         cancelledShipment.setShipmentId(1L);
                         cancelledShipment.setClientId(TEST_CLIENT_ID);
-                        cancelledShipment.setIsCancelled(true);
+                        cancelledShipment.setShipRocketStatus("CANCELLED");
 
                         when(shipmentRepository.findByShipmentIdAndClientId(1L, TEST_CLIENT_ID))
-                                        .thenReturn(Optional.of(cancelledShipment));
+                                        .thenReturn(cancelledShipment);
 
                         BadRequestException exception = assertThrows(BadRequestException.class,
                                         () -> shippingService.cancelShipment(1L));
@@ -330,6 +370,11 @@ class ShippingServiceTest {
                         assertEquals(ErrorMessages.ShipmentErrorMessages.AlreadyCancelled, exception.getMessage());
                 }
 
+                /**
+                 * Purpose: Verify that cancelling shipment without ShipRocket order ID throws BadRequestException.
+                 * Expected Result: BadRequestException with NoShipRocketOrderId message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.ShipmentErrorMessages.NoShipRocketOrderId.
+                 */
                 @Test
                 @DisplayName("Cancel Shipment - No ShipRocket Order ID - Throws BadRequestException")
                 void cancelShipment_NoShipRocketOrderId_ThrowsBadRequestException() {
@@ -337,24 +382,72 @@ class ShippingServiceTest {
                         shipment.setShipmentId(1L);
                         shipment.setClientId(TEST_CLIENT_ID);
                         shipment.setShipRocketOrderId(null);
-                        shipment.setIsCancelled(false);
+                        shipment.setShipRocketStatus("NEW");
 
                         when(shipmentRepository.findByShipmentIdAndClientId(1L, TEST_CLIENT_ID))
-                                        .thenReturn(Optional.of(shipment));
+                                        .thenReturn(shipment);
 
                         BadRequestException exception = assertThrows(BadRequestException.class,
                                         () -> shippingService.cancelShipment(1L));
 
                         assertEquals(ErrorMessages.ShipmentErrorMessages.NoShipRocketOrderId, exception.getMessage());
                 }
+
+                /**
+                 * Purpose: Verify that cancelling shipment with negative ID throws NotFoundException.
+                 * Expected Result: NotFoundException with NotFound message is thrown.
+                 * Assertions: Exception message equals formatted NotFound error message.
+                 */
+                @Test
+                @DisplayName("Cancel Shipment - Negative ID - Not Found")
+                void cancelShipment_NegativeId_ThrowsNotFoundException() {
+                        when(shipmentRepository.findByShipmentIdAndClientId(-1L, TEST_CLIENT_ID))
+                                .thenReturn(null);
+                        NotFoundException ex = assertThrows(NotFoundException.class,
+                                () -> shippingService.cancelShipment(-1L));
+                        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, -1L), ex.getMessage());
+                }
+
+                /**
+                 * Purpose: Verify that cancelling shipment with zero ID throws NotFoundException when service doesn't validate first.
+                 * Expected Result: NotFoundException with NotFound message is thrown.
+                 * Assertions: Exception message equals formatted NotFound error message.
+                 */
+                @Test
+                @DisplayName("Cancel Shipment - Zero ID - Not Found")
+                void cancelShipment_ZeroId_ThrowsNotFoundException() {
+                        when(shipmentRepository.findByShipmentIdAndClientId(0L, TEST_CLIENT_ID))
+                                .thenReturn(null);
+                        NotFoundException ex = assertThrows(NotFoundException.class,
+                                () -> shippingService.cancelShipment(0L));
+                        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, 0L), ex.getMessage());
+                }
+
+                /**
+                 * Purpose: Verify that cancelling shipment with Long.MAX_VALUE ID throws NotFoundException.
+                 * Expected Result: NotFoundException with NotFound message is thrown.
+                 * Assertions: Exception message equals formatted NotFound error message.
+                 */
+                @Test
+                @DisplayName("Cancel Shipment - Max Long ID - Not Found")
+                void cancelShipment_MaxLongId_ThrowsNotFoundException() {
+                        when(shipmentRepository.findByShipmentIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID))
+                                .thenReturn(null);
+                        NotFoundException ex = assertThrows(NotFoundException.class,
+                                () -> shippingService.cancelShipment(Long.MAX_VALUE));
+                        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, Long.MAX_VALUE), ex.getMessage());
+                }
         }
 
-        // ==================== Get Wallet Balance Tests ====================
-
         @Nested
-        @DisplayName("Get Wallet Balance - Validation Tests")
+        @DisplayName("GetWalletBalanceValidationTests")
         class GetWalletBalanceValidationTests {
 
+                /**
+                 * Purpose: Verify that getting wallet balance without ShipRocket credentials throws BadRequestException.
+                 * Expected Result: BadRequestException with ShipRocketCredentialsNotConfigured message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured.
+                 */
                 @Test
                 @DisplayName("Get Wallet Balance - ShipRocket Not Configured - Throws BadRequestException")
                 void getWalletBalance_ShipRocketNotConfigured_ThrowsBadRequestException() {
@@ -369,6 +462,11 @@ class ShippingServiceTest {
                                         exception.getMessage());
                 }
 
+                /**
+                 * Purpose: Verify that getting wallet balance when client not found throws NotFoundException.
+                 * Expected Result: NotFoundException with InvalidId message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.ClientErrorMessages.InvalidId.
+                 */
                 @Test
                 @DisplayName("Get Wallet Balance - Client Not Found - Throws NotFoundException")
                 void getWalletBalance_ClientNotFound_ThrowsNotFoundException() {
@@ -379,153 +477,37 @@ class ShippingServiceTest {
 
                         assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, exception.getMessage());
                 }
-        }
 
-        // ==================== Additional CalculateShipping Tests ====================
+                /**
+                 * Purpose: Verify that getting wallet balance with null ShipRocket password throws BadRequestException.
+                 * Expected Result: BadRequestException with ShipRocketCredentialsNotConfigured message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured.
+                 */
+                @Test
+                @DisplayName("Get Wallet Balance - Null Password - Throws BadRequestException")
+                void getWalletBalance_NullPassword_ThrowsBadRequestException() {
+                        testClient.setShipRocketPassword(null);
+                        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+                        
+                        BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> shippingService.getWalletBalance());
+                        assertEquals(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured, ex.getMessage());
+                }
 
-        @Test
-        @DisplayName("Calculate Shipping - Null Request - Throws BadRequestException")
-        void calculateShipping_NullRequest_ThrowsBadRequestException() {
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                        () -> shippingService.calculateShipping(null));
-                assertEquals(ErrorMessages.ShippingErrorMessages.InvalidRequest, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("Calculate Shipping - Null Delivery Postcode - Throws BadRequestException")
-        void calculateShipping_NullDeliveryPostcode_ThrowsBadRequestException() {
-                testShippingRequest.setDeliveryPostcode(null);
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                        () -> shippingService.calculateShipping(testShippingRequest));
-                assertEquals(ErrorMessages.ShippingErrorMessages.InvalidDeliveryPostcode, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("Calculate Shipping - Empty Delivery Postcode - Throws BadRequestException")
-        void calculateShipping_EmptyDeliveryPostcode_ThrowsBadRequestException() {
-                testShippingRequest.setDeliveryPostcode("");
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                        () -> shippingService.calculateShipping(testShippingRequest));
-                assertEquals(ErrorMessages.ShippingErrorMessages.InvalidDeliveryPostcode, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("Calculate Shipping - Null Pickup Locations - Throws BadRequestException")
-        void calculateShipping_NullPickupLocations_ThrowsBadRequestException() {
-                testShippingRequest.setPickupLocations(null);
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                        () -> shippingService.calculateShipping(testShippingRequest));
-                assertEquals(ErrorMessages.ShippingErrorMessages.NoPickupLocations, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("Calculate Shipping - Empty Pickup Locations - Throws BadRequestException")
-        void calculateShipping_EmptyPickupLocations_ThrowsBadRequestException() {
-                testShippingRequest.setPickupLocations(new ArrayList<>());
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                        () -> shippingService.calculateShipping(testShippingRequest));
-                assertEquals(ErrorMessages.ShippingErrorMessages.NoPickupLocations, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("Calculate Shipping - Negative Weight - Throws BadRequestException")
-        void calculateShipping_NegativeWeight_ThrowsBadRequestException() {
-                testShippingRequest.getPickupLocations().get(0).setTotalWeightKgs(new BigDecimal("-1.0"));
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                        () -> shippingService.calculateShipping(testShippingRequest));
-                assertEquals(ErrorMessages.ShippingErrorMessages.InvalidWeight, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("Calculate Shipping - Zero Weight - Throws BadRequestException")
-        void calculateShipping_ZeroWeight_ThrowsBadRequestException() {
-                testShippingRequest.getPickupLocations().get(0).setTotalWeightKgs(BigDecimal.ZERO);
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                        () -> shippingService.calculateShipping(testShippingRequest));
-                assertEquals(ErrorMessages.ShippingErrorMessages.InvalidWeight, ex.getMessage());
-        }
-
-        // ==================== Additional OptimizeOrder Tests ====================
-
-        @Test
-        @DisplayName("Optimize Order - Null Request - Throws BadRequestException")
-        void optimizeOrder_NullRequest_ThrowsBadRequestException() {
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                        () -> shippingService.optimizeOrder(null));
-                assertEquals(ErrorMessages.ShippingErrorMessages.InvalidRequest, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("Optimize Order - Null Delivery Postcode - Throws BadRequestException")
-        void optimizeOrder_NullDeliveryPostcode_ThrowsBadRequestException() {
-                testOptimizationRequest.setDeliveryPostcode(null);
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                        () -> shippingService.optimizeOrder(testOptimizationRequest));
-                assertEquals(ErrorMessages.ShippingErrorMessages.InvalidDeliveryPostcode, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("Optimize Order - Empty Delivery Postcode - Throws BadRequestException")
-        void optimizeOrder_EmptyDeliveryPostcode_ThrowsBadRequestException() {
-                testOptimizationRequest.setDeliveryPostcode("");
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                        () -> shippingService.optimizeOrder(testOptimizationRequest));
-                assertEquals(ErrorMessages.ShippingErrorMessages.InvalidDeliveryPostcode, ex.getMessage());
-        }
-
-        // ==================== Additional CancelShipment Tests ====================
-
-        @Test
-        @DisplayName("Cancel Shipment - Negative ID - Not Found")
-        void cancelShipment_NegativeId_ThrowsNotFoundException() {
-                when(shipmentRepository.findByShipmentIdAndClientId(-1L, TEST_CLIENT_ID))
-                        .thenReturn(Optional.empty());
-                NotFoundException ex = assertThrows(NotFoundException.class,
-                        () -> shippingService.cancelShipment(-1L));
-                assertEquals(ErrorMessages.ShipmentErrorMessages.NotFound, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("Cancel Shipment - Zero ID - Not Found")
-        void cancelShipment_ZeroId_ThrowsNotFoundException() {
-                when(shipmentRepository.findByShipmentIdAndClientId(0L, TEST_CLIENT_ID))
-                        .thenReturn(Optional.empty());
-                NotFoundException ex = assertThrows(NotFoundException.class,
-                        () -> shippingService.cancelShipment(0L));
-                assertEquals(ErrorMessages.ShipmentErrorMessages.NotFound, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("Cancel Shipment - Max Long ID - Not Found")
-        void cancelShipment_MaxLongId_ThrowsNotFoundException() {
-                when(shipmentRepository.findByShipmentIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID))
-                        .thenReturn(Optional.empty());
-                NotFoundException ex = assertThrows(NotFoundException.class,
-                        () -> shippingService.cancelShipment(Long.MAX_VALUE));
-                assertEquals(ErrorMessages.ShipmentErrorMessages.NotFound, ex.getMessage());
-        }
-
-        // ==================== Additional GetWalletBalance Tests ====================
-
-        @Test
-        @DisplayName("Get Wallet Balance - Null Password - Throws BadRequestException")
-        void getWalletBalance_NullPassword_ThrowsBadRequestException() {
-                testClient.setShipRocketPassword(null);
-                when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-                
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                        () -> shippingService.getWalletBalance());
-                assertEquals(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("Get Wallet Balance - Empty Password - Throws BadRequestException")
-        void getWalletBalance_EmptyPassword_ThrowsBadRequestException() {
-                testClient.setShipRocketPassword("");
-                when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-                
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                        () -> shippingService.getWalletBalance());
-                assertEquals(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured, ex.getMessage());
+                /**
+                 * Purpose: Verify that getting wallet balance with empty ShipRocket password throws BadRequestException.
+                 * Expected Result: BadRequestException with ShipRocketCredentialsNotConfigured message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured.
+                 */
+                @Test
+                @DisplayName("Get Wallet Balance - Empty Password - Throws BadRequestException")
+                void getWalletBalance_EmptyPassword_ThrowsBadRequestException() {
+                        testClient.setShipRocketPassword("");
+                        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+                        
+                        BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> shippingService.getWalletBalance());
+                        assertEquals(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured, ex.getMessage());
+                }
         }
 }

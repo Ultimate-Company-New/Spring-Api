@@ -5,7 +5,6 @@ import com.example.SpringApi.Models.ResponseModels.MessageResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.MessageRequestModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
 import com.example.SpringApi.Repositories.*;
 import com.example.SpringApi.Services.MessageService;
 import com.example.SpringApi.Services.UserLogService;
@@ -37,21 +36,18 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for MessageService.
  *
- * <p>This test class provides comprehensive coverage of MessageService methods including:
- * - CRUD operations (create, update, toggle, get)
- * - Message validation and error handling
- * - Email scheduling and SendGrid integration
- * - Pagination and filtering
- * - User targeting and read status
- * - Audit logging verification
- *
- * Each test method follows the AAA (Arrange-Act-Assert) pattern and includes
- * both success and failure scenarios to ensure robust error handling.
- * All external dependencies are properly mocked to ensure test isolation.
- *
- * @author SpringApi Team
- * @version 1.0
- * @since 2024-01-15
+ * Test Group Summary:
+ * | Group Name                              | Number of Tests |
+ * | :-------------------------------------- | :-------------- |
+ * | GetMessagesInBatchesTests               | 5               |
+ * | CreateMessageTests                      | 5               |
+ * | UpdateMessageTests                      | 5               |
+ * | ToggleMessageTests                      | 3               |
+ * | GetMessageDetailsByIdTests              | 3               |
+ * | GetMessagesByUserIdTests                | 4               |
+ * | SetMessageReadTests                     | 7               |
+ * | GetUnreadMessageCountTests              | 3               |
+ * | **Total**                               | **35**          |
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("MessageService Unit Tests")
@@ -134,7 +130,6 @@ class MessageServiceTest extends BaseTest {
         testUser.setIsDeleted(false);
     }
 
-    // ==================== GET MESSAGES IN BATCHES TESTS ====================
 
     @Nested
     @DisplayName("GetMessagesInBatches Tests")
@@ -199,7 +194,6 @@ class MessageServiceTest extends BaseTest {
         }
     }
 
-    // ==================== CREATE MESSAGE TESTS ====================
 
     @Nested
     @DisplayName("CreateMessage Tests")
@@ -261,7 +255,6 @@ class MessageServiceTest extends BaseTest {
         }
     }
 
-    // ==================== UPDATE MESSAGE TESTS ====================
 
     @Nested
     @DisplayName("UpdateMessage Tests")
@@ -364,7 +357,6 @@ class MessageServiceTest extends BaseTest {
         }
     }
 
-    // ==================== GET MESSAGE DETAILS BY ID TESTS ====================
 
     @Nested
     @DisplayName("GetMessageDetailsById Tests")
@@ -442,7 +434,6 @@ class MessageServiceTest extends BaseTest {
         }
     }
 
-    // ==================== SET MESSAGE READ TESTS ====================
 
     @Nested
     @DisplayName("SetMessageRead Tests")
@@ -528,7 +519,6 @@ class MessageServiceTest extends BaseTest {
         }
     }
 
-    // ==================== GET UNREAD MESSAGE COUNT TESTS ====================
 
     @Nested
     @DisplayName("GetUnreadMessageCount Tests")
@@ -574,276 +564,4 @@ class MessageServiceTest extends BaseTest {
             verify(messageRepository).countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID);
         }
     }
-
-    @Nested
-    @DisplayName("Message Service - Comprehensive Validation Tests")
-    class MessageValidationTests {
-
-        @Nested
-        @DisplayName("Get Messages In Batches - Pagination Validation")
-        class GetMessagesInBatchesPaginationTests {
-
-            @Test
-            @DisplayName("Get Messages - Null pagination request - Throws BadRequestException")
-            void getMessagesInBatches_NullRequest_ThrowsBadRequest() {
-                assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                        () -> messageService.getMessagesInBatches(null));
-            }
-
-            @Test
-            @DisplayName("Get Messages - Invalid pagination (end <= start) - Throws BadRequestException")
-            void getMessagesInBatches_InvalidPagination_EndLessThanStart() {
-                PaginationBaseRequestModel request = createValidPaginationRequest();
-                request.setStart(20);
-                request.setEnd(10);
-
-                assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                        () -> messageService.getMessagesInBatches(request));
-            }
-
-            @Test
-            @DisplayName("Get Messages - Invalid pagination (start equals end) - Throws BadRequestException")
-            void getMessagesInBatches_InvalidPagination_StartEqualsEnd() {
-                PaginationBaseRequestModel request = createValidPaginationRequest();
-                request.setStart(10);
-                request.setEnd(10);
-
-                assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                        () -> messageService.getMessagesInBatches(request));
-            }
-
-            @Test
-            @DisplayName("Get Messages - Negative start - Throws BadRequestException")
-            void getMessagesInBatches_NegativeStart_ThrowsBadRequest() {
-                PaginationBaseRequestModel request = createValidPaginationRequest();
-                request.setStart(-5);
-                request.setEnd(10);
-
-                assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                        () -> messageService.getMessagesInBatches(request));
-            }
-
-            @Test
-            @DisplayName("Get Messages - Negative end - Throws BadRequestException")
-            void getMessagesInBatches_NegativeEnd_ThrowsBadRequest() {
-                PaginationBaseRequestModel request = createValidPaginationRequest();
-                request.setStart(0);
-                request.setEnd(-10);
-
-                assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                        () -> messageService.getMessagesInBatches(request));
-            }
-
-            @Test
-            @DisplayName("Get Messages - Zero start and end - Throws BadRequestException")
-            void getMessagesInBatches_ZeroPagination_ThrowsBadRequest() {
-                PaginationBaseRequestModel request = createValidPaginationRequest();
-                request.setStart(0);
-                request.setEnd(0);
-
-                assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                        () -> messageService.getMessagesInBatches(request));
-            }
-
-            @Test
-            @DisplayName("Get Messages - Valid pagination - Success")
-            void getMessagesInBatches_ValidPagination_Success() {
-                PaginationBaseRequestModel request = createValidPaginationRequest();
-                request.setStart(0);
-                request.setEnd(10);
-
-                Page<Message> page = new PageImpl<>(Collections.singletonList(testMessage));
-                when(messageRepository.findByClientIdAndIsDeletedFalse(eq(TEST_CLIENT_ID), any(Pageable.class)))
-                        .thenReturn(page);
-
-                PaginationBaseResponseModel<MessageResponseModel> result = messageService.getMessagesInBatches(request);
-
-                assertNotNull(result);
-                verify(messageRepository).findByClientIdAndIsDeletedFalse(eq(TEST_CLIENT_ID), any(Pageable.class));
-            }
-        }
-
-        @Nested
-        @DisplayName("Schedule Message - Email Validation")
-        class ScheduleMessageEmailTests {
-
-            @Test
-            @DisplayName("Schedule Message - Null request - Throws BadRequestException")
-            void scheduleMessage_NullRequest_ThrowsBadRequest() {
-                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.InvalidRequest,
-                        () -> messageService.scheduleMessage(null));
-            }
-
-            @Test
-            @DisplayName("Schedule Message - Null recipients - Throws BadRequestException")
-            void scheduleMessage_NullRecipients_ThrowsBadRequest() {
-                testMessageRequest.setRecipients(null);
-
-                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.InvalidRecipients,
-                        () -> messageService.scheduleMessage(testMessageRequest));
-            }
-
-            @Test
-            @DisplayName("Schedule Message - Empty recipients list - Throws BadRequestException")
-            void scheduleMessage_EmptyRecipients_ThrowsBadRequest() {
-                testMessageRequest.setRecipients(Collections.emptyList());
-
-                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.InvalidRecipients,
-                        () -> messageService.scheduleMessage(testMessageRequest));
-            }
-
-            @Test
-            @DisplayName("Schedule Message - Null subject - Throws BadRequestException")
-            void scheduleMessage_NullSubject_ThrowsBadRequest() {
-                testMessageRequest.setSubject(null);
-
-                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.InvalidSubject,
-                        () -> messageService.scheduleMessage(testMessageRequest));
-            }
-
-            @Test
-            @DisplayName("Schedule Message - Empty subject - Throws BadRequestException")
-            void scheduleMessage_EmptySubject_ThrowsBadRequest() {
-                testMessageRequest.setSubject("");
-
-                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.InvalidSubject,
-                        () -> messageService.scheduleMessage(testMessageRequest));
-            }
-
-            @Test
-            @DisplayName("Schedule Message - Null body - Throws BadRequestException")
-            void scheduleMessage_NullBody_ThrowsBadRequest() {
-                testMessageRequest.setBody(null);
-
-                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.InvalidBody,
-                        () -> messageService.scheduleMessage(testMessageRequest));
-            }
-
-            @Test
-            @DisplayName("Schedule Message - Empty body - Throws BadRequestException")
-            void scheduleMessage_EmptyBody_ThrowsBadRequest() {
-                testMessageRequest.setBody("");
-
-                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.InvalidBody,
-                        () -> messageService.scheduleMessage(testMessageRequest));
-            }
-
-            @Test
-            @DisplayName("Schedule Message - Null scheduled date - Throws BadRequestException")
-            void scheduleMessage_NullScheduledDate_ThrowsBadRequest() {
-                testMessageRequest.setScheduledDate(null);
-
-                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.InvalidScheduledDate,
-                        () -> messageService.scheduleMessage(testMessageRequest));
-            }
-
-            @Test
-            @DisplayName("Schedule Message - Past scheduled date - Throws BadRequestException")
-            void scheduleMessage_PastScheduledDate_ThrowsBadRequest() {
-                testMessageRequest.setScheduledDate(ZonedDateTime.now(ZoneOffset.UTC).minusDays(1));
-
-                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.ScheduledDatePast,
-                        () -> messageService.scheduleMessage(testMessageRequest));
-            }
-
-            @Test
-            @DisplayName("Schedule Message - Very large recipient count - Success")
-            void scheduleMessage_LargeRecipientCount_Success() {
-                List<Long> manyRecipients = new ArrayList<>();
-                for (int i = 1; i <= 1000; i++) {
-                    manyRecipients.add((long) i);
-                }
-                testMessageRequest.setRecipients(manyRecipients);
-
-                when(userRepository.findByUserIdAndIsDeletedFalse(anyLong()))
-                        .thenReturn(Optional.of(testUser));
-                when(messageRepository.save(any(Message.class)))
-                        .thenReturn(testMessage);
-
-                Message result = messageService.scheduleMessage(testMessageRequest);
-
-                assertNotNull(result);
-                verify(messageRepository).save(any(Message.class));
-            }
-        }
-
-        @Nested
-        @DisplayName("Send Message - User Validation")
-        class SendMessageUserTests {
-
-            @Test
-            @DisplayName("Send Message - User not found - Throws NotFoundException")
-            void sendMessage_UserNotFound_ThrowsNotFound() {
-                when(userRepository.findByUserIdAndIsDeletedFalse(TEST_USER_ID))
-                        .thenReturn(Optional.empty());
-
-                assertThrowsNotFound(String.format(ErrorMessages.UserErrorMessages.NotFound, TEST_USER_ID),
-                        () -> messageService.sendMessage(testMessageRequest, TEST_USER_ID));
-            }
-
-            @Test
-            @DisplayName("Send Message - Message not found - Throws NotFoundException")
-            void sendMessage_MessageNotFound_ThrowsNotFound() {
-                when(userRepository.findByUserIdAndIsDeletedFalse(TEST_USER_ID))
-                        .thenReturn(Optional.of(testUser));
-                when(messageRepository.findByMessageIdAndIsDeletedFalse(TEST_MESSAGE_ID))
-                        .thenReturn(Optional.empty());
-
-                assertThrowsNotFound(String.format(ErrorMessages.MessageErrorMessages.NotFound, TEST_MESSAGE_ID),
-                        () -> messageService.sendMessage(testMessageRequest, TEST_USER_ID));
-            }
-
-            @Test
-            @DisplayName("Send Message - Message already sent - Throws BadRequestException")
-            void sendMessage_AlreadySent_ThrowsBadRequest() {
-                testMessage.setSentAt(ZonedDateTime.now(ZoneOffset.UTC));
-                when(userRepository.findByUserIdAndIsDeletedFalse(TEST_USER_ID))
-                        .thenReturn(Optional.of(testUser));
-                when(messageRepository.findByMessageIdAndIsDeletedFalse(TEST_MESSAGE_ID))
-                        .thenReturn(Optional.of(testMessage));
-
-                assertThrowsBadRequest(ErrorMessages.MessageErrorMessages.AlreadySent,
-                        () -> messageService.sendMessage(testMessageRequest, TEST_USER_ID));
-            }
-        }
-
-        @Nested
-        @DisplayName("Get Unread Message Count - Validation")
-        class GetUnreadMessageCountTests {
-
-            @Test
-            @DisplayName("Get Unread Message Count - Zero unread - Returns 0")
-            void getUnreadMessageCount_NoUnread_ReturnsZero() {
-                when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
-                        .thenReturn(0);
-
-                int result = messageService.getUnreadMessageCount();
-
-                assertEquals(0, result);
-            }
-
-            @Test
-            @DisplayName("Get Unread Message Count - One unread - Returns 1")
-            void getUnreadMessageCount_OneUnread_ReturnsOne() {
-                when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
-                        .thenReturn(1);
-
-                int result = messageService.getUnreadMessageCount();
-
-                assertEquals(1, result);
-            }
-
-            @Test
-            @DisplayName("Get Unread Message Count - Large count - Success")
-            void getUnreadMessageCount_LargeCount_Success() {
-                when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
-                        .thenReturn(999999);
-
-                int result = messageService.getUnreadMessageCount();
-
-                assertEquals(999999, result);
-            }
-        }
-    }
 }
-

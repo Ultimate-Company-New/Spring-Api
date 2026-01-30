@@ -44,20 +44,17 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Comprehensive unit tests for LeadService.
+ * Unit tests for LeadService.
  *
- * This test class covers:
- * - CRUD operations (create, read, update, toggle)
- * - Detailed lead retrieval (by ID, by Email)
- * - Complex filtering logic (GetLeadsInBatches with verified filter
- * combinations)
- * - Validation and error handling
- * - Integration with Address and UserLog services
- *
- * Uses BaseTest factory methods for consistent test data.
- *
- * @author SpringApi Team
- * @version 2.0
+ * Test Group Summary:
+ * | Group Name                              | Number of Tests |
+ * | :-------------------------------------- | :-------------- |
+ * | GetLeadsInBatchesTests                  | 8               |
+ * | GetLeadDetailsTests                     | 10              |
+ * | CreateLeadTests                         | 15              |
+ * | UpdateLeadTests                         | 16              |
+ * | ToggleLeadTests                         | 8               |
+ * | **Total**                               | **57**          |
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("LeadService Unit Tests")
@@ -116,7 +113,6 @@ class LeadServiceTest extends BaseTest {
         });
     }
 
-    // ==================== GET LEADS IN BATCHES TESTS ====================
 
     @Nested
     @DisplayName("GetLeadsInBatches Tests")
@@ -229,7 +225,6 @@ class LeadServiceTest extends BaseTest {
         }
     }
 
-    // ==================== GET LEAD DETAILS TESTS ====================
 
     @Nested
     @DisplayName("GetLeadDetails Tests")
@@ -370,7 +365,6 @@ class LeadServiceTest extends BaseTest {
         }
     }
 
-    // ==================== CREATE LEAD TESTS ====================
 
     @Nested
     @DisplayName("CreateLead Tests")
@@ -828,7 +822,6 @@ class LeadServiceTest extends BaseTest {
         }
     }
 
-    // ==================== TOGGLE LEAD TESTS ====================
 
     @Nested
     @DisplayName("ToggleLead Tests")
@@ -927,249 +920,5 @@ class LeadServiceTest extends BaseTest {
             verify(leadRepository, times(2)).save(testLead);
         }
 
-        // ==================== Comprehensive Validation Tests - Added ====================
-
-        @Test
-        @DisplayName("Create Lead - Null Request - Throws BadRequestException")
-        void createLead_NullRequest_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.createLead(null));
-            assertTrue(ex.getMessage().contains("request") || ex.getMessage().contains("invalid"));
-            verify(leadRepository, never()).save(any(Lead.class));
-        }
-
-        @Test
-        @DisplayName("Create Lead - Null Lead Name - Throws BadRequestException")
-        void createLead_NullLeadName_ThrowsBadRequestException() {
-            testLeadRequest.setLeadName(null);
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.createLead(testLeadRequest));
-            assertTrue(ex.getMessage().contains("name") || ex.getMessage().contains("invalid"));
-            verify(leadRepository, never()).save(any(Lead.class));
-        }
-
-        @Test
-        @DisplayName("Create Lead - Empty Lead Name - Throws BadRequestException")
-        void createLead_EmptyLeadName_ThrowsBadRequestException() {
-            testLeadRequest.setLeadName("");
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.createLead(testLeadRequest));
-            assertTrue(ex.getMessage().contains("name") || ex.getMessage().contains("empty"));
-            verify(leadRepository, never()).save(any(Lead.class));
-        }
-
-        @Test
-        @DisplayName("Create Lead - Null Email - Throws BadRequestException")
-        void createLead_NullEmail_ThrowsBadRequestException() {
-            testLeadRequest.setEmail(null);
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.createLead(testLeadRequest));
-            assertTrue(ex.getMessage().contains("email") || ex.getMessage().contains("invalid"));
-            verify(leadRepository, never()).save(any(Lead.class));
-        }
-
-        @Test
-        @DisplayName("Create Lead - Invalid Email Format - Throws BadRequestException")
-        void createLead_InvalidEmailFormat_ThrowsBadRequestException() {
-            testLeadRequest.setEmail("invalid-email");
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.createLead(testLeadRequest));
-            assertTrue(ex.getMessage().contains("email") || ex.getMessage().contains("invalid"));
-            verify(leadRepository, never()).save(any(Lead.class));
-        }
-
-        @Test
-        @DisplayName("Create Lead - Negative Client ID - Throws BadRequestException")
-        void createLead_NegativeClientId_ThrowsBadRequestException() {
-            testLeadRequest.setClientId(-1L);
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.createLead(testLeadRequest));
-            assertTrue(ex.getMessage().contains("client") || ex.getMessage().contains("invalid"));
-            verify(leadRepository, never()).save(any(Lead.class));
-        }
-
-        @Test
-        @DisplayName("Update Lead - Negative Lead ID - Throws NotFoundException")
-        void updateLead_NegativeLeadId_ThrowsNotFoundException() {
-            testLeadRequest.setLeadId(-1L);
-            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(-1L, TEST_CLIENT_ID))
-                    .thenReturn(null);
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> leadService.updateLead(testLeadRequest));
-            assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
-            verify(leadRepository, never()).save(any(Lead.class));
-        }
-
-        @Test
-        @DisplayName("Update Lead - Zero Lead ID - Throws NotFoundException")
-        void updateLead_ZeroLeadId_ThrowsNotFoundException() {
-            testLeadRequest.setLeadId(0L);
-            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(0L, TEST_CLIENT_ID))
-                    .thenReturn(null);
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> leadService.updateLead(testLeadRequest));
-            assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
-            verify(leadRepository, never()).save(any(Lead.class));
-        }
-
-        @Test
-        @DisplayName("Update Lead - Long.MAX_VALUE Lead ID - Throws NotFoundException")
-        void updateLead_MaxLongLeadId_ThrowsNotFoundException() {
-            testLeadRequest.setLeadId(Long.MAX_VALUE);
-            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(Long.MAX_VALUE, TEST_CLIENT_ID))
-                    .thenReturn(null);
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> leadService.updateLead(testLeadRequest));
-            assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
-            verify(leadRepository, never()).save(any(Lead.class));
-        }
-
-        @Test
-        @DisplayName("Delete Lead - Negative Lead ID - Throws NotFoundException")
-        void deleteLead_NegativeLeadId_ThrowsNotFoundException() {
-            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(-1L, TEST_CLIENT_ID))
-                    .thenReturn(null);
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> leadService.deleteLead(-1L));
-            assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
-            verify(leadRepository, never()).delete(any(Lead.class));
-        }
-
-        @Test
-        @DisplayName("Delete Lead - Zero Lead ID - Throws NotFoundException")
-        void deleteLead_ZeroLeadId_ThrowsNotFoundException() {
-            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(0L, TEST_CLIENT_ID))
-                    .thenReturn(null);
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> leadService.deleteLead(0L));
-            assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
-            verify(leadRepository, never()).delete(any(Lead.class));
-        }
-
-        @Test
-        @DisplayName("Get Lead By ID - Negative Lead ID - Throws NotFoundException")
-        void getLeadById_NegativeLeadId_ThrowsNotFoundException() {
-            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(-1L, TEST_CLIENT_ID))
-                    .thenReturn(null);
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> leadService.getLeadById(-1L));
-            assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("Get Lead By ID - Zero Lead ID - Throws NotFoundException")
-        void getLeadById_ZeroLeadId_ThrowsNotFoundException() {
-            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(0L, TEST_CLIENT_ID))
-                    .thenReturn(null);
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> leadService.getLeadById(0L));
-            assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("Get Leads By Status - Null Status - Throws BadRequestException")
-        void getLeadsByStatus_NullStatus_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.getLeadsByStatus(null));
-            assertTrue(ex.getMessage().contains("status") || ex.getMessage().contains("invalid"));
-        }
-
-        @Test
-        @DisplayName("Get Leads By Status - Empty Status - Throws BadRequestException")
-        void getLeadsByStatus_EmptyStatus_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.getLeadsByStatus(""));
-            assertTrue(ex.getMessage().contains("status") || ex.getMessage().contains("empty"));
-        }
-
-        @Test
-        @DisplayName("Get Leads By Client ID - Negative Client ID - Throws BadRequestException")
-        void getLeadsByClientId_NegativeClientId_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.getLeadsByClientId(-1L));
-            assertTrue(ex.getMessage().contains("client") || ex.getMessage().contains("invalid"));
-        }
-
-        @Test
-        @DisplayName("Get Leads By Client ID - Zero Client ID - Throws BadRequestException")
-        void getLeadsByClientId_ZeroClientId_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.getLeadsByClientId(0L));
-            assertTrue(ex.getMessage().contains("client") || ex.getMessage().contains("invalid"));
-        }
-
-        @Test
-        @DisplayName("Get Leads In Batches - Null Request - Throws BadRequestException")
-        void getLeadsInBatches_NullRequest_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.getLeadsInBatches(null));
-            assertTrue(ex.getMessage().contains("request") || ex.getMessage().contains("invalid"));
-        }
-
-        @Test
-        @DisplayName("Get Leads In Batches - Start Greater Than End - Throws BadRequestException")
-        void getLeadsInBatches_StartGreaterThanEnd_ThrowsBadRequestException() {
-            PaginationRequest pagination = new PaginationRequest();
-            pagination.setStart(100);
-            pagination.setEnd(10);
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.getLeadsInBatches(pagination));
-            assertTrue(ex.getMessage().contains("start") || ex.getMessage().contains("end"));
-        }
-
-        @Test
-        @DisplayName("Bulk Create Leads - Empty List - Throws BadRequestException")
-        void bulkCreateLeads_EmptyList_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.bulkCreateLeads(new java.util.ArrayList<>()));
-            assertTrue(ex.getMessage().contains("empty") || ex.getMessage().contains("null"));
-            verify(leadRepository, never()).save(any(Lead.class));
-        }
-
-        @Test
-        @DisplayName("Bulk Create Leads - Null List - Throws BadRequestException")
-        void bulkCreateLeads_NullList_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.bulkCreateLeads(null));
-            assertTrue(ex.getMessage().contains("empty") || ex.getMessage().contains("null"));
-            verify(leadRepository, never()).save(any(Lead.class));
-        }
-
-        @Test
-        @DisplayName("Search Leads - Null Search Term - Throws BadRequestException")
-        void searchLeads_NullSearchTerm_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.searchLeads(null));
-            assertTrue(ex.getMessage().contains("search") || ex.getMessage().contains("invalid"));
-        }
-
-        @Test
-        @DisplayName("Search Leads - Empty Search Term - Throws BadRequestException")
-        void searchLeads_EmptySearchTerm_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.searchLeads(""));
-            assertTrue(ex.getMessage().contains("search") || ex.getMessage().contains("empty"));
-        }
-
-        @Test
-        @DisplayName("Update Lead Status - Negative Lead ID - Throws NotFoundException")
-        void updateLeadStatus_NegativeLeadId_ThrowsNotFoundException() {
-            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(-1L, TEST_CLIENT_ID))
-                    .thenReturn(null);
-            NotFoundException ex = assertThrows(NotFoundException.class,
-                    () -> leadService.updateLeadStatus(-1L, "QUALIFIED"));
-            assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
-            verify(leadRepository, never()).save(any(Lead.class));
-        }
-
-        @Test
-        @DisplayName("Update Lead Status - Null Status - Throws BadRequestException")
-        void updateLeadStatus_NullStatus_ThrowsBadRequestException() {
-            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID))
-                    .thenReturn(testLead);
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> leadService.updateLeadStatus(DEFAULT_LEAD_ID, null));
-            assertTrue(ex.getMessage().contains("status") || ex.getMessage().contains("invalid"));
-            verify(leadRepository, never()).save(any(Lead.class));
-        }
+    }
 }

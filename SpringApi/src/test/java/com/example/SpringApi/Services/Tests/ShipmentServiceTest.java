@@ -6,7 +6,6 @@ import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.FilterQueryBuilder.ShipmentFilterQueryBuilder;
 import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.ShipmentResponseModel;
 import com.example.SpringApi.Repositories.*;
@@ -24,7 +23,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import java.math.BigDecimal;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,9 +30,17 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for {@link ShipmentService}.
+ * Unit tests for ShipmentService.
  * 
- * Tests shipment retrieval, pagination, and filtering operations.
+ * Test Group Summary:
+ * | Group Name | Number of Tests |
+ * | :--- | :--- |
+ * | GetShipmentsInBatchesTests | 1 |
+ * | GetShipmentByIdValidationTests | 7 |
+ * | GetShipmentByIdAdditionalTests | 5 |
+ * | GetShipmentsInBatchesPaginationTests | 6 |
+ * | GetShipmentsInBatchesFilterTests | 7 |
+ * | **Total** | **26** |
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ShipmentService Tests")
@@ -90,11 +96,17 @@ class ShipmentServiceTest extends BaseTest {
                 testPaginationRequest.setIncludeDeleted(false);
         }
 
-        // ==================== Get Shipments In Batches Tests ====================
-
         @Nested
-        @DisplayName("GetShipmentsInBatches Tests")
+        @DisplayName("GetShipmentsInBatchesTests")
         class GetShipmentsInBatchesTests {
+
+                /**
+                 * Purpose: Comprehensive test for shipment batch retrieval including invalid pagination, 
+                 *          success without filters, and triple-loop filter validation.
+                 * Expected Result: Invalid pagination throws BadRequestException; valid pagination returns results;
+                 *                  invalid columns/operators throw BadRequestException.
+                 * Assertions: Exception messages match expected error messages; result is not null with correct size.
+                 */
                 @Test
                 @DisplayName("Get Shipments In Batches - Invalid pagination, success no filters, and triple-loop filter validation")
                 void getShipmentsInBatches_SingleComprehensiveTest() {
@@ -212,12 +224,15 @@ class ShipmentServiceTest extends BaseTest {
                 }
         }
 
-        // ==================== Get Shipment By ID Tests ====================
-
         @Nested
-        @DisplayName("Get Shipment By ID - Validation Tests")
+        @DisplayName("GetShipmentByIdValidationTests")
         class GetShipmentByIdValidationTests {
 
+                /**
+                 * Purpose: Verify that getting shipment with null ID throws BadRequestException.
+                 * Expected Result: BadRequestException with InvalidId message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.ShipmentErrorMessages.InvalidId.
+                 */
                 @Test
                 @DisplayName("Get Shipment By ID - Null ID - Throws BadRequestException")
                 void getShipmentById_NullId_ThrowsBadRequestException() {
@@ -225,6 +240,11 @@ class ShipmentServiceTest extends BaseTest {
                                         () -> shipmentService.getShipmentById(null));
                 }
 
+                /**
+                 * Purpose: Verify that getting shipment with zero ID throws BadRequestException.
+                 * Expected Result: BadRequestException with InvalidId message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.ShipmentErrorMessages.InvalidId.
+                 */
                 @Test
                 @DisplayName("Get Shipment By ID - Zero ID - Throws BadRequestException")
                 void getShipmentById_ZeroId_ThrowsBadRequestException() {
@@ -232,6 +252,11 @@ class ShipmentServiceTest extends BaseTest {
                                         () -> shipmentService.getShipmentById(0L));
                 }
 
+                /**
+                 * Purpose: Verify that getting shipment with negative ID throws BadRequestException.
+                 * Expected Result: BadRequestException with InvalidId message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.ShipmentErrorMessages.InvalidId.
+                 */
                 @Test
                 @DisplayName("Get Shipment By ID - Negative ID - Throws BadRequestException")
                 void getShipmentById_NegativeId_ThrowsBadRequestException() {
@@ -239,21 +264,31 @@ class ShipmentServiceTest extends BaseTest {
                                         () -> shipmentService.getShipmentById(-1L));
                 }
 
+                /**
+                 * Purpose: Verify that getting shipment when not found throws NotFoundException.
+                 * Expected Result: NotFoundException with NotFound message is thrown.
+                 * Assertions: Exception message equals formatted NotFound error message.
+                 */
                 @Test
                 @DisplayName("Get Shipment By ID - Shipment Not Found - Throws NotFoundException")
                 void getShipmentById_ShipmentNotFound_ThrowsNotFoundException() {
                         when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
-                                        .thenReturn(Optional.empty());
+                                        .thenReturn(null);
 
                         assertThrowsNotFound(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID),
                                         () -> shipmentService.getShipmentById(TEST_SHIPMENT_ID));
                 }
 
+                /**
+                 * Purpose: Verify that getting shipment with valid ID returns shipment details.
+                 * Expected Result: ShipmentResponseModel is returned with correct shipment ID.
+                 * Assertions: Result is not null; shipment ID matches expected value.
+                 */
                 @Test
                 @DisplayName("Get Shipment By ID - Success - Returns Shipment Details")
                 void getShipmentById_Success_ReturnsShipmentDetails() {
                         when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
-                                        .thenReturn(Optional.of(testShipment));
+                                        .thenReturn(testShipment);
                         when(shipmentProductRepository.findByShipmentId(TEST_SHIPMENT_ID))
                                         .thenReturn(Collections.emptyList());
                         when(shipmentPackageRepository.findByShipmentId(TEST_SHIPMENT_ID))
@@ -264,35 +299,47 @@ class ShipmentServiceTest extends BaseTest {
                         assertNotNull(result);
                         assertEquals(TEST_SHIPMENT_ID, result.getShipmentId());
                 }
+
+                /**
+                 * Purpose: Verify that getting shipment with Long.MAX_VALUE ID throws NotFoundException.
+                 * Expected Result: NotFoundException is thrown with message containing "not found".
+                 * Assertions: Exception message contains "not found".
+                 */
+                @Test
+                @DisplayName("Get Shipment By ID - Long.MAX_VALUE - Not Found")
+                void getShipmentById_MaxLongId_ThrowsNotFoundException() {
+                        when(shipmentRepository.findByShipmentIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID))
+                                .thenReturn(null);
+                        NotFoundException ex = assertThrows(NotFoundException.class,
+                                () -> shipmentService.getShipmentById(Long.MAX_VALUE));
+                        assertTrue(ex.getMessage().contains("not found"));
+                }
+
+                /**
+                 * Purpose: Verify that getting shipment with Long.MIN_VALUE ID throws NotFoundException.
+                 * Expected Result: NotFoundException is thrown with message containing "not found".
+                 * Assertions: Exception message contains "not found".
+                 */
+                @Test
+                @DisplayName("Get Shipment By ID - Long.MIN_VALUE - Not Found")
+                void getShipmentById_MinLongId_ThrowsNotFoundException() {
+                        when(shipmentRepository.findByShipmentIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID))
+                                .thenReturn(null);
+                        NotFoundException ex = assertThrows(NotFoundException.class,
+                                () -> shipmentService.getShipmentById(Long.MIN_VALUE));
+                        assertTrue(ex.getMessage().contains("not found"));
+                }
         }
-
-
-        @Test
-        @DisplayName("Get Shipment By ID - Long.MAX_VALUE - Not Found")
-        void getShipmentById_MaxLongId_ThrowsNotFoundException() {
-                when(shipmentRepository.findByShipmentIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID))
-                        .thenReturn(Optional.empty());
-                NotFoundException ex = assertThrows(NotFoundException.class,
-                        () -> shipmentService.getShipmentById(Long.MAX_VALUE));
-                assertTrue(ex.getMessage().contains("not found"));
-        }
-
-        @Test
-        @DisplayName("Get Shipment By ID - Long.MIN_VALUE - Not Found")
-        void getShipmentById_MinLongId_ThrowsNotFoundException() {
-                when(shipmentRepository.findByShipmentIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID))
-                        .thenReturn(Optional.empty());
-                NotFoundException ex = assertThrows(NotFoundException.class,
-                        () -> shipmentService.getShipmentById(Long.MIN_VALUE));
-                assertTrue(ex.getMessage().contains("not found"));
-        }
-
-        // ==================== Additional Shipment Validation Tests ====================
 
         @Nested
-        @DisplayName("Get Shipment By ID - Additional Validation Tests")
+        @DisplayName("GetShipmentByIdAdditionalTests")
         class GetShipmentByIdAdditionalTests {
 
+                /**
+                 * Purpose: Verify that getting shipment without ShipRocket order ID throws NotFoundException.
+                 * Expected Result: NotFoundException with NotFound message is thrown.
+                 * Assertions: Exception message equals formatted NotFound error message.
+                 */
                 @Test
                 @DisplayName("Get Shipment By ID - Shipment without ShipRocket Order ID - Not Found")
                 void getShipmentById_NoShipRocketOrderId_ThrowsNotFoundException() {
@@ -302,12 +349,17 @@ class ShipmentServiceTest extends BaseTest {
                         shipmentNoOrderId.setShipRocketOrderId(null); // Missing required field
 
                         when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(shipmentNoOrderId));
+                                .thenReturn(shipmentNoOrderId);
 
                         assertThrowsNotFound(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID),
                                 () -> shipmentService.getShipmentById(TEST_SHIPMENT_ID));
                 }
 
+                /**
+                 * Purpose: Verify that getting shipment with empty ShipRocket order ID throws NotFoundException.
+                 * Expected Result: NotFoundException with NotFound message is thrown.
+                 * Assertions: Exception message equals formatted NotFound error message.
+                 */
                 @Test
                 @DisplayName("Get Shipment By ID - Shipment with empty ShipRocket Order ID - Not Found")
                 void getShipmentById_EmptyShipRocketOrderId_ThrowsNotFoundException() {
@@ -317,22 +369,32 @@ class ShipmentServiceTest extends BaseTest {
                         shipmentEmptyOrderId.setShipRocketOrderId(""); // Empty string
 
                         when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(shipmentEmptyOrderId));
+                                .thenReturn(shipmentEmptyOrderId);
 
                         assertThrowsNotFound(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID),
                                 () -> shipmentService.getShipmentById(TEST_SHIPMENT_ID));
                 }
 
+                /**
+                 * Purpose: Verify that getting shipment with different client ID throws NotFoundException.
+                 * Expected Result: NotFoundException with NotFound message is thrown.
+                 * Assertions: Exception message equals formatted NotFound error message.
+                 */
                 @Test
                 @DisplayName("Get Shipment By ID - Different Client ID - Not Found")
                 void getShipmentById_DifferentClientId_ThrowsNotFoundException() {
                         when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.empty());
+                                .thenReturn(null);
 
                         assertThrowsNotFound(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID),
                                 () -> shipmentService.getShipmentById(TEST_SHIPMENT_ID));
                 }
 
+                /**
+                 * Purpose: Verify that getting deleted shipment returns shipment details.
+                 * Expected Result: ShipmentResponseModel is returned with correct shipment ID.
+                 * Assertions: Result is not null; shipment ID matches expected value.
+                 */
                 @Test
                 @DisplayName("Get Shipment By ID - Deleted Shipment - Returns response")
                 void getShipmentById_DeletedShipment_ReturnsDetails() {
@@ -342,7 +404,7 @@ class ShipmentServiceTest extends BaseTest {
                         deletedShipment.setShipRocketOrderId("SR-123456");
 
                         when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(deletedShipment));
+                                .thenReturn(deletedShipment);
                         when(shipmentProductRepository.findByShipmentId(TEST_SHIPMENT_ID))
                                 .thenReturn(Collections.emptyList());
                         when(shipmentPackageRepository.findByShipmentId(TEST_SHIPMENT_ID))
@@ -354,11 +416,16 @@ class ShipmentServiceTest extends BaseTest {
                         assertEquals(TEST_SHIPMENT_ID, result.getShipmentId());
                 }
 
+                /**
+                 * Purpose: Verify that getting shipment with valid ID returns shipment and verifies repository call.
+                 * Expected Result: ShipmentResponseModel is returned; repository is called with correct parameters.
+                 * Assertions: Result is not null; repository method is verified.
+                 */
                 @Test
                 @DisplayName("Get Shipment By ID - One ID - Success")
                 void getShipmentById_ValidId_Success() {
                         when(shipmentRepository.findByShipmentIdAndClientId(1L, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(testShipment));
+                                .thenReturn(testShipment);
                         when(shipmentProductRepository.findByShipmentId(1L))
                                 .thenReturn(Collections.emptyList());
                         when(shipmentPackageRepository.findByShipmentId(1L))
@@ -372,9 +439,14 @@ class ShipmentServiceTest extends BaseTest {
         }
 
         @Nested
-        @DisplayName("Get Shipments In Batches - Pagination Validation")
+        @DisplayName("GetShipmentsInBatchesPaginationTests")
         class GetShipmentsInBatchesPaginationTests {
 
+                /**
+                 * Purpose: Verify that getting shipments with start equals end throws BadRequestException.
+                 * Expected Result: BadRequestException with InvalidPagination message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.CommonErrorMessages.InvalidPagination.
+                 */
                 @Test
                 @DisplayName("Get Shipments In Batches - Start equals End - Throws BadRequestException")
                 void getShipmentsInBatches_StartEqualsEnd_ThrowsBadRequest() {
@@ -386,6 +458,11 @@ class ShipmentServiceTest extends BaseTest {
                                 () -> shipmentService.getShipmentsInBatches(request));
                 }
 
+                /**
+                 * Purpose: Verify that getting shipments with negative start throws BadRequestException.
+                 * Expected Result: BadRequestException with InvalidPagination message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.CommonErrorMessages.InvalidPagination.
+                 */
                 @Test
                 @DisplayName("Get Shipments In Batches - Negative Start - Throws BadRequestException")
                 void getShipmentsInBatches_NegativeStart_ThrowsBadRequest() {
@@ -397,6 +474,11 @@ class ShipmentServiceTest extends BaseTest {
                                 () -> shipmentService.getShipmentsInBatches(request));
                 }
 
+                /**
+                 * Purpose: Verify that getting shipments with negative end throws BadRequestException.
+                 * Expected Result: BadRequestException with InvalidPagination message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.CommonErrorMessages.InvalidPagination.
+                 */
                 @Test
                 @DisplayName("Get Shipments In Batches - Negative End - Throws BadRequestException")
                 void getShipmentsInBatches_NegativeEnd_ThrowsBadRequest() {
@@ -408,6 +490,11 @@ class ShipmentServiceTest extends BaseTest {
                                 () -> shipmentService.getShipmentsInBatches(request));
                 }
 
+                /**
+                 * Purpose: Verify that getting shipments with start greater than end throws BadRequestException.
+                 * Expected Result: BadRequestException with InvalidPagination message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.CommonErrorMessages.InvalidPagination.
+                 */
                 @Test
                 @DisplayName("Get Shipments In Batches - Start greater than End - Throws BadRequestException")
                 void getShipmentsInBatches_StartGreaterThanEnd_ThrowsBadRequest() {
@@ -419,6 +506,11 @@ class ShipmentServiceTest extends BaseTest {
                                 () -> shipmentService.getShipmentsInBatches(request));
                 }
 
+                /**
+                 * Purpose: Verify that getting shipments with very large page size succeeds.
+                 * Expected Result: PaginationBaseResponseModel is returned with results.
+                 * Assertions: Result is not null.
+                 */
                 @Test
                 @DisplayName("Get Shipments In Batches - Very large page size - Success")
                 void getShipmentsInBatches_LargePageSize_Success() {
@@ -439,6 +531,11 @@ class ShipmentServiceTest extends BaseTest {
                         assertNotNull(result);
                 }
 
+                /**
+                 * Purpose: Verify that getting shipments with zero start and end throws BadRequestException.
+                 * Expected Result: BadRequestException with InvalidPagination message is thrown.
+                 * Assertions: Exception message equals ErrorMessages.CommonErrorMessages.InvalidPagination.
+                 */
                 @Test
                 @DisplayName("Get Shipments In Batches - Zero Start and End - Throws BadRequestException")
                 void getShipmentsInBatches_ZeroStartAndEnd_ThrowsBadRequest() {
@@ -452,9 +549,14 @@ class ShipmentServiceTest extends BaseTest {
         }
 
         @Nested
-        @DisplayName("Get Shipments In Batches - Filter Validation")
+        @DisplayName("GetShipmentsInBatchesFilterTests")
         class GetShipmentsInBatchesFilterTests {
 
+                /**
+                 * Purpose: Verify that getting shipments with invalid column name throws BadRequestException.
+                 * Expected Result: BadRequestException with InvalidColumnName message is thrown.
+                 * Assertions: Exception message equals formatted InvalidColumnName error message.
+                 */
                 @Test
                 @DisplayName("Get Shipments In Batches - Invalid column 'invalidColumn' - Throws BadRequestException")
                 void getShipmentsInBatches_InvalidColumn_ThrowsBadRequest() {
@@ -467,6 +569,11 @@ class ShipmentServiceTest extends BaseTest {
                                 () -> shipmentService.getShipmentsInBatches(request));
                 }
 
+                /**
+                 * Purpose: Verify that getting shipments with invalid operator throws BadRequestException.
+                 * Expected Result: BadRequestException with InvalidOperator message is thrown.
+                 * Assertions: Exception message equals formatted InvalidOperator error message.
+                 */
                 @Test
                 @DisplayName("Get Shipments In Batches - Invalid operator 'badOperator' - Throws BadRequestException")
                 void getShipmentsInBatches_InvalidOperator_ThrowsBadRequest() {
@@ -479,6 +586,11 @@ class ShipmentServiceTest extends BaseTest {
                                 () -> shipmentService.getShipmentsInBatches(request));
                 }
 
+                /**
+                 * Purpose: Verify that using string operator on numeric column throws BadRequestException.
+                 * Expected Result: BadRequestException is thrown.
+                 * Assertions: BadRequestException is thrown for invalid operator/type combination.
+                 */
                 @Test
                 @DisplayName("Get Shipments In Batches - String operator on numeric column - Throws BadRequestException")
                 void getShipmentsInBatches_StringOperatorOnNumericColumn_ThrowsBadRequest() {
@@ -494,6 +606,11 @@ class ShipmentServiceTest extends BaseTest {
                                 () -> shipmentService.getShipmentsInBatches(request));
                 }
 
+                /**
+                 * Purpose: Verify that getting shipments with multiple invalid columns throws BadRequestException for first invalid column.
+                 * Expected Result: BadRequestException with InvalidColumnName message is thrown for first invalid column.
+                 * Assertions: Exception message equals formatted InvalidColumnName error message for first invalid column.
+                 */
                 @Test
                 @DisplayName("Get Shipments In Batches - Multiple invalid columns - First one throws")
                 void getShipmentsInBatches_MultipleInvalidColumns_ThrowsBadRequest() {
@@ -509,6 +626,11 @@ class ShipmentServiceTest extends BaseTest {
                                 () -> shipmentService.getShipmentsInBatches(request));
                 }
 
+                /**
+                 * Purpose: Verify that getting shipments with valid 'equals' filter succeeds.
+                 * Expected Result: PaginationBaseResponseModel is returned with correct data size.
+                 * Assertions: Result is not null; data size equals expected count.
+                 */
                 @Test
                 @DisplayName("Get Shipments In Batches - Valid filter with 'equals' operator - Success")
                 void getShipmentsInBatches_ValidFilterEquals_Success() {
@@ -532,6 +654,11 @@ class ShipmentServiceTest extends BaseTest {
                         assertEquals(1, result.getData().size());
                 }
 
+                /**
+                 * Purpose: Verify that getting shipments with valid 'contains' filter on string column succeeds.
+                 * Expected Result: PaginationBaseResponseModel is returned.
+                 * Assertions: Result is not null.
+                 */
                 @Test
                 @DisplayName("Get Shipments In Batches - Valid filter with 'contains' on string column - Success")
                 void getShipmentsInBatches_ValidFilterContains_Success() {
@@ -554,6 +681,11 @@ class ShipmentServiceTest extends BaseTest {
                         assertNotNull(result);
                 }
 
+                /**
+                 * Purpose: Verify that getting shipments with empty filters list succeeds.
+                 * Expected Result: PaginationBaseResponseModel is returned.
+                 * Assertions: Result is not null.
+                 */
                 @Test
                 @DisplayName("Get Shipments In Batches - Empty filters list - Success")
                 void getShipmentsInBatches_EmptyFiltersList_Success() {

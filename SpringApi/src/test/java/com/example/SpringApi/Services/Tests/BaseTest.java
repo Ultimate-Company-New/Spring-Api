@@ -501,6 +501,42 @@ public abstract class BaseTest {
         return lead;
     }
 
+    // ==================== TODO REQUEST FACTORY METHODS ====================
+
+    protected TodoRequestModel createValidTodoRequest() {
+        return createValidTodoRequest(DEFAULT_TODO_ID);
+    }
+
+    protected TodoRequestModel createValidTodoRequest(Long todoId) {
+        TodoRequestModel request = new TodoRequestModel();
+        request.setTodoId(todoId);
+        request.setTask(DEFAULT_TODO_TITLE);
+        request.setIsDone(DEFAULT_TODO_COMPLETED);
+        return request;
+    }
+
+    protected TodoRequestModel createValidTodoRequest(Long todoId, Long userId) {
+        // userId is not used in TodoRequestModel, but we accept it for compatibility
+        return createValidTodoRequest(todoId);
+    }
+
+    // ==================== TODO ENTITY FACTORY METHODS ====================
+
+    protected Todo createTestTodo() {
+        return createTestTodo(createValidTodoRequest(), DEFAULT_CREATED_USER);
+    }
+
+    protected Todo createTestTodo(TodoRequestModel request, String createdUser) {
+        Todo todo = new Todo();
+        todo.setTodoId(request.getTodoId());
+        todo.setTask(request.getTask());
+        todo.setIsDone(request.getIsDone());
+        todo.setCreatedUser(createdUser);
+        todo.setCreatedAt(LocalDateTime.now());
+        todo.setUpdatedAt(LocalDateTime.now());
+        return todo;
+    }
+
     // ==================== UTILITY METHODS ====================
 
     /**
@@ -532,365 +568,120 @@ public abstract class BaseTest {
         return LocalDateTime.now().plusDays(daysFromNow);
     }
 
-    // ==================== PAYMENT FACTORY METHODS ====================
-
-    protected PaymentRequestModel createValidPaymentRequest() {
-        PaymentRequestModel request = new PaymentRequestModel();
-        request.setPaymentId(DEFAULT_PAYMENT_ID);
-        request.setAmount(DEFAULT_AMOUNT);
-        request.setPaymentMethod(DEFAULT_PAYMENT_METHOD);
-        request.setPaymentStatus(DEFAULT_PAYMENT_STATUS);
-        request.setPurchaseOrderId(DEFAULT_PURCHASE_ORDER_ID);
-        return request;
-    }
-
-    protected Payment createTestPayment() {
-        Payment payment = new Payment();
-        payment.setPaymentId(DEFAULT_PAYMENT_ID);
-        payment.setAmount(DEFAULT_AMOUNT);
-        payment.setPaymentMethod(DEFAULT_PAYMENT_METHOD);
-        payment.setPaymentStatus(DEFAULT_PAYMENT_STATUS);
-        payment.setIsDeleted(false);
-        payment.setCreatedAt(LocalDateTime.now());
-        payment.setUpdatedAt(LocalDateTime.now());
-        return payment;
-    }
-
-    // ==================== PURCHASE ORDER FACTORY METHODS ====================
-
-    protected PurchaseOrderRequestModel createValidPurchaseOrderRequest() {
-        PurchaseOrderRequestModel request = new PurchaseOrderRequestModel();
-        request.setPurchaseOrderId(DEFAULT_PURCHASE_ORDER_ID);
-        request.setClientId(DEFAULT_CLIENT_ID);
-        request.setLeadId(DEFAULT_LEAD_ID);
-        request.setBillingAddressId(DEFAULT_ADDRESS_ID);
-        request.setShippingAddressId(DEFAULT_ADDRESS_ID);
-        request.setStatus(DEFAULT_PO_STATUS);
-        
-        PurchaseOrderRequestModel.OrderSummaryData orderSummary = new PurchaseOrderRequestModel.OrderSummaryData();
-        orderSummary.setSubtotal(DEFAULT_SUBTOTAL);
-        orderSummary.setTax(DEFAULT_TAX);
-        orderSummary.setShippingCharge(DEFAULT_SHIPPING_CHARGE);
-        orderSummary.setTotal(DEFAULT_TOTAL);
-        request.setOrderSummary(orderSummary);
-        
-        request.setProducts(new ArrayList<>());
-        request.setIsDeleted(false);
-        return request;
-    }
-
-    protected PurchaseOrder createTestPurchaseOrder() {
-        PurchaseOrder po = new PurchaseOrder();
-        po.setPurchaseOrderId(DEFAULT_PURCHASE_ORDER_ID);
-        po.setClientId(DEFAULT_CLIENT_ID);
-        po.setLeadId(DEFAULT_LEAD_ID);
-        po.setStatus(DEFAULT_PO_STATUS);
-        po.setSubtotal(DEFAULT_SUBTOTAL);
-        po.setTax(DEFAULT_TAX);
-        po.setShippingCharge(DEFAULT_SHIPPING_CHARGE);
-        po.setTotal(DEFAULT_TOTAL);
-        po.setIsDeleted(false);
-        po.setCreatedAt(LocalDateTime.now());
-        po.setUpdatedAt(LocalDateTime.now());
-        return po;
-    }
-
-    // ==================== SHIPMENT FACTORY METHODS ====================
-
-    protected ShipmentRequestModel createValidShipmentRequest() {
-        ShipmentRequestModel request = new ShipmentRequestModel();
-        request.setShipmentId(DEFAULT_SHIPMENT_ID);
-        request.setPurchaseOrderId(DEFAULT_PURCHASE_ORDER_ID);
-        request.setStatus(DEFAULT_SHIPMENT_STATUS);
-        request.setWeight(DEFAULT_WEIGHT);
-        request.setTrackingNumber(DEFAULT_TRACKING_NUMBER);
-        return request;
-    }
-
-    protected Shipment createTestShipment() {
-        Shipment shipment = new Shipment();
-        shipment.setShipmentId(DEFAULT_SHIPMENT_ID);
-        shipment.setPurchaseOrderId(DEFAULT_PURCHASE_ORDER_ID);
-        shipment.setStatus(DEFAULT_SHIPMENT_STATUS);
-        shipment.setWeight(DEFAULT_WEIGHT);
-        shipment.setTrackingNumber(DEFAULT_TRACKING_NUMBER);
-        shipment.setIsDeleted(false);
-        shipment.setCreatedAt(LocalDateTime.now());
-        shipment.setUpdatedAt(LocalDateTime.now());
-        return shipment;
-    }
-
-    // ==================== TODO FACTORY METHODS ====================
-
-    protected TodoRequestModel createValidTodoRequest() {
-        TodoRequestModel request = new TodoRequestModel();
-        request.setTodoId(DEFAULT_TODO_ID);
-        request.setTask(DEFAULT_TODO_TITLE);
-        request.setIsDone(DEFAULT_TODO_COMPLETED);
-        return request;
-    }
-
-    protected Todo createTestTodo() {
-        Todo todo = new Todo();
-        todo.setTodoId(DEFAULT_TODO_ID);
-        todo.setTask(DEFAULT_TODO_TITLE);
-        todo.setIsDone(DEFAULT_TODO_COMPLETED);
-        todo.setUserId(DEFAULT_USER_ID);
-        todo.setCreatedAt(LocalDateTime.now());
-        todo.setUpdatedAt(LocalDateTime.now());
-        return todo;
-    }
-
-    // ==================== USER GROUP FACTORY METHODS ====================
-
-    protected UserGroupRequestModel createValidUserGroupRequest() {
-        UserGroupRequestModel request = new UserGroupRequestModel();
-        request.setUserGroupId(DEFAULT_USER_GROUP_ID);
-        request.setUserGroupName(DEFAULT_USER_GROUP_NAME);
-        request.setDescription(DEFAULT_USER_GROUP_DESCRIPTION);
-        request.setClientId(DEFAULT_CLIENT_ID);
-        return request;
-    }
-
-    protected UserGroup createTestUserGroup() {
-        UserGroup userGroup = new UserGroup();
-        userGroup.setUserGroupId(DEFAULT_USER_GROUP_ID);
-        userGroup.setUserGroupName(DEFAULT_USER_GROUP_NAME);
-        userGroup.setDescription(DEFAULT_USER_GROUP_DESCRIPTION);
-        userGroup.setClientId(DEFAULT_CLIENT_ID);
-        userGroup.setIsDeleted(false);
-        userGroup.setCreatedAt(LocalDateTime.now());
-        userGroup.setUpdatedAt(LocalDateTime.now());
-        return userGroup;
-    }
-
-    // ==================== USER LOG FACTORY METHODS ====================
-
-    protected UserLogRequestModel createValidUserLogRequest() {
-        UserLogRequestModel request = new UserLogRequestModel();
-        request.setUserLogId(DEFAULT_USER_LOG_ID);
-        request.setUserId(DEFAULT_USER_ID);
-        request.setAction(DEFAULT_ACTION);
-        request.setDetails(DEFAULT_LOG_DETAILS);
-        request.setClientId(DEFAULT_CLIENT_ID);
-        return request;
-    }
-
-    protected UserLog createTestUserLog() {
-        UserLog userLog = new UserLog();
-        userLog.setUserLogId(DEFAULT_USER_LOG_ID);
-        userLog.setUserId(DEFAULT_USER_ID);
-        userLog.setAction(DEFAULT_ACTION);
-        userLog.setDetails(DEFAULT_LOG_DETAILS);
-        userLog.setClientId(DEFAULT_CLIENT_ID);
-        userLog.setIsDeleted(false);
-        userLog.setCreatedAt(LocalDateTime.now());
-        userLog.setUpdatedAt(LocalDateTime.now());
-        return userLog;
-    }
-
-    // ==================== PACKAGE FACTORY METHODS ====================
-
-    protected PackageRequestModel createValidPackageRequest() {
-        PackageRequestModel request = new PackageRequestModel();
-        request.setPackageId(DEFAULT_PACKAGE_ID);
-        request.setPackageName(DEFAULT_PACKAGE_NAME);
-        request.setPricePerUnit(DEFAULT_PACKAGE_PRICE);
-        request.setLength(10);
-        request.setBreadth(10);
-        request.setHeight(10);
-        request.setMaxWeight(BigDecimal.valueOf(5.0));
-        request.setStandardCapacity(1);
-        request.setPackageType("Box");
-        request.setIsDeleted(false);
-        return request;
-    }
-
-    protected com.example.SpringApi.Models.DatabaseModels.Package createTestPackage() {
-        com.example.SpringApi.Models.DatabaseModels.Package pkg = new com.example.SpringApi.Models.DatabaseModels.Package();
-        pkg.setPackageId(DEFAULT_PACKAGE_ID);
-        pkg.setPackageName(DEFAULT_PACKAGE_NAME);
-        pkg.setPricePerUnit(DEFAULT_PACKAGE_PRICE);
-        pkg.setLength(10);
-        pkg.setBreadth(10);
-        pkg.setHeight(10);
-        pkg.setMaxWeight(BigDecimal.valueOf(5.0));
-        pkg.setStandardCapacity(1);
-        pkg.setPackageType("Box");
-        pkg.setClientId(DEFAULT_CLIENT_ID);
-        pkg.setIsDeleted(false);
-        pkg.setCreatedAt(LocalDateTime.now());
-        pkg.setUpdatedAt(LocalDateTime.now());
-        return pkg;
-    }
-
-    /**
-     * Creates a test PackagePickupLocationMapping with default values.
-     *
-     * @return PackagePickupLocationMapping with default test values
-     */
-    protected PackagePickupLocationMapping createTestPackagePickupLocationMapping() {
-        return createTestPackagePickupLocationMapping(1L, DEFAULT_PACKAGE_ID, DEFAULT_PICKUP_LOCATION_ID);
-    }
-
-    /**
-     * Creates a test PackagePickupLocationMapping with specified IDs.
-     */
-    protected PackagePickupLocationMapping createTestPackagePickupLocationMapping(
-            Long mappingId, Long packageId, Long pickupLocationId) {
-        PackagePickupLocationMapping m = new PackagePickupLocationMapping();
-        m.setPackagePickupLocationMappingId(mappingId);
-        m.setPackageId(packageId);
-        m.setPickupLocationId(pickupLocationId);
-        m.setAvailableQuantity(10);
-        m.setReorderLevel(5);
-        m.setMaxStockLevel(20);
-        m.setPackageEntity(createTestPackage());
-        m.setCreatedUser(DEFAULT_CREATED_USER);
-        m.setModifiedUser(DEFAULT_CREATED_USER);
-        return m;
-    }
-
-    // ==================== PROMO FACTORY METHODS ====================
-
-    protected PromoRequestModel createValidPromoRequest() {
-        PromoRequestModel request = new PromoRequestModel();
-        request.setPromoId(DEFAULT_PROMO_ID);
-        request.setPromoCode(DEFAULT_PROMO_CODE);
-        request.setDiscountPercentage(DEFAULT_DISCOUNT_PERCENTAGE);
-        request.setMinimumCartValue(DEFAULT_MIN_CART_VALUE);
-        request.setClientId(DEFAULT_CLIENT_ID);
-        request.setStartDate(LocalDate.now());
-        request.setExpiryDate(LocalDate.now().plusDays(30));
-        return request;
-    }
-
-    protected Promo createTestPromo() {
-        Promo promo = new Promo();
-        promo.setPromoId(DEFAULT_PROMO_ID);
-        promo.setPromoCode(DEFAULT_PROMO_CODE);
-        promo.setDiscountPercentage(DEFAULT_DISCOUNT_PERCENTAGE);
-        promo.setMinimumCartValue(DEFAULT_MIN_CART_VALUE);
-        promo.setClientId(DEFAULT_CLIENT_ID);
-        promo.setStartDate(LocalDate.now());
-        promo.setExpiryDate(LocalDate.now().plusDays(30));
-        promo.setIsDeleted(false);
-        promo.setCreatedAt(LocalDateTime.now());
-        promo.setUpdatedAt(LocalDateTime.now());
-        return promo;
-    }
-
-    // ==================== PICKUP LOCATION FACTORY METHODS ====================
-
-    protected PickupLocationRequestModel createValidPickupLocationRequest() {
-        PickupLocationRequestModel request = new PickupLocationRequestModel();
-        request.setPickupLocationId(DEFAULT_PICKUP_LOCATION_ID);
-        request.setLocationName(DEFAULT_LOCATION_NAME);
-        request.setAddress(DEFAULT_LOCATION_ADDRESS);
-        request.setClientId(DEFAULT_CLIENT_ID);
-        return request;
-    }
-
-    protected PickupLocation createTestPickupLocation() {
-        PickupLocation location = new PickupLocation();
-        location.setPickupLocationId(DEFAULT_PICKUP_LOCATION_ID);
-        location.setLocationName(DEFAULT_LOCATION_NAME);
-        location.setAddress(DEFAULT_LOCATION_ADDRESS);
-        location.setClientId(DEFAULT_CLIENT_ID);
-        location.setIsDeleted(false);
-        location.setCreatedAt(LocalDateTime.now());
-        location.setUpdatedAt(LocalDateTime.now());
-        return location;
-    }
-
-    // ==================== PRODUCT FACTORY METHODS ====================
-
-    protected ProductRequestModel createValidProductRequest() {
-        ProductRequestModel request = new ProductRequestModel();
-        request.setProductId(DEFAULT_PRODUCT_ID);
-        request.setProductName(DEFAULT_PRODUCT_NAME);
-        request.setPrice(DEFAULT_PRODUCT_PRICE);
-        request.setStockQuantity(DEFAULT_STOCK_QUANTITY);
-        request.setClientId(DEFAULT_CLIENT_ID);
-        return request;
-    }
-
-    protected Product createTestProduct() {
-        Product product = new Product();
-        product.setProductId(DEFAULT_PRODUCT_ID);
-        product.setProductName(DEFAULT_PRODUCT_NAME);
-        product.setPrice(DEFAULT_PRODUCT_PRICE);
-        product.setStockQuantity(DEFAULT_STOCK_QUANTITY);
-        product.setClientId(DEFAULT_CLIENT_ID);
-        product.setIsDeleted(false);
-        product.setCreatedAt(LocalDateTime.now());
-        product.setUpdatedAt(LocalDateTime.now());
-        return product;
-    }
-
-    // ==================== PRODUCT REVIEW FACTORY METHODS ====================
-
-    protected ProductReviewRequestModel createValidProductReviewRequest() {
-        ProductReviewRequestModel request = new ProductReviewRequestModel();
-        request.setReviewId(DEFAULT_REVIEW_ID);
-        request.setProductId(DEFAULT_PRODUCT_ID);
-        request.setRating(DEFAULT_RATING);
-        request.setReviewText(DEFAULT_REVIEW_TEXT);
-        request.setUserId(DEFAULT_USER_ID);
-        request.setClientId(DEFAULT_CLIENT_ID);
-        return request;
-    }
-
-    protected ProductReview createTestProductReview() {
-        ProductReview review = new ProductReview();
-        review.setReviewId(DEFAULT_REVIEW_ID);
-        review.setProductId(DEFAULT_PRODUCT_ID);
-        review.setRating(DEFAULT_RATING);
-        review.setReviewText(DEFAULT_REVIEW_TEXT);
-        review.setUserId(DEFAULT_USER_ID);
-        review.setClientId(DEFAULT_CLIENT_ID);
-        review.setIsDeleted(false);
-        review.setCreatedAt(LocalDateTime.now());
-        review.setUpdatedAt(LocalDateTime.now());
-        return review;
-    }
-
     // ==================== MESSAGE FACTORY METHODS ====================
 
+    /**
+     * Creates a valid MessageRequestModel for testing.
+     */
     protected MessageRequestModel createValidMessageRequest() {
         MessageRequestModel request = new MessageRequestModel();
-        request.setMessageId(1L);
-        request.setContent("Test message");
-        request.setSenderId(DEFAULT_USER_ID);
-        request.setRecipientId(2L);
-        request.setClientId(DEFAULT_CLIENT_ID);
+        request.setMessageId(DEFAULT_MESSAGE_ID);
+        request.setTitle("Test Message");
+        request.setDescriptionHtml("<p>Test message content</p>");
+        request.setSendAsEmail(false);
+        request.setIsDeleted(false);
+        request.setPublishDate(LocalDateTime.now().plusDays(1));
         return request;
     }
 
+    /**
+     * Creates a test Message entity.
+     */
     protected Message createTestMessage() {
+        return createTestMessage(DEFAULT_MESSAGE_ID);
+    }
+
+    /**
+     * Creates a test Message entity with specified ID.
+     */
+    protected Message createTestMessage(Long messageId) {
         Message message = new Message();
-        message.setMessageId(1L);
-        message.setContent("Test message");
-        message.setSenderId(DEFAULT_USER_ID);
-        message.setRecipientId(2L);
+        message.setMessageId(messageId);
         message.setClientId(DEFAULT_CLIENT_ID);
+        message.setTitle("Test Message");
+        message.setDescriptionHtml("<p>Test message content</p>");
+        message.setSendAsEmail(false);
         message.setIsDeleted(false);
+        message.setPublishDate(LocalDateTime.now().plusDays(1));
+        message.setCreatedUser(DEFAULT_CREATED_USER);
+        message.setModifiedUser(DEFAULT_CREATED_USER);
         message.setCreatedAt(LocalDateTime.now());
         message.setUpdatedAt(LocalDateTime.now());
         return message;
     }
 
-    // ==================== LOGIN REQUEST FACTORY METHODS ====================
+    // ==================== LOGIN FACTORY METHODS ====================
 
+    /**
+     * Creates a valid LoginRequestModel for testing.
+     */
     protected LoginRequestModel createValidLoginRequest() {
         LoginRequestModel request = new LoginRequestModel();
+        request.setUserId(DEFAULT_USER_ID);
         request.setLoginName(DEFAULT_LOGIN_NAME);
         request.setPassword("testPassword123");
+        request.setClientId(DEFAULT_CLIENT_ID);
         return request;
     }
 
-    // ==================== PAGINATION REQUEST FACTORY METHODS ====================
+    // ==================== SHIPMENT FACTORY METHODS ====================
 
+    /**
+     * Creates a test Shipment with default values.
+     */
+    protected Shipment createTestShipment() {
+        return createTestShipment(DEFAULT_SHIPMENT_ID);
+    }
+
+    /**
+     * Creates a test Shipment with specified ID.
+     */
+    protected Shipment createTestShipment(Long shipmentId) {
+        Shipment shipment = new Shipment();
+        shipment.setShipmentId(shipmentId);
+        shipment.setClientId(DEFAULT_CLIENT_ID);
+        shipment.setShipRocketOrderId("SR" + shipmentId);
+        shipment.setShipRocketStatus("NEW");
+        shipment.setCreatedUser(DEFAULT_CREATED_USER);
+        shipment.setModifiedUser(DEFAULT_CREATED_USER);
+        shipment.setCreatedAt(LocalDateTime.now());
+        shipment.setUpdatedAt(LocalDateTime.now());
+        return shipment;
+    }
+
+    /**
+     * Creates a deleted test Shipment.
+     */
+    protected Shipment createDeletedTestShipment() {
+        Shipment shipment = createTestShipment();
+        // Note: Shipment uses shipRocketStatus for deletion status
+        shipment.setShipRocketStatus("CANCELLED");
+        return shipment;
+    }
+
+    // ==================== ASSERTION HELPER METHODS ====================
+
+    /**
+     * Asserts that an executable throws BadRequestException with expected message.
+     */
+    protected void assertThrowsBadRequest(String expectedMessage, org.junit.jupiter.api.function.Executable executable) {
+        BadRequestException ex = assertThrows(BadRequestException.class, executable);
+        assertEquals(expectedMessage, ex.getMessage());
+    }
+
+    /**
+     * Asserts that an executable throws NotFoundException with expected message.
+     */
+    protected void assertThrowsNotFound(String expectedMessage, org.junit.jupiter.api.function.Executable executable) {
+        NotFoundException ex = assertThrows(NotFoundException.class, executable);
+        assertEquals(expectedMessage, ex.getMessage());
+    }
+
+    // ==================== PAGINATION HELPER METHODS ====================
+
+    /**
+     * Creates a valid pagination request for testing.
+     */
     protected PaginationBaseRequestModel createValidPaginationRequest() {
         PaginationBaseRequestModel request = new PaginationBaseRequestModel();
         request.setStart(0);
@@ -899,511 +690,168 @@ public abstract class BaseTest {
         return request;
     }
 
-    // ==================== BATCH FILTER TEST DATA (for Get*InBatches triple-loop tests) ====================
-
-    /** Lead valid string columns (LeadFilterQueryBuilder). */
-    protected static final String[] LEAD_STRING_COLUMNS = {
-        "firstName", "email", "company", "annualRevenue", "fax", "lastName",
-        "leadStatus", "phone", "title", "website", "notes", "createdUser", "modifiedUser"
-    };
-    /** Lead valid number columns. */
-    protected static final String[] LEAD_NUMBER_COLUMNS = {
-        "leadId", "companySize", "clientId", "addressId", "createdById", "assignedAgentId"
-    };
-    /** Lead valid boolean columns. */
-    protected static final String[] LEAD_BOOLEAN_COLUMNS = { "isDeleted" };
-    /** Lead valid date columns. */
-    protected static final String[] LEAD_DATE_COLUMNS = { "createdAt", "updatedAt" };
-    /** Invalid columns for batch filter validation. */
-    protected static final String[] BATCH_INVALID_COLUMNS = { "invalidCol", "DROP TABLE" };
-
-    /** Package valid string columns (PackageFilterQueryBuilder). */
-    protected static final String[] PACKAGE_STRING_COLUMNS = {
-        "packageName", "dimensions", "packageType", "notes", "createdUser", "modifiedUser"
-    };
-    /** Package valid number columns. */
-    protected static final String[] PACKAGE_NUMBER_COLUMNS = {
-        "packageId", "clientId", "length", "breadth", "height", "maxWeight",
-        "standardCapacity", "pricePerUnit", "pickupLocationId"
-    };
-    /** Package valid boolean columns. */
-    protected static final String[] PACKAGE_BOOLEAN_COLUMNS = { "isDeleted" };
-    /** Package valid date columns. */
-    protected static final String[] PACKAGE_DATE_COLUMNS = { "createdAt", "updatedAt" };
-
-    /** Product valid string columns (ProductFilterQueryBuilder). */
-    protected static final String[] PRODUCT_STRING_COLUMNS = {
-        "title", "descriptionHtml", "brand", "color", "colorLabel", "condition",
-        "countryOfManufacture", "model", "upc", "modificationHtml", "notes", "createdUser", "modifiedUser"
-    };
-    /** Product valid number columns. */
-    protected static final String[] PRODUCT_NUMBER_COLUMNS = {
-        "productId", "clientId", "price", "discount", "length", "breadth",
-        "height", "weightKgs", "categoryId", "pickupLocationId"
-    };
-    /** Product valid boolean columns. */
-    protected static final String[] PRODUCT_BOOLEAN_COLUMNS = { "isDiscountPercent", "returnsAllowed", "itemModified", "isDeleted" };
-    /** Product valid date columns. */
-    protected static final String[] PRODUCT_DATE_COLUMNS = { "createdAt", "updatedAt" };
-
-    /** String operators (PaginationBaseRequestModel). */
-    protected static final String[] BATCH_STRING_OPERATORS = {
-        PaginationBaseRequestModel.OP_CONTAINS, PaginationBaseRequestModel.OP_EQUALS,
-        PaginationBaseRequestModel.OP_STARTS_WITH, PaginationBaseRequestModel.OP_ENDS_WITH,
-        PaginationBaseRequestModel.OP_IS_EMPTY, PaginationBaseRequestModel.OP_IS_NOT_EMPTY,
-        PaginationBaseRequestModel.OP_IS_ONE_OF, PaginationBaseRequestModel.OP_IS_NOT_ONE_OF,
-        PaginationBaseRequestModel.OP_CONTAINS_ONE_OF
-    };
-    /** Number operators. */
-    protected static final String[] BATCH_NUMBER_OPERATORS = {
-        PaginationBaseRequestModel.OP_EQUAL, PaginationBaseRequestModel.OP_NOT_EQUAL,
-        PaginationBaseRequestModel.OP_GREATER_THAN, PaginationBaseRequestModel.OP_GREATER_THAN_OR_EQUAL,
-        PaginationBaseRequestModel.OP_LESS_THAN, PaginationBaseRequestModel.OP_LESS_THAN_OR_EQUAL,
-        PaginationBaseRequestModel.OP_IS_EMPTY, PaginationBaseRequestModel.OP_IS_NOT_EMPTY,
-        PaginationBaseRequestModel.OP_NUMBER_IS_ONE_OF, PaginationBaseRequestModel.OP_NUMBER_IS_NOT_ONE_OF
-    };
-    /** Boolean operators. */
-    protected static final String[] BATCH_BOOLEAN_OPERATORS = { PaginationBaseRequestModel.OP_IS };
-    /** Date operators. */
-    protected static final String[] BATCH_DATE_OPERATORS = {
-        PaginationBaseRequestModel.OP_IS, PaginationBaseRequestModel.OP_IS_NOT,
-        PaginationBaseRequestModel.OP_IS_AFTER, PaginationBaseRequestModel.OP_IS_ON_OR_AFTER,
-        PaginationBaseRequestModel.OP_IS_BEFORE, PaginationBaseRequestModel.OP_IS_ON_OR_BEFORE,
-        PaginationBaseRequestModel.OP_IS_EMPTY, PaginationBaseRequestModel.OP_IS_NOT_EMPTY
-    };
-    /** Invalid operators for batch filter validation. */
-    protected static final String[] BATCH_INVALID_OPERATORS = { "INVALID_OP", "Unknown" };
-
-    /** Sample valid values for filter tests. */
-    protected static final String[] BATCH_VALID_VALUES = { "test", "100", "2023-01-01", "true" };
-    /** Empty/null values for filter tests. */
-    protected static final String[] BATCH_EMPTY_VALUES = { null, "" };
+    /**
+     * Creates a filter condition for pagination testing.
+     */
+    protected FilterCondition createFilterCondition(String column, String operator, String value) {
+        FilterCondition condition = new FilterCondition();
+        condition.setColumn(column);
+        condition.setOperator(operator);
+        condition.setValue(value);
+        return condition;
+    }
 
     /**
-     * Creates a FilterCondition for batch filter tests.
-     *
-     * @param column   Column name
-     * @param operator Operator name
-     * @param value    Value (may be null)
-     * @return FilterCondition configured with the given values
+     * Creates a filter condition for pagination testing (Object value).
      */
     protected FilterCondition createFilterCondition(String column, String operator, Object value) {
-        FilterCondition fc = new FilterCondition();
-        fc.setColumn(column);
-        fc.setOperator(operator);
-        fc.setValue(value);
-        return fc;
+        return createFilterCondition(column, operator, value != null ? value.toString() : null);
     }
 
-    // ==================== HELPER METHODS ====================
-
     /**
-     * Joins multiple arrays into a single combined array.
-     * 
-     * @param arrays Variable number of arrays to join
-     * @return Single combined array
+     * Joins multiple string arrays into one.
      */
     protected String[] joinArrays(String[]... arrays) {
-        List<String> combined = new ArrayList<>();
+        List<String> result = new ArrayList<>();
         for (String[] array : arrays) {
-            for (String item : array) {
-                combined.add(item);
+            if (array != null) {
+                for (String s : array) {
+                    result.add(s);
+                }
             }
         }
-        return combined.toArray(new String[0]);
+        return result.toArray(new String[0]);
     }
+
+    // ==================== BATCH FILTERING CONSTANTS ====================
+
+    protected static final String[] BATCH_STRING_OPERATORS = {"eq", "neq", "contains", "startswith", "endswith"};
+    protected static final String[] BATCH_NUMBER_OPERATORS = {"eq", "neq", "gt", "gte", "lt", "lte"};
+    protected static final String[] BATCH_BOOLEAN_OPERATORS = {"eq", "neq"};
+    protected static final String[] BATCH_DATE_OPERATORS = {"eq", "neq", "gt", "gte", "lt", "lte"};
+    protected static final String[] BATCH_INVALID_OPERATORS = {"invalid", "xyz", "!@#"};
+    protected static final String[] BATCH_INVALID_COLUMNS = {"invalidColumn", "xyz", "!@#"};
+    protected static final String[] BATCH_VALID_VALUES = {"test", "value", "123"};
+    protected static final String[] BATCH_EMPTY_VALUES = {"", " ", null};
+
+    // Lead columns
+    protected static final String[] LEAD_STRING_COLUMNS = {"firstName", "lastName", "email", "phone", "company", "leadStatus"};
+    protected static final String[] LEAD_NUMBER_COLUMNS = {"leadId", "companySize"};
+    protected static final String[] LEAD_BOOLEAN_COLUMNS = {"isDeleted"};
+    protected static final String[] LEAD_DATE_COLUMNS = {"createdAt", "updatedAt"};
+
+    // Product columns
+    protected static final String[] PRODUCT_STRING_COLUMNS = {"name", "description", "sku"};
+    protected static final String[] PRODUCT_NUMBER_COLUMNS = {"productId", "price", "stock"};
+    protected static final String[] PRODUCT_BOOLEAN_COLUMNS = {"isDeleted", "isActive"};
+    protected static final String[] PRODUCT_DATE_COLUMNS = {"createdAt", "updatedAt"};
+
+    // Package columns
+    protected static final String[] PACKAGE_STRING_COLUMNS = {"packageName", "packageType", "notes"};
+    protected static final String[] PACKAGE_NUMBER_COLUMNS = {"packageId", "length", "breadth", "height", "maxWeight", "standardCapacity", "pricePerUnit"};
+    protected static final String[] PACKAGE_BOOLEAN_COLUMNS = {"isDeleted"};
+    protected static final String[] PACKAGE_DATE_COLUMNS = {"createdAt", "updatedAt"};
+
+    // ==================== PACKAGE FACTORY METHODS ====================
 
     /**
-     * Asserts that the executable throws BadRequestException with the exact expected message.
-     *
-     * @param expectedMessage Expected exception message
-     * @param executable      Code under test
+     * Creates a valid PackageRequestModel for testing.
      */
-    protected void assertThrowsBadRequest(String expectedMessage, Executable executable) {
-        BadRequestException ex = assertThrows(BadRequestException.class, executable);
-        assertEquals(expectedMessage, ex.getMessage());
-    }
-
-    /**
-     * Asserts that the executable throws NotFoundException with the exact expected message.
-     *
-     * @param expectedMessage Expected exception message
-     * @param executable      Code under test
-     */
-    protected void assertThrowsNotFound(String expectedMessage, Executable executable) {
-        NotFoundException ex = assertThrows(NotFoundException.class, executable);
-        assertEquals(expectedMessage, ex.getMessage());
-    }
-
-    // ==================== PAYMENT REQUEST & ENTITY FACTORY METHODS ====================
-
-    protected PaymentRequestModel createValidPaymentRequest(Long paymentId, BigDecimal amount) {
-        PaymentRequestModel request = new PaymentRequestModel();
-        request.setPaymentId(paymentId);
-        request.setAmount(amount);
-        request.setPaymentMethod(DEFAULT_PAYMENT_METHOD);
-        request.setPaymentStatus(DEFAULT_PAYMENT_STATUS);
-        request.setPurchaseOrderId(DEFAULT_PURCHASE_ORDER_ID);
-        request.setIsDeleted(false);
-        return request;
-    }
-
-    protected Payment createTestPayment(Long paymentId, BigDecimal amount) {
-        Payment payment = new Payment();
-        payment.setPaymentId(paymentId);
-        payment.setAmount(amount);
-        payment.setPaymentMethod(DEFAULT_PAYMENT_METHOD);
-        payment.setPaymentStatus(DEFAULT_PAYMENT_STATUS);
-        payment.setIsDeleted(false);
-        payment.setCreatedAt(LocalDateTime.now());
-        payment.setUpdatedAt(LocalDateTime.now());
-        return payment;
-    }
-
-    protected Payment createDeletedTestPayment() {
-        Payment payment = createTestPayment(DEFAULT_PAYMENT_ID, DEFAULT_AMOUNT);
-        payment.setIsDeleted(true);
-        return payment;
-    }
-
-    // ==================== PROMO REQUEST & ENTITY FACTORY METHODS ====================
-
-    protected PromoRequestModel createValidPromoRequest() {
-        return createValidPromoRequest(DEFAULT_PROMO_ID, DEFAULT_CLIENT_ID);
-    }
-
-    protected PromoRequestModel createValidPromoRequest(Long promoId, Long clientId) {
-        PromoRequestModel request = new PromoRequestModel();
-        request.setPromoId(promoId);
-        request.setClientId(clientId);
-        request.setCode(DEFAULT_PROMO_CODE);
-        request.setDiscountPercentage(DEFAULT_DISCOUNT_PERCENTAGE);
-        request.setMinCartValue(DEFAULT_MIN_CART_VALUE);
-        request.setIsDeleted(false);
-        return request;
-    }
-
-    protected Promo createTestPromo() {
-        return createTestPromo(DEFAULT_PROMO_ID);
-    }
-
-    protected Promo createTestPromo(Long promoId) {
-        Promo promo = new Promo();
-        promo.setPromoId(promoId);
-        promo.setClientId(DEFAULT_CLIENT_ID);
-        promo.setCode(DEFAULT_PROMO_CODE);
-        promo.setDiscountPercentage(DEFAULT_DISCOUNT_PERCENTAGE);
-        promo.setMinCartValue(DEFAULT_MIN_CART_VALUE);
-        promo.setIsDeleted(false);
-        promo.setCreatedAt(LocalDateTime.now());
-        promo.setUpdatedAt(LocalDateTime.now());
-        promo.setCreatedUser(DEFAULT_CREATED_USER);
-        promo.setModifiedUser(DEFAULT_CREATED_USER);
-        return promo;
-    }
-
-    protected Promo createDeletedTestPromo() {
-        Promo promo = createTestPromo();
-        promo.setIsDeleted(true);
-        return promo;
-    }
-
-    // ==================== PRODUCT REQUEST & ENTITY FACTORY METHODS ====================
-
-    protected ProductRequestModel createValidProductRequest() {
-        return createValidProductRequest(DEFAULT_PRODUCT_ID, DEFAULT_CLIENT_ID);
-    }
-
-    protected ProductRequestModel createValidProductRequest(Long productId, Long clientId) {
-        ProductRequestModel request = new ProductRequestModel();
-        request.setProductId(productId);
-        request.setClientId(clientId);
-        request.setTitle(DEFAULT_PRODUCT_NAME);
-        request.setPrice(DEFAULT_PRODUCT_PRICE);
-        request.setBrand("TestBrand");
-        request.setColor("Red");
-        request.setCondition("New");
-        request.setStock(DEFAULT_STOCK_QUANTITY);
-        request.setIsDeleted(false);
-        return request;
-    }
-
-    protected Product createTestProduct() {
-        return createTestProduct(DEFAULT_PRODUCT_ID);
-    }
-
-    protected Product createTestProduct(Long productId) {
-        Product product = new Product();
-        product.setProductId(productId);
-        product.setClientId(DEFAULT_CLIENT_ID);
-        product.setTitle(DEFAULT_PRODUCT_NAME);
-        product.setPrice(DEFAULT_PRODUCT_PRICE);
-        product.setBrand("TestBrand");
-        product.setColor("Red");
-        product.setCondition("New");
-        product.setIsDeleted(false);
-        product.setCreatedAt(LocalDateTime.now());
-        product.setUpdatedAt(LocalDateTime.now());
-        product.setCreatedUser(DEFAULT_CREATED_USER);
-        product.setModifiedUser(DEFAULT_CREATED_USER);
-        return product;
-    }
-
-    protected Product createDeletedTestProduct() {
-        Product product = createTestProduct();
-        product.setIsDeleted(true);
-        return product;
-    }
-
-    // ==================== TODO REQUEST & ENTITY FACTORY METHODS ====================
-
-    protected TodoRequestModel createValidTodoRequest() {
-        return createValidTodoRequest(DEFAULT_TODO_ID);
-    }
-
-    protected TodoRequestModel createValidTodoRequest(Long todoId) {
-        TodoRequestModel request = new TodoRequestModel();
-        request.setTodoId(todoId);
-        request.setTitle(DEFAULT_TODO_TITLE);
-        request.setDescription(DEFAULT_TODO_DESCRIPTION);
-        request.setCompleted(DEFAULT_TODO_COMPLETED);
-        request.setIsDeleted(false);
-        request.setClientId(DEFAULT_CLIENT_ID);
-        request.setUserId(DEFAULT_USER_ID);
-        return request;
-    }
-
-    protected Todo createTestTodo() {
-        return createTestTodo(DEFAULT_TODO_ID);
-    }
-
-    protected Todo createTestTodo(Long todoId) {
-        Todo todo = new Todo();
-        todo.setTodoId(todoId);
-        todo.setTitle(DEFAULT_TODO_TITLE);
-        todo.setDescription(DEFAULT_TODO_DESCRIPTION);
-        todo.setCompleted(DEFAULT_TODO_COMPLETED);
-        todo.setIsDeleted(false);
-        todo.setClientId(DEFAULT_CLIENT_ID);
-        todo.setUserId(DEFAULT_USER_ID);
-        todo.setCreatedAt(LocalDateTime.now());
-        todo.setUpdatedAt(LocalDateTime.now());
-        todo.setCreatedUser(DEFAULT_CREATED_USER);
-        todo.setModifiedUser(DEFAULT_CREATED_USER);
-        return todo;
-    }
-
-    protected Todo createDeletedTestTodo() {
-        Todo todo = createTestTodo();
-        todo.setIsDeleted(true);
-        return todo;
-    }
-
-    // ==================== PICKUP LOCATION REQUEST & ENTITY FACTORY METHODS ====================
-
-    protected PickupLocationRequestModel createValidPickupLocationRequest() {
-        return createValidPickupLocationRequest(DEFAULT_PICKUP_LOCATION_ID, DEFAULT_CLIENT_ID);
-    }
-
-    protected PickupLocationRequestModel createValidPickupLocationRequest(Long pickupLocationId, Long clientId) {
-        PickupLocationRequestModel request = new PickupLocationRequestModel();
-        request.setPickupLocationId(pickupLocationId);
-        request.setClientId(clientId);
-        request.setLocationName(DEFAULT_LOCATION_NAME);
-        request.setAddress(createValidAddressRequest());
-        request.setIsDeleted(false);
-        return request;
-    }
-
-    protected PickupLocation createTestPickupLocation() {
-        return createTestPickupLocation(DEFAULT_PICKUP_LOCATION_ID);
-    }
-
-    protected PickupLocation createTestPickupLocation(Long pickupLocationId) {
-        PickupLocation location = new PickupLocation();
-        location.setPickupLocationId(pickupLocationId);
-        location.setClientId(DEFAULT_CLIENT_ID);
-        location.setLocationName(DEFAULT_LOCATION_NAME);
-        location.setAddressId(DEFAULT_ADDRESS_ID);
-        location.setIsDeleted(false);
-        location.setCreatedAt(LocalDateTime.now());
-        location.setUpdatedAt(LocalDateTime.now());
-        location.setCreatedUser(DEFAULT_CREATED_USER);
-        location.setModifiedUser(DEFAULT_CREATED_USER);
-        return location;
-    }
-
-    protected PickupLocation createDeletedTestPickupLocation() {
-        PickupLocation location = createTestPickupLocation();
-        location.setIsDeleted(true);
-        return location;
-    }
-
-    // ==================== PACKAGE REQUEST & ENTITY FACTORY METHODS ====================
-
     protected PackageRequestModel createValidPackageRequest() {
-        return createValidPackageRequest(DEFAULT_PACKAGE_ID, DEFAULT_CLIENT_ID);
-    }
-
-    protected PackageRequestModel createValidPackageRequest(Long packageId, Long clientId) {
         PackageRequestModel request = new PackageRequestModel();
-        request.setPackageId(packageId);
-        request.setClientId(clientId);
-        request.setPackageName(DEFAULT_PACKAGE_NAME);
-        request.setPrice(DEFAULT_PACKAGE_PRICE);
-        request.setLength(10.0);
-        request.setBreadth(10.0);
-        request.setHeight(10.0);
-        request.setMaxWeight(new BigDecimal("5.00"));
+        request.setPackageId(DEFAULT_PACKAGE_ID);
+        request.setPackageName("Test Package");
+        request.setLength(10);
+        request.setBreadth(10);
+        request.setHeight(10);
+        request.setMaxWeight(new java.math.BigDecimal("5.00"));
+        request.setStandardCapacity(100);
+        request.setPricePerUnit(new java.math.BigDecimal("10.00"));
+        request.setPackageType("BOX");
         request.setIsDeleted(false);
         return request;
     }
 
-    protected Package createTestPackage() {
+    /**
+     * Creates a test Package entity.
+     */
+    protected com.example.SpringApi.Models.DatabaseModels.Package createTestPackage() {
         return createTestPackage(DEFAULT_PACKAGE_ID);
     }
 
-    protected Package createTestPackage(Long packageId) {
-        Package pkg = new Package();
+    /**
+     * Creates a test Package entity with specified ID.
+     */
+    protected com.example.SpringApi.Models.DatabaseModels.Package createTestPackage(Long packageId) {
+        com.example.SpringApi.Models.DatabaseModels.Package pkg = new com.example.SpringApi.Models.DatabaseModels.Package();
         pkg.setPackageId(packageId);
         pkg.setClientId(DEFAULT_CLIENT_ID);
-        pkg.setPackageName(DEFAULT_PACKAGE_NAME);
-        pkg.setPrice(DEFAULT_PACKAGE_PRICE);
-        pkg.setLength(10.0);
-        pkg.setBreadth(10.0);
-        pkg.setHeight(10.0);
-        pkg.setMaxWeight(new BigDecimal("5.00"));
+        pkg.setPackageName("Test Package");
+        pkg.setLength(10);
+        pkg.setBreadth(10);
+        pkg.setHeight(10);
+        pkg.setMaxWeight(new java.math.BigDecimal("5.00"));
+        pkg.setStandardCapacity(100);
+        pkg.setPricePerUnit(new java.math.BigDecimal("10.00"));
+        pkg.setPackageType("BOX");
         pkg.setIsDeleted(false);
-        pkg.setCreatedAt(LocalDateTime.now());
-        pkg.setUpdatedAt(LocalDateTime.now());
         pkg.setCreatedUser(DEFAULT_CREATED_USER);
         pkg.setModifiedUser(DEFAULT_CREATED_USER);
+        pkg.setCreatedAt(LocalDateTime.now());
+        pkg.setUpdatedAt(LocalDateTime.now());
         return pkg;
     }
 
-    protected Package createDeletedTestPackage() {
-        Package pkg = createTestPackage();
-        pkg.setIsDeleted(true);
-        return pkg;
+    /**
+     * Creates a test PackagePickupLocationMapping entity.
+     */
+    protected PackagePickupLocationMapping createTestPackagePickupLocationMapping() {
+        return createTestPackagePickupLocationMapping(1L, DEFAULT_PACKAGE_ID, DEFAULT_PICKUP_LOCATION_ID);
     }
 
-    // ==================== PRODUCT REVIEW FACTORY METHODS ====================
-
-    protected ProductReviewRequestModel createValidProductReviewRequest() {
-        return createValidProductReviewRequest(DEFAULT_REVIEW_ID);
+    /**
+     * Creates a test PackagePickupLocationMapping entity with specified IDs.
+     */
+    protected PackagePickupLocationMapping createTestPackagePickupLocationMapping(Long mappingId, Long packageId, Long pickupLocationId) {
+        PackagePickupLocationMapping mapping = new PackagePickupLocationMapping();
+        mapping.setPackagePickupLocationMappingId(mappingId);
+        mapping.setPackageId(packageId);
+        mapping.setPickupLocationId(pickupLocationId);
+        mapping.setAvailableQuantity(100);
+        mapping.setReorderLevel(10);
+        mapping.setMaxStockLevel(500);
+        mapping.setLastRestockDate(LocalDateTime.now());
+        mapping.setCreatedUser(DEFAULT_CREATED_USER);
+        mapping.setModifiedUser(DEFAULT_CREATED_USER);
+        mapping.setCreatedAt(LocalDateTime.now());
+        mapping.setUpdatedAt(LocalDateTime.now());
+        return mapping;
     }
 
-    protected ProductReviewRequestModel createValidProductReviewRequest(Long reviewId) {
-        ProductReviewRequestModel request = new ProductReviewRequestModel();
-        request.setReviewId(reviewId);
-        request.setProductId(DEFAULT_PRODUCT_ID);
-        request.setUserId(DEFAULT_USER_ID);
-        request.setRating(DEFAULT_RATING);
-        request.setReviewText(DEFAULT_REVIEW_TEXT);
-        request.setIsDeleted(false);
-        return request;
+    // ==================== PURCHASE ORDER FACTORY METHODS ====================
+
+    /**
+     * Creates a test PurchaseOrder entity.
+     */
+    protected PurchaseOrder createTestPurchaseOrder() {
+        return createTestPurchaseOrder(DEFAULT_PURCHASE_ORDER_ID);
     }
 
-    protected ProductReview createTestProductReview() {
-        return createTestProductReview(DEFAULT_REVIEW_ID);
-    }
-
-    protected ProductReview createTestProductReview(Long reviewId) {
-        ProductReview review = new ProductReview();
-        review.setReviewId(reviewId);
-        review.setProductId(DEFAULT_PRODUCT_ID);
-        review.setUserId(DEFAULT_USER_ID);
-        review.setRating(DEFAULT_RATING);
-        review.setReviewText(DEFAULT_REVIEW_TEXT);
-        review.setIsDeleted(false);
-        review.setCreatedAt(LocalDateTime.now());
-        review.setUpdatedAt(LocalDateTime.now());
-        review.setCreatedUser(DEFAULT_CREATED_USER);
-        review.setModifiedUser(DEFAULT_CREATED_USER);
-        return review;
-    }
-
-    protected ProductReview createDeletedTestProductReview() {
-        ProductReview review = createTestProductReview();
-        review.setIsDeleted(true);
-        return review;
-    }
-
-    // ==================== USER GROUP FACTORY METHODS ====================
-
-    protected UserGroupRequestModel createValidUserGroupRequest() {
-        return createValidUserGroupRequest(DEFAULT_USER_GROUP_ID, DEFAULT_CLIENT_ID);
-    }
-
-    protected UserGroupRequestModel createValidUserGroupRequest(Long groupId, Long clientId) {
-        UserGroupRequestModel request = new UserGroupRequestModel();
-        request.setUserGroupId(groupId);
-        request.setClientId(clientId);
-        request.setName(DEFAULT_USER_GROUP_NAME);
-        request.setDescription(DEFAULT_USER_GROUP_DESCRIPTION);
-        request.setIsDeleted(false);
-        return request;
-    }
-
-    protected UserGroup createTestUserGroup() {
-        return createTestUserGroup(DEFAULT_USER_GROUP_ID);
-    }
-
-    protected UserGroup createTestUserGroup(Long groupId) {
-        UserGroup group = new UserGroup();
-        group.setUserGroupId(groupId);
-        group.setClientId(DEFAULT_CLIENT_ID);
-        group.setName(DEFAULT_USER_GROUP_NAME);
-        group.setDescription(DEFAULT_USER_GROUP_DESCRIPTION);
-        group.setIsDeleted(false);
-        group.setCreatedAt(LocalDateTime.now());
-        group.setUpdatedAt(LocalDateTime.now());
-        group.setCreatedUser(DEFAULT_CREATED_USER);
-        group.setModifiedUser(DEFAULT_CREATED_USER);
-        return group;
-    }
-
-    protected UserGroup createDeletedTestUserGroup() {
-        UserGroup group = createTestUserGroup();
-        group.setIsDeleted(true);
-        return group;
-    }
-
-    // ==================== SHIPMENT FACTORY METHODS ====================
-
-    protected ShipmentRequestModel createValidShipmentRequest(Long shipmentId, Long purchaseOrderId) {
-        ShipmentRequestModel request = new ShipmentRequestModel();
-        request.setShipmentId(shipmentId);
-        request.setPurchaseOrderId(purchaseOrderId);
-        request.setStatus(DEFAULT_SHIPMENT_STATUS);
-        request.setWeight(DEFAULT_WEIGHT);
-        request.setTrackingNumber(DEFAULT_TRACKING_NUMBER);
-        request.setIsDeleted(false);
-        return request;
-    }
-
-    protected Shipment createTestShipment() {
-        return createTestShipment(DEFAULT_SHIPMENT_ID);
-    }
-
-    protected Shipment createTestShipment(Long shipmentId) {
-        Shipment shipment = new Shipment();
-        shipment.setShipmentId(shipmentId);
-        shipment.setPurchaseOrderId(DEFAULT_PURCHASE_ORDER_ID);
-        shipment.setStatus(DEFAULT_SHIPMENT_STATUS);
-        shipment.setWeight(DEFAULT_WEIGHT);
-        shipment.setTrackingNumber(DEFAULT_TRACKING_NUMBER);
-        shipment.setIsDeleted(false);
-        shipment.setCreatedAt(LocalDateTime.now());
-        shipment.setUpdatedAt(LocalDateTime.now());
-        shipment.setCreatedUser(DEFAULT_CREATED_USER);
-        shipment.setModifiedUser(DEFAULT_CREATED_USER);
-        return shipment;
-    }
-
-    protected Shipment createDeletedTestShipment() {
-        Shipment shipment = createTestShipment();
-        shipment.setIsDeleted(true);
-        return shipment;
+    /**
+     * Creates a test PurchaseOrder entity with specified ID.
+     */
+    protected PurchaseOrder createTestPurchaseOrder(Long purchaseOrderId) {
+        PurchaseOrder po = new PurchaseOrder();
+        po.setPurchaseOrderId(purchaseOrderId);
+        po.setClientId(DEFAULT_CLIENT_ID);
+        po.setVendorNumber("VENDOR-001");
+        po.setPurchaseOrderStatus("DRAFT");
+        po.setAssignedLeadId(DEFAULT_LEAD_ID);
+        po.setIsDeleted(false);
+        po.setCreatedUser(DEFAULT_CREATED_USER);
+        po.setModifiedUser(DEFAULT_CREATED_USER);
+        po.setCreatedAt(LocalDateTime.now());
+        po.setUpdatedAt(LocalDateTime.now());
+        return po;
     }
 }
