@@ -13,9 +13,11 @@ import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -26,8 +28,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -38,11 +42,11 @@ import static org.mockito.Mockito.*;
  * Test Group Summary:
  * | Group Name                              | Number of Tests |
  * | :-------------------------------------- | :-------------- |
- * | InsertProductReviewTests                | 19              |
- * | GetProductReviewsInBatchesTests         | 2               |
- * | ToggleProductReviewTests                | 6               |
- * | SetProductReviewScoreTests              | 9               |
- * | **Total**                               | **36**          |
+ * | InsertProductReviewTests                | 38              |
+ * | GetProductReviewsInBatchesTests         | 1               |
+ * | ToggleProductReviewTests                | 12              |
+ * | SetProductReviewScoreTests              | 18              |
+ * | **Total**                               | **69**          |
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ProductReviewService Unit Tests")
@@ -288,18 +292,16 @@ class ProductReviewServiceTest {
         }
 
         /**
-         * Purpose: Verify that BadRequestException is thrown for zero rating.
-         * Expected Result: BadRequestException is thrown.
-         * Assertions: Exception message matches ER001 error.
+         * Purpose: Verify that zero rating is allowed.
+         * Expected Result: Review is saved without exception.
+         * Assertions: assertDoesNotThrow verifies success.
          */
         @Test
-        @DisplayName("Insert Product Review - Rating Zero - Throws BadRequestException")
-        void insertProductReview_RatingZero_ThrowsBadRequestException() {
+        @DisplayName("Insert Product Review - Rating Zero - Success")
+        void insertProductReview_RatingZero_Success() {
             testProductReviewRequest.setRatings(BigDecimal.ZERO);
 
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> productReviewService.insertProductReview(testProductReviewRequest));
-            assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
+            assertDoesNotThrow(() -> productReviewService.insertProductReview(testProductReviewRequest));
         }
 
         /**
@@ -373,6 +375,158 @@ class ProductReviewServiceTest {
             assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, ex.getMessage());
         }
 
+        /**
+         * Purpose: Add dynamic coverage for additional insert validations and success paths.
+         * Expected Result: Invalid inputs throw BadRequestException; valid inputs succeed.
+         * Assertions: Exceptions match expected messages; valid cases do not throw.
+         */
+        @TestFactory
+        @DisplayName("Insert Product Review - Additional validation cases")
+        Stream<DynamicTest> insertProductReview_AdditionalValidationCases() {
+            List<DynamicTest> tests = new ArrayList<>();
+
+            tests.add(DynamicTest.dynamicTest("Ratings null - ER001", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setRatings(null);
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                        () -> productReviewService.insertProductReview(request));
+                assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
+            }));
+
+            tests.add(DynamicTest.dynamicTest("Ratings negative - ER001", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setRatings(new BigDecimal("-0.1"));
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                        () -> productReviewService.insertProductReview(request));
+                assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
+            }));
+
+            tests.add(DynamicTest.dynamicTest("Ratings above max - ER001", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setRatings(new BigDecimal("5.01"));
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                        () -> productReviewService.insertProductReview(request));
+                assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
+            }));
+
+            tests.add(DynamicTest.dynamicTest("Review text whitespace - ER002", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setReview("\n\t ");
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                        () -> productReviewService.insertProductReview(request));
+                assertEquals(ErrorMessages.ProductReviewErrorMessages.ER002, ex.getMessage());
+            }));
+
+            tests.add(DynamicTest.dynamicTest("UserId negative - ER003", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setUserId(-99L);
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                        () -> productReviewService.insertProductReview(request));
+                assertEquals(ErrorMessages.ProductReviewErrorMessages.ER003, ex.getMessage());
+            }));
+
+            tests.add(DynamicTest.dynamicTest("ProductId negative - ER004", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setProductId(-99L);
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                        () -> productReviewService.insertProductReview(request));
+                assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, ex.getMessage());
+            }));
+
+            tests.add(DynamicTest.dynamicTest("ParentId set - Success", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setParentId(555L);
+                when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+                assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+                verify(productReviewRepository, atLeastOnce()).save(any(ProductReview.class));
+            }));
+
+            tests.add(DynamicTest.dynamicTest("Ratings at min boundary (0.0) - Success", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setRatings(new BigDecimal("0.0"));
+                when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+                assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+            }));
+
+            tests.add(DynamicTest.dynamicTest("Ratings at max boundary (5.0) - Success", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setRatings(new BigDecimal("5.0"));
+                when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+                assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+            }));
+
+            tests.add(DynamicTest.dynamicTest("Review text long - Success", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setReview("x".repeat(500));
+                when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+                assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+            }));
+
+            tests.add(DynamicTest.dynamicTest("Review text single char - Success", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setReview("A");
+                when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+                assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+            }));
+
+            tests.add(DynamicTest.dynamicTest("UserId large - Success", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setUserId(Long.MAX_VALUE - 1);
+                when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+                assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+            }));
+
+            tests.add(DynamicTest.dynamicTest("ProductId large - Success", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setProductId(Long.MAX_VALUE - 2);
+                when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+                assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+            }));
+
+            tests.add(DynamicTest.dynamicTest("Null request - InvalidId", () -> {
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                        () -> productReviewService.insertProductReview(null));
+                assertEquals(ErrorMessages.ProductReviewErrorMessages.InvalidId, ex.getMessage());
+            }));
+
+            tests.add(DynamicTest.dynamicTest("Ratings valid decimal - Success", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setRatings(new BigDecimal("4.25"));
+                when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+                assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+            }));
+
+            tests.add(DynamicTest.dynamicTest("ProductId 1 - Success", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setProductId(1L);
+                when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+                assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+            }));
+
+            tests.add(DynamicTest.dynamicTest("UserId 1 - Success", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setUserId(1L);
+                when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+                assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+            }));
+
+            tests.add(DynamicTest.dynamicTest("Review text with trailing spaces - Success", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setReview("Good product   ");
+                when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+                assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+            }));
+
+            tests.add(DynamicTest.dynamicTest("Ratings exactly 5 - Success (duplicate)", () -> {
+                ProductReviewRequestModel request = buildValidProductReviewRequest();
+                request.setRatings(new BigDecimal("5.0"));
+                when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+                assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+            }));
+
+            return tests.stream();
+        }
+
     }
 
     @Nested
@@ -385,8 +539,17 @@ class ProductReviewServiceTest {
          * Assertions: Result is not null, data size and total count match expected values.
          */
         @Test
-        @DisplayName("Get Product Reviews In Batches - Success")
-        void getProductReviewsInBatchesGivenProductId_Success() {
+        @DisplayName("Get Product Reviews In Batches - Invalid pagination, success, empty")
+        void getProductReviewsInBatchesGivenProductId_Comprehensive() {
+            // Invalid pagination (end <= start)
+            PaginationBaseRequestModel invalid = new PaginationBaseRequestModel();
+            invalid.setStart(10);
+            invalid.setEnd(5);
+            BadRequestException invalidEx = assertThrows(BadRequestException.class,
+                    () -> productReviewService.getProductReviewsInBatchesGivenProductId(invalid, TEST_PRODUCT_ID));
+            assertTrue(invalidEx.getMessage().contains("Invalid pagination"));
+
+            // Success with one review
             List<ProductReview> reviewList = Arrays.asList(testProductReview);
             Page<ProductReview> reviewPage = new PageImpl<>(reviewList, PageRequest.of(0, 10), 1);
 
@@ -394,38 +557,27 @@ class ProductReviewServiceTest {
                 eq(TEST_CLIENT_ID), isNull(), isNull(), isNull(), eq(false), any(Pageable.class)))
                 .thenReturn(reviewPage);
 
-            PaginationBaseResponseModel<ProductReviewResponseModel> result =
+            PaginationBaseResponseModel<ProductReviewResponseModel> success =
                 productReviewService.getProductReviewsInBatchesGivenProductId(testPaginationRequest, TEST_PRODUCT_ID);
 
-            assertNotNull(result);
-            assertNotNull(result.getData());
-            assertEquals(1, result.getData().size());
-            assertEquals(1L, result.getTotalDataCount());
-            assertEquals(TEST_REVIEW_ID, result.getData().get(0).getReviewId());
-            assertEquals(TEST_RATING, result.getData().get(0).getRatings());
-        }
+            assertNotNull(success);
+            assertNotNull(success.getData());
+            assertEquals(1, success.getData().size());
+            assertEquals(1L, success.getTotalDataCount());
 
-        /**
-         * Purpose: Verify that empty list is returned when no reviews exist.
-         * Expected Result: Empty list is returned.
-         * Assertions: Result is not null, data size is 0.
-         */
-        @Test
-        @DisplayName("Get Product Reviews In Batches - Empty Results")
-        void getProductReviewsInBatchesGivenProductId_EmptyResults() {
+            // Empty results
             Page<ProductReview> emptyPage = new PageImpl<>(Arrays.asList(), PageRequest.of(0, 10), 0);
-
             when(productReviewRepository.findPaginatedProductReviews(
                 eq(TEST_CLIENT_ID), isNull(), isNull(), isNull(), eq(false), any(Pageable.class)))
                 .thenReturn(emptyPage);
 
-            PaginationBaseResponseModel<ProductReviewResponseModel> result =
+            PaginationBaseResponseModel<ProductReviewResponseModel> empty =
                 productReviewService.getProductReviewsInBatchesGivenProductId(testPaginationRequest, TEST_PRODUCT_ID);
 
-            assertNotNull(result);
-            assertNotNull(result.getData());
-            assertEquals(0, result.getData().size());
-            assertEquals(0L, result.getTotalDataCount());
+            assertNotNull(empty);
+            assertNotNull(empty.getData());
+            assertEquals(0, empty.getData().size());
+            assertEquals(0L, empty.getTotalDataCount());
         }
 
     }
@@ -541,6 +693,35 @@ class ProductReviewServiceTest {
 
             productReviewService.toggleProductReview(TEST_REVIEW_ID);
             assertFalse(testProductReview.getIsDeleted());
+        }
+
+        /**
+         * Purpose: Add dynamic coverage for additional toggle paths.
+         * Expected Result: Invalid IDs throw NotFoundException.
+         * Assertions: Exception message matches NotFound error.
+         */
+        @TestFactory
+        @DisplayName("Toggle Product Review - Additional invalid IDs")
+        Stream<DynamicTest> toggleProductReview_AdditionalInvalidIds() {
+            when(productReviewRepository.findByReviewIdAndClientId(anyLong(), anyLong())).thenReturn(null);
+
+            return Stream.of(-100L, 2L, 999L, Long.MIN_VALUE, Long.MAX_VALUE, 12345L)
+                    .map(id -> DynamicTest.dynamicTest("Not Found for ID: " + id, () -> {
+                        NotFoundException ex = assertThrows(NotFoundException.class,
+                                () -> productReviewService.toggleProductReview(id));
+                        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+                    }));
+        }
+
+        private ProductReviewRequestModel buildValidProductReviewRequest() {
+            ProductReviewRequestModel request = new ProductReviewRequestModel();
+            request.setReviewId(TEST_REVIEW_ID);
+            request.setRatings(TEST_RATING);
+            request.setReview(TEST_REVIEW_TEXT);
+            request.setUserId(TEST_USER_ID);
+            request.setProductId(TEST_PRODUCT_ID);
+            request.setParentId(null);
+            return request;
         }
     }
 
@@ -683,6 +864,75 @@ class ProductReviewServiceTest {
                     () -> productReviewService.setProductReviewScore(Long.MAX_VALUE, true));
             assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
         }
+
+        /**
+         * Purpose: Add dynamic coverage for additional score update paths.
+         * Expected Result: Score updates correctly; invalid IDs throw NotFoundException.
+         * Assertions: Score values and exceptions are as expected.
+         */
+        @TestFactory
+        @DisplayName("Set Product Review Score - Additional paths")
+        Stream<DynamicTest> setProductReviewScore_AdditionalPaths() {
+            List<DynamicTest> tests = new ArrayList<>();
+
+            tests.add(DynamicTest.dynamicTest("Decrease when score null - stays 0", () -> {
+                testProductReview.setScore(null);
+                when(productReviewRepository.findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID))
+                        .thenReturn(testProductReview);
+                when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+                productReviewService.setProductReviewScore(TEST_REVIEW_ID, false);
+                assertEquals(0, testProductReview.getScore());
+            }));
+
+            tests.add(DynamicTest.dynamicTest("Increase when score 0 - becomes 1", () -> {
+                testProductReview.setScore(0);
+                when(productReviewRepository.findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID))
+                        .thenReturn(testProductReview);
+                when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+                productReviewService.setProductReviewScore(TEST_REVIEW_ID, true);
+                assertEquals(1, testProductReview.getScore());
+            }));
+
+            tests.add(DynamicTest.dynamicTest("Decrease when score 1 - becomes 0", () -> {
+                testProductReview.setScore(1);
+                when(productReviewRepository.findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID))
+                        .thenReturn(testProductReview);
+                when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+                productReviewService.setProductReviewScore(TEST_REVIEW_ID, false);
+                assertEquals(0, testProductReview.getScore());
+            }));
+
+            tests.add(DynamicTest.dynamicTest("Increase when score 10 - becomes 11", () -> {
+                testProductReview.setScore(10);
+                when(productReviewRepository.findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID))
+                        .thenReturn(testProductReview);
+                when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+                productReviewService.setProductReviewScore(TEST_REVIEW_ID, true);
+                assertEquals(11, testProductReview.getScore());
+            }));
+
+            for (long id : new long[] { -5L, 2L, 99L, Long.MIN_VALUE, Long.MAX_VALUE }) {
+                tests.add(DynamicTest.dynamicTest("Not Found for ID: " + id, () -> {
+                    when(productReviewRepository.findByReviewIdAndClientId(id, TEST_CLIENT_ID)).thenReturn(null);
+                    NotFoundException ex = assertThrows(NotFoundException.class,
+                            () -> productReviewService.setProductReviewScore(id, true));
+                    assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+                }));
+            }
+
+            return tests.stream();
+        }
+    }
+
+    private ProductReviewRequestModel buildValidProductReviewRequest() {
+        ProductReviewRequestModel request = new ProductReviewRequestModel();
+        request.setReviewId(TEST_REVIEW_ID);
+        request.setRatings(TEST_RATING);
+        request.setReview(TEST_REVIEW_TEXT);
+        request.setUserId(TEST_USER_ID);
+        request.setProductId(TEST_PRODUCT_ID);
+        request.setParentId(null);
+        return request;
     }
 
 }

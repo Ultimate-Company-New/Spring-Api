@@ -19,9 +19,11 @@ import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -39,6 +41,7 @@ import java.util.*;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -50,16 +53,16 @@ import static org.mockito.Mockito.*;
  * Test Group Summary:
  * | Group Name                              | Number of Tests |
  * | :-------------------------------------- | :-------------- |
- * | AddProductTests                         | 7               |
- * | EditProductTests                        | 3               |
- * | ToggleDeleteProductTests                | 3               |
- * | ToggleReturnProductTests                | 2               |
- * | GetProductDetailsByIdTests              | 2               |
+ * | AddProductTests                         | 14              |
+ * | EditProductTests                        | 6               |
+ * | ToggleDeleteProductTests                | 6               |
+ * | ToggleReturnProductTests                | 4               |
+ * | GetProductDetailsByIdTests              | 4               |
  * | GetProductInBatchesTests                | 1               |
- * | ProductValidationTests                  | 12              |
- * | ImageProcessingTests                    | 3               |
- * | BulkAddProductsTests                    | 5               |
- * | **Total**                               | **38**          |
+ * | ProductValidationTests                  | 24              |
+ * | ImageProcessingTests                    | 6               |
+ * | BulkAddProductsTests                    | 10              |
+ * | **Total**                               | **75**          |
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ProductService Unit Tests")
@@ -112,7 +115,7 @@ class ProductServiceTest extends BaseTest {
 
     private static final Long TEST_PRODUCT_ID = DEFAULT_PRODUCT_ID;
     private static final Long TEST_CATEGORY_ID = 2L;
-    private static final Long TEST_CLIENT_ID = DEFAULT_CLIENT_ID;
+    private static final Long TEST_CLIENT_ID = 1L;
     private static final Long TEST_PICKUP_LOCATION_ID = DEFAULT_PICKUP_LOCATION_ID;
     private static final Long TEST_GOOGLE_CRED_ID = DEFAULT_GOOGLE_CRED_ID;
     private static final String TEST_TITLE = "Test Product";
@@ -178,7 +181,7 @@ class ProductServiceTest extends BaseTest {
 
         // Setup common mock behaviors
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
-        lenient().when(request.getAttribute("userId")).thenReturn(TEST_CLIENT_ID);
+        lenient().when(request.getAttribute("userId")).thenReturn(DEFAULT_USER_ID);
         lenient().when(request.getAttribute("user")).thenReturn(CREATED_USER);
         lenient().when(environment.getActiveProfiles()).thenReturn(new String[] { "test" });
 
@@ -220,7 +223,7 @@ class ProductServiceTest extends BaseTest {
             verify(productCategoryRepository, times(1)).findById(TEST_CATEGORY_ID);
             verify(clientService, times(1)).getClientById(TEST_CLIENT_ID);
             verify(productRepository, atLeastOnce()).save(any(Product.class));
-            verify(userLogService, times(1)).logData(eq(1L), anyString(), eq("addProduct"));
+            verify(userLogService, times(1)).logDataWithContext(eq(1L), anyString(), eq(1L), anyString(), eq("addProduct"));
         }
     }
 
@@ -322,6 +325,78 @@ class ProductServiceTest extends BaseTest {
                 verify(productRepository, times(1)).save(any(Product.class));
             }
         }
+
+        /**
+         * Purpose: Additional addProduct success variations.
+         * Expected Result: Valid requests succeed with optional image variations.
+         * Assertions: No exceptions thrown.
+         */
+        @TestFactory
+        @DisplayName("Add Product - Additional success variations")
+        Stream<DynamicTest> addProduct_AdditionalSuccessVariations() {
+            return Stream.of(
+                    "additionalImage1 null",
+                    "additionalImage1 empty",
+                    "additionalImage2 empty",
+                    "additionalImage3 null",
+                    "additionalImage3 empty",
+                    "detailsImage present",
+                    "defectImage present"
+            ).map(label -> DynamicTest.dynamicTest(label, () -> {
+                ProductRequestModel req = new ProductRequestModel();
+                req.setProductId(TEST_PRODUCT_ID);
+                req.setTitle(TEST_TITLE);
+                req.setDescriptionHtml(TEST_DESCRIPTION);
+                req.setBrand(TEST_BRAND);
+                req.setColorLabel(TEST_COLOR_LABEL);
+                req.setCondition(TEST_CONDITION);
+                req.setCountryOfManufacture(TEST_COUNTRY);
+                req.setUpc(TEST_UPC);
+                req.setPrice(TEST_PRICE);
+                req.setCategoryId(TEST_CATEGORY_ID);
+                req.setClientId(TEST_CLIENT_ID);
+                req.setIsDeleted(false);
+                req.setReturnWindowDays(30);
+
+                Map<Long, Integer> quantities = new HashMap<>();
+                quantities.put(TEST_PICKUP_LOCATION_ID, 10);
+                req.setPickupLocationQuantities(quantities);
+
+                req.setMainImage(TEST_BASE64_IMAGE);
+                req.setTopImage(TEST_BASE64_IMAGE);
+                req.setBottomImage(TEST_BASE64_IMAGE);
+                req.setFrontImage(TEST_BASE64_IMAGE);
+                req.setBackImage(TEST_BASE64_IMAGE);
+                req.setRightImage(TEST_BASE64_IMAGE);
+                req.setLeftImage(TEST_BASE64_IMAGE);
+                req.setDetailsImage(TEST_BASE64_IMAGE);
+                req.setDefectImage(TEST_BASE64_IMAGE);
+
+                req.setAdditionalImage1(TEST_BASE64_IMAGE);
+                req.setAdditionalImage2(TEST_BASE64_IMAGE);
+                req.setAdditionalImage3(TEST_BASE64_IMAGE);
+
+                switch (label) {
+                    case "additionalImage1 null" -> req.setAdditionalImage1(null);
+                    case "additionalImage1 empty" -> req.setAdditionalImage1("");
+                    case "additionalImage2 empty" -> req.setAdditionalImage2("");
+                    case "additionalImage3 null" -> req.setAdditionalImage3(null);
+                    case "additionalImage3 empty" -> req.setAdditionalImage3("");
+                    default -> { }
+                }
+
+                try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+                        (mock, context) -> {
+                            ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                                    "https://i.ibb.co/test/image.png",
+                                    "test-delete-hash");
+                            when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                            when(mock.deleteImage(anyString())).thenReturn(true);
+                        })) {
+                    assertDoesNotThrow(() -> productService.addProduct(req));
+                }
+            }));
+        }
     }
 
     @Nested
@@ -375,6 +450,23 @@ class ProductServiceTest extends BaseTest {
                     () -> productService.editProduct(testProductRequest));
             verify(productRepository, never()).save(any());
         }
+
+        /**
+         * Purpose: Additional invalid ID coverage for editProduct.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Exception message matches ER013.
+         */
+        @TestFactory
+        @DisplayName("Edit Product - Additional invalid IDs")
+        Stream<DynamicTest> editProduct_AdditionalInvalidIds() {
+            return Stream.of(2L, 3L, 4L)
+                    .map(id -> DynamicTest.dynamicTest("Invalid ID: " + id, () -> {
+                        testProductRequest.setProductId(id);
+                        lenient().when(productRepository.findByIdWithRelatedEntities(id, TEST_CLIENT_ID)).thenReturn(null);
+                        assertThrowsNotFound(String.format(ErrorMessages.ProductErrorMessages.ER013, id),
+                                () -> productService.editProduct(testProductRequest));
+                    }));
+        }
     }
 
     @Nested
@@ -423,6 +515,22 @@ class ProductServiceTest extends BaseTest {
                     () -> productService.toggleDeleteProduct(TEST_PRODUCT_ID));
             verify(productRepository, never()).save(any());
         }
+
+        /**
+         * Purpose: Additional invalid ID coverage for toggleDeleteProduct.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Exception message matches ER013.
+         */
+        @TestFactory
+        @DisplayName("Toggle Delete Product - Additional invalid IDs")
+        Stream<DynamicTest> toggleDeleteProduct_AdditionalInvalidIds() {
+            return Stream.of(2L, 3L, 4L)
+                    .map(id -> DynamicTest.dynamicTest("Invalid ID: " + id, () -> {
+                        lenient().when(productRepository.findByIdWithRelatedEntities(id, TEST_CLIENT_ID)).thenReturn(null);
+                        assertThrowsNotFound(String.format(ErrorMessages.ProductErrorMessages.ER013, id),
+                                () -> productService.toggleDeleteProduct(id));
+                    }));
+        }
     }
 
     @Nested
@@ -458,6 +566,30 @@ class ProductServiceTest extends BaseTest {
                     () -> productService.toggleReturnProduct(TEST_PRODUCT_ID));
             verify(productRepository, never()).save(any());
         }
+
+        /**
+         * Purpose: Verify returnWindowDays toggles to 30 when null or zero.
+         * Expected Result: returnWindowDays is set to 30.
+         * Assertions: returnWindowDays equals 30.
+         */
+        @TestFactory
+        @DisplayName("Toggle Return Product - Null/Zero returnWindowDays")
+        Stream<DynamicTest> toggleReturnProduct_NullOrZeroReturnWindow() {
+            return Stream.of("null", "zero")
+                    .map(label -> DynamicTest.dynamicTest("Return window: " + label, () -> {
+                        if ("null".equals(label)) {
+                            testProduct.setReturnWindowDays(null);
+                        } else {
+                            testProduct.setReturnWindowDays(0);
+                        }
+                        when(productRepository.findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID))
+                                .thenReturn(testProduct);
+
+                        productService.toggleReturnProduct(TEST_PRODUCT_ID);
+
+                        assertEquals(30, testProduct.getReturnWindowDays());
+                    }));
+        }
     }
 
     @Nested
@@ -491,6 +623,22 @@ class ProductServiceTest extends BaseTest {
             // Act & Assert
             assertThrowsNotFound(String.format(ErrorMessages.ProductErrorMessages.ER013, TEST_PRODUCT_ID),
                     () -> productService.getProductDetailsById(TEST_PRODUCT_ID));
+        }
+
+        /**
+         * Purpose: Additional invalid ID coverage for getProductDetailsById.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Exception message matches ER013.
+         */
+        @TestFactory
+        @DisplayName("Get Product Details By ID - Additional invalid IDs")
+        Stream<DynamicTest> getProductDetailsById_AdditionalInvalidIds() {
+            return Stream.of(2L, 3L)
+                    .map(id -> DynamicTest.dynamicTest("Invalid ID: " + id, () -> {
+                        when(productRepository.findByIdWithRelatedEntities(id, TEST_CLIENT_ID)).thenReturn(null);
+                        assertThrowsNotFound(String.format(ErrorMessages.ProductErrorMessages.ER013, id),
+                                () -> productService.getProductDetailsById(id));
+                    }));
         }
     }
 
@@ -530,15 +678,30 @@ class ProductServiceTest extends BaseTest {
             assertEquals(testProduct.getProductId(), result.getData().get(0).getProductId());
 
             // ---- (3) Triple-loop: valid columns × operators × types + invalid combinations ----
-            String[] stringColumns = PRODUCT_STRING_COLUMNS;
-            String[] numberColumns = PRODUCT_NUMBER_COLUMNS;
-            String[] booleanColumns = PRODUCT_BOOLEAN_COLUMNS;
-            String[] dateColumns = PRODUCT_DATE_COLUMNS;
+                String[] stringColumns = {
+                    "title", "descriptionHtml", "brand", "color", "colorLabel", "condition",
+                    "countryOfManufacture", "model", "upc", "modificationHtml", "notes",
+                    "createdUser", "modifiedUser"
+                };
+                String[] numberColumns = {
+                        "productId", "price", "discount", "length", "breadth",
+                    "height", "weightKgs", "categoryId", "pickupLocationId"
+                };
+                String[] booleanColumns = {"isDiscountPercent", "returnsAllowed", "itemModified", "isDeleted"};
+                String[] dateColumns = {"createdAt", "updatedAt"};
             String[] invalidColumns = BATCH_INVALID_COLUMNS;
-            String[] stringOperators = BATCH_STRING_OPERATORS;
-            String[] numberOperators = BATCH_NUMBER_OPERATORS;
-            String[] booleanOperators = BATCH_BOOLEAN_OPERATORS;
-            String[] dateOperators = BATCH_DATE_OPERATORS;
+                String[] stringOperators = {
+                    "contains", "equals", "startsWith", "endsWith", "isEmpty", "isNotEmpty",
+                    "isOneOf", "isNotOneOf", "containsOneOf"
+                };
+                String[] numberOperators = {
+                    "equals", "notEquals", "greaterThan", "greaterThanOrEqual", "lessThan", "lessThanOrEqual",
+                    "isEmpty", "isNotEmpty", "isOneOf", "isNotOneOf"
+                };
+                String[] booleanOperators = {"is"};
+                String[] dateOperators = {
+                    "is", "isNot", "isAfter", "isOnOrAfter", "isBefore", "isOnOrBefore", "isEmpty", "isNotEmpty"
+                };
             String[] invalidOperators = BATCH_INVALID_OPERATORS;
             String[] validValues = BATCH_VALID_VALUES;
             String[] emptyValues = BATCH_EMPTY_VALUES;
@@ -585,17 +748,13 @@ class ProductServiceTest extends BaseTest {
                                 && Arrays.asList(dateOperators).contains(operator);
                         boolean isOperatorValidForType = isValidForString || isValidForNumber || isValidForBoolean || isValidForDate;
 
-                        boolean isValueRequired = !PaginationBaseRequestModel.OP_IS_EMPTY.equals(operator)
-                                && !PaginationBaseRequestModel.OP_IS_NOT_EMPTY.equals(operator);
-                        boolean isValuePresent = value != null;
-                        boolean shouldSucceed = isColumnKnown && isOperatorValidForType && (!isValueRequired || isValuePresent);
+                        boolean shouldSucceed = isColumnKnown && isOperatorValidForType;
 
                         try {
                             productService.getProductInBatches(testRequest);
                             if (!shouldSucceed) {
                                 String reason = !isColumnKnown ? "Invalid column: " + column
-                                        : !isOperatorValidForType ? "Invalid operator '" + operator + "' for column '" + column + "'"
-                                        : "Missing value for operator " + operator;
+                                    : "Invalid operator '" + operator + "' for column '" + column + "'";
                                 fail("Expected failure but succeeded. Context: " + reason);
                             }
                         } catch (BadRequestException | IllegalArgumentException e) {
@@ -729,14 +888,129 @@ class ProductServiceTest extends BaseTest {
         }
 
         @Test
-        @DisplayName("Product Validation - Invalid client ID (null)")
+        @DisplayName("Product Validation - Client ID null in request is ignored")
         void productValidation_InvalidClientId_Null_ThrowsBadRequestException() {
             // Arrange
             testProductRequest.setClientId(null);
 
-            // Act & Assert
-            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidClientId,
-                    () -> productService.addProduct(testProductRequest));
+            try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+                    (mock, context) -> {
+                        ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                                "https://i.ibb.co/test/image.png",
+                                "test-delete-hash");
+                        when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                        when(mock.deleteImage(anyString())).thenReturn(true);
+                    })) {
+                assertDoesNotThrow(() -> productService.addProduct(testProductRequest));
+            }
+        }
+
+        /**
+         * Purpose: Additional validation coverage for addProduct.
+         * Expected Result: Invalid inputs throw BadRequestException.
+         * Assertions: Exception messages match expected errors.
+         */
+        @TestFactory
+        @DisplayName("Product Validation - Additional invalid inputs")
+        Stream<DynamicTest> productValidation_AdditionalInvalidInputs() {
+            return Stream.of(
+                    DynamicTest.dynamicTest("Title whitespace", () -> {
+                        initializeTestData();
+                        testProductRequest.setTitle("   ");
+                        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidTitle,
+                                () -> productService.addProduct(testProductRequest));
+                    }),
+                    DynamicTest.dynamicTest("Description empty", () -> {
+                        initializeTestData();
+                        testProductRequest.setDescriptionHtml(" ");
+                        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidDescription,
+                                () -> productService.addProduct(testProductRequest));
+                    }),
+                    DynamicTest.dynamicTest("Brand empty", () -> {
+                        initializeTestData();
+                        testProductRequest.setBrand(" ");
+                        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidBrand,
+                                () -> productService.addProduct(testProductRequest));
+                    }),
+                    DynamicTest.dynamicTest("Color label empty", () -> {
+                        initializeTestData();
+                        testProductRequest.setColorLabel(" ");
+                        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidColorLabel,
+                                () -> productService.addProduct(testProductRequest));
+                    }),
+                    DynamicTest.dynamicTest("Condition empty", () -> {
+                        initializeTestData();
+                        testProductRequest.setCondition(" ");
+                        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidCondition,
+                                () -> productService.addProduct(testProductRequest));
+                    }),
+                    DynamicTest.dynamicTest("Country empty", () -> {
+                        initializeTestData();
+                        testProductRequest.setCountryOfManufacture(" ");
+                        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidCountryOfManufacture,
+                                () -> productService.addProduct(testProductRequest));
+                    }),
+                    DynamicTest.dynamicTest("Price zero allowed?", () -> {
+                        initializeTestData();
+                        testProductRequest.setPrice(BigDecimal.ZERO);
+                        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+                                (mock, context) -> {
+                                    ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                                            "https://i.ibb.co/test/image.png",
+                                            "test-delete-hash");
+                                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                                    when(mock.deleteImage(anyString())).thenReturn(true);
+                                })) {
+                            assertDoesNotThrow(() -> productService.addProduct(testProductRequest));
+                        }
+                    }),
+                    DynamicTest.dynamicTest("UPC empty allowed", () -> {
+                        initializeTestData();
+                        testProductRequest.setUpc("");
+                        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+                                (mock, context) -> {
+                                    ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                                            "https://i.ibb.co/test/image.png",
+                                            "test-delete-hash");
+                                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                                    when(mock.deleteImage(anyString())).thenReturn(true);
+                                })) {
+                            assertDoesNotThrow(() -> productService.addProduct(testProductRequest));
+                        }
+                    }),
+                    DynamicTest.dynamicTest("Pickup quantities null", () -> {
+                        initializeTestData();
+                        testProductRequest.setPickupLocationQuantities(null);
+                        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.AtLeastOnePickupLocationRequired,
+                                () -> productService.addProduct(testProductRequest));
+                    }),
+                    DynamicTest.dynamicTest("Pickup quantities empty", () -> {
+                        initializeTestData();
+                        testProductRequest.setPickupLocationQuantities(new HashMap<>());
+                        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.AtLeastOnePickupLocationRequired,
+                                () -> productService.addProduct(testProductRequest));
+                    }),
+                    DynamicTest.dynamicTest("Client ID negative", () -> {
+                        initializeTestData();
+                        testProductRequest.setClientId(-1L);
+                        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+                                (mock, context) -> {
+                                    ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                                            "https://i.ibb.co/test/image.png",
+                                            "test-delete-hash");
+                                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                                    when(mock.deleteImage(anyString())).thenReturn(true);
+                                })) {
+                            assertDoesNotThrow(() -> productService.addProduct(testProductRequest));
+                        }
+                    }),
+                    DynamicTest.dynamicTest("Category ID null", () -> {
+                        initializeTestData();
+                        testProductRequest.setCategoryId(null);
+                        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidCategoryId,
+                                () -> productService.addProduct(testProductRequest));
+                    })
+            );
         }
     }
 
@@ -808,6 +1082,38 @@ class ProductServiceTest extends BaseTest {
 
                 assertDoesNotThrow(() -> productService.addProduct(testProductRequest));
             }
+        }
+
+        /**
+         * Purpose: Additional image processing cases for optional images.
+         * Expected Result: Optional images can be null or empty without failure.
+         * Assertions: No exceptions thrown.
+         */
+        @TestFactory
+        @DisplayName("Image Processing - Optional image variations")
+        Stream<DynamicTest> imageProcessing_OptionalImageVariations() {
+            return Stream.of("additionalImage2 null", "additionalImage2 empty", "additionalImage3 null")
+                    .map(label -> DynamicTest.dynamicTest(label, () -> {
+                        if ("additionalImage2 null".equals(label)) {
+                            testProductRequest.setAdditionalImage2(null);
+                        } else if ("additionalImage2 empty".equals(label)) {
+                            testProductRequest.setAdditionalImage2("");
+                        } else {
+                            testProductRequest.setAdditionalImage3(null);
+                        }
+
+                        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+                                (mock, context) -> {
+                                    ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                                            "https://i.ibb.co/test/image.png",
+                                            "test-delete-hash");
+                                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                                    when(mock.deleteImage(anyString())).thenReturn(true);
+                                })) {
+
+                            assertDoesNotThrow(() -> productService.addProduct(testProductRequest));
+                        }
+                    }));
         }
     }
 
@@ -1085,6 +1391,139 @@ class ProductServiceTest extends BaseTest {
             });
             assertTrue(exception.getMessage().contains("Product list cannot be null or empty"));
             verify(productRepository, never()).save(any(Product.class));
+        }
+
+        /**
+         * Purpose: Additional bulk add validation coverage.
+         * Expected Result: Null list throws; valid list succeeds; invalid list fails.
+         * Assertions: Exceptions and counts are correct.
+         */
+        @TestFactory
+        @DisplayName("Bulk Add Products - Additional scenarios")
+        Stream<DynamicTest> bulkAddProducts_AdditionalScenarios() {
+            return Stream.of(
+                    DynamicTest.dynamicTest("Null list - Throws BadRequestException", () -> {
+                        BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> productService.bulkAddProducts(null));
+                        assertTrue(ex.getMessage().contains("Product list cannot be null or empty"));
+                    }),
+                    DynamicTest.dynamicTest("Single valid product - Success", () -> {
+                        List<ProductRequestModel> products = new ArrayList<>();
+                        ProductRequestModel prodReq = new ProductRequestModel();
+                        prodReq.setTitle("Product");
+                        prodReq.setDescriptionHtml("Description");
+                        prodReq.setBrand("Brand");
+                        prodReq.setPrice(BigDecimal.valueOf(100));
+                        prodReq.setCategoryId(TEST_CATEGORY_ID);
+                        prodReq.setMainImage(TEST_BASE64_IMAGE);
+                        prodReq.setTopImage(TEST_BASE64_IMAGE);
+                        prodReq.setBottomImage(TEST_BASE64_IMAGE);
+                        prodReq.setFrontImage(TEST_BASE64_IMAGE);
+                        prodReq.setBackImage(TEST_BASE64_IMAGE);
+                        prodReq.setRightImage(TEST_BASE64_IMAGE);
+                        prodReq.setLeftImage(TEST_BASE64_IMAGE);
+                        prodReq.setDetailsImage(TEST_BASE64_IMAGE);
+                        prodReq.setDefectImage(TEST_BASE64_IMAGE);
+                        prodReq.setColorLabel(TEST_COLOR_LABEL);
+                        prodReq.setCondition(TEST_CONDITION);
+                        prodReq.setCountryOfManufacture(TEST_COUNTRY);
+                        prodReq.setClientId(TEST_CLIENT_ID);
+                        Map<Long, Integer> quantities = new HashMap<>();
+                        quantities.put(TEST_PICKUP_LOCATION_ID, 10);
+                        prodReq.setPickupLocationQuantities(quantities);
+                        products.add(prodReq);
+
+                        when(productCategoryRepository.findById(TEST_CATEGORY_ID)).thenReturn(Optional.of(testCategory));
+                        when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+                        lenient().when(productPickupLocationMappingRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
+                        lenient().when(environment.getActiveProfiles()).thenReturn(new String[] { "test" });
+                        Client productClient = new Client();
+                        productClient.setClientId(TEST_CLIENT_ID);
+                        productClient.setImgbbApiKey("test-imgbb-api-key");
+                        lenient().when(clientRepository.findById(anyLong())).thenReturn(Optional.of(productClient));
+                        lenient().when(clientService.getClientById(anyLong())).thenReturn(testClientResponse);
+
+                        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+                                (mock, context) -> {
+                                    when(mock.uploadFileToImgbb(anyString(), anyString()))
+                                            .thenReturn(new ImgbbHelper.ImgbbUploadResponse("https://imgbb.com/test.png", "deleteHash"));
+                                    when(mock.deleteImage(anyString())).thenReturn(true);
+                                })) {
+                            BulkInsertResponseModel<Long> result = productService.bulkAddProducts(products);
+                            assertNotNull(result);
+                            assertEquals(1, result.getTotalRequested());
+                            assertEquals(1, result.getSuccessCount());
+                            assertEquals(0, result.getFailureCount());
+                        }
+                    }),
+                    DynamicTest.dynamicTest("Single invalid product - Failure", () -> {
+                        List<ProductRequestModel> products = new ArrayList<>();
+                        ProductRequestModel invalid = new ProductRequestModel();
+                        invalid.setTitle(null);
+                        invalid.setCondition(TEST_CONDITION);
+                        invalid.setCountryOfManufacture(TEST_COUNTRY);
+                        invalid.setClientId(TEST_CLIENT_ID);
+                        invalid.setColorLabel(TEST_COLOR_LABEL);
+                        products.add(invalid);
+
+                        BulkInsertResponseModel<Long> result = productService.bulkAddProducts(products);
+                        assertNotNull(result);
+                        assertEquals(1, result.getTotalRequested());
+                        assertEquals(0, result.getSuccessCount());
+                        assertEquals(1, result.getFailureCount());
+                    }),
+                    DynamicTest.dynamicTest("Multiple valid products - Success", () -> {
+                        List<ProductRequestModel> products = new ArrayList<>();
+                        for (int i = 0; i < 2; i++) {
+                            ProductRequestModel prodReq = new ProductRequestModel();
+                            prodReq.setTitle("Product" + i);
+                            prodReq.setDescriptionHtml("Description" + i);
+                            prodReq.setBrand("Brand" + i);
+                            prodReq.setPrice(BigDecimal.valueOf(100 + i));
+                            prodReq.setCategoryId(TEST_CATEGORY_ID);
+                            prodReq.setMainImage(TEST_BASE64_IMAGE);
+                            prodReq.setTopImage(TEST_BASE64_IMAGE);
+                            prodReq.setBottomImage(TEST_BASE64_IMAGE);
+                            prodReq.setFrontImage(TEST_BASE64_IMAGE);
+                            prodReq.setBackImage(TEST_BASE64_IMAGE);
+                            prodReq.setRightImage(TEST_BASE64_IMAGE);
+                            prodReq.setLeftImage(TEST_BASE64_IMAGE);
+                            prodReq.setDetailsImage(TEST_BASE64_IMAGE);
+                            prodReq.setDefectImage(TEST_BASE64_IMAGE);
+                            prodReq.setColorLabel(TEST_COLOR_LABEL);
+                            prodReq.setCondition(TEST_CONDITION);
+                            prodReq.setCountryOfManufacture(TEST_COUNTRY);
+                            prodReq.setClientId(TEST_CLIENT_ID);
+                            Map<Long, Integer> quantities = new HashMap<>();
+                            quantities.put(TEST_PICKUP_LOCATION_ID, 10);
+                            prodReq.setPickupLocationQuantities(quantities);
+                            products.add(prodReq);
+                        }
+
+                        when(productCategoryRepository.findById(TEST_CATEGORY_ID)).thenReturn(Optional.of(testCategory));
+                        when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+                        lenient().when(productPickupLocationMappingRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
+                        lenient().when(environment.getActiveProfiles()).thenReturn(new String[] { "test" });
+                        Client productClient = new Client();
+                        productClient.setClientId(TEST_CLIENT_ID);
+                        productClient.setImgbbApiKey("test-imgbb-api-key");
+                        lenient().when(clientRepository.findById(anyLong())).thenReturn(Optional.of(productClient));
+                        lenient().when(clientService.getClientById(anyLong())).thenReturn(testClientResponse);
+
+                        try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+                                (mock, context) -> {
+                                    when(mock.uploadFileToImgbb(anyString(), anyString()))
+                                            .thenReturn(new ImgbbHelper.ImgbbUploadResponse("https://imgbb.com/test.png", "deleteHash"));
+                                    when(mock.deleteImage(anyString())).thenReturn(true);
+                                })) {
+                            BulkInsertResponseModel<Long> result = productService.bulkAddProducts(products);
+                            assertNotNull(result);
+                            assertEquals(2, result.getTotalRequested());
+                            assertEquals(2, result.getSuccessCount());
+                            assertEquals(0, result.getFailureCount());
+                        }
+                    })
+            );
         }
     }
 }

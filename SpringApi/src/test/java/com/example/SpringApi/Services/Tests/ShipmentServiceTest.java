@@ -6,8 +6,6 @@ import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.FilterQueryBuilder.ShipmentFilterQueryBuilder;
 import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.ShipmentResponseModel;
 import com.example.SpringApi.Repositories.*;
 import com.example.SpringApi.Services.ShipmentService;
 import com.example.SpringApi.Services.UserLogService;
@@ -19,693 +17,658 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for ShipmentService.
  * 
  * Test Group Summary:
- * | Group Name | Number of Tests |
- * | :--- | :--- |
- * | GetShipmentsInBatchesTests | 1 |
- * | GetShipmentByIdValidationTests | 7 |
- * | GetShipmentByIdAdditionalTests | 5 |
- * | GetShipmentsInBatchesPaginationTests | 6 |
- * | GetShipmentsInBatchesFilterTests | 7 |
- * | **Total** | **26** |
+ * | Group Name                              | Number of Tests |
+ * | :-------------------------------------- | :-------------- |
+ * | GetShipmentByIdTests                    | 13              |
+ * | GetShipmentsInBatchesPaginationTests    | 11              |
+ * | GetShipmentsInBatchesFilterTests        | 9               |
+ * | **Total**                               | **33**          |
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ShipmentService Tests")
-class ShipmentServiceTest extends BaseTest {
+class ShipmentServiceTest {
 
-        @Mock
-        private ShipmentRepository shipmentRepository;
+    @Mock
+    private ShipmentRepository shipmentRepository;
 
-        @Mock
-        private ShipmentProductRepository shipmentProductRepository;
+    @Mock
+    private ShipmentProductRepository shipmentProductRepository;
 
-        @Mock
-        private ShipmentPackageRepository shipmentPackageRepository;
+    @Mock
+    private ShipmentPackageRepository shipmentPackageRepository;
 
-        @Mock
-        private ShipmentPackageProductRepository shipmentPackageProductRepository;
+    @Mock
+    private ShipmentPackageProductRepository shipmentPackageProductRepository;
 
-        @Mock
-        private OrderSummaryRepository orderSummaryRepository;
+    @Mock
+    private OrderSummaryRepository orderSummaryRepository;
 
-        @Mock
-        private PurchaseOrderRepository purchaseOrderRepository;
+    @Mock
+    private PurchaseOrderRepository purchaseOrderRepository;
 
-        @Mock
-        private AddressRepository addressRepository;
+    @Mock
+    private AddressRepository addressRepository;
 
-        @Mock
-        private ShipmentFilterQueryBuilder shipmentFilterQueryBuilder;
+    @Mock
+    private ShipmentFilterQueryBuilder shipmentFilterQueryBuilder;
 
-        @Mock
-        private UserLogService userLogService;
+    @Mock
+    private UserLogService userLogService;
 
-        @InjectMocks
-        private ShipmentService shipmentService;
+    @InjectMocks
+    private ShipmentService shipmentService;
 
-        private Shipment testShipment;
-        private PaginationBaseRequestModel testPaginationRequest;
+    private Shipment testShipment;
+    private PaginationBaseRequestModel testPaginationRequest;
 
-        private static final Long TEST_SHIPMENT_ID = DEFAULT_SHIPMENT_ID;
-        private static final Long TEST_CLIENT_ID = DEFAULT_CLIENT_ID;
-        private static final Long TEST_ORDER_SUMMARY_ID = 1L;
+    private static final Long TEST_SHIPMENT_ID = 1L;
+    private static final Long TEST_CLIENT_ID = 100L;
+    private static final Long TEST_ORDER_SUMMARY_ID = 1L;
 
-        @BeforeEach
-        void setUp() {
-                // Initialize test shipment
-                testShipment = createTestShipment();
-                testShipment.setShipmentId(TEST_SHIPMENT_ID);
-                testShipment.setOrderSummaryId(TEST_ORDER_SUMMARY_ID);
-                testShipment.setClientId(TEST_CLIENT_ID);
+    @BeforeEach
+    void setUp() {
+        // Initialize test shipment
+        testShipment = new Shipment();
+        testShipment.setShipmentId(TEST_SHIPMENT_ID);
+        testShipment.setOrderSummaryId(TEST_ORDER_SUMMARY_ID);
+        testShipment.setClientId(TEST_CLIENT_ID);
+        testShipment.setShipRocketOrderId("SR123456");
+        testShipment.setShipRocketStatus("NEW");
 
-                // Initialize test pagination request
-                testPaginationRequest = createValidPaginationRequest();
-                testPaginationRequest.setIncludeDeleted(false);
+        // Initialize test pagination request
+        testPaginationRequest = new PaginationBaseRequestModel();
+        testPaginationRequest.setStart(0);
+        testPaginationRequest.setEnd(10);
+        testPaginationRequest.setFilters(new ArrayList<>());
+        testPaginationRequest.setIncludeDeleted(false);
+    }
+
+    @Nested
+    @DisplayName("GetShipmentById Tests")
+    class GetShipmentByIdTests {
+
+        /**
+         * Purpose: Verify that null ID throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidId message.
+         * Assertions: assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, ex.getMessage());
+         */
+        @Test
+        @DisplayName("Get Shipment By ID - Null ID - Throws BadRequestException")
+        void getShipmentById_NullId_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentById(null));
+            assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, ex.getMessage());
         }
 
-        @Nested
-        @DisplayName("GetShipmentsInBatchesTests")
-        class GetShipmentsInBatchesTests {
-
-                /**
-                 * Purpose: Comprehensive test for shipment batch retrieval including invalid pagination, 
-                 *          success without filters, and triple-loop filter validation.
-                 * Expected Result: Invalid pagination throws BadRequestException; valid pagination returns results;
-                 *                  invalid columns/operators throw BadRequestException.
-                 * Assertions: Exception messages match expected error messages; result is not null with correct size.
-                 */
-                @Test
-                @DisplayName("Get Shipments In Batches - Invalid pagination, success no filters, and triple-loop filter validation")
-                void getShipmentsInBatches_SingleComprehensiveTest() {
-                        PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
-                        
-                        // (1) Invalid pagination: end <= start
-                        paginationRequest.setStart(10);
-                        paginationRequest.setEnd(5);
-                        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                                        () -> shipmentService.getShipmentsInBatches(paginationRequest));
-
-                        // (2) Success: simple retrieval without filters
-                        paginationRequest.setStart(0);
-                        paginationRequest.setEnd(10);
-                        paginationRequest.setFilters(null);
-                        paginationRequest.setIncludeDeleted(false);
-
-                        List<Shipment> shipments = Arrays.asList(testShipment);
-                        Page<Shipment> page = new PageImpl<>(shipments);
-
-                        lenient().when(shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                                        anyLong(), any(), any(), any(), any(Pageable.class)))
-                                        .thenReturn(page);
-
-                        PaginationBaseResponseModel<ShipmentResponseModel> result = 
-                                        shipmentService.getShipmentsInBatches(paginationRequest);
-
-                        assertNotNull(result);
-                        assertEquals(1, result.getData().size());
-                        assertEquals(1L, result.getTotalDataCount());
-
-                        // (3) Triple-loop: valid columns × operators × types + invalid combinations
-                        String[] stringCols = {"selectedCourierName", "shipRocketOrderId", "shipRocketAwbCode", 
-                                "shipRocketTrackingId", "shipRocketStatus", "createdUser", "modifiedUser"};
-                        String[] numberCols = {"shipmentId", "orderSummaryId", "pickupLocationId", "totalQuantity",
-                                "selectedCourierCompanyId", "shipRocketShipmentId"};
-                        String[] decimalCols = {"totalWeightKgs", "packagingCost", "shippingCost", "totalCost",
-                                "selectedCourierRate", "selectedCourierMinWeight"};
-                        String[] dateCols = {"expectedDeliveryDate", "createdAt", "updatedAt"};
-                        String[] allColumns = new String[23];
-                        System.arraycopy(stringCols, 0, allColumns, 0, stringCols.length);
-                        System.arraycopy(numberCols, 0, allColumns, stringCols.length, numberCols.length);
-                        System.arraycopy(decimalCols, 0, allColumns, stringCols.length + numberCols.length, decimalCols.length);
-                        System.arraycopy(dateCols, 0, allColumns, stringCols.length + numberCols.length + decimalCols.length, dateCols.length);
-
-                        String[] invalidColumns = BATCH_INVALID_COLUMNS;
-                        String[] stringOps = BATCH_STRING_OPERATORS;
-                        String[] numberOps = BATCH_NUMBER_OPERATORS;
-                        String[] dateOps = BATCH_DATE_OPERATORS;
-                        String[] invalidOps = BATCH_INVALID_OPERATORS;
-                        Object[] validValues = BATCH_VALID_VALUES;
-
-                        // Test invalid columns
-                        for (String invalidCol : invalidColumns) {
-                                paginationRequest.setFilters(List.of(createFilterCondition(invalidCol, "equals", "test")));
-                                assertThrowsBadRequest(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidColumnName, invalidCol),
-                                        () -> shipmentService.getShipmentsInBatches(paginationRequest));
-                        }
-
-                        // Test valid columns with valid/invalid operators and values
-                        for (String column : allColumns) {
-                                String columnType = shipmentFilterQueryBuilder.getColumnType(column);
-                                String[] validOps;
-                                if (Arrays.asList(stringCols).contains(column)) {
-                                        validOps = stringOps;
-                                } else if (Arrays.asList(numberCols).contains(column) || Arrays.asList(decimalCols).contains(column)) {
-                                        validOps = numberOps;
-                                } else {
-                                        validOps = dateOps;
-                                }
-
-                                // Test invalid operators
-                                for (String invalidOp : invalidOps) {
-                                        paginationRequest.setFilters(List.of(createFilterCondition(column, invalidOp, "test")));
-                                        assertThrowsBadRequest(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidOperator, invalidOp),
-                                                () -> shipmentService.getShipmentsInBatches(paginationRequest));
-                                }
-
-                                // Test valid operators with appropriate values
-                                for (String operator : validOps) {
-                                        boolean shouldPass = true;
-                                        Object testValue = validValues[0];
-
-                                        // Date/number columns don't support string operators
-                                        if ((columnType.equals("date") || columnType.equals("number")) && 
-                                            Arrays.asList("contains", "notContains", "startsWith", "endsWith").contains(operator)) {
-                                                shouldPass = false;
-                                        }
-
-                                        // isEmpty/isNotEmpty don't need values
-                                        if (operator.equals("isEmpty") || operator.equals("isNotEmpty")) {
-                                                testValue = null;
-                                        }
-
-                                        paginationRequest.setFilters(List.of(createFilterCondition(column, operator, testValue)));
-
-                                        if (shouldPass) {
-                                                lenient().when(shipmentFilterQueryBuilder.getColumnType(column)).thenReturn(columnType);
-                                                lenient().when(shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                                                        anyLong(), any(), any(), any(), any(Pageable.class)))
-                                                        .thenReturn(new PageImpl<>(Collections.emptyList()));
-                                                assertDoesNotThrow(() -> shipmentService.getShipmentsInBatches(paginationRequest));
-                                        } else {
-                                                // Should throw BadRequestException for invalid operator/type combination
-                                                try {
-                                                        when(shipmentFilterQueryBuilder.getColumnType(column)).thenReturn(columnType);
-                                                        shipmentService.getShipmentsInBatches(paginationRequest);
-                                                        fail("Expected BadRequestException for invalid operator " + operator + " on " + columnType + " column " + column);
-                                                } catch (BadRequestException e) {
-                                                        // Expected
-                                                }
-                                        }
-                                }
-                        }
-                }
+        /**
+         * Purpose: Verify that zero ID throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidId message.
+         * Assertions: assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, ex.getMessage());
+         */
+        @Test
+        @DisplayName("Get Shipment By ID - Zero ID - Throws BadRequestException")
+        void getShipmentById_ZeroId_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentById(0L));
+            assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, ex.getMessage());
         }
 
-        @Nested
-        @DisplayName("GetShipmentByIdValidationTests")
-        class GetShipmentByIdValidationTests {
-
-                /**
-                 * Purpose: Verify that getting shipment with null ID throws BadRequestException.
-                 * Expected Result: BadRequestException with InvalidId message is thrown.
-                 * Assertions: Exception message equals ErrorMessages.ShipmentErrorMessages.InvalidId.
-                 */
-                @Test
-                @DisplayName("Get Shipment By ID - Null ID - Throws BadRequestException")
-                void getShipmentById_NullId_ThrowsBadRequestException() {
-                        assertThrowsBadRequest(ErrorMessages.ShipmentErrorMessages.InvalidId,
-                                        () -> shipmentService.getShipmentById(null));
-                }
-
-                /**
-                 * Purpose: Verify that getting shipment with zero ID throws BadRequestException.
-                 * Expected Result: BadRequestException with InvalidId message is thrown.
-                 * Assertions: Exception message equals ErrorMessages.ShipmentErrorMessages.InvalidId.
-                 */
-                @Test
-                @DisplayName("Get Shipment By ID - Zero ID - Throws BadRequestException")
-                void getShipmentById_ZeroId_ThrowsBadRequestException() {
-                        assertThrowsBadRequest(ErrorMessages.ShipmentErrorMessages.InvalidId,
-                                        () -> shipmentService.getShipmentById(0L));
-                }
-
-                /**
-                 * Purpose: Verify that getting shipment with negative ID throws BadRequestException.
-                 * Expected Result: BadRequestException with InvalidId message is thrown.
-                 * Assertions: Exception message equals ErrorMessages.ShipmentErrorMessages.InvalidId.
-                 */
-                @Test
-                @DisplayName("Get Shipment By ID - Negative ID - Throws BadRequestException")
-                void getShipmentById_NegativeId_ThrowsBadRequestException() {
-                        assertThrowsBadRequest(ErrorMessages.ShipmentErrorMessages.InvalidId,
-                                        () -> shipmentService.getShipmentById(-1L));
-                }
-
-                /**
-                 * Purpose: Verify that getting shipment when not found throws NotFoundException.
-                 * Expected Result: NotFoundException with NotFound message is thrown.
-                 * Assertions: Exception message equals formatted NotFound error message.
-                 */
-                @Test
-                @DisplayName("Get Shipment By ID - Shipment Not Found - Throws NotFoundException")
-                void getShipmentById_ShipmentNotFound_ThrowsNotFoundException() {
-                        when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
-                                        .thenReturn(null);
-
-                        assertThrowsNotFound(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID),
-                                        () -> shipmentService.getShipmentById(TEST_SHIPMENT_ID));
-                }
-
-                /**
-                 * Purpose: Verify that getting shipment with valid ID returns shipment details.
-                 * Expected Result: ShipmentResponseModel is returned with correct shipment ID.
-                 * Assertions: Result is not null; shipment ID matches expected value.
-                 */
-                @Test
-                @DisplayName("Get Shipment By ID - Success - Returns Shipment Details")
-                void getShipmentById_Success_ReturnsShipmentDetails() {
-                        when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
-                                        .thenReturn(testShipment);
-                        when(shipmentProductRepository.findByShipmentId(TEST_SHIPMENT_ID))
-                                        .thenReturn(Collections.emptyList());
-                        when(shipmentPackageRepository.findByShipmentId(TEST_SHIPMENT_ID))
-                                        .thenReturn(Collections.emptyList());
-
-                        ShipmentResponseModel result = shipmentService.getShipmentById(TEST_SHIPMENT_ID);
-
-                        assertNotNull(result);
-                        assertEquals(TEST_SHIPMENT_ID, result.getShipmentId());
-                }
-
-                /**
-                 * Purpose: Verify that getting shipment with Long.MAX_VALUE ID throws NotFoundException.
-                 * Expected Result: NotFoundException is thrown with message containing "not found".
-                 * Assertions: Exception message contains "not found".
-                 */
-                @Test
-                @DisplayName("Get Shipment By ID - Long.MAX_VALUE - Not Found")
-                void getShipmentById_MaxLongId_ThrowsNotFoundException() {
-                        when(shipmentRepository.findByShipmentIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID))
-                                .thenReturn(null);
-                        NotFoundException ex = assertThrows(NotFoundException.class,
-                                () -> shipmentService.getShipmentById(Long.MAX_VALUE));
-                        assertTrue(ex.getMessage().contains("not found"));
-                }
-
-                /**
-                 * Purpose: Verify that getting shipment with Long.MIN_VALUE ID throws NotFoundException.
-                 * Expected Result: NotFoundException is thrown with message containing "not found".
-                 * Assertions: Exception message contains "not found".
-                 */
-                @Test
-                @DisplayName("Get Shipment By ID - Long.MIN_VALUE - Not Found")
-                void getShipmentById_MinLongId_ThrowsNotFoundException() {
-                        when(shipmentRepository.findByShipmentIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID))
-                                .thenReturn(null);
-                        NotFoundException ex = assertThrows(NotFoundException.class,
-                                () -> shipmentService.getShipmentById(Long.MIN_VALUE));
-                        assertTrue(ex.getMessage().contains("not found"));
-                }
+        /**
+         * Purpose: Verify that negative ID throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidId message.
+         * Assertions: assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, ex.getMessage());
+         */
+        @Test
+        @DisplayName("Get Shipment By ID - Negative ID - Throws BadRequestException")
+        void getShipmentById_NegativeId_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentById(-1L));
+            assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, ex.getMessage());
         }
 
-        @Nested
-        @DisplayName("GetShipmentByIdAdditionalTests")
-        class GetShipmentByIdAdditionalTests {
-
-                /**
-                 * Purpose: Verify that getting shipment without ShipRocket order ID throws NotFoundException.
-                 * Expected Result: NotFoundException with NotFound message is thrown.
-                 * Assertions: Exception message equals formatted NotFound error message.
-                 */
-                @Test
-                @DisplayName("Get Shipment By ID - Shipment without ShipRocket Order ID - Not Found")
-                void getShipmentById_NoShipRocketOrderId_ThrowsNotFoundException() {
-                        Shipment shipmentNoOrderId = createTestShipment();
-                        shipmentNoOrderId.setShipmentId(TEST_SHIPMENT_ID);
-                        shipmentNoOrderId.setClientId(TEST_CLIENT_ID);
-                        shipmentNoOrderId.setShipRocketOrderId(null); // Missing required field
-
-                        when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
-                                .thenReturn(shipmentNoOrderId);
-
-                        assertThrowsNotFound(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID),
-                                () -> shipmentService.getShipmentById(TEST_SHIPMENT_ID));
-                }
-
-                /**
-                 * Purpose: Verify that getting shipment with empty ShipRocket order ID throws NotFoundException.
-                 * Expected Result: NotFoundException with NotFound message is thrown.
-                 * Assertions: Exception message equals formatted NotFound error message.
-                 */
-                @Test
-                @DisplayName("Get Shipment By ID - Shipment with empty ShipRocket Order ID - Not Found")
-                void getShipmentById_EmptyShipRocketOrderId_ThrowsNotFoundException() {
-                        Shipment shipmentEmptyOrderId = createTestShipment();
-                        shipmentEmptyOrderId.setShipmentId(TEST_SHIPMENT_ID);
-                        shipmentEmptyOrderId.setClientId(TEST_CLIENT_ID);
-                        shipmentEmptyOrderId.setShipRocketOrderId(""); // Empty string
-
-                        when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
-                                .thenReturn(shipmentEmptyOrderId);
-
-                        assertThrowsNotFound(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID),
-                                () -> shipmentService.getShipmentById(TEST_SHIPMENT_ID));
-                }
-
-                /**
-                 * Purpose: Verify that getting shipment with different client ID throws NotFoundException.
-                 * Expected Result: NotFoundException with NotFound message is thrown.
-                 * Assertions: Exception message equals formatted NotFound error message.
-                 */
-                @Test
-                @DisplayName("Get Shipment By ID - Different Client ID - Not Found")
-                void getShipmentById_DifferentClientId_ThrowsNotFoundException() {
-                        when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
-                                .thenReturn(null);
-
-                        assertThrowsNotFound(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID),
-                                () -> shipmentService.getShipmentById(TEST_SHIPMENT_ID));
-                }
-
-                /**
-                 * Purpose: Verify that getting deleted shipment returns shipment details.
-                 * Expected Result: ShipmentResponseModel is returned with correct shipment ID.
-                 * Assertions: Result is not null; shipment ID matches expected value.
-                 */
-                @Test
-                @DisplayName("Get Shipment By ID - Deleted Shipment - Returns response")
-                void getShipmentById_DeletedShipment_ReturnsDetails() {
-                        Shipment deletedShipment = createDeletedTestShipment();
-                        deletedShipment.setShipmentId(TEST_SHIPMENT_ID);
-                        deletedShipment.setClientId(TEST_CLIENT_ID);
-                        deletedShipment.setShipRocketOrderId("SR-123456");
-
-                        when(shipmentRepository.findByShipmentIdAndClientId(TEST_SHIPMENT_ID, TEST_CLIENT_ID))
-                                .thenReturn(deletedShipment);
-                        when(shipmentProductRepository.findByShipmentId(TEST_SHIPMENT_ID))
-                                .thenReturn(Collections.emptyList());
-                        when(shipmentPackageRepository.findByShipmentId(TEST_SHIPMENT_ID))
-                                .thenReturn(Collections.emptyList());
-
-                        ShipmentResponseModel result = shipmentService.getShipmentById(TEST_SHIPMENT_ID);
-
-                        assertNotNull(result);
-                        assertEquals(TEST_SHIPMENT_ID, result.getShipmentId());
-                }
-
-                /**
-                 * Purpose: Verify that getting shipment with valid ID returns shipment and verifies repository call.
-                 * Expected Result: ShipmentResponseModel is returned; repository is called with correct parameters.
-                 * Assertions: Result is not null; repository method is verified.
-                 */
-                @Test
-                @DisplayName("Get Shipment By ID - One ID - Success")
-                void getShipmentById_ValidId_Success() {
-                        when(shipmentRepository.findByShipmentIdAndClientId(1L, TEST_CLIENT_ID))
-                                .thenReturn(testShipment);
-                        when(shipmentProductRepository.findByShipmentId(1L))
-                                .thenReturn(Collections.emptyList());
-                        when(shipmentPackageRepository.findByShipmentId(1L))
-                                .thenReturn(Collections.emptyList());
-
-                        ShipmentResponseModel result = shipmentService.getShipmentById(1L);
-
-                        assertNotNull(result);
-                        verify(shipmentRepository).findByShipmentIdAndClientId(1L, TEST_CLIENT_ID);
-                }
+        /**
+         * Purpose: Verify that -100 ID throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidId message.
+         * Assertions: assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, ex.getMessage());
+         */
+        @Test
+        @DisplayName("Get Shipment By ID - Negative 100 ID - Throws BadRequestException")
+        void getShipmentById_Negative100Id_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentById(-100L));
+            assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, ex.getMessage());
         }
 
-        @Nested
-        @DisplayName("GetShipmentsInBatchesPaginationTests")
-        class GetShipmentsInBatchesPaginationTests {
-
-                /**
-                 * Purpose: Verify that getting shipments with start equals end throws BadRequestException.
-                 * Expected Result: BadRequestException with InvalidPagination message is thrown.
-                 * Assertions: Exception message equals ErrorMessages.CommonErrorMessages.InvalidPagination.
-                 */
-                @Test
-                @DisplayName("Get Shipments In Batches - Start equals End - Throws BadRequestException")
-                void getShipmentsInBatches_StartEqualsEnd_ThrowsBadRequest() {
-                        PaginationBaseRequestModel request = createValidPaginationRequest();
-                        request.setStart(10);
-                        request.setEnd(10);
-
-                        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                                () -> shipmentService.getShipmentsInBatches(request));
-                }
-
-                /**
-                 * Purpose: Verify that getting shipments with negative start throws BadRequestException.
-                 * Expected Result: BadRequestException with InvalidPagination message is thrown.
-                 * Assertions: Exception message equals ErrorMessages.CommonErrorMessages.InvalidPagination.
-                 */
-                @Test
-                @DisplayName("Get Shipments In Batches - Negative Start - Throws BadRequestException")
-                void getShipmentsInBatches_NegativeStart_ThrowsBadRequest() {
-                        PaginationBaseRequestModel request = createValidPaginationRequest();
-                        request.setStart(-5);
-                        request.setEnd(10);
-
-                        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                                () -> shipmentService.getShipmentsInBatches(request));
-                }
-
-                /**
-                 * Purpose: Verify that getting shipments with negative end throws BadRequestException.
-                 * Expected Result: BadRequestException with InvalidPagination message is thrown.
-                 * Assertions: Exception message equals ErrorMessages.CommonErrorMessages.InvalidPagination.
-                 */
-                @Test
-                @DisplayName("Get Shipments In Batches - Negative End - Throws BadRequestException")
-                void getShipmentsInBatches_NegativeEnd_ThrowsBadRequest() {
-                        PaginationBaseRequestModel request = createValidPaginationRequest();
-                        request.setStart(0);
-                        request.setEnd(-10);
-
-                        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                                () -> shipmentService.getShipmentsInBatches(request));
-                }
-
-                /**
-                 * Purpose: Verify that getting shipments with start greater than end throws BadRequestException.
-                 * Expected Result: BadRequestException with InvalidPagination message is thrown.
-                 * Assertions: Exception message equals ErrorMessages.CommonErrorMessages.InvalidPagination.
-                 */
-                @Test
-                @DisplayName("Get Shipments In Batches - Start greater than End - Throws BadRequestException")
-                void getShipmentsInBatches_StartGreaterThanEnd_ThrowsBadRequest() {
-                        PaginationBaseRequestModel request = createValidPaginationRequest();
-                        request.setStart(100);
-                        request.setEnd(50);
-
-                        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                                () -> shipmentService.getShipmentsInBatches(request));
-                }
-
-                /**
-                 * Purpose: Verify that getting shipments with very large page size succeeds.
-                 * Expected Result: PaginationBaseResponseModel is returned with results.
-                 * Assertions: Result is not null.
-                 */
-                @Test
-                @DisplayName("Get Shipments In Batches - Very large page size - Success")
-                void getShipmentsInBatches_LargePageSize_Success() {
-                        PaginationBaseRequestModel request = createValidPaginationRequest();
-                        request.setStart(0);
-                        request.setEnd(1000000);
-
-                        List<Shipment> shipments = Arrays.asList(testShipment);
-                        Page<Shipment> page = new PageImpl<>(shipments);
-
-                        lenient().when(shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                                anyLong(), any(), any(), any(), any(Pageable.class)))
-                                .thenReturn(page);
-
-                        PaginationBaseResponseModel<ShipmentResponseModel> result = 
-                                shipmentService.getShipmentsInBatches(request);
-
-                        assertNotNull(result);
-                }
-
-                /**
-                 * Purpose: Verify that getting shipments with zero start and end throws BadRequestException.
-                 * Expected Result: BadRequestException with InvalidPagination message is thrown.
-                 * Assertions: Exception message equals ErrorMessages.CommonErrorMessages.InvalidPagination.
-                 */
-                @Test
-                @DisplayName("Get Shipments In Batches - Zero Start and End - Throws BadRequestException")
-                void getShipmentsInBatches_ZeroStartAndEnd_ThrowsBadRequest() {
-                        PaginationBaseRequestModel request = createValidPaginationRequest();
-                        request.setStart(0);
-                        request.setEnd(0);
-
-                        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                                () -> shipmentService.getShipmentsInBatches(request));
-                }
+        /**
+         * Purpose: Verify that Long.MIN_VALUE ID throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidId message.
+         * Assertions: assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, ex.getMessage());
+         */
+        @Test
+        @DisplayName("Get Shipment By ID - Min Long ID - Throws BadRequestException")
+        void getShipmentById_MinLongId_ThrowsBadRequestException() {
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentById(Long.MIN_VALUE));
+            assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, ex.getMessage());
         }
 
-        @Nested
-        @DisplayName("GetShipmentsInBatchesFilterTests")
-        class GetShipmentsInBatchesFilterTests {
+        /**
+         * Purpose: Verify that non-existent shipment throws NotFoundException.
+         * Expected Result: NotFoundException with NotFound message.
+         * Assertions: assertTrue(ex.getMessage().contains("not found"));
+         */
+        @Test
+        @DisplayName("Get Shipment By ID - Shipment Not Found - Throws NotFoundException")
+        void getShipmentById_ShipmentNotFound_ThrowsNotFoundException() {
+            when(shipmentRepository.findById(TEST_SHIPMENT_ID)).thenReturn(Optional.empty());
 
-                /**
-                 * Purpose: Verify that getting shipments with invalid column name throws BadRequestException.
-                 * Expected Result: BadRequestException with InvalidColumnName message is thrown.
-                 * Assertions: Exception message equals formatted InvalidColumnName error message.
-                 */
-                @Test
-                @DisplayName("Get Shipments In Batches - Invalid column 'invalidColumn' - Throws BadRequestException")
-                void getShipmentsInBatches_InvalidColumn_ThrowsBadRequest() {
-                        PaginationBaseRequestModel request = createValidPaginationRequest();
-                        request.setStart(0);
-                        request.setEnd(10);
-                        request.setFilters(List.of(createFilterCondition("invalidColumn", "equals", "test")));
-
-                        assertThrowsBadRequest(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidColumnName, "invalidColumn"),
-                                () -> shipmentService.getShipmentsInBatches(request));
-                }
-
-                /**
-                 * Purpose: Verify that getting shipments with invalid operator throws BadRequestException.
-                 * Expected Result: BadRequestException with InvalidOperator message is thrown.
-                 * Assertions: Exception message equals formatted InvalidOperator error message.
-                 */
-                @Test
-                @DisplayName("Get Shipments In Batches - Invalid operator 'badOperator' - Throws BadRequestException")
-                void getShipmentsInBatches_InvalidOperator_ThrowsBadRequest() {
-                        PaginationBaseRequestModel request = createValidPaginationRequest();
-                        request.setStart(0);
-                        request.setEnd(10);
-                        request.setFilters(List.of(createFilterCondition("shipmentId", "badOperator", "123")));
-
-                        assertThrowsBadRequest(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidOperator, "badOperator"),
-                                () -> shipmentService.getShipmentsInBatches(request));
-                }
-
-                /**
-                 * Purpose: Verify that using string operator on numeric column throws BadRequestException.
-                 * Expected Result: BadRequestException is thrown.
-                 * Assertions: BadRequestException is thrown for invalid operator/type combination.
-                 */
-                @Test
-                @DisplayName("Get Shipments In Batches - String operator on numeric column - Throws BadRequestException")
-                void getShipmentsInBatches_StringOperatorOnNumericColumn_ThrowsBadRequest() {
-                        PaginationBaseRequestModel request = createValidPaginationRequest();
-                        request.setStart(0);
-                        request.setEnd(10);
-                        // "contains" is a string operator, but applied to numeric column "shipmentId"
-                        request.setFilters(List.of(createFilterCondition("shipmentId", "contains", "123")));
-
-                        when(shipmentFilterQueryBuilder.getColumnType("shipmentId")).thenReturn("number");
-
-                        assertThrows(BadRequestException.class,
-                                () -> shipmentService.getShipmentsInBatches(request));
-                }
-
-                /**
-                 * Purpose: Verify that getting shipments with multiple invalid columns throws BadRequestException for first invalid column.
-                 * Expected Result: BadRequestException with InvalidColumnName message is thrown for first invalid column.
-                 * Assertions: Exception message equals formatted InvalidColumnName error message for first invalid column.
-                 */
-                @Test
-                @DisplayName("Get Shipments In Batches - Multiple invalid columns - First one throws")
-                void getShipmentsInBatches_MultipleInvalidColumns_ThrowsBadRequest() {
-                        PaginationBaseRequestModel request = createValidPaginationRequest();
-                        request.setStart(0);
-                        request.setEnd(10);
-                        request.setFilters(List.of(
-                                createFilterCondition("fakeCol1", "equals", "val1"),
-                                createFilterCondition("shipmentId", "equals", "123")
-                        ));
-
-                        assertThrowsBadRequest(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidColumnName, "fakeCol1"),
-                                () -> shipmentService.getShipmentsInBatches(request));
-                }
-
-                /**
-                 * Purpose: Verify that getting shipments with valid 'equals' filter succeeds.
-                 * Expected Result: PaginationBaseResponseModel is returned with correct data size.
-                 * Assertions: Result is not null; data size equals expected count.
-                 */
-                @Test
-                @DisplayName("Get Shipments In Batches - Valid filter with 'equals' operator - Success")
-                void getShipmentsInBatches_ValidFilterEquals_Success() {
-                        PaginationBaseRequestModel request = createValidPaginationRequest();
-                        request.setStart(0);
-                        request.setEnd(10);
-                        request.setFilters(List.of(createFilterCondition("shipmentId", "equals", "123")));
-
-                        List<Shipment> shipments = Arrays.asList(testShipment);
-                        Page<Shipment> page = new PageImpl<>(shipments);
-
-                        lenient().when(shipmentFilterQueryBuilder.getColumnType("shipmentId")).thenReturn("number");
-                        lenient().when(shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                                anyLong(), any(), any(), any(), any(Pageable.class)))
-                                .thenReturn(page);
-
-                        PaginationBaseResponseModel<ShipmentResponseModel> result = 
-                                shipmentService.getShipmentsInBatches(request);
-
-                        assertNotNull(result);
-                        assertEquals(1, result.getData().size());
-                }
-
-                /**
-                 * Purpose: Verify that getting shipments with valid 'contains' filter on string column succeeds.
-                 * Expected Result: PaginationBaseResponseModel is returned.
-                 * Assertions: Result is not null.
-                 */
-                @Test
-                @DisplayName("Get Shipments In Batches - Valid filter with 'contains' on string column - Success")
-                void getShipmentsInBatches_ValidFilterContains_Success() {
-                        PaginationBaseRequestModel request = createValidPaginationRequest();
-                        request.setStart(0);
-                        request.setEnd(10);
-                        request.setFilters(List.of(createFilterCondition("selectedCourierName", "contains", "FedEx")));
-
-                        List<Shipment> shipments = Arrays.asList(testShipment);
-                        Page<Shipment> page = new PageImpl<>(shipments);
-
-                        lenient().when(shipmentFilterQueryBuilder.getColumnType("selectedCourierName")).thenReturn("string");
-                        lenient().when(shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                                anyLong(), any(), any(), any(), any(Pageable.class)))
-                                .thenReturn(page);
-
-                        PaginationBaseResponseModel<ShipmentResponseModel> result = 
-                                shipmentService.getShipmentsInBatches(request);
-
-                        assertNotNull(result);
-                }
-
-                /**
-                 * Purpose: Verify that getting shipments with empty filters list succeeds.
-                 * Expected Result: PaginationBaseResponseModel is returned.
-                 * Assertions: Result is not null.
-                 */
-                @Test
-                @DisplayName("Get Shipments In Batches - Empty filters list - Success")
-                void getShipmentsInBatches_EmptyFiltersList_Success() {
-                        PaginationBaseRequestModel request = createValidPaginationRequest();
-                        request.setStart(0);
-                        request.setEnd(10);
-                        request.setFilters(Collections.emptyList());
-
-                        List<Shipment> shipments = Arrays.asList(testShipment);
-                        Page<Shipment> page = new PageImpl<>(shipments);
-
-                        lenient().when(shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                                anyLong(), any(), any(), any(), any(Pageable.class)))
-                                .thenReturn(page);
-
-                        PaginationBaseResponseModel<ShipmentResponseModel> result = 
-                                shipmentService.getShipmentsInBatches(request);
-
-                        assertNotNull(result);
-                }
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> shipmentService.getShipmentById(TEST_SHIPMENT_ID));
+            assertTrue(ex.getMessage().contains("not found"));
         }
 
+        /**
+         * Purpose: Verify that max long ID throws NotFoundException when not found.
+         * Expected Result: NotFoundException with NotFound message.
+         * Assertions: assertTrue(ex.getMessage().contains("not found"));
+         */
+        @Test
+        @DisplayName("Get Shipment By ID - Max Long ID - Throws NotFoundException")
+        void getShipmentById_MaxLongId_ThrowsNotFoundException() {
+            when(shipmentRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
+
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> shipmentService.getShipmentById(Long.MAX_VALUE));
+            assertTrue(ex.getMessage().contains("not found"));
+        }
+
+        /**
+         * Purpose: Verify repository findById is called with correct ID.
+         * Expected Result: Repository is called with correct parameter.
+         * Assertions: verify(shipmentRepository).findById(TEST_SHIPMENT_ID);
+         */
+        @Test
+        @DisplayName("Get Shipment By ID - Verify Repository Called")
+        void getShipmentById_VerifyRepositoryCalled() {
+            when(shipmentRepository.findById(TEST_SHIPMENT_ID)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class,
+                    () -> shipmentService.getShipmentById(TEST_SHIPMENT_ID));
+
+            verify(shipmentRepository).findById(TEST_SHIPMENT_ID);
+        }
+
+        /**
+         * Purpose: Verify that multiple calls work independently.
+         * Expected Result: Each call checks the correct ID.
+         * Assertions: verify repository called multiple times.
+         */
+        @Test
+        @DisplayName("Get Shipment By ID - Multiple Calls Work Independently")
+        void getShipmentById_MultipleCallsWorkIndependently() {
+            when(shipmentRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class,
+                    () -> shipmentService.getShipmentById(1L));
+            assertThrows(NotFoundException.class,
+                    () -> shipmentService.getShipmentById(2L));
+
+            verify(shipmentRepository).findById(1L);
+            verify(shipmentRepository).findById(2L);
+        }
+
+        /**
+         * Purpose: Verify different IDs are handled independently.
+         * Expected Result: Each call checks the correct ID.
+         * Assertions: verify repository called with each ID.
+         */
+        @Test
+        @DisplayName("Get Shipment By ID - Different IDs")
+        void getShipmentById_DifferentIds() {
+            when(shipmentRepository.findById(100L)).thenReturn(Optional.empty());
+            when(shipmentRepository.findById(200L)).thenReturn(Optional.empty());
+            when(shipmentRepository.findById(300L)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> shipmentService.getShipmentById(100L));
+            assertThrows(NotFoundException.class, () -> shipmentService.getShipmentById(200L));
+            assertThrows(NotFoundException.class, () -> shipmentService.getShipmentById(300L));
+
+            verify(shipmentRepository).findById(100L);
+            verify(shipmentRepository).findById(200L);
+            verify(shipmentRepository).findById(300L);
+        }
+
+        /**
+         * Purpose: Verify that ID 1 works correctly.
+         * Expected Result: NotFoundException when not found.
+         * Assertions: Exception is thrown.
+         */
+        @Test
+        @DisplayName("Get Shipment By ID - ID 1 - Not Found")
+        void getShipmentById_Id1_NotFound() {
+            when(shipmentRepository.findById(1L)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class,
+                    () -> shipmentService.getShipmentById(1L));
+        }
+
+        /**
+         * Purpose: Verify that large ID works correctly.
+         * Expected Result: NotFoundException when not found.
+         * Assertions: Exception is thrown.
+         */
+        @Test
+        @DisplayName("Get Shipment By ID - Large ID - Not Found")
+        void getShipmentById_LargeId_NotFound() {
+            when(shipmentRepository.findById(999999999L)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class,
+                    () -> shipmentService.getShipmentById(999999999L));
+        }
+
+        /**
+         * Purpose: Verify repository is called exactly once per call.
+         * Expected Result: Repository called exactly once.
+         * Assertions: verify(shipmentRepository, times(1)).findById(TEST_SHIPMENT_ID);
+         */
+        @Test
+        @DisplayName("Get Shipment By ID - Repository Called Once")
+        void getShipmentById_RepositoryCalledOnce() {
+            when(shipmentRepository.findById(TEST_SHIPMENT_ID)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class,
+                    () -> shipmentService.getShipmentById(TEST_SHIPMENT_ID));
+
+            verify(shipmentRepository, times(1)).findById(TEST_SHIPMENT_ID);
+        }
+    }
+
+    @Nested
+    @DisplayName("GetShipmentsInBatches Pagination Tests")
+    class GetShipmentsInBatchesPaginationTests {
+
+        /**
+         * Purpose: Verify that start equals end throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidPagination message.
+         * Assertions: assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+         */
+        @Test
+        @DisplayName("Get Shipments - Start Equals End - Throws BadRequestException")
+        void getShipmentsInBatches_StartEqualsEnd_ThrowsBadRequest() {
+            testPaginationRequest.setStart(10);
+            testPaginationRequest.setEnd(10);
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Verify that start greater than end throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidPagination message.
+         * Assertions: assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+         */
+        @Test
+        @DisplayName("Get Shipments - Start Greater Than End - Throws BadRequestException")
+        void getShipmentsInBatches_StartGreaterThanEnd_ThrowsBadRequest() {
+            testPaginationRequest.setStart(100);
+            testPaginationRequest.setEnd(50);
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Verify that zero start and end throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidPagination message.
+         * Assertions: assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+         */
+        @Test
+        @DisplayName("Get Shipments - Zero Start And End - Throws BadRequestException")
+        void getShipmentsInBatches_ZeroStartAndEnd_ThrowsBadRequest() {
+            testPaginationRequest.setStart(0);
+            testPaginationRequest.setEnd(0);
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Verify that negative page size throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidPagination message.
+         * Assertions: assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+         */
+        @Test
+        @DisplayName("Get Shipments - Negative Page Size - Throws BadRequestException")
+        void getShipmentsInBatches_NegativePageSize_ThrowsBadRequest() {
+            testPaginationRequest.setStart(10);
+            testPaginationRequest.setEnd(5);
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Verify that start 50, end 25 throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidPagination message.
+         * Assertions: assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+         */
+        @Test
+        @DisplayName("Get Shipments - Start 50 End 25 - Throws BadRequestException")
+        void getShipmentsInBatches_Start50End25_ThrowsBadRequest() {
+            testPaginationRequest.setStart(50);
+            testPaginationRequest.setEnd(25);
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Verify that start 1000, end 500 throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidPagination message.
+         * Assertions: assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+         */
+        @Test
+        @DisplayName("Get Shipments - Start 1000 End 500 - Throws BadRequestException")
+        void getShipmentsInBatches_Start1000End500_ThrowsBadRequest() {
+            testPaginationRequest.setStart(1000);
+            testPaginationRequest.setEnd(500);
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Verify that Integer.MAX_VALUE start, end 0 throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidPagination message.
+         * Assertions: assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+         */
+        @Test
+        @DisplayName("Get Shipments - Max Int Start Zero End - Throws BadRequestException")
+        void getShipmentsInBatches_MaxIntStartZeroEnd_ThrowsBadRequest() {
+            testPaginationRequest.setStart(Integer.MAX_VALUE);
+            testPaginationRequest.setEnd(0);
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Verify that same large start and end throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidPagination message.
+         * Assertions: assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+         */
+        @Test
+        @DisplayName("Get Shipments - Same Large Start And End - Throws BadRequestException")
+        void getShipmentsInBatches_SameLargeStartAndEnd_ThrowsBadRequest() {
+            testPaginationRequest.setStart(999999);
+            testPaginationRequest.setEnd(999999);
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Verify that start 5, end 5 throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidPagination message.
+         * Assertions: assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+         */
+        @Test
+        @DisplayName("Get Shipments - Start 5 End 5 - Throws BadRequestException")
+        void getShipmentsInBatches_Start5End5_ThrowsBadRequest() {
+            testPaginationRequest.setStart(5);
+            testPaginationRequest.setEnd(5);
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Verify that start 100, end 99 throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidPagination message.
+         * Assertions: assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+         */
+        @Test
+        @DisplayName("Get Shipments - Start 100 End 99 - Throws BadRequestException")
+        void getShipmentsInBatches_Start100End99_ThrowsBadRequest() {
+            testPaginationRequest.setStart(100);
+            testPaginationRequest.setEnd(99);
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Verify that start 1, end 0 throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidPagination message.
+         * Assertions: assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+         */
+        @Test
+        @DisplayName("Get Shipments - Start 1 End 0 - Throws BadRequestException")
+        void getShipmentsInBatches_Start1End0_ThrowsBadRequest() {
+            testPaginationRequest.setStart(1);
+            testPaginationRequest.setEnd(0);
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        }
+    }
+
+    @Nested
+    @DisplayName("GetShipmentsInBatches Filter Tests")
+    class GetShipmentsInBatchesFilterTests {
+
+        /**
+         * Purpose: Verify that invalid column name throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidColumnName message.
+         * Assertions: assertTrue(ex.getMessage().contains("invalidColumn"));
+         */
+        @Test
+        @DisplayName("Get Shipments - Invalid Column - Throws BadRequestException")
+        void getShipmentsInBatches_InvalidColumn_ThrowsBadRequest() {
+            testPaginationRequest.setStart(0);
+            testPaginationRequest.setEnd(10);
+            PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+            filter.setColumn("invalidColumn");
+            filter.setOperator("equals");
+            filter.setValue("test");
+            testPaginationRequest.setFilters(List.of(filter));
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertTrue(ex.getMessage().contains("invalidColumn"));
+        }
+
+        /**
+         * Purpose: Verify that xyz column throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidColumnName message.
+         * Assertions: assertTrue(ex.getMessage().contains("xyz"));
+         */
+        @Test
+        @DisplayName("Get Shipments - xyz Column - Throws BadRequestException")
+        void getShipmentsInBatches_XyzColumn_ThrowsBadRequest() {
+            testPaginationRequest.setStart(0);
+            testPaginationRequest.setEnd(10);
+            PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+            filter.setColumn("xyz");
+            filter.setOperator("equals");
+            filter.setValue("test");
+            testPaginationRequest.setFilters(List.of(filter));
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertTrue(ex.getMessage().contains("xyz"));
+        }
+
+        /**
+         * Purpose: Verify that special char column throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidColumnName message.
+         * Assertions: assertTrue(ex.getMessage().contains("@#$"));
+         */
+        @Test
+        @DisplayName("Get Shipments - Special Char Column - Throws BadRequestException")
+        void getShipmentsInBatches_SpecialCharColumn_ThrowsBadRequest() {
+            testPaginationRequest.setStart(0);
+            testPaginationRequest.setEnd(10);
+            PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+            filter.setColumn("@#$");
+            filter.setOperator("equals");
+            filter.setValue("test");
+            testPaginationRequest.setFilters(List.of(filter));
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertTrue(ex.getMessage().contains("@#$"));
+        }
+
+        /**
+         * Purpose: Verify that fakeColumn throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidColumnName message.
+         * Assertions: assertTrue(ex.getMessage().contains("fakeColumn"));
+         */
+        @Test
+        @DisplayName("Get Shipments - fakeColumn - Throws BadRequestException")
+        void getShipmentsInBatches_FakeColumn_ThrowsBadRequest() {
+            testPaginationRequest.setStart(0);
+            testPaginationRequest.setEnd(10);
+            PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+            filter.setColumn("fakeColumn");
+            filter.setOperator("equals");
+            filter.setValue("test");
+            testPaginationRequest.setFilters(List.of(filter));
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertTrue(ex.getMessage().contains("fakeColumn"));
+        }
+
+        /**
+         * Purpose: Verify that nonExistentField throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidColumnName message.
+         * Assertions: assertTrue(ex.getMessage().contains("nonExistentField"));
+         */
+        @Test
+        @DisplayName("Get Shipments - nonExistentField - Throws BadRequestException")
+        void getShipmentsInBatches_NonExistentField_ThrowsBadRequest() {
+            testPaginationRequest.setStart(0);
+            testPaginationRequest.setEnd(10);
+            PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+            filter.setColumn("nonExistentField");
+            filter.setOperator("equals");
+            filter.setValue("test");
+            testPaginationRequest.setFilters(List.of(filter));
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertTrue(ex.getMessage().contains("nonExistentField"));
+        }
+
+        /**
+         * Purpose: Verify that invalid operator throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidOperator message.
+         * Assertions: assertTrue(ex.getMessage().contains("badOperator"));
+         */
+        @Test
+        @DisplayName("Get Shipments - Invalid Operator - Throws BadRequestException")
+        void getShipmentsInBatches_InvalidOperator_ThrowsBadRequest() {
+            testPaginationRequest.setStart(0);
+            testPaginationRequest.setEnd(10);
+            PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+            filter.setColumn("shipmentId");
+            filter.setOperator("badOperator");
+            filter.setValue("123");
+            testPaginationRequest.setFilters(List.of(filter));
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertTrue(ex.getMessage().contains("badOperator"));
+        }
+
+        /**
+         * Purpose: Verify that invalid operator xyz throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidOperator message.
+         * Assertions: assertTrue(ex.getMessage().contains("xyz"));
+         */
+        @Test
+        @DisplayName("Get Shipments - Invalid Operator xyz - Throws BadRequestException")
+        void getShipmentsInBatches_InvalidOperatorXyz_ThrowsBadRequest() {
+            testPaginationRequest.setStart(0);
+            testPaginationRequest.setEnd(10);
+            PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+            filter.setColumn("shipmentId");
+            filter.setOperator("xyz");
+            filter.setValue("123");
+            testPaginationRequest.setFilters(List.of(filter));
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertTrue(ex.getMessage().contains("xyz"));
+        }
+
+        /**
+         * Purpose: Verify that invalid operator special char throws BadRequestException.
+         * Expected Result: BadRequestException with InvalidOperator message.
+         * Assertions: assertTrue(ex.getMessage().contains("!@#"));
+         */
+        @Test
+        @DisplayName("Get Shipments - Invalid Operator Special Char - Throws BadRequestException")
+        void getShipmentsInBatches_InvalidOperatorSpecialChar_ThrowsBadRequest() {
+            testPaginationRequest.setStart(0);
+            testPaginationRequest.setEnd(10);
+            PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+            filter.setColumn("shipmentId");
+            filter.setOperator("!@#");
+            filter.setValue("123");
+            testPaginationRequest.setFilters(List.of(filter));
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertTrue(ex.getMessage().contains("!@#"));
+        }
+
+        /**
+         * Purpose: Verify that multiple invalid columns first one throws.
+         * Expected Result: BadRequestException with first invalid column.
+         * Assertions: assertTrue(ex.getMessage().contains("fakeCol1"));
+         */
+        @Test
+        @DisplayName("Get Shipments - Multiple Invalid Columns First One Throws")
+        void getShipmentsInBatches_MultipleInvalidColumnsFirstOneThrows() {
+            testPaginationRequest.setStart(0);
+            testPaginationRequest.setEnd(10);
+            PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+            filter1.setColumn("fakeCol1");
+            filter1.setOperator("equals");
+            filter1.setValue("val1");
+            PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+            filter2.setColumn("shipmentId");
+            filter2.setOperator("equals");
+            filter2.setValue("123");
+            testPaginationRequest.setFilters(List.of(filter1, filter2));
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> shipmentService.getShipmentsInBatches(testPaginationRequest));
+            assertTrue(ex.getMessage().contains("fakeCol1"));
+        }
+    }
 }

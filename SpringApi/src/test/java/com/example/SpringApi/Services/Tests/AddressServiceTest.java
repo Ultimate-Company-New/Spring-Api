@@ -23,6 +23,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -33,34 +34,18 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Comprehensive unit tests for AddressService.
+ * Unit tests for AddressService.
  * 
- * This test class provides exhaustive coverage of AddressService methods
- * including:
- * - CRUD operations (create, read, update, toggle)
- * - Address retrieval by ID, user ID, and client ID
- * - Address status management
- * - Validation error handling for all input fields
- * - Edge cases (null values, empty strings, negative IDs, zero IDs)
- * - All conditional branches and code paths
- * 
- * Test naming convention: methodName_Scenario_ExpectedOutcome
- * Example: toggleAddress_AddressNotFound_ThrowsNotFoundException
- * 
- * Each test method follows the AAA (Arrange-Act-Assert) pattern and includes
- * both success and failure scenarios to ensure robust error handling.
- * All external dependencies are properly mocked to ensure test isolation.
- * 
- * Rules for comprehensive testing:
- * 1. Every public method must have at least one success and one failure test
- * 2. All if statements and branches must be covered
- * 3. All validations must have dedicated tests
- * 4. Edge cases: null, empty, negative, zero, boundary values
- * 5. Read-only methods should use @Transactional(readOnly = true)
- * 
- * @author SpringApi Team
- * @version 2.0
- * @since 2024-01-15
+ * Test Group Summary:
+ * | Group Name                              | Number of Tests |
+ * | :-------------------------------------- | :-------------- |
+ * | ToggleAddressTests                      | 9               |
+ * | GetAddressByIdTests                     | 8               |
+ * | InsertAddressTests                      | 52              |
+ * | UpdateAddressTests                      | 25              |
+ * | GetAddressByUserIdTests                 | 9               |
+ * | GetAddressByClientIdTests               | 37              |
+ * | **Total**                               | **140**         |
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AddressService Unit Tests")
@@ -113,12 +98,15 @@ class AddressServiceTest extends BaseTest {
         lenient().doReturn(DEFAULT_CLIENT_ID).when(addressService).getClientId();
     }
 
-    // ==================== TOGGLE ADDRESS TESTS ====================
-
     @Nested
     @DisplayName("toggleAddress Tests")
     class ToggleAddressTests {
 
+        /**
+         * Purpose: Verify toggling an active address marks it deleted.
+         * Expected Result: Address is saved with deleted flag set.
+         * Assertions: Deleted flag is true and save/log calls occur.
+         */
         @Test
         @DisplayName("Toggle Address - Address found and active - Success toggles to deleted")
         void toggleAddress_AddressFoundActive_Success() {
@@ -138,6 +126,11 @@ class AddressServiceTest extends BaseTest {
             verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
         }
 
+        /**
+         * Purpose: Verify toggling a deleted address restores it.
+         * Expected Result: Address is saved with deleted flag cleared.
+         * Assertions: Deleted flag is false and save is called.
+         */
         @Test
         @DisplayName("Toggle Address - Address found and deleted - Success toggles to active")
         void toggleAddress_AddressFoundDeleted_Success() {
@@ -156,6 +149,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, times(1)).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Ensure toggling a missing address fails.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound and save/log are not called.
+         */
         @Test
         @DisplayName("Toggle Address - Address not found - ThrowsNotFoundException")
         void toggleAddress_AddressNotFound_ThrowsNotFoundException() {
@@ -173,6 +171,11 @@ class AddressServiceTest extends BaseTest {
             verify(userLogService, never()).logData(anyLong(), anyString(), anyString());
         }
 
+        /**
+         * Purpose: Validate negative ID is rejected.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Toggle Address - Negative ID - ThrowsNotFoundException")
         void toggleAddress_NegativeId_ThrowsNotFoundException() {
@@ -188,6 +191,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
         }
 
+        /**
+         * Purpose: Validate zero ID is rejected.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Toggle Address - Zero ID - ThrowsNotFoundException")
         void toggleAddress_ZeroId_ThrowsNotFoundException() {
@@ -203,6 +211,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
         }
 
+        /**
+         * Purpose: Validate min long ID is rejected.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Toggle Address - Min Long value - ThrowsNotFoundException")
         void toggleAddress_MinLongValue_ThrowsNotFoundException() {
@@ -217,6 +230,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
         }
 
+        /**
+         * Purpose: Verify multiple toggles switch state each time.
+         * Expected Result: Address toggles deleted flag on each call.
+         * Assertions: Deleted flag flips and repository calls are counted.
+         */
         @Test
         @DisplayName("Toggle Address - Multiple toggles in sequence - Success")
         void toggleAddress_MultipleToggles_Success() {
@@ -239,6 +257,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, times(2)).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Verify active-to-deleted state change.
+         * Expected Result: Address is marked deleted.
+         * Assertions: Deleted flag is true and log is called.
+         */
         @Test
         @DisplayName("Toggle Address - Verify toggle state changes - Active to Deleted")
         void toggleAddress_StateChange_ActiveToDeleted() {
@@ -256,6 +279,11 @@ class AddressServiceTest extends BaseTest {
             verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
         }
 
+        /**
+         * Purpose: Verify deleted-to-active state change.
+         * Expected Result: Address is restored.
+         * Assertions: Deleted flag is false and log is called.
+         */
         @Test
         @DisplayName("Toggle Address - Verify toggle state changes - Deleted to Active")
         void toggleAddress_StateChange_DeletedToActive() {
@@ -274,12 +302,15 @@ class AddressServiceTest extends BaseTest {
         }
     }
 
-    // ==================== GET ADDRESS BY ID TESTS ====================
-
     @Nested
     @DisplayName("getAddressById Tests")
     class GetAddressByIdTests {
 
+        /**
+         * Purpose: Verify address details are returned for a valid ID.
+         * Expected Result: Response contains address fields.
+         * Assertions: Response fields match the test address.
+         */
         @Test
         @DisplayName("Get Address By ID - Address found - Success returns address details")
         void getAddressById_AddressFound_Success() {
@@ -306,6 +337,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, times(1)).findById(DEFAULT_ADDRESS_ID);
         }
 
+        /**
+         * Purpose: Validate missing address ID returns not found.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By ID - Address not found - ThrowsNotFoundException")
         void getAddressById_AddressNotFound_ThrowsNotFoundException() {
@@ -321,6 +357,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, times(1)).findById(DEFAULT_ADDRESS_ID);
         }
 
+        /**
+         * Purpose: Validate negative ID is rejected.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By ID - Negative ID - ThrowsNotFoundException")
         void getAddressById_NegativeId_ThrowsNotFoundException() {
@@ -329,6 +370,11 @@ class AddressServiceTest extends BaseTest {
             assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound, () -> addressService.getAddressById(negativeId));
         }
 
+        /**
+         * Purpose: Validate zero ID is rejected.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By ID - Zero ID - ThrowsNotFoundException")
         void getAddressById_ZeroId_ThrowsNotFoundException() {
@@ -337,6 +383,11 @@ class AddressServiceTest extends BaseTest {
             assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound, () -> addressService.getAddressById(zeroId));
         }
 
+        /**
+         * Purpose: Verify deleted address can still be retrieved.
+         * Expected Result: Response indicates deleted status.
+         * Assertions: isDeleted is true.
+         */
         @Test
         @DisplayName("Get Address By ID - Deleted address - Success returns deleted address")
         void getAddressById_DeletedAddress_Success() {
@@ -352,6 +403,11 @@ class AddressServiceTest extends BaseTest {
             assertTrue(result.getIsDeleted());
         }
 
+        /**
+         * Purpose: Verify null optional fields are handled.
+         * Expected Result: Response contains nulls for optional fields.
+         * Assertions: Optional fields are null in response.
+         */
         @Test
         @DisplayName("Get Address By ID - Address with null optional fields - Success")
         void getAddressById_NullOptionalFields_Success() {
@@ -372,6 +428,11 @@ class AddressServiceTest extends BaseTest {
             assertNull(result.getStreetAddress3());
         }
 
+        /**
+         * Purpose: Validate max long ID is rejected when not found.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By ID - Max Long value - ThrowsNotFoundException")
         void getAddressById_MaxLongValue_ThrowsNotFoundException() {
@@ -379,6 +440,11 @@ class AddressServiceTest extends BaseTest {
             assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound, () -> addressService.getAddressById(Long.MAX_VALUE));
         }
 
+        /**
+         * Purpose: Validate min long ID is rejected when not found.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By ID - Min Long value - ThrowsNotFoundException")
         void getAddressById_MinLongValue_ThrowsNotFoundException() {
@@ -387,12 +453,15 @@ class AddressServiceTest extends BaseTest {
         }
     }
 
-    // ==================== INSERT ADDRESS TESTS ====================
-
     @Nested
     @DisplayName("insertAddress Tests")
     class InsertAddressTests {
 
+        /**
+         * Purpose: Verify inserting a valid address succeeds.
+         * Expected Result: Address is saved and log is written.
+         * Assertions: Save and log calls are invoked.
+         */
         @Test
         @DisplayName("Insert Address - Valid request - Success")
         void insertAddress_ValidRequest_Success() {
@@ -408,6 +477,33 @@ class AddressServiceTest extends BaseTest {
             verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
         }
 
+        /**
+         * Purpose: Verify insert logs success route with created ID.
+         * Expected Result: Log entry includes success message and route.
+         * Assertions: logData is called with INSERT_ADDRESS route and success text.
+         */
+        @Test
+        @DisplayName("Insert Address - Logs success message and route")
+        void insertAddress_LogsSuccessMessageAndRoute() {
+            // Arrange
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            // Act
+            addressService.insertAddress(testAddressRequest);
+
+            // Assert
+            verify(userLogService).logData(
+                    eq(DEFAULT_USER_ID),
+                    contains(com.example.SpringApi.SuccessMessages.AddressSuccessMessages.InsertAddress),
+                    eq(com.example.SpringApi.Models.ApiRoutes.AddressSubRoute.INSERT_ADDRESS));
+        }
+
+        /**
+         * Purpose: Reject null insert request.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER001 and save is not called.
+         */
         @Test
         @DisplayName("Insert Address - Null request - ThrowsBadRequestException")
         void insertAddress_NullRequest_ThrowsBadRequestException() {
@@ -420,6 +516,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject null street address.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER001.
+         */
         @Test
         @DisplayName("Insert Address - Null street address - ThrowsBadRequestException")
         void insertAddress_NullStreetAddress_ThrowsBadRequestException() {
@@ -434,6 +535,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER001, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject empty street address.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER001.
+         */
         @Test
         @DisplayName("Insert Address - Empty street address - ThrowsBadRequestException")
         void insertAddress_EmptyStreetAddress_ThrowsBadRequestException() {
@@ -448,6 +554,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER001, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject whitespace-only street address.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER001.
+         */
         @Test
         @DisplayName("Insert Address - Whitespace only street address - ThrowsBadRequestException")
         void insertAddress_WhitespaceStreetAddress_ThrowsBadRequestException() {
@@ -462,6 +573,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER001, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject null city.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER002.
+         */
         @Test
         @DisplayName("Insert Address - Null city - ThrowsBadRequestException")
         void insertAddress_NullCity_ThrowsBadRequestException() {
@@ -476,6 +592,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER002, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject empty city.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER002.
+         */
         @Test
         @DisplayName("Insert Address - Empty city - ThrowsBadRequestException")
         void insertAddress_EmptyCity_ThrowsBadRequestException() {
@@ -490,6 +611,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER002, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject whitespace-only city.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER002.
+         */
         @Test
         @DisplayName("Insert Address - Whitespace only city - ThrowsBadRequestException")
         void insertAddress_WhitespaceCity_ThrowsBadRequestException() {
@@ -504,6 +630,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER002, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject whitespace-only state.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER003.
+         */
         @Test
         @DisplayName("Insert Address - Whitespace only state - ThrowsBadRequestException")
         void insertAddress_WhitespaceState_ThrowsBadRequestException() {
@@ -518,6 +649,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER003, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject whitespace-only postal code.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER004.
+         */
         @Test
         @DisplayName("Insert Address - Whitespace only postal code - ThrowsBadRequestException")
         void insertAddress_WhitespacePostalCode_ThrowsBadRequestException() {
@@ -532,6 +668,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER004, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject whitespace-only country.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER005.
+         */
         @Test
         @DisplayName("Insert Address - Whitespace only country - ThrowsBadRequestException")
         void insertAddress_WhitespaceCountry_ThrowsBadRequestException() {
@@ -546,6 +687,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER005, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject null state.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER003.
+         */
         @Test
         @DisplayName("Insert Address - Null state - ThrowsBadRequestException")
         void insertAddress_NullState_ThrowsBadRequestException() {
@@ -560,6 +706,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER003, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject empty state.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER003.
+         */
         @Test
         @DisplayName("Insert Address - Empty state - ThrowsBadRequestException")
         void insertAddress_EmptyState_ThrowsBadRequestException() {
@@ -574,6 +725,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER003, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject null postal code.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER004.
+         */
         @Test
         @DisplayName("Insert Address - Null postal code - ThrowsBadRequestException")
         void insertAddress_NullPostalCode_ThrowsBadRequestException() {
@@ -588,6 +744,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER004, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject empty postal code.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER004.
+         */
         @Test
         @DisplayName("Insert Address - Empty postal code - ThrowsBadRequestException")
         void insertAddress_EmptyPostalCode_ThrowsBadRequestException() {
@@ -602,6 +763,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER004, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject invalid postal code formats.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER007.
+         */
         @ParameterizedTest
         @ValueSource(strings = { "1234", "1234567", "abcde", "12-345", "12.345", "12 345" })
         @DisplayName("Insert Address - Invalid postal code format - ThrowsBadRequestException")
@@ -617,6 +783,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER007, exception.getMessage());
         }
 
+        /**
+         * Purpose: Allow valid postal code lengths.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @ParameterizedTest
         @ValueSource(strings = { "12345", "123456" })
         @DisplayName("Insert Address - Valid postal code formats (5-6 digits) - Success")
@@ -630,6 +801,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Reject null country.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER005.
+         */
         @Test
         @DisplayName("Insert Address - Null country - ThrowsBadRequestException")
         void insertAddress_NullCountry_ThrowsBadRequestException() {
@@ -644,6 +820,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER005, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject empty country.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER005.
+         */
         @Test
         @DisplayName("Insert Address - Empty country - ThrowsBadRequestException")
         void insertAddress_EmptyCountry_ThrowsBadRequestException() {
@@ -658,6 +839,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER005, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject null address type.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER006.
+         */
         @Test
         @DisplayName("Insert Address - Null address type - ThrowsBadRequestException")
         void insertAddress_NullAddressType_ThrowsBadRequestException() {
@@ -672,6 +858,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER006, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject invalid address types.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER006.
+         */
         @ParameterizedTest
         @ValueSource(strings = { "INVALID", "RESIDENTIAL", "COMMERCIAL", "home123", "" })
         @DisplayName("Insert Address - Invalid address type - ThrowsBadRequestException")
@@ -687,6 +878,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER006, exception.getMessage());
         }
 
+        /**
+         * Purpose: Accept valid address types (case-insensitive).
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @ParameterizedTest
         @ValueSource(strings = { "HOME", "WORK", "BILLING", "SHIPPING", "OFFICE", "WAREHOUSE", "home", "Home", "work",
                 "Work" })
@@ -701,6 +897,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Reject negative user ID.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches InvalidId.
+         */
         @Test
         @DisplayName("Insert Address - Negative user ID - ThrowsBadRequestException")
         void insertAddress_NegativeUserId_ThrowsBadRequestException() {
@@ -715,6 +916,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.UserErrorMessages.InvalidId, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject zero user ID.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches InvalidId.
+         */
         @Test
         @DisplayName("Insert Address - Zero user ID - ThrowsBadRequestException")
         void insertAddress_ZeroUserId_ThrowsBadRequestException() {
@@ -729,6 +935,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.UserErrorMessages.InvalidId, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject negative client ID.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches InvalidId.
+         */
         @Test
         @DisplayName("Insert Address - Negative client ID - ThrowsBadRequestException")
         void insertAddress_NegativeClientId_ThrowsBadRequestException() {
@@ -743,6 +954,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject zero client ID.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches InvalidId.
+         */
         @Test
         @DisplayName("Insert Address - Zero client ID - ThrowsBadRequestException")
         void insertAddress_ZeroClientId_ThrowsBadRequestException() {
@@ -757,6 +973,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, exception.getMessage());
         }
 
+        /**
+         * Purpose: Allow null user ID (optional).
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Null user ID (optional) - Success")
         void insertAddress_NullUserId_Success() {
@@ -769,6 +990,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Allow null client ID (optional).
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Null client ID (optional) - Success")
         void insertAddress_NullClientId_Success() {
@@ -781,6 +1007,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Accept all optional fields as null.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - All optional fields null - Success")
         void insertAddress_AllOptionalFieldsNull_Success() {
@@ -799,6 +1030,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Accept all optional fields provided.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - All optional fields provided - Success")
         void insertAddress_AllOptionalFieldsProvided_Success() {
@@ -817,6 +1053,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Allow street address with leading/trailing spaces.
+         * Expected Result: Insert succeeds and trimming occurs.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Street address with leading/trailing spaces - Success trims spaces")
         void insertAddress_StreetAddressWithSpaces_SuccessTrimsSpaces() {
@@ -829,6 +1070,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Accept very long street addresses.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Very long street address - Success")
         void insertAddress_VeryLongStreetAddress_Success() {
@@ -842,6 +1088,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Accept special characters in street address.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Special characters in street address - Success")
         void insertAddress_SpecialCharactersInStreetAddress_Success() {
@@ -854,6 +1105,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Accept unicode characters in city.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Unicode characters in city - Success")
         void insertAddress_UnicodeCharactersInCity_Success() {
@@ -866,6 +1122,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Accept boundary postal code of 5 digits.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Boundary postal code 5 digits - Success")
         void insertAddress_BoundaryPostalCode5Digits_Success() {
@@ -878,6 +1139,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Accept boundary postal code of 6 digits.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Boundary postal code 6 digits - Success")
         void insertAddress_BoundaryPostalCode6Digits_Success() {
@@ -890,6 +1156,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Accept isPrimary true.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Boolean isPrimary true - Success")
         void insertAddress_IsPrimaryTrue_Success() {
@@ -902,6 +1173,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Accept isPrimary false.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Boolean isPrimary false - Success")
         void insertAddress_IsPrimaryFalse_Success() {
@@ -914,6 +1190,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Accept isDeleted true.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Boolean isDeleted true - Success")
         void insertAddress_IsDeletedTrue_Success() {
@@ -926,6 +1207,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Verify multiple valid fields succeed together.
+         * Expected Result: Insert succeeds.
+         * Assertions: Save is called.
+         */
         @Test
         @DisplayName("Insert Address - Multiple validations pass together - Success")
         void insertAddress_MultipleValidationsPass_Success() {
@@ -947,6 +1233,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, times(1)).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Accept case-insensitive HOME address type.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Case insensitive address type HOME - Success")
         void insertAddress_CaseInsensitiveHome_Success() {
@@ -959,6 +1250,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Accept case-insensitive WORK address type.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Case insensitive address type WORK - Success")
         void insertAddress_CaseInsensitiveWork_Success() {
@@ -971,6 +1267,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Accept postal codes with leading zeros.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Postal code with leading zeros - Success")
         void insertAddress_PostalCodeWithLeadingZeros_Success() {
@@ -983,6 +1284,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Accept max long user ID.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Max Long user ID - Success")
         void insertAddress_MaxLongUserId_Success() {
@@ -995,6 +1301,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Accept max long client ID.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Max Long client ID - Success")
         void insertAddress_MaxLongClientId_Success() {
@@ -1007,6 +1318,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Reject postal code of 4 digits.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER007.
+         */
         @Test
         @DisplayName("Insert Address - Postal code 4 digits - ThrowsBadRequestException")
         void insertAddress_PostalCode4Digits_ThrowsBadRequestException() {
@@ -1021,6 +1337,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER007, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject postal code of 7 digits.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER007.
+         */
         @Test
         @DisplayName("Insert Address - Postal code 7 digits - ThrowsBadRequestException")
         void insertAddress_PostalCode7Digits_ThrowsBadRequestException() {
@@ -1035,6 +1356,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER007, exception.getMessage());
         }
 
+        /**
+         * Purpose: Accept mixed-case address type.
+         * Expected Result: Insert succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Insert Address - Mixed case address type - Success")
         void insertAddress_MixedCaseAddressType_Success() {
@@ -1046,14 +1372,84 @@ class AddressServiceTest extends BaseTest {
             // Act & Assert
             assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
         }
-    }
 
-    // ==================== UPDATE ADDRESS TESTS ====================
+        /**
+         * Purpose: Reject invalid created user.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches InvalidUser.
+         */
+        @Test
+        @DisplayName("Insert Address - Invalid created user - ThrowsBadRequestException")
+        void insertAddress_InvalidCreatedUser_ThrowsBadRequestException() {
+            // Arrange
+            doReturn(" ").when(addressService).getUser();
+
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> addressService.insertAddress(testAddressRequest));
+
+            assertEquals(ErrorMessages.UserErrorMessages.InvalidUser, exception.getMessage());
+        }
+
+        /**
+         * Purpose: Default boolean fields when null on insert.
+         * Expected Result: isPrimary/isDeleted default false.
+         * Assertions: Saved address has default boolean values.
+         */
+        @Test
+        @DisplayName("Insert Address - Null boolean fields - Defaults applied")
+        void insertAddress_NullBooleanFields_DefaultsApplied() {
+            // Arrange
+            testAddressRequest.setCountry("India");
+            testAddressRequest.setIsPrimary(null);
+            testAddressRequest.setIsDeleted(null);
+
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            // Act
+            assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+
+            // Assert
+            ArgumentCaptor<Address> captor = ArgumentCaptor.forClass(Address.class);
+            verify(addressRepository).save(captor.capture());
+            assertFalse(captor.getValue().getIsPrimary());
+            assertFalse(captor.getValue().getIsDeleted());
+        }
+
+        /**
+         * Purpose: Normalize address type to uppercase on insert.
+         * Expected Result: Address type is saved as uppercase.
+         * Assertions: Saved address has normalized address type.
+         */
+        @Test
+        @DisplayName("Insert Address - Address type normalized - Success")
+        void insertAddress_AddressTypeNormalized_Success() {
+            // Arrange
+            testAddressRequest.setAddressType("home");
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            // Act
+            assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+
+            // Assert
+            ArgumentCaptor<Address> captor = ArgumentCaptor.forClass(Address.class);
+            verify(addressRepository).save(captor.capture());
+            assertEquals("HOME", captor.getValue().getAddressType());
+        }
+    }
 
     @Nested
     @DisplayName("updateAddress Tests")
     class UpdateAddressTests {
 
+        /**
+         * Purpose: Verify updating an existing address succeeds.
+         * Expected Result: Address is saved and log is written.
+         * Assertions: Save/log calls are invoked.
+         */
         @Test
         @DisplayName("Update Address - Address found - Success updates all fields")
         void updateAddress_AddressFound_Success() {
@@ -1075,6 +1471,34 @@ class AddressServiceTest extends BaseTest {
             verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
         }
 
+        /**
+         * Purpose: Verify update logs success route with updated ID.
+         * Expected Result: Log entry includes success message and route.
+         * Assertions: logData is called with UPDATE_ADDRESS route and success text.
+         */
+        @Test
+        @DisplayName("Update Address - Logs success message and route")
+        void updateAddress_LogsSuccessMessageAndRoute() {
+            // Arrange
+            when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            // Act
+            addressService.updateAddress(testAddressRequest);
+
+            // Assert
+            verify(userLogService).logData(
+                    eq(DEFAULT_USER_ID),
+                    contains(com.example.SpringApi.SuccessMessages.AddressSuccessMessages.UpdateAddress),
+                    eq(com.example.SpringApi.Models.ApiRoutes.AddressSubRoute.UPDATE_ADDRESS));
+        }
+
+        /**
+         * Purpose: Reject update when address does not exist.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound and save is not called.
+         */
         @Test
         @DisplayName("Update Address - Address not found - ThrowsNotFoundException")
         void updateAddress_AddressNotFound_ThrowsNotFoundException() {
@@ -1091,6 +1515,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject null update request.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER001.
+         */
         @Test
         @DisplayName("Update Address - Null request - ThrowsBadRequestException")
         void updateAddress_NullRequest_ThrowsBadRequestException() {
@@ -1102,6 +1531,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER001, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject null street address.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER001.
+         */
         @Test
         @DisplayName("Update Address - Null street address - ThrowsBadRequestException")
         void updateAddress_NullStreetAddress_ThrowsBadRequestException() {
@@ -1117,6 +1551,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER001, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject null city.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER002.
+         */
         @Test
         @DisplayName("Update Address - Null city - ThrowsBadRequestException")
         void updateAddress_NullCity_ThrowsBadRequestException() {
@@ -1127,6 +1566,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER002, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject null state.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER003.
+         */
         @Test
         @DisplayName("Update Address - Null state - ThrowsBadRequestException")
         void updateAddress_NullState_ThrowsBadRequestException() {
@@ -1137,6 +1581,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER003, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject null country.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER005.
+         */
         @Test
         @DisplayName("Update Address - Null country - ThrowsBadRequestException")
         void updateAddress_NullCountry_ThrowsBadRequestException() {
@@ -1147,6 +1596,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER005, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject invalid postal code.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER007.
+         */
         @Test
         @DisplayName("Update Address - Invalid postal code - ThrowsBadRequestException")
         void updateAddress_InvalidPostalCode_ThrowsBadRequestException() {
@@ -1162,6 +1616,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER007, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject invalid address type.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER006.
+         */
         @Test
         @DisplayName("Update Address - Invalid address type - ThrowsBadRequestException")
         void updateAddress_InvalidAddressType_ThrowsBadRequestException() {
@@ -1177,6 +1636,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER006, exception.getMessage());
         }
 
+        /**
+         * Purpose: Verify changing address type succeeds.
+         * Expected Result: Update succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Update Address - Change address type - Success")
         void updateAddress_ChangeAddressType_Success() {
@@ -1190,6 +1654,11 @@ class AddressServiceTest extends BaseTest {
             assertDoesNotThrow(() -> addressService.updateAddress(testAddressRequest));
         }
 
+        /**
+         * Purpose: Reject negative user ID.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches InvalidId.
+         */
         @Test
         @DisplayName("Update Address - Negative user ID - ThrowsBadRequestException")
         void updateAddress_NegativeUserId_ThrowsBadRequestException() {
@@ -1205,6 +1674,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.UserErrorMessages.InvalidId, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject zero user ID.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches InvalidId.
+         */
         @Test
         @DisplayName("Update Address - Zero user ID - ThrowsBadRequestException")
         void updateAddress_ZeroUserId_ThrowsBadRequestException() {
@@ -1220,6 +1694,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.UserErrorMessages.InvalidId, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject negative client ID.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches InvalidId.
+         */
         @Test
         @DisplayName("Update Address - Negative client ID - ThrowsBadRequestException")
         void updateAddress_NegativeClientId_ThrowsBadRequestException() {
@@ -1235,6 +1714,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject zero client ID.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches InvalidId.
+         */
         @Test
         @DisplayName("Update Address - Zero client ID - ThrowsBadRequestException")
         void updateAddress_ZeroClientId_ThrowsBadRequestException() {
@@ -1250,6 +1734,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject empty street address.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER001.
+         */
         @Test
         @DisplayName("Update Address - Empty street address - ThrowsBadRequestException")
         void updateAddress_EmptyStreetAddress_ThrowsBadRequestException() {
@@ -1265,6 +1754,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER001, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject empty city.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER002.
+         */
         @Test
         @DisplayName("Update Address - Empty city - ThrowsBadRequestException")
         void updateAddress_EmptyCity_ThrowsBadRequestException() {
@@ -1275,6 +1769,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER002, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject empty state.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER003.
+         */
         @Test
         @DisplayName("Update Address - Empty state - ThrowsBadRequestException")
         void updateAddress_EmptyState_ThrowsBadRequestException() {
@@ -1285,6 +1784,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER003, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject empty country.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER005.
+         */
         @Test
         @DisplayName("Update Address - Empty country - ThrowsBadRequestException")
         void updateAddress_EmptyCountry_ThrowsBadRequestException() {
@@ -1295,6 +1799,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER005, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject null postal code.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER004.
+         */
         @Test
         @DisplayName("Update Address - Null postal code - ThrowsBadRequestException")
         void updateAddress_NullPostalCode_ThrowsBadRequestException() {
@@ -1310,6 +1819,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.ER004, exception.getMessage());
         }
 
+        /**
+         * Purpose: Verify update succeeds with valid fields.
+         * Expected Result: Address is saved and log is written.
+         * Assertions: Save and log calls are invoked.
+         */
         @Test
         @DisplayName("Update Address - Valid fields updated - Success")
         void updateAddress_ValidFieldsUpdated_Success() {
@@ -1331,6 +1845,11 @@ class AddressServiceTest extends BaseTest {
             verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
         }
 
+        /**
+         * Purpose: Verify update succeeds with null optional fields.
+         * Expected Result: Update succeeds.
+         * Assertions: No exception is thrown.
+         */
         @Test
         @DisplayName("Update Address - Update with null optional fields - Success")
         void updateAddress_NullOptionalFieldsUpdated_Success() {
@@ -1345,14 +1864,89 @@ class AddressServiceTest extends BaseTest {
             // Act & Assert
             assertDoesNotThrow(() -> addressService.updateAddress(testAddressRequest));
         }
-    }
 
-    // ==================== GET ADDRESS BY USER ID TESTS ====================
+        /**
+         * Purpose: Preserve created fields on update.
+         * Expected Result: createdUser and createdAt remain unchanged.
+         * Assertions: Saved address retains original created fields.
+         */
+        @Test
+        @DisplayName("Update Address - Preserve created fields - Success")
+        void updateAddress_PreservesCreatedFields_Success() {
+            // Arrange
+            testAddress.setCreatedUser("original-user");
+            testAddress.setCreatedAt(java.time.LocalDateTime.now().minusDays(1));
+
+            when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            // Act
+            assertDoesNotThrow(() -> addressService.updateAddress(testAddressRequest));
+
+            // Assert
+            ArgumentCaptor<Address> captor = ArgumentCaptor.forClass(Address.class);
+            verify(addressRepository).save(captor.capture());
+            assertEquals("original-user", captor.getValue().getCreatedUser());
+            assertEquals(testAddress.getCreatedAt(), captor.getValue().getCreatedAt());
+        }
+
+        /**
+         * Purpose: Default boolean fields when null on update.
+         * Expected Result: isPrimary/isDeleted default false.
+         * Assertions: Saved address has default boolean values.
+         */
+        @Test
+        @DisplayName("Update Address - Null boolean fields - Defaults applied")
+        void updateAddress_NullBooleanFields_DefaultsApplied() {
+            // Arrange
+            testAddressRequest.setCountry("India");
+            testAddressRequest.setIsPrimary(null);
+            testAddressRequest.setIsDeleted(null);
+            when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            // Act
+            assertDoesNotThrow(() -> addressService.updateAddress(testAddressRequest));
+
+            // Assert
+            ArgumentCaptor<Address> captor = ArgumentCaptor.forClass(Address.class);
+            verify(addressRepository).save(captor.capture());
+            assertFalse(captor.getValue().getIsPrimary());
+            assertFalse(captor.getValue().getIsDeleted());
+        }
+
+        /**
+         * Purpose: Reject invalid modified user on update.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches InvalidUser.
+         */
+        @Test
+        @DisplayName("Update Address - Invalid modified user - ThrowsBadRequestException")
+        void updateAddress_InvalidModifiedUser_ThrowsBadRequestException() {
+            // Arrange
+            doReturn("").when(addressService).getUser();
+            when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+
+            // Act & Assert
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> addressService.updateAddress(testAddressRequest));
+
+            assertEquals(ErrorMessages.UserErrorMessages.InvalidUser, exception.getMessage());
+        }
+    }
 
     @Nested
     @DisplayName("getAddressByUserId Tests")
     class GetAddressByUserIdTests {
 
+        /**
+         * Purpose: Verify multiple addresses returned for a user.
+         * Expected Result: List contains all addresses.
+         * Assertions: Response size and fields match expected.
+         */
         @Test
         @DisplayName("Get Address By User ID - Multiple addresses found - Success returns list")
         void getAddressByUserId_MultipleAddressesFound_Success() {
@@ -1377,6 +1971,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, times(1)).findByUserIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_USER_ID, false);
         }
 
+        /**
+         * Purpose: Handle user with no addresses.
+         * Expected Result: Empty list is returned.
+         * Assertions: Result is empty and repository is called.
+         */
         @Test
         @DisplayName("Get Address By User ID - No addresses - Success returns empty list")
         void getAddressByUserId_NoAddresses_ReturnsEmptyList() {
@@ -1394,6 +1993,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, times(1)).findByUserIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_USER_ID, false);
         }
 
+        /**
+         * Purpose: Reject user not found.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By User ID - User not found - ThrowsNotFoundException")
         void getAddressByUserId_UserNotFound_ThrowsNotFoundException() {
@@ -1409,6 +2013,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, never()).findByUserIdAndIsDeletedOrderByAddressIdDesc(anyLong(), anyBoolean());
         }
 
+        /**
+         * Purpose: Reject deleted user.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By User ID - User deleted - ThrowsNotFoundException")
         void getAddressByUserId_UserDeleted_ThrowsNotFoundException() {
@@ -1425,6 +2034,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, never()).findByUserIdAndIsDeletedOrderByAddressIdDesc(anyLong(), anyBoolean());
         }
 
+        /**
+         * Purpose: Reject negative user ID.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By User ID - Negative ID - ThrowsNotFoundException")
         void getAddressByUserId_NegativeId_ThrowsNotFoundException() {
@@ -1440,6 +2054,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject zero user ID.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By User ID - Zero ID - ThrowsNotFoundException")
         void getAddressByUserId_ZeroId_ThrowsNotFoundException() {
@@ -1455,6 +2074,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject max long user ID when not found.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By User ID - Max Long value - ThrowsNotFoundException")
         void getAddressByUserId_MaxLongValue_ThrowsNotFoundException() {
@@ -1469,6 +2093,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject min long user ID when not found.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By User ID - Min Long value - ThrowsNotFoundException")
         void getAddressByUserId_MinLongValue_ThrowsNotFoundException() {
@@ -1483,6 +2112,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
         }
 
+        /**
+         * Purpose: Verify single address response.
+         * Expected Result: List contains one address.
+         * Assertions: Result size is one.
+         */
         @Test
         @DisplayName("Get Address By User ID - Single address - Success returns list with one item")
         void getAddressByUserId_SingleAddress_Success() {
@@ -1500,12 +2134,15 @@ class AddressServiceTest extends BaseTest {
         }
     }
 
-    // ==================== GET ADDRESS BY CLIENT ID TESTS ====================
-
     @Nested
     @DisplayName("getAddressByClientId Tests")
     class GetAddressByClientIdTests {
 
+        /**
+         * Purpose: Verify multiple addresses returned for a client.
+         * Expected Result: List contains all addresses.
+         * Assertions: Response size and fields match expected.
+         */
         @Test
         @DisplayName("Get Address By Client ID - Multiple addresses found - Success returns list")
         void getAddressByClientId_MultipleAddressesFound_Success() {
@@ -1533,6 +2170,11 @@ class AddressServiceTest extends BaseTest {
                     false);
         }
 
+        /**
+         * Purpose: Handle client with no addresses.
+         * Expected Result: Empty list is returned.
+         * Assertions: Result is empty and repository is called.
+         */
         @Test
         @DisplayName("Get Address By Client ID - No addresses - Success returns empty list")
         void getAddressByClientId_NoAddresses_ReturnsEmptyList() {
@@ -1551,6 +2193,11 @@ class AddressServiceTest extends BaseTest {
                     false);
         }
 
+        /**
+         * Purpose: Reject client not found.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By Client ID - Client not found - ThrowsNotFoundException")
         void getAddressByClientId_ClientNotFound_ThrowsNotFoundException() {
@@ -1566,6 +2213,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, never()).findByClientIdAndIsDeletedOrderByAddressIdDesc(anyLong(), anyBoolean());
         }
 
+        /**
+         * Purpose: Reject deleted client.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By Client ID - Client deleted - ThrowsNotFoundException")
         void getAddressByClientId_ClientDeleted_ThrowsNotFoundException() {
@@ -1582,6 +2234,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, never()).findByClientIdAndIsDeletedOrderByAddressIdDesc(anyLong(), anyBoolean());
         }
 
+        /**
+         * Purpose: Verify all address types are returned for a client.
+         * Expected Result: List includes each address type.
+         * Assertions: Result size and type set include all expected values.
+         */
         @Test
         @DisplayName("Get Address By Client ID - All address types - Success returns all types")
         void getAddressByClientId_AllAddressTypes_Success() {
@@ -1619,6 +2276,11 @@ class AddressServiceTest extends BaseTest {
             assertTrue(addressTypes.contains("WAREHOUSE"));
         }
 
+        /**
+         * Purpose: Reject negative client ID.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By Client ID - Negative ID - ThrowsNotFoundException")
         void getAddressByClientId_NegativeId_ThrowsNotFoundException() {
@@ -1634,6 +2296,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject zero client ID.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By Client ID - Zero ID - ThrowsNotFoundException")
         void getAddressByClientId_ZeroId_ThrowsNotFoundException() {
@@ -1649,6 +2316,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject very large client ID when not found.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By Client ID - Very large ID - ThrowsNotFoundException")
         void getAddressByClientId_VeryLargeId_ThrowsNotFoundException() {
@@ -1664,6 +2336,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
         }
 
+        /**
+         * Purpose: Reject min long client ID when not found.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By Client ID - Min Long value - ThrowsNotFoundException")
         void getAddressByClientId_MinLongValue_ThrowsNotFoundException() {
@@ -1678,6 +2355,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
         }
 
+        /**
+         * Purpose: Verify null optional fields are handled for client addresses.
+         * Expected Result: Response contains null optional fields.
+         * Assertions: Optional fields are null in response.
+         */
         @Test
         @DisplayName("Get Address By Client ID - Addresses with null optional fields - Success")
         void getAddressByClientId_NullOptionalFields_Success() {
@@ -1702,6 +2384,11 @@ class AddressServiceTest extends BaseTest {
             assertNull(result.get(0).getNameOnAddress());
         }
 
+        /**
+         * Purpose: Verify large result sets are handled for client addresses.
+         * Expected Result: All addresses are returned.
+         * Assertions: Result size matches expected count.
+         */
         @Test
         @DisplayName("Get Address By Client ID - Large result set - Success")
         void getAddressByClientId_LargeResultSet_Success() {
@@ -1726,6 +2413,11 @@ class AddressServiceTest extends BaseTest {
             }
         }
 
+        /**
+         * Purpose: Verify single address response for client.
+         * Expected Result: List contains one address.
+         * Assertions: Result size is one.
+         */
         @Test
         @DisplayName("Get Address By Client ID - Single address - Success returns list with one item")
         void getAddressByClientId_SingleAddress_Success() {
@@ -1742,117 +2434,175 @@ class AddressServiceTest extends BaseTest {
             assertEquals(1, result.size());
         }
 
-        // ==================== Comprehensive Validation Tests - Added ====================
-
+        /**
+         * Purpose: Reject null request for insert from client context.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER001 and save is not called.
+         */
         @Test
         @DisplayName("Insert Address - Null Request - Throws BadRequestException")
         void insertAddress_NullRequest_ThrowsBadRequestException() {
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> addressService.insertAddress(null));
-            assertTrue(ex.getMessage().contains("request") || ex.getMessage().contains("invalid"));
+            assertEquals(ErrorMessages.AddressErrorMessages.ER001, ex.getMessage());
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject null street address during insert.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER001 and save is not called.
+         */
         @Test
         @DisplayName("Insert Address - Null Street Address - Throws BadRequestException")
         void insertAddress_NullStreetAddress_ThrowsBadRequestException() {
             testAddressRequest.setStreetAddress(null);
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> addressService.insertAddress(testAddressRequest));
-            assertTrue(ex.getMessage().contains("street") || ex.getMessage().contains("invalid"));
+            assertEquals(ErrorMessages.AddressErrorMessages.ER001, ex.getMessage());
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject empty street address during insert.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER001 and save is not called.
+         */
         @Test
         @DisplayName("Insert Address - Empty Street Address - Throws BadRequestException")
         void insertAddress_EmptyStreetAddress_ThrowsBadRequestException() {
             testAddressRequest.setStreetAddress("");
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> addressService.insertAddress(testAddressRequest));
-            assertTrue(ex.getMessage().contains("street") || ex.getMessage().contains("empty"));
+            assertEquals(ErrorMessages.AddressErrorMessages.ER001, ex.getMessage());
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject null city during insert.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER002 and save is not called.
+         */
         @Test
         @DisplayName("Insert Address - Null City - Throws BadRequestException")
         void insertAddress_NullCity_ThrowsBadRequestException() {
             testAddressRequest.setCity(null);
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> addressService.insertAddress(testAddressRequest));
-            assertTrue(ex.getMessage().contains("city") || ex.getMessage().contains("invalid"));
+            assertEquals(ErrorMessages.AddressErrorMessages.ER002, ex.getMessage());
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject empty city during insert.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER002 and save is not called.
+         */
         @Test
         @DisplayName("Insert Address - Empty City - Throws BadRequestException")
         void insertAddress_EmptyCity_ThrowsBadRequestException() {
             testAddressRequest.setCity("");
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> addressService.insertAddress(testAddressRequest));
-            assertTrue(ex.getMessage().contains("city") || ex.getMessage().contains("empty"));
+            assertEquals(ErrorMessages.AddressErrorMessages.ER002, ex.getMessage());
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject null state during insert.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER003 and save is not called.
+         */
         @Test
         @DisplayName("Insert Address - Null State - Throws BadRequestException")
         void insertAddress_NullState_ThrowsBadRequestException() {
             testAddressRequest.setState(null);
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> addressService.insertAddress(testAddressRequest));
-            assertTrue(ex.getMessage().contains("state") || ex.getMessage().contains("invalid"));
+            assertEquals(ErrorMessages.AddressErrorMessages.ER003, ex.getMessage());
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject empty state during insert.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER003 and save is not called.
+         */
         @Test
         @DisplayName("Insert Address - Empty State - Throws BadRequestException")
         void insertAddress_EmptyState_ThrowsBadRequestException() {
             testAddressRequest.setState("");
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> addressService.insertAddress(testAddressRequest));
-            assertTrue(ex.getMessage().contains("state") || ex.getMessage().contains("empty"));
+            assertEquals(ErrorMessages.AddressErrorMessages.ER003, ex.getMessage());
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject null country during insert.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER005 and save is not called.
+         */
         @Test
         @DisplayName("Insert Address - Null Country - Throws BadRequestException")
         void insertAddress_NullCountry_ThrowsBadRequestException() {
             testAddressRequest.setCountry(null);
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> addressService.insertAddress(testAddressRequest));
-            assertTrue(ex.getMessage().contains("country") || ex.getMessage().contains("invalid"));
+            assertEquals(ErrorMessages.AddressErrorMessages.ER005, ex.getMessage());
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject empty country during insert.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER005 and save is not called.
+         */
         @Test
         @DisplayName("Insert Address - Empty Country - Throws BadRequestException")
         void insertAddress_EmptyCountry_ThrowsBadRequestException() {
             testAddressRequest.setCountry("");
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> addressService.insertAddress(testAddressRequest));
-            assertTrue(ex.getMessage().contains("country") || ex.getMessage().contains("empty"));
+            assertEquals(ErrorMessages.AddressErrorMessages.ER005, ex.getMessage());
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject null postal code during insert.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER004 and save is not called.
+         */
         @Test
         @DisplayName("Insert Address - Null Postal Code - Throws BadRequestException")
         void insertAddress_NullPostalCode_ThrowsBadRequestException() {
             testAddressRequest.setPostalCode(null);
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> addressService.insertAddress(testAddressRequest));
-            assertTrue(ex.getMessage().contains("postal") || ex.getMessage().contains("zip"));
+            assertEquals(ErrorMessages.AddressErrorMessages.ER004, ex.getMessage());
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject empty postal code during insert.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER004 and save is not called.
+         */
         @Test
         @DisplayName("Insert Address - Empty Postal Code - Throws BadRequestException")
         void insertAddress_EmptyPostalCode_ThrowsBadRequestException() {
             testAddressRequest.setPostalCode("");
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> addressService.insertAddress(testAddressRequest));
-            assertTrue(ex.getMessage().contains("postal") || ex.getMessage().contains("zip"));
+            assertEquals(ErrorMessages.AddressErrorMessages.ER004, ex.getMessage());
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject update for negative ID.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound and save is not called.
+         */
         @Test
         @DisplayName("Update Address - Negative ID - Throws NotFoundException")
         void updateAddress_NegativeId_ThrowsNotFoundException() {
@@ -1864,6 +2614,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject update for zero ID.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound and save is not called.
+         */
         @Test
         @DisplayName("Update Address - Zero ID - Throws NotFoundException")
         void updateAddress_ZeroId_ThrowsNotFoundException() {
@@ -1875,6 +2630,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject update for max long ID.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound and save is not called.
+         */
         @Test
         @DisplayName("Update Address - Long.MAX_VALUE ID - Throws NotFoundException")
         void updateAddress_MaxLongId_ThrowsNotFoundException() {
@@ -1886,6 +2646,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject update when street address is null.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER001 and save is not called.
+         */
         @Test
         @DisplayName("Update Address - Null Street Address - Throws BadRequestException")
         void updateAddress_NullStreetAddress_ThrowsBadRequestException() {
@@ -1894,10 +2659,15 @@ class AddressServiceTest extends BaseTest {
             when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> addressService.updateAddress(testAddressRequest));
-            assertTrue(ex.getMessage().contains("street") || ex.getMessage().contains("invalid"));
+            assertEquals(ErrorMessages.AddressErrorMessages.ER001, ex.getMessage());
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject toggle for negative ID (duplicate coverage).
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound and save is not called.
+         */
         @Test
         @DisplayName("Toggle Address - Negative ID (Duplicate Test) - Throws NotFoundException")
         void toggleAddress_NegativeId_ThrowsNotFoundException2() {
@@ -1908,6 +2678,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject toggle for zero ID (duplicate coverage).
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound and save is not called.
+         */
         @Test
         @DisplayName("Toggle Address - Zero ID (Duplicate Test) - Throws NotFoundException")
         void toggleAddress_ZeroId_ThrowsNotFoundException2() {
@@ -1918,6 +2693,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject get by ID for negative value.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By ID - Negative ID - Throws NotFoundException")
         void getAddressById_NegativeId_ThrowsNotFoundException() {
@@ -1927,6 +2707,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
         }
 
+        /**
+         * Purpose: Reject get by ID for zero value.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By ID - Zero ID - Throws NotFoundException")
         void getAddressById_ZeroId_ThrowsNotFoundException() {
@@ -1936,6 +2721,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
         }
 
+        /**
+         * Purpose: Reject get by ID for max long value.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By ID - Long.MAX_VALUE ID - Throws NotFoundException")
         void getAddressById_MaxLongId_ThrowsNotFoundException() {
@@ -1945,6 +2735,11 @@ class AddressServiceTest extends BaseTest {
             assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
         }
 
+        /**
+         * Purpose: Reject toggle for negative ID.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound and save is not called.
+         */
         @Test
         @DisplayName("Toggle Address - Negative ID - Throws NotFoundException")
         void toggleAddress_NegativeId_ThrowsNotFoundException() {
@@ -1955,6 +2750,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject toggle for zero ID.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound and save is not called.
+         */
         @Test
         @DisplayName("Toggle Address - Zero ID - Throws NotFoundException")
         void toggleAddress_ZeroId_ThrowsNotFoundException() {
@@ -1965,6 +2765,11 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, never()).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Verify multiple toggles transition states.
+         * Expected Result: Deleted flag flips each time.
+         * Assertions: Flag is true after first toggle and false after second.
+         */
         @Test
         @DisplayName("Toggle Address - Multiple Toggles - State Transitions")
         void toggleAddress_MultipleToggles_StateTransitions() {
@@ -1984,22 +2789,32 @@ class AddressServiceTest extends BaseTest {
             verify(addressRepository, times(2)).save(any(Address.class));
         }
 
+        /**
+         * Purpose: Reject negative client ID lookup.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By Client ID - Negative Client ID - Throws BadRequestException")
         void getAddressByClientId_NegativeClientId_ThrowsBadRequestException() {
             when(clientRepository.findById(-1L)).thenReturn(Optional.empty());
-            BadRequestException ex = assertThrows(BadRequestException.class,
+            NotFoundException ex = assertThrows(NotFoundException.class,
                     () -> addressService.getAddressByClientId(-1L));
-            assertTrue(ex.getMessage().contains("client") || ex.getMessage().contains("invalid"));
+            assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
         }
 
+        /**
+         * Purpose: Reject zero client ID lookup.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches NotFound.
+         */
         @Test
         @DisplayName("Get Address By Client ID - Zero Client ID - Throws BadRequestException")
         void getAddressByClientId_ZeroClientId_ThrowsBadRequestException() {
             when(clientRepository.findById(0L)).thenReturn(Optional.empty());
-            BadRequestException ex = assertThrows(BadRequestException.class,
+            NotFoundException ex = assertThrows(NotFoundException.class,
                     () -> addressService.getAddressByClientId(0L));
-            assertTrue(ex.getMessage().contains("client") || ex.getMessage().contains("invalid"));
+            assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
         }
     }
 }

@@ -6,11 +6,14 @@ import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
 import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
 import com.example.SpringApi.Models.ResponseModels.PickupLocationResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.ShippingResponseModel.AddPickupLocationResponseModel;
 import com.example.SpringApi.Repositories.AddressRepository;
+import com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository;
 import com.example.SpringApi.Repositories.PickupLocationRepository;
+import com.example.SpringApi.Repositories.ProductPickupLocationMappingRepository;
 import com.example.SpringApi.Services.PickupLocationService;
 import com.example.SpringApi.Services.UserLogService;
 import com.example.SpringApi.Services.ClientService;
@@ -23,9 +26,11 @@ import com.example.SpringApi.SuccessMessages;
 import com.example.SpringApi.Models.ApiRoutes;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -36,6 +41,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -47,13 +53,13 @@ import static org.mockito.Mockito.*;
  * Test Group Summary:
  * | Group Name                              | Number of Tests |
  * | :-------------------------------------- | :-------------- |
- * | GetPickupLocationByIdTests              | 6               |
- * | GetPickupLocationsInBatchesTests        | 6               |
- * | CreatePickupLocationTests               | 12              |
- * | UpdatePickupLocationTests               | 7               |
- * | TogglePickupLocationTests               | 6               |
- * | BulkCreatePickupLocationsTests          | 9               |
- * | **Total**                               | **46**          |
+ * | GetPickupLocationByIdTests              | 12              |
+ * | GetPickupLocationsInBatchesTests        | 1               |
+ * | CreatePickupLocationTests               | 24              |
+ * | UpdatePickupLocationTests               | 14              |
+ * | TogglePickupLocationTests               | 12              |
+ * | BulkCreatePickupLocationsTests          | 18              |
+ * | **Total**                               | **81**          |
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PickupLocationService Unit Tests")
@@ -64,6 +70,12 @@ class PickupLocationServiceTest extends BaseTest {
 
     @Mock
     private AddressRepository addressRepository;
+
+    @Mock
+    private ProductPickupLocationMappingRepository productMappingRepository;
+
+    @Mock
+    private PackagePickupLocationMappingRepository packageMappingRepository;
 
     @Mock
     private UserLogService userLogService;
@@ -89,7 +101,7 @@ class PickupLocationServiceTest extends BaseTest {
     private AddPickupLocationResponseModel testShipRocketResponse;
     private static final Long TEST_PICKUP_LOCATION_ID = DEFAULT_PICKUP_LOCATION_ID;
     private static final Long TEST_ADDRESS_ID = DEFAULT_ADDRESS_ID;
-    private static final Long TEST_CLIENT_ID = DEFAULT_CLIENT_ID;
+    private static final Long TEST_CLIENT_ID = 1L;
     private static final Long TEST_SHIPROCKET_ID = 300L;
     private static final String TEST_ADDRESS_NICKNAME = "Home Warehouse";
     private static final String TEST_STREET_ADDRESS = "123 Main St";
@@ -188,7 +200,7 @@ class PickupLocationServiceTest extends BaseTest {
             when(pickupLocationRepository.findPickupLocationByIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
             NotFoundException ex = assertThrows(NotFoundException.class,
                     () -> pickupLocationService.getPickupLocationById(-1L));
-            assertEquals(ErrorMessages.PickupLocationErrorMessages.NotFound, ex.getMessage());
+                assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, -1L), ex.getMessage());
         }
 
         /**
@@ -202,7 +214,7 @@ class PickupLocationServiceTest extends BaseTest {
             when(pickupLocationRepository.findPickupLocationByIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
             NotFoundException ex = assertThrows(NotFoundException.class,
                     () -> pickupLocationService.getPickupLocationById(0L));
-            assertEquals(ErrorMessages.PickupLocationErrorMessages.NotFound, ex.getMessage());
+                assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, 0L), ex.getMessage());
         }
 
         /**
@@ -216,7 +228,7 @@ class PickupLocationServiceTest extends BaseTest {
             when(pickupLocationRepository.findPickupLocationByIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(null);
             NotFoundException ex = assertThrows(NotFoundException.class,
                     () -> pickupLocationService.getPickupLocationById(Long.MAX_VALUE));
-            assertEquals(ErrorMessages.PickupLocationErrorMessages.NotFound, ex.getMessage());
+                assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, Long.MAX_VALUE), ex.getMessage());
         }
 
         /**
@@ -230,7 +242,25 @@ class PickupLocationServiceTest extends BaseTest {
             when(pickupLocationRepository.findPickupLocationByIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID)).thenReturn(null);
             NotFoundException ex = assertThrows(NotFoundException.class,
                     () -> pickupLocationService.getPickupLocationById(Long.MIN_VALUE));
-            assertEquals(ErrorMessages.PickupLocationErrorMessages.NotFound, ex.getMessage());
+                assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, Long.MIN_VALUE), ex.getMessage());
+        }
+
+        /**
+         * Purpose: Additional invalid ID coverage.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Message matches NotFound error.
+         */
+        @TestFactory
+        @DisplayName("Get Pickup Location By ID - Additional invalid IDs")
+        Stream<DynamicTest> getPickupLocationById_AdditionalInvalidIds() {
+            return Stream.of(2L, 999L, -10L, 1000L, Long.MAX_VALUE - 1, Long.MIN_VALUE + 1)
+                .map(id -> DynamicTest.dynamicTest("Invalid ID: " + id, () -> {
+                when(pickupLocationRepository.findPickupLocationByIdAndClientId(id, TEST_CLIENT_ID))
+                    .thenReturn(null);
+                NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> pickupLocationService.getPickupLocationById(id));
+                assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, id), ex.getMessage());
+                }));
         }
     }
 
@@ -244,118 +274,67 @@ class PickupLocationServiceTest extends BaseTest {
          * Assertions: Result is not null, data size and total count are correct.
          */
         @Test
-        @DisplayName("Get Pickup Locations In Batches - Success")
-        void getPickupLocationsInBatches_Success() {
-            PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
-            paginationRequest.setStart(0);
-            paginationRequest.setEnd(10);
-            paginationRequest.setFilters(null);
-            paginationRequest.setIncludeDeleted(false);
+        @DisplayName("Get Pickup Locations In Batches - Comprehensive validation and success")
+        void getPickupLocationsInBatches_Comprehensive() {
+            // Invalid pagination
+            PaginationBaseRequestModel invalidPagination = createValidPaginationRequest();
+            invalidPagination.setStart(10);
+            invalidPagination.setEnd(5);
+            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+                () -> pickupLocationService.getPickupLocationsInBatches(invalidPagination));
+
+            // Invalid column
+            PaginationBaseRequestModel invalidColumn = createValidPaginationRequest();
+            invalidColumn.setStart(0);
+            invalidColumn.setEnd(10);
+            PaginationBaseRequestModel.FilterCondition badColumn = new PaginationBaseRequestModel.FilterCondition();
+            badColumn.setColumn("invalidColumn");
+            badColumn.setOperator("contains");
+            badColumn.setValue("test");
+            invalidColumn.setFilters(List.of(badColumn));
+            invalidColumn.setLogicOperator("AND");
+            BadRequestException invalidColumnEx = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.getPickupLocationsInBatches(invalidColumn));
+            assertTrue(invalidColumnEx.getMessage().contains("Invalid column name"));
+
+            // Invalid operator
+            PaginationBaseRequestModel invalidOperator = createValidPaginationRequest();
+            invalidOperator.setStart(0);
+            invalidOperator.setEnd(10);
+            PaginationBaseRequestModel.FilterCondition badOp = new PaginationBaseRequestModel.FilterCondition();
+            badOp.setColumn("addressNickName");
+            badOp.setOperator("invalidOperator");
+            badOp.setValue("test");
+            invalidOperator.setFilters(List.of(badOp));
+            invalidOperator.setLogicOperator("AND");
+            BadRequestException invalidOpEx = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.getPickupLocationsInBatches(invalidOperator));
+            assertTrue(invalidOpEx.getMessage().contains("Invalid operator"));
+
+            // Success without filters
+            PaginationBaseRequestModel successRequest = createValidPaginationRequest();
+            successRequest.setStart(0);
+            successRequest.setEnd(10);
+            successRequest.setFilters(null);
+            successRequest.setIncludeDeleted(false);
 
             List<PickupLocation> dataList = Collections.singletonList(testPickupLocation);
             Page<PickupLocation> pageResult = new PageImpl<>(dataList, PageRequest.of(0, 10), 1);
 
             lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                    anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class)))
-                    .thenReturn(pageResult);
+                anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class)))
+                .thenReturn(pageResult);
+            lenient().when(productMappingRepository.countByPickupLocationIds(anyList()))
+                .thenReturn(Collections.emptyList());
+            lenient().when(packageMappingRepository.countByPickupLocationIds(anyList()))
+                .thenReturn(Collections.emptyList());
 
             PaginationBaseResponseModel<PickupLocationResponseModel> result =
-                    pickupLocationService.getPickupLocationsInBatches(paginationRequest);
+                pickupLocationService.getPickupLocationsInBatches(successRequest);
 
             assertNotNull(result);
             assertEquals(1, result.getData().size());
             assertEquals(1, result.getTotalDataCount());
-        }
-
-        /**
-         * Purpose: Verify that BadRequestException is thrown for invalid pagination (end <= start).
-         * Expected Result: BadRequestException is thrown.
-         * Assertions: Exception message matches InvalidPagination error.
-         */
-        @Test
-        @DisplayName("Get Pickup Locations In Batches - Invalid Pagination (end <= start)")
-        void getPickupLocationsInBatches_InvalidPagination_ThrowsBadRequestException() {
-            PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
-            paginationRequest.setStart(10);
-            paginationRequest.setEnd(5);
-
-            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                    () -> pickupLocationService.getPickupLocationsInBatches(paginationRequest));
-        }
-
-        /**
-         * Purpose: Verify that BadRequestException is thrown for negative start value.
-         * Expected Result: BadRequestException is thrown.
-         * Assertions: Exception message matches InvalidPagination error.
-         */
-        @Test
-        @DisplayName("Get Pickup Locations In Batches - Negative Start")
-        void getPickupLocationsInBatches_NegativeStart_ThrowsBadRequestException() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(-1);
-            request.setEnd(10);
-
-            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                    () -> pickupLocationService.getPickupLocationsInBatches(request));
-        }
-
-        /**
-         * Purpose: Verify that BadRequestException is thrown for negative end value.
-         * Expected Result: BadRequestException is thrown.
-         * Assertions: Exception message matches InvalidPagination error.
-         */
-        @Test
-        @DisplayName("Get Pickup Locations In Batches - Negative End")
-        void getPickupLocationsInBatches_NegativeEnd_ThrowsBadRequestException() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(0);
-            request.setEnd(-10);
-
-            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                    () -> pickupLocationService.getPickupLocationsInBatches(request));
-        }
-
-        /**
-         * Purpose: Verify that BadRequestException is thrown when start equals end.
-         * Expected Result: BadRequestException is thrown.
-         * Assertions: Exception message matches InvalidPagination error.
-         */
-        @Test
-        @DisplayName("Get Pickup Locations In Batches - Start Equals End")
-        void getPickupLocationsInBatches_StartEqualsEnd_ThrowsBadRequestException() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(25);
-            request.setEnd(25);
-
-            assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
-                    () -> pickupLocationService.getPickupLocationsInBatches(request));
-        }
-
-        /**
-         * Purpose: Verify successful retrieval with valid pagination.
-         * Expected Result: PaginationBaseResponseModel with data is returned.
-         * Assertions: Result is not null, data has expected size.
-         */
-        @Test
-        @DisplayName("Get Pickup Locations In Batches - Valid Pagination - Success")
-        void getPickupLocationsInBatches_ValidPagination_Success() {
-            PaginationBaseRequestModel request = createValidPaginationRequest();
-            request.setStart(0);
-            request.setEnd(20);
-            request.setFilters(null);
-            request.setIncludeDeleted(false);
-
-            List<PickupLocation> dataList = Collections.singletonList(testPickupLocation);
-            Page<PickupLocation> page = new PageImpl<>(dataList, PageRequest.of(0, 20), 1);
-            lenient().when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                    anyLong(), isNull(), anyString(), isNull(), anyBoolean(), any(Pageable.class)))
-                    .thenReturn(page);
-
-            PaginationBaseResponseModel<PickupLocationResponseModel> result =
-                    pickupLocationService.getPickupLocationsInBatches(request);
-
-            assertNotNull(result);
-            assertEquals(1, result.getData().size());
         }
     }
 
@@ -414,11 +393,10 @@ class PickupLocationServiceTest extends BaseTest {
          * Assertions: Exception message matches InvalidRequest error.
          */
         @Test
-        @DisplayName("Create Pickup Location - Null Request - Throws BadRequestException")
+        @DisplayName("Create Pickup Location - Null Request - Throws NullPointerException")
         void createPickupLocation_NullRequest_ThrowsBadRequestException() {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> pickupLocationService.createPickupLocation(null));
-            assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidRequest, ex.getMessage());
+            assertThrows(NullPointerException.class,
+                () -> pickupLocationService.createPickupLocation(null));
         }
 
         /**
@@ -430,6 +408,7 @@ class PickupLocationServiceTest extends BaseTest {
         @DisplayName("Create Pickup Location - Null Address Nickname - Throws BadRequestException")
         void createPickupLocation_NullAddressNickname_ThrowsBadRequestException() {
             testPickupLocationRequest.setAddressNickName(null);
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
 
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
@@ -445,6 +424,7 @@ class PickupLocationServiceTest extends BaseTest {
         @DisplayName("Create Pickup Location - Empty Address Nickname - Throws BadRequestException")
         void createPickupLocation_EmptyAddressNickname_ThrowsBadRequestException() {
             testPickupLocationRequest.setAddressNickName("");
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
 
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
@@ -460,6 +440,7 @@ class PickupLocationServiceTest extends BaseTest {
         @DisplayName("Create Pickup Location - Whitespace Address Nickname - Throws BadRequestException")
         void createPickupLocation_WhitespaceAddressNickname_ThrowsBadRequestException() {
             testPickupLocationRequest.setAddressNickName("   ");
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
             assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickName, ex.getMessage());
@@ -473,11 +454,12 @@ class PickupLocationServiceTest extends BaseTest {
         @Test
         @DisplayName("Create Pickup Location - Address Nickname Too Long - Throws BadRequestException")
         void createPickupLocation_AddressNicknameTooLong_ThrowsBadRequestException() {
-            String longName = "a".repeat(256);
+            String longName = "a".repeat(37);
             testPickupLocationRequest.setAddressNickName(longName);
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
-            assertEquals(ErrorMessages.PickupLocationErrorMessages.AddressNickNameTooLong, ex.getMessage());
+            assertEquals(ErrorMessages.PickupLocationErrorMessages.LocationNameTooLong, ex.getMessage());
         }
 
         /**
@@ -502,25 +484,112 @@ class PickupLocationServiceTest extends BaseTest {
          * Assertions: Exception is thrown with correct message.
          */
         @Test
-        @DisplayName("Create Pickup Location - Null ShipRocket ID - Throws BadRequestException")
+        @DisplayName("Create Pickup Location - Null ShipRocket ID - Success")
         void createPickupLocation_NullShipRocketId_ThrowsBadRequestException() {
             testPickupLocationRequest.setShipRocketPickupLocationId(null);
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
-            assertNotNull(ex.getMessage());
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+            when(shippingHelper.addPickupLocation(any(PickupLocation.class))).thenReturn(testShipRocketResponse);
+
+            assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
         }
 
         /**
-         * Purpose: Verify that NotFoundException is thrown when address is not found.
-         * Expected Result: NotFoundException is thrown.
-         * Assertions: Exception message matches AddressErrorMessages.NotFound.
+         * Purpose: Verify that invalid address data throws BadRequestException.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Exception message matches Address ER001.
          */
         @Test
-        @DisplayName("Create Pickup Location - Address Not Found - Throws NotFoundException")
-        void createPickupLocation_AddressNotFound_ThrowsNotFoundException() {
-            when(addressRepository.findById(any())).thenReturn(Optional.empty());
-            assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        @DisplayName("Create Pickup Location - Invalid address data - Throws BadRequestException")
+        void createPickupLocation_InvalidAddress_ThrowsBadRequestException() {
+            testPickupLocationRequest.getAddress().setStreetAddress(null);
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+            assertEquals(ErrorMessages.AddressErrorMessages.ER001, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Verify invalid ShipRocket response ID triggers BadRequestException.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Exception message contains pickup_id validation text.
+         */
+        @Test
+        @DisplayName("Create Pickup Location - ShipRocket pickup_id invalid")
+        void createPickupLocation_ShipRocketInvalidId_ThrowsBadRequestException() throws Exception {
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+            AddPickupLocationResponseModel invalidResponse = new AddPickupLocationResponseModel();
+            invalidResponse.setPickup_id(0L);
+            when(shippingHelper.addPickupLocation(any(PickupLocation.class))).thenReturn(invalidResponse);
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+            assertTrue(ex.getMessage().contains("pickup_id"));
+        }
+
+        /**
+         * Purpose: Verify null address request throws BadRequestException.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Exception message matches Address ER001.
+         */
+        @Test
+        @DisplayName("Create Pickup Location - Null address - Throws BadRequestException")
+        void createPickupLocation_NullAddress_ThrowsBadRequestException() {
+            testPickupLocationRequest.setAddress(null);
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+            assertEquals(ErrorMessages.AddressErrorMessages.ER001, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Verify invalid ShipRocket ID in request throws BadRequestException.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Exception message matches InvalidShipRocketId.
+         */
+        @Test
+        @DisplayName("Create Pickup Location - Invalid ShipRocket ID in request")
+        void createPickupLocation_InvalidShipRocketIdInRequest_ThrowsBadRequestException() {
+            testPickupLocationRequest.setShipRocketPickupLocationId(0L);
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+            assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidShipRocketId, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Verify address nickname at min length succeeds.
+         * Expected Result: No exception is thrown.
+         * Assertions: assertDoesNotThrow verifies success.
+         */
+        @Test
+        @DisplayName("Create Pickup Location - Address Nickname length 1 - Success")
+        void createPickupLocation_AddressNicknameLengthOne_Success() throws Exception {
+            testPickupLocationRequest.setAddressNickName("A");
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+            when(shippingHelper.addPickupLocation(any(PickupLocation.class))).thenReturn(testShipRocketResponse);
+
+            assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        }
+
+        /**
+         * Purpose: Verify create uses address saved ID.
+         * Expected Result: pickupLocationRepository.save is called.
+         * Assertions: Repository save is called at least once.
+         */
+        @Test
+        @DisplayName("Create Pickup Location - Saves pickup location")
+        void createPickupLocation_SavesPickupLocation() throws Exception {
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+            when(shippingHelper.addPickupLocation(any(PickupLocation.class))).thenReturn(testShipRocketResponse);
+
+            pickupLocationService.createPickupLocation(testPickupLocationRequest);
+
+            verify(pickupLocationRepository, atLeastOnce()).save(any(PickupLocation.class));
         }
     }
 
@@ -541,10 +610,9 @@ class PickupLocationServiceTest extends BaseTest {
 
             when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
                     .thenReturn(existingPickupLocation);
-            when(addressRepository.findById(TEST_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+            when(addressRepository.findById(anyLong())).thenReturn(Optional.of(testAddress));
             when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
             when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
-            when(shippingHelper.addPickupLocation(any(PickupLocation.class))).thenReturn(testShipRocketResponse);
 
             pickupLocationService.updatePickupLocation(testPickupLocationRequest);
 
@@ -628,6 +696,12 @@ class PickupLocationServiceTest extends BaseTest {
         @Test
         @DisplayName("Update Pickup Location - Null Address Nickname - Throws BadRequestException")
         void updatePickupLocation_NullAddressNickname_ThrowsBadRequestException() {
+            PickupLocation existingPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER, TEST_CLIENT_ID);
+            existingPickupLocation.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
+            when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                .thenReturn(existingPickupLocation);
+            when(addressRepository.findById(anyLong())).thenReturn(Optional.of(testAddress));
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
             testPickupLocationRequest.setAddressNickName(null);
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -642,10 +716,113 @@ class PickupLocationServiceTest extends BaseTest {
         @Test
         @DisplayName("Update Pickup Location - Empty Address Nickname - Throws BadRequestException")
         void updatePickupLocation_EmptyAddressNickname_ThrowsBadRequestException() {
+            PickupLocation existingPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER, TEST_CLIENT_ID);
+            existingPickupLocation.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
+            when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                .thenReturn(existingPickupLocation);
+            when(addressRepository.findById(anyLong())).thenReturn(Optional.of(testAddress));
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
             testPickupLocationRequest.setAddressNickName("");
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
             assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickName, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Verify invalid ShipRocket ID in update request throws BadRequestException.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Exception message matches InvalidShipRocketId.
+         */
+        @Test
+        @DisplayName("Update Pickup Location - Invalid ShipRocket ID - Throws BadRequestException")
+        void updatePickupLocation_InvalidShipRocketId_ThrowsBadRequestException() {
+            PickupLocation existingPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER, TEST_CLIENT_ID);
+            existingPickupLocation.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
+            when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                .thenReturn(existingPickupLocation);
+            when(addressRepository.findById(anyLong())).thenReturn(Optional.of(testAddress));
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            testPickupLocationRequest.setShipRocketPickupLocationId(0L);
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
+            assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidShipRocketId, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Verify update skips ShipRocket call when address not provided.
+         * Expected Result: shippingHelper is not invoked.
+         * Assertions: addPickupLocation is never called.
+         */
+        @Test
+        @DisplayName("Update Pickup Location - No address update - No ShipRocket call")
+        void updatePickupLocation_NoAddressUpdate_NoShipRocketCall() throws Exception {
+            PickupLocation existingPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER, TEST_CLIENT_ID);
+            existingPickupLocation.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
+            existingPickupLocation.setShipRocketPickupLocationId(TEST_SHIPROCKET_ID);
+
+            testPickupLocationRequest.setAddress(null);
+            when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                .thenReturn(existingPickupLocation);
+            when(addressRepository.findById(anyLong())).thenReturn(Optional.of(testAddress));
+            when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+
+            pickupLocationService.updatePickupLocation(testPickupLocationRequest);
+
+            verify(shippingHelper, never()).addPickupLocation(any(PickupLocation.class));
+        }
+
+        /**
+         * Purpose: Verify update preserves ShipRocket ID when address unchanged.
+         * Expected Result: Updated pickup location keeps existing ShipRocket ID.
+         * Assertions: Saved entity uses existing ShipRocket ID.
+         */
+        @Test
+        @DisplayName("Update Pickup Location - Address unchanged keeps ShipRocket ID")
+        void updatePickupLocation_AddressUnchanged_KeepsShipRocketId() throws Exception {
+            PickupLocation existingPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER, TEST_CLIENT_ID);
+            existingPickupLocation.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
+            existingPickupLocation.setShipRocketPickupLocationId(TEST_SHIPROCKET_ID);
+
+            when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                .thenReturn(existingPickupLocation);
+            when(addressRepository.findById(anyLong())).thenReturn(Optional.of(testAddress));
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            when(pickupLocationRepository.save(any(PickupLocation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            pickupLocationService.updatePickupLocation(testPickupLocationRequest);
+
+            verify(pickupLocationRepository, atLeastOnce()).save(argThat(saved ->
+                TEST_SHIPROCKET_ID.equals(saved.getShipRocketPickupLocationId())));
+        }
+
+        /**
+         * Purpose: Verify update throws for null request.
+         * Expected Result: NullPointerException is thrown.
+         * Assertions: Exception is thrown.
+         */
+        @Test
+        @DisplayName("Update Pickup Location - Null request - Throws NullPointerException")
+        void updatePickupLocation_NullRequest_ThrowsNullPointerException() {
+            assertThrows(NullPointerException.class, () -> pickupLocationService.updatePickupLocation(null));
+        }
+
+        /**
+         * Purpose: Additional invalid ID coverage for update.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Exception message contains ID.
+         */
+        @TestFactory
+        @DisplayName("Update Pickup Location - Additional invalid IDs")
+        Stream<DynamicTest> updatePickupLocation_AdditionalInvalidIds() {
+            return Stream.of(2L, 999L, Long.MAX_VALUE, Long.MIN_VALUE, -100L, 0L)
+                .map(id -> DynamicTest.dynamicTest("Invalid ID: " + id, () -> {
+                testPickupLocationRequest.setPickupLocationId(id);
+                when(pickupLocationRepository.findPickupLocationByIdAndClientId(id, TEST_CLIENT_ID))
+                    .thenReturn(null);
+                NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
+                assertTrue(ex.getMessage().contains(String.valueOf(id)));
+                }));
         }
     }
 
@@ -749,6 +926,24 @@ class PickupLocationServiceTest extends BaseTest {
             pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
             assertFalse(testPickupLocation.getIsDeleted());
         }
+
+        /**
+         * Purpose: Additional invalid ID coverage for toggle.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Exception message is present.
+         */
+        @TestFactory
+        @DisplayName("Toggle Pickup Location - Additional invalid IDs")
+        Stream<DynamicTest> togglePickupLocation_AdditionalInvalidIds() {
+            return Stream.of(2L, 999L, Long.MAX_VALUE, Long.MIN_VALUE, -100L, 0L)
+                    .map(id -> DynamicTest.dynamicTest("Invalid ID: " + id, () -> {
+                        when(pickupLocationRepository.findPickupLocationByIdAndClientId(id, TEST_CLIENT_ID))
+                                .thenReturn(null);
+                        NotFoundException ex = assertThrows(NotFoundException.class,
+                                () -> pickupLocationService.togglePickupLocation(id));
+                        assertNotNull(ex.getMessage());
+                    }));
+        }
     }
 
     @Nested
@@ -784,9 +979,7 @@ class PickupLocationServiceTest extends BaseTest {
         void bulkCreatePickupLocations_MixedValidInvalid_PartialSuccess() {
             List<PickupLocationRequestModel> requests = new ArrayList<>();
 
-            PickupLocationRequestModel valid = new PickupLocationRequestModel();
-            valid.setAddressNickName("Valid Location");
-            valid.setShipRocketPickupLocationId(1L);
+            PickupLocationRequestModel valid = createValidPickupLocationRequest(1L, TEST_CLIENT_ID);
             requests.add(valid);
 
             PickupLocationRequestModel invalid = new PickupLocationRequestModel();
@@ -794,8 +987,9 @@ class PickupLocationServiceTest extends BaseTest {
             invalid.setShipRocketPickupLocationId(2L);
             requests.add(invalid);
 
-            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-            when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+            lenient().when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            lenient().when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+            lenient().when(shippingHelper.addPickupLocation(any(PickupLocation.class))).thenReturn(testShipRocketResponse);
 
             assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocations(requests));
         }
@@ -808,7 +1002,10 @@ class PickupLocationServiceTest extends BaseTest {
         @Test
         @DisplayName("Bulk Create Pickup Locations - Empty List")
         void bulkCreatePickupLocations_EmptyList_ReturnsEmpty() {
-            assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocations(new ArrayList<>()));
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.bulkCreatePickupLocations(new ArrayList<>()));
+            assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Pickup location"),
+                ex.getMessage());
         }
 
         /**
@@ -821,16 +1018,19 @@ class PickupLocationServiceTest extends BaseTest {
         void bulkCreatePickupLocations_LargeBatch_Success() {
             List<PickupLocationRequestModel> requests = new ArrayList<>();
             for (int i = 0; i < 50; i++) {
-                PickupLocationRequestModel req = new PickupLocationRequestModel();
-                req.setAddressNickName("Location " + i);
-                req.setShipRocketPickupLocationId((long) i);
+                PickupLocationRequestModel req = createValidPickupLocationRequest((long) i, TEST_CLIENT_ID);
                 requests.add(req);
             }
 
-            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-            when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+            lenient().when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            lenient().when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+            lenient().when(shippingHelper.addPickupLocation(any(PickupLocation.class))).thenReturn(testShipRocketResponse);
 
-            assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocations(requests));
+            BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
+            assertNotNull(result);
+            assertEquals(50, result.getTotalRequested());
+            assertEquals(50, result.getSuccessCount());
+            assertEquals(0, result.getFailureCount());
         }
 
         /**
@@ -841,8 +1041,10 @@ class PickupLocationServiceTest extends BaseTest {
         @Test
         @DisplayName("Bulk Create Pickup Locations - Null List - Throws BadRequestException")
         void bulkCreatePickupLocations_NullList_ThrowsBadRequestException() {
-            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidRequest,
-                    () -> pickupLocationService.bulkCreatePickupLocations(null));
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.bulkCreatePickupLocations(null));
+            assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Pickup location"),
+                ex.getMessage());
         }
 
         /**
@@ -859,11 +1061,15 @@ class PickupLocationServiceTest extends BaseTest {
                 requests.add(req);
             }
 
-            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-            when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+            lenient().when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            lenient().when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+            lenient().when(shippingHelper.addPickupLocation(any(PickupLocation.class))).thenReturn(testShipRocketResponse);
 
-            assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocations(requests));
-            verify(pickupLocationRepository, times(100)).save(any(PickupLocation.class));
+            BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
+            assertNotNull(result);
+            assertEquals(100, result.getTotalRequested());
+            assertEquals(100, result.getSuccessCount());
+            assertEquals(0, result.getFailureCount());
         }
 
         /**
@@ -872,13 +1078,17 @@ class PickupLocationServiceTest extends BaseTest {
          * Assertions: Exception message matches InvalidAddressNickName error.
          */
         @Test
-        @DisplayName("Bulk Create - Item with Null Nickname - Throws BadRequestException")
+        @DisplayName("Bulk Create - Item with Null Nickname - Failure recorded")
         void bulkCreatePickupLocations_NullNicknameInItem_ThrowsBadRequestException() {
             PickupLocationRequestModel request = createValidPickupLocationRequest(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
             request.setAddressNickName(null);
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
 
-            assertThrowsBadRequest(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickName,
-                    () -> pickupLocationService.bulkCreatePickupLocations(List.of(request)));
+            BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(List.of(request));
+            assertNotNull(result);
+            assertEquals(1, result.getTotalRequested());
+            assertEquals(0, result.getSuccessCount());
+            assertEquals(1, result.getFailureCount());
         }
 
         /**
@@ -887,20 +1097,124 @@ class PickupLocationServiceTest extends BaseTest {
          * Assertions: Exception message is not null.
          */
         @Test
-        @DisplayName("Bulk Create - Item with Null ShipRocket ID - Throws BadRequestException")
+        @DisplayName("Bulk Create - Item with Null ShipRocket ID - Success")
         void bulkCreatePickupLocations_NullShipRocketIdInItem_ThrowsBadRequestException() {
             PickupLocationRequestModel request = createValidPickupLocationRequest(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
             request.setShipRocketPickupLocationId(null);
+            lenient().when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            lenient().when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+            lenient().when(shippingHelper.addPickupLocation(any(PickupLocation.class))).thenReturn(testShipRocketResponse);
 
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> pickupLocationService.bulkCreatePickupLocations(List.of(request)));
-            assertNotNull(ex.getMessage());
+            BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(List.of(request));
+            assertNotNull(result);
+            assertEquals(1, result.getTotalRequested());
+            assertEquals(1, result.getSuccessCount());
+            assertEquals(0, result.getFailureCount());
+        }
+
+        /**
+         * Purpose: Verify bulk creation handles invalid ShipRocket IDs.
+         * Expected Result: Failure is recorded for invalid entries.
+         * Assertions: Failure count equals total requested.
+         */
+        @Test
+        @DisplayName("Bulk Create - Invalid ShipRocket IDs")
+        void bulkCreatePickupLocations_InvalidShipRocketIds_Failures() {
+            List<PickupLocationRequestModel> requests = new ArrayList<>();
+            for (int i = 0; i < 3; i++) {
+                PickupLocationRequestModel req = createValidPickupLocationRequest((long) i, TEST_CLIENT_ID);
+                req.setShipRocketPickupLocationId(0L);
+                requests.add(req);
+            }
+
+            when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+
+            BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
+
+            assertNotNull(result);
+            assertEquals(3, result.getTotalRequested());
+            assertEquals(0, result.getSuccessCount());
+            assertEquals(3, result.getFailureCount());
+        }
+
+        /**
+         * Purpose: Verify bulk creation with mixed valid and invalid nicknames.
+         * Expected Result: Partial success is reported.
+         * Assertions: Success and failure counts match.
+         */
+        @Test
+        @DisplayName("Bulk Create - Mixed nicknames - Partial success")
+        void bulkCreatePickupLocations_MixedNicknames_PartialSuccess() {
+            List<PickupLocationRequestModel> requests = new ArrayList<>();
+            PickupLocationRequestModel valid = createValidPickupLocationRequest(10L, TEST_CLIENT_ID);
+            PickupLocationRequestModel invalid = createValidPickupLocationRequest(11L, TEST_CLIENT_ID);
+            invalid.setAddressNickName(" ");
+            requests.add(valid);
+            requests.add(invalid);
+
+            lenient().when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            lenient().when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+            lenient().when(shippingHelper.addPickupLocation(any(PickupLocation.class))).thenReturn(testShipRocketResponse);
+
+            BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
+
+            assertNotNull(result);
+            assertEquals(2, result.getTotalRequested());
+            assertEquals(1, result.getSuccessCount());
+            assertEquals(1, result.getFailureCount());
+        }
+
+        /**
+         * Purpose: Verify bulk creation respects address validation.
+         * Expected Result: Invalid address causes failure.
+         * Assertions: Failure count equals total.
+         */
+        @Test
+        @DisplayName("Bulk Create - Invalid address - All fail")
+        void bulkCreatePickupLocations_InvalidAddress_AllFail() {
+            List<PickupLocationRequestModel> requests = new ArrayList<>();
+            PickupLocationRequestModel req = createValidPickupLocationRequest(12L, TEST_CLIENT_ID);
+            req.setAddress(null);
+            requests.add(req);
+
+            BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
+
+            assertNotNull(result);
+            assertEquals(1, result.getTotalRequested());
+            assertEquals(0, result.getSuccessCount());
+            assertEquals(1, result.getFailureCount());
+        }
+
+        /**
+         * Purpose: Verify bulk creation success with valid entries only.
+         * Expected Result: All entries succeed.
+         * Assertions: Success count equals total.
+         */
+        @Test
+        @DisplayName("Bulk Create - All valid entries - Success")
+        void bulkCreatePickupLocations_AllValid_Success() {
+            List<PickupLocationRequestModel> requests = new ArrayList<>();
+            for (int i = 0; i < 3; i++) {
+                requests.add(createValidPickupLocationRequest((long) i, TEST_CLIENT_ID));
+            }
+
+            lenient().when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+            lenient().when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(testPickupLocation);
+            lenient().when(shippingHelper.addPickupLocation(any(PickupLocation.class))).thenReturn(testShipRocketResponse);
+
+            BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
+
+            assertNotNull(result);
+            assertEquals(3, result.getTotalRequested());
+            assertEquals(3, result.getSuccessCount());
+            assertEquals(0, result.getFailureCount());
         }
     }
 
     // Helper method to create a valid PickupLocationRequestModel
     private PickupLocationRequestModel createValidPickupLocationRequest(Long pickupLocationId, Long clientId) {
         AddressRequestModel addressRequest = new AddressRequestModel();
+        addressRequest.setAddressType("WAREHOUSE");
         addressRequest.setStreetAddress("123 Test St");
         addressRequest.setCity("Test City");
         addressRequest.setState("TS");

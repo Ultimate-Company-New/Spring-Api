@@ -17,6 +17,7 @@ import com.example.SpringApi.Services.LoginService;
 import com.example.SpringApi.Services.UserLogService;
 import com.example.SpringApi.Helpers.EmailTemplates;
 import com.example.SpringApi.Helpers.PasswordHelper;
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Exceptions.UnauthorizedException;
@@ -46,11 +47,11 @@ import org.mockito.MockedConstruction;
  * Test Group Summary:
  * | Group Name                              | Number of Tests |
  * | :-------------------------------------- | :-------------- |
- * | ConfirmEmailTests                       | 6               |
- * | SignInTests                             | 27              |
+ * | ConfirmEmailTests                       | 7               |
+ * | SignInTests                             | 21              |
  * | ResetPasswordTests                      | 14              |
- * | GetTokenTests                           | 19              |
- * | **Total**                               | **66**          |
+ * | GetTokenTests                           | 12              |
+ * | **Total**                               | **54**          |
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("LoginService Unit Tests")
@@ -155,8 +156,9 @@ class LoginServiceTest extends BaseTest {
     @DisplayName("ConfirmEmail Tests")
     class ConfirmEmailTests {
         /**
-         * Test successful email confirmation.
-         * Verifies that user's email is confirmed when valid token is provided.
+         * Purpose: Validate successful email confirmation with a valid token.
+         * Expected Result: User email is confirmed and persisted.
+         * Assertions: Repository save is invoked and no exception is thrown.
          */
         @Test
         @DisplayName("Confirm Email - Success - Should confirm user email")
@@ -175,8 +177,30 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test confirm email with invalid token.
-     * Verifies that UnauthorizedException is thrown when token doesn't match.
+     * Purpose: Verify confirmation clears token on success.
+     * Expected Result: Token is set to null and saved.
+     * Assertions: Saved user has null token.
+     */
+    @Test
+    @DisplayName("Confirm Email - Success - Clears token")
+    void confirmEmail_Success_ClearsToken() {
+        // Arrange
+        testUser.setToken(TEST_TOKEN);
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+
+        // Act
+        assertDoesNotThrow(() -> loginService.confirmEmail(testLoginRequest));
+
+        // Assert
+        assertNull(testUser.getToken());
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    /**
+     * Purpose: Reject email confirmation when token does not match.
+     * Expected Result: UnauthorizedException is thrown.
+     * Assertions: Exception message matches InvalidToken and save is not called.
      */
     @Test
     @DisplayName("Confirm Email - Failure - Invalid token")
@@ -196,8 +220,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test confirm email with non-existent user.
-     * Verifies that NotFoundException is thrown when user is not found.
+     * Purpose: Handle confirmation for a non-existent user.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message matches InvalidId and save is not called.
      */
     @Test
     @DisplayName("Confirm Email - Failure - User not found")
@@ -214,18 +239,69 @@ class LoginServiceTest extends BaseTest {
         verify(userRepository, times(1)).findById(TEST_USER_ID);
         verify(userRepository, never()).save(any(User.class));
         }
+
+    /**
+     * Purpose: Reject confirmation when userId is null.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches InvalidId.
+     */
+    @Test
+    @DisplayName("Confirm Email - Failure - Null userId")
+    void confirmEmail_NullUserId_ThrowsBadRequestException() {
+        testLoginRequest.setUserId(null);
+
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
+                () -> loginService.confirmEmail(testLoginRequest));
+
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidId, exception.getMessage());
     }
 
-    // ==================== Sign In Tests ====================
+    /**
+     * Purpose: Reject confirmation when stored token is blank.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message matches InvalidToken.
+     */
+    @Test
+    @DisplayName("Confirm Email - Failure - Blank stored token")
+    void confirmEmail_BlankStoredToken_ThrowsNotFoundException() {
+        testUser.setToken("  ");
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+
+        NotFoundException exception = assertThrows(
+                NotFoundException.class,
+                () -> loginService.confirmEmail(testLoginRequest));
+
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidToken, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Reject confirmation when stored token is null.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message matches InvalidToken.
+     */
+    @Test
+    @DisplayName("Confirm Email - Failure - Null stored token")
+    void confirmEmail_NullStoredToken_ThrowsNotFoundException() {
+        testUser.setToken(null);
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+
+        NotFoundException exception = assertThrows(
+                NotFoundException.class,
+                () -> loginService.confirmEmail(testLoginRequest));
+
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidToken, exception.getMessage());
+    }
+    }
 
     @Nested
     @DisplayName("SignIn Tests")
     class SignInTests {
 
     /**
-     * Test successful user sign-in.
-     * Verifies that user can sign in and returns list of clients they have access
-     * to.
+     * Purpose: Verify successful sign-in returns accessible clients.
+     * Expected Result: Sign-in succeeds and clients are returned.
+     * Assertions: No exception is thrown and repositories are queried.
      */
     @Test
     @DisplayName("Sign In - Success - Should return list of clients")
@@ -260,8 +336,53 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test sign-in with missing login name.
-     * Verifies that BadRequestException is thrown.
+     * Purpose: Verify successful sign-in resets login attempts and saves user.
+     * Expected Result: User is saved after login.
+     * Assertions: userRepository.save is called once.
+     */
+    @Test
+    @DisplayName("Sign In - Success - Resets login attempts and saves user")
+    void signIn_Success_ResetsLoginAttemptsAndSavesUser() {
+        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+        when(userClientMappingRepository.findByUserId(TEST_USER_ID)).thenReturn(List.of(testUserClientMapping));
+        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+
+        try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
+            mockedPasswordHelper.when(() -> PasswordHelper.checkPassword(anyString(), anyString(), anyString()))
+                    .thenReturn(true);
+
+            loginService.signIn(testLoginRequest);
+
+            verify(userRepository, times(1)).save(any(User.class));
+        }
+    }
+
+    /**
+     * Purpose: Verify lastLoginAt is set on successful sign-in.
+     * Expected Result: lastLoginAt is not null.
+     * Assertions: User has lastLoginAt populated.
+     */
+    @Test
+    @DisplayName("Sign In - Success - Sets lastLoginAt")
+    void signIn_Success_SetsLastLoginAt() {
+        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+        when(userClientMappingRepository.findByUserId(TEST_USER_ID)).thenReturn(List.of(testUserClientMapping));
+        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+
+        try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
+            mockedPasswordHelper.when(() -> PasswordHelper.checkPassword(anyString(), anyString(), anyString()))
+                .thenReturn(true);
+
+            loginService.signIn(testLoginRequest);
+
+            assertNotNull(testUser.getLastLoginAt());
+        }
+    }
+
+    /**
+     * Purpose: Validate missing login name is rejected.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches InvalidLoginName.
      */
     @Test
     @DisplayName("Sign In - Failure - Missing login name")
@@ -274,13 +395,14 @@ class LoginServiceTest extends BaseTest {
                 BadRequestException.class,
                 () -> loginService.signIn(testLoginRequest));
 
-        assertEquals(com.example.SpringApi.ErrorMessages.UserErrorMessages.InvalidLoginName, exception.getMessage());
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
         // Note: findByLoginName is called before validation, so we don't verify never()
     }
 
     /**
-     * Test sign-in with null login name.
-     * Verifies that BadRequestException is thrown.
+     * Purpose: Validate null login name is rejected.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches ER012.
      */
     @Test
     @DisplayName("Sign In - Failure - Null login name")
@@ -297,8 +419,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test sign-in with whitespace-only login name.
-     * Verifies that BadRequestException is thrown.
+     * Purpose: Validate whitespace-only login name is rejected.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches ER012.
      */
     @Test
     @DisplayName("Sign In - Failure - Whitespace only login name")
@@ -315,8 +438,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test sign-in with missing password.
-     * Verifies that BadRequestException is thrown.
+     * Purpose: Validate missing password is rejected.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches ER012.
      */
     @Test
     @DisplayName("Sign In - Failure - Missing password")
@@ -334,8 +458,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test sign-in with null password.
-     * Verifies that BadRequestException is thrown.
+     * Purpose: Validate null password is rejected.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches ER012.
      */
     @Test
     @DisplayName("Sign In - Failure - Null password")
@@ -352,8 +477,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test sign-in with null request.
-     * Verifies that appropriate exception is thrown.
+     * Purpose: Validate null request handling.
+     * Expected Result: NullPointerException is thrown.
+     * Assertions: Exception type is NullPointerException.
      */
     @Test
     @DisplayName("Sign In - Failure - Null request")
@@ -363,8 +489,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test sign-in with non-existent user.
-     * Verifies that NotFoundException is thrown.
+     * Purpose: Validate sign-in fails when user does not exist.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message matches InvalidEmail.
      */
     @Test
     @DisplayName("Sign In - Failure - User not found")
@@ -382,8 +509,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test sign-in with non-existent user by different login name.
-     * Verifies that NotFoundException is thrown consistently.
+     * Purpose: Validate sign-in fails for unknown login names.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message matches InvalidEmail.
      */
     @Test
     @DisplayName("Sign In - Failure - Different user not found")
@@ -402,8 +530,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test sign-in with unconfirmed email.
-     * Verifies that UnauthorizedException is thrown.
+     * Purpose: Reject sign-in when email is not confirmed.
+     * Expected Result: UnauthorizedException is thrown.
+     * Assertions: Exception message matches ER005.
      */
     @Test
     @DisplayName("Sign In - Failure - Email not confirmed")
@@ -422,8 +551,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test sign-in with locked account.
-     * Verifies that UnauthorizedException is thrown.
+     * Purpose: Reject sign-in for locked accounts.
+     * Expected Result: UnauthorizedException is thrown.
+     * Assertions: Exception message matches ER006.
      */
     @Test
     @DisplayName("Sign In - Failure - Account locked")
@@ -442,8 +572,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test sign-in with account locked after multiple failed attempts.
-     * Verifies that account state is checked properly.
+     * Purpose: Reject sign-in when account is locked from prior attempts.
+     * Expected Result: UnauthorizedException is thrown.
+     * Assertions: Exception message matches ER006 and save is not called.
      */
     @Test
     @DisplayName("Sign In - Failure - Account locked from previous attempts")
@@ -463,8 +594,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test sign-in with no password set.
-     * Verifies that UnauthorizedException is thrown.
+     * Purpose: Reject sign-in when password is not set.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches ER016.
      */
     @Test
     @DisplayName("Sign In - Failure - No password set")
@@ -483,9 +615,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test sign-in with invalid password.
-     * Verifies that user locked attempts are decremented and account is locked if
-     * attempts reach zero.
+     * Purpose: Validate invalid password decrements attempts and denies access.
+     * Expected Result: UnauthorizedException is thrown and attempts are updated.
+     * Assertions: Save is invoked and exception message matches ER008.
      */
     @Test
     @DisplayName("Sign In - Failure - Invalid password")
@@ -512,8 +644,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test sign-in with invalid password multiple times.
-     * Verifies that attempts are decremented correctly.
+     * Purpose: Validate invalid password with remaining attempts.
+     * Expected Result: UnauthorizedException is thrown and attempts decrease.
+     * Assertions: Save is invoked with updated attempts.
      */
     @Test
     @DisplayName("Sign In - Failure - Invalid password with multiple attempts remaining")
@@ -532,14 +665,15 @@ class LoginServiceTest extends BaseTest {
                     UnauthorizedException.class,
                     () -> loginService.signIn(testLoginRequest));
 
-            assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER007, exception.getMessage());
+            assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidCredentials, exception.getMessage());
             verify(userRepository, times(1)).save(any(User.class));
         }
     }
 
     /**
-     * Test sign-in with valid password and multiple clients.
-     * Verifies that all accessible clients are returned.
+     * Purpose: Verify sign-in returns multiple accessible clients.
+     * Expected Result: Sign-in succeeds and multiple clients are returned.
+     * Assertions: No exception is thrown and repositories are queried.
      */
     @Test
     @DisplayName("Sign In - Success - Multiple accessible clients")
@@ -576,19 +710,109 @@ class LoginServiceTest extends BaseTest {
             verify(userClientMappingRepository, times(1)).findByUserId(TEST_USER_ID);
         }
         }
+
+            /**
+             * Purpose: Verify clients are returned sorted by name.
+             * Expected Result: Response list is alphabetical.
+             * Assertions: First client name is "Alpha", second is "Beta".
+             */
+            @Test
+            @DisplayName("Sign In - Success - Clients sorted by name")
+            void signIn_ClientsSortedByName_Success() {
+            Client clientB = new Client();
+            clientB.setClientId(2L);
+            clientB.setName("Beta");
+
+            Client clientA = new Client();
+            clientA.setClientId(1L);
+            clientA.setName("Alpha");
+
+            UserClientMapping mappingA = new UserClientMapping();
+            mappingA.setUserId(TEST_USER_ID);
+            mappingA.setClientId(1L);
+            mappingA.setApiKey("api-key-a");
+
+            UserClientMapping mappingB = new UserClientMapping();
+            mappingB.setUserId(TEST_USER_ID);
+            mappingB.setClientId(2L);
+            mappingB.setApiKey("api-key-b");
+
+            when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+            when(userClientMappingRepository.findByUserId(TEST_USER_ID))
+                .thenReturn(List.of(mappingB, mappingA));
+            when(clientRepository.findById(1L)).thenReturn(Optional.of(clientA));
+            when(clientRepository.findById(2L)).thenReturn(Optional.of(clientB));
+
+            try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
+                mockedPasswordHelper.when(() -> PasswordHelper.checkPassword(anyString(), anyString(), anyString()))
+                    .thenReturn(true);
+
+                List<com.example.SpringApi.Models.ResponseModels.ClientResponseModel> result =
+                    loginService.signIn(testLoginRequest);
+
+                assertEquals("Alpha", result.get(0).getName());
+                assertEquals("Beta", result.get(1).getName());
+            }
+            }
+
+            /**
+             * Purpose: Return empty list when no client mappings exist.
+             * Expected Result: Sign-in succeeds and returns empty list.
+             * Assertions: Result list is empty.
+             */
+            @Test
+            @DisplayName("Sign In - Success - No client mappings returns empty list")
+            void signIn_NoClientMappings_ReturnsEmptyList() {
+                when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+                when(userClientMappingRepository.findByUserId(TEST_USER_ID)).thenReturn(List.of());
+
+                try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
+                    mockedPasswordHelper.when(() -> PasswordHelper.checkPassword(anyString(), anyString(), anyString()))
+                        .thenReturn(true);
+
+                    List<com.example.SpringApi.Models.ResponseModels.ClientResponseModel> result =
+                        loginService.signIn(testLoginRequest);
+
+                    assertNotNull(result);
+                    assertTrue(result.isEmpty());
+                }
+            }
+
+            /**
+             * Purpose: Skip mappings where client is missing.
+             * Expected Result: Sign-in succeeds and returns empty list.
+             * Assertions: Result list is empty.
+             */
+            @Test
+            @DisplayName("Sign In - Success - Client not found in mapping is skipped")
+            void signIn_ClientNotFoundInMapping_SkipsClient() {
+                when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+                when(userClientMappingRepository.findByUserId(TEST_USER_ID)).thenReturn(List.of(testUserClientMapping));
+                when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.empty());
+
+                try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
+                    mockedPasswordHelper.when(() -> PasswordHelper.checkPassword(anyString(), anyString(), anyString()))
+                        .thenReturn(true);
+
+                    List<com.example.SpringApi.Models.ResponseModels.ClientResponseModel> result =
+                        loginService.signIn(testLoginRequest);
+
+                    assertNotNull(result);
+                    assertTrue(result.isEmpty());
+                }
+            }
     }
 
     // Note: signUp method has been removed from the API - no tests needed
-
-    // ==================== Reset Password Tests ====================
 
     @Nested
     @DisplayName("ResetPassword Tests")
     class ResetPasswordTests {
 
     /**
-     * Test successful password reset.
-     * Verifies that password is reset and user is notified.
+     * Purpose: Verify successful password reset.
+     * Expected Result: Password is reset and email is sent.
+     * Assertions: Save is called and email helper is invoked.
      */
     @Test
     @DisplayName("Reset Password - Success - Should reset password and send email")
@@ -631,8 +855,114 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test reset password with missing login name.
-     * Verifies that BadRequestException is thrown.
+     * Purpose: Reject missing client configuration.
+     * Expected Result: RuntimeException is thrown.
+     * Assertions: Error message matches NoClientConfigurationFound.
+     */
+    @Test
+    @DisplayName("Reset Password - Missing client configuration - Throws RuntimeException")
+    void resetPassword_NoClientConfiguration_ThrowsRuntimeException() {
+        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+        when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(null);
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> loginService.resetPassword(testLoginRequest));
+
+        assertEquals(ErrorMessages.ConfigurationErrorMessages.NoClientConfigurationFound, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Reject missing sender email configuration.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Error message matches SendGridEmailNotConfigured.
+     */
+    @Test
+    @DisplayName("Reset Password - Missing sender email - Throws BadRequestException")
+    void resetPassword_MissingSenderEmail_ThrowsBadRequestException() {
+        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+        when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
+        when(environment.getProperty("email.sender.address")).thenReturn(null);
+        when(environment.getProperty("email.sender.name")).thenReturn("Sender");
+        when(environment.getProperty("sendgrid.api.key")).thenReturn("key");
+
+        BadRequestException exception = assertThrows(BadRequestException.class,
+            () -> loginService.resetPassword(testLoginRequest));
+
+        assertEquals(ErrorMessages.ConfigurationErrorMessages.SendGridEmailNotConfigured, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Reject missing sender name configuration.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Error message matches SendGridNameNotConfigured.
+     */
+    @Test
+    @DisplayName("Reset Password - Missing sender name - Throws BadRequestException")
+    void resetPassword_MissingSenderName_ThrowsBadRequestException() {
+        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+        when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
+        when(environment.getProperty("email.sender.address")).thenReturn("test@example.com");
+        when(environment.getProperty("email.sender.name")).thenReturn(" ");
+        when(environment.getProperty("sendgrid.api.key")).thenReturn("key");
+
+        BadRequestException exception = assertThrows(BadRequestException.class,
+            () -> loginService.resetPassword(testLoginRequest));
+
+        assertEquals(ErrorMessages.ConfigurationErrorMessages.SendGridNameNotConfigured, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Reject missing SendGrid API key configuration.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Error message matches SendGridApiKeyNotConfigured.
+     */
+    @Test
+    @DisplayName("Reset Password - Missing SendGrid API key - Throws BadRequestException")
+    void resetPassword_MissingSendGridApiKey_ThrowsBadRequestException() {
+        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+        when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
+        when(environment.getProperty("email.sender.address")).thenReturn("test@example.com");
+        when(environment.getProperty("email.sender.name")).thenReturn("Sender");
+        when(environment.getProperty("sendgrid.api.key")).thenReturn("");
+
+        BadRequestException exception = assertThrows(BadRequestException.class,
+            () -> loginService.resetPassword(testLoginRequest));
+
+        assertEquals(ErrorMessages.ConfigurationErrorMessages.SendGridApiKeyNotConfigured, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Handle failure when reset password email cannot be sent.
+     * Expected Result: RuntimeException is thrown.
+     * Assertions: Error message matches expected text.
+     */
+    @Test
+    @DisplayName("Reset Password - Email send failure - Throws RuntimeException")
+    void resetPassword_EmailSendFailure_ThrowsRuntimeException() {
+        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+        when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
+        when(environment.getProperty("email.sender.address")).thenReturn("test@example.com");
+        when(environment.getProperty("email.sender.name")).thenReturn("Sender");
+        when(environment.getProperty("sendgrid.api.key")).thenReturn("key");
+
+        try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class);
+             MockedConstruction<EmailTemplates> emailTemplatesMock = mockConstruction(EmailTemplates.class,
+                (mock, context) -> when(mock.sendResetPasswordEmail(anyString(), anyString())).thenReturn(false))) {
+            mockedPasswordHelper.when(PasswordHelper::getRandomPassword).thenReturn("newpass");
+            mockedPasswordHelper.when(() -> PasswordHelper.getHashedPasswordAndSalt(anyString()))
+                .thenReturn(new String[] {"salt", "hash"});
+
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> loginService.resetPassword(testLoginRequest));
+
+            assertEquals("Failed to send reset password email", exception.getMessage());
+        }
+    }
+
+    /**
+     * Purpose: Reject reset when login name is missing.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches ER014.
      */
     @Test
     @DisplayName("Reset Password - Failure - Missing login name")
@@ -650,8 +980,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test reset password with null login name.
-     * Verifies that BadRequestException is thrown.
+     * Purpose: Reject reset when login name is null.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches ER014.
      */
     @Test
     @DisplayName("Reset Password - Failure - Null login name")
@@ -669,8 +1000,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test reset password with whitespace-only login name.
-     * Verifies that BadRequestException is thrown.
+     * Purpose: Reject reset when login name is whitespace.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches ER014.
      */
     @Test
     @DisplayName("Reset Password - Failure - Whitespace only login name")
@@ -688,8 +1020,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test reset password with non-existent user.
-     * Verifies that NotFoundException is thrown.
+     * Purpose: Validate reset fails for non-existent user.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message matches InvalidEmail.
      */
     @Test
     @DisplayName("Reset Password - Failure - User not found")
@@ -707,8 +1040,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test reset password with different non-existent user.
-     * Verifies consistent error handling.
+     * Purpose: Validate reset fails for a different unknown user.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message matches InvalidEmail.
      */
     @Test
     @DisplayName("Reset Password - Failure - Different user not found")
@@ -727,8 +1061,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test reset password for user without password set.
-     * Verifies that BadRequestException is thrown.
+     * Purpose: Reject reset when user has no password set.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches ER016.
      */
     @Test
     @DisplayName("Reset Password - Failure - User has no password set")
@@ -748,8 +1083,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test reset password for user with empty password.
-     * Verifies that BadRequestException is thrown.
+     * Purpose: Reject reset when user password is empty.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches ER016.
      */
     @Test
     @DisplayName("Reset Password - Failure - User has empty password")
@@ -768,8 +1104,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test reset password with null request.
-     * Verifies that exception is thrown.
+     * Purpose: Validate null request handling for reset.
+     * Expected Result: NullPointerException is thrown.
+     * Assertions: Exception type is NullPointerException.
      */
     @Test
     @DisplayName("Reset Password - Failure - Null request")
@@ -785,8 +1122,9 @@ class LoginServiceTest extends BaseTest {
     class GetTokenTests {
 
     /**
-     * Test successful token generation.
-     * Verifies that JWT token is generated with user permissions.
+     * Purpose: Verify token generation succeeds with valid inputs.
+     * Expected Result: JWT token is generated.
+     * Assertions: Returned token is not null and includes permissions.
      */
     @Test
     @DisplayName("Get Token - Success - Should generate JWT token")
@@ -815,8 +1153,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test get token with missing login name.
-     * Verifies that BadRequestException is thrown.
+     * Purpose: Reject token request with missing login name.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches ER014.
      */
     @Test
     @DisplayName("Get Token - Failure - Missing login name")
@@ -834,8 +1173,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test get token with null login name.
-     * Verifies that BadRequestException is thrown.
+     * Purpose: Reject token request with null login name.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches ER014.
      */
     @Test
     @DisplayName("Get Token - Failure - Null login name")
@@ -853,8 +1193,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test get token with missing API key.
-     * Verifies that BadRequestException is thrown.
+     * Purpose: Reject token request with missing API key.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches ER015.
      */
     @Test
     @DisplayName("Get Token - Failure - Missing API key")
@@ -872,8 +1213,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test get token with null API key.
-     * Verifies that BadRequestException is thrown.
+     * Purpose: Reject token request with null API key.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches ER015.
      */
     @Test
     @DisplayName("Get Token - Failure - Null API key")
@@ -891,8 +1233,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test get token with non-existent user.
-     * Verifies that UnauthorizedException is thrown.
+     * Purpose: Reject token request for non-existent user.
+     * Expected Result: UnauthorizedException is thrown.
+     * Assertions: Exception message matches InvalidEmail.
      */
     @Test
     @DisplayName("Get Token - Failure - User not found")
@@ -910,8 +1253,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test get token with different non-existent user.
-     * Verifies consistent error handling.
+     * Purpose: Reject token request for different unknown user.
+     * Expected Result: UnauthorizedException is thrown.
+     * Assertions: Exception message matches InvalidEmail.
      */
     @Test
     @DisplayName("Get Token - Failure - Different user not found")
@@ -930,8 +1274,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test get token with invalid API key.
-     * Verifies that UnauthorizedException is thrown.
+     * Purpose: Reject token request with invalid API key.
+     * Expected Result: UnauthorizedException is thrown.
+     * Assertions: Exception message matches ER018.
      */
     @Test
     @DisplayName("Get Token - Failure - Invalid API key")
@@ -952,8 +1297,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test get token with API key belonging to different user.
-     * Verifies that UnauthorizedException is thrown.
+     * Purpose: Reject token request when API key belongs to another user.
+     * Expected Result: UnauthorizedException is thrown.
+     * Assertions: Exception message matches ER018.
      */
     @Test
     @DisplayName("Get Token - Failure - API key belongs to different user")
@@ -979,8 +1325,9 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test get token with no permissions.
-     * Verifies that token is generated with empty permissions list.
+     * Purpose: Verify token generation when no permissions exist.
+     * Expected Result: Token is generated with empty permissions.
+     * Assertions: Token is not null and permissions list is empty.
      */
     @Test
     @DisplayName("Get Token - Success - No permissions")
@@ -1001,22 +1348,24 @@ class LoginServiceTest extends BaseTest {
     }
 
     /**
-     * Test get token with multiple permissions.
-     * Verifies that all permissions are included in token generation.
+     * Purpose: Verify token generation includes multiple permissions.
+     * Expected Result: Token contains all permissions.
+     * Assertions: Permission list size matches expected.
      */
     @Test
     @DisplayName("Get Token - Success - Multiple permissions")
     void getToken_MultiplePermissions_Success() {
         // Arrange
         List<UserClientPermissionMapping> permissions = new ArrayList<>();
-        permissions.add(new UserClientPermissionMapping(TEST_USER_ID, 1L, TEST_CLIENT_ID, "admin"));
-        permissions.add(new UserClientPermissionMapping(TEST_USER_ID, 2L, TEST_CLIENT_ID, "editor"));
-        permissions.add(new UserClientPermissionMapping(TEST_USER_ID, 3L, TEST_CLIENT_ID, "viewer"));
+        Long mappingClientId = testUserClientMapping.getClientId();
+        permissions.add(new UserClientPermissionMapping(TEST_USER_ID, mappingClientId, 1L, "admin"));
+        permissions.add(new UserClientPermissionMapping(TEST_USER_ID, mappingClientId, 2L, "editor"));
+        permissions.add(new UserClientPermissionMapping(TEST_USER_ID, mappingClientId, 3L, "viewer"));
 
         when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
         when(userClientMappingRepository.findByApiKey(TEST_API_KEY)).thenReturn(Optional.of(testUserClientMapping));
-        when(userClientPermissionMappingRepository.findClientPermissionMappingByUserId(TEST_USER_ID))
-                .thenReturn(permissions);
+        when(userClientPermissionMappingRepository.findClientPermissionMappingByUserId(anyLong()))
+            .thenReturn(permissions);
         when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyLong())).thenReturn("jwt-token-123");
 
         // Act
@@ -1028,6 +1377,29 @@ class LoginServiceTest extends BaseTest {
         verify(jwtTokenProvider, times(1)).generateToken(any(User.class),
                 argThat(list -> list.size() == 3), anyLong());
         }
+
+    /**
+     * Purpose: Filter out permissions that belong to other clients.
+     * Expected Result: Token generated with only matching client permissions.
+     * Assertions: Permission list is empty when all permissions are for other clients.
+     */
+    @Test
+    @DisplayName("Get Token - Success - Permissions filtered by client")
+    void getToken_PermissionsFilteredByClient_Success() {
+        List<UserClientPermissionMapping> permissions = new ArrayList<>();
+        permissions.add(new UserClientPermissionMapping(TEST_USER_ID, 999L, 1L, "admin"));
+
+        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+        when(userClientMappingRepository.findByApiKey(TEST_API_KEY)).thenReturn(Optional.of(testUserClientMapping));
+        when(userClientPermissionMappingRepository.findClientPermissionMappingByUserId(anyLong()))
+            .thenReturn(permissions);
+        when(jwtTokenProvider.generateToken(any(User.class), anyList(), anyLong())).thenReturn("jwt-token-123");
+
+        String result = loginService.getToken(testLoginRequest);
+
+        assertEquals("jwt-token-123", result);
+        verify(jwtTokenProvider).generateToken(any(User.class), argThat(List::isEmpty), anyLong());
+    }
 
     }
 }
