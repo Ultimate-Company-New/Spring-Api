@@ -33,15 +33,28 @@ public class QADashboardResponseModel {
      */
     private List<String> availableServices;
 
+    /**
+     * Automated API tests (Playwright/API integration tests) - separate from unit tests
+     */
+    private AutomatedApiTestsData automatedApiTests;
+
     public QADashboardResponseModel() {
     }
 
-    public QADashboardResponseModel(List<QAResponseModel> services, 
-                                     CoverageSummaryData coverageSummary, 
+    public QADashboardResponseModel(List<QAResponseModel> services,
+                                     CoverageSummaryData coverageSummary,
                                      List<String> availableServices) {
+        this(services, coverageSummary, availableServices, null);
+    }
+
+    public QADashboardResponseModel(List<QAResponseModel> services,
+                                     CoverageSummaryData coverageSummary,
+                                     List<String> availableServices,
+                                     AutomatedApiTestsData automatedApiTests) {
         this.services = services;
         this.coverageSummary = coverageSummary;
         this.availableServices = availableServices;
+        this.automatedApiTests = automatedApiTests;
     }
 
     /**
@@ -76,14 +89,79 @@ public class QADashboardResponseModel {
         public ServiceBreakdownData() {
         }
 
-        public ServiceBreakdownData(String serviceName, int totalMethods, 
-                                     int methodsWithCoverage, int totalTests, 
+        public ServiceBreakdownData(String serviceName, int totalMethods,
+                                     int methodsWithCoverage, int totalTests,
                                      double coveragePercentage) {
             this.serviceName = serviceName;
             this.totalMethods = totalMethods;
             this.methodsWithCoverage = methodsWithCoverage;
             this.totalTests = totalTests;
             this.coveragePercentage = coveragePercentage;
+        }
+    }
+
+    /**
+     * Automated API tests section (Playwright/API integration tests).
+     * Separate from unit tests - located in Spring-PlayWright-Automation project.
+     */
+    @Getter
+    @Setter
+    public static class AutomatedApiTestsData {
+        /** Relative path to the ApiTests folder (e.g., "../Spring-PlayWright-Automation/src/test/java/com/ultimatecompany/tests/ApiTests") */
+        private String basePath;
+        /** Total count of automated API test classes */
+        private int totalTests;
+        /** Tests grouped by category (Address, Client, Lead, etc.) */
+        private List<AutomatedApiTestCategory> categories;
+
+        public AutomatedApiTestsData() {
+        }
+
+        public AutomatedApiTestsData(String basePath, int totalTests, List<AutomatedApiTestCategory> categories) {
+            this.basePath = basePath;
+            this.totalTests = totalTests;
+            this.categories = categories;
+        }
+    }
+
+    /**
+     * A category of automated API tests (e.g., Address, Client, Lead)
+     */
+    @Getter
+    @Setter
+    public static class AutomatedApiTestCategory {
+        private String categoryName;
+        /** Relative path within ApiTests (e.g., "Address") */
+        private String relativePath;
+        private List<AutomatedApiTestInfo> tests;
+
+        public AutomatedApiTestCategory() {
+        }
+
+        public AutomatedApiTestCategory(String categoryName, String relativePath, List<AutomatedApiTestInfo> tests) {
+            this.categoryName = categoryName;
+            this.relativePath = relativePath;
+            this.tests = tests;
+        }
+    }
+
+    /**
+     * A single automated API test class
+     */
+    @Getter
+    @Setter
+    public static class AutomatedApiTestInfo {
+        /** Test class name (e.g., "GetAddressByClientIdTest") */
+        private String testClass;
+        /** Relative path from ApiTests folder (e.g., "Address/GetAddressByClientIdTest.java") */
+        private String relativePath;
+
+        public AutomatedApiTestInfo() {
+        }
+
+        public AutomatedApiTestInfo(String testClass, String relativePath) {
+            this.testClass = testClass;
+            this.relativePath = relativePath;
         }
     }
 }

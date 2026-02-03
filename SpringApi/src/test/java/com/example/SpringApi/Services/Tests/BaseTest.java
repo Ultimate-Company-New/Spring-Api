@@ -725,10 +725,10 @@ public abstract class BaseTest {
 
     // ==================== BATCH FILTERING CONSTANTS ====================
 
-    protected static final String[] BATCH_STRING_OPERATORS = {"eq", "neq", "contains", "startswith", "endswith"};
-    protected static final String[] BATCH_NUMBER_OPERATORS = {"eq", "neq", "gt", "gte", "lt", "lte"};
-    protected static final String[] BATCH_BOOLEAN_OPERATORS = {"eq", "neq"};
-    protected static final String[] BATCH_DATE_OPERATORS = {"eq", "neq", "gt", "gte", "lt", "lte"};
+    protected static final String[] BATCH_STRING_OPERATORS = {"equals", "contains", "startsWith", "endsWith"};
+    protected static final String[] BATCH_NUMBER_OPERATORS = {"equals", "notEquals", "greaterThan", "greaterThanOrEqual", "lessThan", "lessThanOrEqual"};
+    protected static final String[] BATCH_BOOLEAN_OPERATORS = {"is"};
+    protected static final String[] BATCH_DATE_OPERATORS = {"is", "isNot", "isAfter", "isOnOrAfter", "isBefore", "isOnOrBefore"};
     protected static final String[] BATCH_INVALID_OPERATORS = {"invalid", "xyz", "!@#"};
     protected static final String[] BATCH_INVALID_COLUMNS = {"invalidColumn", "xyz", "!@#"};
     protected static final String[] BATCH_VALID_VALUES = {"test", "value", "123"};

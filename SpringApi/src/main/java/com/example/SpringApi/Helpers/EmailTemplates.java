@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 
 public class EmailTemplates {
-    private final EmailHelper emailHelper;
+    private final IEmailHelper emailHelper;
     private final Environment environment;
     private final Client client;
 
@@ -23,7 +23,7 @@ public class EmailTemplates {
                           Client client) {
         this.environment = environment;
         this.client = client;
-        this.emailHelper = new EmailHelper(fromAddress, senderName, sendgridApiKey);
+        this.emailHelper = EmailHelperFactory.create(fromAddress, senderName, sendgridApiKey, environment);
     }
 
     public boolean sendImportBulkDataResults(

@@ -184,7 +184,7 @@ public class ImgbbHelper {
 
             // Construct the full API URL including the key
             String fullUrlString = IMGBB_UPLOAD_URL + "?key=" + imgbbApiKey;
-            URL url = new URL(fullUrlString);
+            URL url = java.net.URI.create(fullUrlString).toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
             // Configure the connection for POST request
@@ -233,7 +233,7 @@ public class ImgbbHelper {
         try {
             // ImgBB delete URL format: https://api.imgbb.com/1/image/{deleteHash}?key={apiKey}
             String deleteUrl = "https://api.imgbb.com/1/image/" + deleteHash + "?key=" + imgbbApiKey;
-            URL url = new URL(deleteUrl);
+            URL url = java.net.URI.create(deleteUrl).toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             
             connection.setRequestMethod("DELETE");
@@ -256,7 +256,7 @@ public class ImgbbHelper {
      */
     public byte[] downloadFileAsBytesFromImgBB(String publicUrl) {
         try {
-            URL url = new URL(publicUrl);
+            URL url = java.net.URI.create(publicUrl).toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
@@ -286,7 +286,7 @@ public class ImgbbHelper {
         String fullUrlString = IMGBB_INFO_URL + imageId + "?key=" + imgbbApiKey;
 
         try {
-            URL url = new URL(fullUrlString);
+            URL url = java.net.URI.create(fullUrlString).toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();

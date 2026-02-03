@@ -314,67 +314,6 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
     }
   }
 
-  /**
-   * Creates multiple promos in a single operation.
-   * This is the synchronous version that returns results directly.
-   * 
-   * @param promos List of PromoRequestModel containing the promo data to insert
-   * @return BulkInsertResponseModel containing success/failure details for each
-   *         promo
-   * @deprecated Use bulkCreatePromosAsync for better performance with large
-   *             datasets
-   */
-  @Override
-  @Deprecated
-  public BulkInsertResponseModel<Long> bulkCreatePromos(List<PromoRequestModel> promos) {
-    if (promos == null || promos.isEmpty()) {
-      throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Promo"));
-    }
-
-    BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
-    response.setTotalRequested(promos.size());
-
-    int successCount = 0;
-    int failureCount = 0;
-
-    for (PromoRequestModel promoRequest : promos) {
-      try {
-        createPromo(promoRequest);
-
-        Optional<Promo> createdPromo = promoRepository.findByPromoCodeAndClientId(
-            promoRequest.getPromoCode().toUpperCase(), getClientId());
-        if (createdPromo.isPresent()) {
-          response.addSuccess(promoRequest.getPromoCode(), createdPromo.get().getPromoId());
-          successCount++;
-        }
-      } catch (BadRequestException bre) {
-        response.addFailure(
-            promoRequest.getPromoCode() != null ? promoRequest.getPromoCode() : "unknown",
-            bre.getMessage());
-        failureCount++;
-      } catch (Exception e) {
-        response.addFailure(
-            promoRequest.getPromoCode() != null ? promoRequest.getPromoCode() : "unknown",
-            "Error: " + e.getMessage());
-        failureCount++;
-      }
-    }
-
-    userLogService.logData(getUserId(),
-        SuccessMessages.PromoSuccessMessages.CreatePromo + " (Bulk: " + successCount + " succeeded, " + failureCount
-            + " failed)",
-        ApiRoutes.PromosSubRoute.BULK_CREATE_PROMO);
-
-    response.setSuccessCount(successCount);
-    response.setFailureCount(failureCount);
-
-    BulkInsertHelper.createDetailedBulkInsertResultMessage(
-        response, "Promo", "Promos", "Promo Code", "Promo ID",
-        messageService, getUserId(), getUser(), getClientId());
-
-    return response;
-  }
-
   // ==================== HELPER METHODS ====================
 
   /**
@@ -390,7 +329,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
    * @throws BadRequestException if promo code already exists
    */
   @Transactional
-  private void createPromo(PromoRequestModel promoRequestModel, String createdUser, boolean shouldLog) {
+  protected void createPromo(PromoRequestModel promoRequestModel, String createdUser, boolean shouldLog) {
     // Get security context
     Long currentClientId = getClientId();
     Long currentUserId = getUserId();

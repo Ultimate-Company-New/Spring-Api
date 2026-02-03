@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -56,6 +57,9 @@ public class QAService extends BaseService implements IQASubTranslator {
 
     // Test source file path (relative to project root)
     private static final String TEST_SOURCE_PATH = "src/test/java/com/example/SpringApi/Services/Tests";
+
+    // Automated API tests path (relative - Spring-PlayWright-Automation project)
+    private static final String AUTOMATED_API_TESTS_PATH = "src/test/java/com/ultimatecompany/tests/ApiTests";
 
     private static final Set<String> EXCLUDED_METHODS = new HashSet<>(Arrays.asList(
             "equals", "hashCode", "toString", "getClass", "notify", "notifyAll", "wait",
@@ -214,7 +218,98 @@ public class QAService extends BaseService implements IQASubTranslator {
         // Get available services
         List<String> availableServices = new ArrayList<>(SERVICE_MAPPINGS.keySet());
 
-        return new QADashboardResponseModel(services, coverageSummary, availableServices);
+        // Get automated API tests (separate section from unit tests)
+        QADashboardResponseModel.AutomatedApiTestsData automatedApiTests = getAutomatedApiTests();
+
+        return new QADashboardResponseModel(services, coverageSummary, availableServices, automatedApiTests);
+    }
+
+    /**
+     * Discovers and returns all automated API tests from the Spring-PlayWright-Automation project.
+     * Uses relative path: Spring-PlayWright-Automation/src/test/java/com/ultimatecompany/tests/ApiTests
+     *
+     * @return AutomatedApiTestsData with categories and test files, or empty data if path not found
+     */
+    private QADashboardResponseModel.AutomatedApiTestsData getAutomatedApiTests() {
+        Path apiTestsDir = resolveAutomatedApiTestsPath();
+        if (apiTestsDir == null || !Files.isDirectory(apiTestsDir)) {
+            return new QADashboardResponseModel.AutomatedApiTestsData(
+                    "../Spring-PlayWright-Automation/" + AUTOMATED_API_TESTS_PATH, 0, new ArrayList<>());
+        }
+
+        String resolvedBasePath = apiTestsDir.toString();
+        List<QADashboardResponseModel.AutomatedApiTestCategory> categories = new ArrayList<>();
+        int totalTests = 0;
+
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(apiTestsDir)) {
+            List<Path> entries = new ArrayList<>();
+            dirStream.forEach(entries::add);
+            entries.sort(Comparator.comparing(p -> p.getFileName().toString()));
+
+            for (Path entry : entries) {
+                if (!Files.isDirectory(entry)) {
+                    continue;
+                }
+                String categoryName = entry.getFileName().toString();
+                if (categoryName.startsWith(".")) {
+                    continue;
+                }
+
+                List<QADashboardResponseModel.AutomatedApiTestInfo> tests = new ArrayList<>();
+                try (DirectoryStream<Path> fileStream = Files.newDirectoryStream(entry, "*.java")) {
+                    for (Path file : fileStream) {
+                        String fileName = file.getFileName().toString();
+                        if (fileName.endsWith(".java")) {
+                            String testClass = fileName.substring(0, fileName.length() - 5);
+                            String relativePath = categoryName + "/" + fileName;
+                            tests.add(new QADashboardResponseModel.AutomatedApiTestInfo(testClass, relativePath));
+                            totalTests++;
+                        }
+                    }
+                }
+                tests.sort(Comparator.comparing(QADashboardResponseModel.AutomatedApiTestInfo::getTestClass));
+                categories.add(new QADashboardResponseModel.AutomatedApiTestCategory(
+                        categoryName, categoryName, tests));
+            }
+        } catch (IOException e) {
+            logger.error(e);
+            return new QADashboardResponseModel.AutomatedApiTestsData(
+                    "../Spring-PlayWright-Automation/" + AUTOMATED_API_TESTS_PATH, 0, new ArrayList<>());
+        }
+
+        return new QADashboardResponseModel.AutomatedApiTestsData(
+                "../Spring-PlayWright-Automation/" + AUTOMATED_API_TESTS_PATH, totalTests, categories);
+    }
+
+    /**
+     * Resolves the path to the automated API tests folder.
+     * Tries multiple relative paths from common project roots (workspace sibling layout).
+     */
+    private Path resolveAutomatedApiTestsPath() {
+        Path currentDir = Paths.get(System.getProperty("user.dir"));
+        Path playwrightRoot = Paths.get("Spring-PlayWright-Automation");
+        List<Path> possiblePaths = new ArrayList<>(Arrays.asList(
+                currentDir.resolve("..").resolve(playwrightRoot).resolve(AUTOMATED_API_TESTS_PATH),
+                currentDir.resolve("..").resolve("..").resolve(playwrightRoot).resolve(AUTOMATED_API_TESTS_PATH),
+                currentDir.resolve(playwrightRoot).resolve(AUTOMATED_API_TESTS_PATH)
+        ));
+
+        Path parent = currentDir.getParent();
+        if (parent != null) {
+            possiblePaths.add(parent.resolve("Spring-PlayWright-Automation").resolve(AUTOMATED_API_TESTS_PATH));
+            if (parent.getParent() != null) {
+                possiblePaths.add(parent.getParent().resolve("Spring-PlayWright-Automation")
+                        .resolve(AUTOMATED_API_TESTS_PATH));
+            }
+        }
+
+        for (Path path : possiblePaths) {
+            Path normalized = path.normalize();
+            if (Files.isDirectory(normalized)) {
+                return normalized;
+            }
+        }
+        return null;
     }
 
     /**

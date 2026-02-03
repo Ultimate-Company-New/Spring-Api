@@ -126,7 +126,6 @@ public class ApiRoutes {
         public static final String UPDATE_PACKAGE = "updatePackage";
         public static final String TOGGLE_PACKAGE = "togglePackage";
         public static final String GET_PACKAGE_BY_ID = "getPackageById";
-        public static final String GET_ALL_PACKAGES_IN_SYSTEM = "getAllPackagesInSystem";
         public static final String GET_PACKAGES_BY_PICKUP_LOCATION_ID = "getPackagesByPickupLocationId";
     }
 

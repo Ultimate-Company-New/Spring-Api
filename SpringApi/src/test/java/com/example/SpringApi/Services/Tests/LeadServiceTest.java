@@ -571,17 +571,14 @@ class LeadServiceTest extends BaseTest {
         }
 
         @Test
-        @DisplayName("Create Lead - Zero Company Size - Success")
-        void createLead_ZeroCompanySize_Success() {
-            // Arrange
+        @DisplayName("Create Lead - Zero Company Size - ThrowsBadRequestException")
+        void createLead_ZeroCompanySize_ThrowsBadRequestException() {
+            // Arrange - Lead model rejects company size 0 (must be null or > 0)
             testLeadRequest.setCompanySize(0);
-            when(leadRepository.save(any(Lead.class))).thenReturn(testLead);
 
-            // Act
-            assertDoesNotThrow(() -> leadService.createLead(testLeadRequest));
-
-            // Assert
-            verify(leadRepository).save(any(Lead.class));
+            // Act & Assert
+            assertThrowsBadRequest(ErrorMessages.LeadsErrorMessages.ER016,
+                    () -> leadService.createLead(testLeadRequest));
         }
 
     }
@@ -744,8 +741,7 @@ class LeadServiceTest extends BaseTest {
         @Test
         @DisplayName("Update Lead - Null Request - ThrowsBadRequestException")
         void updateLead_NullRequest_ThrowsBadRequestException() {
-            when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID))
-                    .thenReturn(testLead);
+            // Service validates null before accessing repository
             assertThrowsBadRequest(ErrorMessages.LeadsErrorMessages.ER009, () -> leadService.updateLead(DEFAULT_LEAD_ID, null));
         }
 
@@ -758,10 +754,10 @@ class LeadServiceTest extends BaseTest {
             testLeadRequest.setFirstName("UpdatedFirst");
             testLeadRequest.setLastName("UpdatedLast");
             testLeadRequest.setEmail("updated@example.com");
-            testLeadRequest.setPhone("555-9999");
+            testLeadRequest.setPhone("5551234567");
             testLeadRequest.setCompany("UpdatedCorp");
             testLeadRequest.setTitle("Director");
-            testLeadRequest.setLeadStatus("Qualified");
+            testLeadRequest.setLeadStatus("Contacted");
             when(leadRepository.save(any(Lead.class))).thenReturn(testLead);
 
             // Act
@@ -772,19 +768,16 @@ class LeadServiceTest extends BaseTest {
         }
 
         @Test
-        @DisplayName("Update Lead - Valid Company Size Zero - Success")
-        void updateLead_ValidCompanySizeZero_Success() {
-            // Arrange
+        @DisplayName("Update Lead - Valid Company Size Zero - ThrowsBadRequestException")
+        void updateLead_ValidCompanySizeZero_ThrowsBadRequestException() {
+            // Arrange - Lead model rejects company size 0 (must be null or > 0)
             when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID))
                     .thenReturn(testLead);
             testLeadRequest.setCompanySize(0);
-            when(leadRepository.save(any(Lead.class))).thenReturn(testLead);
 
-            // Act
-            assertDoesNotThrow(() -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-
-            // Assert
-            verify(leadRepository).save(any(Lead.class));
+            // Act & Assert
+            assertThrowsBadRequest(ErrorMessages.LeadsErrorMessages.ER016,
+                    () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
         }
 
         @Test

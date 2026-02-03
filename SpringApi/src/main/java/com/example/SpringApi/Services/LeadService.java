@@ -200,6 +200,9 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
     @Override
     @Transactional
     public void createLead(LeadRequestModel leadRequestModel) {
+        if (leadRequestModel == null) {
+            throw new BadRequestException(ErrorMessages.LeadsErrorMessages.ER009);
+        }
         createLead(leadRequestModel, getUser(), true);
     }
 
@@ -212,6 +215,9 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
     @Override
     @Transactional
     public void updateLead(Long leadId, LeadRequestModel leadRequestModel) {
+        if (leadRequestModel == null) {
+            throw new BadRequestException(ErrorMessages.LeadsErrorMessages.ER009);
+        }
         // Get security context
         Long currentClientId = getClientId();
         Long currentUserId = getUserId();

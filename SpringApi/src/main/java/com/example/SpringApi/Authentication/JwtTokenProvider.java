@@ -20,34 +20,17 @@ public class JwtTokenProvider {
 
     @Value("${jwt.issuer.url}")
     private String issuerUrl;
-    
-    // public String generateToken(WebTemplateCarrierMapping webTemplateCarrierMapping) {
-    //     Date now = new Date();
-    //     Date expiryDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-
-    //     return builder()
-    //             .issuer(ISSUER_URL)
-    //             .issuedAt(now)
-    //             .audience().add(ISSUER_URL).and()
-    //             .claim("wildCard", webTemplateCarrierMapping.getWildCard())
-    //             .claim("webTemplateId", webTemplateCarrierMapping.getWebTemplateId())
-    //             .claim("carrierId",webTemplateCarrierMapping.getCarrierId())
-    //             .expiration(expiryDate)
-    //             .signWith(PasswordHelper.getSecretKey(webTemplateCarrierMapping.getApiAccessKey()))
-    //             .compact();
-    // }
 
     /**
      * Generates a JWT token for a user with their client-permission mappings.
-     * 
-     * @param user The user entity
+     * * @param user The user entity
      * @param permissionIds List of permissionIds for the client
      * @param clientId The client ID
      * @return JWT token string
      */
-    public String generateToken(User user, 
-        List<Long> permissionIds, 
-        Long clientId) {
+    public String generateToken(User user,
+                                List<Long> permissionIds,
+                                Long clientId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
@@ -69,42 +52,41 @@ public class JwtTokenProvider {
 
     public String getUserNameFromToken(String token){
         Claims claims = parser()
-            .verifyWith(PasswordHelper.getSecretKey(jwtSecret))
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
+                .verifyWith(PasswordHelper.getSecretKey(jwtSecret))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
 
         return claims.get("email").toString();
     }
 
     public Long getUserIdFromToken(String token) {
         Claims claims = parser()
-            .verifyWith(PasswordHelper.getSecretKey(jwtSecret))
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
+                .verifyWith(PasswordHelper.getSecretKey(jwtSecret))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
 
         return Long.valueOf(claims.get("userId").toString());
     }
 
     /**
      * Gets the clientId the user belongs to from the JWT token.
-     * 
-     * @param token The JWT token
+     * * @param token The JWT token
      * @return The client ID
      */
     public Long getClientIdFromToken(String token) {
         Claims claims = parser()
-            .verifyWith(PasswordHelper.getSecretKey(jwtSecret))
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
+                .verifyWith(PasswordHelper.getSecretKey(jwtSecret))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
 
         Object clientIdObj = claims.get("clientId");
         if (clientIdObj == null) {
             return null;
         }
-        
+
         if (clientIdObj instanceof Number) {
             return ((Number) clientIdObj).longValue();
         } else {
@@ -114,27 +96,28 @@ public class JwtTokenProvider {
 
     /**
      * Gets the client-permission map from the JWT token.
-     * 
-     * @param token The JWT token
+     * * @param token The JWT token
      * @return Map of clientId to list of permissionIds
      */
+    @SuppressWarnings("unchecked") // FIXED: Suppress warning for Map cast
     public Map<Long, List<Long>> getClientPermissionMapFromToken(String token) {
         Claims claims = parser()
-            .verifyWith(PasswordHelper.getSecretKey(jwtSecret))
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
+                .verifyWith(PasswordHelper.getSecretKey(jwtSecret))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
 
+        // The cast below is what causes the "unchecked" warning
         Map<String, Object> rawMap = (Map<String, Object>) claims.get("clientPermissionMap");
         if (rawMap == null || rawMap.isEmpty()) {
             return Map.of();
         }
-        
+
         Map<Long, List<Long>> result = new java.util.HashMap<>();
         for (Map.Entry<String, Object> entry : rawMap.entrySet()) {
             Long clientId = Long.valueOf(entry.getKey());
             List<Long> permissionIds = new java.util.ArrayList<>();
-            
+
             if (entry.getValue() instanceof List<?>) {
                 List<?> rawList = (List<?>) entry.getValue();
                 for (Object item : rawList) {
@@ -150,12 +133,13 @@ public class JwtTokenProvider {
         return result;
     }
 
+    @SuppressWarnings("unchecked") // FIXED: Suppress warning for List cast (if any)
     public List<Long> getUserPermissionIds(String token){
-    Claims claims = parser()
-        .verifyWith(PasswordHelper.getSecretKey(jwtSecret))
-        .build()
-        .parseSignedClaims(token)
-        .getPayload();
+        Claims claims = parser()
+                .verifyWith(PasswordHelper.getSecretKey(jwtSecret))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
 
         Object raw = claims.get("permissionIds");
         if (raw instanceof List<?>) {
@@ -192,12 +176,12 @@ public class JwtTokenProvider {
 
     public boolean validateTokenForWebTemplate(String token, String wildCard, String apiAccessKey) {
         try {
-        parser().verifyWith(PasswordHelper.getSecretKey(apiAccessKey)).build().parseSignedClaims(token);
-        Claims claims = parser()
-            .verifyWith(PasswordHelper.getSecretKey(apiAccessKey))
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
+            parser().verifyWith(PasswordHelper.getSecretKey(apiAccessKey)).build().parseSignedClaims(token);
+            Claims claims = parser()
+                    .verifyWith(PasswordHelper.getSecretKey(apiAccessKey))
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
             if(!wildCard.equals(claims.get("wildCard").toString())){
                 return false;
             }

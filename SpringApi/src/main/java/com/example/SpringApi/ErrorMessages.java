@@ -569,6 +569,7 @@ public class ErrorMessages {
         public static final String SendGridEmailNotConfigured = "Email sender address is not configured in properties.";
         public static final String SendGridNameNotConfigured = "Email sender name is not configured in properties.";
         public static final String SendGridApiKeyNotConfigured = "SendGrid API key is not configured in properties.";
+        public static final String BrevoApiKeyNotConfigured = "Brevo API key is not configured in properties.";
         
         // Client
         public static final String NoClientConfigurationFound = "No client configuration found.";

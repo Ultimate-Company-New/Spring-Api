@@ -245,9 +245,17 @@ public class LoginService implements ILoginSubTranslator {
             }
 
             // Get email configuration from properties - all are required
-            String senderEmail = environment.getProperty("email.sender.address");
-            String senderName = environment.getProperty("email.sender.name");
-            String sendGridApiKey = environment.getProperty("sendgrid.api.key");
+            String emailService = environment.getProperty("email.service", "sendgrid");
+            boolean isBrevo = "brevo".equalsIgnoreCase(emailService.trim());
+            String senderEmail = isBrevo
+                    ? environment.getProperty("brevo.sender.address")
+                    : environment.getProperty("email.sender.address");
+            String senderName = isBrevo
+                    ? environment.getProperty("brevo.sender.name")
+                    : environment.getProperty("email.sender.name");
+            String apiKey = isBrevo
+                    ? environment.getProperty("brevo.api.key")
+                    : environment.getProperty("sendgrid.api.key");
 
             // Validate all required email configuration properties are present
             if (senderEmail == null || senderEmail.trim().isEmpty()) {
@@ -256,11 +264,13 @@ public class LoginService implements ILoginSubTranslator {
             if (senderName == null || senderName.trim().isEmpty()) {
                 throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.SendGridNameNotConfigured);
             }
-            if (sendGridApiKey == null || sendGridApiKey.trim().isEmpty()) {
-                throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.SendGridApiKeyNotConfigured);
+            if (apiKey == null || apiKey.trim().isEmpty()) {
+                throw new BadRequestException(isBrevo
+                        ? ErrorMessages.ConfigurationErrorMessages.BrevoApiKeyNotConfigured
+                        : ErrorMessages.ConfigurationErrorMessages.SendGridApiKeyNotConfigured);
             }
 
-            EmailTemplates emailTemplates = new EmailTemplates(senderName, senderEmail, sendGridApiKey, environment,
+            EmailTemplates emailTemplates = new EmailTemplates(senderName, senderEmail, apiKey, environment,
                     client);
             boolean emailSent = emailTemplates.sendResetPasswordEmail(user.getLoginName(), randomPassword);
 

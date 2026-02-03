@@ -233,19 +233,6 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     }
 
     /**
-     * Retrieves all packages in the system for the current client.
-     *
-     * @return List of all PackageResponseModel entities in the system
-     */
-    @Override
-    public List<PackageResponseModel> getAllPackagesInSystem() {
-        return packageRepository.findAll().stream()
-            .filter(pkg -> pkg.getClientId().equals(getClientId()))
-            .map(PackageResponseModel::new)
-            .collect(Collectors.toList());
-    }
-
-    /**
      * Toggles the active status of a package.
      *
      * @param packageId The unique identifier of the package to toggle

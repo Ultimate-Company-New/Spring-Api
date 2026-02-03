@@ -826,6 +826,7 @@ class LoginServiceTest extends BaseTest {
         // Mock environment properties for email configuration
         when(environment.getProperty("email.sender.address")).thenReturn("test@example.com");
         when(environment.getProperty("email.sender.name")).thenReturn("Test Sender");
+        when(environment.getProperty("email.service", "sendgrid")).thenReturn("sendgrid");
         when(environment.getProperty("sendgrid.api.key")).thenReturn("test-api-key");
         lenient().when(emailTemplates.sendResetPasswordEmail(anyString(), anyString()))
                 .thenReturn(true);
@@ -883,6 +884,7 @@ class LoginServiceTest extends BaseTest {
         when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
         when(environment.getProperty("email.sender.address")).thenReturn(null);
         when(environment.getProperty("email.sender.name")).thenReturn("Sender");
+        when(environment.getProperty("email.service", "sendgrid")).thenReturn("sendgrid");
         when(environment.getProperty("sendgrid.api.key")).thenReturn("key");
 
         BadRequestException exception = assertThrows(BadRequestException.class,
@@ -903,6 +905,7 @@ class LoginServiceTest extends BaseTest {
         when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
         when(environment.getProperty("email.sender.address")).thenReturn("test@example.com");
         when(environment.getProperty("email.sender.name")).thenReturn(" ");
+        when(environment.getProperty("email.service", "sendgrid")).thenReturn("sendgrid");
         when(environment.getProperty("sendgrid.api.key")).thenReturn("key");
 
         BadRequestException exception = assertThrows(BadRequestException.class,
@@ -923,12 +926,34 @@ class LoginServiceTest extends BaseTest {
         when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
         when(environment.getProperty("email.sender.address")).thenReturn("test@example.com");
         when(environment.getProperty("email.sender.name")).thenReturn("Sender");
+        when(environment.getProperty("email.service", "sendgrid")).thenReturn("sendgrid");
         when(environment.getProperty("sendgrid.api.key")).thenReturn("");
 
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> loginService.resetPassword(testLoginRequest));
 
         assertEquals(ErrorMessages.ConfigurationErrorMessages.SendGridApiKeyNotConfigured, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Reject missing Brevo API key when emailService is brevo.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Error message matches BrevoApiKeyNotConfigured.
+     */
+    @Test
+    @DisplayName("Reset Password - Missing Brevo API key when emailService is brevo - Throws BadRequestException")
+    void resetPassword_MissingBrevoApiKey_ThrowsBadRequestException() {
+        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+        when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
+        when(environment.getProperty("email.service", "sendgrid")).thenReturn("brevo");
+        when(environment.getProperty("brevo.sender.address")).thenReturn("test@example.com");
+        when(environment.getProperty("brevo.sender.name")).thenReturn("Sender");
+        when(environment.getProperty("brevo.api.key")).thenReturn("");
+
+        BadRequestException exception = assertThrows(BadRequestException.class,
+            () -> loginService.resetPassword(testLoginRequest));
+
+        assertEquals(ErrorMessages.ConfigurationErrorMessages.BrevoApiKeyNotConfigured, exception.getMessage());
     }
 
     /**
@@ -943,6 +968,7 @@ class LoginServiceTest extends BaseTest {
         when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
         when(environment.getProperty("email.sender.address")).thenReturn("test@example.com");
         when(environment.getProperty("email.sender.name")).thenReturn("Sender");
+        when(environment.getProperty("email.service", "sendgrid")).thenReturn("sendgrid");
         when(environment.getProperty("sendgrid.api.key")).thenReturn("key");
 
         try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class);

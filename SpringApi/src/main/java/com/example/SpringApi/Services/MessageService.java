@@ -12,7 +12,8 @@ import com.example.SpringApi.Models.DatabaseModels.MessageUserMap;
 import com.example.SpringApi.Models.DatabaseModels.MessageUserGroupMap;
 import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Helpers.EmailHelper;
+import com.example.SpringApi.Helpers.EmailHelperFactory;
+import com.example.SpringApi.Helpers.IEmailHelper;
 import com.example.SpringApi.Helpers.EmailTemplates;
 import com.example.SpringApi.Repositories.ClientRepository;
 import com.example.SpringApi.Repositories.MessageRepository;
@@ -180,10 +181,11 @@ public class MessageService extends BaseService implements IMessageSubTranslator
         
         // Generate batch ID if sendAsEmail is true and publishDate is set
         if (Boolean.TRUE.equals(message.getSendAsEmail()) && message.getPublishDate() != null) {
-            EmailHelper emailHelper = new EmailHelper(
+            IEmailHelper emailHelper = EmailHelperFactory.create(
                 client.getSendGridEmailAddress(),
                 client.getSendgridSenderName(),
-                client.getSendGridApiKey()
+                client.getSendGridApiKey(),
+                environment
             );
             String batchId = emailHelper.generateBatchId();
             message.setSendgridEmailBatchId(batchId);
@@ -299,10 +301,11 @@ public class MessageService extends BaseService implements IMessageSubTranslator
                     && !messageRequestModel.getPublishDate().equals(existingMessage.getPublishDate()));
 
             if (emailSettingsChanged) {
-                EmailHelper emailHelper = new EmailHelper(
+                IEmailHelper emailHelper = EmailHelperFactory.create(
                     client.getSendGridEmailAddress(),
                     client.getSendgridSenderName(),
-                    client.getSendGridApiKey()
+                    client.getSendGridApiKey(),
+                    environment
                 );
                 emailHelper.cancelEmail(existingMessage.getSendgridEmailBatchId());
             }
@@ -316,10 +319,11 @@ public class MessageService extends BaseService implements IMessageSubTranslator
         
         // Generate new batch ID if sendAsEmail is true and publishDate is set
         if (Boolean.TRUE.equals(updatedMessage.getSendAsEmail()) && updatedMessage.getPublishDate() != null) {
-            EmailHelper emailHelper = new EmailHelper(
+            IEmailHelper emailHelper = EmailHelperFactory.create(
                 client.getSendGridEmailAddress(),
                 client.getSendgridSenderName(),
-                client.getSendGridApiKey()
+                client.getSendGridApiKey(),
+                environment
             );
             String batchId = emailHelper.generateBatchId();
             updatedMessage.setSendgridEmailBatchId(batchId);

@@ -23,7 +23,7 @@ import com.sendgrid.helpers.mail.objects.Personalization;
 import java.io.IOException;
 
 
-public class EmailHelper {
+public class EmailHelper implements IEmailHelper {
     private final String fromAddress;
     private final String senderName;
     private final String sendGridApiKey;

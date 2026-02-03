@@ -57,17 +57,7 @@ public interface IPromoSubTranslator {
      * @return The promo details as response model
      */
     PromoResponseModel getPromoDetailsByName(String promoCode);
-    
-    /**
-     * Creates multiple promos in a single operation.
-     * 
-     * @param promos List of PromoRequestModel containing the promo data to insert
-     * @return BulkInsertResponseModel containing success/failure details for each promo
-     * @deprecated Use bulkCreatePromosAsync for better performance with large datasets
-     */
-    @Deprecated
-    com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreatePromos(java.util.List<PromoRequestModel> promos);
-    
+
     /**
      * Creates multiple promos asynchronously in the system with partial success support.
      * 

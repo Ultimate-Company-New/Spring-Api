@@ -36,13 +36,6 @@ public interface IPackageSubTranslator {
     PackageResponseModel getPackageById(Long packageId);
 
     /**
-     * Retrieves all packages in the system.
-     *
-     * @return List of all PackageResponseModel entities in the system
-     */
-    List<PackageResponseModel> getAllPackagesInSystem();
-
-    /**
      * Toggles the active status of a package.
      *
      * @param packageId The unique identifier of the package to toggle

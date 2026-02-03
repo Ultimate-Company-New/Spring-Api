@@ -32,7 +32,8 @@ public class FirebaseHelper {
                         + "}").getBytes(StandardCharsets.UTF_8));
 
                 // Initialize FirebaseOptions with the service account credentials
-                FirebaseOptions options = new FirebaseOptions.Builder()
+                // FIXED: Used static builder() method instead of deprecated constructor
+                FirebaseOptions options = FirebaseOptions.builder()
                         .setCredentials(ServiceAccountCredentials.fromStream(serviceAccount))
                         .setStorageBucket("ultimate-company.appspot.com")
                         .build();

@@ -4,10 +4,10 @@ import com.example.SpringApi.FilterQueryBuilder.PromoFilterQueryBuilder;
 import com.example.SpringApi.Models.DatabaseModels.Promo;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.PromoRequestModel;
-import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PromoResponseModel;
 import com.example.SpringApi.Repositories.PromoRepository;
+import com.example.SpringApi.Services.MessageService;
 import com.example.SpringApi.Services.PromoService;
 import com.example.SpringApi.Services.UserLogService;
 import com.example.SpringApi.Exceptions.BadRequestException;
@@ -24,6 +24,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -52,7 +53,7 @@ import static org.mockito.Mockito.*;
  * | GetPromoDetailsByIdTests                | 12              |
  * | TogglePromoTests                        | 16              |
  * | GetPromoDetailsByNameTests              | 16              |
- * | BulkCreatePromosTests                   | 12              |
+ * | BulkCreatePromosAsyncTests             | 7               |
  * | ValidationTests                         | 16              |
  * | **Total**                               | **81**          |
  */
@@ -72,8 +73,14 @@ class PromoServiceTest extends BaseTest {
     @Mock
     private HttpServletRequest request;
 
+    @Mock
+    private MessageService messageService;
+
+    @Spy
     @InjectMocks
     private PromoService promoService;
+
+    private static final String TEST_LOGIN_NAME = "admin";
 
     private Promo testPromo;
     private PromoRequestModel testPromoRequest;
@@ -122,8 +129,16 @@ class PromoServiceTest extends BaseTest {
         testPaginationRequest.setLogicOperator("AND");
         testPaginationRequest.setIncludeDeleted(false);
 
-        // Note: BaseService methods are now handled by the actual service
-        // implementation
+        // Mock BaseService methods for security context (required for createPromo, etc.)
+        lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+        lenient().doReturn(TEST_USER_ID).when(promoService).getUserId();
+        lenient().doReturn(TEST_LOGIN_NAME).when(promoService).getUser();
+        lenient().doReturn(TEST_CLIENT_ID).when(promoService).getClientId();
+
+        // Mock MessageService for bulk async (BulkInsertHelper calls createMessageWithContext)
+        lenient().doNothing().when(messageService).createMessageWithContext(any(), anyLong(), anyString(), anyLong());
+        lenient().when(userLogService.logDataWithContext(anyLong(), anyString(), anyLong(), anyString(), anyString()))
+                .thenReturn(true);
     }
 
         /**
@@ -686,9 +701,11 @@ class PromoServiceTest extends BaseTest {
         }
 
         Map<String, Promo> savedPromos = new HashMap<>();
-        when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID))).thenAnswer(invocation -> {
+        lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))
+                .thenReturn(Collections.emptyList());
+        lenient().when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID))).thenAnswer(invocation -> {
             String code = invocation.getArgument(0);
-            return Optional.ofNullable(savedPromos.get(code.toUpperCase()));
+            return Optional.ofNullable(savedPromos.get(code != null ? code.toUpperCase() : null));
         });
         when(promoRepository.save(any(Promo.class))).thenAnswer(invocation -> {
             Promo promo = invocation.getArgument(0);
@@ -696,16 +713,11 @@ class PromoServiceTest extends BaseTest {
             savedPromos.put(promo.getPromoCode(), promo);
             return promo;
         });
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
-        // Act
-        BulkInsertResponseModel<Long> result = promoService.bulkCreatePromos(promos);
+        // Act - @Async method: verify it doesn't throw synchronously
+        assertDoesNotThrow(() -> promoService.bulkCreatePromosAsync(promos, TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID));
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(3, result.getTotalRequested());
-        assertEquals(3, result.getSuccessCount());
-        assertEquals(0, result.getFailureCount());
+        // Assert - verify repository was called (async runs in same thread in unit test)
         verify(promoRepository, times(3)).save(any(Promo.class));
     }
 
@@ -738,26 +750,25 @@ class PromoServiceTest extends BaseTest {
         promos.add(invalidPromo);
 
         Map<String, Promo> savedPromos = new HashMap<>();
-        when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID))).thenAnswer(invocation -> {
+        lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))
+                .thenReturn(Collections.emptyList());
+        lenient().when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID))).thenAnswer(invocation -> {
             String code = invocation.getArgument(0);
             return Optional.ofNullable(savedPromos.get(code != null ? code.toUpperCase() : null));
         });
         when(promoRepository.save(any(Promo.class))).thenAnswer(invocation -> {
             Promo promo = invocation.getArgument(0);
             promo.setPromoId((long) (Math.random() * 1000));
-            savedPromos.put(promo.getPromoCode(), promo);
+            if (promo.getPromoCode() != null) {
+                savedPromos.put(promo.getPromoCode(), promo);
+            }
             return promo;
         });
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
-        // Act
-        BulkInsertResponseModel<Long> result = promoService.bulkCreatePromos(promos);
+        // Act - @Async method: verify it doesn't throw synchronously
+        assertDoesNotThrow(() -> promoService.bulkCreatePromosAsync(promos, TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID));
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.getTotalRequested());
-        assertEquals(1, result.getSuccessCount());
-        assertEquals(1, result.getFailureCount());
+        // Assert - partial success: 1 valid promo saved
         verify(promoRepository, times(1)).save(any(Promo.class));
     }
 
@@ -781,14 +792,11 @@ class PromoServiceTest extends BaseTest {
                 .thenReturn(Optional.empty());
         lenient().when(promoRepository.save(any(Promo.class))).thenThrow(new RuntimeException("Database error"));
 
-        // Act
-        BulkInsertResponseModel<Long> result = promoService.bulkCreatePromos(promos);
+        // Act - @Async method: catches exception, sends message, doesn't rethrow
+        assertDoesNotThrow(() -> promoService.bulkCreatePromosAsync(promos, TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID));
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getTotalRequested());
-        assertEquals(0, result.getSuccessCount());
-        assertEquals(1, result.getFailureCount());
+        // Assert - no successful saves
+        verify(promoRepository, never()).save(any(Promo.class));
     }
 
     /**
@@ -801,11 +809,8 @@ class PromoServiceTest extends BaseTest {
         // Arrange
         List<PromoRequestModel> promos = new ArrayList<>();
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            promoService.bulkCreatePromos(promos);
-        });
-        assertTrue(exception.getMessage().contains("Promo list cannot be null or empty"));
+        // Act & Assert - @Async catches exception internally, doesn't rethrow
+        assertDoesNotThrow(() -> promoService.bulkCreatePromosAsync(promos, TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID));
         verify(promoRepository, never()).save(any(Promo.class));
     }
 
@@ -817,10 +822,8 @@ class PromoServiceTest extends BaseTest {
     @Test
     @DisplayName("Bulk Create Promos - Failure - Null list")
     void bulkCreatePromos_NullList_ThrowsBadRequestException() {
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> {
-            promoService.bulkCreatePromos(null);
-        });
-        assertTrue(ex.getMessage().contains("Promo list cannot be null or empty"));
+        // @Async catches exception internally, doesn't rethrow
+        assertDoesNotThrow(() -> promoService.bulkCreatePromosAsync(null, TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID));
     }
 
     /**
@@ -841,12 +844,11 @@ class PromoServiceTest extends BaseTest {
             promos.add(invalid);
         }
 
-        BulkInsertResponseModel<Long> result = promoService.bulkCreatePromos(promos);
+        // Act - @Async method: all invalid, none saved
+        assertDoesNotThrow(() -> promoService.bulkCreatePromosAsync(promos, TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID));
 
-        assertNotNull(result);
-        assertEquals(3, result.getTotalRequested());
-        assertEquals(0, result.getSuccessCount());
-        assertEquals(3, result.getFailureCount());
+        // Assert - no successful saves
+        verify(promoRepository, never()).save(any(Promo.class));
     }
 
     /**
@@ -885,12 +887,11 @@ class PromoServiceTest extends BaseTest {
             .thenReturn(Optional.of(testPromo));
         when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
 
-        BulkInsertResponseModel<Long> result = promoService.bulkCreatePromos(promos);
+        // Act - @Async method: duplicate fails, first succeeds
+        assertDoesNotThrow(() -> promoService.bulkCreatePromosAsync(promos, TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID));
 
-        assertNotNull(result);
-        assertEquals(2, result.getTotalRequested());
-        assertEquals(1, result.getSuccessCount());
-        assertEquals(1, result.getFailureCount());
+        // Assert - one save for the first valid promo
+        verify(promoRepository, times(1)).save(any(Promo.class));
     }
 
     @org.junit.jupiter.api.Nested

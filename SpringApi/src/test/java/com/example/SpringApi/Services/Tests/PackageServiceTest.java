@@ -55,13 +55,12 @@ import static org.mockito.Mockito.*;
  * | :-------------------------------------- | :-------------- |
  * | GetPackageByIdTests                     | 24              |
  * | GetPackagesInBatchesTests               | 1               |
- * | GetAllPackagesInSystemTests             | 8               |
  * | CreatePackageTests                      | 30              |
  * | UpdatePackageTests                      | 24              |
  * | TogglePackageTests                      | 20              |
  * | GetPackagesByPickupLocationIdTests      | 16              |
  * | BulkCreatePackagesTests                 | 24              |
- * | **Total**                               | **147**         |
+ * | **Total**                               | **139**         |
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PackageService Unit Tests")
@@ -418,121 +417,6 @@ class PackageServiceTest extends BaseTest {
                     }
                 }
             }
-        }
-    }
-
-    @Nested
-    @DisplayName("GetAllPackagesInSystem Tests")
-    class GetAllPackagesInSystemTests {
-
-        /**
-         * Purpose: Verify behavior when getClientId() returns null (no security context).
-         * Expected Result: Empty list is returned (all packages filtered out).
-         * Assertions: Result is not null, size is 0 (filtering by null clientId).
-         * Note: Method filters by getClientId() which returns null without security context.
-         */
-        @Test
-        @DisplayName("getAllPackagesInSystem - No security context - Returns empty")
-        void getAllPackagesInSystem_NoSecurityContext_ReturnsEmpty() {
-            List<Package> packageList = Arrays.asList(testPackage);
-            when(packageRepository.findAll()).thenReturn(packageList);
-
-            List<PackageResponseModel> result = packageService.getAllPackagesInSystem();
-
-            assertNotNull(result);
-            // Empty because packages are filtered by getClientId() which returns null
-            assertEquals(0, result.size());
-        }
-
-        /**
-         * Purpose: Verify empty list is returned when no packages exist.
-         * Expected Result: Empty list is returned.
-         * Assertions: Result is not null, size is 0.
-         */
-        @Test
-        @DisplayName("getAllPackagesInSystem - Empty result")
-        void getAllPackagesInSystem_EmptyResult() {
-            when(packageRepository.findAll()).thenReturn(new ArrayList<>());
-
-            List<PackageResponseModel> result = packageService.getAllPackagesInSystem();
-
-            assertNotNull(result);
-            assertTrue(result.isEmpty());
-        }
-
-        /**
-         * Purpose: Verify repository findAll is called once.
-         * Expected Result: Repository method is invoked.
-         * Assertions: verify repository findAll is called once.
-         */
-        @Test
-        @DisplayName("getAllPackagesInSystem - Verify repository interaction")
-        void getAllPackagesInSystem_VerifyRepositoryInteraction() {
-            when(packageRepository.findAll()).thenReturn(new ArrayList<>());
-
-            packageService.getAllPackagesInSystem();
-
-            verify(packageRepository, times(1)).findAll();
-        }
-
-        /**
-         * Purpose: Verify packages with null clientId are not returned.
-         * Expected Result: Empty list is returned.
-         * Assertions: Result is not null, size is 0 (NullPointerException would occur if package clientId was null).
-         */
-        @Test
-        @DisplayName("getAllPackagesInSystem - With packages but no matching client")
-        void getAllPackagesInSystem_NoMatchingClient() {
-            // Package has clientId = 1L, but getClientId() returns null
-            List<Package> packageList = Arrays.asList(testPackage);
-            when(packageRepository.findAll()).thenReturn(packageList);
-
-            List<PackageResponseModel> result = packageService.getAllPackagesInSystem();
-
-            assertNotNull(result);
-            assertEquals(0, result.size());
-        }
-
-        /**
-         * Purpose: Additional coverage for client filtering behavior.
-         * Expected Result: Only packages with matching clientId are returned.
-         * Assertions: Result sizes match expectations.
-         */
-        @TestFactory
-        @DisplayName("getAllPackagesInSystem - Additional client filter scenarios")
-        Stream<DynamicTest> getAllPackagesInSystem_AdditionalScenarios() {
-            return Stream.of(
-                    DynamicTest.dynamicTest("Single matching client package", () -> {
-                        Package match = createTestPackage(10L);
-                        match.setClientId(1L);
-                        when(packageRepository.findAll()).thenReturn(List.of(match));
-                        List<PackageResponseModel> result = packageService.getAllPackagesInSystem();
-                        assertEquals(1, result.size());
-                    }),
-                    DynamicTest.dynamicTest("Mixed client packages", () -> {
-                        Package match = createTestPackage(11L);
-                        match.setClientId(1L);
-                        Package nonMatch = createTestPackage(12L);
-                        nonMatch.setClientId(999L);
-                        when(packageRepository.findAll()).thenReturn(List.of(match, nonMatch));
-                        List<PackageResponseModel> result = packageService.getAllPackagesInSystem();
-                        assertEquals(1, result.size());
-                    }),
-                    DynamicTest.dynamicTest("All non-matching clients", () -> {
-                        Package nonMatch1 = createTestPackage(13L);
-                        nonMatch1.setClientId(999L);
-                        Package nonMatch2 = createTestPackage(14L);
-                        nonMatch2.setClientId(998L);
-                        when(packageRepository.findAll()).thenReturn(List.of(nonMatch1, nonMatch2));
-                        List<PackageResponseModel> result = packageService.getAllPackagesInSystem();
-                        assertTrue(result.isEmpty());
-                    }),
-                    DynamicTest.dynamicTest("Empty list remains empty", () -> {
-                        when(packageRepository.findAll()).thenReturn(new ArrayList<>());
-                        List<PackageResponseModel> result = packageService.getAllPackagesInSystem();
-                        assertTrue(result.isEmpty());
-                    })
-            );
         }
     }
 
