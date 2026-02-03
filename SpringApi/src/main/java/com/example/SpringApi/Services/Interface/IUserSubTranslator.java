@@ -1,6 +1,5 @@
 package com.example.SpringApi.Services.Interface;
 
-import com.example.SpringApi.Models.ResponseModels.BulkUserInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.UserResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PermissionResponseModel;

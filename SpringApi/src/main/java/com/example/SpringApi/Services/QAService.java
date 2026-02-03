@@ -237,7 +237,6 @@ public class QAService extends BaseService implements IQASubTranslator {
                     "../Spring-PlayWright-Automation/" + AUTOMATED_API_TESTS_PATH, 0, new ArrayList<>());
         }
 
-        String resolvedBasePath = apiTestsDir.toString();
         List<QADashboardResponseModel.AutomatedApiTestCategory> categories = new ArrayList<>();
         int totalTests = 0;
 
@@ -1157,58 +1156,6 @@ public class QAService extends BaseService implements IQASubTranslator {
         testExecutorService.executeTestsAsync(executionId, testClassName, testMethodFilter, serviceName);
 
         return status;
-    }
-
-    /**
-     * Resolves the declaring test class selector for tests associated with a given
-     * service method.
-     * For @Nested test suites, this returns something like
-     * "AddressServiceTest$GetAddressByIdTests".
-     */
-    private String resolveDeclaringTestClassForServiceMethod(String outerTestClassName, String serviceMethodName) {
-        if (outerTestClassName == null || outerTestClassName.trim().isEmpty()
-                || serviceMethodName == null || serviceMethodName.trim().isEmpty()) {
-            return null;
-        }
-
-        List<TestMethodInfo> testMethods = readTestMethodsFromFile(outerTestClassName);
-        if (testMethods.isEmpty()) {
-            return null;
-        }
-
-        // Collect unique declaring classes for tests matching the naming convention of
-        // this service method
-        Set<String> declaringClasses = new LinkedHashSet<>();
-        for (TestMethodInfo testInfo : testMethods) {
-            String testName = testInfo.methodName;
-            if (testName == null)
-                continue;
-
-            // Same matching logic as findAssociatedTests()
-            boolean matches = testName.startsWith(serviceMethodName + "_");
-            if (!matches && testName.startsWith(serviceMethodName) && testName.length() > serviceMethodName.length()) {
-                char nextChar = testName.charAt(serviceMethodName.length());
-                matches = Character.isUpperCase(nextChar);
-            }
-
-            if (matches && testInfo.declaringTestClassName != null) {
-                declaringClasses.add(testInfo.declaringTestClassName);
-            }
-        }
-
-        if (declaringClasses.isEmpty()) {
-            return null;
-        }
-
-        // Prefer a nested selector if present (contains "$"), otherwise return the
-        // outer class
-        for (String cls : declaringClasses) {
-            if (cls != null && cls.contains("$")) {
-                return cls;
-            }
-        }
-
-        return declaringClasses.iterator().next();
     }
 
     /**

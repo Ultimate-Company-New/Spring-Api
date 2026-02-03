@@ -50,7 +50,6 @@ public class LeadResponseModel {
     // Additional computed fields
     private String fullName;
     private String displayName;
-    private String statusColor;
     private Boolean isAssigned;
     private Boolean isActive;
     private Integer daysOld;
@@ -124,7 +123,7 @@ public class LeadResponseModel {
         // Compute additional fields
         this.fullName = lead.getFullName();
         this.displayName = buildDisplayName();
-        this.statusColor = getStatusColor();
+        getStatusColor();
         this.isAssigned = this.assignedAgentId != null;
         this.isActive = !this.isDeleted;
         this.daysOld = calculateDaysOld();

@@ -33,6 +33,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -54,7 +55,8 @@ import static org.mockito.Mockito.*;
  * | CreateLeadTests                         | 15              |
  * | UpdateLeadTests                         | 16              |
  * | ToggleLeadTests                         | 8               |
- * | **Total**                               | **57**          |
+ * | BulkCreateLeadsTests                    | 12              |
+ * | **Total**                               | **69**          |
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("LeadService Unit Tests")
@@ -913,5 +915,362 @@ class LeadServiceTest extends BaseTest {
             verify(leadRepository, times(2)).save(testLead);
         }
 
+    }
+
+    @Nested
+    @DisplayName("Bulk Create Leads Tests")
+    class BulkCreateLeadsTests {
+
+        @Test
+        @DisplayName("Bulk Create Leads - All Valid - Success")
+        void bulkCreateLeads_AllValid_Success() {
+            // Arrange
+            List<LeadRequestModel> leads = new ArrayList<>();
+            for (int i = 0; i < 5; i++) {
+                LeadRequestModel leadReq = createValidLeadRequest(null, TEST_CLIENT_ID);
+                leadReq.setEmail("bulklead" + i + "@test.com");
+                leadReq.setFirstName("BulkFirst" + i);
+                leadReq.setLastName("BulkLast" + i);
+                leadReq.setPhone("555000" + i);
+                leads.add(leadReq);
+            }
+
+            when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
+                Lead lead = inv.getArgument(0);
+                lead.setLeadId((long) (Math.random() * 1000));
+                return lead;
+            });
+            lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+            lenient().when(messageService.notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any())).thenReturn(null);
+
+            // Act
+            var result = leadService.bulkCreateLeads(leads);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(5, result.getTotalRequested());
+            assertEquals(5, result.getSuccessCount());
+            assertEquals(0, result.getFailureCount());
+            verify(leadRepository, times(5)).save(any(Lead.class));
+            verify(messageService, times(1)).notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any());
+        }
+
+        @Test
+        @DisplayName("Bulk Create Leads - Partial Success")
+        void bulkCreateLeads_PartialSuccess() {
+            // Arrange
+            List<LeadRequestModel> leads = new ArrayList<>();
+            
+            // Add 3 valid leads
+            for (int i = 0; i < 3; i++) {
+                LeadRequestModel validLead = createValidLeadRequest(null, TEST_CLIENT_ID);
+                validLead.setEmail("validlead" + i + "@test.com");
+                leads.add(validLead);
+            }
+            
+            // Add 2 invalid leads
+            LeadRequestModel invalidLead1 = createValidLeadRequest(null, TEST_CLIENT_ID);
+            invalidLead1.setEmail(""); // Invalid email
+            leads.add(invalidLead1);
+            
+            LeadRequestModel invalidLead2 = createValidLeadRequest(null, TEST_CLIENT_ID);
+            invalidLead2.setFirstName(null); // Invalid first name
+            leads.add(invalidLead2);
+
+            when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
+                Lead lead = inv.getArgument(0);
+                lead.setLeadId((long) (Math.random() * 1000));
+                return lead;
+            });
+            lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+            lenient().when(messageService.notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any())).thenReturn(null);
+
+            // Act
+            var result = leadService.bulkCreateLeads(leads);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(5, result.getTotalRequested());
+            assertEquals(3, result.getSuccessCount());
+            assertEquals(2, result.getFailureCount());
+            verify(leadRepository, times(3)).save(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Bulk Create Leads - Empty List - ThrowsBadRequestException")
+        void bulkCreateLeads_EmptyList_ThrowsBadRequestException() {
+            // Act & Assert
+            assertThrowsBadRequest(ErrorMessages.LeadsErrorMessages.ER011,
+                    () -> leadService.bulkCreateLeads(new ArrayList<>()));
+        }
+
+        @Test
+        @DisplayName("Bulk Create Leads - Null List - ThrowsBadRequestException")
+        void bulkCreateLeads_NullList_ThrowsBadRequestException() {
+            // Act & Assert
+            assertThrowsBadRequest(ErrorMessages.LeadsErrorMessages.ER011,
+                    () -> leadService.bulkCreateLeads(null));
+        }
+
+        @Test
+        @DisplayName("Bulk Create Leads - Single Lead - Success")
+        void bulkCreateLeads_SingleLead_Success() {
+            // Arrange
+            List<LeadRequestModel> leads = new ArrayList<>();
+            LeadRequestModel leadReq = createValidLeadRequest(null, TEST_CLIENT_ID);
+            leads.add(leadReq);
+
+            when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
+                Lead lead = inv.getArgument(0);
+                lead.setLeadId(100L);
+                return lead;
+            });
+            lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+            lenient().when(messageService.notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any())).thenReturn(null);
+
+            // Act
+            var result = leadService.bulkCreateLeads(leads);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(1, result.getTotalRequested());
+            assertEquals(1, result.getSuccessCount());
+            assertEquals(0, result.getFailureCount());
+        }
+
+        @Test
+        @DisplayName("Bulk Create Leads - All Invalid - AllFail")
+        void bulkCreateLeads_AllInvalid_AllFail() {
+            // Arrange
+            List<LeadRequestModel> leads = new ArrayList<>();
+            
+            for (int i = 0; i < 3; i++) {
+                LeadRequestModel invalidLead = createValidLeadRequest(null, TEST_CLIENT_ID);
+                invalidLead.setEmail(""); // All have invalid email
+                leads.add(invalidLead);
+            }
+
+            lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            // Act
+            var result = leadService.bulkCreateLeads(leads);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(3, result.getTotalRequested());
+            assertEquals(0, result.getSuccessCount());
+            assertEquals(3, result.getFailureCount());
+            verify(leadRepository, never()).save(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Bulk Create Leads - Many Leads - Success")
+        void bulkCreateLeads_ManyLeads_Success() {
+            // Arrange
+            List<LeadRequestModel> leads = new ArrayList<>();
+            for (int i = 0; i < 50; i++) {
+                LeadRequestModel leadReq = createValidLeadRequest(null, TEST_CLIENT_ID);
+                leadReq.setEmail("bulklead" + i + "@test.com");
+                leadReq.setFirstName("First" + i);
+                leadReq.setLastName("Last" + i);
+                leadReq.setPhone("555" + String.format("%04d", i));
+                leads.add(leadReq);
+            }
+
+            when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
+                Lead lead = inv.getArgument(0);
+                lead.setLeadId((long) (Math.random() * 10000));
+                return lead;
+            });
+            lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+            lenient().when(messageService.notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any())).thenReturn(null);
+
+            // Act
+            var result = leadService.bulkCreateLeads(leads);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(50, result.getTotalRequested());
+            assertEquals(50, result.getSuccessCount());
+            assertEquals(0, result.getFailureCount());
+            verify(leadRepository, times(50)).save(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Bulk Create Leads - Verify Logging Called")
+        void bulkCreateLeads_VerifyLoggingCalled() {
+            // Arrange
+            List<LeadRequestModel> leads = new ArrayList<>();
+            for (int i = 0; i < 3; i++) {
+                LeadRequestModel leadReq = createValidLeadRequest(null, TEST_CLIENT_ID);
+                leadReq.setEmail("lead" + i + "@test.com");
+                leads.add(leadReq);
+            }
+
+            when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
+                Lead lead = inv.getArgument(0);
+                lead.setLeadId((long) (Math.random() * 1000));
+                return lead;
+            });
+            when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+            lenient().when(messageService.notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any())).thenReturn(null);
+
+            // Act
+            leadService.bulkCreateLeads(leads);
+
+            // Assert
+            verify(userLogService, atLeastOnce()).logData(anyLong(), anyString(), anyString());
+        }
+
+        @Test
+        @DisplayName("Bulk Create Leads - Invalid Email Format - Fails")
+        void bulkCreateLeads_InvalidEmailFormat_Fails() {
+            // Arrange
+            List<LeadRequestModel> leads = new ArrayList<>();
+            
+            LeadRequestModel validLead = createValidLeadRequest(null, TEST_CLIENT_ID);
+            validLead.setEmail("valid@test.com");
+            leads.add(validLead);
+            
+            LeadRequestModel invalidLead = createValidLeadRequest(null, TEST_CLIENT_ID);
+            invalidLead.setEmail("invalid-email-format");
+            leads.add(invalidLead);
+
+            when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
+                Lead lead = inv.getArgument(0);
+                lead.setLeadId(100L);
+                return lead;
+            });
+            lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+            lenient().when(messageService.notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any())).thenReturn(null);
+
+            // Act
+            var result = leadService.bulkCreateLeads(leads);
+
+            // Assert
+            assertEquals(2, result.getTotalRequested());
+            assertEquals(1, result.getSuccessCount());
+            assertEquals(1, result.getFailureCount());
+        }
+
+        @Test
+        @DisplayName("Bulk Create Leads - Missing Required Fields - Fails")
+        void bulkCreateLeads_MissingRequiredFields_Fails() {
+            // Arrange
+            List<LeadRequestModel> leads = new ArrayList<>();
+            
+            LeadRequestModel noFirstName = createValidLeadRequest(null, TEST_CLIENT_ID);
+            noFirstName.setFirstName(null);
+            leads.add(noFirstName);
+            
+            LeadRequestModel noLastName = createValidLeadRequest(null, TEST_CLIENT_ID);
+            noLastName.setLastName("");
+            leads.add(noLastName);
+            
+            LeadRequestModel noPhone = createValidLeadRequest(null, TEST_CLIENT_ID);
+            noPhone.setPhone("   ");
+            leads.add(noPhone);
+
+            lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+            // Act
+            var result = leadService.bulkCreateLeads(leads);
+
+            // Assert
+            assertEquals(3, result.getTotalRequested());
+            assertEquals(0, result.getSuccessCount());
+            assertEquals(3, result.getFailureCount());
+            verify(leadRepository, never()).save(any(Lead.class));
+        }
+
+        @Test
+        @DisplayName("Bulk Create Leads - Verify Message Notification Sent")
+        void bulkCreateLeads_VerifyMessageNotification() {
+            // Arrange
+            List<LeadRequestModel> leads = new ArrayList<>();
+            for (int i = 0; i < 3; i++) {
+                LeadRequestModel leadReq = createValidLeadRequest(null, TEST_CLIENT_ID);
+                leadReq.setEmail("lead" + i + "@test.com");
+                leads.add(leadReq);
+            }
+
+            when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
+                Lead lead = inv.getArgument(0);
+                lead.setLeadId((long) (Math.random() * 1000));
+                return lead;
+            });
+            lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+            when(messageService.notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any())).thenReturn(null);
+
+            // Act
+            leadService.bulkCreateLeads(leads);
+
+            // Assert
+            verify(messageService, times(1)).notifyUsersAsync(
+                    eq(TEST_CLIENT_ID),
+                    anyString(),
+                    anyString(),
+                    any(),
+                    any(),
+                    any()
+            );
+        }
+
+        @Test
+        @DisplayName("Bulk Create Leads - Mixed Valid And Invalid - PartialSuccess")
+        void bulkCreateLeads_MixedValidAndInvalid_PartialSuccess() {
+            // Arrange
+            List<LeadRequestModel> leads = new ArrayList<>();
+            
+            // Valid
+            LeadRequestModel valid1 = createValidLeadRequest(null, TEST_CLIENT_ID);
+            valid1.setEmail("valid1@test.com");
+            leads.add(valid1);
+            
+            // Invalid - bad email
+            LeadRequestModel invalid1 = createValidLeadRequest(null, TEST_CLIENT_ID);
+            invalid1.setEmail("bademail");
+            leads.add(invalid1);
+            
+            // Valid
+            LeadRequestModel valid2 = createValidLeadRequest(null, TEST_CLIENT_ID);
+            valid2.setEmail("valid2@test.com");
+            leads.add(valid2);
+            
+            // Invalid - missing phone
+            LeadRequestModel invalid2 = createValidLeadRequest(null, TEST_CLIENT_ID);
+            invalid2.setPhone("");
+            leads.add(invalid2);
+            
+            // Valid
+            LeadRequestModel valid3 = createValidLeadRequest(null, TEST_CLIENT_ID);
+            valid3.setEmail("valid3@test.com");
+            leads.add(valid3);
+
+            when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
+                Lead lead = inv.getArgument(0);
+                lead.setLeadId((long) (Math.random() * 1000));
+                return lead;
+            });
+            lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+            lenient().when(messageService.notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any())).thenReturn(null);
+
+            // Act
+            var result = leadService.bulkCreateLeads(leads);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(5, result.getTotalRequested());
+            assertEquals(3, result.getSuccessCount());
+            assertEquals(2, result.getFailureCount());
+            verify(leadRepository, times(3)).save(any(Lead.class));
+            
+            // Verify results contain error messages for failures
+            assertEquals(5, result.getResults().size());
+            long failureCount = result.getResults().stream()
+                    .filter(r -> !r.getSuccess())
+                    .count();
+            assertEquals(2, failureCount);
+        }
     }
 }

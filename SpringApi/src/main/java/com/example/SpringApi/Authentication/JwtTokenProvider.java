@@ -133,7 +133,6 @@ public class JwtTokenProvider {
         return result;
     }
 
-    @SuppressWarnings("unchecked") // FIXED: Suppress warning for List cast (if any)
     public List<Long> getUserPermissionIds(String token){
         Claims claims = parser()
                 .verifyWith(PasswordHelper.getSecretKey(jwtSecret))

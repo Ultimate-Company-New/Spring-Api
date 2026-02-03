@@ -4,7 +4,6 @@ import com.example.SpringApi.Models.ResponseModels.MessageResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.MessageRequestModel;
-import java.util.List;
 
 /**
  * Interface for Message operations and data access.

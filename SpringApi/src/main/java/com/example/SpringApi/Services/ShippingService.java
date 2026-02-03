@@ -286,7 +286,6 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
      */
     private static class ProductLocationInfo {
         Product productEntity; // Full entity for creating ProductResponseModel
-        Long productId;
         String productTitle;
         BigDecimal weightKgs;
         BigDecimal length;
@@ -541,7 +540,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         for (Product product : products) {
             ProductLocationInfo info = new ProductLocationInfo();
             info.productEntity = product; // Store full entity for response model
-            info.productId = product.getProductId();
+            product.getProductId();
             info.productTitle = product.getTitle();
             info.weightKgs = product.getWeightKgs() != null ? product.getWeightKgs() : BigDecimal.valueOf(0.5);
             info.length = product.getLength();
@@ -1553,7 +1552,6 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         Map<String, CompletableFuture<ShippingOptionsResponseModel>> shippingFutures = 
             new ConcurrentHashMap<>();
         
-        int totalShipments = 0;
         for (AllocationCandidate candidate : candidates) {
             for (OrderOptimizationResponseModel.Shipment shipment : candidate.shipments) {
                 if (shipment.getPickupLocation() == null || 
@@ -1569,8 +1567,6 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 if (!shippingFutures.containsKey(cacheKey)) {
                     final String finalPickupPostcode = pickupPostcode;
                     final String finalWeight = weight.toString();
-                    totalShipments++;
-                    
                     shippingFutures.put(cacheKey, CompletableFuture.supplyAsync(() -> {
                         try {
                             logger.debug("Fetching shipping options: " + finalPickupPostcode + " -> " + deliveryPostcode + " (" + finalWeight + " kg)");

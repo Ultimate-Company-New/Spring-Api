@@ -170,13 +170,10 @@ public class PackagingHelper {
         final PackageDimension packageDim;
         double usedVolume;
         double usedWeight;
-        int itemCount;
-
         UsedPackage(PackageDimension packageDim) {
             this.packageDim = packageDim;
             this.usedVolume = 0;
             this.usedWeight = 0;
-            this.itemCount = 0;
         }
 
         double getRemainingVolume() {
@@ -194,7 +191,6 @@ public class PackagingHelper {
         void addProduct(double productVolume, double productWeight) {
             this.usedVolume += productVolume;
             this.usedWeight += productWeight;
-            this.itemCount++;
         }
     }
 
@@ -430,7 +426,6 @@ public class PackagingHelper {
         private final BigDecimal totalPackagingCost;
         private final int totalPackagesUsed;
         private final Map<Long, Integer> packedItemsByProduct; // productId -> items packed
-        private final Map<Long, Integer> requestedItemsByProduct; // productId -> items requested
         private final boolean canPackAllItems;
         private final String errorMessage;
         
@@ -442,7 +437,7 @@ public class PackagingHelper {
             this.totalPackagingCost = packagesUsed.stream()
                     .map(MultiProductPackageUsageResult::getTotalCost)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
-            this.requestedItemsByProduct = new HashMap<>(requestedItemsByProduct);
+            new HashMap<>(requestedItemsByProduct);
             this.packedItemsByProduct = new HashMap<>(packedItemsByProduct);
             
             int totalRequested = requestedItemsByProduct.values().stream().mapToInt(Integer::intValue).sum();

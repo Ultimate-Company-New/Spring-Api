@@ -1,7 +1,6 @@
 package com.example.SpringApi.Models.ResponseModels;
 
 import com.example.SpringApi.Models.DatabaseModels.Promo;
-import com.example.SpringApi.Models.DatabaseModels.Client;
 import lombok.Getter;
 import lombok.Setter;
 import java.math.BigDecimal;
