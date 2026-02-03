@@ -16,6 +16,7 @@ import com.example.SpringApi.Repositories.ProductCategoryRepository;
 import com.example.SpringApi.Repositories.ProductPickupLocationMappingRepository;
 import com.example.SpringApi.Repositories.ClientRepository;
 import com.example.SpringApi.Models.DatabaseModels.Client;
+import com.example.SpringApi.Constants.ProductImageConstants;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.SuccessMessages;
 import com.example.SpringApi.Models.ApiRoutes;
@@ -38,10 +39,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.core.env.Environment;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
@@ -294,19 +293,19 @@ public class ProductService extends BaseService implements IProductSubTranslator
             for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
                 // Validate column name
                 if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
-                    throw new BadRequestException("Invalid column name: " + filter.getColumn());
+                    throw new BadRequestException(String.format(ErrorMessages.ProductErrorMessages.InvalidColumnNameFormat, filter.getColumn()));
                 }
 
                 // Validate operator using centralized validation from FilterCondition
                 if (filter.getOperator() != null && !filter.isValidOperator()) {
-                    throw new BadRequestException("Invalid operator: " + filter.getOperator());
+                    throw new BadRequestException(String.format(ErrorMessages.ProductErrorMessages.InvalidOperatorFormat, filter.getOperator()));
                 }
 
                 // Validate column type matches operator using centralized validation
                 String columnType = productFilterQueryBuilder.getColumnType(filter.getColumn());
                 if (columnType != null && filter.getOperator() != null && !filter.isValidOperatorForType(columnType)) {
                     throw new BadRequestException(
-                        String.format("Operator '%s' is not valid for %s column '%s'", 
+                        String.format(ErrorMessages.ProductErrorMessages.InvalidOperatorForColumnFormat,
                             filter.getOperator(), columnType, filter.getColumn())
                     );
                 }
@@ -366,9 +365,10 @@ public class ProductService extends BaseService implements IProductSubTranslator
      * @param requestingUserLoginName The loginName of the user making the request (captured from security context)
      * @param requestingClientId The client ID of the user making the request (captured from security context)
      */
+    
     @Override
-    @Async
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @org.springframework.scheduling.annotation.Async
+    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public void bulkAddProductsAsync(java.util.List<ProductRequestModel> products, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
         try {
             // Validate input
@@ -615,7 +615,11 @@ public class ProductService extends BaseService implements IProductSubTranslator
         
         // Define image types and their corresponding request fields
         // Required images (excluding defect which is optional)
-        String[] requiredImageTypes = {"main", "top", "bottom", "front", "back", "right", "left", "details"};
+        String[] requiredImageTypes = {
+            ProductImageConstants.MAIN, ProductImageConstants.TOP, ProductImageConstants.BOTTOM,
+            ProductImageConstants.FRONT, ProductImageConstants.BACK, ProductImageConstants.RIGHT,
+            ProductImageConstants.LEFT, ProductImageConstants.DETAILS
+        };
         String[] requiredImageData = {
             productRequestModel.getMainImage(),
             productRequestModel.getTopImage(),
@@ -628,7 +632,10 @@ public class ProductService extends BaseService implements IProductSubTranslator
         };
         
         // Optional images
-        String[] optionalImageTypes = {"defect", "additional_1", "additional_2", "additional_3"};
+        String[] optionalImageTypes = {
+            ProductImageConstants.DEFECT, ProductImageConstants.ADDITIONAL_1,
+            ProductImageConstants.ADDITIONAL_2, ProductImageConstants.ADDITIONAL_3
+        };
         String[] optionalImageData = {
             productRequestModel.getDefectImage(),
             productRequestModel.getAdditionalImage1(),
@@ -724,7 +731,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
                     );
                     
                     if (uploadResponse == null || uploadResponse.getUrl() == null) {
-                        String errorMsg = optionalImageTypes[i].equals("defect") 
+                        String errorMsg = ProductImageConstants.DEFECT.equals(optionalImageTypes[i])
                             ? String.format(ErrorMessages.ProductErrorMessages.ER010, optionalImageTypes[i])
                             : String.format(ErrorMessages.ProductErrorMessages.ER011, i); // For additional images
                         throw new BadRequestException(errorMsg);
@@ -752,18 +759,18 @@ public class ProductService extends BaseService implements IProductSubTranslator
      */
     private String getExistingImageUrl(Product product, String imageType) {
         switch (imageType) {
-            case "main": return product.getMainImageUrl();
-            case "top": return product.getTopImageUrl();
-            case "bottom": return product.getBottomImageUrl();
-            case "front": return product.getFrontImageUrl();
-            case "back": return product.getBackImageUrl();
-            case "right": return product.getRightImageUrl();
-            case "left": return product.getLeftImageUrl();
-            case "details": return product.getDetailsImageUrl();
-            case "defect": return product.getDefectImageUrl();
-            case "additional_1": return product.getAdditionalImage1Url();
-            case "additional_2": return product.getAdditionalImage2Url();
-            case "additional_3": return product.getAdditionalImage3Url();
+            case ProductImageConstants.MAIN: return product.getMainImageUrl();
+            case ProductImageConstants.TOP: return product.getTopImageUrl();
+            case ProductImageConstants.BOTTOM: return product.getBottomImageUrl();
+            case ProductImageConstants.FRONT: return product.getFrontImageUrl();
+            case ProductImageConstants.BACK: return product.getBackImageUrl();
+            case ProductImageConstants.RIGHT: return product.getRightImageUrl();
+            case ProductImageConstants.LEFT: return product.getLeftImageUrl();
+            case ProductImageConstants.DETAILS: return product.getDetailsImageUrl();
+            case ProductImageConstants.DEFECT: return product.getDefectImageUrl();
+            case ProductImageConstants.ADDITIONAL_1: return product.getAdditionalImage1Url();
+            case ProductImageConstants.ADDITIONAL_2: return product.getAdditionalImage2Url();
+            case ProductImageConstants.ADDITIONAL_3: return product.getAdditionalImage3Url();
             default: return null;
         }
     }
@@ -777,18 +784,18 @@ public class ProductService extends BaseService implements IProductSubTranslator
      */
     private String getExistingImageDeleteHash(Product product, String imageType) {
         switch (imageType) {
-            case "main": return product.getMainImageDeleteHash();
-            case "top": return product.getTopImageDeleteHash();
-            case "bottom": return product.getBottomImageDeleteHash();
-            case "front": return product.getFrontImageDeleteHash();
-            case "back": return product.getBackImageDeleteHash();
-            case "right": return product.getRightImageDeleteHash();
-            case "left": return product.getLeftImageDeleteHash();
-            case "details": return product.getDetailsImageDeleteHash();
-            case "defect": return product.getDefectImageDeleteHash();
-            case "additional_1": return product.getAdditionalImage1DeleteHash();
-            case "additional_2": return product.getAdditionalImage2DeleteHash();
-            case "additional_3": return product.getAdditionalImage3DeleteHash();
+            case ProductImageConstants.MAIN: return product.getMainImageDeleteHash();
+            case ProductImageConstants.TOP: return product.getTopImageDeleteHash();
+            case ProductImageConstants.BOTTOM: return product.getBottomImageDeleteHash();
+            case ProductImageConstants.FRONT: return product.getFrontImageDeleteHash();
+            case ProductImageConstants.BACK: return product.getBackImageDeleteHash();
+            case ProductImageConstants.RIGHT: return product.getRightImageDeleteHash();
+            case ProductImageConstants.LEFT: return product.getLeftImageDeleteHash();
+            case ProductImageConstants.DETAILS: return product.getDetailsImageDeleteHash();
+            case ProductImageConstants.DEFECT: return product.getDefectImageDeleteHash();
+            case ProductImageConstants.ADDITIONAL_1: return product.getAdditionalImage1DeleteHash();
+            case ProductImageConstants.ADDITIONAL_2: return product.getAdditionalImage2DeleteHash();
+            case ProductImageConstants.ADDITIONAL_3: return product.getAdditionalImage3DeleteHash();
             default: return null;
         }
     }
@@ -803,51 +810,51 @@ public class ProductService extends BaseService implements IProductSubTranslator
      */
     private void setProductImageUrlAndHash(Product product, String imageType, String url, String deleteHash) {
         switch (imageType) {
-            case "main":
+            case ProductImageConstants.MAIN:
                 product.setMainImageUrl(url);
                 product.setMainImageDeleteHash(deleteHash);
                 break;
-            case "top":
+            case ProductImageConstants.TOP:
                 product.setTopImageUrl(url);
                 product.setTopImageDeleteHash(deleteHash);
                 break;
-            case "bottom":
+            case ProductImageConstants.BOTTOM:
                 product.setBottomImageUrl(url);
                 product.setBottomImageDeleteHash(deleteHash);
                 break;
-            case "front":
+            case ProductImageConstants.FRONT:
                 product.setFrontImageUrl(url);
                 product.setFrontImageDeleteHash(deleteHash);
                 break;
-            case "back":
+            case ProductImageConstants.BACK:
                 product.setBackImageUrl(url);
                 product.setBackImageDeleteHash(deleteHash);
                 break;
-            case "right":
+            case ProductImageConstants.RIGHT:
                 product.setRightImageUrl(url);
                 product.setRightImageDeleteHash(deleteHash);
                 break;
-            case "left":
+            case ProductImageConstants.LEFT:
                 product.setLeftImageUrl(url);
                 product.setLeftImageDeleteHash(deleteHash);
                 break;
-            case "details":
+            case ProductImageConstants.DETAILS:
                 product.setDetailsImageUrl(url);
                 product.setDetailsImageDeleteHash(deleteHash);
                 break;
-            case "defect":
+            case ProductImageConstants.DEFECT:
                 product.setDefectImageUrl(url);
                 product.setDefectImageDeleteHash(deleteHash);
                 break;
-            case "additional_1":
+            case ProductImageConstants.ADDITIONAL_1:
                 product.setAdditionalImage1Url(url);
                 product.setAdditionalImage1DeleteHash(deleteHash);
                 break;
-            case "additional_2":
+            case ProductImageConstants.ADDITIONAL_2:
                 product.setAdditionalImage2Url(url);
                 product.setAdditionalImage2DeleteHash(deleteHash);
                 break;
-            case "additional_3":
+            case ProductImageConstants.ADDITIONAL_3:
                 product.setAdditionalImage3Url(url);
                 product.setAdditionalImage3DeleteHash(deleteHash);
                 break;
@@ -895,7 +902,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
             
             int responseCode = connection.getResponseCode();
             if (responseCode != 200) {
-                throw new IOException("HTTP " + responseCode + " when fetching image");
+                throw new IOException(String.format(ErrorMessages.ProductErrorMessages.HttpErrorWhenFetchingImageFormat, responseCode));
             }
             
             try (InputStream inputStream = connection.getInputStream();

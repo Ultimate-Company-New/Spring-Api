@@ -16,6 +16,8 @@ import com.example.SpringApi.Services.ProductService;
 import com.example.SpringApi.Services.UserLogService;
 import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.Constants.ProductConditionConstants;
+import com.example.SpringApi.Constants.ProductImageConstants;
 import com.example.SpringApi.ErrorMessages;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -122,7 +124,7 @@ class ProductServiceTest extends BaseTest {
     private static final String TEST_DESCRIPTION = "Test Description";
     private static final String TEST_BRAND = "Test Brand";
     private static final String TEST_COLOR_LABEL = "Red";
-    private static final String TEST_CONDITION = "New";
+    private static final String TEST_CONDITION = ProductConditionConstants.NEW_WITH_TAGS;
     private static final String TEST_COUNTRY = "USA";
     private static final String TEST_UPC = "123456789012";
     private static final BigDecimal TEST_PRICE = new BigDecimal("99.99");
@@ -259,7 +261,7 @@ class ProductServiceTest extends BaseTest {
             testProductRequest.setMainImage(null);
 
             // Act & Assert
-            assertThrowsBadRequest(String.format(ErrorMessages.ProductErrorMessages.ER009, "main"),
+            assertThrowsBadRequest(String.format(ErrorMessages.ProductErrorMessages.ER009, ProductImageConstants.MAIN),
                     () -> productService.addProduct(testProductRequest));
             verify(productRepository, times(1)).save(any());
         }
@@ -839,6 +841,20 @@ class ProductServiceTest extends BaseTest {
         }
 
         @Test
+        @DisplayName("Product Validation - Invalid condition (invalid value)")
+        void productValidation_InvalidCondition_InvalidValue_ThrowsBadRequestException() {
+            // Arrange
+            testProductRequest.setCondition("INVALID_CONDITION");
+
+            // Act & Assert
+            String expectedMessage = String.format(
+                    ErrorMessages.ProductErrorMessages.InvalidConditionValueFormat,
+                    ProductConditionConstants.getValidConditionsList());
+            assertThrowsBadRequest(expectedMessage,
+                    () -> productService.addProduct(testProductRequest));
+        }
+
+        @Test
         @DisplayName("Product Validation - Null Pickup Location Quantities - Throws BadRequestException")
         void productValidation_NullPickupLocationQuantities_ThrowsBadRequestException() {
             testProductRequest.setPickupLocationQuantities(null);
@@ -1220,7 +1236,7 @@ class ProductServiceTest extends BaseTest {
             prodReq.setDetailsImage(TEST_BASE64_IMAGE);
             prodReq.setDefectImage(TEST_BASE64_IMAGE);
             prodReq.setColorLabel("Color" + i);
-            prodReq.setCondition("NEW");
+            prodReq.setCondition(ProductConditionConstants.NEW_WITH_TAGS);
             prodReq.setCountryOfManufacture("USA");
             prodReq.setClientId(TEST_CLIENT_ID);
             Map<Long, Integer> quantities = new HashMap<>();
@@ -1288,7 +1304,7 @@ class ProductServiceTest extends BaseTest {
         validProduct.setDetailsImage(TEST_BASE64_IMAGE);
         validProduct.setDefectImage(TEST_BASE64_IMAGE);
         validProduct.setColorLabel("ValidColor");
-        validProduct.setCondition("NEW");
+        validProduct.setCondition(ProductConditionConstants.NEW_WITH_TAGS);
         validProduct.setCountryOfManufacture("USA");
         validProduct.setClientId(TEST_CLIENT_ID);
         Map<Long, Integer> quantities = new HashMap<>();
@@ -1299,7 +1315,7 @@ class ProductServiceTest extends BaseTest {
         // Invalid product (missing title)
         ProductRequestModel invalidProduct = new ProductRequestModel();
         invalidProduct.setTitle(null);
-        invalidProduct.setCondition("USED");
+        invalidProduct.setCondition(ProductConditionConstants.PRE_OWNED);
         invalidProduct.setCountryOfManufacture("USA");
         invalidProduct.setClientId(TEST_CLIENT_ID);
         invalidProduct.setColorLabel("InvalidColor");

@@ -38,7 +38,17 @@ public interface ResourcesRepository extends JpaRepository<Resources, Long> {
      */
     @Query("SELECT r FROM Resources r WHERE r.entityId = :entityId AND r.entityType = :entityType ORDER BY r.createdAt DESC")
     List<Resources> findByEntityIdAndEntityType(@Param("entityId") Long entityId, @Param("entityType") String entityType);
-    
+
+    /**
+     * Find all resources for multiple entities (batch fetch).
+     *
+     * @param entityIds The entity IDs (e.g., purchaseOrderIds)
+     * @param entityType The entity type (e.g., "PURCHASE_ORDER")
+     * @return List of resources for the entities
+     */
+    @Query("SELECT r FROM Resources r WHERE r.entityId IN :entityIds AND r.entityType = :entityType ORDER BY r.entityId, r.createdAt DESC")
+    List<Resources> findByEntityIdInAndEntityType(@Param("entityIds") List<Long> entityIds, @Param("entityType") String entityType);
+
     /**
      * Delete all resources for a specific entity.
      * 

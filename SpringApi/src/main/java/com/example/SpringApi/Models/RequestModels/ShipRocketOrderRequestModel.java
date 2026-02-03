@@ -174,6 +174,21 @@ public class ShipRocketOrderRequestModel {
         
         @SerializedName("tax")
         private Integer tax;
+
+        public OrderItem() {
+        }
+
+        /**
+         * Constructor with all order item fields.
+         */
+        public OrderItem(String name, String sku, Integer units, Integer sellingPrice, Integer discount, Integer tax) {
+            this.name = name;
+            this.sku = sku;
+            this.units = units;
+            this.sellingPrice = sellingPrice;
+            this.discount = discount;
+            this.tax = tax;
+        }
     }
 }
 

@@ -25,9 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -235,8 +233,8 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
    *                                (captured from security context)
    */
   @Override
-  @Async
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
+  @org.springframework.scheduling.annotation.Async
+  @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
   public void bulkCreatePromosAsync(List<PromoRequestModel> promos, Long requestingUserId,
       String requestingUserLoginName, Long requestingClientId) {
     try {

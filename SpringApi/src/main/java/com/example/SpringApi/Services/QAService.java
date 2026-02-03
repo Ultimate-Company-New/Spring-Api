@@ -13,6 +13,8 @@ import com.example.SpringApi.Models.ResponseModels.TestRunResponseModel;
 import com.example.SpringApi.Repositories.LatestTestResultRepository;
 import com.example.SpringApi.Repositories.TestRunRepository;
 import com.example.SpringApi.Services.Interface.IQASubTranslator;
+import com.example.SpringApi.Services.Interface.ITestExecutorService;
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Logging.ContextualLogger;
@@ -116,12 +118,12 @@ public class QAService extends BaseService implements IQASubTranslator {
 
     private final TestRunRepository testRunRepository;
     private final LatestTestResultRepository latestTestResultRepository;
-    private final TestExecutorService testExecutorService;
+    private final ITestExecutorService testExecutorService;
 
     @Autowired
     public QAService(TestRunRepository testRunRepository,
             LatestTestResultRepository latestTestResultRepository,
-            TestExecutorService testExecutorService) {
+            ITestExecutorService testExecutorService) {
         this.testRunRepository = testRunRepository;
         this.latestTestResultRepository = latestTestResultRepository;
         this.testExecutorService = testExecutorService;
@@ -172,8 +174,6 @@ public class QAService extends BaseService implements IQASubTranslator {
         }
     }
 
-    // ==================== PUBLIC METHODS ====================
-
     /**
      * Returns all QA dashboard data in a single response.
      * Includes services with methods/tests, coverage summary, and available
@@ -205,15 +205,11 @@ public class QAService extends BaseService implements IQASubTranslator {
                     service.getCoveragePercentage()));
         }
 
-        QADashboardResponseModel.CoverageSummaryData coverageSummary = new QADashboardResponseModel.CoverageSummaryData();
-        coverageSummary.setTotalServices(services.size());
-        coverageSummary.setTotalMethods(totalMethods);
-        coverageSummary.setTotalMethodsWithCoverage(totalMethodsWithCoverage);
-        coverageSummary.setTotalTests(totalTests);
-        coverageSummary.setOverallCoveragePercentage(totalMethods > 0
+        double overallCoverage = totalMethods > 0
                 ? Math.round(((double) totalMethodsWithCoverage / totalMethods) * 100.0 * 100.0) / 100.0
-                : 0.0);
-        coverageSummary.setServiceBreakdown(serviceBreakdown);
+                : 0.0;
+        QADashboardResponseModel.CoverageSummaryData coverageSummary = new QADashboardResponseModel.CoverageSummaryData(
+                services.size(), totalMethods, totalMethodsWithCoverage, totalTests, overallCoverage, serviceBreakdown);
 
         // Get available services
         List<String> availableServices = new ArrayList<>(SERVICE_MAPPINGS.keySet());
@@ -222,93 +218,6 @@ public class QAService extends BaseService implements IQASubTranslator {
         QADashboardResponseModel.AutomatedApiTestsData automatedApiTests = getAutomatedApiTests();
 
         return new QADashboardResponseModel(services, coverageSummary, availableServices, automatedApiTests);
-    }
-
-    /**
-     * Discovers and returns all automated API tests from the Spring-PlayWright-Automation project.
-     * Uses relative path: Spring-PlayWright-Automation/src/test/java/com/ultimatecompany/tests/ApiTests
-     *
-     * @return AutomatedApiTestsData with categories and test files, or empty data if path not found
-     */
-    private QADashboardResponseModel.AutomatedApiTestsData getAutomatedApiTests() {
-        Path apiTestsDir = resolveAutomatedApiTestsPath();
-        if (apiTestsDir == null || !Files.isDirectory(apiTestsDir)) {
-            return new QADashboardResponseModel.AutomatedApiTestsData(
-                    "../Spring-PlayWright-Automation/" + AUTOMATED_API_TESTS_PATH, 0, new ArrayList<>());
-        }
-
-        List<QADashboardResponseModel.AutomatedApiTestCategory> categories = new ArrayList<>();
-        int totalTests = 0;
-
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(apiTestsDir)) {
-            List<Path> entries = new ArrayList<>();
-            dirStream.forEach(entries::add);
-            entries.sort(Comparator.comparing(p -> p.getFileName().toString()));
-
-            for (Path entry : entries) {
-                if (!Files.isDirectory(entry)) {
-                    continue;
-                }
-                String categoryName = entry.getFileName().toString();
-                if (categoryName.startsWith(".")) {
-                    continue;
-                }
-
-                List<QADashboardResponseModel.AutomatedApiTestInfo> tests = new ArrayList<>();
-                try (DirectoryStream<Path> fileStream = Files.newDirectoryStream(entry, "*.java")) {
-                    for (Path file : fileStream) {
-                        String fileName = file.getFileName().toString();
-                        if (fileName.endsWith(".java")) {
-                            String testClass = fileName.substring(0, fileName.length() - 5);
-                            String relativePath = categoryName + "/" + fileName;
-                            tests.add(new QADashboardResponseModel.AutomatedApiTestInfo(testClass, relativePath));
-                            totalTests++;
-                        }
-                    }
-                }
-                tests.sort(Comparator.comparing(QADashboardResponseModel.AutomatedApiTestInfo::getTestClass));
-                categories.add(new QADashboardResponseModel.AutomatedApiTestCategory(
-                        categoryName, categoryName, tests));
-            }
-        } catch (IOException e) {
-            logger.error(e);
-            return new QADashboardResponseModel.AutomatedApiTestsData(
-                    "../Spring-PlayWright-Automation/" + AUTOMATED_API_TESTS_PATH, 0, new ArrayList<>());
-        }
-
-        return new QADashboardResponseModel.AutomatedApiTestsData(
-                "../Spring-PlayWright-Automation/" + AUTOMATED_API_TESTS_PATH, totalTests, categories);
-    }
-
-    /**
-     * Resolves the path to the automated API tests folder.
-     * Tries multiple relative paths from common project roots (workspace sibling layout).
-     */
-    private Path resolveAutomatedApiTestsPath() {
-        Path currentDir = Paths.get(System.getProperty("user.dir"));
-        Path playwrightRoot = Paths.get("Spring-PlayWright-Automation");
-        List<Path> possiblePaths = new ArrayList<>(Arrays.asList(
-                currentDir.resolve("..").resolve(playwrightRoot).resolve(AUTOMATED_API_TESTS_PATH),
-                currentDir.resolve("..").resolve("..").resolve(playwrightRoot).resolve(AUTOMATED_API_TESTS_PATH),
-                currentDir.resolve(playwrightRoot).resolve(AUTOMATED_API_TESTS_PATH)
-        ));
-
-        Path parent = currentDir.getParent();
-        if (parent != null) {
-            possiblePaths.add(parent.resolve("Spring-PlayWright-Automation").resolve(AUTOMATED_API_TESTS_PATH));
-            if (parent.getParent() != null) {
-                possiblePaths.add(parent.getParent().resolve("Spring-PlayWright-Automation")
-                        .resolve(AUTOMATED_API_TESTS_PATH));
-            }
-        }
-
-        for (Path path : possiblePaths) {
-            Path normalized = path.normalize();
-            if (Files.isDirectory(normalized)) {
-                return normalized;
-            }
-        }
-        return null;
     }
 
     /**
@@ -352,13 +261,13 @@ public class QAService extends BaseService implements IQASubTranslator {
 
         ServiceControllerMapping mapping = SERVICE_MAPPINGS.get(normalizedServiceName);
         if (mapping == null) {
-            throw new NotFoundException("Service not found: " + serviceName + ". Available services: "
-                    + String.join(", ", SERVICE_MAPPINGS.keySet()));
+            throw new NotFoundException(String.format(ErrorMessages.QAErrorMessages.ServiceNotFoundFormat,
+                    serviceName, String.join(", ", SERVICE_MAPPINGS.keySet())));
         }
 
         QAResponseModel serviceInfo = buildServiceInfo(normalizedServiceName, mapping);
         if (serviceInfo == null) {
-            throw new NotFoundException("Could not load service class: " + normalizedServiceName);
+            throw new NotFoundException(String.format(ErrorMessages.QAErrorMessages.CouldNotLoadServiceClassFormat, normalizedServiceName));
         }
 
         return serviceInfo;
@@ -425,27 +334,19 @@ public class QAService extends BaseService implements IQASubTranslator {
         return new ArrayList<>(SERVICE_MAPPINGS.keySet());
     }
 
-    // ==================== HELPER METHODS ====================
-
     /**
      * Builds a QAResponseModel for a given service using reflection for service
-     * class
-     * and filesystem scanning for test files.
+     * class and filesystem scanning for test files.
      * 
      * @param serviceName The name of the service class
      * @param mapping     The controller mapping information
-     * @return QAResponseModel with method and test information, or null if class
-     *         not found
+     * @return QAResponseModel with method and test information, or null if class not found
      */
     private QAResponseModel buildServiceInfo(String serviceName, ServiceControllerMapping mapping) {
         try {
-            // Load the service class
             Class<?> serviceClass = Class.forName(SERVICES_PACKAGE + "." + serviceName);
-
-            // Read test methods from the test source file
             List<TestMethodInfo> allTestMethods = readTestMethodsFromFile(mapping.testClassName);
 
-            // Fetch latest test results for this service (if user is authenticated)
             Map<String, LatestTestResult> latestResultsMap = new HashMap<>();
             try {
                 Long clientId = getClientId();
@@ -460,24 +361,19 @@ public class QAService extends BaseService implements IQASubTranslator {
                 // If we can't get latest results (e.g., unauthenticated), continue without them
             }
 
-            // Create service info
             QAResponseModel serviceInfo = new QAResponseModel(
                     serviceName,
                     mapping.controllerName,
                     mapping.basePath,
                     mapping.testClassName);
 
-            // Get all public methods from the service class (excluding Object methods and
-            // BaseService methods)
             for (Method method : serviceClass.getDeclaredMethods()) {
-                // Only include public methods that are not excluded
                 if (Modifier.isPublic(method.getModifiers()) && !EXCLUDED_METHODS.contains(method.getName())) {
-                    QAResponseModel.MethodInfo methodInfo = new QAResponseModel.MethodInfo();
-                    methodInfo.setMethodName(method.getName());
-                    methodInfo.setApiRoute(mapping.basePath + "/" + method.getName());
-                    methodInfo.setDescription(extractMethodDescription(method));
+                    QAResponseModel.MethodInfo methodInfo = new QAResponseModel.MethodInfo(
+                            method.getName(),
+                            mapping.basePath + "/" + method.getName(),
+                            extractMethodDescription(method));
 
-                    // Find associated unit tests with their display names and last run info
                     List<QAResponseModel.TestInfo> associatedTests = findAssociatedTests(method.getName(),
                             allTestMethods, latestResultsMap);
                     methodInfo.addUnitTests(associatedTests);
@@ -497,8 +393,7 @@ public class QAService extends BaseService implements IQASubTranslator {
      * This method scans the filesystem for the test file and extracts @Test methods
      * along with their @DisplayName annotations.
      * 
-     * @param testClassName The name of the test class file (without .java
-     *                      extension)
+     * @param testClassName The name of the test class file (without .java extension)
      * @return List of TestMethodInfo containing method names and display names
      */
     private List<TestMethodInfo> readTestMethodsFromFile(String testClassName) {
@@ -824,9 +719,8 @@ public class QAService extends BaseService implements IQASubTranslator {
 
             // Primary pattern: methodName_Result_Outcome (underscore-separated)
             if (testName.startsWith(methodName + "_")) {
-                QAResponseModel.TestInfo qaTestInfo = new QAResponseModel.TestInfo(testName, testInfo.displayName);
-                qaTestInfo.setDeclaringTestClassName(testInfo.declaringTestClassName);
-                // Populate last run info if available
+                QAResponseModel.TestInfo qaTestInfo = new QAResponseModel.TestInfo(
+                        testName, testInfo.displayName, testInfo.declaringTestClassName);
                 if (latestResultsMap.containsKey(testName)) {
                     qaTestInfo.populateFromLatestResult(latestResultsMap.get(testName));
                 }
@@ -834,14 +728,12 @@ public class QAService extends BaseService implements IQASubTranslator {
                 continue;
             }
 
-            // Secondary pattern: methodName followed by uppercase letter (camelCase
-            // variant)
+            // Secondary pattern: methodName followed by uppercase letter (camelCase variant)
             if (testName.startsWith(methodName) && testName.length() > methodName.length()) {
                 char nextChar = testName.charAt(methodName.length());
                 if (Character.isUpperCase(nextChar)) {
-                    QAResponseModel.TestInfo qaTestInfo = new QAResponseModel.TestInfo(testName, testInfo.displayName);
-                    qaTestInfo.setDeclaringTestClassName(testInfo.declaringTestClassName);
-                    // Populate last run info if available
+                    QAResponseModel.TestInfo qaTestInfo = new QAResponseModel.TestInfo(
+                            testName, testInfo.displayName, testInfo.declaringTestClassName);
                     if (latestResultsMap.containsKey(testName)) {
                         qaTestInfo.populateFromLatestResult(latestResultsMap.get(testName));
                     }
@@ -879,8 +771,6 @@ public class QAService extends BaseService implements IQASubTranslator {
         return description.toString();
     }
 
-    // ==================== TEST RUN TRACKING METHODS ====================
-
     /**
      * Saves a test run with its individual results.
      * Also updates the LatestTestResult table for each test.
@@ -893,13 +783,13 @@ public class QAService extends BaseService implements IQASubTranslator {
     public TestRunResponseModel saveTestRun(TestRunRequestModel request) {
         // Validate request
         if (request == null) {
-            throw new BadRequestException("Test run request cannot be null");
+            throw new BadRequestException(ErrorMessages.QAErrorMessages.TestRunRequestCannotBeNull);
         }
         if (request.getServiceName() == null || request.getServiceName().trim().isEmpty()) {
-            throw new BadRequestException("Service name is required");
+            throw new BadRequestException(ErrorMessages.QAErrorMessages.ServiceNameRequired);
         }
         if (request.getResults() == null || request.getResults().isEmpty()) {
-            throw new BadRequestException("At least one test result is required");
+            throw new BadRequestException(ErrorMessages.QAErrorMessages.AtLeastOneTestResultRequired);
         }
 
         Long clientId = getClientId();
@@ -1011,8 +901,6 @@ public class QAService extends BaseService implements IQASubTranslator {
         }
     }
 
-    // ==================== TEST EXECUTION METHODS ====================
-
     /**
      * Starts an async test execution using Maven.
      * Returns immediately with status object for polling.
@@ -1024,7 +912,7 @@ public class QAService extends BaseService implements IQASubTranslator {
     public TestExecutionStatusModel startTestExecution(TestExecutionRequestModel request) {
         // Validate request
         if (request == null) {
-            throw new BadRequestException("Test execution request cannot be null");
+            throw new BadRequestException(ErrorMessages.QAErrorMessages.TestExecutionRequestCannotBeNull);
         }
 
         // Generate unique execution ID
@@ -1042,7 +930,7 @@ public class QAService extends BaseService implements IQASubTranslator {
             // Run specific test methods
             testClassName = request.getTestClassName();
             if (testClassName == null || testClassName.isEmpty()) {
-                throw new BadRequestException("testClassName is required when running specific tests");
+                throw new BadRequestException(ErrorMessages.QAErrorMessages.TestClassNameRequired);
             }
 
             // Surefire cannot select an individual parameterized invocation (e.g.
@@ -1090,8 +978,7 @@ public class QAService extends BaseService implements IQASubTranslator {
                 }
                 serviceName = normalizedServiceName;
             } else {
-                throw new BadRequestException(
-                        "Must specify serviceName or testClassName when running tests by method name");
+                throw new BadRequestException(ErrorMessages.QAErrorMessages.MustSpecifyServiceNameOrTestClassName);
             }
 
             String methodName = request.getMethodName();
@@ -1102,8 +989,7 @@ public class QAService extends BaseService implements IQASubTranslator {
                     Collections.emptyMap());
 
             if (associatedTests.isEmpty()) {
-                throw new BadRequestException(
-                        "No tests found for method: " + methodName + " in class " + testClassName);
+                throw new BadRequestException(String.format(ErrorMessages.QAErrorMessages.NoTestsFoundForMethodFormat, methodName, testClassName));
             }
 
             // 3. Construct Surefire Filter
@@ -1138,7 +1024,7 @@ public class QAService extends BaseService implements IQASubTranslator {
 
             testMethodFilter = String.join("+", executableTestNames);
         } else {
-            throw new BadRequestException("Must specify runAll, testNames, or methodName+testClassName");
+            throw new BadRequestException(ErrorMessages.QAErrorMessages.MustSpecifyRunAllOrTestNamesOrMethod);
         }
 
         // Calculate expected test count for progress tracking
@@ -1249,8 +1135,87 @@ public class QAService extends BaseService implements IQASubTranslator {
     public TestExecutionStatusModel getTestExecutionStatus(String executionId) {
         TestExecutionStatusModel status = testExecutorService.getStatus(executionId);
         if (status == null) {
-            throw new NotFoundException("Test execution not found: " + executionId);
+            throw new NotFoundException(String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, executionId));
         }
         return status;
+    }
+
+    // ==================== PRIVATE HELPER METHODS ====================
+
+    private QADashboardResponseModel.AutomatedApiTestsData getAutomatedApiTests() {
+        Path apiTestsDir = resolveAutomatedApiTestsPath();
+        if (apiTestsDir == null || !Files.isDirectory(apiTestsDir)) {
+            return new QADashboardResponseModel.AutomatedApiTestsData(
+                    "../Spring-PlayWright-Automation/" + AUTOMATED_API_TESTS_PATH, 0, new ArrayList<>());
+        }
+
+        List<QADashboardResponseModel.AutomatedApiTestCategory> categories = new ArrayList<>();
+        int totalTests = 0;
+
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(apiTestsDir)) {
+            List<Path> entries = new ArrayList<>();
+            dirStream.forEach(entries::add);
+            entries.sort(Comparator.comparing(p -> p.getFileName().toString()));
+
+            for (Path entry : entries) {
+                if (!Files.isDirectory(entry)) {
+                    continue;
+                }
+                String categoryName = entry.getFileName().toString();
+                if (categoryName.startsWith(".")) {
+                    continue;
+                }
+
+                List<QADashboardResponseModel.AutomatedApiTestInfo> tests = new ArrayList<>();
+                try (DirectoryStream<Path> fileStream = Files.newDirectoryStream(entry, "*.java")) {
+                    for (Path file : fileStream) {
+                        String fileName = file.getFileName().toString();
+                        if (fileName.endsWith(".java")) {
+                            String testClass = fileName.substring(0, fileName.length() - 5);
+                            String relativePath = categoryName + "/" + fileName;
+                            tests.add(new QADashboardResponseModel.AutomatedApiTestInfo(testClass, relativePath));
+                            totalTests++;
+                        }
+                    }
+                }
+                tests.sort(Comparator.comparing(QADashboardResponseModel.AutomatedApiTestInfo::getTestClass));
+                categories.add(new QADashboardResponseModel.AutomatedApiTestCategory(
+                        categoryName, categoryName, tests));
+            }
+        } catch (IOException e) {
+            logger.error(e);
+            return new QADashboardResponseModel.AutomatedApiTestsData(
+                    "../Spring-PlayWright-Automation/" + AUTOMATED_API_TESTS_PATH, 0, new ArrayList<>());
+        }
+
+        return new QADashboardResponseModel.AutomatedApiTestsData(
+                "../Spring-PlayWright-Automation/" + AUTOMATED_API_TESTS_PATH, totalTests, categories);
+    }
+
+    private Path resolveAutomatedApiTestsPath() {
+        Path currentDir = Paths.get(System.getProperty("user.dir"));
+        Path playwrightRoot = Paths.get("Spring-PlayWright-Automation");
+        List<Path> possiblePaths = new ArrayList<>(Arrays.asList(
+                currentDir.resolve("..").resolve(playwrightRoot).resolve(AUTOMATED_API_TESTS_PATH),
+                currentDir.resolve("..").resolve("..").resolve(playwrightRoot).resolve(AUTOMATED_API_TESTS_PATH),
+                currentDir.resolve(playwrightRoot).resolve(AUTOMATED_API_TESTS_PATH)
+        ));
+
+        Path parent = currentDir.getParent();
+        if (parent != null) {
+            possiblePaths.add(parent.resolve("Spring-PlayWright-Automation").resolve(AUTOMATED_API_TESTS_PATH));
+            if (parent.getParent() != null) {
+                possiblePaths.add(parent.getParent().resolve("Spring-PlayWright-Automation")
+                        .resolve(AUTOMATED_API_TESTS_PATH));
+            }
+        }
+
+        for (Path path : possiblePaths) {
+            Path normalized = path.normalize();
+            if (Files.isDirectory(normalized)) {
+                return normalized;
+            }
+        }
+        return null;
     }
 }

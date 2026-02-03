@@ -3,6 +3,7 @@ package com.example.SpringApi.Models.DatabaseModels;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JoinFormula;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -151,6 +152,11 @@ public class PurchaseOrder {
     @UpdateTimestamp
     @Column(name = "updatedAt", nullable = false)
     private LocalDateTime updatedAt;
+
+    // OrderSummary - polymorphic link via entityType+entityId (for single-query fetch)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinFormula(value = "(SELECT os.orderSummaryId FROM OrderSummary os WHERE os.entityType = 'PURCHASE_ORDER' AND os.entityId = purchaseOrderId)", referencedColumnName = "orderSummaryId")
+    private OrderSummary orderSummary;
 
     // Relationships - Collections
     @Transient

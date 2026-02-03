@@ -29,6 +29,52 @@ public class TestExecutionStatusModel {
     }
 
     /**
+     * Creates a status with only executionId and PENDING status (for getOrCreateStatus).
+     */
+    public TestExecutionStatusModel(String executionId) {
+        this.executionId = executionId;
+        this.status = "PENDING";
+    }
+
+    /**
+     * Creates a progress snapshot with estimated completed count for smoother UX during RUNNING.
+     * Copies all fields from source and overrides progress-related fields with estimated values.
+     */
+    public static TestExecutionStatusModel createProgressSnapshot(
+            TestExecutionStatusModel source,
+            int totalTests,
+            int smoothedCompleted,
+            long elapsedMs) {
+        TestExecutionStatusModel snapshot = new TestExecutionStatusModel();
+        snapshot.setExecutionId(source.getExecutionId());
+        snapshot.setStatus(source.getStatus());
+        snapshot.setServiceName(source.getServiceName());
+        snapshot.setMethodName(source.getMethodName());
+        snapshot.setStartedAt(source.getStartedAt());
+        snapshot.setCompletedAt(source.getCompletedAt());
+        snapshot.setTotalTests(totalTests);
+        snapshot.setCompletedTests(smoothedCompleted);
+        snapshot.setPassedTests(source.getPassedTests());
+        snapshot.setFailedTests(source.getFailedTests());
+        snapshot.setSkippedTests(source.getSkippedTests());
+        snapshot.setDurationMs(elapsedMs);
+        snapshot.setErrorMessage(source.getErrorMessage());
+        snapshot.getResults().addAll(source.getResults());
+        return snapshot;
+    }
+
+    /**
+     * Updates totalTests, completedTests, passedTests, failedTests, skippedTests from the results list.
+     */
+    public void updateTotalsFromResults() {
+        this.totalTests = results.size();
+        this.completedTests = results.size();
+        this.passedTests = (int) results.stream().filter(r -> "PASSED".equals(r.getStatus())).count();
+        this.failedTests = (int) results.stream().filter(r -> "FAILED".equals(r.getStatus())).count();
+        this.skippedTests = (int) results.stream().filter(r -> "SKIPPED".equals(r.getStatus())).count();
+    }
+
+    /**
      * Unique identifier for this test execution
      */
     private String executionId;

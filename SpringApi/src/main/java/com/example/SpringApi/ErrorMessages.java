@@ -60,6 +60,8 @@ public class ErrorMessages {
         // standard error messages
         public static final String InvalidId = "Invalid Client Id.";
         public static final String InvalidRequest = "Client request cannot be null.";
+        /** Format: "A client with the name '%s' already exists." */
+        public static final String DuplicateClientNameFormat = "A client with the name '%s' already exists.";
         public static final String InvalidName = "Client name is required and cannot be empty.";
         public static final String InvalidDescription = "Client description is required and cannot be empty.";
         public static final String InvalidSupportEmail = "Client support email is required and cannot be empty.";
@@ -216,6 +218,8 @@ public class ErrorMessages {
     public static class PackageErrorMessages {
         // standard error messages
         public static final String InvalidId = "Invalid Package Id";
+        /** Format: "Invalid Package Id. ID: %s" */
+        public static final String InvalidIdWithIdFormat = "Invalid Package Id. ID: %s";
         public static final String InvalidRequest = "Package request cannot be null.";
         public static final String InvalidPackageName = "Package name is required and cannot be empty.";
         public static final String InvalidLength = "Package length is required and must be greater than 0.";
@@ -242,6 +246,12 @@ public class ErrorMessages {
         public static final String InvalidAddressNickName = "Address nickname is required and cannot be empty.";
         public static final String AddressNickNameTooLong = "Address nickname cannot exceed 255 characters.";
         public static final String InvalidShipRocketId = "ShipRocket pickup location ID must be greater than 0.";
+        /** Format: "Invalid column name: %s" */
+        public static final String InvalidColumnNameFormat = "Invalid column name: %s";
+        /** Format: "Invalid operator: %s" */
+        public static final String InvalidOperatorFormat = "Invalid operator: %s";
+        /** Format: "Failed to retrieve ShipRocket pickup location ID after creation. Response pickup_id: %d is invalid. Please verify the pickup location was created successfully in ShipRocket." */
+        public static final String ShipRocketPickupLocationIdInvalidFormat = "Failed to retrieve ShipRocket pickup location ID after creation. Response pickup_id: %d is invalid. Please verify the pickup location was created successfully in ShipRocket.";
 
         // Additional error messages
         public static final String ER001 = "Pickup location is required and should be valid.";
@@ -291,6 +301,8 @@ public class ErrorMessages {
         public static final String InvalidBrand = "Product brand is required and cannot be empty.";
         public static final String InvalidColorLabel = "Product color label is required and cannot be empty.";
         public static final String InvalidCondition = "Product condition is required and cannot be empty.";
+        /** Format: "Product condition must be one of: %s" */
+        public static final String InvalidConditionValueFormat = "Product condition must be one of: %s";
         public static final String InvalidCountryOfManufacture = "Product country of manufacture is required and cannot be empty.";
         public static final String InvalidPrice = "Product price is required and must be greater than or equal to 0.";
         public static final String InvalidCategoryId = "Product category ID is required.";
@@ -310,6 +322,14 @@ public class ErrorMessages {
         public static final String ER010 = "Failed to upload %s image to ImgBB";
         public static final String ER011 = "Failed to upload additional image %d to ImgBB";
         public static final String ER012 = "Failed to process image from URL: %s";
+        /** Format: "HTTP %d when fetching image" */
+        public static final String HttpErrorWhenFetchingImageFormat = "HTTP %d when fetching image";
+        /** Format: "Invalid column name: %s" */
+        public static final String InvalidColumnNameFormat = "Invalid column name: %s";
+        /** Format: "Invalid operator: %s" */
+        public static final String InvalidOperatorFormat = "Invalid operator: %s";
+        /** Format: "Operator '%s' is not valid for %s column '%s'" */
+        public static final String InvalidOperatorForColumnFormat = "Operator '%s' is not valid for %s column '%s'";
         public static final String ER013 = "Product not found with ID: %d";
         public static final String ER014 = "Product IDs list cannot be null or empty";
         public static final String NoPickupLocationsFound = "No pickup locations found for this product.";
@@ -379,12 +399,23 @@ public class ErrorMessages {
         public static final String ER005 = "Product id should be valid and present in the database and quantity for each product should be greater than 0";
         public static final String ER006 = "Purchase order has already been approved and cannot be approved again by the user";
         public static final String MaxAttachmentsExceeded = "Maximum 30 attachments allowed per purchase order.";
+        public static final String AtLeastOneProductRequired = "At least one product must be specified in products list";
+        /** Format: "pricePerUnit is required for productId %s" */
+        public static final String PricePerUnitRequiredForProductFormat = "pricePerUnit is required for productId %s";
+        /** Format: "pricePerUnit must be greater than or equal to 0 for productId %s" */
+        public static final String PricePerUnitMustBeNonNegativeForProductFormat = "pricePerUnit must be greater than or equal to 0 for productId %s";
+        /** Format: "Duplicate productId in products list: %s" */
+        public static final String DuplicateProductIdFormat = "Duplicate productId in products list: %s";
     }
 
     public static class ProductReviewErrorMessages {
         // Standard error messages for product review order operations
         public static final String InvalidId = "Invalid product review id.";
         public static final String NotFound = "Product review not found.";
+        /** Format: "Invalid column name: %s" */
+        public static final String InvalidColumnNameFormat = "Invalid column name: %s";
+        /** Format: "Invalid operator: %s" */
+        public static final String InvalidOperatorFormat = "Invalid operator: %s";
 
         // additional error messages
         public static final String ER001 = "Product Review ratings should be present and should be between 0 and 5";
@@ -392,6 +423,46 @@ public class ErrorMessages {
         public static final String ER003 = "Product Review user id is required and should be valid.";
         public static final String ER004 = "Product Review product id is required and should be valid.";
         public static final String InvalidAuditUser = "Invalid user for audit fields.";
+    }
+
+    public static class TestExecutorErrorMessages {
+        public static final String IoFailed = "Test execution I/O failed";
+        public static final String Interrupted = "Test execution interrupted";
+        public static final String ExecutionFailed = "Test execution failed";
+        public static final String FailedToListSurefireReports = "Failed to list Surefire reports";
+        /** Format: "Failed to parse Surefire report: %s" */
+        public static final String FailedToParseSurefireReportFormat = "Failed to parse Surefire report: %s";
+        /** Format: "I/O error during test execution: %s" */
+        public static final String IoErrorDuringExecutionFormat = "I/O error during test execution: %s";
+        /** Format: "Test execution interrupted: %s" */
+        public static final String InterruptedFormat = "Test execution interrupted: %s";
+        /** Format: "Test execution failed: %s" */
+        public static final String ExecutionFailedFormat = "Test execution failed: %s";
+        /** Format: "Tests failed. Exit code: %s" */
+        public static final String TestsFailedExitCodeFormat = "Tests failed. Exit code: %s";
+    }
+
+    public static class QAErrorMessages {
+        // Service discovery
+        /** Format: "Service not found: %s. Available services: %s" */
+        public static final String ServiceNotFoundFormat = "Service not found: %s. Available services: %s";
+        /** Format: "Could not load service class: %s" */
+        public static final String CouldNotLoadServiceClassFormat = "Could not load service class: %s";
+
+        // Test run validation
+        public static final String TestRunRequestCannotBeNull = "Test run request cannot be null";
+        public static final String ServiceNameRequired = "Service name is required";
+        public static final String AtLeastOneTestResultRequired = "At least one test result is required";
+
+        // Test execution validation
+        public static final String TestExecutionRequestCannotBeNull = "Test execution request cannot be null";
+        public static final String TestClassNameRequired = "testClassName is required when running specific tests";
+        public static final String MustSpecifyServiceNameOrTestClassName = "Must specify serviceName or testClassName when running tests by method name";
+        /** Format: "No tests found for method: %s in class %s" */
+        public static final String NoTestsFoundForMethodFormat = "No tests found for method: %s in class %s";
+        public static final String MustSpecifyRunAllOrTestNamesOrMethod = "Must specify runAll, testNames, or methodName+testClassName";
+        /** Format: "Test execution not found: %s" */
+        public static final String TestExecutionNotFoundFormat = "Test execution not found: %s";
     }
 
     public static class ProductPickupLocationMappingErrorMessages {
@@ -456,6 +527,14 @@ public class ErrorMessages {
         public static final String CourierNameRequired = "Courier name is required.";
         public static final String CourierRateRequired = "Courier rate is required.";
         public static final String CourierMetadataRequired = "Courier metadata is required.";
+        /** Format: "Invalid column name: %s" */
+        public static final String InvalidColumnNameFormat = "Invalid column name: %s";
+        /** Format: "Invalid operator: %s" */
+        public static final String InvalidOperatorFormat = "Invalid operator: %s";
+        /** Format: "Invalid shipment Id. Format error: %s" */
+        public static final String InvalidIdFormatErrorFormat = "Invalid shipment Id. Format error: %s";
+        /** Format: "Invalid shipment Id. %s" */
+        public static final String InvalidIdWithMessageFormat = "Invalid shipment Id. %s";
     }
 
     public static class ShipmentProductErrorMessages {
@@ -538,6 +617,51 @@ public class ErrorMessages {
         public static final String LabelGenerationFailed = "Failed to generate shipping label for ShipRocket shipment ID: %d. Error: %s";
         public static final String InvoiceGenerationFailed = "Failed to generate invoice for ShipRocket shipment ID: %d. Error: %s";
         public static final String TrackingFetchFailed = "Failed to fetch tracking information for AWB code: %s. Error: %s";
+        /** Format: "invalid status '%s'. Valid statuses are: %s" */
+        public static final String InvalidShipRocketStatusFormat = "invalid status '%s'. Valid statuses are: %s";
+        /** Format: "Failed to serialize ShipRocket response to JSON for shipment ID %s: %s" */
+        public static final String FailedToSerializeShipRocketResponseFormat = "Failed to serialize ShipRocket response to JSON for shipment ID %s: %s";
+    }
+
+    public static class OrderOptimizationErrorMessages {
+        public static final String NoProductsSpecified = "No products specified";
+        public static final String DeliveryPostcodeRequired = "Delivery postcode is required";
+        public static final String NoValidProductsFound = "No valid products found";
+        public static final String NoValidAllocationStrategiesFound = "No valid allocation strategies found";
+        public static final String NoShippingOptionsForAnyStrategy = "No shipping options available for any fulfillment strategy. This may be due to weight limits or route restrictions.";
+        /** Format: "Optimization failed: %s" */
+        public static final String OptimizationFailedFormat = "Optimization failed: %s";
+        /** Format: "Product ID %s not found" */
+        public static final String ProductNotFoundFormat = "Product ID %s not found";
+        /** Format: "Insufficient stock for product '%s'. Requested: %s, Available stock: 0" */
+        public static final String InsufficientStockZeroFormat = "Insufficient stock for product '%s'. Requested: %s, Available stock: 0";
+        /** Format: "Product '%s' cannot be packaged. Stock available: %s, but no packages are configured at pickup locations. Requested: %s" */
+        public static final String NoPackagesConfiguredFormat = "Product '%s' cannot be packaged. Stock available: %s, but no packages are configured at pickup locations. Requested: %s";
+        /** Format: "Product '%s' cannot be packaged. Stock available: %s, but no packages are available at pickup locations (all packages have 0 quantity). Requested: %s" */
+        public static final String NoPackagesAvailableFormat = "Product '%s' cannot be packaged. Stock available: %s, but no packages are available at pickup locations (all packages have 0 quantity). Requested: %s";
+        /** Format: "Product '%s' cannot be packaged. Stock available: %s, but product dimensions/weight exceed all available package limits. Requested: %s" */
+        public static final String ProductExceedsPackageLimitsFormat = "Product '%s' cannot be packaged. Stock available: %s, but product dimensions/weight exceed all available package limits. Requested: %s";
+        /** Format: "Product '%s' cannot be packaged with available packages. Stock available: %s, but %s. Requested: %s" */
+        public static final String CannotPackageWithDetailFormat = "Product '%s' cannot be packaged with available packages. Stock available: %s, but %s. Requested: %s";
+        public static final String NotEnoughPackagesForQuantity = "not enough packages available to pack the requested quantity";
+        /** Format: "Insufficient stock/packaging for product '%s'. Requested: %s, Available stock: %s, Packable (considering packaging constraints): %s" */
+        public static final String InsufficientStockPackagingFormat = "Insufficient stock/packaging for product '%s'. Requested: %s, Available stock: %s, Packable (considering packaging constraints): %s";
+        /** Format: "Custom allocation validation failed:\n• %s" */
+        public static final String CustomAllocationValidationFailedFormat = "Custom allocation validation failed:\n• %s";
+        public static final String NoValidAllocationsSpecified = "No valid allocations specified";
+    }
+
+    public static class ShipmentProcessingErrorMessages {
+        /** Format: "Product ID %s is not available at pickup location ID %s" */
+        public static final String ProductNotAvailableAtPickupLocationFormat = "Product ID %s is not available at pickup location ID %s";
+        /** Format: "Insufficient stock for product ID %s at pickup location ID %s. Available: %s, Requested: %s" */
+        public static final String InsufficientProductStockFormat = "Insufficient stock for product ID %s at pickup location ID %s. Available: %s, Requested: %s";
+        /** Format: "Package ID %s is not available at pickup location ID %s" */
+        public static final String PackageNotAvailableAtPickupLocationFormat = "Package ID %s is not available at pickup location ID %s";
+        /** Format: "Insufficient packages for package ID %s at pickup location ID %s. Available: %s, Requested: %s" */
+        public static final String InsufficientPackageStockFormat = "Insufficient packages for package ID %s at pickup location ID %s. Available: %s, Requested: %s";
+        /** Format: "%s %s" - for OPERATION_FAILED + payment message */
+        public static final String OperationFailedWithMessageFormat = "%s %s";
     }
 
     public static class PaymentErrorMessages {
@@ -564,6 +688,8 @@ public class ErrorMessages {
     public static class ConfigurationErrorMessages {
         // ImgBB
         public static final String ImgbbApiKeyNotConfigured = "ImgBB API key is not configured for this client.";
+        /** Format: "Invalid imageLocation configuration: %s" */
+        public static final String InvalidImageLocationConfigFormat = "Invalid imageLocation configuration: %s";
         
         // SendGrid
         public static final String SendGridEmailNotConfigured = "Email sender address is not configured in properties.";

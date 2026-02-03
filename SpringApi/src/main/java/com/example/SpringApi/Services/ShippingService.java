@@ -2,9 +2,6 @@ package com.example.SpringApi.Services;
 
 import com.example.SpringApi.Helpers.PackagingHelper;
 import com.example.SpringApi.Helpers.ShippingHelper;
-import com.example.SpringApi.Logging.ContextualLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
 import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
 import com.example.SpringApi.Models.DatabaseModels.Product;
@@ -63,9 +60,6 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ShippingService extends BaseService implements IShippingSubTranslator {
-    private static final ContextualLogger contextualLogger = ContextualLogger.getLogger(ShippingService.class);
-    private static final Logger logger = LoggerFactory.getLogger(ShippingService.class);
-    
     /**
      * Maximum weight per shipment in kg.
      * Couriers typically have limits around 50-100 kg.
@@ -111,11 +105,12 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     }
 
     /**
-     * Calculate shipping options for an order.
-     * Groups products by pickup location and returns available couriers for each location.
-     * 
-     * @param request Contains delivery postcode, COD flag, and list of pickup locations with weights
-     * @return Shipping options for each pickup location with available couriers
+     * Calculates available shipping options (couriers and rates) for an order.
+     * Groups products by pickup location, fetches rates from ShipRocket for each pickup-to-delivery route,
+     * and returns couriers sorted by price (cheapest first). Uses client's ShipRocket credentials.
+     *
+     * @param request Delivery postcode, COD flag, and list of pickup locations with weights and product IDs
+     * @return Shipping options per location with available couriers and total cost
      */
     @Override
     public ShippingCalculationResponseModel calculateShipping(ShippingCalculationRequestModel request) {
@@ -134,16 +129,14 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         BigDecimal totalShippingCost = BigDecimal.ZERO;
         
         for (ShippingCalculationRequestModel.PickupLocationShipment location : request.getPickupLocations()) {
-            ShippingCalculationResponseModel.LocationShippingOptions locationOptions = 
-                new ShippingCalculationResponseModel.LocationShippingOptions();
-            
-            locationOptions.setPickupLocationId(location.getPickupLocationId());
-            locationOptions.setLocationName(location.getLocationName());
-            locationOptions.setPickupPostcode(location.getPickupPostcode());
-            locationOptions.setTotalWeightKgs(location.getTotalWeightKgs());
-            locationOptions.setTotalQuantity(location.getTotalQuantity());
-            locationOptions.setProductIds(location.getProductIds());
-            locationOptions.setAvailableCouriers(new ArrayList<>());
+            ShippingCalculationResponseModel.LocationShippingOptions locationOptions =
+                    new ShippingCalculationResponseModel.LocationShippingOptions(
+                            location.getPickupLocationId(),
+                            location.getLocationName(),
+                            location.getPickupPostcode(),
+                            location.getTotalWeightKgs(),
+                            location.getTotalQuantity(),
+                            location.getProductIds());
             
             // Get weight for shipping calculation (minimum 0.5 kg)
             BigDecimal weight = location.getTotalWeightKgs();
@@ -170,8 +163,8 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                     
                     // Map couriers to response
                     for (var courier : shippingOptions.getData().available_courier_companies) {
-                        ShippingCalculationResponseModel.CourierOption option = mapCourier(courier);
-                        locationOptions.getAvailableCouriers().add(option);
+                        locationOptions.getAvailableCouriers().add(
+                                ShippingCalculationResponseModel.CourierOption.fromShiprocketCourier(courier));
                     }
                     
                     // Set the cheapest as selected by default
@@ -193,88 +186,17 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         return response;
     }
     
+    // ============================================================================
+    // PRIVATE HELPER METHODS
+    // ============================================================================
+
     /**
-     * Creates a ShippingHelper instance initialized with the current client's ShipRocket credentials.
-     * 
-     * @return ShippingHelper instance with client credentials
+     * Creates a ShippingHelper instance with the current client's ShipRocket credentials.
+     * Used for all ShipRocket API calls (shipping rates, order creation, returns).
      */
     private ShippingHelper getShippingHelper() {
         ClientResponseModel client = clientService.getClientById(getClientId());
         return new ShippingHelper(client.getShipRocketEmail(), client.getShipRocketPassword());
-    }
-    
-    /**
-     * Maps a Shiprocket courier company to the response model.
-     * 
-     * @param courier The Shiprocket courier company data
-     * @return Mapped CourierOption for the response
-     */
-    private ShippingCalculationResponseModel.CourierOption mapCourier(
-            ShippingOptionsResponseModel.AvailableCourierCompany courier) {
-        
-        ShippingCalculationResponseModel.CourierOption option = 
-            new ShippingCalculationResponseModel.CourierOption();
-        
-        // Basic identification
-        option.setCourierCompanyId(courier.courier_company_id);
-        option.setId(courier.id);
-        option.setCourierName(courier.courier_name);
-        option.setCourierType(courier.courier_type);
-        option.setDescription(courier.description);
-        
-        // Pricing
-        option.setRate(BigDecimal.valueOf(courier.rate));
-        option.setCodCharges(BigDecimal.valueOf(courier.cod_charges));
-        option.setFreightCharge(BigDecimal.valueOf(courier.freight_charge));
-        option.setRtoCharges(BigDecimal.valueOf(courier.rto_charges));
-        option.setCoverageCharges(courier.coverage_charges);
-        option.setOtherCharges(courier.other_charges);
-        option.setCost(courier.cost);
-        
-        // Delivery information
-        option.setEstimatedDeliveryDays(courier.estimated_delivery_days);
-        option.setEtd(courier.etd);
-        option.setEtdHours(courier.etd_hours);
-        option.setEdd(courier.edd);
-        
-        // Performance metrics
-        option.setRating(courier.rating);
-        option.setDeliveryPerformance(courier.delivery_performance);
-        option.setPickupPerformance(courier.pickup_performance);
-        option.setRtoPerformance(courier.rto_performance);
-        option.setTrackingPerformance(courier.tracking_performance);
-        option.setRank(courier.rank);
-        
-        // Location info
-        option.setCity(courier.city);
-        option.setState(courier.state);
-        option.setPostcode(courier.postcode);
-        option.setZone(courier.zone);
-        
-        // Weight
-        option.setChargeWeight(courier.charge_weight);
-        option.setMinWeight(courier.min_weight);
-        option.setBaseWeight(courier.base_weight);
-        option.setAirMaxWeight(courier.air_max_weight);
-        option.setSurfaceMaxWeight(courier.surface_max_weight);
-        
-        // Service features
-        option.setIsSurface(courier.is_surface);
-        option.setIsHyperlocal(courier.is_hyperlocal);
-        option.setRealtimeTracking(courier.realtime_tracking);
-        option.setCallBeforeDelivery(courier.call_before_delivery);
-        option.setPodAvailable(courier.pod_available);
-        option.setIsRtoAddressAvailable(courier.is_rto_address_available);
-        
-        // Pickup information
-        option.setPickupAvailability(courier.pickup_availability);
-        option.setCutoffTime(courier.cutoff_time);
-        
-        // Status flags
-        option.setBlocked(courier.blocked);
-        option.setCod(courier.cod);
-        
-        return option;
     }
     
     // ============================================================================
@@ -282,29 +204,27 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     // ============================================================================
     
     /**
-     * Internal class to hold product info with stock at each location
+     * Holds product info with stock availability at each pickup location.
+     * Used for order optimization to track dimensions, weight, and per-location stock.
      */
     private static class ProductLocationInfo {
-        Product productEntity; // Full entity for creating ProductResponseModel
+        Product productEntity;
         String productTitle;
         BigDecimal weightKgs;
         BigDecimal length;
         BigDecimal breadth;
         BigDecimal height;
-        int requestedQuantity;
         Map<Long, LocationStock> stockByLocation = new HashMap<>();
     }
     
     /**
-     * Stock info for a product at a specific location
+     * Stock and packaging info for a product at a specific pickup location.
      */
     private static class LocationStock {
         int availableStock;
         int maxItemsPackable;
         List<PackagingHelper.PackageDimension> packageDimensions;
         String packagingErrorMessage; // Store error message from packaging calculation
-        // Map of packageId to Package entity for creating PackageResponseModel
-        Map<Long, com.example.SpringApi.Models.DatabaseModels.Package> packageEntities = new HashMap<>();
     }
     
     /**
@@ -312,7 +232,6 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
      */
     private static class LocationInfo {
         PickupLocation pickupLocationEntity; // Full entity for creating PickupLocationResponseModel
-        Long pickupLocationId;
         String locationName;
         String postalCode;
         List<PackagingHelper.PackageDimension> packageDimensions = new ArrayList<>();
@@ -324,8 +243,6 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
      * Helper class to track remaining product quantities during shipment splitting
      */
     private static class ProductAllocationTracker {
-        Long productId;
-        ProductLocationInfo productInfo;
         ProductResponseModel productResponseModel;
         int remainingQty;
         BigDecimal weightPerUnit;
@@ -357,55 +274,44 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         String unavailabilityReason = null;
     }
     
+    /**
+     * Optimizes order fulfillment by finding the cheapest allocation of products across pickup locations.
+     * Supports auto mode (generates best strategy) and custom mode (validates user-specified allocation).
+     * Fetches product/stock data, generates candidates, evaluates packaging and shipping costs via ShipRocket,
+     * and returns the cheapest valid option with full cost breakdown per location.
+     *
+     * @param request Product quantities, delivery postcode, COD flag, and optional custom allocations
+     * @return Best allocation with shipments, packaging, shipping costs, or error if unfulfillable
+     */
     @Override
     public OrderOptimizationResponseModel optimizeOrder(OrderOptimizationRequestModel request) {
-        long overallStartTime = System.currentTimeMillis();
-        logger.info("Starting order optimization for " + (request.getProductQuantities() != null ? request.getProductQuantities().size() : 0) + 
-                   " products, delivery postcode: " + request.getDeliveryPostcode());
-        
         OrderOptimizationResponseModel response = new OrderOptimizationResponseModel();
         
         // Validate request
         if (request.getProductQuantities() == null || request.getProductQuantities().isEmpty()) {
-            logger.warn("Order optimization failed: No products specified");
-            response.setSuccess(false);
-            response.setErrorMessage("No products specified");
-            return response;
+            return OrderOptimizationResponseModel.error(ErrorMessages.OrderOptimizationErrorMessages.NoProductsSpecified);
         }
-        
+
         if (request.getDeliveryPostcode() == null || request.getDeliveryPostcode().isEmpty()) {
-            logger.warn("Order optimization failed: Delivery postcode is required");
-            response.setSuccess(false);
-            response.setErrorMessage("Delivery postcode is required");
-            return response;
+            return OrderOptimizationResponseModel.error(ErrorMessages.OrderOptimizationErrorMessages.DeliveryPostcodeRequired);
         }
         
         try {
             // Step 1: Fetch all product data
-            logger.info("Step 1: Fetching product data for " + request.getProductQuantities().size() + " products");
-            long step1Start = System.currentTimeMillis();
             Map<Long, ProductLocationInfo> productInfoMap = fetchProductData(request.getProductQuantities());
-            logger.info("Step 1 completed in " + (System.currentTimeMillis() - step1Start) + "ms, found " + productInfoMap.size() + " products");
-            
+
             if (productInfoMap.isEmpty()) {
-                logger.warn("Order optimization failed: No valid products found");
-                response.setSuccess(false);
-                response.setErrorMessage("No valid products found");
-                return response;
+                return OrderOptimizationResponseModel.error(ErrorMessages.OrderOptimizationErrorMessages.NoValidProductsFound);
             }
             
             // Step 2: Fetch stock and packaging info for all products at all locations
-            logger.info("Step 2: Fetching location data (stock and packaging)");
-            long step2Start = System.currentTimeMillis();
             Map<Long, LocationInfo> locationInfoMap = fetchLocationData(productInfoMap);
-            logger.info("Step 2 completed in " + (System.currentTimeMillis() - step2Start) + "ms, found " + locationInfoMap.size() + " locations");
             
             List<AllocationCandidate> candidates;
             
             // Check if custom allocations are provided
             if (request.getCustomAllocations() != null && !request.getCustomAllocations().isEmpty()) {
                 // Custom mode: Validate and use user-provided allocations strictly
-                logger.info("Custom allocation mode: Validating user-specified allocations");
                 CustomAllocationResult customResult = createCustomAllocationCandidate(
                     request.getCustomAllocations(), 
                     productInfoMap, 
@@ -414,10 +320,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 
                 // If validation failed, return error immediately
                 if (!customResult.isValid) {
-                    logger.warn("Custom allocation validation failed: " + customResult.errorMessage);
-                    response.setSuccess(false);
-                    response.setErrorMessage(customResult.errorMessage);
-                    return response;
+                    return OrderOptimizationResponseModel.error(customResult.errorMessage);
                 }
                 
                 candidates = new ArrayList<>();
@@ -425,46 +328,31 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             } else {
                 // Auto mode: Generate optimal candidates
                 // Step 3: Build feasibility matrix and check if order can be fulfilled
-                logger.info("Step 3: Checking feasibility");
-                long step3Start = System.currentTimeMillis();
                 String feasibilityError = checkFeasibility(productInfoMap, request.getProductQuantities(), locationInfoMap);
-                logger.info("Step 3 completed in " + (System.currentTimeMillis() - step3Start) + "ms");
                 if (feasibilityError != null) {
-                    logger.warn("Order optimization failed: " + feasibilityError);
-                    response.setSuccess(false);
-                    response.setErrorMessage(feasibilityError);
-                    return response;
+                    return OrderOptimizationResponseModel.error(feasibilityError);
                 }
                 
                 // Step 4: Generate candidate allocation strategies
-                logger.info("Step 4: Generating candidate allocation strategies");
-                long step4Start = System.currentTimeMillis();
                 candidates = generateCandidates(
-                    productInfoMap, 
-                    locationInfoMap, 
+                    productInfoMap,
+                    locationInfoMap,
                     request.getProductQuantities()
                 );
-                logger.info("Step 4 completed in " + (System.currentTimeMillis() - step4Start) + "ms, generated " + candidates.size() + " candidates");
-                
+
                 if (candidates.isEmpty()) {
-                    logger.warn("Order optimization failed: No valid allocation strategies found");
-                    response.setSuccess(false);
-                    response.setErrorMessage("No valid allocation strategies found");
-                    return response;
+                    return OrderOptimizationResponseModel.error(ErrorMessages.OrderOptimizationErrorMessages.NoValidAllocationStrategiesFound);
                 }
             }
             
             // Step 5: Evaluate each candidate (calculate packaging and shipping costs)
-            logger.info("Step 5: Evaluating " + candidates.size() + " candidates (packaging and shipping costs)");
-            long step5Start = System.currentTimeMillis();
             ShippingHelper shippingHelper = getShippingHelper();
             String deliveryPostcode = request.getDeliveryPostcode();
             boolean isCod = Boolean.TRUE.equals(request.getIsCod());
             boolean isCustomAllocation = request.getCustomAllocations() != null && !request.getCustomAllocations().isEmpty();
             
-            evaluateCandidates(candidates, productInfoMap, locationInfoMap, 
+            evaluateCandidates(candidates, productInfoMap, locationInfoMap,
                               shippingHelper, deliveryPostcode, isCod, isCustomAllocation);
-            logger.info("Step 5 completed in " + (System.currentTimeMillis() - step5Start) + "ms");
             
             // Step 6: Filter out options with no couriers available, sort by cost
             // First, separate options with all couriers available from those without
@@ -478,35 +366,17 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 .sorted(Comparator.comparing(c -> c.totalCost))
                 .collect(Collectors.toList());
             
-            // Set the cheapest valid option directly on the response
-            if (!validCandidates.isEmpty()) {
-                AllocationCandidate cheapestCandidate = validCandidates.get(0);
-                
-                response.setDescription(generateDescription(cheapestCandidate, locationInfoMap));
-                response.setTotalCost(cheapestCandidate.totalCost);
-                response.setTotalPackagingCost(cheapestCandidate.totalPackagingCost);
-                response.setTotalShippingCost(cheapestCandidate.totalShippingCost);
-                response.setShipmentCount(cheapestCandidate.shipments.size());
-                response.setShipments(cheapestCandidate.shipments);
-                response.setCanFulfillOrder(cheapestCandidate.canFulfillOrder);
-                response.setShortfall(cheapestCandidate.shortfall);
-                response.setAllCouriersAvailable(true);
-            } else if (!invalidCandidates.isEmpty()) {
-                // No valid options - show the best invalid option with explanation
-                AllocationCandidate bestInvalidCandidate = invalidCandidates.get(0);
-                
-                response.setDescription(generateDescription(bestInvalidCandidate, locationInfoMap));
-                response.setTotalCost(bestInvalidCandidate.totalCost);
-                response.setTotalPackagingCost(bestInvalidCandidate.totalPackagingCost);
-                response.setTotalShippingCost(bestInvalidCandidate.totalShippingCost);
-                response.setShipmentCount(bestInvalidCandidate.shipments.size());
-                response.setShipments(bestInvalidCandidate.shipments);
-                response.setCanFulfillOrder(bestInvalidCandidate.canFulfillOrder);
-                response.setShortfall(bestInvalidCandidate.shortfall);
-                response.setAllCouriersAvailable(false);
-                response.setUnavailabilityReason(bestInvalidCandidate.unavailabilityReason);
-                response.setErrorMessage("No shipping options available for any fulfillment strategy. " +
-                    "This may be due to weight limits or route restrictions.");
+            // Set the cheapest valid option or best invalid option on the response
+            AllocationCandidate candidateToUse = !validCandidates.isEmpty()
+                    ? validCandidates.get(0)
+                    : (!invalidCandidates.isEmpty() ? invalidCandidates.get(0) : null);
+            if (candidateToUse != null) {
+                boolean allCouriersAvailable = !validCandidates.isEmpty();
+                populateResponseFromCandidate(response, candidateToUse, locationInfoMap, allCouriersAvailable);
+                if (!allCouriersAvailable) {
+                    response.setUnavailabilityReason(candidateToUse.unavailabilityReason);
+                    response.setErrorMessage(ErrorMessages.OrderOptimizationErrorMessages.NoShippingOptionsForAnyStrategy);
+                }
             }
             
             // Set metadata
@@ -514,23 +384,16 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             response.setTotalQuantity(request.getProductQuantities().values().stream()
                 .mapToInt(Integer::intValue).sum());
             response.setSuccess(true);
-            
-            long totalDuration = System.currentTimeMillis() - overallStartTime;
-            logger.info("Order optimization completed successfully in " + totalDuration + "ms");
-            
+
         } catch (Exception e) {
-            long totalDuration = System.currentTimeMillis() - overallStartTime;
-            logger.error("Order optimization failed after " + totalDuration + "ms: " + e.getMessage(), e);
-            contextualLogger.error(e);
-            response.setSuccess(false);
-            response.setErrorMessage("Optimization failed: " + e.getMessage());
+            return OrderOptimizationResponseModel.error(String.format(ErrorMessages.OrderOptimizationErrorMessages.OptimizationFailedFormat, e.getMessage()));
         }
         
         return response;
     }
     
     /**
-     * Fetch product data for all requested products
+     * Fetches product entities and builds ProductLocationInfo map with dimensions and weight for each product.
      */
     private Map<Long, ProductLocationInfo> fetchProductData(Map<Long, Integer> productQuantities) {
         Map<Long, ProductLocationInfo> result = new HashMap<>();
@@ -540,13 +403,11 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         for (Product product : products) {
             ProductLocationInfo info = new ProductLocationInfo();
             info.productEntity = product; // Store full entity for response model
-            product.getProductId();
             info.productTitle = product.getTitle();
             info.weightKgs = product.getWeightKgs() != null ? product.getWeightKgs() : BigDecimal.valueOf(0.5);
             info.length = product.getLength();
             info.breadth = product.getBreadth();
             info.height = product.getHeight();
-            info.requestedQuantity = productQuantities.getOrDefault(product.getProductId(), 0);
             
             result.put(product.getProductId(), info);
         }
@@ -555,7 +416,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     }
     
     /**
-     * Fetch location data including stock and packaging for all products
+     * Fetches stock mappings, package availability per location, and computes max packable items per product.
      */
     private Map<Long, LocationInfo> fetchLocationData(Map<Long, ProductLocationInfo> productInfoMap) {
         Map<Long, LocationInfo> locationInfoMap = new HashMap<>();
@@ -574,7 +435,6 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 if (!locationInfoMap.containsKey(locationId)) {
                     LocationInfo locInfo = new LocationInfo();
                     locInfo.pickupLocationEntity = mapping.getPickupLocation(); // Store full entity
-                    locInfo.pickupLocationId = locationId;
                     locInfo.locationName = mapping.getPickupLocation() != null ? 
                         mapping.getPickupLocation().getAddressNickName() : "Location " + locationId;
                     locInfo.postalCode = mapping.getPickupLocation() != null && 
@@ -689,7 +549,8 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     
     
     /**
-     * Check if the order can be fulfilled
+     * Validates that requested quantities can be fulfilled from available stock and packaging at locations.
+     * Returns error message if any product is missing or has insufficient packable quantity.
      */
     private String checkFeasibility(Map<Long, ProductLocationInfo> productInfoMap, 
                                     Map<Long, Integer> productQuantities,
@@ -700,7 +561,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             
             ProductLocationInfo info = productInfoMap.get(productId);
             if (info == null) {
-                return "Product ID " + productId + " not found";
+                return String.format(ErrorMessages.OrderOptimizationErrorMessages.ProductNotFoundFormat, productId);
             }
             
             // Calculate total available (considering packaging constraints)
@@ -783,31 +644,25 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             if (totalPackable < requestedQty) {
                 // Provide more detailed error message
                 if (totalStock == 0) {
-                    return "Insufficient stock for product '" + info.productTitle + 
-                           "'. Requested: " + requestedQty + ", Available stock: 0";
+                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.InsufficientStockZeroFormat,
+                            info.productTitle, requestedQty);
                 } else if (!hasPackagesConfigured) {
-                    return "Product '" + info.productTitle + 
-                           "' cannot be packaged. Stock available: " + totalStock + 
-                           ", but no packages are configured at pickup locations. Requested: " + requestedQty;
+                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.NoPackagesConfiguredFormat,
+                            info.productTitle, totalStock, requestedQty);
                 } else if (!hasAvailablePackages) {
-                    return "Product '" + info.productTitle + 
-                           "' cannot be packaged. Stock available: " + totalStock + 
-                           ", but no packages are available at pickup locations (all packages have 0 quantity). Requested: " + requestedQty;
+                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.NoPackagesAvailableFormat,
+                            info.productTitle, totalStock, requestedQty);
                 } else if (!canFitInAnyPackageType) {
-                    return "Product '" + info.productTitle + 
-                           "' cannot be packaged. Stock available: " + totalStock + 
-                           ", but product dimensions/weight exceed all available package limits. Requested: " + requestedQty;
+                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.ProductExceedsPackageLimitsFormat,
+                            info.productTitle, totalStock, requestedQty);
                 } else if (totalStock >= requestedQty && totalPackable == 0) {
-                    // Product fits but can't be packed - likely quantity issue
-                    String errorDetail = packagingError != null ? packagingError : 
-                        "not enough packages available to pack the requested quantity";
-                    return "Product '" + info.productTitle + 
-                           "' cannot be packaged with available packages. Stock available: " + totalStock + 
-                           ", but " + errorDetail + ". Requested: " + requestedQty;
+                    String errorDetail = packagingError != null ? packagingError
+                            : ErrorMessages.OrderOptimizationErrorMessages.NotEnoughPackagesForQuantity;
+                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.CannotPackageWithDetailFormat,
+                            info.productTitle, totalStock, errorDetail, requestedQty);
                 } else {
-                    return "Insufficient stock/packaging for product '" + info.productTitle + 
-                           "'. Requested: " + requestedQty + ", Available stock: " + totalStock + 
-                           ", Packable (considering packaging constraints): " + totalPackable;
+                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.InsufficientStockPackagingFormat,
+                            info.productTitle, requestedQty, totalStock, totalPackable);
                 }
             }
         }
@@ -1012,22 +867,18 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         
         // If there are validation errors, return them
         if (!errors.isEmpty()) {
-            return CustomAllocationResult.error("Custom allocation validation failed:\n• " + 
-                String.join("\n• ", errors));
+            return CustomAllocationResult.error(String.format(ErrorMessages.OrderOptimizationErrorMessages.CustomAllocationValidationFailedFormat,
+                    String.join("\n• ", errors)));
         }
-        
+
         // Check that at least one allocation was made
         if (candidate.locationProductQuantities.isEmpty()) {
-            return CustomAllocationResult.error("No valid allocations specified");
+            return CustomAllocationResult.error(ErrorMessages.OrderOptimizationErrorMessages.NoValidAllocationsSpecified);
         }
         
         candidate.canFulfillOrder = true;
         candidate.shortfall = 0;
-        
-        logger.info("Custom allocation validated: " + candidate.locationProductQuantities.size() + 
-                   " locations, " + candidate.locationProductQuantities.values().stream()
-                       .mapToInt(Map::size).sum() + " product allocations");
-        
+
         return CustomAllocationResult.success(candidate);
     }
     
@@ -1214,10 +1065,6 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                     productsToReallocate.merge(prodEntry.getKey(), prodEntry.getValue(), Integer::sum);
                 }
                 locationsToRemove.add(locationId);
-                
-                LocationInfo locInfo = locationInfoMap.get(locationId);
-                String locationName = locInfo != null ? locInfo.locationName : "Location " + locationId;
-                logger.info("Need to reallocate " + productQtys.size() + " products from unserviceable location: " + locationName);
             }
         }
         
@@ -1266,10 +1113,6 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 })
                 .collect(Collectors.toList());
             
-            logger.debug("Product " + productId + " (" + productInfo.productTitle + 
-                        "): need to reallocate " + qtyToReallocate + 
-                        " units, " + sortedServiceableLocations.size() + " serviceable locations available");
-            
             // Allocate from serviceable locations
             for (Long locationId : sortedServiceableLocations) {
                 if (qtyToReallocate <= 0) break;
@@ -1299,17 +1142,10 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 
                 qtyToReallocate -= toAllocate;
                 
-                LocationInfo locInfo = locationInfoMap.get(locationId);
-                String locationName = locInfo != null ? locInfo.locationName : "Location " + locationId;
-                logger.info("Reallocated " + toAllocate + " units of product " + productId + 
-                           " (" + productInfo.productTitle + ") to " + locationName);
             }
             
             // Check if we couldn't fully reallocate
             if (qtyToReallocate > 0) {
-                logger.warn("Could not fully reallocate product " + productId + 
-                           " (" + productInfo.productTitle + "): " + qtyToReallocate + 
-                           " units have no serviceable location with available stock");
                 candidate.canFulfillOrder = false;
                 candidate.shortfall += qtyToReallocate;
             }
@@ -1341,10 +1177,8 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         // Pre-fetch authentication token once before parallel operations
         // This ensures we have a valid token cached before multiple threads try to use it
         try {
-            logger.debug("Pre-fetching authentication token before parallel operations");
             shippingHelper.getToken(); // This will cache the token for reuse
         } catch (Exception e) {
-            logger.warn("Failed to pre-fetch token, will retry per-request: " + e.getMessage());
             // Continue anyway - each request will try to get token
         }
         
@@ -1368,34 +1202,19 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         }
         
         // Fetch max weight for each route in parallel
-        logger.info("Starting max weight lookup for " + uniquePickupPostcodes.size() + " unique pickup postcodes");
         List<CompletableFuture<Void>> maxWeightFutures = new ArrayList<>();
         for (String pickupPostcode : uniquePickupPostcodes) {
             final String postcode = pickupPostcode;
             maxWeightFutures.add(CompletableFuture.runAsync(() -> {
                 try {
-                    logger.debug("Fetching max weight for route: " + postcode + " -> " + deliveryPostcode);
-                    long startTime = System.currentTimeMillis();
                     double maxWeight = findMaxWeightForRoute(shippingHelper, postcode, deliveryPostcode, isCod);
-                    long duration = System.currentTimeMillis() - startTime;
-                    logger.debug("Max weight lookup completed for " + postcode + " in " + duration + "ms: " + maxWeight + " kg");
                     if (maxWeight > 0) {
                         routeMaxWeights.put(postcode, BigDecimal.valueOf(maxWeight));
                     } else {
                         // No couriers available - use 0 to indicate this route is not serviceable
                         routeMaxWeights.put(postcode, BigDecimal.ZERO);
-                        logger.warn("No couriers available for route: " + postcode + " -> " + deliveryPostcode);
                     }
                 } catch (Exception e) {
-                    // Log as WARN since this is an expected failure (timeout/network issues)
-                    // The process will continue with default max weight
-                    String errorMsg = e.getMessage();
-                    if (errorMsg != null && (errorMsg.contains("timeout") || errorMsg.contains("timed out") || errorMsg.contains("connect"))) {
-                        logger.warn("Max weight lookup timed out for route " + postcode + " -> " + deliveryPostcode + " (using default max weight): " + errorMsg);
-                    } else {
-                        logger.warn("Error fetching max weight for route " + postcode + " -> " + deliveryPostcode + " (using default max weight): " + errorMsg);
-                    }
-                    // Don't log to contextualLogger for expected failures - these are handled gracefully
                     routeMaxWeights.put(postcode, MAX_WEIGHT_PER_SHIPMENT);
                 }
             }));
@@ -1403,26 +1222,15 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         
         // Wait for all max weight calls to complete with timeout
         try {
-            logger.info("Waiting for max weight lookups to complete (timeout: " + SHIPPING_API_TIMEOUT_SECONDS + "s)");
-            long startTime = System.currentTimeMillis();
             CompletableFuture<Void> allMaxWeights = CompletableFuture.allOf(maxWeightFutures.toArray(new CompletableFuture[0]));
             allMaxWeights.get(SHIPPING_API_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            long duration = System.currentTimeMillis() - startTime;
-            logger.info("All max weight lookups completed in " + duration + "ms");
         } catch (TimeoutException e) {
-            // Log as WARN since this is an expected failure - we continue with available results
-            logger.warn("Timeout waiting for max weight lookups after " + SHIPPING_API_TIMEOUT_SECONDS + " seconds (continuing with available results)");
-            // Continue with available results - use default max weight for missing routes
             for (String postcode : uniquePickupPostcodes) {
                 if (!routeMaxWeights.containsKey(postcode)) {
                     routeMaxWeights.put(postcode, MAX_WEIGHT_PER_SHIPMENT);
-                    logger.debug("Using default max weight for route " + postcode + " due to timeout");
                 }
             }
         } catch (Exception e) {
-            // Log as WARN since this is an expected failure - we continue with available results
-            logger.warn("Error waiting for max weight lookups (continuing with available results): " + e.getMessage());
-            // Continue with available results
             for (String postcode : uniquePickupPostcodes) {
                 if (!routeMaxWeights.containsKey(postcode)) {
                     routeMaxWeights.put(postcode, MAX_WEIGHT_PER_SHIPMENT);
@@ -1446,13 +1254,8 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 serviceableLocationIds.add(locationId);
             } else {
                 unserviceableLocationIds.add(locationId);
-                logger.info("Location " + locInfo.locationName + " (" + pickupPostcode + 
-                           ") is unserviceable for delivery to " + deliveryPostcode);
             }
         }
-        
-        logger.info("Serviceable locations: " + serviceableLocationIds.size() + 
-                   ", Unserviceable locations: " + unserviceableLocationIds.size());
         
         // For custom allocation, do NOT reallocate - use exactly what the user specified
         // For auto allocation, try to reallocate products from unserviceable locations to serviceable ones
@@ -1461,8 +1264,6 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 reallocateFromUnserviceableLocations(candidate, productInfoMap, locationInfoMap, 
                                                       serviceableLocationIds, unserviceableLocationIds);
             }
-        } else {
-            logger.info("Custom allocation mode - using exact locations specified by user (no reallocation)");
         }
         
         // First pass: Build all shipments with packaging, then determine weight splits
@@ -1548,7 +1349,6 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         }
         
         // Second pass: Fetch shipping rates for all shipments in parallel
-        logger.info("Starting shipping rate lookup for " + candidates.size() + " candidates");
         Map<String, CompletableFuture<ShippingOptionsResponseModel>> shippingFutures = 
             new ConcurrentHashMap<>();
         
@@ -1569,23 +1369,9 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                     final String finalWeight = weight.toString();
                     shippingFutures.put(cacheKey, CompletableFuture.supplyAsync(() -> {
                         try {
-                            logger.debug("Fetching shipping options: " + finalPickupPostcode + " -> " + deliveryPostcode + " (" + finalWeight + " kg)");
-                            long startTime = System.currentTimeMillis();
-                            ShippingOptionsResponseModel result = shippingHelper.getAvailableShippingOptions(
+                            return shippingHelper.getAvailableShippingOptions(
                                 finalPickupPostcode, deliveryPostcode, isCod, finalWeight);
-                            long duration = System.currentTimeMillis() - startTime;
-                            logger.debug("Shipping options fetched in " + duration + "ms for " + finalPickupPostcode + " -> " + deliveryPostcode);
-                            return result;
                         } catch (Exception e) {
-                            // Log as WARN since this is an expected failure (timeout/network issues)
-                            // The process will continue with available results
-                            String errorMsg = e.getMessage();
-                            if (errorMsg != null && (errorMsg.contains("timeout") || errorMsg.contains("timed out") || errorMsg.contains("connect"))) {
-                                logger.warn("Shipping options lookup timed out for " + finalPickupPostcode + " -> " + deliveryPostcode + " (will continue with available results): " + errorMsg);
-                            } else {
-                                logger.warn("Error fetching shipping options for " + finalPickupPostcode + " -> " + deliveryPostcode + " (will continue with available results): " + errorMsg);
-                            }
-                            // Don't log to contextualLogger for expected failures - these are handled gracefully
                             return null;
                         }
                     }));
@@ -1593,48 +1379,30 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             }
         }
         
-        logger.info("Waiting for " + shippingFutures.size() + " unique shipping rate lookups to complete (timeout: " + SHIPPING_API_TIMEOUT_SECONDS + "s)");
-        
         // Wait for all shipping calls to complete with timeout
         try {
-            long startTime = System.currentTimeMillis();
             CompletableFuture<Void> allShipping = CompletableFuture.allOf(
                 shippingFutures.values().toArray(new CompletableFuture[0]));
             allShipping.get(SHIPPING_API_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            long duration = System.currentTimeMillis() - startTime;
-            logger.info("All shipping rate lookups completed in " + duration + "ms");
         } catch (TimeoutException e) {
-            // Log as WARN since this is an expected failure - we continue with available results
-            logger.warn("Timeout waiting for shipping rate lookups after " + SHIPPING_API_TIMEOUT_SECONDS + " seconds (continuing with available results)");
             // Continue with available results - mark missing ones as null
         } catch (Exception e) {
-            // Log as WARN since this is an expected failure - we continue with available results
-            logger.warn("Error waiting for shipping rate lookups (continuing with available results): " + e.getMessage());
+            // Continue with available results
         }
         
         // Build shipping results map
         Map<String, ShippingOptionsResponseModel> shippingResults = new HashMap<>();
-        int successfulLookups = 0;
-        int failedLookups = 0;
         for (Map.Entry<String, CompletableFuture<ShippingOptionsResponseModel>> entry : 
              shippingFutures.entrySet()) {
             try {
                 ShippingOptionsResponseModel result = entry.getValue().get(1, TimeUnit.SECONDS); // Quick timeout for individual get
                 if (result != null) {
                     shippingResults.put(entry.getKey(), result);
-                    successfulLookups++;
-                } else {
-                    failedLookups++;
                 }
-            } catch (TimeoutException e) {
-                logger.warn("Individual shipping lookup timeout for key: " + entry.getKey());
-                failedLookups++;
             } catch (Exception e) {
-                logger.warn("Error getting shipping result for key " + entry.getKey() + ": " + e.getMessage());
-                failedLookups++;
+                // Skip failed lookups - continue with available results
             }
         }
-        logger.info("Shipping rate lookup summary: " + successfulLookups + " successful, " + failedLookups + " failed/timeout");
         
         // Third pass: Apply shipping rates and calculate totals
         // Filter out shipments with no packages (they cannot be fulfilled)
@@ -1686,7 +1454,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                         
                         // Map all available couriers
                         for (var courier : shippingOpts.getData().available_courier_companies) {
-                            shipment.getAvailableCouriers().add(mapCourier(courier));
+                            shipment.getAvailableCouriers().add(ShippingCalculationResponseModel.CourierOption.fromShiprocketCourier(courier));
                         }
                         
                         // Use cheapest courier rate for cost calculation (first after sorting)
@@ -1780,8 +1548,6 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             if (productInfo == null) continue;
             
             ProductAllocationTracker tracker = new ProductAllocationTracker();
-            tracker.productId = productId;
-            tracker.productInfo = productInfo;
             tracker.productResponseModel = alloc.getProduct();
             tracker.remainingQty = alloc.getAllocatedQuantity();
             tracker.weightPerUnit = productInfo.weightKgs;
@@ -2035,7 +1801,22 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     /**
      * Generate human-readable description for an allocation
      */
-    private String generateDescription(AllocationCandidate candidate, 
+    private void populateResponseFromCandidate(OrderOptimizationResponseModel response,
+                                                AllocationCandidate candidate,
+                                                Map<Long, LocationInfo> locationInfoMap,
+                                                boolean allCouriersAvailable) {
+        response.setDescription(generateDescription(candidate, locationInfoMap));
+        response.setTotalCost(candidate.totalCost);
+        response.setTotalPackagingCost(candidate.totalPackagingCost);
+        response.setTotalShippingCost(candidate.totalShippingCost);
+        response.setShipmentCount(candidate.shipments.size());
+        response.setShipments(candidate.shipments);
+        response.setCanFulfillOrder(candidate.canFulfillOrder);
+        response.setShortfall(candidate.shortfall);
+        response.setAllCouriersAvailable(allCouriersAvailable);
+    }
+
+    private String generateDescription(AllocationCandidate candidate,
                                         Map<Long, LocationInfo> locationInfoMap) {
         
         // Group shipments by location to detect weight-based splits
@@ -2078,12 +1859,12 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     }
     
     /**
-     * Cancel a shipment.
-     * Cancels the shipment in ShipRocket and updates the local shipment status to CANCELLED.
-     * 
-     * @param shipmentId The local shipment ID to cancel
-     * @throws BadRequestException if the shipment cannot be cancelled
-     * @throws NotFoundException if the shipment is not found
+     * Cancels an outbound shipment by calling ShipRocket cancel API and updating local status to CANCELLED.
+     * Validates shipment exists, is not already cancelled, and has a valid ShipRocket order ID.
+     *
+     * @param shipmentId Local shipment ID to cancel
+     * @throws BadRequestException if already cancelled, missing ShipRocket ID, or API failure
+     * @throws NotFoundException if shipment not found for client
      */
     @Override
     @org.springframework.transaction.annotation.Transactional
@@ -2124,9 +1905,9 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             Long shipRocketOrderIdLong = Long.parseLong(shipRocketOrderId);
             shippingHelper.cancelOrders(java.util.List.of(shipRocketOrderIdLong));
         } catch (NumberFormatException e) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.InvalidId + " Format error: " + shipRocketOrderId);
+            throw new BadRequestException(String.format(ErrorMessages.ShipmentErrorMessages.InvalidIdFormatErrorFormat, shipRocketOrderId));
         } catch (Exception e) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.InvalidId + " " + e.getMessage());
+            throw new BadRequestException(String.format(ErrorMessages.ShipmentErrorMessages.InvalidIdWithMessageFormat, e.getMessage()));
         }
         
         // Update local shipment status
@@ -2134,18 +1915,17 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         shipment.setUpdatedAt(java.time.LocalDateTime.now());
         shipment.setModifiedUser(getUser());
         shipmentRepository.save(shipment);
-        
-        logger.info("Shipment {} cancelled successfully. ShipRocket order ID: {}", shipmentId, shipRocketOrderId);
     }
     
     /**
-     * Create a return order for a shipment.
-     * Creates a return shipment in ShipRocket and stores the return details locally.
-     * 
-     * @param request The return request containing shipment ID and products to return
-     * @return ReturnShipmentResponseModel with the created return details
-     * @throws BadRequestException if the return cannot be created
-     * @throws NotFoundException if the shipment is not found
+     * Creates a return order for a shipment (full or partial).
+     * Validates products and quantities, creates return in ShipRocket, persists ReturnShipment and
+     * ReturnShipmentProduct records, assigns AWB if available, and updates original shipment status.
+     *
+     * @param request Shipment ID, products to return (with quantity, reason, comments), and dimensions
+     * @return Created return shipment with products
+     * @throws BadRequestException if validation fails or ShipRocket API error
+     * @throws NotFoundException if shipment or products not found
      */
     @Override
     @org.springframework.transaction.annotation.Transactional
@@ -2334,22 +2114,9 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             throw new BadRequestException(String.format(ErrorMessages.ReturnShipmentErrorMessages.FailedToCreateReturn, e.getMessage()));
         }
         
-        // Create ReturnShipment entity
-        ReturnShipment returnShipment = new ReturnShipment();
-        returnShipment.setShipmentId(shipment.getShipmentId());
-        returnShipment.setReturnType(returnType);
-        returnShipment.setShipRocketReturnOrderId(returnOrderResponse.getOrderIdAsString());
-        returnShipment.setShipRocketReturnShipmentId(returnOrderResponse.getShipmentId());
-        returnShipment.setShipRocketReturnStatus(returnOrderResponse.getStatus());
-        returnShipment.setShipRocketReturnStatusCode(returnOrderResponse.getStatusCode());
-        returnShipment.setShipRocketReturnOrderMetadata(returnOrderJson);
-        returnShipment.setReturnWeightKgs(request.getWeight() != null ? request.getWeight() : BigDecimal.valueOf(0.5));
-        returnShipment.setReturnLength(request.getLength());
-        returnShipment.setReturnBreadth(request.getBreadth());
-        returnShipment.setReturnHeight(request.getHeight());
-        returnShipment.setClientId(clientId);
-        returnShipment.setCreatedUser(currentUser);
-        returnShipment.setModifiedUser(currentUser);
+        // Create ReturnShipment entity using factory
+        ReturnShipment returnShipment = ReturnShipment.fromCreateReturn(
+            shipment, returnType, returnOrderResponse, request, returnOrderJson, clientId, currentUser);
         
         // Save return shipment to get ID
         returnShipment = returnShipmentRepository.save(returnShipment);
@@ -2358,20 +2125,8 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         productIndex = 0;
         for (CreateReturnRequestModel.ReturnProductItem item : request.getProducts()) {
             Product product = productsToReturn.get(productIndex++);
-            
-            ReturnShipmentProduct returnProduct = new ReturnShipmentProduct();
-            returnProduct.setReturnShipmentId(returnShipment.getReturnShipmentId());
-            returnProduct.setProductId(item.getProductId());
-            returnProduct.setReturnQuantity(item.getQuantity());
-            returnProduct.setReturnReason(item.getReason());
-            returnProduct.setReturnComments(item.getComments());
-            returnProduct.setProductName(product.getTitle());
-            returnProduct.setProductSku(product.getUpc() != null ? product.getUpc() : "SKU-" + product.getProductId());
-            returnProduct.setProductSellingPrice(product.getPrice().subtract(product.getDiscount()));
-            returnProduct.setClientId(clientId);
-            returnProduct.setCreatedUser(currentUser);
-            returnProduct.setModifiedUser(currentUser);
-            
+            ReturnShipmentProduct returnProduct = ReturnShipmentProduct.fromReturnItem(
+                returnShipment.getReturnShipmentId(), item, product, clientId, currentUser);
             returnShipmentProductRepository.save(returnProduct);
         }
         
@@ -2384,8 +2139,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             returnShipment.setShipRocketReturnAwbMetadata(awbJson);
             returnShipmentRepository.save(returnShipment);
         } catch (Exception e) {
-            // Log but don't fail - AWB can be assigned later
-            logger.warn("Failed to assign AWB for return shipment: " + e.getMessage());
+            // AWB can be assigned later
         }
         
         // Update original shipment status
@@ -2393,11 +2147,6 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         shipment.setShipRocketStatus(newStatus);
         shipment.setModifiedUser(currentUser);
         shipmentRepository.save(shipment);
-        
-        logger.info("Return shipment created successfully. Return ID: {}, ShipRocket Order: {}, Type: {}", 
-            returnShipment.getReturnShipmentId(), 
-            returnShipment.getShipRocketReturnOrderId(),
-            returnType.getValue());
         
         // Reload with products for response
         returnShipment = returnShipmentRepository.findByReturnShipmentIdAndClientId(
@@ -2408,12 +2157,12 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     }
     
     /**
-     * Cancel a return shipment.
-     * Cancels the return order in ShipRocket and updates the local return shipment status to RETURN_CANCELLED.
-     * 
-     * @param returnShipmentId The local return shipment ID to cancel
-     * @throws BadRequestException if the return shipment cannot be cancelled
-     * @throws NotFoundException if the return shipment is not found
+     * Cancels a return shipment by calling ShipRocket cancel API and updating local status to RETURN_CANCELLED.
+     * Validates return exists, is not already cancelled, and has a valid ShipRocket return order ID.
+     *
+     * @param returnShipmentId Local return shipment ID to cancel
+     * @throws BadRequestException if already cancelled, missing ShipRocket ID, or API failure
+     * @throws NotFoundException if return shipment not found for client
      */
     @Override
     @org.springframework.transaction.annotation.Transactional
@@ -2464,16 +2213,14 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         returnShipment.setUpdatedAt(java.time.LocalDateTime.now());
         returnShipment.setModifiedUser(getUser());
         returnShipmentRepository.save(returnShipment);
-        
-        logger.info("Return shipment {} cancelled successfully. ShipRocket return order ID: {}", 
-            returnShipmentId, shipRocketReturnOrderId);
     }
     
     /**
-     * Get the ShipRocket wallet balance for the client.
-     * 
-     * @return The wallet balance as a Double
-     * @throws BadRequestException if the wallet balance cannot be retrieved
+     * Retrieves the client's ShipRocket wallet balance for shipping prepaid orders.
+     * Uses client's ShipRocket credentials to call the wallet API.
+     *
+     * @return Wallet balance as Double, or null if unavailable
+     * @throws BadRequestException if ShipRocket credentials not configured or API error
      */
     @Override
     public Double getWalletBalance() {

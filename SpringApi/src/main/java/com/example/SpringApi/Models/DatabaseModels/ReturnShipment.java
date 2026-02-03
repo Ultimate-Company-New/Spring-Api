@@ -1,7 +1,10 @@
 package com.example.SpringApi.Models.DatabaseModels;
 
+import com.example.SpringApi.Models.RequestModels.CreateReturnRequestModel;
+import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketReturnOrderResponseModel;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -22,6 +25,7 @@ import java.util.List;
  */
 @Getter
 @Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "ReturnShipment")
 public class ReturnShipment {
@@ -161,4 +165,42 @@ public class ReturnShipment {
     // One-to-Many relationship with ReturnShipmentProduct
     @OneToMany(mappedBy = "returnShipment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReturnShipmentProduct> returnProducts = new ArrayList<>();
+
+    /**
+     * Creates a ReturnShipment entity from the create return request and ShipRocket API response.
+     *
+     * @param shipment The original shipment being returned
+     * @param returnType FULL_RETURN or PARTIAL_RETURN
+     * @param response ShipRocket API response from create return order
+     * @param request Create return request with dimensions and weight
+     * @param returnOrderJson Raw JSON response for metadata storage
+     * @param clientId Client ID
+     * @param currentUser User creating the return
+     * @return Populated ReturnShipment entity ready to persist
+     */
+    public static ReturnShipment fromCreateReturn(
+            Shipment shipment,
+            ReturnType returnType,
+            ShipRocketReturnOrderResponseModel response,
+            CreateReturnRequestModel request,
+            String returnOrderJson,
+            Long clientId,
+            String currentUser) {
+        ReturnShipment rs = new ReturnShipment();
+        rs.setShipmentId(shipment.getShipmentId());
+        rs.setReturnType(returnType);
+        rs.setShipRocketReturnOrderId(response.getOrderIdAsString());
+        rs.setShipRocketReturnShipmentId(response.getShipmentId());
+        rs.setShipRocketReturnStatus(response.getStatus());
+        rs.setShipRocketReturnStatusCode(response.getStatusCode());
+        rs.setShipRocketReturnOrderMetadata(returnOrderJson);
+        rs.setReturnWeightKgs(request.getWeight() != null ? request.getWeight() : BigDecimal.valueOf(0.5));
+        rs.setReturnLength(request.getLength());
+        rs.setReturnBreadth(request.getBreadth());
+        rs.setReturnHeight(request.getHeight());
+        rs.setClientId(clientId);
+        rs.setCreatedUser(currentUser);
+        rs.setModifiedUser(currentUser);
+        return rs;
+    }
 }

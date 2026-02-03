@@ -10,4 +10,12 @@ import java.util.List;
 public class PaginationBaseResponseModel<T> {
     private List<T> data;
     private long totalDataCount;
+
+    public PaginationBaseResponseModel() {
+    }
+
+    public PaginationBaseResponseModel(List<T> data, long totalDataCount) {
+        this.data = data;
+        this.totalDataCount = totalDataCount;
+    }
 }

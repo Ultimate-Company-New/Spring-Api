@@ -12,6 +12,7 @@ import com.example.SpringApi.Models.ResponseModels.PaymentVerificationResponseMo
 import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderResponseModel;
 import com.example.SpringApi.Repositories.*;
 import com.example.SpringApi.Repositories.ClientRepository;
+import com.example.SpringApi.Services.Interface.IPaymentSubTranslator;
 import com.example.SpringApi.Repositories.PackageRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ public class ShipmentProcessingService extends BaseService {
     private final ShipmentPackageRepository shipmentPackageRepository;
     private final ProductPickupLocationMappingRepository productPickupLocationMappingRepository;
     private final PackagePickupLocationMappingRepository packagePickupLocationMappingRepository;
-    private final PaymentService paymentService;
+    private final IPaymentSubTranslator paymentService;
     private final PickupLocationRepository pickupLocationRepository;
     private final ProductRepository productRepository;
     private final PackageRepository packageRepository;
@@ -54,7 +55,7 @@ public class ShipmentProcessingService extends BaseService {
             ShipmentPackageRepository shipmentPackageRepository,
             ProductPickupLocationMappingRepository productPickupLocationMappingRepository,
             PackagePickupLocationMappingRepository packagePickupLocationMappingRepository,
-            PaymentService paymentService,
+            IPaymentSubTranslator paymentService,
             PickupLocationRepository pickupLocationRepository,
             ProductRepository productRepository,
             PackageRepository packageRepository,
@@ -128,7 +129,8 @@ public class ShipmentProcessingService extends BaseService {
         PaymentVerificationResponseModel paymentResponse = paymentService.recordCashPayment(cashPaymentRequest);
         
         if (!paymentResponse.isSuccess()) {
-            throw new BadRequestException(ErrorMessages.OPERATION_FAILED + " " + paymentResponse.getMessage());
+            throw new BadRequestException(String.format(ErrorMessages.ShipmentProcessingErrorMessages.OperationFailedWithMessageFormat,
+                    ErrorMessages.OPERATION_FAILED, paymentResponse.getMessage()));
         }
         
         // Step 4: Update inventory (reduce product and package quantities)
@@ -203,7 +205,8 @@ public class ShipmentProcessingService extends BaseService {
         PaymentVerificationResponseModel paymentResponse = paymentService.verifyPayment(razorpayVerifyRequest);
         
         if (!paymentResponse.isSuccess()) {
-            throw new BadRequestException(ErrorMessages.OPERATION_FAILED + " " + paymentResponse.getMessage());
+            throw new BadRequestException(String.format(ErrorMessages.ShipmentProcessingErrorMessages.OperationFailedWithMessageFormat,
+                    ErrorMessages.OPERATION_FAILED, paymentResponse.getMessage()));
         }
         
         // Step 4: Update inventory (reduce product and package quantities)
@@ -240,16 +243,15 @@ public class ShipmentProcessingService extends BaseService {
                         .findByProductIdAndPickupLocationId(
                                 shipmentProduct.getProductId(), 
                                 pickupLocationId)
-                        .orElseThrow(() -> new BadRequestException(
-                                "Product ID " + shipmentProduct.getProductId() +
-                                " is not available at pickup location ID " + pickupLocationId));
+                        .orElseThrow(() -> new BadRequestException(String.format(
+                                ErrorMessages.ShipmentProcessingErrorMessages.ProductNotAvailableAtPickupLocationFormat,
+                                shipmentProduct.getProductId(), pickupLocationId)));
                 
                 if (mapping.getAvailableStock() < shipmentProduct.getAllocatedQuantity()) {
-                    throw new BadRequestException(
-                            "Insufficient stock for product ID " + shipmentProduct.getProductId() +
-                            " at pickup location ID " + pickupLocationId +
-                            ". Available: " + mapping.getAvailableStock() +
-                            ", Requested: " + shipmentProduct.getAllocatedQuantity());
+                    throw new BadRequestException(String.format(
+                            ErrorMessages.ShipmentProcessingErrorMessages.InsufficientProductStockFormat,
+                            shipmentProduct.getProductId(), pickupLocationId,
+                            mapping.getAvailableStock(), shipmentProduct.getAllocatedQuantity()));
                 }
             }
             
@@ -260,16 +262,15 @@ public class ShipmentProcessingService extends BaseService {
                         .findByPackageIdAndPickupLocationId(
                                 shipmentPackage.getPackageId(), 
                                 pickupLocationId)
-                        .orElseThrow(() -> new BadRequestException(
-                                "Package ID " + shipmentPackage.getPackageId() +
-                                " is not available at pickup location ID " + pickupLocationId));
+                        .orElseThrow(() -> new BadRequestException(String.format(
+                                ErrorMessages.ShipmentProcessingErrorMessages.PackageNotAvailableAtPickupLocationFormat,
+                                shipmentPackage.getPackageId(), pickupLocationId)));
                 
                 if (mapping.getAvailableQuantity() < shipmentPackage.getQuantityUsed()) {
-                    throw new BadRequestException(
-                            "Insufficient packages for package ID " + shipmentPackage.getPackageId() +
-                            " at pickup location ID " + pickupLocationId +
-                            ". Available: " + mapping.getAvailableQuantity() +
-                            ", Requested: " + shipmentPackage.getQuantityUsed());
+                    throw new BadRequestException(String.format(
+                            ErrorMessages.ShipmentProcessingErrorMessages.InsufficientPackageStockFormat,
+                            shipmentPackage.getPackageId(), pickupLocationId,
+                            mapping.getAvailableQuantity(), shipmentPackage.getQuantityUsed()));
                 }
             }
         }
@@ -292,10 +293,7 @@ public class ShipmentProcessingService extends BaseService {
                         .orElse(null);
                 
                 if (mapping != null) {
-                    int newStock = mapping.getAvailableStock() - shipmentProduct.getAllocatedQuantity();
-                    mapping.setAvailableStock(newStock);
-                    mapping.setLastStockUpdate(LocalDateTime.now());
-                    mapping.setModifiedUser(getUser());
+                    mapping.reduceStock(shipmentProduct.getAllocatedQuantity(), getUser());
                     productPickupLocationMappingRepository.save(mapping);
                 }
             }
@@ -310,9 +308,7 @@ public class ShipmentProcessingService extends BaseService {
                         .orElse(null);
                 
                 if (mapping != null) {
-                    int newQuantity = mapping.getAvailableQuantity() - shipmentPackage.getQuantityUsed();
-                    mapping.setAvailableQuantity(newQuantity);
-                    mapping.setModifiedUser(getUser());
+                    mapping.reduceQuantity(shipmentPackage.getQuantityUsed(), getUser());
                     packagePickupLocationMappingRepository.save(mapping);
                 }
             }
@@ -420,72 +416,9 @@ public class ShipmentProcessingService extends BaseService {
             request.setResellerName(vendorInfo);
         }
         
-        // Billing address (required fields)
+        // Billing and shipping address (same as delivery)
         String[] nameParts = splitName(deliveryAddress.getNameOnAddress());
-        request.setBillingCustomerName(nameParts[0]);
-        if (nameParts.length > 1 && !nameParts[1].isEmpty()) {
-            request.setBillingLastName(nameParts[1]);
-        }
-        request.setBillingAddress(deliveryAddress.getStreetAddress() != null ? deliveryAddress.getStreetAddress() : "");
-        if (deliveryAddress.getStreetAddress2() != null && !deliveryAddress.getStreetAddress2().trim().isEmpty()) {
-            request.setBillingAddress2(deliveryAddress.getStreetAddress2());
-        }
-        request.setBillingCity(deliveryAddress.getCity() != null ? deliveryAddress.getCity() : "");
-        
-        // Parse postal code to integer
-        try {
-            request.setBillingPincode(Integer.parseInt(deliveryAddress.getPostalCode()));
-        } catch (NumberFormatException e) {
-            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.BillingPostalCodeMustBeNumeric, deliveryAddress.getPostalCode()));
-        }
-        
-        request.setBillingState(deliveryAddress.getState() != null ? deliveryAddress.getState() : "");
-        request.setBillingCountry(deliveryAddress.getCountry() != null ? deliveryAddress.getCountry() : "");
-        request.setBillingEmail(deliveryAddress.getEmailOnAddress() != null ? deliveryAddress.getEmailOnAddress() : "");
-        
-        // Clean phone number (remove formatting, keep only digits, ensure 10 digits)
-        String billingPhone = cleanPhoneNumber(deliveryAddress.getPhoneOnAddress());
-        if (billingPhone.length() != 10) {
-            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.BillingPhoneMustBe10Digits, 
-                    (deliveryAddress.getPhoneOnAddress() != null ? deliveryAddress.getPhoneOnAddress() : "empty")));
-        }
-        request.setBillingPhone(Long.parseLong(billingPhone));
-        
-        // Billing ISD code (optional) - Default to +91 for India
-        request.setBillingIsdCode("+91");
-        
-        // Shipping address (same as billing)
-        request.setShippingIsBilling(true);
-        request.setShippingCustomerName(nameParts[0]);
-        if (nameParts.length > 1 && !nameParts[1].isEmpty()) {
-            request.setShippingLastName(nameParts[1]);
-        }
-        request.setShippingAddress(deliveryAddress.getStreetAddress() != null ? deliveryAddress.getStreetAddress() : "");
-        if (deliveryAddress.getStreetAddress2() != null && !deliveryAddress.getStreetAddress2().trim().isEmpty()) {
-            request.setShippingAddress2(deliveryAddress.getStreetAddress2());
-        }
-        request.setShippingCity(deliveryAddress.getCity() != null ? deliveryAddress.getCity() : "");
-        
-        // Parse shipping postal code to integer
-        try {
-            request.setShippingPincode(Integer.parseInt(deliveryAddress.getPostalCode()));
-        } catch (NumberFormatException e) {
-            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.ShippingPostalCodeMustBeNumeric, deliveryAddress.getPostalCode()));
-        }
-        
-        request.setShippingState(deliveryAddress.getState() != null ? deliveryAddress.getState() : "");
-        request.setShippingCountry(deliveryAddress.getCountry() != null ? deliveryAddress.getCountry() : "");
-        if (deliveryAddress.getEmailOnAddress() != null && !deliveryAddress.getEmailOnAddress().trim().isEmpty()) {
-            request.setShippingEmail(deliveryAddress.getEmailOnAddress());
-        }
-        
-        // Clean shipping phone number
-        String shippingPhone = cleanPhoneNumber(deliveryAddress.getPhoneOnAddress());
-        if (shippingPhone.length() != 10) {
-            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.ShippingPhoneMustBe10Digits, 
-                    (deliveryAddress.getPhoneOnAddress() != null ? deliveryAddress.getPhoneOnAddress() : "empty")));
-        }
-        request.setShippingPhone(Long.parseLong(shippingPhone));
+        populateBillingAndShippingFromAddress(request, deliveryAddress, nameParts);
         
         // Order items (required)
         List<ShipRocketOrderRequestModel.OrderItem> orderItems = new ArrayList<>();
@@ -493,27 +426,20 @@ public class ShipmentProcessingService extends BaseService {
         for (ShipmentProduct shipmentProduct : shipmentProducts) {
             Product product = productRepository.findById(shipmentProduct.getProductId()).orElse(null);
             if (product != null) {
-                ShipRocketOrderRequestModel.OrderItem item = new ShipRocketOrderRequestModel.OrderItem();
-                item.setName(product.getTitle() != null ? product.getTitle() : "");
-                item.setSku(product.getUpc() != null && !product.getUpc().trim().isEmpty() ? 
-                        product.getUpc() : "SKU-" + product.getProductId());
-                item.setUnits(shipmentProduct.getAllocatedQuantity());
-                item.setSellingPrice((int) Math.round(shipmentProduct.getAllocatedPrice().doubleValue()));
-                
-                // Discount (optional)
+                String name = product.getTitle() != null ? product.getTitle() : "";
+                String sku = product.getUpc() != null && !product.getUpc().trim().isEmpty()
+                        ? product.getUpc() : "SKU-" + product.getProductId();
+                int units = shipmentProduct.getAllocatedQuantity();
+                int sellingPrice = (int) Math.round(shipmentProduct.getAllocatedPrice().doubleValue());
+                Integer discount = null;
                 if (product.getDiscount() != null && product.getDiscount().compareTo(BigDecimal.ZERO) > 0) {
-                    BigDecimal discountAmount = product.getIsDiscountPercent() != null && product.getIsDiscountPercent() ?
-                            shipmentProduct.getAllocatedPrice().multiply(product.getDiscount()).divide(new BigDecimal("100")) :
-                            product.getDiscount();
-                    item.setDiscount((int) Math.round(discountAmount.doubleValue()));
+                    BigDecimal discountAmount = product.getIsDiscountPercent() != null && product.getIsDiscountPercent()
+                            ? shipmentProduct.getAllocatedPrice().multiply(product.getDiscount()).divide(new BigDecimal("100"))
+                            : product.getDiscount();
+                    discount = (int) Math.round(discountAmount.doubleValue());
                 }
-                
-                // Tax/GST (optional)
-                if (orderSummary.getGstPercentage() != null) {
-                    item.setTax(orderSummary.getGstPercentage().intValue());
-                }
-                
-                orderItems.add(item);
+                Integer tax = orderSummary.getGstPercentage() != null ? orderSummary.getGstPercentage().intValue() : null;
+                orderItems.add(new ShipRocketOrderRequestModel.OrderItem(name, sku, units, sellingPrice, discount, tax));
             }
         }
         request.setOrderItems(orderItems);
@@ -542,7 +468,7 @@ public class ShipmentProcessingService extends BaseService {
         List<ShipmentPackage> shipmentPackages = shipmentPackageRepository.findByShipmentId(shipment.getShipmentId());
         for (ShipmentPackage shipmentPackage : shipmentPackages) {
             com.example.SpringApi.Models.DatabaseModels.Package packageEntity = packageRepository.findById(shipmentPackage.getPackageId())
-                    .orElseThrow(() -> new NotFoundException(ErrorMessages.PackageErrorMessages.InvalidId + " ID: " + shipmentPackage.getPackageId()));
+                    .orElseThrow(() -> new NotFoundException(String.format(ErrorMessages.PackageErrorMessages.InvalidIdWithIdFormat, shipmentPackage.getPackageId())));
             
             totalLength += packageEntity.getLength() * shipmentPackage.getQuantityUsed();
             totalBreadth += packageEntity.getBreadth() * shipmentPackage.getQuantityUsed();
@@ -579,6 +505,56 @@ public class ShipmentProcessingService extends BaseService {
         return request;
     }
     
+    /**
+     * Populates billing and shipping address fields on the request from the delivery address.
+     */
+    private void populateBillingAndShippingFromAddress(ShipRocketOrderRequestModel request, Address deliveryAddress, String[] nameParts) {
+        int pincode;
+        try {
+            pincode = Integer.parseInt(deliveryAddress.getPostalCode());
+        } catch (NumberFormatException e) {
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.BillingPostalCodeMustBeNumeric, deliveryAddress.getPostalCode()));
+        }
+        String phone = cleanPhoneNumber(deliveryAddress.getPhoneOnAddress());
+        if (phone.length() != 10) {
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.BillingPhoneMustBe10Digits,
+                    deliveryAddress.getPhoneOnAddress() != null ? deliveryAddress.getPhoneOnAddress() : "empty"));
+        }
+        long phoneLong = Long.parseLong(phone);
+
+        String street1 = deliveryAddress.getStreetAddress() != null ? deliveryAddress.getStreetAddress() : "";
+        String street2 = deliveryAddress.getStreetAddress2() != null && !deliveryAddress.getStreetAddress2().trim().isEmpty()
+                ? deliveryAddress.getStreetAddress2() : null;
+        String city = deliveryAddress.getCity() != null ? deliveryAddress.getCity() : "";
+        String state = deliveryAddress.getState() != null ? deliveryAddress.getState() : "";
+        String country = deliveryAddress.getCountry() != null ? deliveryAddress.getCountry() : "";
+        String email = deliveryAddress.getEmailOnAddress() != null ? deliveryAddress.getEmailOnAddress() : "";
+
+        request.setBillingCustomerName(nameParts[0]);
+        request.setBillingLastName(nameParts.length > 1 && !nameParts[1].isEmpty() ? nameParts[1] : null);
+        request.setBillingAddress(street1);
+        request.setBillingAddress2(street2);
+        request.setBillingCity(city);
+        request.setBillingPincode(pincode);
+        request.setBillingState(state);
+        request.setBillingCountry(country);
+        request.setBillingEmail(email);
+        request.setBillingPhone(phoneLong);
+        request.setBillingIsdCode("+91");
+
+        request.setShippingIsBilling(true);
+        request.setShippingCustomerName(nameParts[0]);
+        request.setShippingLastName(nameParts.length > 1 && !nameParts[1].isEmpty() ? nameParts[1] : null);
+        request.setShippingAddress(street1);
+        request.setShippingAddress2(street2);
+        request.setShippingCity(city);
+        request.setShippingPincode(pincode);
+        request.setShippingState(state);
+        request.setShippingCountry(country);
+        request.setShippingEmail(deliveryAddress.getEmailOnAddress() != null && !deliveryAddress.getEmailOnAddress().trim().isEmpty() ? deliveryAddress.getEmailOnAddress() : null);
+        request.setShippingPhone(phoneLong);
+    }
+
     /**
      * Helper method to split a full name into first name and last name.
      * 
@@ -642,13 +618,12 @@ public class ShipmentProcessingService extends BaseService {
         
         // Validate that the status is a valid ShipRocket status
         if (!Shipment.ShipRocketStatus.isValid(shipRocketResponse.getStatus())) {
-            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed, shipmentId, 
-                    "invalid status '" + shipRocketResponse.getStatus() + "'. Valid statuses are: " +
-                    String.join(", ", 
-                        java.util.Arrays.stream(Shipment.ShipRocketStatus.values())
+            String validStatuses = String.join(", ",
+                    java.util.Arrays.stream(Shipment.ShipRocketStatus.values())
                             .map(Shipment.ShipRocketStatus::getValue)
-                            .toArray(String[]::new)
-                    )));
+                            .toArray(String[]::new));
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed, shipmentId,
+                    String.format(ErrorMessages.ShippingErrorMessages.InvalidShipRocketStatusFormat, shipRocketResponse.getStatus(), validStatuses)));
         }
     }
     
@@ -773,8 +748,9 @@ public class ShipmentProcessingService extends BaseService {
                 String fullResponseJson = objectMapper.writeValueAsString(shipRocketResponse);
                 shipment.setShipRocketFullResponse(fullResponseJson);
             } catch (Exception serializationEx) {
-                BadRequestException exception = new BadRequestException("Failed to serialize ShipRocket response to JSON for shipment ID " + 
-                        shipment.getShipmentId() + ": " + serializationEx.getMessage());
+                BadRequestException exception = new BadRequestException(String.format(
+                        ErrorMessages.ShippingErrorMessages.FailedToSerializeShipRocketResponseFormat,
+                        shipment.getShipmentId(), serializationEx.getMessage()));
                 exception.initCause(serializationEx);
                 throw exception;
             }

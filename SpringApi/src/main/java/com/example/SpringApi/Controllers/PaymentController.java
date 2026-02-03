@@ -13,7 +13,7 @@ import com.example.SpringApi.Models.RequestModels.RazorpayVerifyRequestModel;
 import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaymentVerificationResponseModel;
 import com.example.SpringApi.Models.ResponseModels.RazorpayOrderResponseModel;
-import com.example.SpringApi.Services.PaymentService;
+import com.example.SpringApi.Services.Interface.IPaymentSubTranslator;
 import com.example.SpringApi.Services.ShipmentProcessingService;
 import com.itextpdf.text.DocumentException;
 import freemarker.template.TemplateException;
@@ -41,11 +41,11 @@ import java.io.IOException;
 public class PaymentController {
     
     private static final ContextualLogger logger = ContextualLogger.getLogger(PaymentController.class);
-    private final PaymentService paymentService;
+    private final IPaymentSubTranslator paymentService;
     private final ShipmentProcessingService shipmentProcessingService;
     
     @Autowired
-    public PaymentController(PaymentService paymentService, ShipmentProcessingService shipmentProcessingService) {
+    public PaymentController(IPaymentSubTranslator paymentService, ShipmentProcessingService shipmentProcessingService) {
         this.paymentService = paymentService;
         this.shipmentProcessingService = shipmentProcessingService;
     }

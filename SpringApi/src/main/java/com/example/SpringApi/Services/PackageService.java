@@ -27,9 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -104,23 +102,9 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         // Validate column name
         // Note: pickupLocationId filters through PackagePickupLocationMapping join
         Set<String> validColumns = new HashSet<>(Arrays.asList(
-            "packageId",
-            "packageName",
-            "dimensions",
-            "length",
-            "breadth",
-            "height",
-            "standardCapacity",
-            "packageType",
-            "maxWeight",
-            "pricePerUnit",
-            "createdUser",
-            "modifiedUser",
-            "createdAt",
-            "updatedAt",
-            "notes",
-            "isDeleted",
-            "pickupLocationId"
+            "packageId", "packageName", "dimensions", "length", "breadth", "height",
+            "standardCapacity", "packageType", "maxWeight", "pricePerUnit",
+            "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes", "isDeleted", "pickupLocationId"
         ));
         
         // Validate filter conditions if provided
@@ -132,28 +116,13 @@ public class PackageService extends BaseService implements IPackageSubTranslator
                 }
 
                 // Validate operator
-                Set<String> validOperators = new HashSet<>(Arrays.asList(
-                    "equals", "notEquals", "contains", "notContains", "startsWith", "endsWith",
-                    "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual",
-                    "isEmpty", "isNotEmpty"
-                ));
-                if (filter.getOperator() != null && !validOperators.contains(filter.getOperator())) {
-                    throw new BadRequestException("Invalid operator: " + filter.getOperator());
+                if (!filter.isValidOperator()) {
+                    throw new BadRequestException("Invalid operator: " + filter.getOperator() + " for column: " + filter.getColumn());
                 }
 
                 // Validate column type matches operator
                 String columnType = packageFilterQueryBuilder.getColumnType(filter.getColumn());
-                if ("boolean".equals(columnType) && !filter.getOperator().equals("equals") && !filter.getOperator().equals("notEquals")) {
-                    throw new BadRequestException(ErrorMessages.CommonErrorMessages.BooleanColumnsOnlySupportEquals);
-                }
-                if ("date".equals(columnType) || "number".equals(columnType)) {
-                    Set<String> numericDateOperators = new HashSet<>(Arrays.asList(
-                        "equals", "notEquals", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"
-                    ));
-                    if (!numericDateOperators.contains(filter.getOperator())) {
-                        throw new BadRequestException(columnType + " columns only support numeric comparison operators");
-                    }
-                }
+                filter.validateOperatorForType(columnType, filter.getColumn());
             }
         }
         
@@ -338,8 +307,8 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      * @param requestingClientId The client ID of the user making the request (captured from security context)
      */
     @Override
-    @Async
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @org.springframework.scheduling.annotation.Async
+    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public void bulkCreatePackagesAsync(List<PackageRequestModel> packages, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
         try {
             // Validate input

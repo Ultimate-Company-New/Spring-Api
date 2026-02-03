@@ -90,6 +90,19 @@ public class OrderOptimizationResponseModel {
      * Whether the optimization was successful.
      */
     private Boolean success = true;
+
+    public OrderOptimizationResponseModel() {
+    }
+
+    /**
+     * Creates an error response with the given message.
+     */
+    public static OrderOptimizationResponseModel error(String errorMessage) {
+        OrderOptimizationResponseModel model = new OrderOptimizationResponseModel();
+        model.setSuccess(false);
+        model.setErrorMessage(errorMessage);
+        return model;
+    }
     
     /**
      * Represents a shipment from one pickup location.

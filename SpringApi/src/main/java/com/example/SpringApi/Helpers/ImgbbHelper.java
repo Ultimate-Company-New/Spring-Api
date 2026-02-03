@@ -81,7 +81,7 @@ public class ImgbbHelper {
      * @param environment The environment name (e.g., "localhost", "production")
      * @param clientName The client name (spaces replaced with underscores)
      * @param productId The product ID
-     * @param imageName The image name (e.g., "main", "front", "back", "top", "bottom", "left", "right", "details", "defect", "additional_1", "additional_2", "additional_3")
+     * @param imageName The image name - use constants from {@link com.example.SpringApi.Constants.ProductImageConstants}
      * @return The formatted filename (without extension)
      */
     public static String generateCustomFileNameForProductImage(String environment, String clientName, Long productId, String imageName) {

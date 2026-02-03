@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.FilterQueryBuilder.ProductReviewFilterQueryBuilder;
 import com.example.SpringApi.Services.Interface.IProductReviewSubTranslator;
 import com.example.SpringApi.Models.ResponseModels.ProductReviewResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
@@ -22,6 +23,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
 /**
@@ -39,14 +43,17 @@ public class ProductReviewService extends BaseService implements IProductReviewS
     
     private final ProductReviewRepository productReviewRepository;
     private final UserLogService userLogService;
-    
+    private final ProductReviewFilterQueryBuilder productReviewFilterQueryBuilder;
+
     @Autowired
     public ProductReviewService(ProductReviewRepository productReviewRepository,
                                UserLogService userLogService,
+                               ProductReviewFilterQueryBuilder productReviewFilterQueryBuilder,
                                HttpServletRequest request) {
         super();
         this.productReviewRepository = productReviewRepository;
         this.userLogService = userLogService;
+        this.productReviewFilterQueryBuilder = productReviewFilterQueryBuilder;
     }
     
     /**
@@ -82,18 +89,40 @@ public class ProductReviewService extends BaseService implements IProductReviewS
      * @return Paginated response containing product review data
      */
     @Override
-    public PaginationBaseResponseModel<ProductReviewResponseModel> getProductReviewsInBatchesGivenProductId(PaginationBaseRequestModel paginationBaseRequestModel, long id) { 
+    public PaginationBaseResponseModel<ProductReviewResponseModel> getProductReviewsInBatchesGivenProductId(PaginationBaseRequestModel paginationBaseRequestModel, long id) {
+        // Valid columns for filtering
+        Set<String> validColumns = new HashSet<>(Arrays.asList(
+            "reviewId", "ratings", "score", "isDeleted", "review", "userId", "productId", "parentId",
+            "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes"
+        ));
+
+        // Validate filter conditions if provided
+        if (paginationBaseRequestModel.getFilters() != null && !paginationBaseRequestModel.getFilters().isEmpty()) {
+            for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
+                if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
+                    throw new BadRequestException(String.format(ErrorMessages.ProductReviewErrorMessages.InvalidColumnNameFormat, filter.getColumn()));
+                }
+
+                if (!filter.isValidOperator()) {
+                    throw new BadRequestException(String.format(ErrorMessages.ProductReviewErrorMessages.InvalidOperatorFormat, filter.getOperator()));
+                }
+
+                String columnType = productReviewFilterQueryBuilder.getColumnType(filter.getColumn());
+                filter.validateOperatorForType(columnType, filter.getColumn());
+
+                filter.validateValuePresence();
+            }
+        }
+
         // Calculate page size and offset
         int start = paginationBaseRequestModel.getStart();
         int end = paginationBaseRequestModel.getEnd();
         int pageSize = end - start;
 
-        // Validate page size
         if (pageSize <= 0) {
-            throw new BadRequestException("Invalid pagination: end must be greater than start");
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
         }
 
-        // Create custom Pageable with proper offset handling
         Pageable pageable = new PageRequest(0, pageSize, Sort.by("reviewId").descending()) {
             @Override
             public long getOffset() {
@@ -101,17 +130,16 @@ public class ProductReviewService extends BaseService implements IProductReviewS
             }
         };
 
-        // Get paginated reviews for the product (without filtering for now)
-        Page<ProductReview> reviewPage = productReviewRepository.findPaginatedProductReviews(
+        Page<ProductReview> reviewPage = productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
             getClientId(),
-            null,
-            null,
-            null,
+            id,
+            paginationBaseRequestModel.getSelectedIds(),
+            paginationBaseRequestModel.getLogicOperator() != null ? paginationBaseRequestModel.getLogicOperator() : "AND",
+            paginationBaseRequestModel.getFilters(),
             paginationBaseRequestModel.isIncludeDeleted(),
             pageable
         );
 
-        // Convert to response models
         PaginationBaseResponseModel<ProductReviewResponseModel> response = new PaginationBaseResponseModel<>();
         response.setData(reviewPage.getContent().stream()
             .map(ProductReviewResponseModel::new)

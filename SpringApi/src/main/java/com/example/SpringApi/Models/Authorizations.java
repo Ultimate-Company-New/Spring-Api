@@ -1,6 +1,6 @@
 package com.example.SpringApi.Models;
 
-import com.example.SpringApi.Models.Enums.UserRole;
+import com.example.SpringApi.Constants.UserRole;
 
 public class Authorizations {
 

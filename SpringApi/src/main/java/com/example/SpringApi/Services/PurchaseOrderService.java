@@ -16,6 +16,7 @@ import com.example.SpringApi.Models.DatabaseModels.Lead;
 import com.example.SpringApi.Models.DatabaseModels.OrderSummary;
 import com.example.SpringApi.Models.DatabaseModels.Product;
 import com.example.SpringApi.Models.DatabaseModels.PurchaseOrder;
+import com.example.SpringApi.Models.DTOs.PurchaseOrderWithDetails;
 import com.example.SpringApi.Models.DatabaseModels.Resources;
 import com.example.SpringApi.Models.DatabaseModels.Shipment;
 import com.example.SpringApi.Models.DatabaseModels.ShipmentPackage;
@@ -51,8 +52,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -62,9 +61,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -182,28 +179,13 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                 }
 
                 // Validate operator
-                Set<String> validOperators = new HashSet<>(Arrays.asList(
-                    "equals", "notEquals", "contains", "notContains", "startsWith", "endsWith",
-                    "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual",
-                    "isEmpty", "isNotEmpty"
-                ));
-                if (filter.getOperator() != null && !validOperators.contains(filter.getOperator())) {
+                if (!filter.isValidOperator()) {
                     throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidOperator, filter.getOperator()));
                 }
 
                 // Validate column type matches operator
                 String columnType = purchaseOrderFilterQueryBuilder.getColumnType(filter.getColumn());
-                if ("boolean".equals(columnType) && !filter.getOperator().equals("equals") && !filter.getOperator().equals("notEquals")) {
-                    throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.BooleanColumnsOnlySupportEquals);
-                }
-                if ("date".equals(columnType) || "number".equals(columnType)) {
-                    Set<String> numericDateOperators = new HashSet<>(Arrays.asList(
-                        "equals", "notEquals", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"
-                    ));
-                    if (!numericDateOperators.contains(filter.getOperator())) {
-                        throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.ColumnsOnlySupportNumericOperators, columnType));
-                    }
-                }
+                filter.validateOperatorForType(columnType, filter.getColumn());
             }
         }
 
@@ -229,8 +211,8 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         // For now, we'll use null to indicate no product filtering
         List<Long> selectedProductIds = null;
 
-        // Use filter query builder for dynamic filtering
-        Page<PurchaseOrder> page = purchaseOrderFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+        // Single query fetches PO + OrderSummary + Shipments + Products + Packages + PickupLocation (Resources + Payments in 2 extra queries)
+        Page<PurchaseOrderWithDetails> page = purchaseOrderFilterQueryBuilder.findPaginatedWithDetails(
             getClientId(),
             paginationBaseRequestModel.getSelectedIds(),
             selectedProductIds,
@@ -240,102 +222,9 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
             pageable
         );
 
-        // Load resources (attachments), OrderSummary, and Shipments for all purchase orders in this page
-        List<PurchaseOrderResponseModel> purchaseOrderResponseModels = new ArrayList<>();
-        if (!page.getContent().isEmpty()) {
-            for (PurchaseOrder po : page.getContent()) {
-                // Load resources (attachments) for this purchase order
-                List<Resources> poResources = resourcesRepository.findByEntityIdAndEntityType(
-                    po.getPurchaseOrderId(), EntityType.PURCHASE_ORDER);
-                po.setAttachments(poResources);
-                
-                // Load OrderSummary with shipments and related entities
-                OrderSummary orderSummary = null;
-                Optional<OrderSummary> orderSummaryOptional = orderSummaryRepository.findByEntityTypeAndEntityId(
-                    OrderSummary.EntityType.PURCHASE_ORDER.getValue(), 
-                    po.getPurchaseOrderId()
-                );
-                
-                if (orderSummaryOptional.isPresent()) {
-                    orderSummary = orderSummaryOptional.get();
-                    
-                    // Initialize Address entity for OrderSummary (needed for response model)
-                    if (orderSummary.getEntityAddress() != null) {
-                        org.hibernate.Hibernate.initialize(orderSummary.getEntityAddress());
-                    }
-                    
-                    // Initialize Promo entity if present
-                    if (orderSummary.getPromo() != null) {
-                        org.hibernate.Hibernate.initialize(orderSummary.getPromo());
-                    }
-                    
-                    // Load shipments for this OrderSummary
-                    List<Shipment> shipments = shipmentRepository.findByOrderSummaryId(orderSummary.getOrderSummaryId());
-                    orderSummary.setShipments(shipments);
-                    
-                    // Load related entities for each shipment (products, packages, package products)
-                    for (Shipment shipment : shipments) {
-                        // Initialize PickupLocation and its Address for each shipment (required for response model)
-                        if (shipment.getPickupLocation() != null) {
-                            org.hibernate.Hibernate.initialize(shipment.getPickupLocation());
-                            // Initialize the address within the pickup location
-                            if (shipment.getPickupLocation().getAddress() != null) {
-                                org.hibernate.Hibernate.initialize(shipment.getPickupLocation().getAddress());
-                            }
-                        }
-                        
-                        // Load shipment products
-                        List<ShipmentProduct> shipmentProducts = shipmentProductRepository.findByShipmentId(shipment.getShipmentId());
-                        shipment.setShipmentProducts(shipmentProducts);
-                        
-                        // Initialize Product entities for shipment products
-                        for (ShipmentProduct shipmentProduct : shipmentProducts) {
-                            if (shipmentProduct.getProduct() != null) {
-                                org.hibernate.Hibernate.initialize(shipmentProduct.getProduct());
-                            }
-                        }
-                        
-                        // Load shipment packages
-                        List<ShipmentPackage> shipmentPackages = shipmentPackageRepository.findByShipmentId(shipment.getShipmentId());
-                        shipment.setShipmentPackages(shipmentPackages);
-                        
-                        // Load package products for each shipment package
-                        for (ShipmentPackage shipmentPackage : shipmentPackages) {
-                            // Initialize Package entity
-                            if (shipmentPackage.getPackageInfo() != null) {
-                                org.hibernate.Hibernate.initialize(shipmentPackage.getPackageInfo());
-                            }
-                            
-                            List<ShipmentPackageProduct> packageProducts = 
-                                shipmentPackageProductRepository.findByShipmentPackageId(shipmentPackage.getShipmentPackageId());
-                            shipmentPackage.setShipmentPackageProducts(packageProducts);
-                            
-                            // Initialize Product entities for package products
-                            for (ShipmentPackageProduct packageProduct : packageProducts) {
-                                if (packageProduct.getProduct() != null) {
-                                    org.hibernate.Hibernate.initialize(packageProduct.getProduct());
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                // Load payments for this purchase order
-                List<Payment> payments = paymentRepository.findAllByPurchaseOrderId(po.getPurchaseOrderId());
-                
-                // Convert to response model
-                PurchaseOrderResponseModel responseModel = new PurchaseOrderResponseModel(po, orderSummary);
-                
-                // Add payments to response model
-                if (payments != null && !payments.isEmpty()) {
-                    for (Payment payment : payments) {
-                        responseModel.getPayments().add(new com.example.SpringApi.Models.ResponseModels.PaymentResponseModel(payment));
-                    }
-                }
-                
-                purchaseOrderResponseModels.add(responseModel);
-            }
-        }
+        List<PurchaseOrderResponseModel> purchaseOrderResponseModels = page.getContent().stream()
+                .map(PurchaseOrderWithDetails::toResponseModel)
+                .toList();
 
         PaginationBaseResponseModel<PurchaseOrderResponseModel> response = new PaginationBaseResponseModel<>();
         response.setData(purchaseOrderResponseModels);
@@ -1125,8 +1014,8 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      * @param requestingClientId The client ID of the user making the request (captured from security context)
      */
     @Override
-    @Async
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @org.springframework.scheduling.annotation.Async
+    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public void bulkCreatePurchaseOrdersAsync(java.util.List<PurchaseOrderRequestModel> purchaseOrders, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
         try {
             // Validate input
@@ -1352,7 +1241,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         }
 
         if (purchaseOrderRequestModel.getProducts() == null || purchaseOrderRequestModel.getProducts().isEmpty()) {
-            throw new BadRequestException("At least one product must be specified in products list");
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AtLeastOneProductRequired);
         }
 
         Map<Long, BigDecimal> map = new HashMap<>();
@@ -1366,15 +1255,15 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
             }
 
             if (item.getPricePerUnit() == null) {
-                throw new BadRequestException("pricePerUnit is required for productId " + item.getProductId());
+                throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.PricePerUnitRequiredForProductFormat, item.getProductId()));
             }
             if (item.getPricePerUnit().compareTo(BigDecimal.ZERO) < 0) {
-                throw new BadRequestException("pricePerUnit must be greater than or equal to 0 for productId " + item.getProductId());
+                throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.PricePerUnitMustBeNonNegativeForProductFormat, item.getProductId()));
             }
 
             // Enforce uniqueness to avoid ambiguous pricing
             if (map.containsKey(item.getProductId())) {
-                throw new BadRequestException("Duplicate productId in products list: " + item.getProductId());
+                throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.DuplicateProductIdFormat, item.getProductId()));
             }
 
             map.put(item.getProductId(), item.getPricePerUnit());

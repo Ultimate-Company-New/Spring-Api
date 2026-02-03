@@ -54,7 +54,12 @@ public class ShipmentService extends BaseService implements IShipmentSubTranslat
     }
     
     /**
-     * {@inheritDoc}
+     * Retrieves shipments in batches with pagination support.
+     * Returns a paginated list of shipments based on the provided pagination parameters,
+     * with filtering and sorting options.
+     *
+     * @param paginationBaseRequestModel The pagination parameters including page size, offset, filters, and logic operator
+     * @return Paginated response containing shipment data and total count
      */
     @Override
     @Transactional(readOnly = true)
@@ -64,12 +69,12 @@ public class ShipmentService extends BaseService implements IShipmentSubTranslat
             for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
                 // Validate column name
                 if (filter.getColumn() != null && !VALID_COLUMNS.contains(filter.getColumn())) {
-                    throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidColumnName, filter.getColumn()));
+                    throw new BadRequestException(String.format(ErrorMessages.ShipmentErrorMessages.InvalidColumnNameFormat, filter.getColumn()));
                 }
 
                 // Validate operator (FilterCondition.setOperator auto-normalizes symbols to words)
                 if (!filter.isValidOperator()) {
-                    throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidOperator, filter.getOperator()));
+                    throw new BadRequestException(String.format(ErrorMessages.ShipmentErrorMessages.InvalidOperatorFormat, filter.getOperator()));
                 }
 
                 // Validate column type matches operator
@@ -109,60 +114,22 @@ public class ShipmentService extends BaseService implements IShipmentSubTranslat
         );
 
         // Convert Shipment results to ShipmentResponseModel
-        // Note: Lazy-loaded entities must be initialized before mapping to response model
-        PaginationBaseResponseModel<ShipmentResponseModel> response = new PaginationBaseResponseModel<>();
-        response.setData(result.getContent().stream()
-            .map(shipment -> {
-                // Initialize lazy-loaded entities
-                Hibernate.initialize(shipment.getOrderSummary());
-                if (shipment.getOrderSummary() != null) {
-                    Hibernate.initialize(shipment.getOrderSummary().getEntityAddress());
-                }
-                Hibernate.initialize(shipment.getPickupLocation());
-                if (shipment.getPickupLocation() != null) {
-                    Hibernate.initialize(shipment.getPickupLocation().getAddress());
-                }
-                
-                // Initialize shipment products and their nested Product entities
-                Hibernate.initialize(shipment.getShipmentProducts());
-                if (shipment.getShipmentProducts() != null) {
-                    for (var sp : shipment.getShipmentProducts()) {
-                        Hibernate.initialize(sp.getProduct());
-                    }
-                }
-                
-                // Initialize shipment packages and their nested Package and Product entities
-                Hibernate.initialize(shipment.getShipmentPackages());
-                if (shipment.getShipmentPackages() != null) {
-                    for (var pkg : shipment.getShipmentPackages()) {
-                        Hibernate.initialize(pkg.getPackageInfo());
-                        Hibernate.initialize(pkg.getShipmentPackageProducts());
-                        if (pkg.getShipmentPackageProducts() != null) {
-                            for (var spp : pkg.getShipmentPackageProducts()) {
-                                Hibernate.initialize(spp.getProduct());
-                            }
-                        }
-                    }
-                }
-                
-                // Initialize return shipments and their products
-                Hibernate.initialize(shipment.getReturnShipments());
-                if (shipment.getReturnShipments() != null) {
-                    for (var rs : shipment.getReturnShipments()) {
-                        Hibernate.initialize(rs.getReturnProducts());
-                    }
-                }
-                
-                return new ShipmentResponseModel(shipment);
-            })
-            .collect(Collectors.toList()));
-        response.setTotalDataCount(result.getTotalElements());
+        List<ShipmentResponseModel> data = result.getContent().stream()
+                .map(shipment -> {
+                    initializeShipmentLazyFields(shipment);
+                    return new ShipmentResponseModel(shipment);
+                })
+                .collect(Collectors.toList());
 
-        return response;
+        return new PaginationBaseResponseModel<>(data, result.getTotalElements());
     }
     
     /**
-     * {@inheritDoc}
+     * Retrieves detailed information about a specific shipment by ID.
+     * Only returns shipments that have a ShipRocket order ID assigned.
+     *
+     * @param shipmentId The ID of the shipment to retrieve
+     * @return The shipment response model with all details
      */
     @Override
     @Transactional(readOnly = true)
@@ -170,23 +137,30 @@ public class ShipmentService extends BaseService implements IShipmentSubTranslat
         if (shipmentId == null || shipmentId <= 0) {
             throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.InvalidId);
         }
-        
+
         Long clientId = getClientId();
-        
+
         Shipment shipment = shipmentRepository.findById(shipmentId)
-            .orElseThrow(() -> new NotFoundException(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, shipmentId)));
-        
+                .orElseThrow(() -> new NotFoundException(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, shipmentId)));
+
         // Verify client access
         if (!shipment.getClientId().equals(clientId)) {
             throw new NotFoundException(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, shipmentId));
         }
-        
+
         // Only return shipments with ShipRocket order ID assigned
         if (shipment.getShipRocketOrderId() == null || shipment.getShipRocketOrderId().trim().isEmpty()) {
             throw new NotFoundException(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, shipmentId));
         }
-        
-        // Initialize lazy-loaded entities
+
+        initializeShipmentLazyFields(shipment);
+        return new ShipmentResponseModel(shipment);
+    }
+
+    /**
+     * Initializes lazy-loaded entities on a shipment for response mapping.
+     */
+    private void initializeShipmentLazyFields(Shipment shipment) {
         Hibernate.initialize(shipment.getOrderSummary());
         if (shipment.getOrderSummary() != null) {
             Hibernate.initialize(shipment.getOrderSummary().getEntityAddress());
@@ -195,16 +169,14 @@ public class ShipmentService extends BaseService implements IShipmentSubTranslat
         if (shipment.getPickupLocation() != null) {
             Hibernate.initialize(shipment.getPickupLocation().getAddress());
         }
-        
-        // Initialize shipment products and their nested Product entities
+
         Hibernate.initialize(shipment.getShipmentProducts());
         if (shipment.getShipmentProducts() != null) {
             for (var sp : shipment.getShipmentProducts()) {
                 Hibernate.initialize(sp.getProduct());
             }
         }
-        
-        // Initialize shipment packages and their nested Package and Product entities
+
         Hibernate.initialize(shipment.getShipmentPackages());
         if (shipment.getShipmentPackages() != null) {
             for (var pkg : shipment.getShipmentPackages()) {
@@ -217,15 +189,12 @@ public class ShipmentService extends BaseService implements IShipmentSubTranslat
                 }
             }
         }
-        
-        // Initialize return shipments and their products
+
         Hibernate.initialize(shipment.getReturnShipments());
         if (shipment.getReturnShipments() != null) {
             for (var rs : shipment.getReturnShipments()) {
                 Hibernate.initialize(rs.getReturnProducts());
             }
         }
-        
-        return new ShipmentResponseModel(shipment);
     }
 }

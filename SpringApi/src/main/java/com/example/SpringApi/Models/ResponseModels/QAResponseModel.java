@@ -193,6 +193,13 @@ public class QAResponseModel {
         }
 
         /**
+         * Constructor with method name, api route, and description (httpMethod omitted).
+         */
+        public MethodInfo(String methodName, String apiRoute, String description) {
+            this(methodName, null, apiRoute, description);
+        }
+
+        /**
          * Adds a unit test to the list of associated tests.
          */
         public void addUnitTest(TestInfo testInfo) {
@@ -316,6 +323,16 @@ public class QAResponseModel {
         public TestInfo(String testMethodName) {
             this.testMethodName = testMethodName;
             this.displayName = null;
+            this.hasBeenRun = false;
+        }
+
+        /**
+         * Constructor with test method name, display name, and declaring test class.
+         */
+        public TestInfo(String testMethodName, String displayName, String declaringTestClassName) {
+            this.testMethodName = testMethodName;
+            this.displayName = displayName;
+            this.declaringTestClassName = declaringTestClassName;
             this.hasBeenRun = false;
         }
 

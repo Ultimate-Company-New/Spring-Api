@@ -8,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import com.example.SpringApi.Models.RequestModels.ProductRequestModel;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Constants.ProductConditionConstants;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -329,6 +330,11 @@ public class Product {
         if (request.getCondition() == null || request.getCondition().trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidCondition);
         }
+        if (!ProductConditionConstants.isValidCondition(request.getCondition())) {
+            throw new BadRequestException(String.format(
+                    ErrorMessages.ProductErrorMessages.InvalidConditionValueFormat,
+                    ProductConditionConstants.getValidConditionsList()));
+        }
         if (request.getCountryOfManufacture() == null || request.getCountryOfManufacture().trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidCountryOfManufacture);
         }
@@ -381,7 +387,7 @@ public class Product {
         this.color = request.getColor() != null ? request.getColor().trim() : null;
         this.colorLabel = request.getColorLabel().trim();
         this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : Boolean.FALSE;
-        this.condition = request.getCondition().trim();
+        this.condition = ProductConditionConstants.normalizeCondition(request.getCondition());
         this.countryOfManufacture = request.getCountryOfManufacture().trim();
         this.model = request.getModel() != null ? request.getModel().trim() : null;
         this.itemModified = request.getItemModified() != null ? request.getItemModified() : Boolean.FALSE;

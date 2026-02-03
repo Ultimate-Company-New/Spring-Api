@@ -8,7 +8,7 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.UpdateTimestamp;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
-import com.example.SpringApi.Models.Enums.UserRole;
+import com.example.SpringApi.Constants.UserRole;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 

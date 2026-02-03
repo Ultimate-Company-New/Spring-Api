@@ -70,6 +70,12 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     }
 
     /**
+     * Batch fetch all payments for multiple purchase orders.
+     */
+    @Query("SELECT p FROM Payment p WHERE p.entityType = 'PURCHASE_ORDER' AND p.entityId IN :purchaseOrderIds ORDER BY p.entityId, p.createdAt DESC")
+    List<Payment> findAllByPurchaseOrderIdIn(@Param("purchaseOrderIds") List<Long> purchaseOrderIds);
+
+    /**
      * Find successful payments for a purchase order
      */
     default List<Payment> findSuccessfulPaymentsForPurchaseOrder(Long purchaseOrderId) {

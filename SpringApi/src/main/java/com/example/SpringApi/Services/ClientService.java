@@ -120,7 +120,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
     public void createClient(ClientRequestModel clientRequest) {
         // Check for duplicate name
         if (clientRepository.existsByName(clientRequest.getName())) {
-            throw new BadRequestException("A client with the name '" + clientRequest.getName() + "' already exists.");
+            throw new BadRequestException(String.format(ErrorMessages.ClientErrorMessages.DuplicateClientNameFormat, clientRequest.getName()));
         }
         
         Client client = new Client(clientRequest, getUser());
@@ -182,7 +182,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
                     throw new BadRequestException(ErrorMessages.UserErrorMessages.ER011);
                 }
             } else {
-                throw new BadRequestException("Invalid imageLocation configuration: " + imageLocation);
+                throw new BadRequestException(String.format(ErrorMessages.ConfigurationErrorMessages.InvalidImageLocationConfigFormat, imageLocation));
             }
 
             if (!isSuccess) {
@@ -215,7 +215,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
             // Check for duplicate name (excluding the current client)
             Optional<Client> duplicateClient = clientRepository.findByName(clientRequest.getName());
             if (duplicateClient.isPresent() && !duplicateClient.get().getClientId().equals(clientRequest.getClientId())) {
-                throw new BadRequestException("A client with the name '" + clientRequest.getName() + "' already exists.");
+                throw new BadRequestException(String.format(ErrorMessages.ClientErrorMessages.DuplicateClientNameFormat, clientRequest.getName()));
             }
             
             Client client = new Client(clientRequest, getUser(), existingClient.get());
@@ -306,7 +306,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
                     throw new BadRequestException(ErrorMessages.UserErrorMessages.ER011);
                 }
             } else {
-                throw new BadRequestException("Invalid imageLocation configuration: " + imageLocation);
+                throw new BadRequestException(String.format(ErrorMessages.ConfigurationErrorMessages.InvalidImageLocationConfigFormat, imageLocation));
             }
 
             userLogService.logData(

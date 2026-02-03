@@ -167,4 +167,16 @@ public class ProductPickupLocationMapping {
         
         return mappings;
     }
+
+    /**
+     * Reduces available stock by the given quantity and updates audit fields.
+     *
+     * @param quantityToReduce The quantity to deduct from available stock
+     * @param modifiedUser The user performing the update
+     */
+    public void reduceStock(int quantityToReduce, String modifiedUser) {
+        this.availableStock = this.availableStock - quantityToReduce;
+        this.lastStockUpdate = LocalDateTime.now();
+        this.modifiedUser = modifiedUser;
+    }
 }

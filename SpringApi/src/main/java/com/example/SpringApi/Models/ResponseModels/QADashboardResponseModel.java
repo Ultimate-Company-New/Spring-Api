@@ -71,6 +71,17 @@ public class QADashboardResponseModel {
 
         public CoverageSummaryData() {
         }
+
+        public CoverageSummaryData(int totalServices, int totalMethods, int totalMethodsWithCoverage,
+                                   int totalTests, double overallCoveragePercentage,
+                                   List<ServiceBreakdownData> serviceBreakdown) {
+            this.totalServices = totalServices;
+            this.totalMethods = totalMethods;
+            this.totalMethodsWithCoverage = totalMethodsWithCoverage;
+            this.totalTests = totalTests;
+            this.overallCoveragePercentage = overallCoveragePercentage;
+            this.serviceBreakdown = serviceBreakdown;
+        }
     }
 
     /**

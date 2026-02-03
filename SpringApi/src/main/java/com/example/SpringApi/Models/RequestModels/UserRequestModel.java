@@ -1,6 +1,6 @@
 package com.example.SpringApi.Models.RequestModels;
 
-import com.example.SpringApi.Models.Enums.UserRole;
+import com.example.SpringApi.Constants.UserRole;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;

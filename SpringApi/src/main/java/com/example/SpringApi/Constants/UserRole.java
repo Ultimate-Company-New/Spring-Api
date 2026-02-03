@@ -1,4 +1,4 @@
-package com.example.SpringApi.Models.Enums;
+package com.example.SpringApi.Constants;
 
 /**
  * Enum representing the different user roles in the system.
@@ -55,4 +55,3 @@ public enum UserRole {
         return this.value;
     }
 }
-

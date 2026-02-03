@@ -77,4 +77,15 @@ public class PackagePickupLocationMapping {
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
+
+    /**
+     * Reduces available quantity by the given amount and updates audit fields.
+     *
+     * @param quantityToReduce The quantity to deduct from available quantity
+     * @param modifiedUser The user performing the update
+     */
+    public void reduceQuantity(int quantityToReduce, String modifiedUser) {
+        this.availableQuantity = this.availableQuantity - quantityToReduce;
+        this.modifiedUser = modifiedUser;
+    }
 }

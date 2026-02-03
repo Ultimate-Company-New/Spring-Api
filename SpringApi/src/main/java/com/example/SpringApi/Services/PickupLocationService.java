@@ -35,9 +35,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -147,12 +145,12 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
             for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
                 // Validate column name
                 if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
-                    throw new BadRequestException("Invalid column name: " + filter.getColumn());
+                    throw new BadRequestException(String.format(ErrorMessages.PickupLocationErrorMessages.InvalidColumnNameFormat, filter.getColumn()));
                 }
 
                 // Validate operator (FilterCondition.setOperator auto-normalizes symbols to words)
                 if (!filter.isValidOperator()) {
-                    throw new BadRequestException("Invalid operator: " + filter.getOperator());
+                    throw new BadRequestException(String.format(ErrorMessages.PickupLocationErrorMessages.InvalidOperatorFormat, filter.getOperator()));
                 }
 
                 // Validate column type matches operator
@@ -422,8 +420,8 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
      * @param requestingClientId The client ID of the user making the request (captured from security context)
      */
     @Override
-    @Async
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @org.springframework.scheduling.annotation.Async
+    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public void bulkCreatePickupLocationsAsync(List<PickupLocationRequestModel> pickupLocations, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
         try {
             // Validate input
@@ -685,9 +683,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         
         // Validate that we have a valid ShipRocket pickup location ID
         if (pickupId <= 0) {
-            throw new BadRequestException("Failed to retrieve ShipRocket pickup location ID after creation. " +
-                    "Response pickup_id: " + pickupId + " is invalid. " +
-                    "Please verify the pickup location was created successfully in ShipRocket.");
+            throw new BadRequestException(String.format(ErrorMessages.PickupLocationErrorMessages.ShipRocketPickupLocationIdInvalidFormat, pickupId));
         }
         
         return pickupId;
