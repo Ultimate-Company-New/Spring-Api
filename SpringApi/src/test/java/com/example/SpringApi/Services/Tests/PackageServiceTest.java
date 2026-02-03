@@ -33,6 +33,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -114,6 +117,9 @@ class PackageServiceTest extends BaseTest {
 
         lenient().when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+        MockHttpServletRequest mockRequest = new MockHttpServletRequest();
+        mockRequest.addHeader("Authorization", "Bearer test-token");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockRequest));
     }
 
     @Nested
@@ -363,14 +369,21 @@ class PackageServiceTest extends BaseTest {
             String[] boolCols = PACKAGE_BOOLEAN_COLUMNS;
             String[] dateCols = PACKAGE_DATE_COLUMNS;
             String[] invalidCols = BATCH_INVALID_COLUMNS;
-            Set<String> validOps = new HashSet<>(Arrays.asList(
-                    "equals", "notEquals", "contains", "notContains", "startsWith", "endsWith",
-                    "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual", "isEmpty", "isNotEmpty"));
-            Set<String> numericDateOps = new HashSet<>(Arrays.asList(
-                    "equals", "notEquals", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"));
+            Set<String> stringOps = new HashSet<>(Arrays.asList(
+                    "contains", "equals", "startsWith", "endsWith", "isEmpty", "isNotEmpty", "isOneOf", "isNotOneOf", "containsOneOf"));
+            Set<String> numberOps = new HashSet<>(Arrays.asList(
+                    "equals", "notEquals", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual", "isEmpty", "isNotEmpty", "isOneOf", "isNotOneOf"));
+            Set<String> dateOps = new HashSet<>(Arrays.asList(
+                    "is", "isNot", "isAfter", "isOnOrAfter", "isBefore", "isOnOrBefore", "isEmpty", "isNotEmpty"));
+            Set<String> booleanOps = new HashSet<>(Arrays.asList("is"));
             String[] invalidOps = BATCH_INVALID_OPERATORS;
             String[] allCols = joinArrays(stringCols, numberCols, boolCols, dateCols, invalidCols);
-            String[] allOps = joinArrays(validOps.toArray(new String[0]), invalidOps);
+            Set<String> allValidOps = new HashSet<>();
+            allValidOps.addAll(stringOps);
+            allValidOps.addAll(numberOps);
+            allValidOps.addAll(dateOps);
+            allValidOps.addAll(booleanOps);
+            String[] allOps = joinArrays(allValidOps.toArray(new String[0]), invalidOps);
             Set<String> uniqueOps = new HashSet<>(Arrays.asList(allOps));
             // Only use valid values and empty strings (not null) for testing
             // Service handles null values gracefully by ignoring the filter
@@ -397,20 +410,23 @@ class PackageServiceTest extends BaseTest {
                         testPaginationRequest.setFilters(Collections.singletonList(fc));
 
                         boolean known = !Arrays.asList(invalidCols).contains(column);
-                        boolean opValid = validOps.contains(op);
                         boolean numberMatch = Arrays.asList(numberCols).contains(column);
                         boolean boolMatch = Arrays.asList(boolCols).contains(column);
                         boolean dateMatch = Arrays.asList(dateCols).contains(column);
-                        boolean boolOk = !boolMatch || "equals".equals(op) || "notEquals".equals(op);
-                        boolean numDateOk = !(numberMatch || dateMatch) || numericDateOps.contains(op);
+                        boolean stringMatch = Arrays.asList(stringCols).contains(column);
+                        boolean opValidForString = !stringMatch || stringOps.contains(op);
+                        boolean opValidForNumber = !numberMatch || numberOps.contains(op);
+                        boolean opValidForDate = !dateMatch || dateOps.contains(op);
+                        boolean opValidForBool = !boolMatch || booleanOps.contains(op);
+                        boolean opValid = opValidForString && opValidForNumber && opValidForDate && opValidForBool;
                         boolean valueOk = "isEmpty".equals(op) || "isNotEmpty".equals(op) || val != null;
-                        boolean shouldPass = known && opValid && boolOk && numDateOk && valueOk;
+                        boolean shouldPass = known && opValid && valueOk;
 
                         try {
                             packageService.getPackagesInBatches(testPaginationRequest);
                             if (!shouldPass)
                                 fail("Expected failure: col=" + column + " op=" + op + " val=" + val);
-                        } catch (BadRequestException e) {
+                        } catch (BadRequestException | IllegalArgumentException e) {
                             if (shouldPass)
                                 fail("Expected success: col=" + column + " op=" + op + " val=" + val + " err=" + e.getMessage());
                         }

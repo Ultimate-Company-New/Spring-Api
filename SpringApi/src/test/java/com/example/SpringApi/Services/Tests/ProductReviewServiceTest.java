@@ -22,6 +22,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -57,6 +60,9 @@ class ProductReviewServiceTest {
 
     @Mock
     private UserLogService userLogService;
+
+    @Mock
+    private com.example.SpringApi.FilterQueryBuilder.ProductReviewFilterQueryBuilder productReviewFilterQueryBuilder;
 
     @Mock
     private HttpServletRequest request;
@@ -95,6 +101,13 @@ class ProductReviewServiceTest {
         testPaginationRequest.setEnd(10);
 
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+        MockHttpServletRequest mockRequest = new MockHttpServletRequest();
+        mockRequest.addHeader("Authorization", "Bearer test-token");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockRequest));
+
+        // Ensure service has filter query builder injected (constructor injection)
+        productReviewService = new ProductReviewService(
+                productReviewRepository, userLogService, productReviewFilterQueryBuilder, request);
     }
 
     @Nested
@@ -553,8 +566,8 @@ class ProductReviewServiceTest {
             List<ProductReview> reviewList = Arrays.asList(testProductReview);
             Page<ProductReview> reviewPage = new PageImpl<>(reviewList, PageRequest.of(0, 10), 1);
 
-            when(productReviewRepository.findPaginatedProductReviews(
-                eq(TEST_CLIENT_ID), isNull(), isNull(), isNull(), eq(false), any(Pageable.class)))
+            when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), eq(TEST_PRODUCT_ID), any(), anyString(), any(), anyBoolean(), any(Pageable.class)))
                 .thenReturn(reviewPage);
 
             PaginationBaseResponseModel<ProductReviewResponseModel> success =
@@ -567,8 +580,8 @@ class ProductReviewServiceTest {
 
             // Empty results
             Page<ProductReview> emptyPage = new PageImpl<>(Arrays.asList(), PageRequest.of(0, 10), 0);
-            when(productReviewRepository.findPaginatedProductReviews(
-                eq(TEST_CLIENT_ID), isNull(), isNull(), isNull(), eq(false), any(Pageable.class)))
+            when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), eq(TEST_PRODUCT_ID), any(), anyString(), any(), anyBoolean(), any(Pageable.class)))
                 .thenReturn(emptyPage);
 
             PaginationBaseResponseModel<ProductReviewResponseModel> empty =
@@ -711,17 +724,6 @@ class ProductReviewServiceTest {
                                 () -> productReviewService.toggleProductReview(id));
                         assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
                     }));
-        }
-
-        private ProductReviewRequestModel buildValidProductReviewRequest() {
-            ProductReviewRequestModel request = new ProductReviewRequestModel();
-            request.setReviewId(TEST_REVIEW_ID);
-            request.setRatings(TEST_RATING);
-            request.setReview(TEST_REVIEW_TEXT);
-            request.setUserId(TEST_USER_ID);
-            request.setProductId(TEST_PRODUCT_ID);
-            request.setParentId(null);
-            return request;
         }
     }
 

@@ -95,7 +95,6 @@ class MessageServiceTest extends BaseTest {
     private static final Long TEST_USER_ID = DEFAULT_USER_ID;
     private static final String TEST_TITLE = "Test Message Title";
     private static final String TEST_DESC_HTML = "<p>Test message description</p>";
-    private static final String CREATED_USER = DEFAULT_CREATED_USER;
     private static final String TEST_EMAIL = "test@example.com";
     
     /**

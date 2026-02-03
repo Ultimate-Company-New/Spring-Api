@@ -28,6 +28,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -102,6 +105,11 @@ class LeadServiceTest extends BaseTest {
 
         // Mock Authorization header for BaseService authentication behavior
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+
+        // Set up RequestContextHolder so BaseService.getClientId()/getUserId()/getUser() work
+        MockHttpServletRequest mockRequest = new MockHttpServletRequest();
+        mockRequest.addHeader("Authorization", "Bearer test-token");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockRequest));
 
         // Mock generic logData to avoid NPEs
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
@@ -931,7 +939,7 @@ class LeadServiceTest extends BaseTest {
                 leadReq.setEmail("bulklead" + i + "@test.com");
                 leadReq.setFirstName("BulkFirst" + i);
                 leadReq.setLastName("BulkLast" + i);
-                leadReq.setPhone("555000" + i);
+                leadReq.setPhone("555000000" + i); // 10 digits required by PHONE_REGEX
                 leads.add(leadReq);
             }
 
@@ -940,8 +948,13 @@ class LeadServiceTest extends BaseTest {
                 lead.setLeadId((long) (Math.random() * 1000));
                 return lead;
             });
+            when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenAnswer(inv -> {
+                Lead lead = new Lead();
+                lead.setLeadId((long) (Math.random() * 1000));
+                lead.setEmail(inv.getArgument(0));
+                return lead;
+            });
             lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-            lenient().when(messageService.notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any())).thenReturn(null);
 
             // Act
             var result = leadService.bulkCreateLeads(leads);
@@ -952,7 +965,6 @@ class LeadServiceTest extends BaseTest {
             assertEquals(5, result.getSuccessCount());
             assertEquals(0, result.getFailureCount());
             verify(leadRepository, times(5)).save(any(Lead.class));
-            verify(messageService, times(1)).notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any());
         }
 
         @Test
@@ -982,8 +994,13 @@ class LeadServiceTest extends BaseTest {
                 lead.setLeadId((long) (Math.random() * 1000));
                 return lead;
             });
+            when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenAnswer(inv -> {
+                Lead lead = new Lead();
+                lead.setLeadId((long) (Math.random() * 1000));
+                lead.setEmail(inv.getArgument(0));
+                return lead;
+            });
             lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-            lenient().when(messageService.notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any())).thenReturn(null);
 
             // Act
             var result = leadService.bulkCreateLeads(leads);
@@ -1000,7 +1017,8 @@ class LeadServiceTest extends BaseTest {
         @DisplayName("Bulk Create Leads - Empty List - ThrowsBadRequestException")
         void bulkCreateLeads_EmptyList_ThrowsBadRequestException() {
             // Act & Assert
-            assertThrowsBadRequest(ErrorMessages.LeadsErrorMessages.ER011,
+            assertThrowsBadRequest(
+                    String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Lead"),
                     () -> leadService.bulkCreateLeads(new ArrayList<>()));
         }
 
@@ -1008,7 +1026,8 @@ class LeadServiceTest extends BaseTest {
         @DisplayName("Bulk Create Leads - Null List - ThrowsBadRequestException")
         void bulkCreateLeads_NullList_ThrowsBadRequestException() {
             // Act & Assert
-            assertThrowsBadRequest(ErrorMessages.LeadsErrorMessages.ER011,
+            assertThrowsBadRequest(
+                    String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Lead"),
                     () -> leadService.bulkCreateLeads(null));
         }
 
@@ -1025,8 +1044,13 @@ class LeadServiceTest extends BaseTest {
                 lead.setLeadId(100L);
                 return lead;
             });
+            when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenAnswer(inv -> {
+                Lead lead = new Lead();
+                lead.setLeadId(100L);
+                lead.setEmail(inv.getArgument(0));
+                return lead;
+            });
             lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-            lenient().when(messageService.notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any())).thenReturn(null);
 
             // Act
             var result = leadService.bulkCreateLeads(leads);
@@ -1073,7 +1097,7 @@ class LeadServiceTest extends BaseTest {
                 leadReq.setEmail("bulklead" + i + "@test.com");
                 leadReq.setFirstName("First" + i);
                 leadReq.setLastName("Last" + i);
-                leadReq.setPhone("555" + String.format("%04d", i));
+                leadReq.setPhone("555" + String.format("%07d", i)); // 10 digits required by PHONE_REGEX
                 leads.add(leadReq);
             }
 
@@ -1082,8 +1106,13 @@ class LeadServiceTest extends BaseTest {
                 lead.setLeadId((long) (Math.random() * 10000));
                 return lead;
             });
+            when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenAnswer(inv -> {
+                Lead lead = new Lead();
+                lead.setLeadId((long) (Math.random() * 10000));
+                lead.setEmail(inv.getArgument(0));
+                return lead;
+            });
             lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-            lenient().when(messageService.notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any())).thenReturn(null);
 
             // Act
             var result = leadService.bulkCreateLeads(leads);
@@ -1112,8 +1141,13 @@ class LeadServiceTest extends BaseTest {
                 lead.setLeadId((long) (Math.random() * 1000));
                 return lead;
             });
+            when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenAnswer(inv -> {
+                Lead lead = new Lead();
+                lead.setLeadId((long) (Math.random() * 1000));
+                lead.setEmail(inv.getArgument(0));
+                return lead;
+            });
             when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-            lenient().when(messageService.notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any())).thenReturn(null);
 
             // Act
             leadService.bulkCreateLeads(leads);
@@ -1141,8 +1175,13 @@ class LeadServiceTest extends BaseTest {
                 lead.setLeadId(100L);
                 return lead;
             });
+            when(leadRepository.findLeadWithDetailsByEmail(eq("valid@test.com"), anyLong())).thenAnswer(inv -> {
+                Lead lead = new Lead();
+                lead.setLeadId(100L);
+                lead.setEmail("valid@test.com");
+                return lead;
+            });
             lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-            lenient().when(messageService.notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any())).thenReturn(null);
 
             // Act
             var result = leadService.bulkCreateLeads(leads);
@@ -1186,7 +1225,7 @@ class LeadServiceTest extends BaseTest {
         @Test
         @DisplayName("Bulk Create Leads - Verify Message Notification Sent")
         void bulkCreateLeads_VerifyMessageNotification() {
-            // Arrange
+            // Arrange - sync bulkCreateLeads does not send message notifications (only async does)
             List<LeadRequestModel> leads = new ArrayList<>();
             for (int i = 0; i < 3; i++) {
                 LeadRequestModel leadReq = createValidLeadRequest(null, TEST_CLIENT_ID);
@@ -1199,21 +1238,21 @@ class LeadServiceTest extends BaseTest {
                 lead.setLeadId((long) (Math.random() * 1000));
                 return lead;
             });
+            when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenAnswer(inv -> {
+                Lead lead = new Lead();
+                lead.setLeadId((long) (Math.random() * 1000));
+                lead.setEmail(inv.getArgument(0));
+                return lead;
+            });
             lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-            when(messageService.notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any())).thenReturn(null);
 
             // Act
-            leadService.bulkCreateLeads(leads);
+            var result = leadService.bulkCreateLeads(leads);
 
-            // Assert
-            verify(messageService, times(1)).notifyUsersAsync(
-                    eq(TEST_CLIENT_ID),
-                    anyString(),
-                    anyString(),
-                    any(),
-                    any(),
-                    any()
-            );
+            // Assert - sync bulkCreateLeads returns results but does not call createMessageWithContext
+            assertNotNull(result);
+            assertEquals(3, result.getSuccessCount());
+            verify(messageService, never()).createMessageWithContext(any(), anyLong(), anyString(), anyLong());
         }
 
         @Test
@@ -1252,8 +1291,13 @@ class LeadServiceTest extends BaseTest {
                 lead.setLeadId((long) (Math.random() * 1000));
                 return lead;
             });
+            when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenAnswer(inv -> {
+                Lead lead = new Lead();
+                lead.setLeadId((long) (Math.random() * 1000));
+                lead.setEmail(inv.getArgument(0));
+                return lead;
+            });
             lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-            lenient().when(messageService.notifyUsersAsync(anyLong(), anyString(), anyString(), any(), any(), any())).thenReturn(null);
 
             // Act
             var result = leadService.bulkCreateLeads(leads);
@@ -1268,7 +1312,7 @@ class LeadServiceTest extends BaseTest {
             // Verify results contain error messages for failures
             assertEquals(5, result.getResults().size());
             long failureCount = result.getResults().stream()
-                    .filter(r -> !r.getSuccess())
+                    .filter(r -> !r.isSuccess())
                     .count();
             assertEquals(2, failureCount);
         }

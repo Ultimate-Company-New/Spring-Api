@@ -8,7 +8,6 @@ import com.example.SpringApi.Models.RequestModels.UserGroupRequestModel;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.ResponseModels.UserGroupResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.FilterQueryBuilder.UserGroupFilterQueryBuilder;
 import com.example.SpringApi.Repositories.UserGroupRepository;
 import com.example.SpringApi.Repositories.UserGroupUserMapRepository;
@@ -98,7 +97,6 @@ class UserGroupServiceTest {
     private static final String[] STRING_COLUMNS = {"groupName", "description", "notes", "createdUser", "modifiedUser"};
     private static final String[] NUMBER_COLUMNS = {"groupId", "clientId"};
     private static final String[] BOOLEAN_COLUMNS = {"isActive", "isDeleted"};
-    private static final String[] DATE_COLUMNS = {"createdAt", "updatedAt"};
 
     // Valid operators
     private static final String[] STRING_OPERATORS = {"equals", "contains", "startsWith", "endsWith"};

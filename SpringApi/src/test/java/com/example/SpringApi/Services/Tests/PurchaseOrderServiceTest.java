@@ -31,6 +31,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -142,6 +145,11 @@ class PurchaseOrderServiceTest extends BaseTest {
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
         lenient().when(environment.getProperty("imageLocation")).thenReturn("imgbb");
         lenient().when(environment.getActiveProfiles()).thenReturn(new String[] { "test" });
+
+        // Set up RequestContextHolder so BaseService.getClientId() works
+        MockHttpServletRequest mockRequest = new MockHttpServletRequest();
+        mockRequest.addHeader("Authorization", "Bearer test-token");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockRequest));
     }
 
     @Test
@@ -195,18 +203,15 @@ class PurchaseOrderServiceTest extends BaseTest {
         paginationRequest.setFilters(Arrays.asList(filter));
         paginationRequest.setLogicOperator("AND");
 
-        List<PurchaseOrder> purchaseOrders = Arrays.asList(testPurchaseOrder);
-        Page<PurchaseOrder> page = new PageImpl<>(purchaseOrders);
+        com.example.SpringApi.Models.DTOs.PurchaseOrderWithDetails poWithDetails =
+                new com.example.SpringApi.Models.DTOs.PurchaseOrderWithDetails(
+                        testPurchaseOrder, testOrderSummary, new ArrayList<>(), new ArrayList<>());
+        Page<com.example.SpringApi.Models.DTOs.PurchaseOrderWithDetails> page =
+                new PageImpl<>(Arrays.asList(poWithDetails));
 
         lenient().when(purchaseOrderFilterQueryBuilder.getColumnType("vendorNumber")).thenReturn("string");
-        lenient().when(purchaseOrderFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), any(), any(), any(), anyBoolean(), any(Pageable.class))).thenReturn(page);
-
-        when(resourcesRepository.findByEntityIdAndEntityType(TEST_PO_ID, EntityType.PURCHASE_ORDER))
-                .thenReturn(new ArrayList<>());
-        when(orderSummaryRepository.findByEntityTypeAndEntityId(
-                eq(OrderSummary.EntityType.PURCHASE_ORDER.getValue()), eq(TEST_PO_ID)))
-                .thenReturn(Optional.empty());
+        when(purchaseOrderFilterQueryBuilder.findPaginatedWithDetails(
+                anyLong(), any(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(page);
 
         PaginationBaseResponseModel<PurchaseOrderResponseModel> result = purchaseOrderService
                 .getPurchaseOrdersInBatches(paginationRequest);

@@ -3,6 +3,8 @@ package com.example.SpringApi.Models.DatabaseModels;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JoinColumnOrFormula;
+import org.hibernate.annotations.JoinColumnsOrFormulas;
 import org.hibernate.annotations.JoinFormula;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -153,9 +155,10 @@ public class PurchaseOrder {
     @Column(name = "updatedAt", nullable = false)
     private LocalDateTime updatedAt;
 
-    // OrderSummary - polymorphic link via entityType+entityId (for single-query fetch)
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinFormula(value = "(SELECT os.orderSummaryId FROM OrderSummary os WHERE os.entityType = 'PURCHASE_ORDER' AND os.entityId = purchaseOrderId)", referencedColumnName = "orderSummaryId")
+    // OrderSummary - polymorphic link via entityType+entityId (transient, populated by service)
+    // Note: Cannot use @OneToOne with formula due to Hibernate limitations with subqueries
+    // This relationship is populated programmatically in the service layer
+    @Transient
     private OrderSummary orderSummary;
 
     // Relationships - Collections
