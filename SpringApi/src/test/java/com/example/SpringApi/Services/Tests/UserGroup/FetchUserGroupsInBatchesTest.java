@@ -8,6 +8,8 @@ import com.example.SpringApi.Models.DatabaseModels.UserGroup;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.UserGroupRequestModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.SpringApi.Models.ResponseModels.UserGroupResponseModel;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
@@ -56,11 +58,10 @@ public class FetchUserGroupsInBatchesTest extends UserGroupServiceTestBase {
 
     @Test
     @DisplayName("getUserGroupsInBatches - Controller delegates to service")
-    @SuppressWarnings("unchecked")
     void getUserGroupsInBatches_WithValidRequest_DelegatesToService() {
         UserGroupController controller = new UserGroupController(userGroupService);
         UserGroupRequestModel request = new UserGroupRequestModel();
-        PaginationBaseResponseModel mockResponse = new PaginationBaseResponseModel<>();
+        PaginationBaseResponseModel<UserGroupResponseModel> mockResponse = new PaginationBaseResponseModel<>();
         when(userGroupService.fetchUserGroupsInClientInBatches(request)).thenReturn(mockResponse);
 
         ResponseEntity<?> response = controller.getUserGroupsInBatches(request);

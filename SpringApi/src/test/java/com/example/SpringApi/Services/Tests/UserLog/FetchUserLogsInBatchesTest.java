@@ -48,11 +48,10 @@ public class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
 
     @Test
     @DisplayName("fetchUserLogsInBatches - Controller delegates to service")
-    @SuppressWarnings("unchecked")
     void fetchUserLogsInBatches_WithValidRequest_DelegatesToService() {
         UserLogController controller = new UserLogController(userLogService);
         UserLogsRequestModel request = new UserLogsRequestModel();
-        PaginationBaseResponseModel mockResponse = new PaginationBaseResponseModel<>();
+        PaginationBaseResponseModel<UserLogsResponseModel> mockResponse = new PaginationBaseResponseModel<>();
         when(userLogService.fetchUserLogsInBatches(request)).thenReturn(mockResponse);
 
         ResponseEntity<?> response = controller.fetchUserLogsInBatches(request);

@@ -7,6 +7,7 @@ import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.SpringApi.Models.ResponseModels.UserResponseModel;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,11 +55,10 @@ class FetchUsersInBatchesTest extends UserServiceTestBase {
 
     @Test
     @DisplayName("fetchUsersInCarrierInBatches - Controller delegates to service")
-    @SuppressWarnings("unchecked")
     void fetchUsersInCarrierInBatches_WithValidRequest_DelegatesToService() {
         UserController controller = new UserController(userService);
         UserRequestModel request = new UserRequestModel();
-        PaginationBaseResponseModel mockResponse = new PaginationBaseResponseModel<>();
+        PaginationBaseResponseModel<UserResponseModel> mockResponse = new PaginationBaseResponseModel<>();
         when(userService.fetchUsersInCarrierInBatches(request)).thenReturn(mockResponse);
 
         ResponseEntity<?> response = controller.fetchUsersInCarrierInBatches(request);
