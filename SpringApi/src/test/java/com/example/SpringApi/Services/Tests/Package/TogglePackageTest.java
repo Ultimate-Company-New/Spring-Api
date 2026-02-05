@@ -1,8 +1,14 @@
 package com.example.SpringApi.Services.Tests.Package;
 
+import com.example.SpringApi.Controllers.PackageController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.ErrorMessages;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -43,22 +49,7 @@ class TogglePackageTest extends PackageServiceTestBase {
         verify(packageRepository, times(2)).save(testPackage);
     }
 
-    /**
-     * Purpose: Verify permission check is performed for DELETE_PACKAGE permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Toggle Package - Permission Check - Success Verifies Authorization")
-    void togglePackage_PermissionCheck_SuccessVerifiesAuthorization() {
-        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
-        when(packageRepository.save(any())).thenReturn(testPackage);
-        lenient().when(authorization.hasAuthority(Authorizations.TOGGLE_PACKAGES_PERMISSION)).thenReturn(true);
 
-        packageService.togglePackage(TEST_PACKAGE_ID);
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.TOGGLE_PACKAGES_PERMISSION);
-    }
 
     /**
      * Purpose: Verify toggle from deleted status to active status works correctly.
@@ -147,5 +138,33 @@ class TogglePackageTest extends PackageServiceTestBase {
     void togglePackage_ZeroId_ThrowsNotFoundException() {
         when(packageRepository.findByPackageIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
         assertThrows(NotFoundException.class, () -> packageService.togglePackage(0L));
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    @Test
+    @DisplayName("togglePackage - Verify @PreAuthorize Annotation")
+    void togglePackage_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = PackageController.class.getMethod("togglePackage", Long.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(annotation, "@PreAuthorize annotation should be present");
+        assertTrue(annotation.value().contains(Authorizations.TOGGLE_PACKAGES_PERMISSION),
+            "@PreAuthorize should reference TOGGLE_PACKAGES_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("togglePackage - Controller delegates to service")
+    void togglePackage_WithValidRequest_DelegatesToService() {
+        PackageController controller = new PackageController(packageService, null);
+        doNothing().when(packageService).togglePackage(TEST_PACKAGE_ID);
+
+        ResponseEntity<?> response = controller.togglePackage(TEST_PACKAGE_ID);
+
+        verify(packageService).togglePackage(TEST_PACKAGE_ID);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 }

@@ -1,8 +1,14 @@
 package com.example.SpringApi.Services.Tests.Package;
 
+import com.example.SpringApi.Controllers.PackageController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.Models.ResponseModels.PackageResponseModel;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.NotFoundException;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -59,21 +65,7 @@ class GetPackagesByPickupLocationIdTest extends PackageServiceTestBase {
         assertEquals(2, result.size());
     }
 
-    /**
-     * Purpose: Verify permission check is performed for VIEW_PACKAGE permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Get Packages By Pickup Location ID - Permission Check - Success Verifies Authorization")
-    void getPackagesByPickupLocationId_PermissionCheck_SuccessVerifiesAuthorization() {
-        when(pickupLocationRepository.countByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(1L);
-        lenient().when(authorization.hasAuthority(Authorizations.VIEW_PACKAGES_PERMISSION)).thenReturn(true);
 
-        packageService.getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID);
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.VIEW_PACKAGES_PERMISSION);
-    }
 
     /**
      * Purpose: Verify successful retrieval of packages for a valid pickup location.
@@ -144,5 +136,33 @@ class GetPackagesByPickupLocationIdTest extends PackageServiceTestBase {
     void getPackagesByPickupLocationId_ZeroId_ThrowsNotFoundException() {
         when(pickupLocationRepository.countByPickupLocationIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(0L);
         assertThrows(NotFoundException.class, () -> packageService.getPackagesByPickupLocationId(0L));
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    @Test
+    @DisplayName("getPackagesByPickupLocationId - Verify @PreAuthorize Annotation")
+    void getPackagesByPickupLocationId_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = PackageController.class.getMethod("getPackagesByPickupLocationId", Long.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(annotation, "@PreAuthorize annotation should be present");
+        assertTrue(annotation.value().contains(Authorizations.VIEW_PACKAGES_PERMISSION),
+            "@PreAuthorize should reference VIEW_PACKAGES_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("getPackagesByPickupLocationId - Controller delegates to service")
+    void getPackagesByPickupLocationId_WithValidRequest_DelegatesToService() {
+        PackageController controller = new PackageController(packageService, null);
+        when(packageService.getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID)).thenReturn(Arrays.asList(new PackageResponseModel(testPackage)));
+
+        ResponseEntity<?> response = controller.getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID);
+
+        verify(packageService).getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

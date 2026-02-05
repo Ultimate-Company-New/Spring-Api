@@ -1,11 +1,18 @@
 package com.example.SpringApi.Services.Tests.Package;
 
+import com.example.SpringApi.Controllers.PackageController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.Models.RequestModels.PackagePickupLocationMappingRequestModel;
 import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -95,22 +102,7 @@ class UpdatePackageTest extends PackageServiceTestBase {
         assertTrue(captor.getValue().get(0).getLastRestockDate().isAfter(oldDate));
     }
 
-    /**
-     * Purpose: Verify permission check is performed for UPDATE_PACKAGE permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Update Package - Permission Check - Success Verifies Authorization")
-    void updatePackage_PermissionCheck_SuccessVerifiesAuthorization() {
-        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
-        when(packageRepository.save(any())).thenReturn(testPackage);
-        lenient().when(authorization.hasAuthority(Authorizations.UPDATE_PACKAGES_PERMISSION)).thenReturn(true);
 
-        packageService.updatePackage(testPackageRequest);
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.UPDATE_PACKAGES_PERMISSION);
-    }
 
     /**
      * Purpose: Verify successful package update with valid data.
@@ -312,5 +304,33 @@ class UpdatePackageTest extends PackageServiceTestBase {
         when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
         BadRequestException ex = assertThrows(BadRequestException.class, () -> packageService.updatePackage(testPackageRequest));
         assertEquals(ErrorMessages.PackageErrorMessages.InvalidStandardCapacity, ex.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    @Test
+    @DisplayName("updatePackage - Verify @PreAuthorize Annotation")
+    void updatePackage_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = PackageController.class.getMethod("updatePackage", PackageRequestModel.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(annotation, "@PreAuthorize annotation should be present");
+        assertTrue(annotation.value().contains(Authorizations.UPDATE_PACKAGES_PERMISSION),
+            "@PreAuthorize should reference UPDATE_PACKAGES_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("updatePackage - Controller delegates to service")
+    void updatePackage_WithValidRequest_DelegatesToService() {
+        PackageController controller = new PackageController(packageService, null);
+        doNothing().when(packageService).updatePackage(testPackageRequest);
+
+        ResponseEntity<?> response = controller.updatePackage(testPackageRequest);
+
+        verify(packageService).updatePackage(testPackageRequest);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

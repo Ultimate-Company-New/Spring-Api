@@ -1,12 +1,19 @@
 package com.example.SpringApi.Services.Tests.PickupLocation;
 
+import com.example.SpringApi.Controllers.PickupLocationController;
 import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
+import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -26,23 +33,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
      **********************************************************************************************
      */
 
-    /**
-     * Purpose: Verify permission check is performed for UPDATE_PICKUP_LOCATION permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Update Pickup Location - Permission Check - Success Verifies Authorization")
-    void updatePickupLocation_PermissionCheck_SuccessVerifiesAuthorization() throws Exception {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                .thenReturn(testPickupLocation);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-        lenient().when(authorization.hasAuthority(Authorizations.UPDATE_PICKUP_LOCATIONS_PERMISSION)).thenReturn(true);
 
-        pickupLocationService.updatePickupLocation(testPickupLocationRequest);
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.UPDATE_PICKUP_LOCATIONS_PERMISSION);
-    }
 
     /**
      * Purpose: Verify successful update of pickup location.
@@ -404,5 +395,33 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, 
             () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
         assertTrue(ex.getMessage().contains("0"));
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    @Test
+    @DisplayName("updatePickupLocation - Verify @PreAuthorize Annotation")
+    void updatePickupLocation_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = PickupLocationController.class.getMethod("updatePickupLocation", Long.class, PickupLocationRequestModel.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(annotation, "@PreAuthorize annotation should be present on updatePickupLocation");
+        assertTrue(annotation.value().contains(Authorizations.UPDATE_PICKUP_LOCATIONS_PERMISSION),
+                "@PreAuthorize should reference UPDATE_PICKUP_LOCATIONS_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("updatePickupLocation - Controller delegates to service")
+    void updatePickupLocation_WithValidRequest_DelegatesToService() throws Exception {
+        PickupLocationController controller = new PickupLocationController(pickupLocationService);
+        doNothing().when(pickupLocationService).updatePickupLocation(testPickupLocationRequest);
+
+        ResponseEntity<?> response = controller.updatePickupLocation(TEST_PICKUP_LOCATION_ID, testPickupLocationRequest);
+
+        verify(pickupLocationService).updatePickupLocation(testPickupLocationRequest);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

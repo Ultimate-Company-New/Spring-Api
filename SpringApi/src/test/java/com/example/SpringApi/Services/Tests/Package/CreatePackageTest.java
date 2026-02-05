@@ -1,8 +1,15 @@
 package com.example.SpringApi.Services.Tests.Package;
 
+import com.example.SpringApi.Controllers.PackageController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -42,21 +49,7 @@ class CreatePackageTest extends PackageServiceTestBase {
         assertDoesNotThrow(() -> packageService.createPackage(testPackageRequest));
     }
 
-    /**
-     * Purpose: Verify permission check is performed for INSERT_PACKAGE permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Create Package - Permission Check - Success Verifies Authorization")
-    void createPackage_PermissionCheck_SuccessVerifiesAuthorization() {
-        when(packageRepository.save(any())).thenReturn(testPackage);
-        lenient().when(authorization.hasAuthority(Authorizations.INSERT_PACKAGES_PERMISSION)).thenReturn(true);
 
-        packageService.createPackage(testPackageRequest);
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.INSERT_PACKAGES_PERMISSION);
-    }
 
     /**
      * Purpose: Verify successful package creation with a valid request.
@@ -363,5 +356,33 @@ class CreatePackageTest extends PackageServiceTestBase {
         testPackageRequest.setStandardCapacity(0);
         BadRequestException ex = assertThrows(BadRequestException.class, () -> packageService.createPackage(testPackageRequest));
         assertEquals(ErrorMessages.PackageErrorMessages.InvalidStandardCapacity, ex.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    @Test
+    @DisplayName("createPackage - Verify @PreAuthorize Annotation")
+    void createPackage_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = PackageController.class.getMethod("createPackage", PackageRequestModel.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(annotation, "@PreAuthorize annotation should be present");
+        assertTrue(annotation.value().contains(Authorizations.INSERT_PACKAGES_PERMISSION),
+            "@PreAuthorize should reference INSERT_PACKAGES_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("createPackage - Controller delegates to service")
+    void createPackage_WithValidRequest_DelegatesToService() {
+        PackageController controller = new PackageController(packageService, null);
+        doNothing().when(packageService).createPackage(testPackageRequest);
+
+        ResponseEntity<?> response = controller.createPackage(testPackageRequest);
+
+        verify(packageService).createPackage(testPackageRequest);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 }

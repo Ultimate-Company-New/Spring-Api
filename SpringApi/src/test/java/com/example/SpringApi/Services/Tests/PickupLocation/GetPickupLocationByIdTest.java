@@ -1,10 +1,16 @@
 package com.example.SpringApi.Services.Tests.PickupLocation;
 
+import com.example.SpringApi.Controllers.PickupLocationController;
 import com.example.SpringApi.Models.ResponseModels.PickupLocationResponseModel;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -22,22 +28,7 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
      **********************************************************************************************
      */
 
-    /**
-     * Purpose: Verify permission check is performed for VIEW_PICKUP_LOCATION permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Get Pickup Location By ID - Permission Check - Success Verifies Authorization")
-    void getPickupLocationById_PermissionCheck_SuccessVerifiesAuthorization() {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                .thenReturn(testPickupLocation);
-        lenient().when(authorization.hasAuthority(Authorizations.VIEW_PICKUP_LOCATIONS_PERMISSION)).thenReturn(true);
 
-        pickupLocationService.getPickupLocationById(TEST_PICKUP_LOCATION_ID);
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.VIEW_PICKUP_LOCATIONS_PERMISSION);
-    }
 
     /**
      * Purpose: Verify successful retrieval of pickup location by ID.
@@ -131,5 +122,34 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, 
             () -> pickupLocationService.getPickupLocationById(0L));
         assertTrue(ex.getMessage().contains("Pickup location not found"));
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    @Test
+    @DisplayName("getPickupLocationById - Verify @PreAuthorize Annotation")
+    void getPickupLocationById_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = PickupLocationController.class.getMethod("getPickupLocationById", Long.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(annotation, "@PreAuthorize annotation should be present on getPickupLocationById");
+        assertTrue(annotation.value().contains(Authorizations.VIEW_PICKUP_LOCATIONS_PERMISSION),
+                "@PreAuthorize should reference VIEW_PICKUP_LOCATIONS_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("getPickupLocationById - Controller delegates to service")
+    void getPickupLocationById_WithValidId_DelegatesToService() {
+        PickupLocationController controller = new PickupLocationController(pickupLocationService);
+        when(pickupLocationService.getPickupLocationById(TEST_PICKUP_LOCATION_ID))
+                .thenReturn(mock(PickupLocationResponseModel.class));
+
+        ResponseEntity<?> response = controller.getPickupLocationById(TEST_PICKUP_LOCATION_ID);
+
+        verify(pickupLocationService).getPickupLocationById(TEST_PICKUP_LOCATION_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

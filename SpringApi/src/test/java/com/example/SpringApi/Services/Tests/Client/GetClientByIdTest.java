@@ -1,11 +1,15 @@
 package com.example.SpringApi.Services.Tests.Client;
 
+import com.example.SpringApi.Controllers.ClientController;
+import com.example.SpringApi.Services.ClientService;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.Optional;
 
@@ -15,7 +19,7 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for ClientService.getClientById() method.
  * Tests retrieval of client details by ID.
- * * Test Count: 9 tests
+ * * Test Count: 10 tests
  */
 @DisplayName("Get Client By ID Tests")
 class GetClientByIdTest extends ClientServiceTestBase {
@@ -73,25 +77,6 @@ class GetClientByIdTest extends ClientServiceTestBase {
         assertNotNull(result);
         assertTrue(result.getIsDeleted());
         assertEquals(TEST_CLIENT_ID, result.getClientId());
-    }
-
-    /**
-     * Purpose: Verify permission check is performed for VIEW_CLIENT permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Get Client By ID - Permission check - Success Verifies Authorization")
-    void getClientById_PermissionCheck_SuccessVerifiesAuthorization() {
-        // Arrange
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        lenient().when(authorization.hasAuthority(Authorizations.VIEW_CLIENT_PERMISSION)).thenReturn(true);
-
-        // Act
-        clientService.getClientById(TEST_CLIENT_ID);
-
-        // Assert
-        verify(authorization, times(1)).hasAuthority(Authorizations.VIEW_CLIENT_PERMISSION);
     }
 
     /**
@@ -205,5 +190,69 @@ class GetClientByIdTest extends ClientServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> clientService.getClientById(zeroId));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     * The following tests verify that authorization is properly configured at the
+     * controller level.
+     * These tests check that @PreAuthorize annotations are present and correctly
+     * configured.
+     */
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation is declared on getClientById method.
+     * Expected Result: Method has @PreAuthorize annotation with correct permission.
+     * Assertions: Annotation exists and references VIEW_CLIENT_PERMISSION.
+     */
+    @Test
+    @DisplayName("Get Client By ID - Verify @PreAuthorize annotation is configured correctly")
+    void getClientById_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        // Use reflection to verify the @PreAuthorize annotation is present
+        var method = ClientController.class.getMethod("getClientById",
+                Long.class);
+
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        assertNotNull(preAuthorizeAnnotation,
+                "getClientById method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.VIEW_CLIENT_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference VIEW_CLIENT_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller calls service when authorization passes
+     * (simulated).
+     * Expected Result: Service method is called and correct HTTP status is
+     * returned.
+     * Assertions: Service called once, HTTP status is correct.
+     * 
+     * Note: This test simulates the happy path assuming authorization has already
+     * passed.
+     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
+     * in end-to-end tests.
+     */
+    @Test
+    @DisplayName("Get Client By ID - Controller delegates to service correctly")
+    void getClientById_WithValidRequest_DelegatesToService() {
+        // Arrange
+        ClientService mockService = mock(ClientService.class);
+        ClientController controller = new ClientController(mockService);
+        when(mockService.getClientById(TEST_CLIENT_ID)).thenReturn(new ClientResponseModel());
+
+        // Act - Call controller directly (simulating authorization has already passed)
+        ResponseEntity<?> response = controller.getClientById(TEST_CLIENT_ID);
+
+        // Assert - Verify service was called and correct response returned
+        verify(mockService, times(1)).getClientById(TEST_CLIENT_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode(),
+                "Should return HTTP 200 OK");
     }
 }

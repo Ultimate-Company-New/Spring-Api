@@ -1,9 +1,15 @@
 package com.example.SpringApi.Services.Tests.Package;
 
+import com.example.SpringApi.Controllers.PackageController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.Models.ResponseModels.PackageResponseModel;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.ErrorMessages;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -61,21 +67,7 @@ class GetPackageByIdTest extends PackageServiceTestBase {
         assertTrue(result.getIsDeleted());
     }
 
-    /**
-     * Purpose: Verify permission check is performed for VIEW_PACKAGE permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Get Package By ID - Permission Check - Success Verifies Authorization")
-    void getPackageById_PermissionCheck_SuccessVerifiesAuthorization() {
-        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
-        lenient().when(authorization.hasAuthority(Authorizations.VIEW_PACKAGES_PERMISSION)).thenReturn(true);
 
-        packageService.getPackageById(TEST_PACKAGE_ID);
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.VIEW_PACKAGES_PERMISSION);
-    }
 
     /**
      * Purpose: Verify successful retrieval of package by valid ID.
@@ -163,5 +155,33 @@ class GetPackageByIdTest extends PackageServiceTestBase {
         when(packageRepository.findByPackageIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
         NotFoundException ex = assertThrows(NotFoundException.class, () -> packageService.getPackageById(0L));
         assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    @Test
+    @DisplayName("getPackageById - Verify @PreAuthorize Annotation")
+    void getPackageById_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = PackageController.class.getMethod("getPackageById", Long.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(annotation, "@PreAuthorize annotation should be present");
+        assertTrue(annotation.value().contains(Authorizations.VIEW_PACKAGES_PERMISSION),
+            "@PreAuthorize should reference VIEW_PACKAGES_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("getPackageById - Controller delegates to service")
+    void getPackageById_WithValidRequest_DelegatesToService() {
+        PackageController controller = new PackageController(packageService, null);
+        when(packageService.getPackageById(TEST_PACKAGE_ID)).thenReturn(new PackageResponseModel(testPackage));
+
+        ResponseEntity<?> response = controller.getPackageById(TEST_PACKAGE_ID);
+
+        verify(packageService).getPackageById(TEST_PACKAGE_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

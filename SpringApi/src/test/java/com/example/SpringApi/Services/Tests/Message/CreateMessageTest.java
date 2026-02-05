@@ -1,5 +1,8 @@
 package com.example.SpringApi.Services.Tests.Message;
 
+import com.example.SpringApi.Controllers.MessageController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.Models.DatabaseModels.MessageUserGroupMap;
 import com.example.SpringApi.Models.DatabaseModels.MessageUserMap;
 import com.example.SpringApi.Models.Authorizations;
@@ -24,7 +27,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for MessageService.createMessage method.
- * Test Count: 35 tests
+ * Test Count: 37 tests
  */
 @DisplayName("CreateMessage Tests")
 public class CreateMessageTest extends MessageServiceTestBase {
@@ -47,17 +50,7 @@ public class CreateMessageTest extends MessageServiceTestBase {
         verify(messageUserGroupMapRepository, times(2)).save(any(MessageUserGroupMap.class));
     }
 
-    @Test
-    @DisplayName("Create Message - Permission check - Success Verifies Authorization")
-    void createMessage_PermissionCheck_SuccessVerifiesAuthorization() {
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any())).thenReturn(testMessage);
-        lenient().when(authorization.hasAuthority(Authorizations.INSERT_MESSAGES_PERMISSION)).thenReturn(true);
 
-        assertDoesNotThrow(() -> messageService.createMessage(validRequest));
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.INSERT_MESSAGES_PERMISSION);
-    }
 
     @Test
     @DisplayName("Create Message - SendAsEmail false - No recipient lookup")
@@ -401,5 +394,46 @@ public class CreateMessageTest extends MessageServiceTestBase {
         // Mocking behavior where getClientId returns 0
         // (Assuming test base or context allows this injection)
         assertThrowsNotFound(ErrorMessages.ClientErrorMessages.InvalidId, () -> messageService.createMessage(validRequest));
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     * The following tests verify that authorization is properly configured at the controller level.
+     * These tests check that @PreAuthorize annotations are present and correctly configured.
+     */
+
+    @Test
+    @DisplayName("Create Message - Verify @PreAuthorize annotation is configured correctly")
+    void createMessage_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        var method = MessageController.class.getMethod("createMessage", 
+            com.example.SpringApi.Models.RequestModels.MessageRequestModel.class);
+        
+        var preAuthorizeAnnotation = method.getAnnotation(
+            org.springframework.security.access.prepost.PreAuthorize.class
+        );
+        
+        assertNotNull(preAuthorizeAnnotation, 
+            "createMessage method should have @PreAuthorize annotation");
+        
+        String expectedPermission = "@customAuthorization.hasAuthority('"+ 
+            Authorizations.INSERT_MESSAGES_PERMISSION +"')";
+        
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+            "PreAuthorize annotation should reference INSERT_MESSAGES_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("Create Message - Controller delegates to service correctly")
+    void createMessage_WithValidRequest_DelegatesToService() {
+        MessageController controller = new MessageController(messageService);
+        doNothing().when(messageService).createMessage(any(com.example.SpringApi.Models.RequestModels.MessageRequestModel.class));
+
+        ResponseEntity<?> response = controller.createMessage(validRequest);
+
+        verify(messageService, times(1)).createMessage(validRequest);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode(),
+            "Should return HTTP 201 CREATED");
     }
 }

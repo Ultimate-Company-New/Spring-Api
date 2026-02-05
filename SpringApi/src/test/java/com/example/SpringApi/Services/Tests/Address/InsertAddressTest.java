@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services.Tests.Address;
 
+import com.example.SpringApi.Controllers.AddressController;
 import com.example.SpringApi.Models.DatabaseModels.Address;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.BadRequestException;
@@ -9,6 +10,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -16,7 +19,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for AddressService insert functionality.
- * Tests for: InsertAddressTests (56 tests)
+ * Tests for: InsertAddressTests (57 tests)
  */
 @DisplayName("Insert Address Tests")
 class InsertAddressTest extends AddressServiceTestBase {
@@ -371,26 +374,6 @@ class InsertAddressTest extends AddressServiceTestBase {
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
-    }
-
-    /**
-     * Purpose: Verify permission check is performed for INSERT_ADDRESS permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Insert Address - Permission check - Success Verifies Authorization")
-    void insertAddress_PermissionCheck_SuccessVerifiesAuthorization() {
-        // Arrange
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-        lenient().when(authorization.hasAuthority(Authorizations.INSERT_ADDRESS_PERMISSION)).thenReturn(true);
-
-        // Act
-        addressService.insertAddress(testAddressRequest);
-
-        // Assert
-        verify(authorization, times(1)).hasAuthority(Authorizations.INSERT_ADDRESS_PERMISSION);
     }
 
     /**
@@ -1089,5 +1072,68 @@ class InsertAddressTest extends AddressServiceTestBase {
                 () -> addressService.insertAddress(testAddressRequest));
 
         assertEquals(ErrorMessages.UserErrorMessages.InvalidId, exception.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     * The following tests verify that authorization is properly configured at the
+     * controller level.
+     * These tests check that @PreAuthorize annotations are present and correctly
+     * configured.
+     */
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation is declared on createAddress method.
+     * Expected Result: Method has @PreAuthorize annotation with correct permission.
+     * Assertions: Annotation exists and references INSERT_ADDRESS_PERMISSION.
+     */
+    @Test
+    @DisplayName("Insert Address - Verify @PreAuthorize annotation is configured correctly")
+    void insertAddress_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        // Use reflection to verify the @PreAuthorize annotation is present
+        var method = AddressController.class.getMethod("createAddress",
+                com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
+
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        assertNotNull(preAuthorizeAnnotation,
+                "createAddress method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.INSERT_ADDRESS_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference INSERT_ADDRESS_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller calls service when authorization passes
+     * (simulated).
+     * Expected Result: Service method is called and HTTP 201 Created is returned.
+     * Assertions: Service called once, HTTP status is CREATED.
+     * 
+     * Note: This test simulates the happy path assuming authorization has already
+     * passed.
+     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
+     * in end-to-end tests.
+     */
+    @Test
+    @DisplayName("Insert Address - Controller delegates to service correctly")
+    void insertAddress_WithValidRequest_DelegatesToService() {
+        // Arrange
+        AddressController addressController = new AddressController(addressService);
+        doNothing().when(addressService)
+                .insertAddress(any(com.example.SpringApi.Models.RequestModels.AddressRequestModel.class));
+
+        // Act - Call controller directly (simulating authorization has already passed)
+        ResponseEntity<?> response = addressController.createAddress(testAddressRequest);
+
+        // Assert - Verify service was called and correct response returned
+        verify(addressService, times(1)).insertAddress(testAddressRequest);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode(),
+                "Should return HTTP 201 Created on successful insertion");
     }
 }

@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services.Tests.Address;
 
+import com.example.SpringApi.Controllers.AddressController;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.DatabaseModels.Address;
 import com.example.SpringApi.Models.ResponseModels.AddressResponseModel;
@@ -8,6 +9,8 @@ import com.example.SpringApi.ErrorMessages;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +29,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for AddressService getAddressByClientId functionality.
- * Tests for: GetAddressByClientIdTests (14 tests)
+ * Tests for: GetAddressByClientIdTests (15 tests)
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Get Address By Client ID Tests")
@@ -194,28 +197,6 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
     }
 
     /**
-     * Purpose: Verify permission check is performed for VIEW_ADDRESS permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Get Address By Client ID - Permission check - Success Verifies Authorization")
-    void getAddressByClientId_PermissionCheck_SuccessVerifiesAuthorization() {
-        // Arrange
-        when(clientRepository.findById(DEFAULT_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_CLIENT_ID, false))
-                .thenReturn(Collections.singletonList(testAddress));
-        lenient().when(authorization.hasAuthority(Authorizations.VIEW_ADDRESS_PERMISSION)).thenReturn(true);
-
-        // Act
-        List<AddressResponseModel> result = addressService.getAddressByClientId(DEFAULT_CLIENT_ID);
-
-        // Assert
-        assertNotNull(result);
-        verify(authorization, times(1)).hasAuthority(Authorizations.VIEW_ADDRESS_PERMISSION);
-    }
-
-    /**
      * Purpose: Verify single address response for client.
      * Expected Result: List contains one address.
      * Assertions: Result size is one.
@@ -238,7 +219,8 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
 
     /**
      * Purpose: Verify that service layer returns addresses when called directly.
-     * Note: Permission checking is a controller-level concern and is tested in API tests.
+     * Note: Permission checking is a controller-level concern and is tested in API
+     * tests.
      * This unit test verifies the service method works correctly with valid inputs.
      * Expected Result: List of addresses is returned successfully.
      * Assertions: Repository is called and result is not null.
@@ -385,5 +367,69 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
                 () -> addressService.getAddressByClientId(zeroId));
 
         assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     * The following tests verify that authorization is properly configured at the
+     * controller level.
+     * These tests check that @PreAuthorize annotations are present and correctly
+     * configured.
+     */
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation is declared on getAddressByClientId
+     * method.
+     * Expected Result: Method has @PreAuthorize annotation with correct permission.
+     * Assertions: Annotation exists and references VIEW_ADDRESS_PERMISSION.
+     */
+    @Test
+    @DisplayName("Get Address By Client ID - Verify @PreAuthorize annotation is configured correctly")
+    void getAddressByClientId_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        // Use reflection to verify the @PreAuthorize annotation is present
+        var method = AddressController.class.getMethod("getAddressByClientId",
+                Long.class);
+
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        assertNotNull(preAuthorizeAnnotation,
+                "getAddressByClientId method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.VIEW_ADDRESS_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference VIEW_ADDRESS_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller calls service when authorization passes
+     * (simulated).
+     * Expected Result: Service method is called and correct HTTP status is
+     * returned.
+     * Assertions: Service called once, HTTP status is correct.
+     * 
+     * Note: This test simulates the happy path assuming authorization has already
+     * passed.
+     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
+     * in end-to-end tests.
+     */
+    @Test
+    @DisplayName("Get Address By Client ID - Controller delegates to service correctly")
+    void getAddressByClientId_WithValidRequest_DelegatesToService() {
+        // Arrange
+        doReturn(new ArrayList<>()).when(addressService).getAddressByClientId(DEFAULT_CLIENT_ID);
+        AddressController controller = new AddressController(addressService);
+
+        // Act - Call controller directly (simulating authorization has already passed)
+        ResponseEntity<?> response = controller.getAddressByClientId(DEFAULT_CLIENT_ID);
+
+        // Assert - Verify service was called and correct response returned
+        verify(addressService, times(1)).getAddressByClientId(DEFAULT_CLIENT_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode(),
+                "Should return HTTP 200 OK");
     }
 }

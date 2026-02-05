@@ -1,5 +1,7 @@
 package com.example.SpringApi.Services.Tests.Client;
 
+import com.example.SpringApi.Controllers.ClientController;
+import com.example.SpringApi.Services.ClientService;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.BadRequestException;
@@ -11,6 +13,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedConstruction;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
@@ -21,8 +25,9 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for ClientService.updateClient() method.
- * Tests client updates with various scenarios including logo changes and field validations.
- * * Test Count: 48 tests
+ * Tests client updates with various scenarios including logo changes and field
+ * validations.
+ * * Test Count: 37 tests
  */
 @DisplayName("Update Client Tests")
 class UpdateClientTest extends ClientServiceTestBase {
@@ -158,28 +163,6 @@ class UpdateClientTest extends ClientServiceTestBase {
         try (MockedConstruction<FirebaseHelper> fbMock = mockConstruction(FirebaseHelper.class)) {
             assertDoesNotThrow(() -> clientService.updateClient(testClientRequest));
         }
-    }
-
-    /**
-     * Purpose: Verify permission check is performed for UPDATE_CLIENT permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Update Client - Permission check - Success Verifies Authorization")
-    void updateClient_PermissionCheck_SuccessVerifiesAuthorization() {
-        // Arrange
-        testClientRequest.setLogoBase64(null);
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(clientRepository.findByName(testClientRequest.getName())).thenReturn(Optional.empty());
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
-        lenient().when(authorization.hasAuthority(Authorizations.UPDATE_CLIENT_PERMISSION)).thenReturn(true);
-
-        // Act
-        clientService.updateClient(testClientRequest);
-
-        // Assert
-        verify(authorization, times(1)).hasAuthority(Authorizations.UPDATE_CLIENT_PERMISSION);
     }
 
     /**
@@ -479,7 +462,8 @@ class UpdateClientTest extends ClientServiceTestBase {
     void updateClient_EmptyDescription_ThrowsBadRequestException() {
         testClientRequest.setDescription("");
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.updateClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.updateClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidDescription, ex.getMessage());
     }
 
@@ -492,7 +476,8 @@ class UpdateClientTest extends ClientServiceTestBase {
     void updateClient_EmptyName_ThrowsBadRequestException() {
         testClientRequest.setName("");
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.updateClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.updateClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidName, ex.getMessage());
     }
 
@@ -505,7 +490,8 @@ class UpdateClientTest extends ClientServiceTestBase {
     void updateClient_EmptySendgridSenderName_ThrowsBadRequestException() {
         testClientRequest.setSendgridSenderName("");
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.updateClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.updateClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidSendgridSenderName, ex.getMessage());
     }
 
@@ -518,7 +504,8 @@ class UpdateClientTest extends ClientServiceTestBase {
     void updateClient_EmptySupportEmail_ThrowsBadRequestException() {
         testClientRequest.setSupportEmail("");
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.updateClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.updateClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidSupportEmail, ex.getMessage());
     }
 
@@ -531,7 +518,8 @@ class UpdateClientTest extends ClientServiceTestBase {
     void updateClient_EmptyWebsite_ThrowsBadRequestException() {
         testClientRequest.setWebsite("");
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.updateClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.updateClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidWebsite, ex.getMessage());
     }
 
@@ -599,7 +587,8 @@ class UpdateClientTest extends ClientServiceTestBase {
     void updateClient_NullDescription_ThrowsBadRequestException() {
         testClientRequest.setDescription(null);
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.updateClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.updateClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidDescription, ex.getMessage());
     }
 
@@ -612,7 +601,8 @@ class UpdateClientTest extends ClientServiceTestBase {
     void updateClient_NullName_ThrowsBadRequestException() {
         testClientRequest.setName(null);
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.updateClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.updateClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidName, ex.getMessage());
     }
 
@@ -637,7 +627,8 @@ class UpdateClientTest extends ClientServiceTestBase {
     void updateClient_NullSupportEmail_ThrowsBadRequestException() {
         testClientRequest.setSupportEmail(null);
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.updateClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.updateClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidSupportEmail, ex.getMessage());
     }
 
@@ -650,7 +641,8 @@ class UpdateClientTest extends ClientServiceTestBase {
     void updateClient_NullWebsite_ThrowsBadRequestException() {
         testClientRequest.setWebsite(null);
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.updateClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.updateClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidWebsite, ex.getMessage());
     }
 
@@ -745,5 +737,71 @@ class UpdateClientTest extends ClientServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> clientService.updateClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     * The following tests verify that authorization is properly configured at the
+     * controller level.
+     * These tests check that @PreAuthorize annotations are present and correctly
+     * configured.
+     */
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation is declared on updateClient method.
+     * Expected Result: Method has @PreAuthorize annotation with correct permission.
+     * Assertions: Annotation exists and references UPDATE_CLIENT_PERMISSION.
+     */
+    @Test
+    @DisplayName("Update Client - Verify @PreAuthorize annotation is configured correctly")
+    void updateClient_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        // Use reflection to verify the @PreAuthorize annotation is present
+        var method = ClientController.class.getMethod("updateClient",
+                Long.class, com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
+
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        assertNotNull(preAuthorizeAnnotation,
+                "updateClient method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.UPDATE_CLIENT_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference UPDATE_CLIENT_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller calls service when authorization passes
+     * (simulated).
+     * Expected Result: Service method is called and correct HTTP status is
+     * returned.
+     * Assertions: Service called once, HTTP status is correct.
+     * 
+     * Note: This test simulates the happy path assuming authorization has already
+     * passed.
+     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
+     * in end-to-end tests.
+     */
+    @Test
+    @DisplayName("Update Client - Controller delegates to service correctly")
+    void updateClient_WithValidRequest_DelegatesToService() {
+        // Arrange
+        ClientService mockService = mock(ClientService.class);
+        ClientController controller = new ClientController(mockService);
+        testClientRequest.setClientId(TEST_CLIENT_ID);
+        doNothing().when(mockService)
+                .updateClient(any(com.example.SpringApi.Models.RequestModels.ClientRequestModel.class));
+
+        // Act - Call controller directly (simulating authorization has already passed)
+        ResponseEntity<?> response = controller.updateClient(TEST_CLIENT_ID, testClientRequest);
+
+        // Assert - Verify service was called and correct response returned
+        verify(mockService, times(1)).updateClient(testClientRequest);
+        assertEquals(HttpStatus.OK, response.getStatusCode(),
+                "Should return HTTP 200 OK");
     }
 }

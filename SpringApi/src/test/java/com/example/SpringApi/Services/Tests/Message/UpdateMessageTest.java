@@ -1,5 +1,8 @@
 package com.example.SpringApi.Services.Tests.Message;
 
+import com.example.SpringApi.Controllers.MessageController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.Models.DatabaseModels.MessageUserMap;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Helpers.EmailHelper;
@@ -7,6 +10,10 @@ import com.example.SpringApi.Helpers.EmailTemplates;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.Models.RequestModels.MessageRequestModel;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -136,18 +143,7 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         assertNull(captor.getValue().getSendgridEmailBatchId());
     }
 
-    @Test
-    @DisplayName("Update Message - Permission check - Success Verifies Authorization")
-    void updateMessage_PermissionCheck_SuccessVerifiesAuthorization() {
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
-        lenient().when(authorization.hasAuthority(Authorizations.UPDATE_MESSAGES_PERMISSION)).thenReturn(true);
 
-        assertDoesNotThrow(() -> messageService.updateMessage(validRequest));
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.UPDATE_MESSAGES_PERMISSION);
-    }
 
     @Test
     @DisplayName("Update Message - SendAsEmail True -> True with New Date - Resends/Re-batches")
@@ -431,5 +427,33 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     void updateMessage_ZeroMessageId_ThrowsBadRequest() {
         validRequest.setMessageId(0L);
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.InvalidId, () -> messageService.updateMessage(validRequest));
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    @Test
+    @DisplayName("updateMessage - Verify @PreAuthorize Annotation")
+    void updateMessage_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = MessageController.class.getMethod("updateMessage", MessageRequestModel.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(annotation, "@PreAuthorize annotation should be present");
+        assertTrue(annotation.value().contains(Authorizations.UPDATE_MESSAGES_PERMISSION),
+            "@PreAuthorize should reference UPDATE_MESSAGES_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("updateMessage - Controller delegates to service")
+    void updateMessage_WithValidRequest_DelegatesToService() {
+        MessageController controller = new MessageController(messageService);
+        doNothing().when(messageService).updateMessage(validRequest);
+
+        ResponseEntity<?> response = controller.updateMessage(validRequest);
+
+        verify(messageService).updateMessage(validRequest);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

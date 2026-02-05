@@ -1,11 +1,14 @@
 package com.example.SpringApi.Services.Tests.Address;
 
+import com.example.SpringApi.Controllers.AddressController;
 import com.example.SpringApi.Models.DatabaseModels.Address;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.Optional;
 
@@ -16,7 +19,7 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for AddressService.toggleAddress() method.
  * Tests toggle functionality including state changes and error handling.
- * * Test Count: 11 tests
+ * * Test Count: 12 tests
  */
 @DisplayName("Toggle Address Tests")
 class ToggleAddressTest extends AddressServiceTestBase {
@@ -99,7 +102,8 @@ class ToggleAddressTest extends AddressServiceTestBase {
     }
 
     /**
-     * Purpose: Verify multiple toggles in sequence successfully update the repository.
+     * Purpose: Verify multiple toggles in sequence successfully update the
+     * repository.
      * Expected Result: repository.save is called for each toggle.
      * Assertions: Repository interactions verified for both calls.
      */
@@ -123,28 +127,6 @@ class ToggleAddressTest extends AddressServiceTestBase {
         // Assert
         verify(addressRepository, times(2)).findById(DEFAULT_ADDRESS_ID);
         verify(addressRepository, times(2)).save(any(Address.class));
-    }
-
-    /**
-     * Purpose: Verify permission check is performed for DELETE_ADDRESS permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Toggle Address - Permission check - Success Verifies Authorization")
-    void toggleAddress_PermissionCheck_SuccessVerifiesAuthorization() {
-        // Arrange
-        testAddress.setIsDeleted(false);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-        lenient().when(authorization.hasAuthority(Authorizations.DELETE_ADDRESS_PERMISSION)).thenReturn(true);
-
-        // Act
-        addressService.toggleAddress(DEFAULT_ADDRESS_ID);
-
-        // Assert
-        verify(authorization, times(1)).hasAuthority(Authorizations.DELETE_ADDRESS_PERMISSION);
     }
 
     /**
@@ -276,5 +258,68 @@ class ToggleAddressTest extends AddressServiceTestBase {
                 () -> addressService.toggleAddress(zeroId));
 
         assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     * The following tests verify that authorization is properly configured at the
+     * controller level.
+     * These tests check that @PreAuthorize annotations are present and correctly
+     * configured.
+     */
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation is declared on toggleAddress method.
+     * Expected Result: Method has @PreAuthorize annotation with correct permission.
+     * Assertions: Annotation exists and references DELETE_ADDRESS_PERMISSION.
+     */
+    @Test
+    @DisplayName("Toggle Address - Verify @PreAuthorize annotation is configured correctly")
+    void toggleAddress_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        // Use reflection to verify the @PreAuthorize annotation is present
+        var method = AddressController.class.getMethod("toggleAddress",
+                Long.class);
+
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        assertNotNull(preAuthorizeAnnotation,
+                "toggleAddress method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.DELETE_ADDRESS_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference DELETE_ADDRESS_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller calls service when authorization passes
+     * (simulated).
+     * Expected Result: Service method is called and correct HTTP status is
+     * returned.
+     * Assertions: Service called once, HTTP status is correct.
+     * 
+     * Note: This test simulates the happy path assuming authorization has already
+     * passed.
+     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
+     * in end-to-end tests.
+     */
+    @Test
+    @DisplayName("Toggle Address - Controller delegates to service correctly")
+    void toggleAddress_WithValidRequest_DelegatesToService() {
+        // Arrange
+        AddressController controller = new AddressController(addressService);
+        doNothing().when(addressService).toggleAddress(DEFAULT_ADDRESS_ID);
+
+        // Act - Call controller directly (simulating authorization has already passed)
+        ResponseEntity<?> response = controller.toggleAddress(DEFAULT_ADDRESS_ID);
+
+        // Assert - Verify service was called and correct response returned
+        verify(addressService, times(1)).toggleAddress(DEFAULT_ADDRESS_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode(),
+                "Should return HTTP 200 OK");
     }
 }

@@ -9,7 +9,6 @@ import com.example.SpringApi.Services.LeadService;
 import com.example.SpringApi.Services.MessageService;
 import com.example.SpringApi.Services.Tests.BaseTest;
 import com.example.SpringApi.Services.UserLogService;
-import com.example.SpringApi.Authentication.Authorization;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +27,8 @@ import static org.mockito.Mockito.lenient;
 
 /**
  * Base test class for LeadService tests.
- * Contains common mocks, dependencies, and setup logic shared across all LeadService test classes.
+ * Contains common mocks, dependencies, and setup logic shared across all
+ * LeadService test classes.
  */
 @ExtendWith(MockitoExtension.class)
 public abstract class LeadServiceTestBase extends BaseTest {
@@ -51,13 +51,11 @@ public abstract class LeadServiceTestBase extends BaseTest {
     @Mock
     protected HttpServletRequest request;
 
-    @Mock
-    protected Authorization authorization;
-
     @InjectMocks
     protected LeadService leadService;
 
-    // Use 1L to match the default behavior of BaseService.getClientId() in test environment
+    // Use 1L to match the default behavior of BaseService.getClientId() in test
+    // environment
     protected static final Long TEST_CLIENT_ID = 1L;
 
     protected Lead testLead;
@@ -76,7 +74,8 @@ public abstract class LeadServiceTestBase extends BaseTest {
         // Mock Authorization header for BaseService authentication behavior
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
 
-        // Set up RequestContextHolder so BaseService.getClientId()/getUserId()/getUser() work
+        // Set up RequestContextHolder so
+        // BaseService.getClientId()/getUserId()/getUser() work
         MockHttpServletRequest mockRequest = new MockHttpServletRequest();
         mockRequest.addHeader("Authorization", "Bearer test-token");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockRequest));
@@ -84,7 +83,8 @@ public abstract class LeadServiceTestBase extends BaseTest {
         // Mock generic logData to avoid NPEs
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
-        // Mock AddressRepository save to return a valid address with ID to avoid NPEs in service
+        // Mock AddressRepository save to return a valid address with ID to avoid NPEs
+        // in service
         lenient().when(addressRepository.save(any(Address.class))).thenAnswer(i -> {
             Address a = i.getArgument(0);
             a.setAddressId(DEFAULT_ADDRESS_ID);

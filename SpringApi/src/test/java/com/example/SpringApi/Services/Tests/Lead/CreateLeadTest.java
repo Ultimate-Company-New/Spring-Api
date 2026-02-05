@@ -1,10 +1,13 @@
 package com.example.SpringApi.Services.Tests.Lead;
 
+import com.example.SpringApi.Controllers.LeadController;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -13,7 +16,7 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for LeadService.createLead() method.
  * Tests lead creation with various validation scenarios.
- * * Test Count: 33 tests
+ * * Test Count: 31 tests
  */
 @DisplayName("Create Lead Tests")
 class CreateLeadTest extends LeadServiceTestBase {
@@ -25,7 +28,8 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
 
     /**
-     * Purpose: Verify creation succeeds with the maximum possible integer for company size.
+     * Purpose: Verify creation succeeds with the maximum possible integer for
+     * company size.
      * Expected Result: Lead is saved with the provided company size.
      * Assertions: Repository save is invoked and no exceptions are thrown.
      */
@@ -42,27 +46,9 @@ class CreateLeadTest extends LeadServiceTestBase {
     }
 
     /**
-     * Purpose: Verify permission check is performed for INSERT_LEAD permission.
-     * Expected Result: Authorization service verifies the INSERT_LEAD authority.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Create Lead - Permission check - Success Verifies Authorization")
-    void createLead_PermissionCheck_SuccessVerifiesAuthorization() {
-        // Arrange
-        when(leadRepository.save(any())).thenReturn(testLead);
-        lenient().when(authorization.hasAuthority(Authorizations.INSERT_LEADS_PERMISSION)).thenReturn(true);
-
-        // Act
-        leadService.createLead(testLeadRequest);
-
-        // Assert
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.INSERT_LEADS_PERMISSION);
-    }
-
-    /**
      * Purpose: Verify creation succeeds with special characters in the lead's name.
-     * Expected Result: Lead is saved successfully with characters like accents and hyphens.
+     * Expected Result: Lead is saved successfully with characters like accents and
+     * hyphens.
      * Assertions: Process completes without error.
      */
     @Test
@@ -146,7 +132,8 @@ class CreateLeadTest extends LeadServiceTestBase {
     }
 
     /**
-     * Purpose: Verify system handles extremely long email addresses within valid format.
+     * Purpose: Verify system handles extremely long email addresses within valid
+     * format.
      * Expected Result: Save completes successfully.
      * Assertions: No validation error triggered for email length.
      */
@@ -451,5 +438,69 @@ class CreateLeadTest extends LeadServiceTestBase {
         testLeadRequest.setCompanySize(0);
         BadRequestException ex = assertThrows(BadRequestException.class, () -> leadService.createLead(testLeadRequest));
         assertEquals(ErrorMessages.LeadsErrorMessages.ER016, ex.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     * The following tests verify that authorization is properly configured at the
+     * controller level.
+     * These tests check that @PreAuthorize annotations are present and correctly
+     * configured.
+     */
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation is declared on createLead method.
+     * Expected Result: Method has @PreAuthorize annotation with correct permission.
+     * Assertions: Annotation exists and references INSERT_LEADS_PERMISSION.
+     */
+    @Test
+    @DisplayName("Create Lead - Verify @PreAuthorize annotation is configured correctly")
+    void createLead_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        // Use reflection to verify the @PreAuthorize annotation is present
+        var method = LeadController.class.getMethod("createLead",
+                com.example.SpringApi.Models.RequestModels.LeadRequestModel.class);
+
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        assertNotNull(preAuthorizeAnnotation,
+                "createLead method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.INSERT_LEADS_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference INSERT_LEADS_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller calls service when authorization passes
+     * (simulated).
+     * Expected Result: Service method is called and correct HTTP status is
+     * returned.
+     * Assertions: Service called once, HTTP status is correct.
+     * 
+     * Note: This test simulates the happy path assuming authorization has already
+     * passed.
+     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
+     * in end-to-end tests.
+     */
+    @Test
+    @DisplayName("Create Lead - Controller delegates to service correctly")
+    void createLead_WithValidRequest_DelegatesToService() {
+        // Arrange
+        LeadController controller = new LeadController(leadService);
+        doNothing().when(leadService)
+                .createLead(any(com.example.SpringApi.Models.RequestModels.LeadRequestModel.class));
+
+        // Act - Call controller directly (simulating authorization has already passed)
+        ResponseEntity<?> response = controller.createLead(testLeadRequest);
+
+        // Assert - Verify service was called and correct response returned
+        verify(leadService, times(1)).createLead(testLeadRequest);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode(),
+                "Should return HTTP 201 Created");
     }
 }

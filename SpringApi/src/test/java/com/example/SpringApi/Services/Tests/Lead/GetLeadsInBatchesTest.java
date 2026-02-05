@@ -1,11 +1,15 @@
 package com.example.SpringApi.Services.Tests.Lead;
 
-import com.example.SpringApi.Models.DatabaseModels.Lead;
+import com.example.SpringApi.Controllers.LeadController;
 import com.example.SpringApi.Models.Authorizations;
+import com.example.SpringApi.Models.DatabaseModels.Lead;
+import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
 import com.example.SpringApi.Models.ResponseModels.LeadResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
@@ -23,7 +27,7 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for LeadService.getLeadsInBatches() method.
  * Tests pagination, filtering, and validation logic.
- * * Test Count: 2 tests
+ * * Test Count: 3 tests
  */
 @DisplayName("Get Leads In Batches Tests")
 class GetLeadsInBatchesTest extends LeadServiceTestBase {
@@ -35,9 +39,12 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
      */
 
     /**
-     * Purpose: Execute a comprehensive validation of pagination logic and a triple-loop filter test.
-     * Expected Result: Valid pagination/filters succeed; invalid inputs correctly trigger exceptions.
-     * Assertions: Success scenarios return data; failure scenarios throw BadRequestException.
+     * Purpose: Execute a comprehensive validation of pagination logic and a
+     * triple-loop filter test.
+     * Expected Result: Valid pagination/filters succeed; invalid inputs correctly
+     * trigger exceptions.
+     * Assertions: Success scenarios return data; failure scenarios throw
+     * BadRequestException.
      */
     @Test
     @DisplayName("Get Leads In Batches - Comprehensive Validation - Success")
@@ -45,7 +52,8 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
         // ---- (1) Invalid pagination ----
         testLeadRequest.setStart(10);
         testLeadRequest.setEnd(5);
-        BadRequestException pagEx = assertThrows(BadRequestException.class, () -> leadService.getLeadsInBatches(testLeadRequest));
+        BadRequestException pagEx = assertThrows(BadRequestException.class,
+                () -> leadService.getLeadsInBatches(testLeadRequest));
         assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, pagEx.getMessage());
 
         // ---- (2) Success: simple retrieval ----
@@ -53,7 +61,8 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
         testLeadRequest.setEnd(10);
         testLeadRequest.setFilters(null);
         Page<Lead> leadPage = new PageImpl<>(Collections.singletonList(testLead), PageRequest.of(0, 10), 1);
-        when(leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(anyLong(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(leadPage);
+        when(leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(anyLong(), anyString(), any(),
+                anyBoolean(), any(Pageable.class))).thenReturn(leadPage);
         PaginationBaseResponseModel<LeadResponseModel> result = leadService.getLeadsInBatches(testLeadRequest);
         assertNotNull(result);
 
@@ -63,34 +72,85 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
         String[] booleanColumns = LEAD_BOOLEAN_COLUMNS;
         String[] dateColumns = LEAD_DATE_COLUMNS;
 
-        lenient().when(leadFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(stringColumns).contains(arg)))).thenReturn("string");
-        lenient().when(leadFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(numberColumns).contains(arg)))).thenReturn("number");
-        lenient().when(leadFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(booleanColumns).contains(arg)))).thenReturn("boolean");
-        lenient().when(leadFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(dateColumns).contains(arg)))).thenReturn("date");
-        lenient().when(leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(anyLong(), any(), any(), anyBoolean(), any())).thenReturn(new PageImpl<>(Collections.emptyList()));
+        lenient().when(leadFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(stringColumns).contains(arg))))
+                .thenReturn("string");
+        lenient().when(leadFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(numberColumns).contains(arg))))
+                .thenReturn("number");
+        lenient()
+                .when(leadFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(booleanColumns).contains(arg))))
+                .thenReturn("boolean");
+        lenient().when(leadFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(dateColumns).contains(arg))))
+                .thenReturn("date");
+        lenient().when(leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(anyLong(), any(), any(),
+                anyBoolean(), any())).thenReturn(new PageImpl<>(Collections.emptyList()));
 
         // Loop execution is handled in the method logic.
     }
 
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     * The following tests verify that authorization is properly configured at the
+     * controller level.
+     * These tests check that @PreAuthorize annotations are present and correctly
+     * configured.
+     */
+
     /**
-     * Purpose: Verify permission check is performed for VIEW_LEAD permission.
-     * Expected Result: Authorization is verified during batch fetch.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
+     * Purpose: Verify @PreAuthorize annotation is declared on getLeadsInBatches
+     * method.
+     * Expected Result: Method has @PreAuthorize annotation with correct permission.
+     * Assertions: Annotation exists and references VIEW_LEADS_PERMISSION.
      */
     @Test
-    @DisplayName("Get Leads In Batches - Permission check - Success Verifies Authorization")
-    void getLeadsInBatches_PermissionCheck_SuccessVerifiesAuthorization() {
+    @DisplayName("Get Leads In Batches - Verify @PreAuthorize annotation is configured correctly")
+    void getLeadsInBatches_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        // Use reflection to verify the @PreAuthorize annotation is present
+        var method = LeadController.class.getMethod("getLeadsInBatches",
+                LeadRequestModel.class);
+
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        assertNotNull(preAuthorizeAnnotation,
+                "getLeadsInBatches method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.VIEW_LEADS_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference VIEW_LEADS_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller calls service when authorization passes
+     * (simulated).
+     * Expected Result: Service method is called and correct HTTP status is
+     * returned.
+     * Assertions: Service called once, HTTP status is correct.
+     * 
+     * Note: This test simulates the happy path assuming authorization has already
+     * passed.
+     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
+     * in end-to-end tests.
+     */
+    @Test
+    @DisplayName("Get Leads In Batches - Controller delegates to service correctly")
+    void getLeadsInBatches_WithValidRequest_DelegatesToService() {
         // Arrange
+        LeadController controller = new LeadController(leadService);
         testLeadRequest.setStart(0);
         testLeadRequest.setEnd(10);
-        Page<Lead> leadPage = new PageImpl<>(Collections.emptyList());
-        when(leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(anyLong(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(leadPage);
-        lenient().when(authorization.hasAuthority(Authorizations.VIEW_LEADS_PERMISSION)).thenReturn(true);
+        when(leadService.getLeadsInBatches(any(LeadRequestModel.class)))
+                .thenReturn(new PaginationBaseResponseModel<>());
 
-        // Act
-        leadService.getLeadsInBatches(testLeadRequest);
+        // Act - Call controller directly (simulating authorization has already passed)
+        ResponseEntity<?> response = controller.getLeadsInBatches(testLeadRequest);
 
-        // Assert
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.VIEW_LEADS_PERMISSION);
+        // Assert - Verify service was called and correct response returned
+        verify(leadService, times(1)).getLeadsInBatches(testLeadRequest);
+        assertEquals(HttpStatus.OK, response.getStatusCode(),
+                "Should return HTTP 200 OK");
     }
 }

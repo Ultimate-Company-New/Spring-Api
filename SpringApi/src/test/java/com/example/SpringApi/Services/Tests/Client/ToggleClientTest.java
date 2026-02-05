@@ -1,11 +1,15 @@
 package com.example.SpringApi.Services.Tests.Client;
 
+import com.example.SpringApi.Controllers.ClientController;
+import com.example.SpringApi.Services.ClientService;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.DatabaseModels.Client;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.Optional;
 
@@ -17,7 +21,7 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for ClientService.toggleClient() method.
  * Tests the toggling of client deleted status.
- * * Test Count: 9 tests
+ * * Test Count: 10 tests
  */
 @DisplayName("Toggle Client Tests")
 class ToggleClientTest extends ClientServiceTestBase {
@@ -95,27 +99,6 @@ class ToggleClientTest extends ClientServiceTestBase {
         // Assert
         verify(clientRepository, times(2)).findById(TEST_CLIENT_ID);
         verify(clientRepository, times(2)).save(any(Client.class));
-    }
-
-    /**
-     * Purpose: Verify permission check is performed for DELETE_CLIENT permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Toggle Client - Permission check - Success Verifies Authorization")
-    void toggleClient_PermissionCheck_SuccessVerifiesAuthorization() {
-        // Arrange
-        testClient.setIsDeleted(false);
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
-        lenient().when(authorization.hasAuthority(Authorizations.DELETE_CLIENT_PERMISSION)).thenReturn(true);
-
-        // Act
-        clientService.toggleClient(TEST_CLIENT_ID);
-
-        // Assert
-        verify(authorization, times(1)).hasAuthority(Authorizations.DELETE_CLIENT_PERMISSION);
     }
 
     /*
@@ -210,5 +193,69 @@ class ToggleClientTest extends ClientServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> clientService.toggleClient(zeroId));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     * The following tests verify that authorization is properly configured at the
+     * controller level.
+     * These tests check that @PreAuthorize annotations are present and correctly
+     * configured.
+     */
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation is declared on toggleClient method.
+     * Expected Result: Method has @PreAuthorize annotation with correct permission.
+     * Assertions: Annotation exists and references DELETE_CLIENT_PERMISSION.
+     */
+    @Test
+    @DisplayName("Toggle Client - Verify @PreAuthorize annotation is configured correctly")
+    void toggleClient_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        // Use reflection to verify the @PreAuthorize annotation is present
+        var method = ClientController.class.getMethod("toggleClient",
+                Long.class);
+
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        assertNotNull(preAuthorizeAnnotation,
+                "toggleClient method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.DELETE_CLIENT_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference DELETE_CLIENT_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller calls service when authorization passes
+     * (simulated).
+     * Expected Result: Service method is called and correct HTTP status is
+     * returned.
+     * Assertions: Service called once, HTTP status is correct.
+     * 
+     * Note: This test simulates the happy path assuming authorization has already
+     * passed.
+     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
+     * in end-to-end tests.
+     */
+    @Test
+    @DisplayName("Toggle Client - Controller delegates to service correctly")
+    void toggleClient_WithValidRequest_DelegatesToService() {
+        // Arrange
+        ClientService mockService = mock(ClientService.class);
+        ClientController controller = new ClientController(mockService);
+        doNothing().when(mockService).toggleClient(TEST_CLIENT_ID);
+
+        // Act - Call controller directly (simulating authorization has already passed)
+        ResponseEntity<?> response = controller.toggleClient(TEST_CLIENT_ID);
+
+        // Assert - Verify service was called and correct response returned
+        verify(mockService, times(1)).toggleClient(TEST_CLIENT_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode(),
+                "Should return HTTP 200 OK");
     }
 }

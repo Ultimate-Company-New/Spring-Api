@@ -1,7 +1,9 @@
 package com.example.SpringApi.Services.Tests.PickupLocation;
 
+import com.example.SpringApi.Controllers.PickupLocationController;
 import com.example.SpringApi.Models.ResponseModels.PickupLocationResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.DisplayName;
@@ -9,7 +11,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -55,27 +61,7 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
         assertEquals(1, result.getData().size());
     }
 
-    /**
-     * Purpose: Verify permission check is performed for VIEW_PICKUP_LOCATION permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Get Pickup Locations In Batches - Permission Check - Success Verifies Authorization")
-    void getPickupLocationsInBatches_PermissionCheck_SuccessVerifiesAuthorization() {
-        testPaginationRequest.setStart(0);
-        testPaginationRequest.setEnd(10);
-        Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult = 
-            new PageImpl<>(Collections.singletonList(testPickupLocation));
-        when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-            anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)))
-            .thenReturn(pageResult);
-        lenient().when(authorization.hasAuthority(Authorizations.VIEW_PICKUP_LOCATIONS_PERMISSION)).thenReturn(true);
 
-        pickupLocationService.getPickupLocationsInBatches(testPaginationRequest);
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.VIEW_PICKUP_LOCATIONS_PERMISSION);
-    }
 
     /*
      **********************************************************************************************
@@ -122,5 +108,35 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
         testPaginationRequest.setEnd(5);
         assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.StartIndexMustBeLessThanEnd, 
             () -> pickupLocationService.getPickupLocationsInBatches(testPaginationRequest));
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    @Test
+    @DisplayName("getPickupLocationsInBatches - Verify @PreAuthorize Annotation")
+    void getPickupLocationsInBatches_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = PickupLocationController.class.getMethod("getPickupLocationsInBatches", PaginationBaseRequestModel.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(annotation, "@PreAuthorize annotation should be present on getPickupLocationsInBatches");
+        assertTrue(annotation.value().contains(Authorizations.VIEW_PICKUP_LOCATIONS_PERMISSION),
+                "@PreAuthorize should reference VIEW_PICKUP_LOCATIONS_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("getPickupLocationsInBatches - Controller delegates to service")
+    void getPickupLocationsInBatches_WithValidRequest_DelegatesToService() {
+        PickupLocationController controller = new PickupLocationController(pickupLocationService);
+        PaginationBaseResponseModel<PickupLocationResponseModel> mockResponse = new PaginationBaseResponseModel<>();
+        when(pickupLocationService.getPickupLocationsInBatches(testPaginationRequest))
+                .thenReturn(mockResponse);
+
+        ResponseEntity<?> response = controller.getPickupLocationsInBatches(testPaginationRequest);
+
+        verify(pickupLocationService).getPickupLocationsInBatches(testPaginationRequest);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

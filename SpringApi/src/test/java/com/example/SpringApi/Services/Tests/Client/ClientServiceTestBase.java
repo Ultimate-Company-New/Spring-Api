@@ -1,6 +1,5 @@
 package com.example.SpringApi.Services.Tests.Client;
 
-import com.example.SpringApi.Authentication.Authorization;
 import com.example.SpringApi.Models.DatabaseModels.Client;
 import com.example.SpringApi.Models.DatabaseModels.GoogleCred;
 import com.example.SpringApi.Models.RequestModels.ClientRequestModel;
@@ -27,7 +26,8 @@ import static org.mockito.Mockito.lenient;
 
 /**
  * Base test class for ClientService tests.
- * Contains common mocks, dependencies, and setup logic shared across all ClientService test classes.
+ * Contains common mocks, dependencies, and setup logic shared across all
+ * ClientService test classes.
  */
 @ExtendWith(MockitoExtension.class)
 public abstract class ClientServiceTestBase extends BaseTest {
@@ -46,9 +46,6 @@ public abstract class ClientServiceTestBase extends BaseTest {
 
     @Mock
     protected HttpServletRequest request;
-
-    @Mock
-    protected Authorization authorization;
 
     @InjectMocks
     protected ClientService clientService;

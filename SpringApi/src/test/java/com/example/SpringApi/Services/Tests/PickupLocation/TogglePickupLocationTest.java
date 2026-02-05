@@ -1,9 +1,15 @@
 package com.example.SpringApi.Services.Tests.PickupLocation;
 
+import com.example.SpringApi.Controllers.PickupLocationController;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -43,23 +49,7 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
         verify(pickupLocationRepository, times(2)).save(testPickupLocation);
     }
 
-    /**
-     * Purpose: Verify permission check is performed for DELETE_PICKUP_LOCATION permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Toggle Pickup Location - Permission Check - Success Verifies Authorization")
-    void togglePickupLocation_PermissionCheck_SuccessVerifiesAuthorization() {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                .thenReturn(testPickupLocation);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-        lenient().when(authorization.hasAuthority(Authorizations.DELETE_PICKUP_LOCATIONS_PERMISSION)).thenReturn(true);
 
-        pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.DELETE_PICKUP_LOCATIONS_PERMISSION);
-    }
 
     /**
      * Purpose: Verify toggle from deleted status to active status works correctly.
@@ -171,5 +161,33 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, 
             () -> pickupLocationService.togglePickupLocation(0L));
         assertNotNull(ex.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    @Test
+    @DisplayName("togglePickupLocation - Verify @PreAuthorize Annotation")
+    void togglePickupLocation_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = PickupLocationController.class.getMethod("togglePickupLocation", Long.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(annotation, "@PreAuthorize annotation should be present on togglePickupLocation");
+        assertTrue(annotation.value().contains(Authorizations.DELETE_PICKUP_LOCATIONS_PERMISSION),
+                "@PreAuthorize should reference DELETE_PICKUP_LOCATIONS_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("togglePickupLocation - Controller delegates to service")
+    void togglePickupLocation_WithValidId_DelegatesToService() {
+        PickupLocationController controller = new PickupLocationController(pickupLocationService);
+        doNothing().when(pickupLocationService).togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+
+        ResponseEntity<?> response = controller.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+
+        verify(pickupLocationService).togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 }

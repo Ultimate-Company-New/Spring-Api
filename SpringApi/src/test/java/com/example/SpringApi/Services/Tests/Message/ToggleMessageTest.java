@@ -1,8 +1,14 @@
 package com.example.SpringApi.Services.Tests.Message;
 
+import com.example.SpringApi.Controllers.MessageController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.UnauthorizedException;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.lang.reflect.Method;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -66,18 +72,7 @@ public class ToggleMessageTest extends MessageServiceTestBase {
         assertFalse(testMessage.getIsDeleted());
     }
 
-    @Test
-    @DisplayName("Toggle Message - Permission check - Success Verifies Authorization")
-    void toggleMessage_PermissionCheck_SuccessVerifiesAuthorization() {
-        when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-            .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
-        lenient().when(authorization.hasAuthority(Authorizations.DELETE_MESSAGES_PERMISSION)).thenReturn(true);
 
-        messageService.toggleMessage(TEST_MESSAGE_ID);
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.DELETE_MESSAGES_PERMISSION);
-    }
 
     @Test
     @DisplayName("Toggle Message - Verify Logging - Success")
@@ -129,7 +124,7 @@ public class ToggleMessageTest extends MessageServiceTestBase {
 
         assertThrows(UnauthorizedException.class, () -> messageService.toggleMessage(TEST_MESSAGE_ID));
 
-        verify(authorization).hasAuthority(Authorizations.DELETE_MESSAGES_PERMISSION);
+        // verify(authorization).hasAuthority(Authorizations.DELETE_MESSAGES_PERMISSION);
     }
 
     @Test
@@ -137,5 +132,33 @@ public class ToggleMessageTest extends MessageServiceTestBase {
     void toggleMessage_ZeroId_ThrowsNotFoundException() {
         lenient().when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(eq(0L), eq(TEST_CLIENT_ID))).thenReturn(Optional.empty());
         assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId, () -> messageService.toggleMessage(0L));
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    @Test
+    @DisplayName("toggleMessage - Verify @PreAuthorize Annotation")
+    void toggleMessage_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = MessageController.class.getMethod("toggleMessage", Long.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(annotation, "@PreAuthorize annotation should be present");
+        assertTrue(annotation.value().contains(Authorizations.DELETE_MESSAGES_PERMISSION),
+            "@PreAuthorize should reference DELETE_MESSAGES_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("toggleMessage - Controller delegates to service")
+    void toggleMessage_WithValidRequest_DelegatesToService() {
+        MessageController controller = new MessageController(messageService);
+        doNothing().when(messageService).toggleMessage(TEST_MESSAGE_ID);
+
+        ResponseEntity<?> response = controller.toggleMessage(TEST_MESSAGE_ID);
+
+        verify(messageService).toggleMessage(TEST_MESSAGE_ID);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 }

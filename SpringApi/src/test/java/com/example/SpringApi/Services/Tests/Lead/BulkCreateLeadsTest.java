@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services.Tests.Lead;
 
+import com.example.SpringApi.Controllers.LeadController;
 import com.example.SpringApi.Models.DatabaseModels.Lead;
 import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
 import com.example.SpringApi.Models.Authorizations;
@@ -7,6 +8,8 @@ import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +47,7 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
             leadReq.setEmail("bulklead" + i + "@test.com");
             leadReq.setFirstName("BulkFirst" + i);
             leadReq.setLastName("BulkLast" + i);
-            leadReq.setPhone("555000000" + i); 
+            leadReq.setPhone("555000000" + i);
             leads.add(leadReq);
         }
 
@@ -104,7 +107,8 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
 
     /**
      * Purpose: Verify results for mixed valid and invalid leads.
-     * Expected Result: Valid leads are saved, invalid leads are reported as failures.
+     * Expected Result: Valid leads are saved, invalid leads are reported as
+     * failures.
      * Assertions: Success count and failure count reflect the split input.
      */
     @Test
@@ -115,15 +119,15 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         LeadRequestModel valid1 = createValidLeadRequest(null, TEST_CLIENT_ID);
         valid1.setEmail("valid1@test.com");
         leads.add(valid1);
-        
+
         LeadRequestModel invalid1 = createValidLeadRequest(null, TEST_CLIENT_ID);
         invalid1.setEmail("bademail");
         leads.add(invalid1);
-        
+
         LeadRequestModel valid2 = createValidLeadRequest(null, TEST_CLIENT_ID);
         valid2.setEmail("valid2@test.com");
         leads.add(valid2);
-        
+
         LeadRequestModel invalid2 = createValidLeadRequest(null, TEST_CLIENT_ID);
         invalid2.setPhone("");
         leads.add(invalid2);
@@ -161,7 +165,7 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
             leads.add(validLead);
         }
         LeadRequestModel invalidLead1 = createValidLeadRequest(null, TEST_CLIENT_ID);
-        invalidLead1.setEmail(""); 
+        invalidLead1.setEmail("");
         leads.add(invalidLead1);
 
         when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
@@ -178,26 +182,6 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         assertEquals(4, result.getTotalRequested());
         assertEquals(3, result.getSuccessCount());
         assertEquals(1, result.getFailureCount());
-    }
-
-    /**
-     * Purpose: Verify permission check is performed for INSERT_LEAD permission.
-     * Expected Result: Authorization service verifies INSERT_LEAD permission.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Bulk Create Leads - Permission check - Success Verifies Authorization")
-    void bulkCreateLeads_PermissionCheck_SuccessVerifiesAuthorization() {
-        // Arrange
-        List<LeadRequestModel> leads = new ArrayList<>();
-        leads.add(createValidLeadRequest(null, TEST_CLIENT_ID));
-        lenient().when(authorization.hasAuthority(Authorizations.INSERT_LEADS_PERMISSION)).thenReturn(true);
-
-        // Act
-        leadService.bulkCreateLeads(leads);
-
-        // Assert
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.INSERT_LEADS_PERMISSION);
     }
 
     /**
@@ -283,7 +267,7 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         List<LeadRequestModel> leads = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             LeadRequestModel invalidLead = createValidLeadRequest(null, TEST_CLIENT_ID);
-            invalidLead.setEmail(""); 
+            invalidLead.setEmail("");
             leads.add(invalidLead);
         }
 
@@ -304,8 +288,8 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
     @DisplayName("Bulk Create Leads - Empty List - ThrowsBadRequestException")
     void bulkCreateLeads_EmptyList_ThrowsBadRequestException() {
         // Act & Assert
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> leadService.bulkCreateLeads(new ArrayList<>()));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> leadService.bulkCreateLeads(new ArrayList<>()));
         assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Lead"), ex.getMessage());
     }
 
@@ -361,8 +345,75 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
     @DisplayName("Bulk Create Leads - Null List - ThrowsBadRequestException")
     void bulkCreateLeads_NullList_ThrowsBadRequestException() {
         // Act & Assert
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> leadService.bulkCreateLeads(null));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> leadService.bulkCreateLeads(null));
         assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Lead"), ex.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     * The following tests verify that authorization is properly configured at the
+     * controller level.
+     * These tests check that @PreAuthorize annotations are present and correctly
+     * configured.
+     */
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation is declared on bulkCreateLeads
+     * method.
+     * Expected Result: Method has @PreAuthorize annotation with correct permission.
+     * Assertions: Annotation exists and references INSERT_LEADS_PERMISSION.
+     */
+    @Test
+    @DisplayName("Bulk Create Leads - Verify @PreAuthorize annotation is configured correctly")
+    void bulkCreateLeads_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        // Use reflection to verify the @PreAuthorize annotation is present
+        var method = LeadController.class.getMethod("bulkCreateLeads",
+                java.util.List.class);
+
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        assertNotNull(preAuthorizeAnnotation,
+                "bulkCreateLeads method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.INSERT_LEADS_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference INSERT_LEADS_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller calls service when authorization passes
+     * (simulated).
+     * Expected Result: Service method is called and correct HTTP status is
+     * returned.
+     * Assertions: Service called once, HTTP status is correct.
+     * 
+     * Note: This test simulates the happy path assuming authorization has already
+     * passed.
+     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
+     * in end-to-end tests.
+     */
+    @Test
+    @DisplayName("Bulk Create Leads - Controller delegates to service correctly")
+    void bulkCreateLeads_WithValidRequest_DelegatesToService() {
+        // Arrange
+        LeadController controller = new LeadController(leadService);
+        List<LeadRequestModel> leads = new ArrayList<>();
+        leads.add(createValidLeadRequest(null, TEST_CLIENT_ID));
+        when(leadService.bulkCreateLeads(anyList()))
+                .thenReturn(new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>());
+
+        // Act - Call controller directly (simulating authorization has already passed)
+        ResponseEntity<?> response = controller.bulkCreateLeads(leads);
+
+        // Assert - Verify service was called and correct response returned
+        verify(leadService, times(1)).bulkCreateLeads(leads);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode(),
+                "Should return HTTP 201 Created");
     }
 }

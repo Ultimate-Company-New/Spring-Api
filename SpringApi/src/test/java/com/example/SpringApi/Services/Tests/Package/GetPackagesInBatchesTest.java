@@ -1,9 +1,16 @@
 package com.example.SpringApi.Services.Tests.Package;
 
+import com.example.SpringApi.Controllers.PackageController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PackageResponseModel;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
@@ -30,25 +37,7 @@ class GetPackagesInBatchesTest extends PackageServiceTestBase {
      **********************************************************************************************
      */
 
-    /**
-     * Purpose: Verify permission check is performed for VIEW_PACKAGE permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Get Packages In Batches - Permission Check - Success Verifies Authorization")
-    void getPackagesInBatches_PermissionCheck_SuccessVerifiesAuthorization() {
-        testPaginationRequest.setStart(0);
-        testPaginationRequest.setEnd(10);
-        testPaginationRequest.setFilters(null);
-        Page<com.example.SpringApi.Models.DatabaseModels.Package> page = new PageImpl<>(Arrays.asList(testPackage));
-        when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(page);
-        lenient().when(authorization.hasAuthority(Authorizations.VIEW_PACKAGES_PERMISSION)).thenReturn(true);
 
-        packageService.getPackagesInBatches(testPaginationRequest);
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.VIEW_PACKAGES_PERMISSION);
-    }
 
     /**
      * Purpose: Verify successful retrieval without filters.
@@ -112,5 +101,33 @@ class GetPackagesInBatchesTest extends PackageServiceTestBase {
         testPaginationRequest.setStart(10);
         testPaginationRequest.setEnd(5);
         assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.StartIndexMustBeLessThanEnd, () -> packageService.getPackagesInBatches(testPaginationRequest));
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    @Test
+    @DisplayName("getPackagesInBatches - Verify @PreAuthorize Annotation")
+    void getPackagesInBatches_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = PackageController.class.getMethod("getPackagesInBatches", PaginationBaseRequestModel.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(annotation, "@PreAuthorize annotation should be present");
+        assertTrue(annotation.value().contains(Authorizations.VIEW_PACKAGES_PERMISSION),
+            "@PreAuthorize should reference VIEW_PACKAGES_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("getPackagesInBatches - Controller delegates to service")
+    void getPackagesInBatches_WithValidRequest_DelegatesToService() {
+        PackageController controller = new PackageController(packageService, null);
+        when(packageService.getPackagesInBatches(testPaginationRequest)).thenReturn(new PaginationBaseResponseModel<PackageResponseModel>());
+
+        ResponseEntity<?> response = controller.getPackagesInBatches(testPaginationRequest);
+
+        verify(packageService).getPackagesInBatches(testPaginationRequest);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

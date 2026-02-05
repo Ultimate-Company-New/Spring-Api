@@ -1,9 +1,15 @@
 package com.example.SpringApi.Services.Tests.Package;
 
+import com.example.SpringApi.Controllers.PackageController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
 import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.BadRequestException;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -100,22 +106,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
         assertEquals(1, result.getFailureCount());
     }
 
-    /**
-     * Purpose: Verify permission check is performed for INSERT_PACKAGE permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with INSERT_PACKAGE_PERMISSION.
-     */
-    @Test
-    @DisplayName("Bulk Create Packages - Permission Check - Success Verifies Authorization")
-    void bulkCreatePackages_PermissionCheck_SuccessVerifiesAuthorization() {
-        List<PackageRequestModel> packages = List.of(createValidPackageRequest());
-        lenient().when(authorization.hasAuthority(Authorizations.INSERT_PACKAGES_PERMISSION)).thenReturn(true);
-        when(packageRepository.save(any())).thenReturn(testPackage);
 
-        packageService.bulkCreatePackages(packages);
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.INSERT_PACKAGES_PERMISSION);
-    }
 
     /**
      * Purpose: Verify creation of a single valid package via bulk method.
@@ -273,5 +264,34 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class, 
             () -> packageService.bulkCreatePackages(null));
         assertTrue(exception.getMessage().contains("Package list cannot be null or empty"));
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    @Test
+    @DisplayName("bulkCreatePackages - Verify @PreAuthorize Annotation")
+    void bulkCreatePackages_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = PackageController.class.getMethod("bulkCreatePackages", List.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(annotation, "@PreAuthorize annotation should be present");
+        assertTrue(annotation.value().contains(Authorizations.INSERT_PACKAGES_PERMISSION),
+            "@PreAuthorize should reference INSERT_PACKAGES_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("bulkCreatePackages - Controller delegates to service")
+    void bulkCreatePackages_WithValidRequest_DelegatesToService() {
+        PackageController controller = new PackageController(packageService, null);
+        List<PackageRequestModel> packages = List.of(createValidPackageRequest());
+        when(packageService.bulkCreatePackages(packages)).thenReturn(new BulkInsertResponseModel<>());
+
+        ResponseEntity<?> response = controller.bulkCreatePackages(packages);
+
+        verify(packageService).bulkCreatePackages(packages);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 }

@@ -1,10 +1,14 @@
 package com.example.SpringApi.Services.Tests.Client;
 
+import com.example.SpringApi.Controllers.ClientController;
+import com.example.SpringApi.Services.ClientService;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.DatabaseModels.Client;
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.Collections;
 import java.util.List;
@@ -16,7 +20,7 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for ClientService.getClientsByUser() method.
  * Tests retrieval of all clients for the authenticated user.
- * * Test Count: 21 tests
+ * * Test Count: 22 tests
  */
 @DisplayName("Get Clients By User Tests")
 class GetClientsByUserTest extends ClientServiceTestBase {
@@ -77,7 +81,8 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     }
 
     /**
-     * Purpose: Verify behavior when repository findByUserId returns clients with null ID.
+     * Purpose: Verify behavior when repository findByUserId returns clients with
+     * null ID.
      * Expected Result: ClientResponseModel is created with null ID.
      * Assertions: Response model is created without throwing exception.
      */
@@ -88,7 +93,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         Client clientWithNullId = new Client(testClientRequest, DEFAULT_CREATED_USER);
         clientWithNullId.setClientId(null);
         clientWithNullId.setName("Test Client");
-        
+
         when(clientRepository.findByUserId(anyLong())).thenReturn(List.of(clientWithNullId));
 
         // Act
@@ -101,7 +106,8 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     }
 
     /**
-     * Purpose: Verify behavior when repository findByUserId returns clients with null fields.
+     * Purpose: Verify behavior when repository findByUserId returns clients with
+     * null fields.
      * Expected Result: ClientResponseModel handles null fields gracefully.
      * Assertions: No exception is thrown and null fields are handled.
      */
@@ -112,7 +118,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         Client clientWithNullName = new Client(testClientRequest, DEFAULT_CREATED_USER);
         clientWithNullName.setClientId(1L);
         clientWithNullName.setName(null);
-        
+
         when(clientRepository.findByUserId(anyLong())).thenReturn(List.of(clientWithNullName));
 
         // Act
@@ -126,7 +132,8 @@ class GetClientsByUserTest extends ClientServiceTestBase {
 
     /**
      * Purpose: Verify behavior when client conversion to response model could fail.
-     * Expected Result: Handles conversion errors gracefully or skips problematic entries.
+     * Expected Result: Handles conversion errors gracefully or skips problematic
+     * entries.
      * Assertions: Process completes without throwing exception.
      */
     @Test
@@ -135,7 +142,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         // Arrange
         Client minimalClient = new Client();
         minimalClient.setClientId(1L);
-        
+
         when(clientRepository.findByUserId(anyLong())).thenReturn(List.of(minimalClient));
 
         // Act
@@ -159,7 +166,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         Client specialClient = new Client(testClientRequest, DEFAULT_CREATED_USER);
         specialClient.setClientId(1L);
         specialClient.setName("Client™ 测试 🚀 Ñamé");
-        
+
         when(clientRepository.findByUserId(anyLong())).thenReturn(List.of(specialClient));
 
         // Act
@@ -192,8 +199,10 @@ class GetClientsByUserTest extends ClientServiceTestBase {
 
     /**
      * Purpose: Verify permission checks are considered in the service layer.
-     * Note: Unit tests for the service don't validate HTTP-level permission denials.
-     * Permission enforcement typically happens at the Controller level via @PreAuthorize.
+     * Note: Unit tests for the service don't validate HTTP-level permission
+     * denials.
+     * Permission enforcement typically happens at the Controller level
+     * via @PreAuthorize.
      * This test verifies the service method can be called and returns results.
      * Expected Result: Service returns list of clients.
      * Assertions: Results are non-null.
@@ -329,25 +338,6 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     }
 
     /**
-     * Purpose: Verify permission check is performed for VIEW_CLIENT permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Get Clients By User - Permission check - Success Verifies Authorization")
-    void getClientsByUser_PermissionCheck_SuccessVerifiesAuthorization() {
-        // Arrange
-        when(clientRepository.findByUserId(anyLong())).thenReturn(List.of(testClient));
-        lenient().when(authorization.hasAuthority(Authorizations.VIEW_CLIENT_PERMISSION)).thenReturn(true);
-
-        // Act
-        clientService.getClientsByUser();
-
-        // Assert
-        verify(authorization, times(1)).hasAuthority(Authorizations.VIEW_CLIENT_PERMISSION);
-    }
-
-    /**
      * Purpose: Verify behavior when response list needs to be mutable.
      * Expected Result: Returned list can be modified (standard behavior).
      * Assertions: Can add/remove items from returned list.
@@ -360,7 +350,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
-        
+
         // Assert - Verify list is mutable
         assertNotNull(results, "Results should not be null");
         results.add(new ClientResponseModel(testClient)); // Should not throw exception
@@ -389,7 +379,8 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     }
 
     /**
-     * Purpose: Verify behavior when client list alternates between null and empty scenarios.
+     * Purpose: Verify behavior when client list alternates between null and empty
+     * scenarios.
      * Expected Result: Consistently handles empty cases.
      * Assertions: Both scenarios return empty list.
      */
@@ -411,7 +402,8 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     }
 
     /**
-     * Purpose: Verify behavior when repository findByUserId returns very large dataset.
+     * Purpose: Verify behavior when repository findByUserId returns very large
+     * dataset.
      * Expected Result: All clients are returned without error.
      * Assertions: All 1000 clients are processed and returned.
      */
@@ -475,7 +467,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         when(clientRepository.findByUserId(anyLong())).thenReturn(null);
 
         // Act & Assert
-        assertThrows(NullPointerException.class, 
+        assertThrows(NullPointerException.class,
                 () -> clientService.getClientsByUser(),
                 "Should throw NullPointerException when repository returns null");
     }
@@ -490,7 +482,8 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     void getClientsByUser_RepositoryThrowsDataAccessException_PropagatesException() {
         // Arrange
         when(clientRepository.findByUserId(anyLong()))
-                .thenThrow(new org.springframework.dao.DataAccessException("Database error") {});
+                .thenThrow(new org.springframework.dao.DataAccessException("Database error") {
+                });
 
         // Act & Assert
         assertThrows(org.springframework.dao.DataAccessException.class,
@@ -499,7 +492,8 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     }
 
     /**
-     * Purpose: Verify behavior when clientRepository.findByUserId() throws exception.
+     * Purpose: Verify behavior when clientRepository.findByUserId() throws
+     * exception.
      * Expected Result: Exception from repository is propagated.
      * Assertions: RuntimeException is raised.
      */
@@ -514,6 +508,70 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         assertThrows(RuntimeException.class,
                 () -> clientService.getClientsByUser(),
                 "Should propagate RuntimeException from repository");
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     * The following tests verify that authorization is properly configured at the
+     * controller level.
+     * These tests check that @PreAuthorize annotations are present and correctly
+     * configured.
+     */
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation is declared on getClientsByUser
+     * method.
+     * Expected Result: Method has @PreAuthorize annotation with correct permission.
+     * Assertions: Annotation exists and references VIEW_CLIENT_PERMISSION.
+     */
+    @Test
+    @DisplayName("Get Clients By User - Verify @PreAuthorize annotation is configured correctly")
+    void getClientsByUser_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        // Use reflection to verify the @PreAuthorize annotation is present
+        var method = ClientController.class.getMethod("getClientsByUser");
+
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        assertNotNull(preAuthorizeAnnotation,
+                "getClientsByUser method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.VIEW_CLIENT_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference VIEW_CLIENT_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller calls service when authorization passes
+     * (simulated).
+     * Expected Result: Service method is called and correct HTTP status is
+     * returned.
+     * Assertions: Service called once, HTTP status is correct.
+     * 
+     * Note: This test simulates the happy path assuming authorization has already
+     * passed.
+     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
+     * in end-to-end tests.
+     */
+    @Test
+    @DisplayName("Get Clients By User - Controller delegates to service correctly")
+    void getClientsByUser_WithValidRequest_DelegatesToService() {
+        // Arrange
+        ClientService mockService = mock(ClientService.class);
+        ClientController controller = new ClientController(mockService);
+        when(mockService.getClientsByUser()).thenReturn(Collections.emptyList());
+
+        // Act - Call controller directly (simulating authorization has already passed)
+        ResponseEntity<?> response = controller.getClientsByUser();
+
+        // Assert - Verify service was called and correct response returned
+        verify(mockService, times(1)).getClientsByUser();
+        assertEquals(HttpStatus.OK, response.getStatusCode(),
+                "Should return HTTP 200 OK");
     }
 
 }

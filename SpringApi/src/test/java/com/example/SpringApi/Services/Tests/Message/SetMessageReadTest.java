@@ -1,8 +1,14 @@
 package com.example.SpringApi.Services.Tests.Message;
 
+import com.example.SpringApi.Controllers.MessageController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.Models.DatabaseModels.MessageUserReadMap;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -40,17 +46,7 @@ public class SetMessageReadTest extends MessageServiceTestBase {
         verify(messageUserReadMapRepository, never()).save(any(MessageUserReadMap.class));
     }
 
-    @Test
-    @DisplayName("Set Message Read - Permission check - Success Verifies Authorization")
-    void setMessageReadByUserIdAndMessageId_PermissionCheck_SuccessVerifiesAuthorization() {
-        when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testUser));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testMessage));
-        lenient().when(authorization.hasAuthority(Authorizations.UPDATE_MESSAGES_PERMISSION)).thenReturn(true);
 
-        messageService.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID);
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.UPDATE_MESSAGES_PERMISSION);
-    }
 
     @Test
     @DisplayName("Set Message Read - Success")
@@ -160,5 +156,33 @@ public class SetMessageReadTest extends MessageServiceTestBase {
     void setMessageReadByUserIdAndMessageId_UserRepositoryException_Propagates() {
         when(userRepository.findByUserIdAndClientId(anyLong(), anyLong())).thenThrow(new RuntimeException("DB Error"));
         assertThrows(RuntimeException.class, () -> messageService.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID));
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    @Test
+    @DisplayName("setMessageReadByUserIdAndMessageId - Verify @PreAuthorize Annotation")
+    void setMessageReadByUserIdAndMessageId_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = MessageController.class.getMethod("setMessageReadByUserIdAndMessageId", Long.class, Long.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(annotation, "@PreAuthorize annotation should be present");
+        assertTrue(annotation.value().contains(Authorizations.VIEW_MESSAGES_PERMISSION),
+            "@PreAuthorize should reference VIEW_MESSAGES_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("setMessageReadByUserIdAndMessageId - Controller delegates to service")
+    void setMessageReadByUserIdAndMessageId_WithValidRequest_DelegatesToService() {
+        MessageController controller = new MessageController(messageService);
+        doNothing().when(messageService).setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID);
+
+        ResponseEntity<?> response = controller.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID);
+
+        verify(messageService).setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

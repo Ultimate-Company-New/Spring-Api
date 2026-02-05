@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services.Tests.PickupLocation;
 
+import com.example.SpringApi.Controllers.PickupLocationController;
 import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
@@ -7,7 +8,11 @@ import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -104,23 +109,7 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
         assertEquals(1, result.getFailureCount());
     }
 
-    /**
-     * Purpose: Verify permission check is performed for INSERT_PICKUP_LOCATION permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Bulk Create Pickup Locations - Permission Check - Success Verifies Authorization")
-    void bulkCreatePickupLocations_PermissionCheck_SuccessVerifiesAuthorization() {
-        List<PickupLocationRequestModel> requests = List.of(createValidPickupLocationRequest(1L, TEST_CLIENT_ID));
-        lenient().when(authorization.hasAuthority(Authorizations.INSERT_PICKUP_LOCATIONS_PERMISSION)).thenReturn(true);
-        when(addressRepository.save(any())).thenReturn(testAddress);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
 
-        pickupLocationService.bulkCreatePickupLocations(requests);
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.INSERT_PICKUP_LOCATIONS_PERMISSION);
-    }
 
     /**
      * Purpose: Verify creation of a single valid location via bulk method.
@@ -298,5 +287,35 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
         req.setAddress(address);
         req.setIsDeleted(false);
         return req;
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    @Test
+    @DisplayName("bulkCreatePickupLocations - Verify @PreAuthorize Annotation")
+    void bulkCreatePickupLocations_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = PickupLocationController.class.getMethod("bulkCreatePickupLocations", List.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(annotation, "@PreAuthorize annotation should be present on bulkCreatePickupLocations");
+        assertTrue(annotation.value().contains(Authorizations.INSERT_PICKUP_LOCATIONS_PERMISSION),
+                "@PreAuthorize should reference INSERT_PICKUP_LOCATIONS_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("bulkCreatePickupLocations - Controller delegates to service")
+    void bulkCreatePickupLocations_WithValidRequests_DelegatesToService() {
+        PickupLocationController controller = new PickupLocationController(pickupLocationService);
+        List<PickupLocationRequestModel> requests = List.of(createValidPickupLocationRequest(1L, TEST_CLIENT_ID));
+        BulkInsertResponseModel<Long> mockResponse = new BulkInsertResponseModel<>();
+        when(pickupLocationService.bulkCreatePickupLocations(requests)).thenReturn(mockResponse);
+
+        ResponseEntity<?> response = controller.bulkCreatePickupLocations(requests);
+
+        verify(pickupLocationService).bulkCreatePickupLocations(requests);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 }

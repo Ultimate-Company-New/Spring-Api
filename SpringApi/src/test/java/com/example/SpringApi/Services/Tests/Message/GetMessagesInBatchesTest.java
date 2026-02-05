@@ -1,5 +1,8 @@
 package com.example.SpringApi.Services.Tests.Message;
 
+import com.example.SpringApi.Controllers.MessageController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.Models.ResponseModels.MessageResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
@@ -11,7 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,7 +26,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for MessageService.getMessagesInBatches method.
- * * Test Count: 2 tests
+ * * Test Count: 4 tests
  */
 @DisplayName("GetMessagesInBatches Tests")
 public class GetMessagesInBatchesTest extends MessageServiceTestBase {
@@ -82,23 +87,48 @@ public class GetMessagesInBatchesTest extends MessageServiceTestBase {
         }
     }
 
-    /**
-     * Purpose: Verify permission check is performed for VIEW_MESSAGE permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
+
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
      */
+
     @Test
-    @DisplayName("Get Messages In Batches - Permission check - Success Verifies Authorization")
-    void getMessagesInBatches_PermissionCheck_SuccessVerifiesAuthorization() {
-        PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
-        paginationRequest.setFilters(null);
+    @DisplayName("getMessagesInBatches - Verify @PreAuthorize annotation")
+    void getMessagesInBatches_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = MessageController.class.getMethod(
+            "getMessagesInBatches",
+            PaginationBaseRequestModel.class
+        );
+        
+        PreAuthorize preAuthorizeAnnotation = method.getAnnotation(PreAuthorize.class);
+        
+        assertNotNull(preAuthorizeAnnotation, 
+            "getMessagesInBatches method should have @PreAuthorize annotation");
+        
+        String expectedPermission = "@customAuthorization.hasAuthority('"+ 
+            Authorizations.VIEW_MESSAGES_PERMISSION +"')";
+        
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+            "PreAuthorize annotation should reference VIEW_MESSAGES_PERMISSION");
+    }
 
-        lenient().when(messageRepository.findPaginatedMessages(anyLong(), any(), any(), any(), anyBoolean(), any(Pageable.class)))
-            .thenReturn(new PageImpl<>(Arrays.asList(testMessage)));
-        lenient().when(authorization.hasAuthority(Authorizations.VIEW_MESSAGES_PERMISSION)).thenReturn(true);
+    @Test
+    @DisplayName("getMessagesInBatches - Controller delegates to service correctly")
+    void getMessagesInBatches_WithValidRequest_DelegatesToService() {
+        MessageController controller = new MessageController(messageService);
+        PaginationBaseRequestModel request = createValidPaginationRequest();
+        request.setFilters(null);
+        
+        PaginationBaseResponseModel<MessageResponseModel> mockResponse = new PaginationBaseResponseModel<>();
+        when(messageService.getMessagesInBatches(any(PaginationBaseRequestModel.class))).thenReturn(mockResponse);
 
-        messageService.getMessagesInBatches(paginationRequest);
+        ResponseEntity<?> response = controller.getMessagesInBatches(request);
 
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.VIEW_MESSAGES_PERMISSION);
+        verify(messageService, times(1)).getMessagesInBatches(request);
+        assertEquals(HttpStatus.OK, response.getStatusCode(),
+            "Should return HTTP 200 OK");
     }
 }

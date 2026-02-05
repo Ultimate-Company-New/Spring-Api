@@ -1,5 +1,7 @@
 package com.example.SpringApi.Services.Tests.Client;
 
+import com.example.SpringApi.Controllers.ClientController;
+import com.example.SpringApi.Services.ClientService;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.BadRequestException;
@@ -10,6 +12,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedConstruction;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
@@ -21,7 +25,7 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for ClientService.createClient() method.
  * Tests client creation with various scenarios including logo uploads.
- * * Test Count: 31 tests
+ * * Test Count: 32 tests
  */
 @DisplayName("Create Client Tests")
 class CreateClientTest extends ClientServiceTestBase {
@@ -155,27 +159,6 @@ class CreateClientTest extends ClientServiceTestBase {
 
         // Assert
         verify(googleCredRepository, never()).findById(any());
-    }
-
-    /**
-     * Purpose: Verify permission check is performed for INSERT_CLIENT permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Create Client - Permission check - Success Verifies Authorization")
-    void createClient_PermissionCheck_SuccessVerifiesAuthorization() {
-        // Arrange
-        testClientRequest.setLogoBase64(null);
-        when(clientRepository.existsByName(testClientRequest.getName())).thenReturn(false);
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
-        lenient().when(authorization.hasAuthority(Authorizations.INSERT_CLIENT_PERMISSION)).thenReturn(true);
-
-        // Act
-        clientService.createClient(testClientRequest);
-
-        // Assert
-        verify(authorization, times(1)).hasAuthority(Authorizations.INSERT_CLIENT_PERMISSION);
     }
 
     /**
@@ -357,7 +340,8 @@ class CreateClientTest extends ClientServiceTestBase {
         testClientRequest.setDescription("");
         when(clientRepository.existsByName(anyString())).thenReturn(false);
 
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.createClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.createClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidDescription, ex.getMessage());
     }
 
@@ -370,7 +354,8 @@ class CreateClientTest extends ClientServiceTestBase {
     @DisplayName("Create Client - Empty Name - ThrowsBadRequestException")
     void createClient_EmptyName_ThrowsBadRequestException() {
         testClientRequest.setName("");
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.createClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.createClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidName, ex.getMessage());
     }
 
@@ -385,7 +370,8 @@ class CreateClientTest extends ClientServiceTestBase {
         testClientRequest.setSupportEmail("");
         when(clientRepository.existsByName(anyString())).thenReturn(false);
 
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.createClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.createClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidSupportEmail, ex.getMessage());
     }
 
@@ -400,7 +386,8 @@ class CreateClientTest extends ClientServiceTestBase {
         testClientRequest.setWebsite("");
         when(clientRepository.existsByName(anyString())).thenReturn(false);
 
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.createClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.createClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidWebsite, ex.getMessage());
     }
 
@@ -509,7 +496,8 @@ class CreateClientTest extends ClientServiceTestBase {
         testClientRequest.setDescription(null);
         when(clientRepository.existsByName(anyString())).thenReturn(false);
 
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.createClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.createClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidDescription, ex.getMessage());
     }
 
@@ -522,7 +510,8 @@ class CreateClientTest extends ClientServiceTestBase {
     @DisplayName("Create Client - Null Name - ThrowsBadRequestException")
     void createClient_NullName_ThrowsBadRequestException() {
         testClientRequest.setName(null);
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.createClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.createClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidName, ex.getMessage());
     }
 
@@ -548,7 +537,8 @@ class CreateClientTest extends ClientServiceTestBase {
         testClientRequest.setSupportEmail(null);
         when(clientRepository.existsByName(anyString())).thenReturn(false);
 
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.createClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.createClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidSupportEmail, ex.getMessage());
     }
 
@@ -563,7 +553,8 @@ class CreateClientTest extends ClientServiceTestBase {
         testClientRequest.setWebsite(null);
         when(clientRepository.existsByName(anyString())).thenReturn(false);
 
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.createClient(testClientRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> clientService.createClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidWebsite, ex.getMessage());
     }
 
@@ -624,5 +615,70 @@ class CreateClientTest extends ClientServiceTestBase {
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidWebsite, ex.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     * The following tests verify that authorization is properly configured at the
+     * controller level.
+     * These tests check that @PreAuthorize annotations are present and correctly
+     * configured.
+     */
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation is declared on createClient method.
+     * Expected Result: Method has @PreAuthorize annotation with correct permission.
+     * Assertions: Annotation exists and references INSERT_CLIENT_PERMISSION.
+     */
+    @Test
+    @DisplayName("Create Client - Verify @PreAuthorize annotation is configured correctly")
+    void createClient_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        // Use reflection to verify the @PreAuthorize annotation is present
+        var method = ClientController.class.getMethod("createClient",
+                com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
+
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        assertNotNull(preAuthorizeAnnotation,
+                "createClient method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.INSERT_CLIENT_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference INSERT_CLIENT_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller calls service when authorization passes
+     * (simulated).
+     * Expected Result: Service method is called and correct HTTP status is
+     * returned.
+     * Assertions: Service called once, HTTP status is correct.
+     * 
+     * Note: This test simulates the happy path assuming authorization has already
+     * passed.
+     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
+     * in end-to-end tests.
+     */
+    @Test
+    @DisplayName("Create Client - Controller delegates to service correctly")
+    void createClient_WithValidRequest_DelegatesToService() {
+        // Arrange
+        ClientService mockService = mock(ClientService.class);
+        ClientController controller = new ClientController(mockService);
+        doNothing().when(mockService)
+                .createClient(any(com.example.SpringApi.Models.RequestModels.ClientRequestModel.class));
+
+        // Act - Call controller directly (simulating authorization has already passed)
+        ResponseEntity<?> response = controller.createClient(testClientRequest);
+
+        // Assert - Verify service was called and correct response returned
+        verify(mockService, times(1)).createClient(testClientRequest);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode(),
+                "Should return HTTP 201 Created");
     }
 }

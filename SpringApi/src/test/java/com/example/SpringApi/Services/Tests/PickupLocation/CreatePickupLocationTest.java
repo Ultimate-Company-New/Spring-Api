@@ -1,8 +1,15 @@
 package com.example.SpringApi.Services.Tests.PickupLocation;
 
+import com.example.SpringApi.Controllers.PickupLocationController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -40,22 +47,7 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
         assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
     }
 
-    /**
-     * Purpose: Verify permission check is performed for INSERT_PICKUP_LOCATION permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Create Pickup Location - Permission Check - Success Verifies Authorization")
-    void createPickupLocation_PermissionCheck_SuccessVerifiesAuthorization() throws Exception {
-        when(addressRepository.save(any())).thenReturn(testAddress);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-        lenient().when(authorization.hasAuthority(Authorizations.INSERT_PICKUP_LOCATIONS_PERMISSION)).thenReturn(true);
 
-        pickupLocationService.createPickupLocation(testPickupLocationRequest);
-
-        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.INSERT_PICKUP_LOCATIONS_PERMISSION);
-    }
 
     /**
      * Purpose: Verify basic success scenario where location is saved.
@@ -306,5 +298,33 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
         BadRequestException ex = assertThrows(BadRequestException.class, 
             () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER001, ex.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    @Test
+    @DisplayName("createPickupLocation - Verify @PreAuthorize Annotation")
+    void createPickupLocation_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        Method method = PickupLocationController.class.getMethod("createPickupLocation", PickupLocationRequestModel.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(annotation, "@PreAuthorize annotation should be present");
+        assertTrue(annotation.value().contains(Authorizations.INSERT_PICKUP_LOCATIONS_PERMISSION),
+            "@PreAuthorize should reference INSERT_PICKUP_LOCATIONS_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("createPickupLocation - Controller delegates to service")
+    void createPickupLocation_WithValidRequest_DelegatesToService() throws Exception {
+        PickupLocationController controller = new PickupLocationController(pickupLocationService);
+        doNothing().when(pickupLocationService).createPickupLocation(testPickupLocationRequest);
+
+        ResponseEntity<?> response = controller.createPickupLocation(testPickupLocationRequest);
+
+        verify(pickupLocationService).createPickupLocation(testPickupLocationRequest);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 }

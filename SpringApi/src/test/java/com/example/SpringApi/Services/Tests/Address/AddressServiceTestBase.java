@@ -9,7 +9,6 @@ import com.example.SpringApi.Repositories.ClientRepository;
 import com.example.SpringApi.Repositories.UserRepository;
 import com.example.SpringApi.Services.AddressService;
 import com.example.SpringApi.Services.UserLogService;
-import com.example.SpringApi.Authentication.Authorization;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,9 +41,6 @@ class AddressServiceTestBase extends BaseTest {
 
     @Mock
     protected HttpServletRequest request;
-
-    @Mock
-    protected Authorization authorization;
 
     @Spy
     @InjectMocks

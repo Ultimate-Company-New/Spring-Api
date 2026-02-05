@@ -1,11 +1,14 @@
 package com.example.SpringApi.Services.Tests.Address;
 
+import com.example.SpringApi.Controllers.AddressController;
 import com.example.SpringApi.Models.ResponseModels.AddressResponseModel;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.Optional;
 
@@ -15,7 +18,7 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for AddressService.getAddressById() method.
  * Tests retrieval of address by ID with various scenarios.
- * * Test Count: 9 tests
+ * * Test Count: 10 tests
  */
 @DisplayName("Get Address By ID Tests")
 class GetAddressByIdTest extends AddressServiceTestBase {
@@ -82,25 +85,6 @@ class GetAddressByIdTest extends AddressServiceTestBase {
         assertNull(result.getStreetAddress3());
     }
 
-    /**
-     * Purpose: Verify permission check is performed for VIEW_ADDRESS permission.
-     * Expected Result: Authorization service is called to check permissions.
-     * Assertions: authorization.hasAuthority() is called with correct permission.
-     */
-    @Test
-    @DisplayName("Get Address By ID - Permission check - Success Verifies Authorization")
-    void getAddressById_PermissionCheck_SuccessVerifiesAuthorization() {
-        // Arrange
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        lenient().when(authorization.hasAuthority(Authorizations.VIEW_ADDRESS_PERMISSION)).thenReturn(true);
-
-        // Act
-        addressService.getAddressById(DEFAULT_ADDRESS_ID);
-
-        // Assert
-        verify(authorization, times(1)).hasAuthority(Authorizations.VIEW_ADDRESS_PERMISSION);
-    }
-
     /*
      **********************************************************************************************
      * FAILURE / EXCEPTION TESTS
@@ -140,7 +124,8 @@ class GetAddressByIdTest extends AddressServiceTestBase {
         when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound, () -> addressService.getAddressById(DEFAULT_ADDRESS_ID));
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+                () -> addressService.getAddressById(DEFAULT_ADDRESS_ID));
         verify(addressRepository, times(1)).findById(DEFAULT_ADDRESS_ID);
     }
 
@@ -153,7 +138,8 @@ class GetAddressByIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By ID - Max Long value - ThrowsNotFoundException")
     void getAddressById_MaxLongValue_ThrowsNotFoundException() {
         when(addressRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound, () -> addressService.getAddressById(Long.MAX_VALUE));
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+                () -> addressService.getAddressById(Long.MAX_VALUE));
     }
 
     /**
@@ -165,7 +151,8 @@ class GetAddressByIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By ID - Min Long value - ThrowsNotFoundException")
     void getAddressById_MinLongValue_ThrowsNotFoundException() {
         when(addressRepository.findById(Long.MIN_VALUE)).thenReturn(Optional.empty());
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound, () -> addressService.getAddressById(Long.MIN_VALUE));
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+                () -> addressService.getAddressById(Long.MIN_VALUE));
     }
 
     /**
@@ -178,7 +165,8 @@ class GetAddressByIdTest extends AddressServiceTestBase {
     void getAddressById_NegativeId_ThrowsNotFoundException() {
         long negativeId = -1L;
         when(addressRepository.findById(negativeId)).thenReturn(Optional.empty());
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound, () -> addressService.getAddressById(negativeId));
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+                () -> addressService.getAddressById(negativeId));
     }
 
     /**
@@ -192,5 +180,73 @@ class GetAddressByIdTest extends AddressServiceTestBase {
         long zeroId = 0L;
         when(addressRepository.findById(zeroId)).thenReturn(Optional.empty());
         assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound, () -> addressService.getAddressById(zeroId));
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     * The following tests verify that authorization is properly configured at the
+     * controller level.
+     * These tests check that @PreAuthorize annotations are present and correctly
+     * configured.
+     */
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation is declared on getAddressById
+     * method.
+     * Expected Result: Method has @PreAuthorize annotation with correct permission.
+     * Assertions: Annotation exists and references VIEW_ADDRESS_PERMISSION.
+     */
+    @Test
+    @DisplayName("Get Address By ID - Verify @PreAuthorize annotation is configured correctly")
+    void getAddressById_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        // Use reflection to verify the @PreAuthorize annotation is present
+        var method = AddressController.class.getMethod("getAddressById",
+                Long.class);
+
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        assertNotNull(preAuthorizeAnnotation,
+                "getAddressById method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.VIEW_ADDRESS_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference VIEW_ADDRESS_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller calls service when authorization passes
+     * (simulated).
+     * Expected Result: Service method is called and correct HTTP status is
+     * returned.
+     * Assertions: Service called once, HTTP status is correct.
+     * 
+     * Note: This test simulates the happy path assuming authorization has already
+     * passed.
+     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
+     * in end-to-end tests.
+     */
+    @Test
+    @DisplayName("Get Address By ID - Controller delegates to service correctly")
+    void getAddressById_WithValidRequest_DelegatesToService() {
+        // Arrange
+        AddressResponseModel mockResponse = new AddressResponseModel();
+        mockResponse.setAddressId(DEFAULT_ADDRESS_ID);
+        mockResponse.setUserId(DEFAULT_USER_ID);
+
+        doReturn(mockResponse).when(addressService).getAddressById(DEFAULT_ADDRESS_ID);
+        AddressController controller = new AddressController(addressService);
+
+        // Act - Call controller directly (simulating authorization has already passed)
+        ResponseEntity<?> response = controller.getAddressById(DEFAULT_ADDRESS_ID);
+
+        // Assert - Verify service was called and correct response returned
+        verify(addressService, times(1)).getAddressById(DEFAULT_ADDRESS_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode(),
+                "Should return HTTP 200 OK");
     }
 }
