@@ -1,0 +1,175 @@
+package com.example.SpringApi.Services.Tests.PickupLocation;
+
+import com.example.SpringApi.Models.Authorizations;
+import com.example.SpringApi.Exceptions.NotFoundException;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+/**
+ * Unit tests for PickupLocationService.togglePickupLocation() method.
+ * * Test Count: 9 tests
+ */
+@DisplayName("Toggle Pickup Location Tests")
+class TogglePickupLocationTest extends PickupLocationServiceTestBase {
+
+    /*
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify multiple toggles correctly persist state alternating between true and false.
+     * Expected Result: State transition: Active -> Deleted -> Active.
+     * Assertions: isDeleted matches expected state after each toggle.
+     */
+    @Test
+    @DisplayName("Toggle Pickup Location - Multiple Toggles - Success")
+    void togglePickupLocation_MultipleToggles_Success() {
+        testPickupLocation.setIsDeleted(false);
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                .thenReturn(testPickupLocation);
+        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+
+        pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+        assertTrue(testPickupLocation.getIsDeleted());
+
+        pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+        assertFalse(testPickupLocation.getIsDeleted());
+        verify(pickupLocationRepository, times(2)).save(testPickupLocation);
+    }
+
+    /**
+     * Purpose: Verify permission check is performed for DELETE_PICKUP_LOCATION permission.
+     * Expected Result: Authorization service is called to check permissions.
+     * Assertions: authorization.hasAuthority() is called with correct permission.
+     */
+    @Test
+    @DisplayName("Toggle Pickup Location - Permission Check - Success Verifies Authorization")
+    void togglePickupLocation_PermissionCheck_SuccessVerifiesAuthorization() {
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                .thenReturn(testPickupLocation);
+        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+        lenient().when(authorization.hasAuthority(Authorizations.DELETE_PICKUP_LOCATIONS_PERMISSION)).thenReturn(true);
+
+        pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+
+        verify(authorization, atLeastOnce()).hasAuthority(Authorizations.DELETE_PICKUP_LOCATIONS_PERMISSION);
+    }
+
+    /**
+     * Purpose: Verify toggle from deleted status to active status works correctly.
+     * Expected Result: isDeleted changes from true to false.
+     * Assertions: result is active (false).
+     */
+    @Test
+    @DisplayName("Toggle Pickup Location - Restore from Deleted - Success")
+    void togglePickupLocation_RestoreFromDeleted_Success() {
+        testPickupLocation.setIsDeleted(true);
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                .thenReturn(testPickupLocation);
+        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+
+        pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+
+        assertFalse(testPickupLocation.getIsDeleted());
+    }
+
+    /**
+     * Purpose: Verify successful toggle of pickup location deleted status.
+     * Expected Result: Pickup location isDeleted flag is toggled, save is called.
+     * Assertions: isDeleted is true after toggle, repository save is called.
+     */
+    @Test
+    @DisplayName("Toggle Pickup Location - Success")
+    void togglePickupLocation_Success() {
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                .thenReturn(testPickupLocation);
+        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+
+        pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+
+        assertTrue(testPickupLocation.getIsDeleted());
+        verify(pickupLocationRepository, times(1)).save(testPickupLocation);
+    }
+
+    /*
+     **********************************************************************************************
+     * FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Reject toggle attempts for the maximum possible long ID if not found.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message is not null.
+     */
+    @Test
+    @DisplayName("Toggle Pickup Location - Max Long ID - Throws NotFoundException")
+    void togglePickupLocation_MaxLongId_ThrowsNotFoundException() {
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class, 
+            () -> pickupLocationService.togglePickupLocation(Long.MAX_VALUE));
+        assertNotNull(ex.getMessage());
+    }
+
+    /**
+     * Purpose: Reject toggle attempts for the minimum possible long ID if not found.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message is not null.
+     */
+    @Test
+    @DisplayName("Toggle Pickup Location - Min Long ID - Throws NotFoundException")
+    void togglePickupLocation_MinLongId_ThrowsNotFoundException() {
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class, 
+            () -> pickupLocationService.togglePickupLocation(Long.MIN_VALUE));
+        assertNotNull(ex.getMessage());
+    }
+
+    /**
+     * Purpose: Reject toggle attempts for negative IDs.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message is not null.
+     */
+    @Test
+    @DisplayName("Toggle Pickup Location - Negative ID - Throws NotFoundException")
+    void togglePickupLocation_NegativeId_ThrowsNotFoundException() {
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(-100L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class, 
+            () -> pickupLocationService.togglePickupLocation(-100L));
+        assertNotNull(ex.getMessage());
+    }
+
+    /**
+     * Purpose: Reject toggle attempts when the pickup location is not found.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception is thrown.
+     */
+    @Test
+    @DisplayName("Toggle Pickup Location - Not Found - Throws NotFoundException")
+    void togglePickupLocation_NotFound_ThrowsNotFoundException() {
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                .thenReturn(null);
+        assertThrows(NotFoundException.class, 
+            () -> pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID));
+    }
+
+    /**
+     * Purpose: Reject toggle attempts for a zero ID.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message is not null.
+     */
+    @Test
+    @DisplayName("Toggle Pickup Location - Zero ID - Throws NotFoundException")
+    void togglePickupLocation_ZeroId_ThrowsNotFoundException() {
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
+        NotFoundException ex = assertThrows(NotFoundException.class, 
+            () -> pickupLocationService.togglePickupLocation(0L));
+        assertNotNull(ex.getMessage());
+    }
+}

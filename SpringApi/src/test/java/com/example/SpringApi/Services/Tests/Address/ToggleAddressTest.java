@@ -1,0 +1,280 @@
+package com.example.SpringApi.Services.Tests.Address;
+
+import com.example.SpringApi.Models.DatabaseModels.Address;
+import com.example.SpringApi.Models.Authorizations;
+import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.ErrorMessages;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+/**
+ * Unit tests for AddressService.toggleAddress() method.
+ * Tests toggle functionality including state changes and error handling.
+ * * Test Count: 11 tests
+ */
+@DisplayName("Toggle Address Tests")
+class ToggleAddressTest extends AddressServiceTestBase {
+
+    /*
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify toggle from active to deleted state.
+     * Expected Result: Address is saved with isDeleted set to true.
+     * Assertions: State change and repository interactions verified.
+     */
+    @Test
+    @DisplayName("Toggle Address - Address found and active - Success toggles to deleted")
+    void toggleAddress_AddressFoundActive_Success() {
+        // Arrange
+        testAddress.setIsDeleted(false);
+        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+        // Act
+        assertDoesNotThrow(() -> addressService.toggleAddress(DEFAULT_ADDRESS_ID));
+
+        // Assert
+        assertTrue(testAddress.getIsDeleted());
+        verify(addressRepository, times(1)).findById(DEFAULT_ADDRESS_ID);
+        verify(addressRepository, times(1)).save(any(Address.class));
+        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
+    }
+
+    /**
+     * Purpose: Verify toggle from deleted to active state.
+     * Expected Result: Address is saved with isDeleted set to false.
+     * Assertions: State change and repository interactions verified.
+     */
+    @Test
+    @DisplayName("Toggle Address - Address found and deleted - Success toggles to active")
+    void toggleAddress_AddressFoundDeleted_Success() {
+        // Arrange
+        testAddress.setIsDeleted(true);
+        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+        // Act
+        assertDoesNotThrow(() -> addressService.toggleAddress(DEFAULT_ADDRESS_ID));
+
+        // Assert
+        assertFalse(testAddress.getIsDeleted());
+        verify(addressRepository, times(1)).findById(DEFAULT_ADDRESS_ID);
+        verify(addressRepository, times(1)).save(any(Address.class));
+    }
+
+    /**
+     * Purpose: Verify explicit state transitions through multiple toggles.
+     * Expected Result: State toggles correctly on each call.
+     * Assertions: Final state and interaction counts match expectations.
+     */
+    @Test
+    @DisplayName("Toggle Address - Multiple Toggles - State Transitions")
+    void toggleAddress_MultipleToggles_StateTransitions() {
+        testAddress.setIsDeleted(false);
+        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+
+        // First toggle: false -> true
+        addressService.toggleAddress(DEFAULT_ADDRESS_ID);
+        assertTrue(testAddress.getIsDeleted());
+
+        // Second toggle: true -> false
+        testAddress.setIsDeleted(true);
+        addressService.toggleAddress(DEFAULT_ADDRESS_ID);
+        assertFalse(testAddress.getIsDeleted());
+
+        verify(addressRepository, times(2)).save(any(Address.class));
+    }
+
+    /**
+     * Purpose: Verify multiple toggles in sequence successfully update the repository.
+     * Expected Result: repository.save is called for each toggle.
+     * Assertions: Repository interactions verified for both calls.
+     */
+    @Test
+    @DisplayName("Toggle Address - Multiple toggles in sequence - Success")
+    void toggleAddress_MultipleToggles_Success() {
+        // Arrange
+        testAddress.setIsDeleted(false);
+        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+        // Act - First toggle
+        assertDoesNotThrow(() -> addressService.toggleAddress(DEFAULT_ADDRESS_ID));
+        assertTrue(testAddress.getIsDeleted());
+
+        // Act - Second toggle
+        assertDoesNotThrow(() -> addressService.toggleAddress(DEFAULT_ADDRESS_ID));
+        assertFalse(testAddress.getIsDeleted());
+
+        // Assert
+        verify(addressRepository, times(2)).findById(DEFAULT_ADDRESS_ID);
+        verify(addressRepository, times(2)).save(any(Address.class));
+    }
+
+    /**
+     * Purpose: Verify permission check is performed for DELETE_ADDRESS permission.
+     * Expected Result: Authorization service is called to check permissions.
+     * Assertions: authorization.hasAuthority() is called with correct permission.
+     */
+    @Test
+    @DisplayName("Toggle Address - Permission check - Success Verifies Authorization")
+    void toggleAddress_PermissionCheck_SuccessVerifiesAuthorization() {
+        // Arrange
+        testAddress.setIsDeleted(false);
+        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        lenient().when(authorization.hasAuthority(Authorizations.DELETE_ADDRESS_PERMISSION)).thenReturn(true);
+
+        // Act
+        addressService.toggleAddress(DEFAULT_ADDRESS_ID);
+
+        // Assert
+        verify(authorization, times(1)).hasAuthority(Authorizations.DELETE_ADDRESS_PERMISSION);
+    }
+
+    /**
+     * Purpose: Specifically verify active to deleted state change in logs.
+     * Expected Result: Success log entry is created.
+     * Assertions: logData is invoked.
+     */
+    @Test
+    @DisplayName("Toggle Address - Verify toggle state changes - Active to Deleted")
+    void toggleAddress_StateChange_ActiveToDeleted() {
+        // Arrange
+        testAddress.setIsDeleted(false);
+        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+        // Act
+        assertDoesNotThrow(() -> addressService.toggleAddress(DEFAULT_ADDRESS_ID));
+
+        // Assert
+        assertTrue(testAddress.getIsDeleted());
+        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
+    }
+
+    /**
+     * Purpose: Specifically verify deleted to active state change in logs.
+     * Expected Result: Success log entry is created.
+     * Assertions: logData is invoked.
+     */
+    @Test
+    @DisplayName("Toggle Address - Verify toggle state changes - Deleted to Active")
+    void toggleAddress_StateChange_DeletedToActive() {
+        // Arrange
+        testAddress.setIsDeleted(true);
+        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+
+        // Act
+        assertDoesNotThrow(() -> addressService.toggleAddress(DEFAULT_ADDRESS_ID));
+
+        // Assert
+        assertFalse(testAddress.getIsDeleted());
+        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
+    }
+
+    /*
+     **********************************************************************************************
+     * FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Validate missing address ID throws NotFound.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Error message matches expectations and save is never called.
+     */
+    @Test
+    @DisplayName("Toggle Address - Address not found - ThrowsNotFoundException")
+    void toggleAddress_AddressNotFound_ThrowsNotFoundException() {
+        // Arrange
+        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        NotFoundException exception = assertThrows(
+                NotFoundException.class,
+                () -> addressService.toggleAddress(DEFAULT_ADDRESS_ID));
+
+        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
+        verify(addressRepository, times(1)).findById(DEFAULT_ADDRESS_ID);
+        verify(addressRepository, never()).save(any(Address.class));
+        verify(userLogService, never()).logData(anyLong(), anyString(), anyString());
+    }
+
+    /**
+     * Purpose: Validate min long ID throws NotFound.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Error message matches expectations.
+     */
+    @Test
+    @DisplayName("Toggle Address - Min Long value - ThrowsNotFoundException")
+    void toggleAddress_MinLongValue_ThrowsNotFoundException() {
+        // Arrange
+        when(addressRepository.findById(Long.MIN_VALUE)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        NotFoundException exception = assertThrows(
+                NotFoundException.class,
+                () -> addressService.toggleAddress(Long.MIN_VALUE));
+
+        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Validate negative ID throws NotFound.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Error message matches expectations.
+     */
+    @Test
+    @DisplayName("Toggle Address - Negative ID - ThrowsNotFoundException")
+    void toggleAddress_NegativeId_ThrowsNotFoundException() {
+        // Arrange
+        long negativeId = -1L;
+        when(addressRepository.findById(negativeId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        NotFoundException exception = assertThrows(
+                NotFoundException.class,
+                () -> addressService.toggleAddress(negativeId));
+
+        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Validate zero ID throws NotFound.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Error message matches expectations.
+     */
+    @Test
+    @DisplayName("Toggle Address - Zero ID - ThrowsNotFoundException")
+    void toggleAddress_ZeroId_ThrowsNotFoundException() {
+        // Arrange
+        long zeroId = 0L;
+        when(addressRepository.findById(zeroId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        NotFoundException exception = assertThrows(
+                NotFoundException.class,
+                () -> addressService.toggleAddress(zeroId));
+
+        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
+    }
+}

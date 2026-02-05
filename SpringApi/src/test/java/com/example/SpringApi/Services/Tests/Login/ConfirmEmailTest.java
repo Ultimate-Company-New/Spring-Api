@@ -1,0 +1,172 @@
+package com.example.SpringApi.Services.Tests.Login;
+
+import com.example.SpringApi.Models.DatabaseModels.User;
+import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.Exceptions.UnauthorizedException;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+/**
+ * Unit tests for ConfirmEmail functionality in LoginService.
+ * Test Count: 7 tests
+ */
+@DisplayName("Confirm Email Tests")
+public class ConfirmEmailTest extends LoginServiceTestBase {
+
+    /*
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Validate successful email confirmation with a valid token.
+     * Expected Result: User email is confirmed and persisted.
+     * Assertions: Repository save is invoked and no exception is thrown.
+     */
+    @Test
+    @DisplayName("Confirm Email - Success - Should confirm user email")
+    void confirmEmail_Success() {
+        // Arrange
+        testUser.setEmailConfirmed(false);
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+
+        // Act
+        assertDoesNotThrow(() -> loginService.confirmEmail(testLoginRequest));
+
+        // Assert
+        verify(userRepository, times(1)).findById(TEST_USER_ID);
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    /**
+     * Purpose: Verify confirmation clears token on success.
+     * Expected Result: Token is set to null and saved.
+     * Assertions: Saved user has null token.
+     */
+    @Test
+    @DisplayName("Confirm Email - Success - Clears token")
+    void confirmEmail_Success_ClearsToken() {
+        // Arrange
+        testUser.setToken(TEST_TOKEN);
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+
+        // Act
+        assertDoesNotThrow(() -> loginService.confirmEmail(testLoginRequest));
+
+        // Assert
+        assertNull(testUser.getToken());
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    /*
+     **********************************************************************************************
+     * FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Reject confirmation when stored token is blank.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message matches InvalidToken.
+     */
+    @Test
+    @DisplayName("Confirm Email - Failure - Blank stored token")
+    void confirmEmail_BlankStoredToken_ThrowsNotFoundException() {
+        testUser.setToken("  ");
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+
+        NotFoundException exception = assertThrows(
+                NotFoundException.class,
+                () -> loginService.confirmEmail(testLoginRequest));
+
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidToken, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Reject email confirmation when token does not match.
+     * Expected Result: UnauthorizedException is thrown.
+     * Assertions: Exception message matches InvalidToken and save is not called.
+     */
+    @Test
+    @DisplayName("Confirm Email - Failure - Invalid token")
+    void confirmEmail_InvalidToken_ThrowsUnauthorizedException() {
+        // Arrange
+        testUser.setToken("different-token");
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+
+        // Act & Assert
+        UnauthorizedException exception = assertThrows(
+                UnauthorizedException.class,
+                () -> loginService.confirmEmail(testLoginRequest));
+
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidToken, exception.getMessage());
+        verify(userRepository, times(1)).findById(TEST_USER_ID);
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    /**
+     * Purpose: Reject confirmation when stored token is null.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message matches InvalidToken.
+     */
+    @Test
+    @DisplayName("Confirm Email - Failure - Null stored token")
+    void confirmEmail_NullStoredToken_ThrowsNotFoundException() {
+        testUser.setToken(null);
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+
+        NotFoundException exception = assertThrows(
+                NotFoundException.class,
+                () -> loginService.confirmEmail(testLoginRequest));
+
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidToken, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Reject confirmation when userId is null.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches InvalidId.
+     */
+    @Test
+    @DisplayName("Confirm Email - Failure - Null userId")
+    void confirmEmail_NullUserId_ThrowsBadRequestException() {
+        testLoginRequest.setUserId(null);
+
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
+                () -> loginService.confirmEmail(testLoginRequest));
+
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidId, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Handle confirmation for a non-existent user.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message matches InvalidId and save is not called.
+     */
+    @Test
+    @DisplayName("Confirm Email - Failure - User not found")
+    void confirmEmail_UserNotFound_ThrowsNotFoundException() {
+        // Arrange
+        when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        NotFoundException exception = assertThrows(
+                NotFoundException.class,
+                () -> loginService.confirmEmail(testLoginRequest));
+
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidId, exception.getMessage());
+        verify(userRepository, times(1)).findById(TEST_USER_ID);
+        verify(userRepository, never()).save(any(User.class));
+    }
+}

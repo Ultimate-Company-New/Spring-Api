@@ -96,11 +96,13 @@ public class AddressService extends BaseService implements IAddressSubTranslator
     @Transactional(readOnly = true)
     public AddressResponseModel getAddressById(long addressId) {
         Optional<Address> address = addressRepository.findById(addressId);
-        if (address.isPresent()) {
-            return new AddressResponseModel(address.get());
-        } else {
+        if (address.isEmpty()) {
             throw new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound);
         }
+        if (address.get().getIsDeleted()) {
+            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound);
+        }
+        return new AddressResponseModel(address.get());
     }
 
     /**
@@ -200,7 +202,7 @@ public class AddressService extends BaseService implements IAddressSubTranslator
      */
     @Override
     @Transactional(readOnly = true)
-    public List<AddressResponseModel> getAddressByClientId(long clientId) {
+    public List<AddressResponseModel> getAddressByClientId(long clientId) {        
         // Validate that client exists and is not deleted
         Optional<Client> client = clientRepository.findById(clientId);
         if (client.isEmpty()) {
