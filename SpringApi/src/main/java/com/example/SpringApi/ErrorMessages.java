@@ -279,6 +279,12 @@ public class ErrorMessages {
         public static final String StartDateMustBeTodayOrFuture = "Start date must be today or in the future.";
         public static final String InvalidExpiryDate = "Expiry date must be today or in the future.";
         public static final String ExpiryDateMustBeAfterStartDate = "Expiry date must be after or equal to start date.";
+        public static final String PromoCodeAlphaNumeric = "Promo code must contain only alphanumeric characters.";
+        public static final String PromoCodeLength = "Promo code must be between 3 and 50 characters.";
+        public static final String DiscountValueGreaterThanZero = "Discount value must be greater than zero.";
+        public static final String DescriptionRequired = "Description is required.";
+        public static final String LongDescriptionTooLong = "Description is too long.";
+        public static final String ClientIdMismatch = "Client ID mismatch.";
 
         // Additional error messages
         public static final String ER001 = "Promo code is required.";

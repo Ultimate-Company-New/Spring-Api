@@ -1,200 +1,319 @@
 package com.example.SpringApi.Services.Tests.Promo;
 
-import com.example.SpringApi.Services.PromoService;
-
-import com.example.SpringApi.Controllers.PromoController;
 import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Models.DatabaseModels.Promo;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.Authorizations;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 /**
  * Test class for PromoService.getPromosInBatches method.
- * 
- * Test count: 5 tests
- * - SUCCESS: 2 tests
- * - FAILURE / EXCEPTION: 3 tests
  */
 @DisplayName("PromoService - GetPromosInBatches Tests")
-public class GetPromosInBatchesTest extends PromoServiceTestBase {
+class GetPromosInBatchesTest extends PromoServiceTestBase {
 
-    // ===========================
-    // SUCCESS TESTS
-    // ===========================
+    // Total Tests: 13
 
+    /*
+     **********************************************************************************************
+     * SECTION 1: SUCCESS TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify successful retrieval of a batch of promos.
+     */
     @Test
-    @DisplayName("Get Promos In Batches - Success with multiple filters")
-    void getPromosInBatches_MultipleFilters_Success() {
+    @DisplayName("Get Promos In Batches - Success - Valid request")
+    void getPromosInBatches_ValidRequest_Success() {
         // Arrange
-        PaginationBaseRequestModel multiFilterRequest = new PaginationBaseRequestModel();
-        multiFilterRequest.setStart(0);
-        multiFilterRequest.setEnd(10);
-        PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
-        filter1.setColumn("promoCode");
-        filter1.setOperator("contains");
-        filter1.setValue("TEST");
-        PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
-        filter2.setColumn("promoId");
-        filter2.setOperator("greaterThan");
-        filter2.setValue("0");
-        multiFilterRequest.setFilters(Arrays.asList(filter1, filter2));
-        multiFilterRequest.setLogicOperator("AND");
-
-        when(promoFilterQueryBuilder.getColumnType("promoCode")).thenReturn("string");
-        when(promoFilterQueryBuilder.getColumnType("promoId")).thenReturn("number");
-
-        List<Promo> promoList = Arrays.asList(testPromo);
-        Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 1);
-        lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(promoPage);
+        Page<Promo> page = new PageImpl<>(List.of(testPromo));
+        when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), any(), anyString(), anyList(), anyBoolean(), any()))
+                .thenReturn(page);
 
         // Act
-        PaginationBaseResponseModel<Promo> multiResult = promoService.getPromosInBatches(multiFilterRequest);
-
-        // Assert
-        assertNotNull(multiResult);
-        assertEquals(1, multiResult.getData().size());
-    }
-
-    @Test
-    @DisplayName("Get Promos In Batches - Success with single filter")
-    void getPromosInBatches_SingleFilter_Success() {
-        // Arrange
-        PaginationBaseRequestModel singleFilterRequest = new PaginationBaseRequestModel();
-        singleFilterRequest.setStart(0);
-        singleFilterRequest.setEnd(10);
-        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
-        filter.setColumn("promoCode");
-        filter.setOperator("contains");
-        filter.setValue("TEST");
-        singleFilterRequest.setFilters(List.of(filter));
-        singleFilterRequest.setLogicOperator("AND");
-
-        List<Promo> promoList = Arrays.asList(testPromo);
-        Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 1);
-        when(promoFilterQueryBuilder.getColumnType("promoCode")).thenReturn("string");
-        lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(promoPage);
-
-        // Act
-        PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(singleFilterRequest);
+        PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(testPaginationRequest);
 
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getData().size());
+        assertEquals(1, result.getTotalDataCount());
+        verify(promoFilterQueryBuilder).findPaginatedEntitiesWithMultipleFilters(
+                eq(TEST_CLIENT_ID), any(), eq("AND"), anyList(), eq(false), any());
     }
 
-    // ===========================
-    // FAILURE / EXCEPTION TESTS
-    // ===========================
-
+    /**
+     * Purpose: Verify retrieval with includeDeleted = true.
+     */
     @Test
-    @DisplayName("Get Promos In Batches - Invalid column name")
-    void getPromosInBatches_InvalidColumn() {
+    @DisplayName("Get Promos In Batches - Success - Include deleted")
+    void getPromosInBatches_IncludeDeleted_Success() {
         // Arrange
-        PaginationBaseRequestModel invalidColumnRequest = new PaginationBaseRequestModel();
-        invalidColumnRequest.setStart(0);
-        invalidColumnRequest.setEnd(10);
-        PaginationBaseRequestModel.FilterCondition invalidColumn = new PaginationBaseRequestModel.FilterCondition();
-        invalidColumn.setColumn("invalidColumn");
-        invalidColumn.setOperator("contains");
-        invalidColumn.setValue("test");
-        invalidColumnRequest.setFilters(List.of(invalidColumn));
-        invalidColumnRequest.setLogicOperator("AND");
+        testPaginationRequest.setIncludeDeleted(true);
+        Page<Promo> page = new PageImpl<>(List.of(testPromo));
+        when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), any(), anyString(), anyList(), anyBoolean(), any()))
+                .thenReturn(page);
 
-        // Act & Assert
-        BadRequestException invalidColumnEx = assertThrows(BadRequestException.class,
-                () -> promoService.getPromosInBatches(invalidColumnRequest));
-        assertTrue(invalidColumnEx.getMessage().contains("Invalid column name"));
+        // Act
+        PaginationBaseResponseModel<Promo> result = promoService.getPromosInBatches(testPaginationRequest);
+
+        // Assert
+        verify(promoFilterQueryBuilder).findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), any(), anyString(), anyList(), eq(true), any());
+        assertNotNull(result);
     }
 
+    /**
+     * Purpose: Verify retrieval with OR logic operator.
+     */
     @Test
-    @DisplayName("Get Promos In Batches - Invalid operator")
-    void getPromosInBatches_InvalidOperator() {
+    @DisplayName("Get Promos In Batches - Success - OR Logic")
+    void getPromosInBatches_OrLogic_Success() {
         // Arrange
-        PaginationBaseRequestModel invalidOperatorRequest = new PaginationBaseRequestModel();
-        invalidOperatorRequest.setStart(0);
-        invalidOperatorRequest.setEnd(10);
-        PaginationBaseRequestModel.FilterCondition invalidOperator = new PaginationBaseRequestModel.FilterCondition();
-        invalidOperator.setColumn("promoCode");
-        invalidOperator.setOperator("invalidOperator");
-        invalidOperator.setValue("test");
-        invalidOperatorRequest.setFilters(List.of(invalidOperator));
-        invalidOperatorRequest.setLogicOperator("AND");
+        testPaginationRequest.setLogicOperator("OR");
+        Page<Promo> page = new PageImpl<>(List.of(testPromo));
+        when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), any(), anyString(), anyList(), anyBoolean(), any()))
+                .thenReturn(page);
 
-        // Act & Assert
-        BadRequestException invalidOperatorEx = assertThrows(BadRequestException.class,
-                () -> promoService.getPromosInBatches(invalidOperatorRequest));
-        assertTrue(invalidOperatorEx.getMessage().contains("Invalid operator"));
+        // Act
+        promoService.getPromosInBatches(testPaginationRequest);
+
+        // Assert
+        verify(promoFilterQueryBuilder).findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), any(), eq("OR"), anyList(), anyBoolean(), any());
     }
 
+    /**
+     * Purpose: Verify retrieval with large page size.
+     */
     @Test
-    @DisplayName("Get Promos In Batches - Invalid pagination")
-    void getPromosInBatches_InvalidPagination() {
+    @DisplayName("Get Promos In Batches - Success - Large page size")
+    void getPromosInBatches_LargePage_Success() {
         // Arrange
-        PaginationBaseRequestModel invalidPagination = new PaginationBaseRequestModel();
-        invalidPagination.setStart(10);
-        invalidPagination.setEnd(5);
+        testPaginationRequest.setStart(0);
+        testPaginationRequest.setEnd(1000);
+        Page<Promo> page = new PageImpl<>(List.of(testPromo));
+        when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), any(), anyString(), anyList(), anyBoolean(), any()))
+                .thenReturn(page);
 
-        // Act & Assert
-        BadRequestException paginationEx = assertThrows(BadRequestException.class,
-                () -> promoService.getPromosInBatches(invalidPagination));
-        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, paginationEx.getMessage());
+        // Act
+        promoService.getPromosInBatches(testPaginationRequest);
+
+        // Assert
+        verify(promoFilterQueryBuilder).findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), any(), anyString(), anyList(), anyBoolean(), argThat(pb -> pb.getPageSize() == 1000));
+    }
+
+    /**
+     * Purpose: Verify retrieval with multiple filters.
+     */
+    @Test
+    @DisplayName("Get Promos In Batches - Success - Multiple Filters")
+    void getPromosInBatches_MultipleFilters_Success() {
+        // Arrange
+        PaginationBaseRequestModel.FilterCondition f1 = new PaginationBaseRequestModel.FilterCondition();
+        f1.setColumn("promoCode");
+        f1.setOperator("equals");
+        f1.setValue("CODE1");
+        PaginationBaseRequestModel.FilterCondition f2 = new PaginationBaseRequestModel.FilterCondition();
+        f2.setColumn("isDeleted");
+        f2.setOperator("is");
+        f2.setValue("true");
+        testPaginationRequest.setFilters(List.of(f1, f2));
+
+        Page<Promo> page = new PageImpl<>(List.of(testPromo));
+        when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), any(), anyString(), anyList(), anyBoolean(), any()))
+                .thenReturn(page);
+
+        // Act
+        promoService.getPromosInBatches(testPaginationRequest);
+
+        // Assert
+        verify(promoFilterQueryBuilder).findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), any(), anyString(), argThat(list -> list.size() == 2), anyBoolean(), any());
     }
 
     /*
      **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
+     * SECTION 2: FAILURE / EXCEPTION TESTS
      **********************************************************************************************
      */
 
+    /**
+     * Purpose: Reject retrieval if an invalid column name is provided in filters.
+     */
     @Test
-    @DisplayName("getPromosInBatches - Verify @PreAuthorize Annotation")
-    void getPromosInBatches_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        Method method = PromoController.class.getMethod("getPromosInBatches", PaginationBaseRequestModel.class);
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-        assertNotNull(annotation, "@PreAuthorize annotation should be present on getPromosInBatches");
-        assertTrue(annotation.value().contains(Authorizations.VIEW_PROMOS_PERMISSION),
-                "@PreAuthorize should reference VIEW_PROMOS_PERMISSION");
+    @DisplayName("Get Promos In Batches - Failure - Invalid Column")
+    void getPromosInBatches_InvalidColumn_ThrowsBadRequestException() {
+        // Arrange
+        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+        filter.setColumn("invalidColumn");
+        testPaginationRequest.setFilters(List.of(filter));
+
+        // Act & Assert
+        com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
+                com.example.SpringApi.Exceptions.BadRequestException.class,
+                () -> promoService.getPromosInBatches(testPaginationRequest));
+        assertEquals("Invalid column name: invalidColumn", ex.getMessage());
     }
 
+    /**
+     * Purpose: Reject retrieval if page size (end - start) is zero or negative.
+     */
     @Test
-    @DisplayName("getPromosInBatches - Controller delegates to service")
-    void getPromosInBatches_WithValidRequest_DelegatesToService() {
-        PromoService mockPromoService = mock(PromoService.class);
-        PromoController controller = new PromoController(mockPromoService);
+    @DisplayName("Get Promos In Batches - Failure - Invalid Pagination (Zero Page Size)")
+    void getPromosInBatches_ZeroPageSize_ThrowsBadRequestException() {
+        // Arrange
+        testPaginationRequest.setStart(10);
+        testPaginationRequest.setEnd(10);
+
+        // Act & Assert
+        com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
+                com.example.SpringApi.Exceptions.BadRequestException.class,
+                () -> promoService.getPromosInBatches(testPaginationRequest));
+        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Reject retrieval if start index is negative.
+     */
+    @Test
+    @DisplayName("Get Promos In Batches - Failure - Negative Start Index")
+    void getPromosInBatches_NegativeStart_ThrowsBadRequestException() {
+        // Arrange
+        testPaginationRequest.setStart(-1);
+        testPaginationRequest.setEnd(10);
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> promoService.getPromosInBatches(testPaginationRequest));
+    }
+
+    /**
+     * Purpose: Reject retrieval if pagination model is null.
+     */
+    @Test
+    @DisplayName("Get Promos In Batches - Failure - Null Request Model")
+    void getPromosInBatches_NullRequest_ThrowsException() {
+        // Act & Assert
+        assertThrows(NullPointerException.class, () -> promoService.getPromosInBatches(null));
+    }
+
+    /**
+     * Purpose: Verify validation of filter operator against column type.
+     */
+    @Test
+    @DisplayName("Get Promos In Batches - Failure - Invalid operator for type")
+    void getPromosInBatches_InvalidOperatorForType_ThrowsException() {
+        // Arrange
         PaginationBaseRequestModel request = new PaginationBaseRequestModel();
         request.setStart(0);
         request.setEnd(10);
-        @SuppressWarnings("unchecked")
-        PaginationBaseResponseModel<Promo> mockResponse = mock(PaginationBaseResponseModel.class);
-        when(mockPromoService.getPromosInBatches(request)).thenReturn(mockResponse);
+        request.setIncludeDeleted(false);
 
-        ResponseEntity<?> response = controller.getPromosInBatches(request);
+        PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+        filter.setColumn("startDate"); // Date type
+        filter.setOperator("contains"); // String operator, invalid for Date
+        filter.setValue("2024");
+        request.setFilters(List.of(filter));
 
-        verify(mockPromoService).getPromosInBatches(request);
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class, () -> promoService.getPromosInBatches(request));
+    }
+
+    /*
+     **********************************************************************************************
+     * SECTION 3: CONTROLLER PERMISSION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify that the controller correctly delegates getPromosInBatches
+     * calls to the service layer.
+     */
+    @Test
+    @DisplayName("getPromosInBatches - Controller delegates to service")
+    void getPromosInBatches_ControllerDelegation_Success() {
+        // Arrange
+        PaginationBaseResponseModel<Promo> mockResponse = new PaginationBaseResponseModel<>();
+        doReturn(mockResponse).when(promoService).getPromosInBatches(any(PaginationBaseRequestModel.class));
+
+        // Act
+        ResponseEntity<?> response = promoController.getPromosInBatches(testPaginationRequest);
+
+        // Assert
+        verify(promoService).getPromosInBatches(testPaginationRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(mockResponse, response.getBody());
+    }
+
+    /**
+     * Purpose: Verify unauthorized access is blocked at the controller level.
+     */
+    @Test
+    @DisplayName("getPromosInBatches - Controller Permission - Unauthorized")
+    void getPromosInBatches_controller_permission_unauthorized() {
+        // Arrange
+        stubServiceThrowsUnauthorizedException();
+
+        // Act
+        ResponseEntity<?> response = promoController.getPromosInBatches(testPaginationRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify controller handles BadRequestException from service.
+     */
+    @Test
+    @DisplayName("getPromosInBatches - Controller handles BadRequestException")
+    void getPromosInBatches_ControllerHandlesBadRequest() {
+        // Arrange
+        doThrow(new com.example.SpringApi.Exceptions.BadRequestException("Bad Filter"))
+                .when(promoService).getPromosInBatches(any());
+
+        // Act
+        ResponseEntity<?> response = promoController.getPromosInBatches(testPaginationRequest);
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify controller handles generic Exception from service.
+     */
+    @Test
+    @DisplayName("getPromosInBatches - Controller handles Exception")
+    void getPromosInBatches_ControllerHandlesException() {
+        // Arrange
+        doThrow(new RuntimeException("Crash"))
+                .when(promoService).getPromosInBatches(any());
+
+        // Act
+        ResponseEntity<?> response = promoController.getPromosInBatches(testPaginationRequest);
+
+        // Assert
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 }

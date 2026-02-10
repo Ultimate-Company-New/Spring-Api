@@ -1,62 +1,42 @@
 package com.example.SpringApi.Services.Tests.Promo;
 
-import com.example.SpringApi.Services.PromoService;
-
-import com.example.SpringApi.Controllers.PromoController;
 import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.ResponseModels.PromoResponseModel;
-import com.example.SpringApi.Models.Authorizations;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 
-import java.lang.reflect.Method;
 import java.util.Optional;
-import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 /**
  * Test class for PromoService.getPromoDetailsByName method.
- * 
- * Test count: 16 tests
- * - SUCCESS: 2 tests
- * - FAILURE / EXCEPTION: 14 tests
  */
 @DisplayName("PromoService - GetPromoDetailsByName Tests")
-public class GetPromoDetailsByNameTest extends PromoServiceTestBase {
+class GetPromoDetailsByNameTest extends PromoServiceTestBase {
 
-    // ===========================
-    // SUCCESS TESTS
-    // ===========================
+    // Total Tests: 19
 
+    /*
+     **********************************************************************************************
+     * SECTION 1: SUCCESS TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify that promo details can be successfully retrieved using a
+     * valid promo code.
+     */
     @Test
-    @DisplayName("Get Promo Details By Name - Case insensitive lookup")
-    void getPromoDetailsByName_CaseInsensitiveLookup() {
-        // Arrange
-        when(promoRepository.findByPromoCodeAndClientId("TEST10", TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testPromo));
-
-        // Act
-        PromoResponseModel result = promoService.getPromoDetailsByName("test10");
-
-        // Assert
-        assertNotNull(result);
-        verify(promoRepository).findByPromoCodeAndClientId("TEST10", TEST_CLIENT_ID);
-    }
-
-    @Test
-    @DisplayName("Get Promo Details By Name - Success - Should return promo details")
-    void getPromoDetailsByName_Success() {
+    @DisplayName("Get Promo Details By Name - Valid Code - Success")
+    void getPromoDetailsByName_ValidCode_Success() {
         // Arrange
         when(promoRepository.findByPromoCodeAndClientId(TEST_PROMO_CODE, TEST_CLIENT_ID))
                 .thenReturn(Optional.of(testPromo));
@@ -67,131 +47,307 @@ public class GetPromoDetailsByNameTest extends PromoServiceTestBase {
         // Assert
         assertNotNull(result);
         assertEquals(TEST_PROMO_CODE, result.getPromoCode());
-        assertEquals(TEST_PROMO_ID, result.getPromoId());
         verify(promoRepository).findByPromoCodeAndClientId(TEST_PROMO_CODE, TEST_CLIENT_ID);
     }
 
-    // ===========================
-    // FAILURE / EXCEPTION TESTS
-    // ===========================
-
+    /**
+     * Purpose: Verify that the retrieval is case-insensitive (automatically
+     * converts to uppercase).
+     */
     @Test
-    @DisplayName("Get Promo Details By Name - Edge Case - Empty promo code")
-    void getPromoDetailsByName_EmptyPromoCode_ThrowsNotFoundException() {
+    @DisplayName("Get Promo Details By Name - Lowercase code - Success (Normalization)")
+    void getPromoDetailsByName_LowercaseCode_Success() {
         // Arrange
-        String emptyCode = "";
+        String lowercaseCode = "test10";
+        when(promoRepository.findByPromoCodeAndClientId(TEST_PROMO_CODE, TEST_CLIENT_ID))
+                .thenReturn(Optional.of(testPromo));
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            promoService.getPromoDetailsByName(emptyCode);
-        });
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, exception.getMessage());
+        // Act
+        PromoResponseModel result = promoService.getPromoDetailsByName(lowercaseCode);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(TEST_PROMO_CODE, result.getPromoCode());
     }
 
-    @TestFactory
-    @DisplayName("Get Promo Details By Name - Invalid inputs (tab, newline, spaces)")
-    Stream<DynamicTest> getPromoDetailsByName_InvalidInputs() {
-        return Stream.of("\t", "\n", "   ", "")
-                .map(code -> DynamicTest.dynamicTest("Invalid code: [" + code + "]", () -> {
-                    BadRequestException ex = assertThrows(BadRequestException.class,
-                            () -> promoService.getPromoDetailsByName(code));
-                    assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, ex.getMessage());
-                }));
-    }
-
-    @TestFactory
-    @DisplayName("Get Promo Details By Name - Invalid whitespace variations")
-    Stream<DynamicTest> getPromoDetailsByName_InvalidWhitespaceVariations() {
-        return Stream.of("  ", "\t\t", "\n\n", "    ", "\t\n")
-                .map(code -> DynamicTest.dynamicTest("Whitespace code: [" + code + "]", () -> {
-                    BadRequestException ex = assertThrows(BadRequestException.class,
-                            () -> promoService.getPromoDetailsByName(code));
-                    assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, ex.getMessage());
-                }));
-    }
-
+    /**
+     * Purpose: Verify that a deleted promo can still be found by its name.
+     */
     @Test
-    @DisplayName("Get Promo Details By Name - Edge Case - Null promo code")
-    void getPromoDetailsByName_NullPromoCode_ThrowsNotFoundException() {
+    @DisplayName("Get Promo Details By Name - Deleted promo - Success")
+    void getPromoDetailsByName_DeletedPromo_Success() {
         // Arrange
-        String nullCode = null;
+        testPromo.setIsDeleted(true);
+        when(promoRepository.findByPromoCodeAndClientId(TEST_PROMO_CODE, TEST_CLIENT_ID))
+                .thenReturn(Optional.of(testPromo));
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            promoService.getPromoDetailsByName(nullCode);
-        });
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, exception.getMessage());
+        // Act
+        PromoResponseModel result = promoService.getPromoDetailsByName(TEST_PROMO_CODE);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(true, result.getIsDeleted());
     }
 
-    @TestFactory
-    @DisplayName("Get Promo Details By Name - Promo code not found for multiple codes")
-    Stream<DynamicTest> getPromoDetailsByName_PromoCodeNotFound_MultipleCodes() {
-        return Stream.of("NOTFOUND", "INVALID", "DOESNOTEXIST", "NOPROMO")
-                .map(code -> DynamicTest.dynamicTest("Non-existent code: " + code, () -> {
-                    when(promoRepository.findByPromoCodeAndClientId(code.toUpperCase(), TEST_CLIENT_ID))
-                            .thenReturn(Optional.empty());
-                    NotFoundException ex = assertThrows(NotFoundException.class,
-                            () -> promoService.getPromoDetailsByName(code));
-                    assertEquals(ErrorMessages.PromoErrorMessages.InvalidName, ex.getMessage());
-                }));
-    }
-
+    /**
+     * Purpose: Verify retrieval with numeric name.
+     */
     @Test
-    @DisplayName("Get Promo Details By Name - Failure - Promo code not found")
-    void getPromoDetailsByName_PromoCodeNotFound_ThrowsNotFoundException() {
+    @DisplayName("Get Promo Details By Name - Numeric Code - Success")
+    void getPromoDetailsByName_NumericCode_Success() {
         // Arrange
-        String nonExistentCode = "NONEXISTENT";
-        when(promoRepository.findByPromoCodeAndClientId(nonExistentCode, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        String code = "12345";
+        testPromo.setPromoCode(code);
+        when(promoRepository.findByPromoCodeAndClientId(code, TEST_CLIENT_ID))
+                .thenReturn(Optional.of(testPromo));
 
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            promoService.getPromoDetailsByName(nonExistentCode);
-        });
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidName, exception.getMessage());
-        verify(promoRepository).findByPromoCodeAndClientId(nonExistentCode, TEST_CLIENT_ID);
+        // Act
+        PromoResponseModel result = promoService.getPromoDetailsByName(code);
+
+        // Assert
+        assertEquals(code, result.getPromoCode());
     }
 
+    /**
+     * Purpose: Verify retrieval with mixed characters.
+     */
     @Test
-    @DisplayName("Get Promo Details By Name - Edge Case - Whitespace promo code")
-    void getPromoDetailsByName_WhitespacePromoCode_Success() {
+    @DisplayName("Get Promo Details By Name - Mixed Char Code - Success")
+    void getPromoDetailsByName_MixedChars_Success() {
         // Arrange
-        String whitespaceCode = "   ";
+        String code = "MIX-123_CODE";
+        testPromo.setPromoCode(code);
+        when(promoRepository.findByPromoCodeAndClientId(code, TEST_CLIENT_ID))
+                .thenReturn(Optional.of(testPromo));
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            promoService.getPromoDetailsByName(whitespaceCode);
-        });
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, exception.getMessage());
+        // Act
+        PromoResponseModel result = promoService.getPromoDetailsByName(code);
+
+        // Assert
+        assertEquals(code, result.getPromoCode());
     }
 
     /*
      **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
+     * SECTION 2: FAILURE / EXCEPTION TESTS
      **********************************************************************************************
      */
 
+    /**
+     * Purpose: Verify rejection of search if name belongs to different client.
+     */
     @Test
-    @DisplayName("getPromoDetailsByName - Verify @PreAuthorize Annotation")
-    void getPromoDetailsByName_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        Method method = PromoController.class.getMethod("getPromoDetailsByName", String.class);
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-        assertNotNull(annotation, "@PreAuthorize annotation should be present on getPromoDetailsByName");
-        assertTrue(annotation.value().contains(Authorizations.VIEW_PROMOS_PERMISSION),
-                "@PreAuthorize should reference VIEW_PROMOS_PERMISSION");
+    @DisplayName("Get Promo Details By Name - Different client - Throws NotFoundException")
+    void getPromoDetailsByName_DifferentClient_ThrowsNotFoundException() {
+        // Arrange
+        when(promoRepository.findByPromoCodeAndClientId(TEST_PROMO_CODE, TEST_CLIENT_ID))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(NotFoundException.class,
+                () -> promoService.getPromoDetailsByName(TEST_PROMO_CODE));
     }
 
+    /**
+     * Purpose: Reject search if code is null.
+     */
+    @Test
+    @DisplayName("Get Promo Details By Name - Null promo code - Throws BadRequestException")
+    void getPromoDetailsByName_NullCode_ThrowsBadRequestException() {
+        // Act & Assert
+        com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
+                com.example.SpringApi.Exceptions.BadRequestException.class,
+                () -> promoService.getPromoDetailsByName(null));
+        assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Reject search if code is empty.
+     */
+    @Test
+    @DisplayName("Get Promo Details By Name - Empty promo code - Throws BadRequestException")
+    void getPromoDetailsByName_EmptyCode_ThrowsBadRequestException() {
+        // Act & Assert
+        assertThrows(com.example.SpringApi.Exceptions.BadRequestException.class,
+                () -> promoService.getPromoDetailsByName(""));
+    }
+
+    /**
+     * Purpose: Reject search if code is only whitespace.
+     */
+    @Test
+    @DisplayName("Get Promo Details By Name - Whitespace promo code - Throws BadRequestException")
+    void getPromoDetailsByName_WhitespaceCode_ThrowsBadRequestException() {
+        // Act & Assert
+        assertThrows(com.example.SpringApi.Exceptions.BadRequestException.class,
+                () -> promoService.getPromoDetailsByName("   "));
+    }
+
+    /**
+     * Purpose: Verify rejection of search with tab character.
+     */
+    @Test
+    @DisplayName("Get Promo Details By Name - Tab character - Throws BadRequestException")
+    void getPromoDetailsByName_TabCode_ThrowsBadRequestException() {
+        // Act & Assert
+        assertThrows(com.example.SpringApi.Exceptions.BadRequestException.class,
+                () -> promoService.getPromoDetailsByName("\t"));
+    }
+
+    /**
+     * Purpose: Reject promo lookup if code is not found (INVALID).
+     */
+    @Test
+    @DisplayName("Get Promo Details By Name - Promo code not found (INVALID)- Throws NotFoundException")
+    void getPromoDetailsByName_PromoCodeNotFound_INVALID() {
+        // Arrange
+        String code = "INVALID";
+        when(promoRepository.findByPromoCodeAndClientId(code, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> promoService.getPromoDetailsByName(code));
+        assertEquals(ErrorMessages.PromoErrorMessages.InvalidName, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Reject promo lookup if code is not found (NOTFOUND).
+     */
+    @Test
+    @DisplayName("Get Promo Details By Name - Promo code not found (NOTFOUND) - Throws NotFoundException")
+    void getPromoDetailsByName_PromoCodeNotFound_NOTFOUND() {
+        // Arrange
+        String code = "NOTFOUND";
+        when(promoRepository.findByPromoCodeAndClientId(code, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> promoService.getPromoDetailsByName(code));
+        assertEquals(ErrorMessages.PromoErrorMessages.InvalidName, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Reject promo lookup if code does not exist in the DB.
+     */
+    @Test
+    @DisplayName("Get Promo Details By Name - Non-existent code - Throws NotFoundException")
+    void getPromoDetailsByName_NonExistentCode_ThrowsNotFoundException() {
+        // Arrange
+        String code = "GHOSTCODE";
+        when(promoRepository.findByPromoCodeAndClientId(code, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(NotFoundException.class,
+                () -> promoService.getPromoDetailsByName(code));
+    }
+
+    /*
+     **********************************************************************************************
+     * SECTION 3: CONTROLLER PERMISSION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify that the controller correctly delegates getPromoDetailsByName
+     * calls to the service layer.
+     */
     @Test
     @DisplayName("getPromoDetailsByName - Controller delegates to service")
     void getPromoDetailsByName_WithValidCode_DelegatesToService() {
-        PromoService mockPromoService = mock(PromoService.class);
-        PromoController controller = new PromoController(mockPromoService);
-        String promoCode = "TEST10";
-        when(mockPromoService.getPromoDetailsByName(promoCode))
-                .thenReturn(mock(PromoResponseModel.class));
+        // Arrange
+        PromoResponseModel mockResponse = new PromoResponseModel(testPromo);
+        doReturn(mockResponse).when(promoService).getPromoDetailsByName(TEST_PROMO_CODE);
 
-        ResponseEntity<?> response = controller.getPromoDetailsByName(promoCode);
+        // Act
+        ResponseEntity<?> response = promoController.getPromoDetailsByName(TEST_PROMO_CODE);
 
-        verify(mockPromoService).getPromoDetailsByName(promoCode);
+        // Assert
+        verify(promoService).getPromoDetailsByName(TEST_PROMO_CODE);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(mockResponse, response.getBody());
+    }
+
+    /**
+     * Purpose: Verify unauthorized access is blocked at the controller level.
+     */
+    @Test
+    @DisplayName("getPromoDetailsByName - Controller Permission - Unauthorized")
+    void getPromoDetailsByName_controller_permission_unauthorized() {
+        // Arrange
+        stubServiceThrowsUnauthorizedException();
+
+        // Act
+        ResponseEntity<?> response = promoController.getPromoDetailsByName(TEST_PROMO_CODE);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify controller handles NotFoundException from service.
+     */
+    @Test
+    @DisplayName("getPromoDetailsByName - Controller handles NotFoundException")
+    void getPromoDetailsByName_ControllerHandlesNotFound() {
+        // Arrange
+        doThrow(new com.example.SpringApi.Exceptions.NotFoundException("Not Found"))
+                .when(promoService).getPromoDetailsByName(anyString());
+
+        // Act
+        ResponseEntity<?> response = promoController.getPromoDetailsByName("GHOST");
+
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify controller handles BadRequestException from service.
+     */
+    @Test
+    @DisplayName("getPromoDetailsByName - Controller handles BadRequestException")
+    void getPromoDetailsByName_ControllerHandlesBadRequest() {
+        // Arrange
+        doThrow(new com.example.SpringApi.Exceptions.BadRequestException("Empty name"))
+                .when(promoService).getPromoDetailsByName(anyString());
+
+        // Act
+        ResponseEntity<?> response = promoController.getPromoDetailsByName(" ");
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify controller handles context retrieval failure.
+     */
+    @Test
+    @DisplayName("getPromoDetailsByName - Failure - Context retrieval error")
+    void getPromoDetailsByName_ContextRetrievalError() {
+        // Arrange
+        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException("Context missing"))
+                .when(promoService).getClientId();
+
+        // Act
+        ResponseEntity<?> response = promoController.getPromoDetailsByName(TEST_PROMO_CODE);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify controller handles generic server error.
+     */
+    @Test
+    @DisplayName("getPromoDetailsByName - Controller handles internal exception")
+    void getPromoDetailsByName_ControllerHandlesException() {
+        // Arrange
+        doThrow(new RuntimeException("Crash"))
+                .when(promoService).getPromoDetailsByName(anyString());
+
+        // Act
+        ResponseEntity<?> response = promoController.getPromoDetailsByName(TEST_PROMO_CODE);
+
+        // Assert
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 }

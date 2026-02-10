@@ -28,35 +28,35 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "`Promo`")
 public class Promo {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "promoId", nullable = false)
     private Long promoId;
-    
+
     @Column(name = "description", nullable = false, length = 500)
     private String description;
-    
+
     @Column(name = "isDeleted", nullable = false)
     private Boolean isDeleted = false;
-    
+
     @Column(name = "isPercent", nullable = false)
     private Boolean isPercent = false;
-    
+
     @Column(name = "discountValue", nullable = false, precision = 10, scale = 2)
     private BigDecimal discountValue;
-    
+
     @Column(name = "promoCode", nullable = false, unique = true, length = 100)
     private String promoCode;
-    
+
     @Column(name = "clientId", nullable = false)
     private Long clientId;
-    
+
     // Audit fields
     @CreationTimestamp
     @Column(name = "createdAt", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-    
+
     @Column(name = "createdUser", nullable = false, length = 255)
     private String createdUser;
 
@@ -66,32 +66,32 @@ public class Promo {
 
     @Column(name = "modifiedUser", nullable = false, length = 255)
     private String modifiedUser;
-    
+
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
-    
+
     @Column(name = "startDate", nullable = false)
     private LocalDate startDate;
-    
+
     @Column(name = "expiryDate")
     private LocalDate expiryDate;
 
-    
-    public Promo() {}
-    
+    public Promo() {
+    }
+
     /**
      * Constructor for creating a new promo.
      * 
-     * @param request The PromoRequestModel containing promo data
+     * @param request     The PromoRequestModel containing promo data
      * @param createdUser The username of the user creating this record
      */
     public Promo(PromoRequestModel request, String createdUser, long clientId) {
         validateRequest(request);
         validateUser(createdUser);
-        
+
         setFieldsFromRequest(request);
         this.createdUser = createdUser;
-        this.modifiedUser = createdUser;  // When creating, modified user is same as created user
+        this.modifiedUser = createdUser; // When creating, modified user is same as created user
         this.clientId = clientId;
     }
 
@@ -105,54 +105,49 @@ public class Promo {
         if (request == null) {
             throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidRequest);
         }
-        
-        // Validate description (required, length > 0, max 500 chars)
+
+        // Validate description (required, length > 0, max 1000 chars)
         if (request.getDescription() == null || request.getDescription().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidDescription);
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.DescriptionRequired);
         }
-        if (request.getDescription().trim().length() > 500) {
-            throw new BadRequestException(ErrorMessages.PromoErrorMessages.DescriptionTooLong);
+        if (request.getDescription().trim().length() > 1000) {
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.LongDescriptionTooLong);
         }
-        
-        // Validate discount value (required, >= 0)
-        if (request.getDiscountValue() == null || request.getDiscountValue().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidDiscountValue);
+
+        // Validate discount value (required, > 0)
+        if (request.getDiscountValue() == null || request.getDiscountValue().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.DiscountValueGreaterThanZero);
         }
-        
+
         // Validate percentage constraint (if percentage, must be <= 100)
-        if (request.getIsPercent() != null && request.getIsPercent() && 
-            request.getDiscountValue().compareTo(new BigDecimal("100")) > 0) {
+        if (request.getIsPercent() != null && request.getIsPercent() &&
+                request.getDiscountValue().compareTo(new BigDecimal("100")) > 0) {
             throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidPercentageValue);
         }
-        
-        // Validate promo code (required, length > 0, max 100 chars)
+
+        // Validate promo code (3-50 chars, alphanumeric)
         if (request.getPromoCode() == null || request.getPromoCode().trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidPromoCode);
         }
-        if (request.getPromoCode().trim().length() > 100) {
-            throw new BadRequestException(ErrorMessages.PromoErrorMessages.PromoCodeTooLong);
+        String promoCode = request.getPromoCode().trim();
+        if (promoCode.length() < 3 || promoCode.length() > 50) {
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.PromoCodeLength);
         }
-        
-        // Validate start date (required, must be today or in the future)
+        if (!promoCode.matches("^[a-zA-Z0-9]+$")) {
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.PromoCodeAlphaNumeric);
+        }
+
+        // Validate start date (required)
         if (request.getStartDate() == null) {
             throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidStartDate);
         }
-        LocalDate today = LocalDate.now();
-        if (request.getStartDate().isBefore(today)) {
-            throw new BadRequestException(ErrorMessages.PromoErrorMessages.StartDateMustBeTodayOrFuture);
-        }
-        
-        // Validate expiry date (optional, but if provided must be today or in the future and after start date)
-        if (request.getExpiryDate() != null) {
-            if (request.getExpiryDate().isBefore(today)) {
-                throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidExpiryDate);
-            }
-            if (request.getExpiryDate().isBefore(request.getStartDate())) {
-                throw new BadRequestException(ErrorMessages.PromoErrorMessages.ExpiryDateMustBeAfterStartDate);
-            }
+
+        // Validate expiry date (optional, but if provided must be after start date)
+        if (request.getExpiryDate() != null && request.getExpiryDate().isBefore(request.getStartDate())) {
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.ExpiryDateMustBeAfterStartDate);
         }
     }
-    
+
     /**
      * Validates the user parameter for audit fields.
      * 
@@ -164,7 +159,7 @@ public class Promo {
             throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
         }
     }
-    
+
     /**
      * Sets fields from the request model.
      * 
@@ -180,7 +175,7 @@ public class Promo {
         this.startDate = request.getStartDate();
         this.expiryDate = request.getExpiryDate();
     }
-    
+
     /**
      * Calculates the discount amount for a given total.
      * 
@@ -191,7 +186,7 @@ public class Promo {
         if (total == null || total.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
         }
-        
+
         if (this.isPercent) {
             return total.multiply(this.discountValue).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
         } else {

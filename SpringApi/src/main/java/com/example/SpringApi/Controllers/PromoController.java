@@ -22,7 +22,8 @@ import org.springframework.web.bind.annotation.*;
 /**
  * REST Controller for Promo operations.
  * 
- * This controller handles all HTTP requests related to promotional code management
+ * This controller handles all HTTP requests related to promotional code
+ * management
  * including creating, reading, updating, deleting, and managing promo codes.
  * All endpoints require appropriate permissions for access.
  * 
@@ -45,7 +46,8 @@ public class PromoController {
     /**
      * Retrieves promos in batches with pagination support.
      * 
-     * This endpoint returns a paginated list of promotional codes based on the provided
+     * This endpoint returns a paginated list of promotional codes based on the
+     * provided
      * pagination parameters. It supports filtering and sorting options.
      * Requires VIEW_PROMOS_PERMISSION to access.
      * 
@@ -53,19 +55,23 @@ public class PromoController {
      * @return ResponseEntity containing paginated promo data or error
      */
     @PostMapping("/" + ApiRoutes.PromosSubRoute.GET_PROMOS_IN_BATCHES)
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_PROMOS_PERMISSION +"')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.VIEW_PROMOS_PERMISSION + "')")
     public ResponseEntity<?> getPromosInBatches(@RequestBody PaginationBaseRequestModel paginationBaseRequestModel) {
         try {
             return ResponseEntity.ok(promoService.getPromosInBatches(paginationBaseRequestModel));
         } catch (BadRequestException bre) {
             logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST,
+                    bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (UnauthorizedException uae) {
             logger.error(uae);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
@@ -81,56 +87,69 @@ public class PromoController {
      * @return ResponseEntity containing success status or error
      */
     @PutMapping("/" + ApiRoutes.PromosSubRoute.CREATE_PROMO)
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.INSERT_PROMOS_PERMISSION +"')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.INSERT_PROMOS_PERMISSION + "')")
     public ResponseEntity<?> addPromo(@RequestBody PromoRequestModel promoRequestModel) {
         try {
             promoService.createPromo(promoRequestModel);
             return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST,
+                    bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (UnauthorizedException uae) {
             logger.error(uae);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
     /**
      * Creates multiple promotional codes in a single bulk operation.
      * 
-     * This endpoint processes promos asynchronously and sends results via message notification.
-     * Security context is captured BEFORE calling the async method to ensure proper user tracking.
+     * This endpoint processes promos asynchronously and sends results via message
+     * notification.
+     * Security context is captured BEFORE calling the async method to ensure proper
+     * user tracking.
      * Requires INSERT_PROMOS_PERMISSION to access.
      * 
      * @param promos List of PromoRequestModel containing the promo data to insert
      * @return ResponseEntity with 200 OK if processing started successfully
      */
     @PutMapping("/" + ApiRoutes.PromosSubRoute.BULK_CREATE_PROMO)
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.INSERT_PROMOS_PERMISSION +"')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.INSERT_PROMOS_PERMISSION + "')")
     public ResponseEntity<?> bulkCreatePromos(@RequestBody java.util.List<PromoRequestModel> promos) {
         try {
             // Cast to concrete service to access BaseService methods for security context
             PromoService concreteService = (PromoService) promoService;
-            
+
             // Capture security context BEFORE calling async method
             Long userId = concreteService.getUserId();
             String loginName = concreteService.getUser();
             Long clientId = concreteService.getClientId();
-            
+
             // Call async method with captured context
             promoService.bulkCreatePromosAsync(promos, userId, loginName, clientId);
-            
+
             // Return immediately - results will be sent via message notification
             return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST,
+                    bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (UnauthorizedException uae) {
+            logger.error(uae);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
@@ -145,22 +164,27 @@ public class PromoController {
      * @return ResponseEntity containing promo details or error
      */
     @GetMapping("/" + ApiRoutes.PromosSubRoute.GET_PROMO_DETAILS_BY_ID + "/{id}")
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_PROMOS_PERMISSION +"')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.VIEW_PROMOS_PERMISSION + "')")
     public ResponseEntity<?> getPromoDetailsById(@PathVariable long id) {
         try {
             return ResponseEntity.ok(promoService.getPromoDetailsById(id));
         } catch (BadRequestException bre) {
             logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST,
+                    bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException nfe) {
             logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException uae) {
             logger.error(uae);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
@@ -175,23 +199,28 @@ public class PromoController {
      * @return ResponseEntity containing success status or error
      */
     @DeleteMapping("/" + ApiRoutes.PromosSubRoute.TOGGLE_PROMO + "/{id}")
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.DELETE_PROMOS_PERMISSION +"')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.DELETE_PROMOS_PERMISSION + "')")
     public ResponseEntity<?> togglePromo(@PathVariable long id) {
         try {
             promoService.togglePromo(id);
             return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST,
+                    bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException nfe) {
             logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException uae) {
             logger.error(uae);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
@@ -206,22 +235,27 @@ public class PromoController {
      * @return ResponseEntity containing promo details or error
      */
     @GetMapping("/" + ApiRoutes.PromosSubRoute.GET_PROMO_DETAILS_BY_NAME + "/{promoCode}")
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_PROMOS_PERMISSION +"')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.VIEW_PROMOS_PERMISSION + "')")
     public ResponseEntity<?> getPromoDetailsByName(@PathVariable String promoCode) {
         try {
             return ResponseEntity.ok(promoService.getPromoDetailsByName(promoCode));
         } catch (BadRequestException bre) {
             logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST,
+                    bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException nfe) {
             logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException uae) {
             logger.error(uae);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 }

@@ -73,9 +73,9 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
       PaginationBaseRequestModel paginationBaseRequestModel) {
     // Valid columns for filtering
     Set<String> validColumns = new HashSet<>(Arrays.asList("promoId", "promoCode", "description", "discountValue",
-        "isPercent", "isDeleted", "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes"));
+        "isPercent", "isDeleted", "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes", "startDate", "expiryDate"));
 
-    // Validate filter conditions if provided
+    // Validate filter conditions if provided (do this FIRST before pagination validation)
     if (paginationBaseRequestModel.getFilters() != null && !paginationBaseRequestModel.getFilters().isEmpty()) {
       for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
         // Validate column name
@@ -89,7 +89,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
           throw new BadRequestException("Invalid operator: " + filter.getOperator());
         }
 
-        // Validate column type matches operator
+        // Validate column type matches operator - this throws IllegalArgumentException
         String columnType = promoFilterQueryBuilder.getColumnType(filter.getColumn());
         filter.validateOperatorForType(columnType, filter.getColumn());
 
@@ -332,12 +332,22 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
     Long currentClientId = getClientId();
     Long currentUserId = getUserId();
 
-    // Check for overlapping promo codes in the same date range
+    // Validate request model and required fields
     if (promoRequestModel == null) {
       throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidRequest);
     }
 
-    // This allows the same promo code to be used in different time periods
+    // Validate promo code is not null or empty
+    if (promoRequestModel.getPromoCode() == null || promoRequestModel.getPromoCode().trim().isEmpty()) {
+      throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidPromoCode);
+    }
+
+    // Client ID consistency check (Service level responsibility)
+    if (promoRequestModel.getClientId() != null && !promoRequestModel.getClientId().equals(currentClientId)) {
+      throw new BadRequestException(ErrorMessages.PromoErrorMessages.ClientIdMismatch);
+    }
+
+    // Check for overlapping promo codes in the same date range
     java.util.List<Promo> overlappingPromos = promoRepository.findOverlappingPromos(
         promoRequestModel.getPromoCode().toUpperCase(),
         currentClientId,

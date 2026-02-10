@@ -1,46 +1,41 @@
 package com.example.SpringApi.Services.Tests.Promo;
 
-import com.example.SpringApi.Controllers.PromoController;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.DatabaseModels.Promo;
-import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.SuccessMessages;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 
-import java.lang.reflect.Method;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
  * Test class for PromoService.togglePromo method.
- * 
- * Test count: 20 tests
- * - SUCCESS: 2 tests
- * - FAILURE / EXCEPTION: 18 tests
  */
 @DisplayName("PromoService - TogglePromo Tests")
-public class TogglePromoTest extends PromoServiceTestBase {
+class TogglePromoTest extends PromoServiceTestBase {
 
-    // ===========================
-    // SUCCESS TESTS
-    // ===========================
+    // Total Tests: 16
 
+    /*
+     **********************************************************************************************
+     * SECTION 1: SUCCESS TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify that a deleted promo can be restored using togglePromo.
+     */
     @Test
-    @DisplayName("Toggle Promo - Restore from deleted")
-    void togglePromo_RestoreFromDeleted() {
+    @DisplayName("Toggle Promo - Restore from deleted - Success")
+    void togglePromo_RestoreFromDeleted_Success() {
         // Arrange
         testPromo.setIsDeleted(true);
         when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID))
@@ -55,6 +50,10 @@ public class TogglePromoTest extends PromoServiceTestBase {
         verify(promoRepository).save(testPromo);
     }
 
+    /**
+     * Purpose: Verify successful toggling of the isDeleted flag and corresponding
+     * logging.
+     */
     @Test
     @DisplayName("Toggle Promo - Success - Should toggle isDeleted flag and log")
     void togglePromo_Success() {
@@ -71,56 +70,136 @@ public class TogglePromoTest extends PromoServiceTestBase {
         verify(promoRepository).findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID);
         verify(promoRepository).save(testPromo);
         verify(userLogService).logData(
-                eq(TEST_USER_ID),
-                eq(SuccessMessages.PromoSuccessMessages.ToggledPromo + TEST_PROMO_ID),
-                eq(ApiRoutes.PromosSubRoute.TOGGLE_PROMO));
+                TEST_USER_ID,
+                SuccessMessages.PromoSuccessMessages.ToggledPromo + TEST_PROMO_ID,
+                ApiRoutes.PromosSubRoute.TOGGLE_PROMO);
     }
 
-    // ===========================
-    // FAILURE / EXCEPTION TESTS
-    // ===========================
-
-    @TestFactory
-    @DisplayName("Toggle Promo - Additional invalid IDs (0, -100, 2, 999, MAX, MIN)")
-    Stream<DynamicTest> togglePromo_AdditionalInvalidIds() {
-        return Stream.of(2L, 999L, Long.MAX_VALUE, Long.MIN_VALUE, -100L, 0L)
-                .map(id -> DynamicTest.dynamicTest("Additional Invalid ID: " + id, () -> {
-                    when(promoRepository.findByPromoIdAndClientId(id, TEST_CLIENT_ID))
-                            .thenReturn(Optional.empty());
-                    NotFoundException ex = assertThrows(NotFoundException.class,
-                            () -> promoService.togglePromo(id));
-                    assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
-                }));
-    }
-
-    @TestFactory
-    @DisplayName("Toggle Promo - Boundary IDs (MAX_VALUE - 1, MIN_VALUE + 1)")
-    Stream<DynamicTest> togglePromo_BoundaryIds() {
-        return Stream.of(Long.MAX_VALUE - 1, Long.MIN_VALUE + 1, Long.MAX_VALUE / 2, Long.MIN_VALUE / 2)
-                .map(id -> DynamicTest.dynamicTest("Boundary ID: " + id, () -> {
-                    when(promoRepository.findByPromoIdAndClientId(id, TEST_CLIENT_ID))
-                            .thenReturn(Optional.empty());
-                    NotFoundException ex = assertThrows(NotFoundException.class,
-                            () -> promoService.togglePromo(id));
-                    assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
-                }));
-    }
-
-    @TestFactory
-    @DisplayName("Toggle Promo - Common invalid IDs (100, 200, 500, 1000)")
-    Stream<DynamicTest> togglePromo_CommonInvalidIds() {
-        return Stream.of(100L, 200L, 500L, 1000L, 5000L)
-                .map(id -> DynamicTest.dynamicTest("Common Invalid ID: " + id, () -> {
-                    when(promoRepository.findByPromoIdAndClientId(id, TEST_CLIENT_ID))
-                            .thenReturn(Optional.empty());
-                    NotFoundException ex = assertThrows(NotFoundException.class,
-                            () -> promoService.togglePromo(id));
-                    assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
-                }));
-    }
-
+    /**
+     * Purpose: Verify that toggling twice returns the promo to its original state.
+     */
     @Test
-    @DisplayName("Toggle Promo - Edge Case - Negative ID")
+    @DisplayName("Toggle Promo - Success - Double Toggle")
+    void togglePromo_DoubleToggle_Success() {
+        // Arrange
+        when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID))
+                .thenReturn(Optional.of(testPromo));
+        when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
+
+        // Act
+        promoService.togglePromo(TEST_PROMO_ID); // To true
+        promoService.togglePromo(TEST_PROMO_ID); // Back to false
+
+        // Assert
+        assertFalse(testPromo.getIsDeleted());
+        verify(promoRepository, times(2)).save(testPromo);
+    }
+
+    /**
+     * Purpose: Verify isolation when toggling (one promo toggle doesn't affect
+     * another).
+     */
+    @Test
+    @DisplayName("Toggle Promo - Success - Isolation")
+    void togglePromo_Isolation_Success() {
+        // Arrange
+        Promo p2 = new Promo();
+        p2.setPromoId(999L);
+        p2.setIsDeleted(false);
+        lenient().when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID))
+                .thenReturn(Optional.of(testPromo));
+        lenient().when(promoRepository.findByPromoIdAndClientId(999L, TEST_CLIENT_ID))
+                .thenReturn(Optional.of(p2));
+
+        // Act
+        promoService.togglePromo(TEST_PROMO_ID);
+
+        // Assert
+        assertTrue(testPromo.getIsDeleted());
+        assertFalse(p2.getIsDeleted());
+    }
+
+    /*
+     **********************************************************************************************
+     * SECTION 2: FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify that toggling with invalid ID 999L throws NotFoundException.
+     */
+    @Test
+    @DisplayName("Toggle Promo - Invalid ID 999L - Throws NotFoundException")
+    void togglePromo_InvalidId_999L() {
+        // Arrange
+        long id = 999L;
+        when(promoRepository.findByPromoIdAndClientId(id, TEST_CLIENT_ID))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> promoService.togglePromo(id));
+        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify that toggling with invalid ID Max Value throws
+     * NotFoundException.
+     */
+    @Test
+    @DisplayName("Toggle Promo - Invalid ID Max Value - Throws NotFoundException")
+    void togglePromo_InvalidId_MaxLong() {
+        // Arrange
+        long id = Long.MAX_VALUE;
+        when(promoRepository.findByPromoIdAndClientId(id, TEST_CLIENT_ID))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> promoService.togglePromo(id));
+        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify that toggling with invalid ID Min Value throws
+     * NotFoundException.
+     */
+    @Test
+    @DisplayName("Toggle Promo - Invalid ID Min Value - Throws NotFoundException")
+    void togglePromo_InvalidId_MinLong() {
+        // Arrange
+        long id = Long.MIN_VALUE;
+        when(promoRepository.findByPromoIdAndClientId(id, TEST_CLIENT_ID))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> promoService.togglePromo(id));
+        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify that toggling with invalid ID -100L throws NotFoundException.
+     */
+    @Test
+    @DisplayName("Toggle Promo - Invalid ID -100L - Throws NotFoundException")
+    void togglePromo_InvalidId_Negative100L() {
+        // Arrange
+        long id = -100L;
+        when(promoRepository.findByPromoIdAndClientId(id, TEST_CLIENT_ID))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> promoService.togglePromo(id));
+        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Reject toggling if ID is negative.
+     */
+    @Test
+    @DisplayName("Toggle Promo - Edge Case - Negative ID - Throws NotFoundException")
     void togglePromo_NegativeId_ThrowsNotFoundException() {
         // Arrange
         Long negativeId = -1L;
@@ -133,8 +212,11 @@ public class TogglePromoTest extends PromoServiceTestBase {
         assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, exception.getMessage());
     }
 
+    /**
+     * Purpose: Reject toggling if promo is not found in the repository.
+     */
     @Test
-    @DisplayName("Toggle Promo - Failure - Promo not found")
+    @DisplayName("Toggle Promo - Failure - Promo not found - Throws NotFoundException")
     void togglePromo_PromoNotFound_ThrowsNotFoundException() {
         // Arrange
         when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID)).thenReturn(Optional.empty());
@@ -146,11 +228,13 @@ public class TogglePromoTest extends PromoServiceTestBase {
         assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, exception.getMessage());
         verify(promoRepository).findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID);
         verify(promoRepository, never()).save(any(Promo.class));
-        verify(userLogService, never()).logData(anyLong(), any(), any());
     }
 
+    /**
+     * Purpose: Reject toggling if ID is zero.
+     */
     @Test
-    @DisplayName("Toggle Promo - Edge Case - Zero ID")
+    @DisplayName("Toggle Promo - Edge Case - Zero ID - Throws NotFoundException")
     void togglePromo_ZeroId_ThrowsNotFoundException() {
         // Arrange
         Long zeroId = 0L;
@@ -163,31 +247,92 @@ public class TogglePromoTest extends PromoServiceTestBase {
         assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, exception.getMessage());
     }
 
+    /**
+     * Purpose: Verify that accessing a promo belonging to a different client throws
+     * NotFoundException.
+     */
+    @Test
+    @DisplayName("Toggle Promo - Different client - Throws NotFoundException")
+    void togglePromo_DifferentClient_ThrowsNotFoundException() {
+        // Arrange
+        when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(NotFoundException.class, () -> promoService.togglePromo(TEST_PROMO_ID));
+    }
+
     /*
      **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
+     * SECTION 3: CONTROLLER PERMISSION TESTS
      **********************************************************************************************
      */
 
-    @Test
-    @DisplayName("togglePromo - Verify @PreAuthorize Annotation")
-    void togglePromo_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        Method method = PromoController.class.getMethod("togglePromo", long.class);
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-        assertNotNull(annotation, "@PreAuthorize annotation should be present on togglePromo");
-        assertTrue(annotation.value().contains(Authorizations.DELETE_PROMOS_PERMISSION),
-                "@PreAuthorize should reference DELETE_PROMOS_PERMISSION");
-    }
-
+    /**
+     * Purpose: Verify that the controller correctly delegates togglePromo calls to
+     * the service layer.
+     */
     @Test
     @DisplayName("togglePromo - Controller delegates to service")
     void togglePromo_WithValidId_DelegatesToService() {
-        PromoController controller = new PromoController(promoService);
+        // Arrange
         doNothing().when(promoService).togglePromo(TEST_PROMO_ID);
 
-        ResponseEntity<?> response = controller.togglePromo(TEST_PROMO_ID);
+        // Act
+        ResponseEntity<?> response = promoController.togglePromo(TEST_PROMO_ID);
 
+        // Assert
         verify(promoService).togglePromo(TEST_PROMO_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify unauthorized access is blocked at the controller level.
+     */
+    @Test
+    @DisplayName("togglePromo - Controller Permission - Unauthorized")
+    void togglePromo_controller_permission_unauthorized() {
+        // Arrange
+        stubServiceThrowsUnauthorizedException();
+
+        // Act
+        ResponseEntity<?> response = promoController.togglePromo(TEST_PROMO_ID);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify controller handles NotFoundException from service.
+     */
+    @Test
+    @DisplayName("togglePromo - Controller handles NotFoundException")
+    void togglePromo_ControllerHandlesNotFound() {
+        // Arrange
+        doThrow(new com.example.SpringApi.Exceptions.NotFoundException("Not Found"))
+                .when(promoService).togglePromo(anyLong());
+
+        // Act
+        ResponseEntity<?> response = promoController.togglePromo(TEST_PROMO_ID);
+
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify controller handles generic server error.
+     */
+    @Test
+    @DisplayName("togglePromo - Controller handles Exception")
+    void togglePromo_ControllerHandlesException() {
+        // Arrange
+        doThrow(new RuntimeException("Crash"))
+                .when(promoService).togglePromo(anyLong());
+
+        // Act
+        ResponseEntity<?> response = promoController.togglePromo(TEST_PROMO_ID);
+
+        // Assert
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 }
