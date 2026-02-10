@@ -124,76 +124,13 @@ public class ClientService extends BaseService implements IClientSubTranslator {
             throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidRequest);
         }
 
-        // Check for duplicate name
-        if (clientRepository.existsByName(clientRequest.getName())) {
-            throw new BadRequestException(String.format(ErrorMessages.ClientErrorMessages.DuplicateClientNameFormat,
-                    clientRequest.getName()));
-        }
+        validateUniqueClientName(clientRequest.getName(), null);
 
         Client client = new Client(clientRequest, getUser());
         Client savedClient = clientRepository.save(client);
 
-        // Upload logo if present
-        if (clientRequest.getLogoBase64() != null &&
-                !clientRequest.getLogoBase64().isEmpty() &&
-                !clientRequest.getLogoBase64().isBlank()) {
-
-            String environmentName = environment.getActiveProfiles().length > 0
-                    ? environment.getActiveProfiles()[0]
-                    : "default";
-
-            boolean isSuccess = false;
-
-            // Use ImgBB or Firebase based on configuration
-            if (ImageLocationConstants.IMGBB.equalsIgnoreCase(imageLocation)) {
-                // Validate ImgBB API key is configured
-                if (savedClient.getImgbbApiKey() == null || savedClient.getImgbbApiKey().trim().isEmpty()) {
-                    throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.ImgbbApiKeyNotConfigured);
-                }
-
-                // Generate custom filename for ImgBB
-                String customFileName = ImgbbHelper.generateCustomFileNameForClientLogo(environmentName,
-                        savedClient.getName());
-
-                ImgbbHelper imgbbHelper = new ImgbbHelper(savedClient.getImgbbApiKey());
-                ImgbbHelper.ImgbbUploadResponse uploadResponse = imgbbHelper.uploadFileToImgbb(
-                        clientRequest.getLogoBase64(),
-                        customFileName);
-
-                if (uploadResponse != null && uploadResponse.getUrl() != null) {
-                    // Save both the logo URL and delete hash to the database
-                    savedClient.setLogoUrl(uploadResponse.getUrl());
-                    savedClient.setLogoDeleteHash(uploadResponse.getDeleteHash());
-                    clientRepository.save(savedClient);
-                    isSuccess = true;
-                } else {
-                    isSuccess = false;
-                }
-            } else if (ImageLocationConstants.FIREBASE.equalsIgnoreCase(imageLocation)) {
-                String filePath = FirebaseHelper.getClientLogoPath(
-                        environmentName,
-                        savedClient.getName(),
-                        savedClient.getClientId());
-                // Get GoogleCred for Firebase
-                Optional<GoogleCred> googleCred = googleCredRepository.findById(savedClient.getGoogleCredId());
-
-                if (googleCred.isPresent()) {
-                    GoogleCred googleCredData = googleCred.get();
-                    FirebaseHelper firebaseHelper = new FirebaseHelper(googleCredData);
-                    isSuccess = firebaseHelper.uploadFileToFirebase(
-                            clientRequest.getLogoBase64(),
-                            filePath);
-                } else {
-                    throw new BadRequestException(ErrorMessages.UserErrorMessages.ER011);
-                }
-            } else {
-                throw new BadRequestException(String.format(
-                        ErrorMessages.ConfigurationErrorMessages.InvalidImageLocationConfigFormat, imageLocation));
-            }
-
-            if (!isSuccess) {
-                throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidLogoUpload);
-            }
+        if (hasLogo(clientRequest)) {
+            processLogoManagement(savedClient, clientRequest.getLogoBase64());
         }
 
         userLogService.logData(
@@ -222,113 +159,20 @@ public class ClientService extends BaseService implements IClientSubTranslator {
             throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidRequest);
         }
 
-        Optional<Client> existingClient = clientRepository.findById(clientRequest.getClientId());
-        if (existingClient.isPresent()) {
-            // Check for duplicate name (excluding the current client)
-            Optional<Client> duplicateClient = clientRepository.findByName(clientRequest.getName());
-            if (duplicateClient.isPresent()
-                    && !duplicateClient.get().getClientId().equals(clientRequest.getClientId())) {
-                throw new BadRequestException(String.format(ErrorMessages.ClientErrorMessages.DuplicateClientNameFormat,
-                        clientRequest.getName()));
-            }
+        Client existingClient = clientRepository.findById(clientRequest.getClientId())
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
 
-            Client client = new Client(clientRequest, getUser(), existingClient.get());
-            Client updatedClient = clientRepository.save(client);
+        validateUniqueClientName(clientRequest.getName(), clientRequest.getClientId());
 
-            String environmentName = environment.getActiveProfiles().length > 0
-                    ? environment.getActiveProfiles()[0]
-                    : "default";
+        Client client = new Client(clientRequest, getUser(), existingClient);
+        Client updatedClient = clientRepository.save(client);
 
-            // Logo handling
-            boolean hasNewLogo = clientRequest.getLogoBase64() != null &&
-                    !clientRequest.getLogoBase64().isEmpty() &&
-                    !clientRequest.getLogoBase64().isBlank();
+        processLogoManagement(updatedClient, clientRequest.getLogoBase64());
 
-            // Use ImgBB or Firebase based on configuration
-            if (ImageLocationConstants.IMGBB.equalsIgnoreCase(imageLocation)) {
-                // ImgBB-based logo management
-
-                if (updatedClient.getImgbbApiKey() == null || updatedClient.getImgbbApiKey().trim().isEmpty()) {
-                    throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.ImgbbApiKeyNotConfigured);
-                }
-
-                ImgbbHelper imgbbHelper = new ImgbbHelper(updatedClient.getImgbbApiKey());
-
-                // Handle logo update based on request
-                if (!hasNewLogo) {
-                    // If no logo in request, delete the old logo from ImgBB and clear from database
-                    if (updatedClient.getLogoDeleteHash() != null && !updatedClient.getLogoDeleteHash().isEmpty()) {
-                        imgbbHelper.deleteImage(updatedClient.getLogoDeleteHash());
-                    }
-                    updatedClient.setLogoUrl(null);
-                    updatedClient.setLogoDeleteHash(null);
-                    clientRepository.save(updatedClient);
-                } else {
-                    // Delete old logo from ImgBB before uploading new one
-                    if (updatedClient.getLogoDeleteHash() != null && !updatedClient.getLogoDeleteHash().isEmpty()) {
-                        imgbbHelper.deleteImage(updatedClient.getLogoDeleteHash());
-                    }
-
-                    // Generate custom filename for ImgBB
-                    String customFileName = ImgbbHelper.generateCustomFileNameForClientLogo(environmentName,
-                            updatedClient.getName());
-
-                    // Upload new logo to ImgBB
-                    ImgbbHelper.ImgbbUploadResponse uploadResponse = imgbbHelper.uploadFileToImgbb(
-                            clientRequest.getLogoBase64(),
-                            customFileName);
-
-                    if (uploadResponse != null && uploadResponse.getUrl() != null) {
-                        // Save both the new logo URL and delete hash to the database
-                        updatedClient.setLogoUrl(uploadResponse.getUrl());
-                        updatedClient.setLogoDeleteHash(uploadResponse.getDeleteHash());
-                        clientRepository.save(updatedClient);
-                    } else {
-                        throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidLogoUpload);
-                    }
-                }
-            } else if (ImageLocationConstants.FIREBASE.equalsIgnoreCase(imageLocation)) {
-                // Firebase-based logo management
-                String filePath = FirebaseHelper.getClientLogoPath(
-                        environmentName,
-                        updatedClient.getName(),
-                        updatedClient.getClientId());
-
-                Optional<GoogleCred> googleCred = googleCredRepository.findById(updatedClient.getGoogleCredId());
-
-                if (googleCred.isPresent()) {
-                    GoogleCred googleCredData = googleCred.get();
-                    FirebaseHelper firebaseHelper = new FirebaseHelper(googleCredData);
-
-                    if (hasNewLogo) {
-                        // Delete old logo if exists, then upload new one
-                        firebaseHelper.deleteFile(filePath);
-                        boolean isSuccess = firebaseHelper.uploadFileToFirebase(
-                                clientRequest.getLogoBase64(),
-                                filePath);
-
-                        if (!isSuccess) {
-                            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidLogoUpload);
-                        }
-                    } else {
-                        // No new logo, delete existing if exists
-                        firebaseHelper.deleteFile(filePath);
-                    }
-                } else {
-                    throw new BadRequestException(ErrorMessages.UserErrorMessages.ER011);
-                }
-            } else {
-                throw new BadRequestException(String.format(
-                        ErrorMessages.ConfigurationErrorMessages.InvalidImageLocationConfigFormat, imageLocation));
-            }
-
-            userLogService.logData(
-                    getUserId(),
-                    SuccessMessages.ClientSuccessMessages.UpdateClient + " " + updatedClient.getClientId(),
-                    ApiRoutes.ClientSubRoute.UPDATE_CLIENT);
-        } else {
-            throw new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId);
-        }
+        userLogService.logData(
+                getUserId(),
+                SuccessMessages.ClientSuccessMessages.UpdateClient + " " + updatedClient.getClientId(),
+                ApiRoutes.ClientSubRoute.UPDATE_CLIENT);
     }
 
     /**
@@ -351,5 +195,109 @@ public class ClientService extends BaseService implements IClientSubTranslator {
         }
 
         return responseModels;
+    }
+
+    /**
+     * Validates that the client name is unique.
+     * 
+     * @param name     The name to check
+     * @param clientId The current client's ID (null for new clients)
+     */
+    private void validateUniqueClientName(String name, Long clientId) {
+        clientRepository.findByName(name).ifPresent(duplicateClient -> {
+            if (clientId == null || !duplicateClient.getClientId().equals(clientId)) {
+                throw new BadRequestException(
+                        String.format(ErrorMessages.ClientErrorMessages.DuplicateClientNameFormat, name));
+            }
+        });
+    }
+
+    /**
+     * Checks if the request contains a logo to be processed.
+     */
+    private boolean hasLogo(ClientRequestModel request) {
+        return request.getLogoBase64() != null &&
+                !request.getLogoBase64().isEmpty() &&
+                !request.getLogoBase64().isBlank();
+    }
+
+    /**
+     * Orchestrates logo management based on configuration.
+     */
+    private void processLogoManagement(Client client, String logoBase64) {
+        boolean hasNewLogo = logoBase64 != null && !logoBase64.isEmpty() && !logoBase64.isBlank();
+        String environmentName = getEnvironmentName();
+
+        if (ImageLocationConstants.IMGBB.equalsIgnoreCase(imageLocation)) {
+            handleImgbbLogo(client, logoBase64, environmentName, hasNewLogo);
+        } else if (ImageLocationConstants.FIREBASE.equalsIgnoreCase(imageLocation)) {
+            handleFirebaseLogo(client, logoBase64, environmentName, hasNewLogo);
+        } else {
+            throw new BadRequestException(String.format(
+                    ErrorMessages.ConfigurationErrorMessages.InvalidImageLocationConfigFormat, imageLocation));
+        }
+    }
+
+    /**
+     * Retrieves the current active profile name.
+     */
+    private String getEnvironmentName() {
+        String[] activeProfiles = environment.getActiveProfiles();
+        return activeProfiles.length > 0 ? activeProfiles[0] : "default";
+    }
+
+    /**
+     * Handles ImgBB logo upload and deletion.
+     */
+    private void handleImgbbLogo(Client client, String logoBase64, String env, boolean hasNewLogo) {
+        if (client.getImgbbApiKey() == null || client.getImgbbApiKey().trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.ImgbbApiKeyNotConfigured);
+        }
+
+        ImgbbHelper imgbbHelper = new ImgbbHelper(client.getImgbbApiKey());
+
+        // Always delete existing logo if we have a hash (for both update and removal)
+        if (client.getLogoDeleteHash() != null && !client.getLogoDeleteHash().isEmpty()) {
+            imgbbHelper.deleteImage(client.getLogoDeleteHash());
+        }
+
+        if (!hasNewLogo) {
+            client.setLogoUrl(null);
+            client.setLogoDeleteHash(null);
+        } else {
+            String customFileName = ImgbbHelper.generateCustomFileNameForClientLogo(env, client.getName());
+            ImgbbHelper.ImgbbUploadResponse uploadResponse = imgbbHelper.uploadFileToImgbb(logoBase64, customFileName);
+
+            if (uploadResponse != null && uploadResponse.getUrl() != null) {
+                client.setLogoUrl(uploadResponse.getUrl());
+                client.setLogoDeleteHash(uploadResponse.getDeleteHash());
+            } else {
+                throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidLogoUpload);
+            }
+        }
+        clientRepository.save(client);
+    }
+
+    /**
+     * Handles Firebase logo upload and deletion.
+     */
+    private void handleFirebaseLogo(Client client, String logoBase64, String env, boolean hasNewLogo) {
+        String filePath = FirebaseHelper.getClientLogoPath(env, client.getName(), client.getClientId());
+        Optional<GoogleCred> googleCred = googleCredRepository.findById(client.getGoogleCredId());
+
+        if (googleCred.isEmpty()) {
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.ER011);
+        }
+
+        FirebaseHelper firebaseHelper = new FirebaseHelper(googleCred.get());
+
+        // For Firebase, we always delete at the current path.
+        // If it's a new logo, it will be replaced. If it's removal, it will stay
+        // deleted.
+        firebaseHelper.deleteFile(filePath);
+
+        if (hasNewLogo && !firebaseHelper.uploadFileToFirebase(logoBase64, filePath)) {
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidLogoUpload);
+        }
     }
 }

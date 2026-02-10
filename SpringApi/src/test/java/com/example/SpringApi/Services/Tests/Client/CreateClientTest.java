@@ -1,7 +1,7 @@
+// Total Tests: 33
 package com.example.SpringApi.Services.Tests.Client;
 
 import com.example.SpringApi.Controllers.ClientController;
-import com.example.SpringApi.Services.ClientService;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.BadRequestException;
@@ -24,8 +24,6 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for ClientService.createClient() method.
- * Tests client creation with various scenarios including logo uploads.
- * * Test Count: 32 tests
  */
 @DisplayName("Create Client Tests")
 class CreateClientTest extends ClientServiceTestBase {
@@ -36,7 +34,7 @@ class CreateClientTest extends ClientServiceTestBase {
      **********************************************************************************************
      */
 
-    /**
+    /*
      * Purpose: Verify creation succeeds with all fields populated.
      * Expected Result: Client is saved with full details.
      * Assertions: Save is called and no exception occurs.
@@ -52,27 +50,29 @@ class CreateClientTest extends ClientServiceTestBase {
         testClientRequest.setSendgridSenderName("Sender Name");
         testClientRequest.setLogoBase64(null);
 
-        when(clientRepository.existsByName(testClientRequest.getName())).thenReturn(false);
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
+        stubClientExistsByName(testClientRequest.getName(), false);
+        stubClientSave(testClient);
 
         // Act & Assert
         assertDoesNotThrow(() -> clientService.createClient(testClientRequest));
+
+        // Assert
         verify(clientRepository).save(any(Client.class));
         verify(userLogService).logData(anyLong(), anyString(), anyString());
     }
 
-    /**
+    /*
      * Purpose: Allow empty logo and skip upload.
      * Expected Result: Client is created without image upload.
      * Assertions: Image repository is not accessed.
      */
     @Test
-    @DisplayName("Create Client - Empty Logo - Success (skips upload)")
+    @DisplayName("Create Client - Empty Logo - Success")
     void createClient_EmptyLogo_Success() {
         // Arrange
         testClientRequest.setLogoBase64("");
-        when(clientRepository.existsByName(testClientRequest.getName())).thenReturn(false);
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
+        stubClientExistsByName(testClientRequest.getName(), false);
+        stubClientSave(testClient);
 
         // Act
         assertDoesNotThrow(() -> clientService.createClient(testClientRequest));
@@ -81,7 +81,7 @@ class CreateClientTest extends ClientServiceTestBase {
         verify(googleCredRepository, never()).findById(any());
     }
 
-    /**
+    /*
      * Purpose: Validate max long Google credential ID is accepted.
      * Expected Result: Client creation succeeds.
      * Assertions: Save is called without errors.
@@ -92,14 +92,14 @@ class CreateClientTest extends ClientServiceTestBase {
         // Arrange
         testClientRequest.setGoogleCredId(Long.MAX_VALUE);
         testClientRequest.setLogoBase64(null);
-        when(clientRepository.existsByName(anyString())).thenReturn(false);
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
+        stubClientExistsByName(anyString(), false);
+        stubClientSave(testClient);
 
         // Act & Assert
         assertDoesNotThrow(() -> clientService.createClient(testClientRequest));
     }
 
-    /**
+    /*
      * Purpose: Verify client creation succeeds without logo upload.
      * Expected Result: Client is saved and log is recorded.
      * Assertions: Save and log calls occur.
@@ -109,8 +109,8 @@ class CreateClientTest extends ClientServiceTestBase {
     void createClient_NoLogo_Success() {
         // Arrange
         testClientRequest.setLogoBase64(null);
-        when(clientRepository.existsByName(testClientRequest.getName())).thenReturn(false);
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
+        stubClientExistsByName(testClientRequest.getName(), false);
+        stubClientSave(testClient);
 
         // Act
         assertDoesNotThrow(() -> clientService.createClient(testClientRequest));
@@ -120,39 +120,42 @@ class CreateClientTest extends ClientServiceTestBase {
         verify(userLogService).logData(anyLong(), anyString(), anyString());
     }
 
-    /**
+    /*
      * Purpose: Default isDeleted when null on create.
      * Expected Result: Client is saved with isDeleted=false.
      * Assertions: Saved client has isDeleted false.
      */
     @Test
-    @DisplayName("Create Client - Null isDeleted - Defaults to false")
-    void createClient_NullIsDeleted_DefaultsFalse() {
+    @DisplayName("Create Client - Null isDeleted - Success")
+    void createClient_NullIsDeleted_Success() {
+        // Arrange
         testClientRequest.setIsDeleted(null);
         testClientRequest.setLogoBase64(null);
 
-        when(clientRepository.existsByName(testClientRequest.getName())).thenReturn(false);
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
+        stubClientExistsByName(testClientRequest.getName(), false);
+        stubClientSave(testClient);
 
+        // Act
         assertDoesNotThrow(() -> clientService.createClient(testClientRequest));
 
+        // Assert
         ArgumentCaptor<Client> captor = ArgumentCaptor.forClass(Client.class);
         verify(clientRepository).save(captor.capture());
         assertFalse(captor.getValue().getIsDeleted());
     }
 
-    /**
+    /*
      * Purpose: Allow null logo and skip upload.
      * Expected Result: Client is created without image upload.
      * Assertions: Image repository is not accessed.
      */
     @Test
-    @DisplayName("Create Client - Null Logo - Success (skips upload)")
+    @DisplayName("Create Client - Null Logo - Success")
     void createClient_NullLogo_Success() {
         // Arrange
         testClientRequest.setLogoBase64(null);
-        when(clientRepository.existsByName(testClientRequest.getName())).thenReturn(false);
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
+        stubClientExistsByName(testClientRequest.getName(), false);
+        stubClientSave(testClient);
 
         // Act
         assertDoesNotThrow(() -> clientService.createClient(testClientRequest));
@@ -161,7 +164,7 @@ class CreateClientTest extends ClientServiceTestBase {
         verify(googleCredRepository, never()).findById(any());
     }
 
-    /**
+    /*
      * Purpose: Validate special characters in name are accepted.
      * Expected Result: Client creation succeeds.
      * Assertions: Save is called without errors.
@@ -172,14 +175,14 @@ class CreateClientTest extends ClientServiceTestBase {
         // Arrange
         String specialName = "Client & Co. #123";
         testClientRequest.setName(specialName);
-        when(clientRepository.existsByName(specialName)).thenReturn(false);
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
+        stubClientExistsByName(specialName, false);
+        stubClientSave(testClient);
 
         // Act & Assert
         assertDoesNotThrow(() -> clientService.createClient(testClientRequest));
     }
 
-    /**
+    /*
      * Purpose: Validate unicode description is accepted.
      * Expected Result: Client creation succeeds.
      * Assertions: Save is called without errors.
@@ -189,14 +192,14 @@ class CreateClientTest extends ClientServiceTestBase {
     void createClient_UnicodeCharacters_Success() {
         // Arrange
         testClientRequest.setDescription("Description with émojis and ñ characters");
-        when(clientRepository.existsByName(anyString())).thenReturn(false);
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
+        stubClientExistsByName(anyString(), false);
+        stubClientSave(testClient);
 
         // Act & Assert
         assertDoesNotThrow(() -> clientService.createClient(testClientRequest));
     }
 
-    /**
+    /*
      * Purpose: Validate very long name is accepted.
      * Expected Result: Client creation succeeds.
      * Assertions: Save is called without errors.
@@ -207,25 +210,25 @@ class CreateClientTest extends ClientServiceTestBase {
         // Arrange
         String longName = "A".repeat(500);
         testClientRequest.setName(longName);
-        when(clientRepository.existsByName(longName)).thenReturn(false);
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
+        stubClientExistsByName(longName, false);
+        stubClientSave(testClient);
 
         // Act & Assert
         assertDoesNotThrow(() -> clientService.createClient(testClientRequest));
     }
 
-    /**
+    /*
      * Purpose: Allow whitespace logo and skip upload.
      * Expected Result: Client is created without image upload.
      * Assertions: Image repository is not accessed.
      */
     @Test
-    @DisplayName("Create Client - Whitespace Logo - Success (skips upload)")
+    @DisplayName("Create Client - Whitespace Logo - Success")
     void createClient_WhitespaceLogo_Success() {
         // Arrange
         testClientRequest.setLogoBase64("   ");
-        when(clientRepository.existsByName(testClientRequest.getName())).thenReturn(false);
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
+        stubClientExistsByName(testClientRequest.getName(), false);
+        stubClientSave(testClient);
 
         // Act
         assertDoesNotThrow(() -> clientService.createClient(testClientRequest));
@@ -234,7 +237,7 @@ class CreateClientTest extends ClientServiceTestBase {
         verify(googleCredRepository, never()).findById(any());
     }
 
-    /**
+    /*
      * Purpose: Verify Firebase logo upload path succeeds.
      * Expected Result: Client is saved with logo URL.
      * Assertions: Firebase helper is invoked and save occurs.
@@ -246,27 +249,26 @@ class CreateClientTest extends ClientServiceTestBase {
         ReflectionTestUtils.setField(clientService, "imageLocation", "firebase");
         testClientRequest.setLogoBase64(TEST_LOGO_BASE64);
 
-        when(clientRepository.existsByName(testClientRequest.getName())).thenReturn(false);
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient); // First save
-        when(googleCredRepository.findById(DEFAULT_GOOGLE_CRED_ID)).thenReturn(Optional.of(testGoogleCred));
+        stubClientExistsByName(testClientRequest.getName(), false);
+        stubClientSave(testClient);
+        stubGoogleCredFindById(DEFAULT_GOOGLE_CRED_ID, Optional.of(testGoogleCred));
 
+        // Act
         try (MockedConstruction<FirebaseHelper> fbMock = mockConstruction(FirebaseHelper.class,
                 (mock, context) -> {
                     when(mock.uploadFileToFirebase(anyString(), anyString())).thenReturn(true);
                 })) {
 
-            // Act
             clientService.createClient(testClientRequest);
 
             // Assert
             verify(clientRepository, atLeastOnce()).save(any(Client.class));
-            // We expect upload to have happened
             assertEquals(1, fbMock.constructed().size());
             verify(fbMock.constructed().get(0)).uploadFileToFirebase(eq(TEST_LOGO_BASE64), anyString());
         }
     }
 
-    /**
+    /*
      * Purpose: Verify ImgBB logo upload path succeeds.
      * Expected Result: Client is saved with ImgBB logo URL.
      * Assertions: ImgBB helper is invoked and save occurs.
@@ -279,29 +281,26 @@ class CreateClientTest extends ClientServiceTestBase {
         testClientRequest.setLogoBase64(TEST_LOGO_BASE64);
         testClient.setImgbbApiKey("some-api-key");
 
-        // Mock created client having an API key
         Client savedClientWithKey = new Client(testClientRequest, DEFAULT_CREATED_USER);
         savedClientWithKey.setImgbbApiKey("test-api-key");
 
-        when(clientRepository.existsByName(testClientRequest.getName())).thenReturn(false);
-        // Return client that has API key for validation
-        when(clientRepository.save(any(Client.class))).thenReturn(savedClientWithKey);
+        stubClientExistsByName(testClientRequest.getName(), false);
+        stubClientSave(savedClientWithKey);
 
         ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
                 "http://imgbb.com/image.png",
                 "deleteHash123");
 
+        // Act
         try (MockedConstruction<ImgbbHelper> imgMock = mockConstruction(ImgbbHelper.class,
                 (mock, context) -> {
                     when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
                 })) {
 
-            // Act
             clientService.createClient(testClientRequest);
 
             // Assert
-            // Verify repository saved the updated logo URL
-            verify(clientRepository, times(2)).save(any(Client.class)); // Initial save + update with logo
+            verify(clientRepository, times(2)).save(any(Client.class));
         }
     }
 
@@ -311,7 +310,7 @@ class CreateClientTest extends ClientServiceTestBase {
      **********************************************************************************************
      */
 
-    /**
+    /*
      * Purpose: Reject duplicate client names.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message indicates name already exists.
@@ -320,16 +319,20 @@ class CreateClientTest extends ClientServiceTestBase {
     @DisplayName("Create Client - Duplicate name - ThrowsBadRequestException")
     void createClient_DuplicateName_ThrowsBadRequestException() {
         // Arrange
-        when(clientRepository.existsByName(testClientRequest.getName())).thenReturn(true);
+        stubClientExistsByName(testClientRequest.getName(), true);
 
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
-        assertTrue(ex.getMessage().contains("already exists"));
+
+        // Assert
+        assertEquals(
+                String.format(ErrorMessages.ClientErrorMessages.DuplicateClientNameFormat, testClientRequest.getName()),
+                ex.getMessage());
         verify(clientRepository, never()).save(any());
     }
 
-    /**
+    /*
      * Purpose: Reject empty description.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches InvalidDescription.
@@ -337,15 +340,19 @@ class CreateClientTest extends ClientServiceTestBase {
     @Test
     @DisplayName("Create Client - Empty Description - ThrowsBadRequestException")
     void createClient_EmptyDescription_ThrowsBadRequestException() {
+        // Arrange
         testClientRequest.setDescription("");
-        when(clientRepository.existsByName(anyString())).thenReturn(false);
+        stubClientExistsByName(anyString(), false);
 
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
+
+        // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidDescription, ex.getMessage());
     }
 
-    /**
+    /*
      * Purpose: Reject empty name.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches InvalidName.
@@ -353,13 +360,18 @@ class CreateClientTest extends ClientServiceTestBase {
     @Test
     @DisplayName("Create Client - Empty Name - ThrowsBadRequestException")
     void createClient_EmptyName_ThrowsBadRequestException() {
+        // Arrange
         testClientRequest.setName("");
+
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
+
+        // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidName, ex.getMessage());
     }
 
-    /**
+    /*
      * Purpose: Reject empty support email values.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches InvalidSupportEmail.
@@ -367,15 +379,19 @@ class CreateClientTest extends ClientServiceTestBase {
     @Test
     @DisplayName("Create Client - Empty Support Email - ThrowsBadRequestException")
     void createClient_EmptySupportEmail_ThrowsBadRequestException() {
+        // Arrange
         testClientRequest.setSupportEmail("");
-        when(clientRepository.existsByName(anyString())).thenReturn(false);
+        stubClientExistsByName(anyString(), false);
 
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
+
+        // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidSupportEmail, ex.getMessage());
     }
 
-    /**
+    /*
      * Purpose: Reject empty website values.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches InvalidWebsite.
@@ -383,15 +399,19 @@ class CreateClientTest extends ClientServiceTestBase {
     @Test
     @DisplayName("Create Client - Empty Website - ThrowsBadRequestException")
     void createClient_EmptyWebsite_ThrowsBadRequestException() {
+        // Arrange
         testClientRequest.setWebsite("");
-        when(clientRepository.existsByName(anyString())).thenReturn(false);
+        stubClientExistsByName(anyString(), false);
 
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
+
+        // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidWebsite, ex.getMessage());
     }
 
-    /**
+    /*
      * Purpose: Reject Firebase upload when Google credential is missing.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches ER011.
@@ -403,17 +423,19 @@ class CreateClientTest extends ClientServiceTestBase {
         ReflectionTestUtils.setField(clientService, "imageLocation", "firebase");
         testClientRequest.setLogoBase64(TEST_LOGO_BASE64);
 
-        when(clientRepository.existsByName(testClientRequest.getName())).thenReturn(false);
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
-        when(googleCredRepository.findById(DEFAULT_GOOGLE_CRED_ID)).thenReturn(Optional.empty());
+        stubClientExistsByName(testClientRequest.getName(), false);
+        stubClientSave(testClient);
+        stubGoogleCredFindById(DEFAULT_GOOGLE_CRED_ID, Optional.empty());
 
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
+
+        // Assert
         assertEquals(ErrorMessages.UserErrorMessages.ER011, ex.getMessage());
     }
 
-    /**
+    /*
      * Purpose: Handle Firebase upload failures.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches ER021.
@@ -425,10 +447,11 @@ class CreateClientTest extends ClientServiceTestBase {
         ReflectionTestUtils.setField(clientService, "imageLocation", "firebase");
         testClientRequest.setLogoBase64(TEST_LOGO_BASE64);
 
-        when(clientRepository.existsByName(testClientRequest.getName())).thenReturn(false);
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
-        when(googleCredRepository.findById(DEFAULT_GOOGLE_CRED_ID)).thenReturn(Optional.of(testGoogleCred));
+        stubClientExistsByName(testClientRequest.getName(), false);
+        stubClientSave(testClient);
+        stubGoogleCredFindById(DEFAULT_GOOGLE_CRED_ID, Optional.of(testGoogleCred));
 
+        // Act & Assert
         try (MockedConstruction<FirebaseHelper> fbMock = mockConstruction(FirebaseHelper.class,
                 (mock, context) -> {
                     when(mock.uploadFileToFirebase(anyString(), anyString())).thenReturn(false);
@@ -436,11 +459,13 @@ class CreateClientTest extends ClientServiceTestBase {
 
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> clientService.createClient(testClientRequest));
+
+            // Assert
             assertEquals(ErrorMessages.ClientErrorMessages.InvalidLogoUpload, ex.getMessage());
         }
     }
 
-    /**
+    /*
      * Purpose: Reject ImgBB upload when API key is missing.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches ER020.
@@ -451,20 +476,50 @@ class CreateClientTest extends ClientServiceTestBase {
         // Arrange
         ReflectionTestUtils.setField(clientService, "imageLocation", "imgbb");
         testClientRequest.setLogoBase64(TEST_LOGO_BASE64);
-
-        // Saved client has null API Key
         testClient.setImgbbApiKey(null);
 
-        when(clientRepository.existsByName(testClientRequest.getName())).thenReturn(false);
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
+        stubClientExistsByName(testClientRequest.getName(), false);
+        stubClientSave(testClient);
 
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
+
+        // Assert
         assertEquals(ErrorMessages.ConfigurationErrorMessages.ImgbbApiKeyNotConfigured, ex.getMessage());
     }
 
-    /**
+    /*
+     * Purpose: Handle ImgBB upload returning null.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Error message matches InvalidLogoUpload.
+     */
+    @Test
+    @DisplayName("Create Client - ImgBB Upload Null - ThrowsBadRequestException")
+    void createClient_ImgbbUploadNull_ThrowsBadRequestException() {
+        // Arrange
+        ReflectionTestUtils.setField(clientService, "imageLocation", "imgbb");
+        testClientRequest.setLogoBase64(TEST_LOGO_BASE64);
+        testClient.setImgbbApiKey("test-api-key");
+
+        stubClientExistsByName(testClientRequest.getName(), false);
+        stubClientSave(testClient);
+
+        // Act & Assert
+        try (MockedConstruction<ImgbbHelper> imgMock = mockConstruction(ImgbbHelper.class,
+                (mock, context) -> {
+                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(null);
+                })) {
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> clientService.createClient(testClientRequest));
+
+            // Assert
+            assertEquals(ErrorMessages.ClientErrorMessages.InvalidLogoUpload, ex.getMessage());
+        }
+    }
+
+    /*
      * Purpose: Reject invalid image location configuration.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches ER019.
@@ -476,16 +531,19 @@ class CreateClientTest extends ClientServiceTestBase {
         ReflectionTestUtils.setField(clientService, "imageLocation", "invalid-provider");
         testClientRequest.setLogoBase64(TEST_LOGO_BASE64);
 
-        when(clientRepository.existsByName(testClientRequest.getName())).thenReturn(false);
-        when(clientRepository.save(any(Client.class))).thenReturn(testClient);
+        stubClientExistsByName(testClientRequest.getName(), false);
+        stubClientSave(testClient);
 
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
-        assertTrue(ex.getMessage().contains("Invalid imageLocation configuration"));
+
+        // Assert
+        assertEquals(String.format(ErrorMessages.ConfigurationErrorMessages.InvalidImageLocationConfigFormat,
+                "invalid-provider"), ex.getMessage());
     }
 
-    /**
+    /*
      * Purpose: Reject null description.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches InvalidDescription.
@@ -493,15 +551,19 @@ class CreateClientTest extends ClientServiceTestBase {
     @Test
     @DisplayName("Create Client - Null Description - ThrowsBadRequestException")
     void createClient_NullDescription_ThrowsBadRequestException() {
+        // Arrange
         testClientRequest.setDescription(null);
-        when(clientRepository.existsByName(anyString())).thenReturn(false);
+        stubClientExistsByName(anyString(), false);
 
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
+
+        // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidDescription, ex.getMessage());
     }
 
-    /**
+    /*
      * Purpose: Reject null name.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches InvalidName.
@@ -509,24 +571,33 @@ class CreateClientTest extends ClientServiceTestBase {
     @Test
     @DisplayName("Create Client - Null Name - ThrowsBadRequestException")
     void createClient_NullName_ThrowsBadRequestException() {
+        // Arrange
         testClientRequest.setName(null);
+
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
+
+        // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidName, ex.getMessage());
     }
 
-    /**
+    /*
      * Purpose: Reject null create request.
-     * Expected Result: NullPointerException is thrown.
-     * Assertions: Exception type is NullPointerException.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Error message matches InvalidRequest.
      */
     @Test
     @DisplayName("Create Client - Null request - ThrowsBadRequestException")
     void createClient_NullRequest_ThrowsBadRequestException() {
-        assertThrows(NullPointerException.class, () -> clientService.createClient(null));
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.createClient(null));
+
+        // Assert
+        assertEquals(ErrorMessages.ClientErrorMessages.InvalidRequest, ex.getMessage());
     }
 
-    /**
+    /*
      * Purpose: Reject null support email values.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches InvalidSupportEmail.
@@ -534,15 +605,19 @@ class CreateClientTest extends ClientServiceTestBase {
     @Test
     @DisplayName("Create Client - Null Support Email - ThrowsBadRequestException")
     void createClient_NullSupportEmail_ThrowsBadRequestException() {
+        // Arrange
         testClientRequest.setSupportEmail(null);
-        when(clientRepository.existsByName(anyString())).thenReturn(false);
+        stubClientExistsByName(anyString(), false);
 
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
+
+        // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidSupportEmail, ex.getMessage());
     }
 
-    /**
+    /*
      * Purpose: Reject null website values.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches InvalidWebsite.
@@ -550,15 +625,19 @@ class CreateClientTest extends ClientServiceTestBase {
     @Test
     @DisplayName("Create Client - Null Website - ThrowsBadRequestException")
     void createClient_NullWebsite_ThrowsBadRequestException() {
+        // Arrange
         testClientRequest.setWebsite(null);
-        when(clientRepository.existsByName(anyString())).thenReturn(false);
+        stubClientExistsByName(anyString(), false);
 
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
+
+        // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidWebsite, ex.getMessage());
     }
 
-    /**
+    /*
      * Purpose: Reject whitespace-only description.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches InvalidDescription.
@@ -566,14 +645,19 @@ class CreateClientTest extends ClientServiceTestBase {
     @Test
     @DisplayName("Create Client - Whitespace only description - ThrowsBadRequestException")
     void createClient_WhitespaceOnlyDescription_ThrowsBadRequestException() {
+        // Arrange
         testClientRequest.setDescription("   ");
-        when(clientRepository.existsByName(anyString())).thenReturn(false);
+        stubClientExistsByName(anyString(), false);
+
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
+
+        // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidDescription, ex.getMessage());
     }
 
-    /**
+    /*
      * Purpose: Reject whitespace-only support email.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches InvalidSupportEmail.
@@ -581,14 +665,19 @@ class CreateClientTest extends ClientServiceTestBase {
     @Test
     @DisplayName("Create Client - Whitespace only email - ThrowsBadRequestException")
     void createClient_WhitespaceOnlyEmail_ThrowsBadRequestException() {
+        // Arrange
         testClientRequest.setSupportEmail("   ");
-        when(clientRepository.existsByName(anyString())).thenReturn(false);
+        stubClientExistsByName(anyString(), false);
+
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
+
+        // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidSupportEmail, ex.getMessage());
     }
 
-    /**
+    /*
      * Purpose: Reject whitespace-only name.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches InvalidName.
@@ -596,13 +685,19 @@ class CreateClientTest extends ClientServiceTestBase {
     @Test
     @DisplayName("Create Client - Whitespace only name - ThrowsBadRequestException")
     void createClient_WhitespaceOnlyName_ThrowsBadRequestException() {
+        // Arrange
         testClientRequest.setName("   ");
+        stubClientExistsByName("   ", false);
+
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
+
+        // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidName, ex.getMessage());
     }
 
-    /**
+    /*
      * Purpose: Reject whitespace-only website.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches InvalidWebsite.
@@ -610,10 +705,15 @@ class CreateClientTest extends ClientServiceTestBase {
     @Test
     @DisplayName("Create Client - Whitespace only website - ThrowsBadRequestException")
     void createClient_WhitespaceOnlyWebsite_ThrowsBadRequestException() {
+        // Arrange
         testClientRequest.setWebsite("   ");
-        when(clientRepository.existsByName(anyString())).thenReturn(false);
+        stubClientExistsByName(anyString(), false);
+
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> clientService.createClient(testClientRequest));
+
+        // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidWebsite, ex.getMessage());
     }
 
@@ -621,27 +721,25 @@ class CreateClientTest extends ClientServiceTestBase {
      **********************************************************************************************
      * CONTROLLER AUTHORIZATION TESTS
      **********************************************************************************************
-     * The following tests verify that authorization is properly configured at the
-     * controller level.
-     * These tests check that @PreAuthorize annotations are present and correctly
-     * configured.
      */
 
-    /**
+    /*
      * Purpose: Verify @PreAuthorize annotation is declared on createClient method.
      * Expected Result: Method has @PreAuthorize annotation with correct permission.
      * Assertions: Annotation exists and references INSERT_CLIENT_PERMISSION.
      */
     @Test
     @DisplayName("Create Client - Verify @PreAuthorize annotation is configured correctly")
-    void createClient_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        // Use reflection to verify the @PreAuthorize annotation is present
+    void createClient_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        // Arrange
         var method = ClientController.class.getMethod("createClient",
                 com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
 
+        // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
 
+        // Assert
         assertNotNull(preAuthorizeAnnotation,
                 "createClient method should have @PreAuthorize annotation");
 
@@ -652,32 +750,24 @@ class CreateClientTest extends ClientServiceTestBase {
                 "PreAuthorize annotation should reference INSERT_CLIENT_PERMISSION");
     }
 
-    /**
+    /*
      * Purpose: Verify controller calls service when authorization passes
      * (simulated).
      * Expected Result: Service method is called and correct HTTP status is
      * returned.
      * Assertions: Service called once, HTTP status is correct.
-     * 
-     * Note: This test simulates the happy path assuming authorization has already
-     * passed.
-     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
-     * in end-to-end tests.
      */
     @Test
     @DisplayName("Create Client - Controller delegates to service correctly")
-    void createClient_WithValidRequest_DelegatesToService() {
+    void createClient_WithValidRequest_DelegatesToService_Success() {
         // Arrange
-        ClientService mockService = mock(ClientService.class);
-        ClientController controller = new ClientController(mockService);
-        doNothing().when(mockService)
-                .createClient(any(com.example.SpringApi.Models.RequestModels.ClientRequestModel.class));
+        stubServiceCreateClientDoNothing();
 
-        // Act - Call controller directly (simulating authorization has already passed)
-        ResponseEntity<?> response = controller.createClient(testClientRequest);
+        // Act
+        ResponseEntity<?> response = clientController.createClient(testClientRequest);
 
-        // Assert - Verify service was called and correct response returned
-        verify(mockService, times(1)).createClient(testClientRequest);
+        // Assert
+        verify(mockClientService, times(1)).createClient(testClientRequest);
         assertEquals(HttpStatus.CREATED, response.getStatusCode(),
                 "Should return HTTP 201 Created");
     }
