@@ -7,8 +7,6 @@ import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +17,11 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for AddressService insert functionality.
- * Tests for: InsertAddressTests (57 tests)
+ * Tests for: InsertAddressTests (67 tests)
  */
 @DisplayName("Insert Address Tests")
 class InsertAddressTest extends AddressServiceTestBase {
+    // Total Tests: 67
 
     /*
      **********************************************************************************************
@@ -40,8 +39,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_AddressTypeNormalized_Success() {
         // Arrange
         testAddressRequest.setAddressType("home");
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -68,8 +68,9 @@ class InsertAddressTest extends AddressServiceTestBase {
         testAddressRequest.setPhoneOnAddress(null);
         testAddressRequest.setIsPrimary(null);
         testAddressRequest.setIsDeleted(null);
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -91,8 +92,9 @@ class InsertAddressTest extends AddressServiceTestBase {
         testAddressRequest.setPhoneOnAddress("1234567890");
         testAddressRequest.setIsPrimary(true);
         testAddressRequest.setIsDeleted(false);
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -108,8 +110,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_BoundaryPostalCode5Digits_Success() {
         // Arrange
         testAddressRequest.setPostalCode("00000");
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -125,8 +128,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_BoundaryPostalCode6Digits_Success() {
         // Arrange
         testAddressRequest.setPostalCode("999999");
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -142,8 +146,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_CaseInsensitiveHome_Success() {
         // Arrange
         testAddressRequest.setAddressType("home");
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -159,8 +164,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_CaseInsensitiveWork_Success() {
         // Arrange
         testAddressRequest.setAddressType("work");
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -176,8 +182,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_IsDeletedTrue_Success() {
         // Arrange
         testAddressRequest.setIsDeleted(true);
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -193,8 +200,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_IsPrimaryFalse_Success() {
         // Arrange
         testAddressRequest.setIsPrimary(false);
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -210,8 +218,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_IsPrimaryTrue_Success() {
         // Arrange
         testAddressRequest.setIsPrimary(true);
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -226,8 +235,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     @DisplayName("Insert Address - Logs success message and route")
     void insertAddress_LogsSuccessMessageAndRoute() {
         // Arrange
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act
         addressService.insertAddress(testAddressRequest);
@@ -249,8 +259,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_MaxLongClientId_Success() {
         // Arrange
         testAddressRequest.setClientId(Long.MAX_VALUE);
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -266,8 +277,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_MaxLongUserId_Success() {
         // Arrange
         testAddressRequest.setUserId(Long.MAX_VALUE);
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -283,8 +295,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_MixedCaseAddressType_Success() {
         // Arrange
         testAddressRequest.setAddressType("BiLLiNg");
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -298,7 +311,7 @@ class InsertAddressTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Insert Address - Multiple validations pass together - Success")
     void insertAddress_MultipleValidationsPass_Success() {
-        // Arrange - all fields valid
+        // Arrange
         testAddressRequest.setStreetAddress("123 Valid Street");
         testAddressRequest.setCity("ValidCity");
         testAddressRequest.setState("VA");
@@ -307,9 +320,9 @@ class InsertAddressTest extends AddressServiceTestBase {
         testAddressRequest.setAddressType("HOME");
         testAddressRequest.setUserId(123L);
         testAddressRequest.setClientId(456L);
-
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -328,9 +341,9 @@ class InsertAddressTest extends AddressServiceTestBase {
         testAddressRequest.setCountry("India");
         testAddressRequest.setIsPrimary(null);
         testAddressRequest.setIsDeleted(null);
-
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -352,8 +365,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_NullClientId_Success() {
         // Arrange
         testAddressRequest.setClientId(null);
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -369,8 +383,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_NullUserId_Success() {
         // Arrange
         testAddressRequest.setUserId(null);
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -386,8 +401,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_PostalCodeWithLeadingZeros_Success() {
         // Arrange
         testAddressRequest.setPostalCode("00123");
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -403,8 +419,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_SpecialCharactersInStreetAddress_Success() {
         // Arrange
         testAddressRequest.setStreetAddress("123 Main St, Apt #101 & Suite B-2");
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -420,8 +437,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_StreetAddressWithSpaces_SuccessTrimsSpaces() {
         // Arrange
         testAddressRequest.setStreetAddress("  123 Main St  ");
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -437,8 +455,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_UnicodeCharactersInCity_Success() {
         // Arrange
         testAddressRequest.setCity("München");
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -446,18 +465,134 @@ class InsertAddressTest extends AddressServiceTestBase {
 
     /**
      * Purpose: Accept valid address types (case-insensitive).
-     * Expected Result: Insert succeeds.
+     * Expected Result: Insert succeeds for each valid type.
      * Assertions: No exception is thrown.
      */
-    @ParameterizedTest
-    @ValueSource(strings = { "HOME", "WORK", "BILLING", "SHIPPING", "OFFICE", "WAREHOUSE", "home", "Home", "work",
-            "Work" })
-    @DisplayName("Insert Address - Valid address types - Success")
-    void insertAddress_ValidAddressTypes_Success(String validType) {
+    @Test
+    @DisplayName("Insert Address - Address type BILLING - Success")
+    void insertAddress_addressType_BILLING_success() {
         // Arrange
-        testAddressRequest.setAddressType(validType);
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        testAddressRequest.setAddressType("BILLING");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    @Test
+    @DisplayName("Insert Address - Address type HOME - Success")
+    void insertAddress_addressType_HOME_success() {
+        // Arrange
+        testAddressRequest.setAddressType("HOME");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    @Test
+    @DisplayName("Insert Address - Address type Home (mixed) - Success")
+    void insertAddress_addressType_Home_mixedcase_success() {
+        // Arrange
+        testAddressRequest.setAddressType("Home");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    @Test
+    @DisplayName("Insert Address - Address type OFFICE - Success")
+    void insertAddress_addressType_OFFICE_success() {
+        // Arrange
+        testAddressRequest.setAddressType("OFFICE");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    @Test
+    @DisplayName("Insert Address - Address type SHIPPING - Success")
+    void insertAddress_addressType_SHIPPING_success() {
+        // Arrange
+        testAddressRequest.setAddressType("SHIPPING");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    @Test
+    @DisplayName("Insert Address - Address type WAREHOUSE - Success")
+    void insertAddress_addressType_WAREHOUSE_success() {
+        // Arrange
+        testAddressRequest.setAddressType("WAREHOUSE");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    @Test
+    @DisplayName("Insert Address - Address type WORK - Success")
+    void insertAddress_addressType_WORK_success() {
+        // Arrange
+        testAddressRequest.setAddressType("WORK");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    @Test
+    @DisplayName("Insert Address - Address type Work (mixed) - Success")
+    void insertAddress_addressType_Work_mixedcase_success() {
+        // Arrange
+        testAddressRequest.setAddressType("Work");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    @Test
+    @DisplayName("Insert Address - Address type home (lowercase) - Success")
+    void insertAddress_addressType_home_lowercase_success() {
+        // Arrange
+        testAddressRequest.setAddressType("home");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    @Test
+    @DisplayName("Insert Address - Address type work (lowercase) - Success")
+    void insertAddress_addressType_work_lowercase_success() {
+        // Arrange
+        testAddressRequest.setAddressType("work");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -465,17 +600,30 @@ class InsertAddressTest extends AddressServiceTestBase {
 
     /**
      * Purpose: Allow valid postal code lengths.
-     * Expected Result: Insert succeeds.
+     * Expected Result: Insert succeeds for each postal code.
      * Assertions: No exception is thrown.
      */
-    @ParameterizedTest
-    @ValueSource(strings = { "12345", "123456" })
-    @DisplayName("Insert Address - Valid postal code formats (5-6 digits) - Success")
-    void insertAddress_ValidPostalCodeFormats_Success(String validPostalCode) {
+    @Test
+    @DisplayName("Insert Address - Postal code 12345 - Success")
+    void insertAddress_postalCode_12345_success() {
         // Arrange
-        testAddressRequest.setPostalCode(validPostalCode);
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        testAddressRequest.setPostalCode("12345");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    @Test
+    @DisplayName("Insert Address - Postal code 123456 - Success")
+    void insertAddress_postalCode_123456_success() {
+        // Arrange
+        testAddressRequest.setPostalCode("123456");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -490,8 +638,9 @@ class InsertAddressTest extends AddressServiceTestBase {
     @DisplayName("Insert Address - Valid request - Success")
     void insertAddress_ValidRequest_Success() {
         // Arrange
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -512,8 +661,9 @@ class InsertAddressTest extends AddressServiceTestBase {
         // Arrange
         String longAddress = "A".repeat(500);
         testAddressRequest.setStreetAddress(longAddress);
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
@@ -602,6 +752,25 @@ class InsertAddressTest extends AddressServiceTestBase {
     }
 
     /**
+     * Purpose: Reject address type with mixed case and numbers.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Error message matches ER006.
+     */
+    @Test
+    @DisplayName("Insert Address - Invalid address type (home123) - ThrowsBadRequestException")
+    void insertAddress_InvalidAddressTypeHome123_ThrowsBadRequestException() {
+        // Arrange
+        testAddressRequest.setAddressType("home123");
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
+                () -> addressService.insertAddress(testAddressRequest));
+
+        assertEquals(ErrorMessages.AddressErrorMessages.ER006, exception.getMessage());
+    }
+
+    /**
      * Purpose: Reject invalid address types.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches ER006.
@@ -659,25 +828,6 @@ class InsertAddressTest extends AddressServiceTestBase {
     }
 
     /**
-     * Purpose: Reject address type with mixed case and numbers.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER006.
-     */
-    @Test
-    @DisplayName("Insert Address - Invalid address type (home123) - ThrowsBadRequestException")
-    void insertAddress_InvalidAddressTypeHome123_ThrowsBadRequestException() {
-        // Arrange
-        testAddressRequest.setAddressType("home123");
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> addressService.insertAddress(testAddressRequest));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.ER006, exception.getMessage());
-    }
-
-    /**
      * Purpose: Reject empty address type.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches ER006.
@@ -705,7 +855,7 @@ class InsertAddressTest extends AddressServiceTestBase {
     @DisplayName("Insert Address - Invalid created user - ThrowsBadRequestException")
     void insertAddress_InvalidCreatedUser_ThrowsBadRequestException() {
         // Arrange
-        doReturn(" ").when(addressService).getUser();
+        stubServiceGetUser(" ");
 
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -1092,15 +1242,16 @@ class InsertAddressTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Insert Address - Verify @PreAuthorize annotation is configured correctly")
     void insertAddress_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        // Use reflection to verify the @PreAuthorize annotation is present
+        // Arrange
         var method = AddressController.class.getMethod("createAddress",
                 com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
 
+        // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
 
-        assertNotNull(preAuthorizeAnnotation,
-                "createAddress method should have @PreAuthorize annotation");
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "createAddress method should have @PreAuthorize annotation");
 
         String expectedPermission = "@customAuthorization.hasAuthority('" +
                 Authorizations.INSERT_ADDRESS_PERMISSION + "')";
@@ -1125,8 +1276,7 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_WithValidRequest_DelegatesToService() {
         // Arrange
         AddressController addressController = new AddressController(addressService);
-        doNothing().when(addressService)
-                .insertAddress(any(com.example.SpringApi.Models.RequestModels.AddressRequestModel.class));
+        stubServiceInsertAddressDoNothing();
 
         // Act - Call controller directly (simulating authorization has already passed)
         ResponseEntity<?> response = addressController.createAddress(testAddressRequest);

@@ -4,7 +4,6 @@ import com.example.SpringApi.Controllers.AddressController;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.DatabaseModels.Address;
 import com.example.SpringApi.Models.ResponseModels.AddressResponseModel;
-import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.ErrorMessages;
 
 import org.junit.jupiter.api.Test;
@@ -14,26 +13,19 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for AddressService getAddressByClientId functionality.
- * Tests for: GetAddressByClientIdTests (15 tests)
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("Get Address By Client ID Tests")
 class GetAddressByClientIdTest extends AddressServiceTestBase {
+    // Total Tests: 15
 
     /*
      **********************************************************************************************
@@ -49,7 +41,7 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Get Address By Client ID - All address types - Success returns all types")
     void getAddressByClientId_AllAddressTypes_Success() {
-        when(clientRepository.findById(DEFAULT_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        // Arrange
         Address homeAddress = createTestAddress(1L, "HOME");
         Address workAddress = createTestAddress(2L, "WORK");
         Address billingAddress = createTestAddress(3L, "BILLING");
@@ -59,8 +51,8 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
         List<Address> addresses = Arrays.asList(
                 homeAddress, workAddress, billingAddress,
                 shippingAddress, officeAddress, warehouseAddress);
-        when(addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_CLIENT_ID, false))
-                .thenReturn(addresses);
+        stubDefaultRepositoryResponses();
+        stubFindAddressesByClientId(DEFAULT_CLIENT_ID, addresses);
 
         // Act
         List<AddressResponseModel> result = addressService.getAddressByClientId(DEFAULT_CLIENT_ID);
@@ -92,14 +84,12 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By Client ID - Large result set - Success")
     void getAddressByClientId_LargeResultSet_Success() {
         // Arrange
-        when(clientRepository.findById(DEFAULT_CLIENT_ID)).thenReturn(Optional.of(testClient));
-
         List<Address> addresses = new ArrayList<>();
         for (int i = 1; i <= 100; i++) {
             addresses.add(createTestAddress((long) i, i % 2 == 0 ? "HOME" : "WORK"));
         }
-        when(addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_CLIENT_ID, false))
-                .thenReturn(addresses);
+        stubDefaultRepositoryResponses();
+        stubFindAddressesByClientId(DEFAULT_CLIENT_ID, addresses);
 
         // Act
         List<AddressResponseModel> result = addressService.getAddressByClientId(DEFAULT_CLIENT_ID);
@@ -120,11 +110,11 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Get Address By Client ID - Multiple addresses found - Success returns list")
     void getAddressByClientId_MultipleAddressesFound_Success() {
-        when(clientRepository.findById(DEFAULT_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        // Arrange
         Address secondAddress = createTestAddress(2L, "BILLING");
         List<Address> addresses = Arrays.asList(testAddress, secondAddress);
-        when(addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_CLIENT_ID, false))
-                .thenReturn(addresses);
+        stubDefaultRepositoryResponses();
+        stubFindAddressesByClientId(DEFAULT_CLIENT_ID, addresses);
 
         // Act
         List<AddressResponseModel> result = addressService.getAddressByClientId(DEFAULT_CLIENT_ID);
@@ -140,8 +130,7 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
         assertEquals("BILLING", result.get(1).getAddressType());
 
         verify(clientRepository, times(1)).findById(DEFAULT_CLIENT_ID);
-        verify(addressRepository, times(1)).findByClientIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_CLIENT_ID,
-                false);
+        verify(addressRepository, times(1)).findByClientIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_CLIENT_ID, false);
     }
 
     /**
@@ -153,9 +142,8 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By Client ID - No addresses - Success returns empty list")
     void getAddressByClientId_NoAddresses_ReturnsEmptyList() {
         // Arrange
-        when(clientRepository.findById(DEFAULT_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_CLIENT_ID, false))
-                .thenReturn(new ArrayList<>());
+        stubDefaultRepositoryResponses();
+        stubFindAddressesByClientId(DEFAULT_CLIENT_ID, new ArrayList<>());
 
         // Act
         List<AddressResponseModel> result = addressService.getAddressByClientId(DEFAULT_CLIENT_ID);
@@ -163,8 +151,7 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
         // Assert
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        verify(addressRepository, times(1)).findByClientIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_CLIENT_ID,
-                false);
+        verify(addressRepository, times(1)).findByClientIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_CLIENT_ID, false);
     }
 
     /**
@@ -181,9 +168,8 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
         testAddress.setNameOnAddress(null);
         testAddress.setEmailOnAddress(null);
         testAddress.setPhoneOnAddress(null);
-        when(clientRepository.findById(DEFAULT_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_CLIENT_ID, false))
-                .thenReturn(Collections.singletonList(testAddress));
+        stubDefaultRepositoryResponses();
+        stubFindAddressesByClientId(DEFAULT_CLIENT_ID, List.of(testAddress));
 
         // Act
         List<AddressResponseModel> result = addressService.getAddressByClientId(DEFAULT_CLIENT_ID);
@@ -205,9 +191,8 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By Client ID - Single address - Success returns list with one item")
     void getAddressByClientId_SingleAddress_Success() {
         // Arrange
-        when(clientRepository.findById(DEFAULT_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_CLIENT_ID, false))
-                .thenReturn(Collections.singletonList(testAddress));
+        stubDefaultRepositoryResponses();
+        stubFindAddressesByClientId(DEFAULT_CLIENT_ID, List.of(testAddress));
 
         // Act
         List<AddressResponseModel> result = addressService.getAddressByClientId(DEFAULT_CLIENT_ID);
@@ -229,9 +214,8 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By Client ID - Valid call - Success returns list")
     void getAddressByClientId_ValidCall_SuccessReturnsAddresses() {
         // Arrange
-        when(clientRepository.findById(DEFAULT_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_CLIENT_ID, false))
-                .thenReturn(Collections.singletonList(testAddress));
+        stubDefaultRepositoryResponses();
+        stubFindAddressesByClientId(DEFAULT_CLIENT_ID, List.of(testAddress));
 
         // Act
         List<AddressResponseModel> result = addressService.getAddressByClientId(DEFAULT_CLIENT_ID);
@@ -259,14 +243,11 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
     void getAddressByClientId_ClientDeleted_ThrowsNotFoundException() {
         // Arrange
         testClient.setIsDeleted(true);
-        when(clientRepository.findById(DEFAULT_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.getAddressByClientId(DEFAULT_CLIENT_ID));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
         verify(addressRepository, never()).findByClientIdAndIsDeletedOrderByAddressIdDesc(anyLong(), anyBoolean());
     }
 
@@ -279,14 +260,11 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By Client ID - Client not found - ThrowsNotFoundException")
     void getAddressByClientId_ClientNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(clientRepository.findById(DEFAULT_CLIENT_ID)).thenReturn(Optional.empty());
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
-                () -> addressService.getAddressByClientId(DEFAULT_CLIENT_ID));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+                () -> addressService.getAddressByClientId(DEFAULT_CLIENT_ID + 1));
         verify(addressRepository, never()).findByClientIdAndIsDeletedOrderByAddressIdDesc(anyLong(), anyBoolean());
     }
 
@@ -299,14 +277,11 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By Client ID - Min Long value - ThrowsNotFoundException")
     void getAddressByClientId_MinLongValue_ThrowsNotFoundException() {
         // Arrange
-        when(clientRepository.findById(Long.MIN_VALUE)).thenReturn(Optional.empty());
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.getAddressByClientId(Long.MIN_VALUE));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
     }
 
     /**
@@ -318,15 +293,11 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By Client ID - Negative ID - ThrowsNotFoundException")
     void getAddressByClientId_NegativeId_ThrowsNotFoundException() {
         // Arrange
-        long negativeId = -1L;
-        when(clientRepository.findById(negativeId)).thenReturn(Optional.empty());
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
-                () -> addressService.getAddressByClientId(negativeId));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+                () -> addressService.getAddressByClientId(-1L));
     }
 
     /**
@@ -338,15 +309,11 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By Client ID - Very large ID - ThrowsNotFoundException")
     void getAddressByClientId_VeryLargeId_ThrowsNotFoundException() {
         // Arrange
-        long largeId = Long.MAX_VALUE;
-        when(clientRepository.findById(largeId)).thenReturn(Optional.empty());
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
-                () -> addressService.getAddressByClientId(largeId));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+                () -> addressService.getAddressByClientId(Long.MAX_VALUE));
     }
 
     /**
@@ -358,15 +325,11 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By Client ID - Zero ID - ThrowsNotFoundException")
     void getAddressByClientId_ZeroId_ThrowsNotFoundException() {
         // Arrange
-        long zeroId = 0L;
-        when(clientRepository.findById(zeroId)).thenReturn(Optional.empty());
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
-                () -> addressService.getAddressByClientId(zeroId));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+                () -> addressService.getAddressByClientId(0L));
     }
 
     /*
@@ -388,15 +351,15 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Get Address By Client ID - Verify @PreAuthorize annotation is configured correctly")
     void getAddressByClientId_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        // Use reflection to verify the @PreAuthorize annotation is present
-        var method = AddressController.class.getMethod("getAddressByClientId",
-                Long.class);
+        // Arrange
+        var method = AddressController.class.getMethod("getAddressByClientId", Long.class);
 
+        // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
 
-        assertNotNull(preAuthorizeAnnotation,
-                "getAddressByClientId method should have @PreAuthorize annotation");
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "getAddressByClientId method should have @PreAuthorize annotation");
 
         String expectedPermission = "@customAuthorization.hasAuthority('" +
                 Authorizations.VIEW_ADDRESS_PERMISSION + "')";
@@ -421,7 +384,7 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By Client ID - Controller delegates to service correctly")
     void getAddressByClientId_WithValidRequest_DelegatesToService() {
         // Arrange
-        doReturn(new ArrayList<>()).when(addressService).getAddressByClientId(DEFAULT_CLIENT_ID);
+        stubServiceGetAddressByClientId(DEFAULT_CLIENT_ID, new ArrayList<>());
         AddressController controller = new AddressController(addressService);
 
         // Act - Call controller directly (simulating authorization has already passed)
@@ -429,7 +392,6 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
 
         // Assert - Verify service was called and correct response returned
         verify(addressService, times(1)).getAddressByClientId(DEFAULT_CLIENT_ID);
-        assertEquals(HttpStatus.OK, response.getStatusCode(),
-                "Should return HTTP 200 OK");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
     }
 }

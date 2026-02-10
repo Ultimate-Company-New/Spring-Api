@@ -4,7 +4,6 @@ import com.example.SpringApi.Controllers.AddressController;
 import com.example.SpringApi.Models.DatabaseModels.Address;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -20,10 +19,10 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for AddressService update functionality.
- * Tests for: UpdateAddressTests (30 tests)
  */
 @DisplayName("Update Address Tests")
 class UpdateAddressTest extends AddressServiceTestBase {
+    // Total Tests: 30
 
     /*
      **********************************************************************************************
@@ -44,9 +43,9 @@ class UpdateAddressTest extends AddressServiceTestBase {
         testAddressRequest.setCity("Los Angeles");
         testAddressRequest.setState("CA");
 
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubDefaultRepositoryResponses();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.updateAddress(testAddressRequest));
@@ -67,9 +66,9 @@ class UpdateAddressTest extends AddressServiceTestBase {
     void updateAddress_ChangeAddressType_Success() {
         // Arrange
         testAddressRequest.setAddressType("WORK");
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubDefaultRepositoryResponses();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.updateAddress(testAddressRequest));
@@ -84,9 +83,9 @@ class UpdateAddressTest extends AddressServiceTestBase {
     @DisplayName("Update Address - Logs success message and route")
     void updateAddress_LogsSuccessMessageAndRoute() {
         // Arrange
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubDefaultRepositoryResponses();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act
         addressService.updateAddress(testAddressRequest);
@@ -110,9 +109,9 @@ class UpdateAddressTest extends AddressServiceTestBase {
         testAddressRequest.setCountry("India");
         testAddressRequest.setIsPrimary(null);
         testAddressRequest.setIsDeleted(null);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubDefaultRepositoryResponses();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act
         assertDoesNotThrow(() -> addressService.updateAddress(testAddressRequest));
@@ -136,9 +135,9 @@ class UpdateAddressTest extends AddressServiceTestBase {
         testAddressRequest.setStreetAddress2(null);
         testAddressRequest.setNameOnAddress(null);
         testAddressRequest.setPhoneOnAddress(null);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubDefaultRepositoryResponses();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.updateAddress(testAddressRequest));
@@ -156,9 +155,9 @@ class UpdateAddressTest extends AddressServiceTestBase {
         testAddress.setCreatedUser("original-user");
         testAddress.setCreatedAt(java.time.LocalDateTime.now().minusDays(1));
 
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubDefaultRepositoryResponses();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act
         assertDoesNotThrow(() -> addressService.updateAddress(testAddressRequest));
@@ -186,9 +185,9 @@ class UpdateAddressTest extends AddressServiceTestBase {
         testAddressRequest.setCountry("USA");
         testAddressRequest.setAddressType("BILLING");
 
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubDefaultRepositoryResponses();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.updateAddress(testAddressRequest));
@@ -211,15 +210,14 @@ class UpdateAddressTest extends AddressServiceTestBase {
     @DisplayName("Update Address - Address not found - ThrowsNotFoundException")
     void updateAddress_AddressNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.empty());
+        testAddressRequest.setId(DEFAULT_ADDRESS_ID + 1);
+        stubDefaultRepositoryResponses();
+        stubFindAddressById(DEFAULT_ADDRESS_ID + 1, Optional.empty());
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.updateAddress(testAddressRequest));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
-        verify(addressRepository, times(1)).findById(DEFAULT_ADDRESS_ID);
+        verify(addressRepository, times(1)).findById(DEFAULT_ADDRESS_ID + 1);
         verify(addressRepository, never()).save(any(Address.class));
     }
 
@@ -231,8 +229,11 @@ class UpdateAddressTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Update Address - Empty city - ThrowsBadRequestException")
     void updateAddress_EmptyCity_ThrowsBadRequestException() {
+        // Arrange
         testAddressRequest.setCity("");
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
+
+        // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> addressService.updateAddress(testAddressRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER002, exception.getMessage());
@@ -246,8 +247,11 @@ class UpdateAddressTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Update Address - Empty country - ThrowsBadRequestException")
     void updateAddress_EmptyCountry_ThrowsBadRequestException() {
+        // Arrange
         testAddressRequest.setCountry("");
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
+
+        // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> addressService.updateAddress(testAddressRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER005, exception.getMessage());
@@ -261,8 +265,11 @@ class UpdateAddressTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Update Address - Empty state - ThrowsBadRequestException")
     void updateAddress_EmptyState_ThrowsBadRequestException() {
+        // Arrange
         testAddressRequest.setState("");
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
+
+        // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> addressService.updateAddress(testAddressRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER003, exception.getMessage());
@@ -278,7 +285,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
     void updateAddress_EmptyStreetAddress_ThrowsBadRequestException() {
         // Arrange
         testAddressRequest.setStreetAddress("");
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -298,7 +305,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
     void updateAddress_InvalidAddressType_ThrowsBadRequestException() {
         // Arrange
         testAddressRequest.setAddressType("INVALID_TYPE");
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -317,8 +324,8 @@ class UpdateAddressTest extends AddressServiceTestBase {
     @DisplayName("Update Address - Invalid modified user - ThrowsBadRequestException")
     void updateAddress_InvalidModifiedUser_ThrowsBadRequestException() {
         // Arrange
-        doReturn("").when(addressService).getUser();
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubServiceGetUser("");
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -338,7 +345,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
     void updateAddress_InvalidPostalCode_ThrowsBadRequestException() {
         // Arrange
         testAddressRequest.setPostalCode("invalid");
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -356,11 +363,13 @@ class UpdateAddressTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Update Address - Long.MAX_VALUE ID - Throws NotFoundException")
     void updateAddress_MaxLongId_ThrowsNotFoundException() {
+        // Arrange
         testAddressRequest.setId(Long.MAX_VALUE);
-        when(addressRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
-        NotFoundException ex = assertThrows(NotFoundException.class,
+        stubDefaultRepositoryResponses();
+
+        // Act & Assert
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.updateAddress(testAddressRequest));
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
         verify(addressRepository, never()).save(any(Address.class));
     }
 
@@ -374,7 +383,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
     void updateAddress_NegativeClientId_ThrowsBadRequestException() {
         // Arrange
         testAddressRequest.setClientId(-1L);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -392,11 +401,13 @@ class UpdateAddressTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Update Address - Negative ID - Throws NotFoundException")
     void updateAddress_NegativeId_ThrowsNotFoundException() {
+        // Arrange
         testAddressRequest.setId(-1L);
-        when(addressRepository.findById(-1L)).thenReturn(Optional.empty());
-        NotFoundException ex = assertThrows(NotFoundException.class,
+        stubDefaultRepositoryResponses();
+
+        // Act & Assert
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.updateAddress(testAddressRequest));
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
         verify(addressRepository, never()).save(any(Address.class));
     }
 
@@ -410,7 +421,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
     void updateAddress_NegativeUserId_ThrowsBadRequestException() {
         // Arrange
         testAddressRequest.setUserId(-1L);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -428,8 +439,11 @@ class UpdateAddressTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Update Address - Null city - ThrowsBadRequestException")
     void updateAddress_NullCity_ThrowsBadRequestException() {
+        // Arrange
         testAddressRequest.setCity(null);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
+
+        // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> addressService.updateAddress(testAddressRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER002, exception.getMessage());
@@ -443,8 +457,11 @@ class UpdateAddressTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Update Address - Null country - ThrowsBadRequestException")
     void updateAddress_NullCountry_ThrowsBadRequestException() {
+        // Arrange
         testAddressRequest.setCountry(null);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
+
+        // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> addressService.updateAddress(testAddressRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER005, exception.getMessage());
@@ -460,7 +477,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
     void updateAddress_NullPostalCode_ThrowsBadRequestException() {
         // Arrange
         testAddressRequest.setPostalCode(null);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -494,8 +511,11 @@ class UpdateAddressTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Update Address - Null state - ThrowsBadRequestException")
     void updateAddress_NullState_ThrowsBadRequestException() {
+        // Arrange
         testAddressRequest.setState(null);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
+
+        // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> addressService.updateAddress(testAddressRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER003, exception.getMessage());
@@ -511,7 +531,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
     void updateAddress_NullStreetAddress_ThrowsBadRequestException() {
         // Arrange
         testAddressRequest.setStreetAddress(null);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -531,7 +551,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
     void updateAddress_ZeroClientId_ThrowsBadRequestException() {
         // Arrange
         testAddressRequest.setClientId(0L);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -549,11 +569,13 @@ class UpdateAddressTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Update Address - Zero ID - Throws NotFoundException")
     void updateAddress_ZeroId_ThrowsNotFoundException() {
+        // Arrange
         testAddressRequest.setId(0L);
-        when(addressRepository.findById(0L)).thenReturn(Optional.empty());
-        NotFoundException ex = assertThrows(NotFoundException.class,
+        stubDefaultRepositoryResponses();
+
+        // Act & Assert
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.updateAddress(testAddressRequest));
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, ex.getMessage());
         verify(addressRepository, never()).save(any(Address.class));
     }
 
@@ -567,7 +589,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
     void updateAddress_ZeroUserId_ThrowsBadRequestException() {
         // Arrange
         testAddressRequest.setUserId(0L);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -595,15 +617,16 @@ class UpdateAddressTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Update Address - Verify @PreAuthorize annotation is configured correctly")
     void updateAddress_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        // Use reflection to verify the @PreAuthorize annotation is present
+        // Arrange
         var method = AddressController.class.getMethod("updateAddress",
                 Long.class, com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
 
+        // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
 
-        assertNotNull(preAuthorizeAnnotation,
-                "updateAddress method should have @PreAuthorize annotation");
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "updateAddress method should have @PreAuthorize annotation");
 
         String expectedPermission = "@customAuthorization.hasAuthority('" +
                 Authorizations.UPDATE_ADDRESS_PERMISSION + "')";
@@ -630,15 +653,13 @@ class UpdateAddressTest extends AddressServiceTestBase {
         // Arrange
         AddressController controller = new AddressController(addressService);
         testAddressRequest.setId(DEFAULT_ADDRESS_ID);
-        doNothing().when(addressService)
-                .updateAddress(any(com.example.SpringApi.Models.RequestModels.AddressRequestModel.class));
+        stubServiceUpdateAddressDoNothing();
 
         // Act - Call controller directly (simulating authorization has already passed)
         ResponseEntity<?> response = controller.updateAddress(DEFAULT_ADDRESS_ID, testAddressRequest);
 
         // Assert - Verify service was called and correct response returned
         verify(addressService, times(1)).updateAddress(testAddressRequest);
-        assertEquals(HttpStatus.OK, response.getStatusCode(),
-                "Should return HTTP 200 OK");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
     }
 }

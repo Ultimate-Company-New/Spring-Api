@@ -42,15 +42,15 @@ public class ClientService extends BaseService implements IClientSubTranslator {
     private final UserLogService userLogService;
     private final GoogleCredRepository googleCredRepository;
     private final Environment environment;
-    
+
     @Value("${imageLocation:firebase}")
     private String imageLocation;
 
     @Autowired
     public ClientService(UserLogService userLogService,
-                         ClientRepository clientRepository,
-                         GoogleCredRepository googleCredRepository,
-                         Environment environment) {
+            ClientRepository clientRepository,
+            GoogleCredRepository googleCredRepository,
+            Environment environment) {
         super();
         this.userLogService = userLogService;
         this.clientRepository = clientRepository;
@@ -62,7 +62,8 @@ public class ClientService extends BaseService implements IClientSubTranslator {
      * Toggles the deletion status of a client by its ID.
      * 
      * This method performs a soft delete operation by toggling the isDeleted flag.
-     * If the client is currently active (isDeleted = false), it will be marked as deleted.
+     * If the client is currently active (isDeleted = false), it will be marked as
+     * deleted.
      * If the client is currently deleted (isDeleted = true), it will be restored.
      * The operation is logged for audit purposes.
      * 
@@ -76,9 +77,9 @@ public class ClientService extends BaseService implements IClientSubTranslator {
             client.get().setIsDeleted(!client.get().getIsDeleted());
             clientRepository.save(client.get());
             userLogService.logData(
-                getUserId(),
-                SuccessMessages.ClientSuccessMessages.ToggleClient + " " + client.get().getClientId(),
-                ApiRoutes.ClientSubRoute.TOGGLE_CLIENT);
+                    getUserId(),
+                    SuccessMessages.ClientSuccessMessages.ToggleClient + " " + client.get().getClientId(),
+                    ApiRoutes.ClientSubRoute.TOGGLE_CLIENT);
         } else {
             throw new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId);
         }
@@ -113,46 +114,52 @@ public class ClientService extends BaseService implements IClientSubTranslator {
      * such as createdUser, modifiedUser, and timestamps. The operation is logged
      * for audit purposes.
      * 
-     * @param clientRequest The ClientRequestModel containing the client data to insert
+     * @param clientRequest The ClientRequestModel containing the client data to
+     *                      insert
      * @throws BadRequestException if a client with the same name already exists
      */
     @Override
     public void createClient(ClientRequestModel clientRequest) {
+        if (clientRequest == null) {
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidRequest);
+        }
+
         // Check for duplicate name
         if (clientRepository.existsByName(clientRequest.getName())) {
-            throw new BadRequestException(String.format(ErrorMessages.ClientErrorMessages.DuplicateClientNameFormat, clientRequest.getName()));
+            throw new BadRequestException(String.format(ErrorMessages.ClientErrorMessages.DuplicateClientNameFormat,
+                    clientRequest.getName()));
         }
-        
+
         Client client = new Client(clientRequest, getUser());
         Client savedClient = clientRepository.save(client);
-        
+
         // Upload logo if present
         if (clientRequest.getLogoBase64() != null &&
                 !clientRequest.getLogoBase64().isEmpty() &&
                 !clientRequest.getLogoBase64().isBlank()) {
-            
+
             String environmentName = environment.getActiveProfiles().length > 0
-                ? environment.getActiveProfiles()[0]
-                : "default";
-            
+                    ? environment.getActiveProfiles()[0]
+                    : "default";
+
             boolean isSuccess = false;
-            
+
             // Use ImgBB or Firebase based on configuration
             if (ImageLocationConstants.IMGBB.equalsIgnoreCase(imageLocation)) {
                 // Validate ImgBB API key is configured
                 if (savedClient.getImgbbApiKey() == null || savedClient.getImgbbApiKey().trim().isEmpty()) {
                     throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.ImgbbApiKeyNotConfigured);
                 }
-                
+
                 // Generate custom filename for ImgBB
-                String customFileName = ImgbbHelper.generateCustomFileNameForClientLogo(environmentName, savedClient.getName());
-                
+                String customFileName = ImgbbHelper.generateCustomFileNameForClientLogo(environmentName,
+                        savedClient.getName());
+
                 ImgbbHelper imgbbHelper = new ImgbbHelper(savedClient.getImgbbApiKey());
                 ImgbbHelper.ImgbbUploadResponse uploadResponse = imgbbHelper.uploadFileToImgbb(
-                    clientRequest.getLogoBase64(),
-                    customFileName
-                );
-                
+                        clientRequest.getLogoBase64(),
+                        customFileName);
+
                 if (uploadResponse != null && uploadResponse.getUrl() != null) {
                     // Save both the logo URL and delete hash to the database
                     savedClient.setLogoUrl(uploadResponse.getUrl());
@@ -164,36 +171,35 @@ public class ClientService extends BaseService implements IClientSubTranslator {
                 }
             } else if (ImageLocationConstants.FIREBASE.equalsIgnoreCase(imageLocation)) {
                 String filePath = FirebaseHelper.getClientLogoPath(
-                    environmentName,
-                    savedClient.getName(),
-                    savedClient.getClientId()
-                );
+                        environmentName,
+                        savedClient.getName(),
+                        savedClient.getClientId());
                 // Get GoogleCred for Firebase
                 Optional<GoogleCred> googleCred = googleCredRepository.findById(savedClient.getGoogleCredId());
-                
+
                 if (googleCred.isPresent()) {
                     GoogleCred googleCredData = googleCred.get();
                     FirebaseHelper firebaseHelper = new FirebaseHelper(googleCredData);
                     isSuccess = firebaseHelper.uploadFileToFirebase(
-                        clientRequest.getLogoBase64(),
-                        filePath
-                    );
+                            clientRequest.getLogoBase64(),
+                            filePath);
                 } else {
                     throw new BadRequestException(ErrorMessages.UserErrorMessages.ER011);
                 }
             } else {
-                throw new BadRequestException(String.format(ErrorMessages.ConfigurationErrorMessages.InvalidImageLocationConfigFormat, imageLocation));
+                throw new BadRequestException(String.format(
+                        ErrorMessages.ConfigurationErrorMessages.InvalidImageLocationConfigFormat, imageLocation));
             }
 
             if (!isSuccess) {
                 throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidLogoUpload);
             }
         }
-        
+
         userLogService.logData(
-            getUserId(),
-            SuccessMessages.ClientSuccessMessages.CreateClient + " " + savedClient.getClientId(),
-            ApiRoutes.ClientSubRoute.CREATE_CLIENT);
+                getUserId(),
+                SuccessMessages.ClientSuccessMessages.CreateClient + " " + savedClient.getClientId(),
+                ApiRoutes.ClientSubRoute.CREATE_CLIENT);
     }
 
     /**
@@ -204,42 +210,50 @@ public class ClientService extends BaseService implements IClientSubTranslator {
      * and createdAt. Only the modifiedUser and updatedAt fields are updated.
      * The operation is logged for audit purposes.
      * 
-     * @param clientRequest The ClientRequestModel containing the updated client data
-     * @throws NotFoundException if no client exists with the given ID
-     * @throws BadRequestException if the new name conflicts with another existing client
+     * @param clientRequest The ClientRequestModel containing the updated client
+     *                      data
+     * @throws NotFoundException   if no client exists with the given ID
+     * @throws BadRequestException if the new name conflicts with another existing
+     *                             client
      */
     @Override
     public void updateClient(ClientRequestModel clientRequest) {
+        if (clientRequest == null) {
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidRequest);
+        }
+
         Optional<Client> existingClient = clientRepository.findById(clientRequest.getClientId());
         if (existingClient.isPresent()) {
             // Check for duplicate name (excluding the current client)
             Optional<Client> duplicateClient = clientRepository.findByName(clientRequest.getName());
-            if (duplicateClient.isPresent() && !duplicateClient.get().getClientId().equals(clientRequest.getClientId())) {
-                throw new BadRequestException(String.format(ErrorMessages.ClientErrorMessages.DuplicateClientNameFormat, clientRequest.getName()));
+            if (duplicateClient.isPresent()
+                    && !duplicateClient.get().getClientId().equals(clientRequest.getClientId())) {
+                throw new BadRequestException(String.format(ErrorMessages.ClientErrorMessages.DuplicateClientNameFormat,
+                        clientRequest.getName()));
             }
-            
+
             Client client = new Client(clientRequest, getUser(), existingClient.get());
             Client updatedClient = clientRepository.save(client);
 
             String environmentName = environment.getActiveProfiles().length > 0
-                ? environment.getActiveProfiles()[0]
-                : "default";
+                    ? environment.getActiveProfiles()[0]
+                    : "default";
 
             // Logo handling
-            boolean hasNewLogo = clientRequest.getLogoBase64() != null && 
-                               !clientRequest.getLogoBase64().isEmpty() && 
-                               !clientRequest.getLogoBase64().isBlank();
-            
+            boolean hasNewLogo = clientRequest.getLogoBase64() != null &&
+                    !clientRequest.getLogoBase64().isEmpty() &&
+                    !clientRequest.getLogoBase64().isBlank();
+
             // Use ImgBB or Firebase based on configuration
             if (ImageLocationConstants.IMGBB.equalsIgnoreCase(imageLocation)) {
                 // ImgBB-based logo management
-                
+
                 if (updatedClient.getImgbbApiKey() == null || updatedClient.getImgbbApiKey().trim().isEmpty()) {
                     throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.ImgbbApiKeyNotConfigured);
                 }
-                
+
                 ImgbbHelper imgbbHelper = new ImgbbHelper(updatedClient.getImgbbApiKey());
-                
+
                 // Handle logo update based on request
                 if (!hasNewLogo) {
                     // If no logo in request, delete the old logo from ImgBB and clear from database
@@ -254,15 +268,15 @@ public class ClientService extends BaseService implements IClientSubTranslator {
                     if (updatedClient.getLogoDeleteHash() != null && !updatedClient.getLogoDeleteHash().isEmpty()) {
                         imgbbHelper.deleteImage(updatedClient.getLogoDeleteHash());
                     }
-                    
+
                     // Generate custom filename for ImgBB
-                    String customFileName = ImgbbHelper.generateCustomFileNameForClientLogo(environmentName, updatedClient.getName());
-                    
+                    String customFileName = ImgbbHelper.generateCustomFileNameForClientLogo(environmentName,
+                            updatedClient.getName());
+
                     // Upload new logo to ImgBB
                     ImgbbHelper.ImgbbUploadResponse uploadResponse = imgbbHelper.uploadFileToImgbb(
-                        clientRequest.getLogoBase64(),
-                        customFileName
-                    );
+                            clientRequest.getLogoBase64(),
+                            customFileName);
 
                     if (uploadResponse != null && uploadResponse.getUrl() != null) {
                         // Save both the new logo URL and delete hash to the database
@@ -276,11 +290,10 @@ public class ClientService extends BaseService implements IClientSubTranslator {
             } else if (ImageLocationConstants.FIREBASE.equalsIgnoreCase(imageLocation)) {
                 // Firebase-based logo management
                 String filePath = FirebaseHelper.getClientLogoPath(
-                    environmentName,
-                    updatedClient.getName(),
-                    updatedClient.getClientId()
-                );
-                
+                        environmentName,
+                        updatedClient.getName(),
+                        updatedClient.getClientId());
+
                 Optional<GoogleCred> googleCred = googleCredRepository.findById(updatedClient.getGoogleCredId());
 
                 if (googleCred.isPresent()) {
@@ -291,9 +304,8 @@ public class ClientService extends BaseService implements IClientSubTranslator {
                         // Delete old logo if exists, then upload new one
                         firebaseHelper.deleteFile(filePath);
                         boolean isSuccess = firebaseHelper.uploadFileToFirebase(
-                            clientRequest.getLogoBase64(),
-                            filePath
-                        );
+                                clientRequest.getLogoBase64(),
+                                filePath);
 
                         if (!isSuccess) {
                             throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidLogoUpload);
@@ -306,13 +318,14 @@ public class ClientService extends BaseService implements IClientSubTranslator {
                     throw new BadRequestException(ErrorMessages.UserErrorMessages.ER011);
                 }
             } else {
-                throw new BadRequestException(String.format(ErrorMessages.ConfigurationErrorMessages.InvalidImageLocationConfigFormat, imageLocation));
+                throw new BadRequestException(String.format(
+                        ErrorMessages.ConfigurationErrorMessages.InvalidImageLocationConfigFormat, imageLocation));
             }
 
             userLogService.logData(
-                getUserId(),
-                SuccessMessages.ClientSuccessMessages.UpdateClient + " " + updatedClient.getClientId(),
-                ApiRoutes.ClientSubRoute.UPDATE_CLIENT);
+                    getUserId(),
+                    SuccessMessages.ClientSuccessMessages.UpdateClient + " " + updatedClient.getClientId(),
+                    ApiRoutes.ClientSubRoute.UPDATE_CLIENT);
         } else {
             throw new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId);
         }
@@ -322,7 +335,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
      * Retrieves all clients mapped to the current user.
      * 
      * This method fetches all clients where the current user has a mapping
-     * in the UserClientMapping table. The method returns a list of 
+     * in the UserClientMapping table. The method returns a list of
      * ClientResponseModel objects, each containing complete client information.
      * Returns an empty list if no clients are mapped to the user.
      * 
@@ -332,11 +345,11 @@ public class ClientService extends BaseService implements IClientSubTranslator {
     public List<ClientResponseModel> getClientsByUser() {
         List<Client> clients = clientRepository.findByUserId(getUserId());
         List<ClientResponseModel> responseModels = new ArrayList<>();
-        
+
         for (Client client : clients) {
             responseModels.add(new ClientResponseModel(client));
         }
-        
+
         return responseModels;
     }
 }

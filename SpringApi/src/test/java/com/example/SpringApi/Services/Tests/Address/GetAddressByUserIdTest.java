@@ -4,7 +4,6 @@ import com.example.SpringApi.Controllers.AddressController;
 import com.example.SpringApi.Models.DatabaseModels.Address;
 import com.example.SpringApi.Models.ResponseModels.AddressResponseModel;
 import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -13,20 +12,17 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for AddressService getAddressByUserId functionality.
- * Tests for: GetAddressByUserIdTests (11 tests)
  */
 @DisplayName("Get Address By User ID Tests")
 class GetAddressByUserIdTest extends AddressServiceTestBase {
+    // Total Tests: 11
 
     /*
      **********************************************************************************************
@@ -42,11 +38,11 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Get Address By User ID - Multiple addresses found - Success returns list")
     void getAddressByUserId_MultipleAddressesFound_Success() {
-        when(userRepository.findById(DEFAULT_USER_ID)).thenReturn(Optional.of(testUser));
+        // Arrange
         Address secondAddress = createTestAddress(2L, "WORK");
         List<Address> addresses = Arrays.asList(testAddress, secondAddress);
-        when(addressRepository.findByUserIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_USER_ID, false))
-                .thenReturn(addresses);
+        stubDefaultRepositoryResponses();
+        stubFindAddressesByUserId(DEFAULT_USER_ID, addresses);
 
         // Act
         List<AddressResponseModel> result = addressService.getAddressByUserId(DEFAULT_USER_ID);
@@ -72,9 +68,8 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By User ID - No addresses - Success returns empty list")
     void getAddressByUserId_NoAddresses_ReturnsEmptyList() {
         // Arrange
-        when(userRepository.findById(DEFAULT_USER_ID)).thenReturn(Optional.of(testUser));
-        when(addressRepository.findByUserIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_USER_ID, false))
-                .thenReturn(new ArrayList<>());
+        stubDefaultRepositoryResponses();
+        stubFindAddressesByUserId(DEFAULT_USER_ID, new ArrayList<>());
 
         // Act
         List<AddressResponseModel> result = addressService.getAddressByUserId(DEFAULT_USER_ID);
@@ -94,9 +89,8 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By User ID - Single address - Success returns list with one item")
     void getAddressByUserId_SingleAddress_Success() {
         // Arrange
-        when(userRepository.findById(DEFAULT_USER_ID)).thenReturn(Optional.of(testUser));
-        when(addressRepository.findByUserIdAndIsDeletedOrderByAddressIdDesc(DEFAULT_USER_ID, false))
-                .thenReturn(Collections.singletonList(testAddress));
+        stubDefaultRepositoryResponses();
+        stubFindAddressesByUserId(DEFAULT_USER_ID, List.of(testAddress));
 
         // Act
         List<AddressResponseModel> result = addressService.getAddressByUserId(DEFAULT_USER_ID);
@@ -121,14 +115,11 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By User ID - Max Long value - ThrowsNotFoundException")
     void getAddressByUserId_MaxLongValue_ThrowsNotFoundException() {
         // Arrange
-        when(userRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.getAddressByUserId(Long.MAX_VALUE));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
     }
 
     /**
@@ -140,14 +131,11 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By User ID - Min Long value - ThrowsNotFoundException")
     void getAddressByUserId_MinLongValue_ThrowsNotFoundException() {
         // Arrange
-        when(userRepository.findById(Long.MIN_VALUE)).thenReturn(Optional.empty());
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.getAddressByUserId(Long.MIN_VALUE));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
     }
 
     /**
@@ -160,14 +148,11 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
     void getAddressByUserId_NegativeId_ThrowsNotFoundException() {
         // Arrange
         long negativeId = -1L;
-        when(userRepository.findById(negativeId)).thenReturn(Optional.empty());
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.getAddressByUserId(negativeId));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
     }
 
     /**
@@ -180,14 +165,11 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
     void getAddressByUserId_UserDeleted_ThrowsNotFoundException() {
         // Arrange
         testUser.setIsDeleted(true);
-        when(userRepository.findById(DEFAULT_USER_ID)).thenReturn(Optional.of(testUser));
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.getAddressByUserId(DEFAULT_USER_ID));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
         verify(addressRepository, never()).findByUserIdAndIsDeletedOrderByAddressIdDesc(anyLong(), anyBoolean());
     }
 
@@ -200,14 +182,11 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By User ID - User not found - ThrowsNotFoundException")
     void getAddressByUserId_UserNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(userRepository.findById(DEFAULT_USER_ID)).thenReturn(Optional.empty());
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
-                () -> addressService.getAddressByUserId(DEFAULT_USER_ID));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+                () -> addressService.getAddressByUserId(DEFAULT_USER_ID + 1));
         verify(addressRepository, never()).findByUserIdAndIsDeletedOrderByAddressIdDesc(anyLong(), anyBoolean());
     }
 
@@ -221,14 +200,11 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
     void getAddressByUserId_ZeroId_ThrowsNotFoundException() {
         // Arrange
         long zeroId = 0L;
-        when(userRepository.findById(zeroId)).thenReturn(Optional.empty());
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.getAddressByUserId(zeroId));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
     }
 
     /*
@@ -250,15 +226,15 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Get Address By User ID - Verify @PreAuthorize annotation is configured correctly")
     void getAddressesByUserId_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        // Use reflection to verify the @PreAuthorize annotation is present
-        var method = AddressController.class.getMethod("getAddressesByUserId",
-                Long.class);
+        // Arrange
+        var method = AddressController.class.getMethod("getAddressesByUserId", Long.class);
 
+        // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
 
-        assertNotNull(preAuthorizeAnnotation,
-                "getAddressesByUserId method should have @PreAuthorize annotation");
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "getAddressesByUserId method should have @PreAuthorize annotation");
 
         String expectedPermission = "@customAuthorization.hasAuthority('" +
                 Authorizations.VIEW_ADDRESS_PERMISSION + "')";
@@ -283,15 +259,14 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By User ID - Controller delegates to service correctly")
     void getAddressesByUserId_WithValidRequest_DelegatesToService() {
         // Arrange
-        doReturn(new ArrayList<>()).when(addressService).getAddressByUserId(DEFAULT_USER_ID);
         AddressController controller = new AddressController(addressService);
+        stubServiceGetAddressByUserId(DEFAULT_USER_ID, new ArrayList<>());
 
         // Act - Call controller directly (simulating authorization has already passed)
         ResponseEntity<?> response = controller.getAddressesByUserId(DEFAULT_USER_ID);
 
         // Assert - Verify service was called and correct response returned
         verify(addressService, times(1)).getAddressByUserId(DEFAULT_USER_ID);
-        assertEquals(HttpStatus.OK, response.getStatusCode(),
-                "Should return HTTP 200 OK");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
     }
 }

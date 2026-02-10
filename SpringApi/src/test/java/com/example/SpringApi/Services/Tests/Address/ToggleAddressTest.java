@@ -3,14 +3,11 @@ package com.example.SpringApi.Services.Tests.Address;
 import com.example.SpringApi.Controllers.AddressController;
 import com.example.SpringApi.Models.DatabaseModels.Address;
 import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -18,11 +15,10 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for AddressService.toggleAddress() method.
- * Tests toggle functionality including state changes and error handling.
- * * Test Count: 12 tests
  */
 @DisplayName("Toggle Address Tests")
 class ToggleAddressTest extends AddressServiceTestBase {
+    // Total Tests: 12
 
     /*
      **********************************************************************************************
@@ -40,9 +36,9 @@ class ToggleAddressTest extends AddressServiceTestBase {
     void toggleAddress_AddressFoundActive_Success() {
         // Arrange
         testAddress.setIsDeleted(false);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubDefaultRepositoryResponses();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act
         assertDoesNotThrow(() -> addressService.toggleAddress(DEFAULT_ADDRESS_ID));
@@ -64,9 +60,9 @@ class ToggleAddressTest extends AddressServiceTestBase {
     void toggleAddress_AddressFoundDeleted_Success() {
         // Arrange
         testAddress.setIsDeleted(true);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubDefaultRepositoryResponses();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act
         assertDoesNotThrow(() -> addressService.toggleAddress(DEFAULT_ADDRESS_ID));
@@ -85,10 +81,12 @@ class ToggleAddressTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Toggle Address - Multiple Toggles - State Transitions")
     void toggleAddress_MultipleToggles_StateTransitions() {
+        // Arrange
         testAddress.setIsDeleted(false);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+        stubDefaultRepositoryResponses();
+        stubAddressRepositorySave(testAddress);
 
+        // Act & Assert
         // First toggle: false -> true
         addressService.toggleAddress(DEFAULT_ADDRESS_ID);
         assertTrue(testAddress.getIsDeleted());
@@ -112,9 +110,9 @@ class ToggleAddressTest extends AddressServiceTestBase {
     void toggleAddress_MultipleToggles_Success() {
         // Arrange
         testAddress.setIsDeleted(false);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubDefaultRepositoryResponses();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act - First toggle
         assertDoesNotThrow(() -> addressService.toggleAddress(DEFAULT_ADDRESS_ID));
@@ -139,9 +137,9 @@ class ToggleAddressTest extends AddressServiceTestBase {
     void toggleAddress_StateChange_ActiveToDeleted() {
         // Arrange
         testAddress.setIsDeleted(false);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubDefaultRepositoryResponses();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act
         assertDoesNotThrow(() -> addressService.toggleAddress(DEFAULT_ADDRESS_ID));
@@ -161,9 +159,9 @@ class ToggleAddressTest extends AddressServiceTestBase {
     void toggleAddress_StateChange_DeletedToActive() {
         // Arrange
         testAddress.setIsDeleted(true);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
-        when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubDefaultRepositoryResponses();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
 
         // Act
         assertDoesNotThrow(() -> addressService.toggleAddress(DEFAULT_ADDRESS_ID));
@@ -188,15 +186,11 @@ class ToggleAddressTest extends AddressServiceTestBase {
     @DisplayName("Toggle Address - Address not found - ThrowsNotFoundException")
     void toggleAddress_AddressNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.empty());
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
-                () -> addressService.toggleAddress(DEFAULT_ADDRESS_ID));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
-        verify(addressRepository, times(1)).findById(DEFAULT_ADDRESS_ID);
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+                () -> addressService.toggleAddress(DEFAULT_ADDRESS_ID + 1));
         verify(addressRepository, never()).save(any(Address.class));
         verify(userLogService, never()).logData(anyLong(), anyString(), anyString());
     }
@@ -210,14 +204,11 @@ class ToggleAddressTest extends AddressServiceTestBase {
     @DisplayName("Toggle Address - Min Long value - ThrowsNotFoundException")
     void toggleAddress_MinLongValue_ThrowsNotFoundException() {
         // Arrange
-        when(addressRepository.findById(Long.MIN_VALUE)).thenReturn(Optional.empty());
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.toggleAddress(Long.MIN_VALUE));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
     }
 
     /**
@@ -230,14 +221,11 @@ class ToggleAddressTest extends AddressServiceTestBase {
     void toggleAddress_NegativeId_ThrowsNotFoundException() {
         // Arrange
         long negativeId = -1L;
-        when(addressRepository.findById(negativeId)).thenReturn(Optional.empty());
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.toggleAddress(negativeId));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
     }
 
     /**
@@ -250,14 +238,11 @@ class ToggleAddressTest extends AddressServiceTestBase {
     void toggleAddress_ZeroId_ThrowsNotFoundException() {
         // Arrange
         long zeroId = 0L;
-        when(addressRepository.findById(zeroId)).thenReturn(Optional.empty());
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.toggleAddress(zeroId));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
     }
 
     /*
@@ -278,15 +263,15 @@ class ToggleAddressTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Toggle Address - Verify @PreAuthorize annotation is configured correctly")
     void toggleAddress_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        // Use reflection to verify the @PreAuthorize annotation is present
-        var method = AddressController.class.getMethod("toggleAddress",
-                Long.class);
+        // Arrange
+        var method = AddressController.class.getMethod("toggleAddress", Long.class);
 
+        // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
 
-        assertNotNull(preAuthorizeAnnotation,
-                "toggleAddress method should have @PreAuthorize annotation");
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "toggleAddress method should have @PreAuthorize annotation");
 
         String expectedPermission = "@customAuthorization.hasAuthority('" +
                 Authorizations.DELETE_ADDRESS_PERMISSION + "')";
@@ -312,14 +297,13 @@ class ToggleAddressTest extends AddressServiceTestBase {
     void toggleAddress_WithValidRequest_DelegatesToService() {
         // Arrange
         AddressController controller = new AddressController(addressService);
-        doNothing().when(addressService).toggleAddress(DEFAULT_ADDRESS_ID);
+        stubServiceToggleAddressDoNothing(DEFAULT_ADDRESS_ID);
 
         // Act - Call controller directly (simulating authorization has already passed)
         ResponseEntity<?> response = controller.toggleAddress(DEFAULT_ADDRESS_ID);
 
         // Assert - Verify service was called and correct response returned
         verify(addressService, times(1)).toggleAddress(DEFAULT_ADDRESS_ID);
-        assertEquals(HttpStatus.OK, response.getStatusCode(),
-                "Should return HTTP 200 OK");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
     }
 }

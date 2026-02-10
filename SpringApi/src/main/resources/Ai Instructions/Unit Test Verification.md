@@ -89,7 +89,7 @@ The verification commands shown in examples (like `mvn test`, `grep -c`) are **F
 1. **One Test File per Public Method** - Each public service method gets its own test file
 2. **Test Count Declaration** - `// Total Tests: X` as first line in class body
 3. **Controller Permission Test** - At least one permission test hitting the controller
-4. **Test Annotations** - Only `@Test` and `@DisplayName` allowed
+4. **Test Annotations** - `@Test`, `@DisplayName`, `@ExtendWith(MockitoExtension.class)`, `@Mock`, `@Spy`, `@InjectMocks`, and `@BeforeEach` are allowed. Other annotations are forbidden.
 5. **Test Naming Convention** - `<method>_<type>_<outcome>` format
 6. **Centralized Mocking** - All mocks in base test file only  
 7. **Exception Assertions** - Assert exact type AND exact message

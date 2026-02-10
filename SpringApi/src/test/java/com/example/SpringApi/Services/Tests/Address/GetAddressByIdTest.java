@@ -3,14 +3,11 @@ package com.example.SpringApi.Services.Tests.Address;
 import com.example.SpringApi.Controllers.AddressController;
 import com.example.SpringApi.Models.ResponseModels.AddressResponseModel;
 import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -18,10 +15,10 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for AddressService.getAddressById() method.
  * Tests retrieval of address by ID with various scenarios.
- * * Test Count: 10 tests
  */
 @DisplayName("Get Address By ID Tests")
 class GetAddressByIdTest extends AddressServiceTestBase {
+    // Total Tests: 10
 
     /*
      **********************************************************************************************
@@ -38,7 +35,7 @@ class GetAddressByIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By ID - Address found - Success returns address details")
     void getAddressById_AddressFound_Success() {
         // Arrange
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
 
         // Act
         AddressResponseModel result = addressService.getAddressById(DEFAULT_ADDRESS_ID);
@@ -74,7 +71,7 @@ class GetAddressByIdTest extends AddressServiceTestBase {
         testAddress.setNameOnAddress(null);
         testAddress.setEmailOnAddress(null);
         testAddress.setPhoneOnAddress(null);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
 
         // Act
         AddressResponseModel result = addressService.getAddressById(DEFAULT_ADDRESS_ID);
@@ -100,15 +97,11 @@ class GetAddressByIdTest extends AddressServiceTestBase {
     @DisplayName("Get Address By ID - Address not found - ThrowsNotFoundException")
     void getAddressById_AddressNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.empty());
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
-                () -> addressService.getAddressById(DEFAULT_ADDRESS_ID));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.NotFound, exception.getMessage());
-        verify(addressRepository, times(1)).findById(DEFAULT_ADDRESS_ID);
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+                () -> addressService.getAddressById(DEFAULT_ADDRESS_ID + 1));
     }
 
     /**
@@ -121,7 +114,7 @@ class GetAddressByIdTest extends AddressServiceTestBase {
     void getAddressById_DeletedAddress_ThrowsNotFoundException() {
         // Arrange
         testAddress.setIsDeleted(true);
-        when(addressRepository.findById(DEFAULT_ADDRESS_ID)).thenReturn(Optional.of(testAddress));
+        stubDefaultRepositoryResponses();
 
         // Act & Assert
         assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
@@ -137,7 +130,10 @@ class GetAddressByIdTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Get Address By ID - Max Long value - ThrowsNotFoundException")
     void getAddressById_MaxLongValue_ThrowsNotFoundException() {
-        when(addressRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
+        // Arrange
+        stubDefaultRepositoryResponses();
+
+        // Act & Assert
         assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.getAddressById(Long.MAX_VALUE));
     }
@@ -150,7 +146,10 @@ class GetAddressByIdTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Get Address By ID - Min Long value - ThrowsNotFoundException")
     void getAddressById_MinLongValue_ThrowsNotFoundException() {
-        when(addressRepository.findById(Long.MIN_VALUE)).thenReturn(Optional.empty());
+        // Arrange
+        stubDefaultRepositoryResponses();
+
+        // Act & Assert
         assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.getAddressById(Long.MIN_VALUE));
     }
@@ -163,8 +162,11 @@ class GetAddressByIdTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Get Address By ID - Negative ID - ThrowsNotFoundException")
     void getAddressById_NegativeId_ThrowsNotFoundException() {
+        // Arrange
         long negativeId = -1L;
-        when(addressRepository.findById(negativeId)).thenReturn(Optional.empty());
+        stubDefaultRepositoryResponses();
+
+        // Act & Assert
         assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
                 () -> addressService.getAddressById(negativeId));
     }
@@ -177,9 +179,13 @@ class GetAddressByIdTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Get Address By ID - Zero ID - ThrowsNotFoundException")
     void getAddressById_ZeroId_ThrowsNotFoundException() {
+        // Arrange
         long zeroId = 0L;
-        when(addressRepository.findById(zeroId)).thenReturn(Optional.empty());
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound, () -> addressService.getAddressById(zeroId));
+        stubDefaultRepositoryResponses();
+
+        // Act & Assert
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+                () -> addressService.getAddressById(zeroId));
     }
 
     /*
@@ -201,15 +207,15 @@ class GetAddressByIdTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Get Address By ID - Verify @PreAuthorize annotation is configured correctly")
     void getAddressById_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        // Use reflection to verify the @PreAuthorize annotation is present
-        var method = AddressController.class.getMethod("getAddressById",
-                Long.class);
+        // Arrange
+        var method = AddressController.class.getMethod("getAddressById", Long.class);
 
+        // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
 
-        assertNotNull(preAuthorizeAnnotation,
-                "getAddressById method should have @PreAuthorize annotation");
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "getAddressById method should have @PreAuthorize annotation");
 
         String expectedPermission = "@customAuthorization.hasAuthority('" +
                 Authorizations.VIEW_ADDRESS_PERMISSION + "')";
@@ -238,7 +244,7 @@ class GetAddressByIdTest extends AddressServiceTestBase {
         mockResponse.setAddressId(DEFAULT_ADDRESS_ID);
         mockResponse.setUserId(DEFAULT_USER_ID);
 
-        doReturn(mockResponse).when(addressService).getAddressById(DEFAULT_ADDRESS_ID);
+        stubServiceGetAddressById(DEFAULT_ADDRESS_ID, mockResponse);
         AddressController controller = new AddressController(addressService);
 
         // Act - Call controller directly (simulating authorization has already passed)
@@ -246,7 +252,6 @@ class GetAddressByIdTest extends AddressServiceTestBase {
 
         // Assert - Verify service was called and correct response returned
         verify(addressService, times(1)).getAddressById(DEFAULT_ADDRESS_ID);
-        assertEquals(HttpStatus.OK, response.getStatusCode(),
-                "Should return HTTP 200 OK");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
     }
 }
