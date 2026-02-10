@@ -34,6 +34,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("UserLogService - FetchUserLogsInBatches Tests")
 class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
 
+        // Total Tests: 3
+
         // ========================================
         // CONTROLLER AUTHORIZATION TESTS
         // ========================================

@@ -23,6 +23,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("TodoService - AddTodo Tests")
 public class AddTodoTest extends TodoServiceTestBase {
 
+    // Total Tests: 18
+
     // ========================================
     // SUCCESS Tests
     // ========================================
@@ -30,214 +32,220 @@ public class AddTodoTest extends TodoServiceTestBase {
     @Test
     @DisplayName("Add Todo - Success")
     void addTodo_Success() {
+        // Arrange
         TodoRequestModel request = new TodoRequestModel();
         request.setTask("Test Todo");
         request.setIsDone(false);
-
         Todo savedTodo = new Todo(request, CREATED_USER, TEST_USER_ID);
         savedTodo.setTodoId(1L);
-
         lenient().when(todoRepository.save(any(Todo.class))).thenReturn(savedTodo);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act
         assertDoesNotThrow(() -> todoService.addTodo(request));
+
+        // Assert
         verify(todoRepository).save(any(Todo.class));
     }
 
     @Test
     @DisplayName("Add Todo - Task at max length - Success")
     void addTodo_TaskAtMaxLength_Success() {
+        // Arrange
         TodoRequestModel request = new TodoRequestModel();
         request.setTask("A".repeat(500));
         request.setIsDone(false);
-
         Todo savedTodo = new Todo(request, CREATED_USER, TEST_USER_ID);
         savedTodo.setTodoId(1L);
-
         lenient().when(todoRepository.save(any(Todo.class))).thenReturn(savedTodo);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act & Assert
         assertDoesNotThrow(() -> todoService.addTodo(request));
     }
 
     @Test
     @DisplayName("Add Todo - With isDone true - Success")
     void addTodo_WithIsDoneTrue_Success() {
+        // Arrange
         TodoRequestModel request = new TodoRequestModel();
         request.setTask("Test Todo");
         request.setIsDone(true);
-
         Todo savedTodo = new Todo(request, CREATED_USER, TEST_USER_ID);
         savedTodo.setTodoId(1L);
-
         lenient().when(todoRepository.save(any(Todo.class))).thenReturn(savedTodo);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act
         assertDoesNotThrow(() -> todoService.addTodo(request));
+
+        // Assert
         verify(todoRepository).save(any(Todo.class));
     }
 
     @Test
     @DisplayName("Add Todo - Special characters in task - Success")
     void addTodo_SpecialCharactersInTask_Success() {
+        // Arrange
         TodoRequestModel request = new TodoRequestModel();
         request.setTask("Test @#$%^&*() Special!!");
         request.setIsDone(false);
-
         Todo savedTodo = new Todo(request, CREATED_USER, TEST_USER_ID);
         savedTodo.setTodoId(1L);
-
         lenient().when(todoRepository.save(any(Todo.class))).thenReturn(savedTodo);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act & Assert
         assertDoesNotThrow(() -> todoService.addTodo(request));
     }
 
     @Test
     @DisplayName("Add Todo - Unicode characters in task - Success")
     void addTodo_UnicodeCharactersInTask_Success() {
+        // Arrange
         TodoRequestModel request = new TodoRequestModel();
         request.setTask("Test 你好 🎉 Привет");
         request.setIsDone(false);
-
         Todo savedTodo = new Todo(request, CREATED_USER, TEST_USER_ID);
         savedTodo.setTodoId(1L);
-
         lenient().when(todoRepository.save(any(Todo.class))).thenReturn(savedTodo);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act & Assert
         assertDoesNotThrow(() -> todoService.addTodo(request));
     }
 
     @Test
     @DisplayName("Add Todo - Success - Logs the operation")
     void addTodo_Success_LogsOperation() {
+        // Arrange
         TodoRequestModel request = new TodoRequestModel();
         request.setTask("Test Todo");
         request.setIsDone(false);
-
         Todo savedTodo = new Todo(request, CREATED_USER, TEST_USER_ID);
         savedTodo.setTodoId(1L);
-
         when(todoRepository.save(any(Todo.class))).thenReturn(savedTodo);
         when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act
         todoService.addTodo(request);
 
+        // Assert
         verify(userLogService).logData(
                 eq(TEST_USER_ID.longValue()),
                 contains(SuccessMessages.TodoSuccessMessages.InsertTodo),
-                eq(ApiRoutes.TodoSubRoute.ADD_ITEM)
-        );
+                eq(ApiRoutes.TodoSubRoute.ADD_ITEM));
     }
 
     @Test
     @DisplayName("Add Todo - Numeric task - Success")
     void addTodo_NumericTask_Success() {
+        // Arrange
         TodoRequestModel request = new TodoRequestModel();
         request.setTask("12345678901234567890");
         request.setIsDone(false);
-
         Todo savedTodo = new Todo(request, CREATED_USER, TEST_USER_ID);
         savedTodo.setTodoId(1L);
-
         lenient().when(todoRepository.save(any(Todo.class))).thenReturn(savedTodo);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act & Assert
         assertDoesNotThrow(() -> todoService.addTodo(request));
     }
 
     @Test
     @DisplayName("Add Todo - Single character task - Success")
     void addTodo_SingleCharacterTask_Success() {
+        // Arrange
         TodoRequestModel request = new TodoRequestModel();
         request.setTask("X");
         request.setIsDone(false);
-
         Todo savedTodo = new Todo(request, CREATED_USER, TEST_USER_ID);
         savedTodo.setTodoId(1L);
-
         lenient().when(todoRepository.save(any(Todo.class))).thenReturn(savedTodo);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act & Assert
         assertDoesNotThrow(() -> todoService.addTodo(request));
     }
 
     @Test
     @DisplayName("Add Todo - Repository save called once")
     void addTodo_RepositorySaveCalledOnce() {
+        // Arrange
         TodoRequestModel request = new TodoRequestModel();
         request.setTask("Test Todo");
         request.setIsDone(false);
-
         Todo savedTodo = new Todo(request, CREATED_USER, TEST_USER_ID);
         savedTodo.setTodoId(1L);
-
         when(todoRepository.save(any(Todo.class))).thenReturn(savedTodo);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act
         todoService.addTodo(request);
 
+        // Assert
         verify(todoRepository, times(1)).save(any(Todo.class));
     }
 
     @Test
     @DisplayName("Add Todo - Task with newlines - Success")
     void addTodo_TaskWithNewlines_Success() {
+        // Arrange
         TodoRequestModel request = new TodoRequestModel();
         request.setTask("Line 1\nLine 2\nLine 3");
         request.setIsDone(false);
-
         Todo savedTodo = new Todo(request, CREATED_USER, TEST_USER_ID);
         savedTodo.setTodoId(1L);
-
         lenient().when(todoRepository.save(any(Todo.class))).thenReturn(savedTodo);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act & Assert
         assertDoesNotThrow(() -> todoService.addTodo(request));
     }
 
     @Test
     @DisplayName("Add Todo - Task with tabs - Success")
     void addTodo_TaskWithTabs_Success() {
+        // Arrange
         TodoRequestModel request = new TodoRequestModel();
         request.setTask("Item\t:\tDescription");
         request.setIsDone(false);
-
         Todo savedTodo = new Todo(request, CREATED_USER, TEST_USER_ID);
         savedTodo.setTodoId(1L);
-
         lenient().when(todoRepository.save(any(Todo.class))).thenReturn(savedTodo);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act & Assert
         assertDoesNotThrow(() -> todoService.addTodo(request));
     }
 
     @Test
     @DisplayName("Add Todo - Task with HTML tags - Success")
     void addTodo_TaskWithHtmlTags_Success() {
+        // Arrange
         TodoRequestModel request = new TodoRequestModel();
         request.setTask("<script>alert('test')</script>");
         request.setIsDone(false);
-
         Todo savedTodo = new Todo(request, CREATED_USER, TEST_USER_ID);
         savedTodo.setTodoId(1L);
-
         lenient().when(todoRepository.save(any(Todo.class))).thenReturn(savedTodo);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act & Assert
         assertDoesNotThrow(() -> todoService.addTodo(request));
     }
 
     @Test
     @DisplayName("Add Todo - Multiple adds work independently")
     void addTodo_MultipleAdds_WorkIndependently() {
+        // Arrange
         Todo savedTodo = new Todo();
         savedTodo.setTodoId(1L);
-
         when(todoRepository.save(any(Todo.class))).thenReturn(savedTodo);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act
         for (int i = 0; i < 3; i++) {
             TodoRequestModel request = new TodoRequestModel();
             request.setTask("Task " + i);
@@ -245,6 +253,7 @@ public class AddTodoTest extends TodoServiceTestBase {
             todoService.addTodo(request);
         }
 
+        // Assert
         verify(todoRepository, times(3)).save(any(Todo.class));
     }
 
@@ -255,6 +264,7 @@ public class AddTodoTest extends TodoServiceTestBase {
     @Test
     @DisplayName("Add Todo - Null request - Throws BadRequestException")
     void addTodo_NullRequest_ThrowsBadRequestException() {
+        // Act & Assert
         assertThrowsBadRequest(ErrorMessages.TodoErrorMessages.InvalidRequest,
                 () -> todoService.addTodo(null));
     }
@@ -262,9 +272,11 @@ public class AddTodoTest extends TodoServiceTestBase {
     @Test
     @DisplayName("Add Todo - Null task - Throws BadRequestException")
     void addTodo_NullTask_ThrowsBadRequestException() {
+        // Arrange
         TodoRequestModel request = createValidTodoRequest();
         request.setTask(null);
 
+        // Act & Assert
         assertThrowsBadRequest(ErrorMessages.TodoErrorMessages.InvalidTask,
                 () -> todoService.addTodo(request));
     }
@@ -272,36 +284,48 @@ public class AddTodoTest extends TodoServiceTestBase {
     @Test
     @DisplayName("Add Todo - Empty task - Throws BadRequestException")
     void addTodo_EmptyTask_ThrowsBadRequestException() {
+        // Arrange
         TodoRequestModel request = new TodoRequestModel();
         request.setTask("");
         request.setIsDone(false);
 
+        // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> todoService.addTodo(request));
+
+        // Assert
         assertEquals(ErrorMessages.TodoErrorMessages.InvalidTask, ex.getMessage());
     }
 
     @Test
     @DisplayName("Add Todo - Whitespace task - Throws BadRequestException")
     void addTodo_WhitespaceTask_ThrowsBadRequestException() {
+        // Arrange
         TodoRequestModel request = new TodoRequestModel();
         request.setTask("   ");
         request.setIsDone(false);
 
+        // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> todoService.addTodo(request));
+
+        // Assert
         assertEquals(ErrorMessages.TodoErrorMessages.InvalidTask, ex.getMessage());
     }
 
     @Test
     @DisplayName("Add Todo - Task too long - Throws BadRequestException")
     void addTodo_TaskTooLong_ThrowsBadRequestException() {
+        // Arrange
         TodoRequestModel request = new TodoRequestModel();
         request.setTask(LONG_TASK);
         request.setIsDone(false);
 
+        // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> todoService.addTodo(request));
+
+        // Assert
         assertEquals(ErrorMessages.TodoErrorMessages.TaskTooLong, ex.getMessage());
     }
 }

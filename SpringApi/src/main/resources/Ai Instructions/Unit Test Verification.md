@@ -98,8 +98,8 @@ The verification commands shown in examples (like `mvn test`, `grep -c`) are **F
 10. **Test Ordering** - 3 sections: Success, Failures, Permissions (alphabetical)
 11. **Complete Coverage** - Every code path tested
 12. **Arrange/Act/Assert** - Comments required in every test
-13. **Stub Naming** - All stubs start with "stub" prefix
-14. **No Inline Mocks** - No `lenient().when()` in @BeforeEach, must use stub methods
+13. **Stub Naming & Existence** - All stubs MUST start with "stub" prefix and be defined in base test class. If no stubs exist for repository/service interactions, this is a VIOLATION.
+14. **No Inline Mocks Anywhere** - STRICTLY PROHIBITED: `lenient().when()`, `when()`, `doReturn()`, `doThrow()` in @BeforeEach or test methods. ALL mocking MUST use stub methods from base test class.
 
 ---
 
@@ -3164,7 +3164,656 @@ UPDATE TEST COUNT: Change "// Total Tests: 5" to "// Total Tests: 6"
 ---
 
 
+### Rule 13: Stub Naming & Existence
+
+**FUNDAMENTAL PRINCIPLE**: All mock configurations MUST be encapsulated in dedicated stub methods within the base test class. These stub methods MUST follow a strict naming convention starting with "stub" prefix. If repository or service interactions exist in the code but NO corresponding stubs exist in the base test class, this is a VIOLATION.
+
+**CORE REQUIREMENTS**:
+
+1. **Mandatory Stub Methods**: Every repository/service interaction that needs mocking MUST have a corresponding stub method in the base test class
+2. **Naming Convention**: All stub methods MUST start with "stub" prefix (camelCase)
+3. **Location**: All stub methods MUST be defined in the base test class (e.g., `ServiceNameTestBase.java`)
+4. **No Stubs = Violation**: If the AI finds NO stubs in the base test class but the service has repository/service dependencies, this is a VIOLATION
+5. **Descriptive Names**: Stub method names must clearly describe what they mock
+
 ---
+
+#### Stub Naming Pattern
+
+**Pattern**: `stub<EntityName><Action>[Condition]`
+
+**Examples**:
+
+| Repository Method | Stub Method Name |
+|---|---|
+| `userRepository.findById(id)` | `stubUserRepositoryFindById()` |
+| `userRepository.save(user)` | `stubUserRepositorySave()` |
+| `userRepository.findById(id)` returning empty | `stubUserRepositoryFindByIdNotFound()` |
+| `userRepository.findByEmail(email)` | `stubUserRepositoryFindByEmail()` |
+| `userRepository.delete(user)` | `stubUserRepositoryDelete()` |
+| `orderService.createOrder(dto)` | `stubOrderServiceCreateOrder()` |
+| `paymentService.processPayment()` throwing exception | `stubPaymentServiceProcessPaymentThrowsException()` |
+
+**Naming Rules**:
+- Start with **"stub"** prefix (lowercase 's')
+- Follow with entity/repository/service name in PascalCase
+- Follow with action/method name in PascalCase
+- Optionally add condition suffix (e.g., `NotFound`, `ThrowsException`, `Success`)
+- Use camelCase for the entire method name
+- Method must be `private void` or `protected void`
+
+---
+
+#### ✅ CORRECT Example: Base Test with Proper Stubs
+
+```java
+@ExtendWith(MockitoExtension.class)
+abstract class UserServiceTestBase extends BaseTest {
+
+    @Mock
+    protected UserRepository userRepository;
+    
+    @Mock
+    protected EmailService emailService;
+    
+    @Spy
+    @InjectMocks
+    protected UserService userService;
+    
+    protected User testUser;
+    protected UserDTO testUserDTO;
+    
+    /**
+     * Common setup - NO inline mocks allowed here
+     */
+    @BeforeEach
+    void setUp() {
+        testUser = createTestUser();
+        testUserDTO = createTestUserDTO();
+    }
+    
+    // ==========================================
+    // STUB METHODS
+    // ==========================================
+    
+    /**
+     * Stub for successful user repository findById
+     */
+    protected void stubUserRepositoryFindById() {
+        when(userRepository.findById(DEFAULT_USER_ID))
+            .thenReturn(Optional.of(testUser));
+    }
+    
+    /**
+     * Stub for user not found scenario
+     */
+    protected void stubUserRepositoryFindByIdNotFound() {
+        when(userRepository.findById(anyLong()))
+            .thenReturn(Optional.empty());
+    }
+    
+    /**
+     * Stub for successful user save
+     */
+    protected void stubUserRepositorySave() {
+        when(userRepository.save(any(User.class)))
+            .thenReturn(testUser);
+    }
+    
+    /**
+     * Stub for finding user by email - success
+     */
+    protected void stubUserRepositoryFindByEmail() {
+        when(userRepository.findByEmail(anyString()))
+            .thenReturn(Optional.of(testUser));
+    }
+    
+    /**
+     * Stub for finding user by email - not found
+     */
+    protected void stubUserRepositoryFindByEmailNotFound() {
+        when(userRepository.findByEmail(anyString()))
+            .thenReturn(Optional.empty());
+    }
+    
+    /**
+     * Stub for email service - successful send
+     */
+    protected void stubEmailServiceSendEmail() {
+        lenient().doNothing().when(emailService).sendEmail(any(EmailDTO.class));
+    }
+    
+    /**
+     * Stub for email service - throws exception
+     */
+    protected void stubEmailServiceSendEmailThrowsException() {
+        lenient().doThrow(new EmailException(ErrorMessages.EMAIL_SEND_FAILED))
+            .when(emailService).sendEmail(any(EmailDTO.class));
+    }
+}
+```
+
+**Key Points**:
+- ✅ All stub methods start with "stub"
+- ✅ All stub methods are `protected void`
+- ✅ All stub methods are in a dedicated section with comment header
+- ✅ Each stub has a clear, descriptive name
+- ✅ @BeforeEach has NO inline mocks
+- ✅ Stubs cover success, failure, and edge cases
+
+---
+
+#### ❌ INCORRECT Examples (Violations)
+
+**VIOLATION TYPE 1: No Stubs Exist**
+
+```java
+// ❌ SEVERE VIOLATION: UserServiceTestBase.java
+@ExtendWith(MockitoExtension.class)
+abstract class UserServiceTestBase extends BaseTest {
+
+    @Mock
+    protected UserRepository userRepository;
+    
+    @Mock
+    protected EmailService emailService;
+    
+    @Spy
+    @InjectMocks
+    protected UserService userService;
+    
+    protected User testUser;
+    
+    @BeforeEach
+    void setUp() {
+        testUser = createTestUser();
+        // No stub methods defined anywhere!
+    }
+    
+    // ❌ NO STUB METHODS SECTION
+    // ❌ NO stub methods at all!
+}
+
+// VIOLATION REPORT:
+RULE 13 VIOLATION: No Stubs Exist
+
+FILE: src/test/java/com/example/service/UserServiceTestBase.java
+ISSUE: Base test class has NO stub methods defined
+
+DEPENDENCIES FOUND:
+  - UserRepository (mocked)
+  - EmailService (mocked)
+
+EXPECTED STUBS (minimum):
+  - stubUserRepositoryFindById()
+  - stubUserRepositoryFindByIdNotFound()
+  - stubUserRepositorySave()
+  - stubEmailServiceSendEmail()
+
+CURRENT STUB COUNT: 0
+REQUIRED STUB COUNT: At least 4
+
+SEVERITY: 🔴 CRITICAL
+IMPACT: Tests cannot properly mock dependencies, will fail or have undefined behavior
+
+REQUIRED ACTION:
+1. Create "STUB METHODS" section in UserServiceTestBase.java
+2. Add stub methods for all repository/service interactions
+3. Ensure all stub methods start with "stub" prefix
+4. Make all stub methods protected void
+5. Update individual test files to call these stubs instead of inline mocking
+```
+
+**VIOLATION TYPE 2: Incorrect Stub Naming**
+
+```java
+// ❌ WRONG NAMING
+protected void getUserById() {  // ❌ Missing "stub" prefix
+    when(userRepository.findById(DEFAULT_USER_ID))
+        .thenReturn(Optional.of(testUser));
+}
+
+protected void mockUserSave() {  // ❌ Uses "mock" instead of "stub"
+    when(userRepository.save(any(User.class)))
+        .thenReturn(testUser);
+}
+
+protected void setupUserNotFound() {  // ❌ Uses "setup" instead of "stub"
+    when(userRepository.findById(anyLong()))
+        .thenReturn(Optional.empty());
+}
+
+protected void user_repository_find_by_email() {  // ❌ Uses underscores, missing "stub"
+    when(userRepository.findByEmail(anyString()))
+        .thenReturn(Optional.of(testUser));
+}
+
+// ✅ CORRECT NAMING
+protected void stubUserRepositoryFindById() { }
+protected void stubUserRepositorySave() { }
+protected void stubUserRepositoryFindByIdNotFound() { }
+protected void stubUserRepositoryFindByEmail() { }
+```
+
+**VIOLATION TYPE 3: Stubs in Wrong Location**
+
+```java
+// ❌ WRONG: Stub defined in individual test file instead of base test
+public class CreateUserTest extends UserServiceTestBase {
+    // Total Tests: 5
+    
+    // ❌ VIOLATION: Stub method in test file, not base test
+    private void stubUserRepositorySave() {
+        when(userRepository.save(any(User.class)))
+            .thenReturn(testUser);
+    }
+    
+    @Test
+    public void createUser_success() {
+        // Arrange
+        stubUserRepositorySave();  // ❌ Calling local stub instead of base test stub
+        
+        // Act
+        User result = userService.createUser(testUserDTO);
+        
+        // Assert
+        assertNotNull(result);
+    }
+}
+
+// VIOLATION REPORT:
+RULE 13 VIOLATION: Stub in Wrong Location
+
+FILE: src/test/java/com/example/service/CreateUserTest.java
+METHOD: stubUserRepositorySave (line 8)
+ISSUE: Stub method defined in test file instead of base test class
+
+SEVERITY: 🔴 HIGH
+IMPACT: Stub is not reusable across other test files, violates centralization
+
+REQUIRED ACTION:
+1. MOVE stubUserRepositorySave() to UserServiceTestBase.java
+2. DELETE stubUserRepositorySave() from CreateUserTest.java
+3. Ensure method is protected (not private) in base test
+4. Update all test files to use the centralized stub
+```
+
+---
+
+#### Verification Checklist for Rule 13
+
+**AI INSTRUCTION**: When verifying Rule 13, check the following:
+
+For EACH base test file:
+- [ ] Base test file exists (e.g., `ServiceNameTestBase.java`)
+- [ ] File contains a "STUB METHODS" comment section
+- [ ] At least one stub method exists for each mocked dependency
+- [ ] ALL stub methods start with "stub" prefix
+- [ ] ALL stub methods are `protected void` or `private void`
+- [ ] ALL stub methods have descriptive names following the pattern
+- [ ] Stub methods are alphabetically organized
+- [ ] NO stub methods exist in individual test files (only in base test)
+
+**How to Verify**:
+1. Use view tool to read the base test file
+2. Search for methods starting with "stub"
+3. If ZERO stubs found AND mocked dependencies exist → Report Rule 13 violation
+4. For each stub found, verify naming convention
+5. Check individual test files to ensure NO local stubs exist
+6. Document findings in report
+
+---
+
+### Rule 14: No Inline Mocks Anywhere
+
+**FUNDAMENTAL PRINCIPLE**: Inline mock configurations using `lenient().when()`, `when()`, `doReturn()`, `doThrow()`, or any Mockito stubbing methods are **STRICTLY PROHIBITED** in `@BeforeEach` methods and test methods. ALL mocking MUST be done through stub methods defined in the base test class.
+
+**CORE REQUIREMENTS**:
+
+1. **No Inline Mocks in @BeforeEach**: The `@BeforeEach` method MUST only initialize test data and optionally call stub methods
+2. **No Inline Mocks in Test Methods**: Individual test methods MUST call stub methods from base test, not create inline mocks
+3. **All Mocking in Stubs**: ALL Mockito stubbing (`when()`, `lenient().when()`, `doReturn()`, `doThrow()`, etc.) MUST be in stub methods in base test
+4. **Stub Method Calls Only**: `@BeforeEach` and test methods may ONLY call stub methods, never create mocks inline
+
+---
+
+#### Prohibited Patterns
+
+**ALL of these are VIOLATIONS**:
+
+```java
+// ❌ VIOLATION: Inline lenient().when() in @BeforeEach
+@BeforeEach
+void setUp() {
+    testUser = createTestUser();
+    lenient().when(userRepository.findById(DEFAULT_USER_ID))
+        .thenReturn(Optional.of(testUser));  // ❌ FORBIDDEN
+}
+
+// ❌ VIOLATION: Inline when() in @BeforeEach
+@BeforeEach
+void setUp() {
+    testUser = createTestUser();
+    when(userRepository.save(any(User.class)))
+        .thenReturn(testUser);  // ❌ FORBIDDEN
+}
+
+// ❌ VIOLATION: Inline doReturn() in @BeforeEach
+@BeforeEach
+void setUp() {
+    testUser = createTestUser();
+    doReturn(Optional.of(testUser))
+        .when(userRepository).findById(anyLong());  // ❌ FORBIDDEN
+}
+
+// ❌ VIOLATION: Inline when() in test method
+@Test
+public void createUser_success() {
+    // Arrange
+    when(userRepository.save(any(User.class)))
+        .thenReturn(testUser);  // ❌ FORBIDDEN - must use stub method
+    
+    // Act
+    User result = userService.createUser(testUserDTO);
+    
+    // Assert
+    assertNotNull(result);
+}
+
+// ❌ VIOLATION: Inline lenient().when() in test method
+@Test
+public void getUserById_success() {
+    // Arrange
+    lenient().when(userRepository.findById(DEFAULT_USER_ID))
+        .thenReturn(Optional.of(testUser));  // ❌ FORBIDDEN
+    
+    // Act
+    User result = userService.getUserById(DEFAULT_USER_ID);
+    
+    // Assert
+    assertNotNull(result);
+}
+```
+
+---
+
+#### ✅ CORRECT Example: Using Stub Methods
+
+**Base Test Class**:
+```java
+@ExtendWith(MockitoExtension.class)
+abstract class UserServiceTestBase extends BaseTest {
+
+    @Mock
+    protected UserRepository userRepository;
+    
+    @Spy
+    @InjectMocks
+    protected UserService userService;
+    
+    protected User testUser;
+    
+    /**
+     * Setup - ONLY data initialization, NO inline mocks
+     */
+    @BeforeEach
+    void setUp() {
+        testUser = createTestUser();
+        // ✅ NO inline mocks here!
+    }
+    
+    // ==========================================
+    // STUB METHODS
+    // ==========================================
+    
+    protected void stubUserRepositoryFindById() {
+        when(userRepository.findById(DEFAULT_USER_ID))
+            .thenReturn(Optional.of(testUser));
+    }
+    
+    protected void stubUserRepositorySave() {
+        when(userRepository.save(any(User.class)))
+            .thenReturn(testUser);
+    }
+}
+```
+
+**Test Class**:
+```java
+public class CreateUserTest extends UserServiceTestBase {
+    // Total Tests: 3
+    
+    @Test
+    @DisplayName("Should create user successfully")
+    public void createUser_success() {
+        // Arrange
+        stubUserRepositorySave();  // ✅ CORRECT: Calling stub method
+        
+        // Act
+        User result = userService.createUser(testUserDTO);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(testUser.getId(), result.getId());
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+    
+    @Test
+    @DisplayName("Should throw exception when save fails")
+    public void createUser_saveFails_exception() {
+        // Arrange
+        stubUserRepositorySaveThrowsException();  // ✅ CORRECT: Calling stub method
+        
+        // Act & Assert
+        DatabaseException exception = assertThrows(DatabaseException.class, () -> {
+            userService.createUser(testUserDTO);
+        });
+        assertEquals(ErrorMessages.DATABASE_ERROR, exception.getMessage());
+    }
+}
+```
+
+---
+
+#### ❌ INCORRECT Examples (Violations)
+
+**VIOLATION TYPE 1: Inline Mocks in @BeforeEach**
+
+```java
+// ❌ SEVERE VIOLATION
+@BeforeEach
+void setUp() {
+    testUser = createTestUser();
+    testClient = createTestClient();
+    
+    // ❌ VIOLATION: Inline lenient().when()
+    lenient().when(userRepository.findById(DEFAULT_USER_ID))
+        .thenReturn(Optional.of(testUser));
+    
+    // ❌ VIOLATION: Inline when()
+    when(clientRepository.findById(DEFAULT_CLIENT_ID))
+        .thenReturn(Optional.of(testClient));
+    
+    // ❌ VIOLATION: Inline doReturn()
+    doReturn(true).when(emailService).sendEmail(any());
+}
+
+// VIOLATION REPORT:
+RULE 14 VIOLATION: Inline Mocks in @BeforeEach
+
+FILE: src/test/java/com/example/service/UserServiceTestBase.java
+METHOD: setUp (line 15)
+ISSUE: @BeforeEach contains inline mock configurations
+
+VIOLATIONS FOUND:
+  Line 18: lenient().when(userRepository.findById(...))
+  Line 21: when(clientRepository.findById(...))
+  Line 24: doReturn(true).when(emailService).sendEmail(...)
+
+SEVERITY: 🔴 CRITICAL
+IMPACT: Violates centralized mocking principle, makes tests hard to maintain
+
+REQUIRED ACTION:
+1. Remove ALL inline when() calls from @BeforeEach
+2. Create stub methods in base test:
+   - stubUserRepositoryFindById()
+   - stubClientRepositoryFindById()
+   - stubEmailServiceSendEmail()
+3. Move the lenient().when() logic into each stub method
+4. Update @BeforeEach to ONLY initialize data (no mocking)
+```
+
+**VIOLATION TYPE 2: Inline Mocks in Test Methods**
+
+```java
+@Test
+@DisplayName("Should create user successfully")
+public void createUser_success() {
+    // Arrange
+    UserDTO dto = createValidUserDTO();
+    
+    // ❌ VIOLATION: Inline mock in test method
+    when(userRepository.save(any(User.class)))
+        .thenReturn(testUser);
+    
+    // Act
+    User result = userService.createUser(dto);
+    
+    // Assert
+    assertNotNull(result);
+}
+
+// VIOLATION REPORT:
+RULE 14 VIOLATION: Inline Mock in Test Method
+
+FILE: src/test/java/com/example/service/CreateUserTest.java
+METHOD: createUser_success (line 23)
+ISSUE: Test method contains inline when() call
+
+VIOLATION:
+  Line 28: when(userRepository.save(any(User.class)))
+
+SEVERITY: 🔴 HIGH
+IMPACT: Mock configuration not reusable, violates Rule 6 (Centralized Mocking)
+
+REQUIRED ACTION:
+1. Remove inline when() from test method
+2. Ensure stubUserRepositorySave() exists in UserServiceTestBase.java
+3. Call stubUserRepositorySave() in Arrange section instead
+4. Verify stub method is properly defined with "stub" prefix
+```
+
+**VIOLATION TYPE 3: Mixed Approach (Some Stubs, Some Inline)**
+
+```java
+// ❌ INCONSISTENT: Some tests use stubs, others use inline mocks
+public class UpdateUserTest extends UserServiceTestBase {
+    // Total Tests: 4
+    
+    @Test
+    public void updateUser_success() {
+        // Arrange
+        stubUserRepositoryFindById();  // ✅ Using stub method
+        stubUserRepositorySave();      // ✅ Using stub method
+        
+        // Act
+        User result = userService.updateUser(DEFAULT_USER_ID, testUserDTO);
+        
+        // Assert
+        assertNotNull(result);
+    }
+    
+    @Test
+    public void updateUser_notFound_exception() {
+        // Arrange
+        // ❌ VIOLATION: Inline mock instead of using stub
+        when(userRepository.findById(anyLong()))
+            .thenReturn(Optional.empty());
+        
+        // Act & Assert
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            userService.updateUser(999L, testUserDTO);
+        });
+    }
+}
+
+// VIOLATION REPORT:
+RULE 14 VIOLATION: Inconsistent Mock Usage
+
+FILE: src/test/java/com/example/service/UpdateUserTest.java
+ISSUE: File mixes stub method calls with inline mocks
+
+TESTS USING STUBS (CORRECT):
+  ✓ updateUser_success (line 5)
+
+TESTS USING INLINE MOCKS (VIOLATION):
+  ✗ updateUser_notFound_exception (line 18) - Line 20: when(userRepository.findById(...))
+
+SEVERITY: 🟡 HIGH
+IMPACT: Inconsistent testing approach, confusing for maintainers
+
+REQUIRED ACTION:
+1. Replace inline when() at line 20 with stub method call
+2. Use stubUserRepositoryFindByIdNotFound() instead
+3. Ensure ALL tests in file use stub methods consistently
+4. Remove ALL inline when() calls from this file
+```
+
+---
+
+#### Verification Checklist for Rule 14
+
+**AI INSTRUCTION**: When verifying Rule 14, check the following:
+
+For EACH base test file:
+- [ ] @BeforeEach method exists
+- [ ] @BeforeEach contains NO `lenient().when()` calls
+- [ ] @BeforeEach contains NO `when()` calls
+- [ ] @BeforeEach contains NO `doReturn()` calls
+- [ ] @BeforeEach contains NO `doThrow()` calls
+- [ ] @BeforeEach ONLY initializes data and optionally calls stub methods
+
+For EACH individual test file:
+- [ ] NO test methods contain `when()` calls
+- [ ] NO test methods contain `lenient().when()` calls
+- [ ] NO test methods contain `doReturn()` calls
+- [ ] NO test methods contain `doThrow()` calls
+- [ ] ALL mocking is done via stub method calls
+
+**How to Verify**:
+1. Use view tool to read @BeforeEach method in base test
+2. Search for patterns: `lenient().when(`, `when(`, `doReturn(`, `doThrow(`
+3. If ANY found in @BeforeEach → Report Rule 14 violation
+4. Read each individual test file
+5. Search for same patterns in test methods
+6. If ANY found in test methods → Report Rule 14 violation
+7. Document ALL violations with line numbers
+
+**Search Patterns to Flag**:
+- `lenient().when(`
+- `when(`
+- `doReturn(`
+- `doThrow(`
+- `doAnswer(`
+- `doNothing().when(`
+- `doCallRealMethod(`
+
+**Exceptions** (these are allowed):
+- `verify(` - This is for assertions, not mocking
+- `times(` - This is for verification
+- `never()` - This is for verification
+- `any(` - This is a matcher, allowed in verify() calls
+
+---
+
+**Rule 13 & 14 Summary**:
+- **Rule 13**: ALL stubs MUST exist in base test, follow "stub" naming convention. No stubs = VIOLATION.
+- **Rule 14**: ZERO inline mocks allowed in @BeforeEach or test methods. ALL mocking via stub methods only.
+- **Together**: These rules enforce centralized, reusable, maintainable mock configurations.
+
+---
+
+
 
 ## 📊 CRITICAL REPORTING REQUIREMENTS
 

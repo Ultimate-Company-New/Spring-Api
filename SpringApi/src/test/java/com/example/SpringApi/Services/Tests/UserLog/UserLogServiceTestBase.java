@@ -38,7 +38,7 @@ public abstract class UserLogServiceTestBase extends BaseTest {
 
     protected UserLog testUserLog;
     protected UserLogsRequestModel testUserLogsRequest;
-    
+
     protected static final Long TEST_USER_ID = 1L;
     protected static final Long TEST_CARRIER_ID = 100L;
     protected static final String TEST_ACTION = "User Login";
@@ -47,21 +47,25 @@ public abstract class UserLogServiceTestBase extends BaseTest {
     protected static final String TEST_ENDPOINT = "loginUser";
 
     // Valid columns for filtering
-    protected static final String[] STRING_COLUMNS = {"action", "description", "ipAddress", "userAgent", 
-            "sessionId", "logLevel", "createdUser", "modifiedUser", "notes", "change", "newValue", "oldValue"};
-    protected static final String[] NUMBER_COLUMNS = {"logId", "userId", "clientId", "auditUserId"};
-    
+    protected static final String[] STRING_COLUMNS = { "action", "description", "ipAddress", "userAgent",
+            "sessionId", "logLevel", "createdUser", "modifiedUser", "notes", "change", "newValue", "oldValue" };
+    protected static final String[] NUMBER_COLUMNS = { "logId", "userId", "clientId", "auditUserId" };
+
     // Valid operators
-    protected static final String[] STRING_OPERATORS = {"equals", "contains", "startsWith", "endsWith"};
-    protected static final String[] NUMBER_OPERATORS = {"equals", ">", ">=", "<", "<="};
+    protected static final String[] STRING_OPERATORS = { "equals", "contains", "startsWith", "endsWith" };
+    protected static final String[] NUMBER_OPERATORS = { "equals", ">", ">=", "<", "<=" };
 
     @BeforeEach
     protected void setUp() {
+        stubAuthorizationHeader();
+
         testUserLog = new UserLog(TEST_USER_ID, TEST_CARRIER_ID, TEST_ACTION, TEST_OLD_VALUE, TEST_NEW_VALUE, "admin");
         testUserLog.setLogId(1L);
         testUserLog.setCreatedAt(LocalDateTime.now());
         testUserLog.setUpdatedAt(LocalDateTime.now());
+    }
 
+    protected void stubAuthorizationHeader() {
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
     }
 }

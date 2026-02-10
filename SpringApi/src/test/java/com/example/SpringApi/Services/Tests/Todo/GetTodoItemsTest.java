@@ -22,6 +22,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("TodoService - GetTodoItems Tests")
 public class GetTodoItemsTest extends TodoServiceTestBase {
 
+    // Total Tests: 11
+
     // ========================================
     // SUCCESS TESTS
     // ========================================
@@ -29,16 +31,20 @@ public class GetTodoItemsTest extends TodoServiceTestBase {
     /**
      * Purpose: Verify repository is called with correct userId.
      * Expected Result: findAllByUserIdOrderByTodoIdDesc called with userId.
-     * Assertions: verify(todoRepository).findAllByUserIdOrderByTodoIdDesc(anyLong());
+     * Assertions:
+     * verify(todoRepository).findAllByUserIdOrderByTodoIdDesc(anyLong());
      */
     @Test
     @DisplayName("Get Todo Items - Calls repository with userId")
     void getTodoItems_CallsRepositoryWithUserId() {
+        // Arrange
         when(todoRepository.findAllByUserIdOrderByTodoIdDesc(anyLong())).thenReturn(new ArrayList<>());
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act
         todoService.getTodoItems();
 
+        // Assert
         verify(todoRepository, times(1)).findAllByUserIdOrderByTodoIdDesc(anyLong());
     }
 
@@ -50,11 +56,14 @@ public class GetTodoItemsTest extends TodoServiceTestBase {
     @Test
     @DisplayName("Get Todo Items - Empty list - Returns empty")
     void getTodoItems_EmptyList_ReturnsEmpty() {
+        // Arrange
         when(todoRepository.findAllByUserIdOrderByTodoIdDesc(anyLong())).thenReturn(new ArrayList<>());
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act
         List<TodoResponseModel> result = todoService.getTodoItems();
 
+        // Assert
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
@@ -67,15 +76,17 @@ public class GetTodoItemsTest extends TodoServiceTestBase {
     @Test
     @DisplayName("Get Todo Items - Fields correctly mapped")
     void getTodoItems_FieldsCorrectlyMapped() {
+        // Arrange
         testTodo.setTask("Mapped Task");
         testTodo.setIsDone(true);
-
         List<Todo> expectedTodos = Arrays.asList(testTodo);
         when(todoRepository.findAllByUserIdOrderByTodoIdDesc(anyLong())).thenReturn(expectedTodos);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act
         List<TodoResponseModel> result = todoService.getTodoItems();
 
+        // Assert
         TodoResponseModel response = result.get(0);
         assertEquals(TEST_TODO_ID, response.getTodoId());
         assertEquals("Mapped Task", response.getTask());
@@ -91,6 +102,7 @@ public class GetTodoItemsTest extends TodoServiceTestBase {
     @Test
     @DisplayName("Get Todo Items - Many todos - Returns all")
     void getTodoItems_ManyTodos_ReturnsAll() {
+        // Arrange
         List<Todo> manyTodos = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             Todo todo = createTestTodo();
@@ -98,12 +110,13 @@ public class GetTodoItemsTest extends TodoServiceTestBase {
             todo.setTask("Task " + i);
             manyTodos.add(todo);
         }
-
         when(todoRepository.findAllByUserIdOrderByTodoIdDesc(anyLong())).thenReturn(manyTodos);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act
         List<TodoResponseModel> result = todoService.getTodoItems();
 
+        // Assert
         assertEquals(10, result.size());
     }
 
@@ -115,18 +128,19 @@ public class GetTodoItemsTest extends TodoServiceTestBase {
     @Test
     @DisplayName("Get Todo Items - Mixed isDone values")
     void getTodoItems_MixedIsDoneValues() {
+        // Arrange
         testTodo.setIsDone(false);
-
         Todo doneTodo = createTestTodo();
         doneTodo.setTodoId(2L);
         doneTodo.setIsDone(true);
-
         List<Todo> expectedTodos = Arrays.asList(testTodo, doneTodo);
         when(todoRepository.findAllByUserIdOrderByTodoIdDesc(anyLong())).thenReturn(expectedTodos);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act
         List<TodoResponseModel> result = todoService.getTodoItems();
 
+        // Assert
         assertEquals(2, result.size());
         assertFalse(result.get(0).getIsDone());
         assertTrue(result.get(1).getIsDone());
@@ -140,20 +154,21 @@ public class GetTodoItemsTest extends TodoServiceTestBase {
     @Test
     @DisplayName("Get Todo Items - Multiple todos - Returns all")
     void getTodoItems_MultipleTodos_ReturnsAll() {
+        // Arrange
         Todo todo2 = createTestTodo();
         todo2.setTodoId(2L);
         todo2.setTask("Task 2");
-
         Todo todo3 = createTestTodo();
         todo3.setTodoId(3L);
         todo3.setTask("Task 3");
-
         List<Todo> expectedTodos = Arrays.asList(testTodo, todo2, todo3);
         when(todoRepository.findAllByUserIdOrderByTodoIdDesc(anyLong())).thenReturn(expectedTodos);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act
         List<TodoResponseModel> result = todoService.getTodoItems();
 
+        // Assert
         assertNotNull(result);
         assertEquals(3, result.size());
     }
@@ -166,12 +181,15 @@ public class GetTodoItemsTest extends TodoServiceTestBase {
     @Test
     @DisplayName("Get Todo Items - Repository called once")
     void getTodoItems_RepositoryCalledOnce() {
+        // Arrange
         when(todoRepository.findAllByUserIdOrderByTodoIdDesc(anyLong())).thenReturn(Arrays.asList(testTodo));
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act
         todoService.getTodoItems();
         todoService.getTodoItems();
 
+        // Assert
         verify(todoRepository, times(2)).findAllByUserIdOrderByTodoIdDesc(anyLong());
     }
 
@@ -183,12 +201,15 @@ public class GetTodoItemsTest extends TodoServiceTestBase {
     @Test
     @DisplayName("Get Todo Items - Success - Returns todos")
     void getTodoItems_Success() {
+        // Arrange
         List<Todo> expectedTodos = Arrays.asList(testTodo);
         when(todoRepository.findAllByUserIdOrderByTodoIdDesc(anyLong())).thenReturn(expectedTodos);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act
         List<TodoResponseModel> result = todoService.getTodoItems();
 
+        // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(TEST_TODO_ID, result.get(0).getTodoId());
@@ -203,17 +224,19 @@ public class GetTodoItemsTest extends TodoServiceTestBase {
     @Test
     @DisplayName("Get Todo Items - Success - Logs the operation")
     void getTodoItems_Success_LogsOperation() {
+        // Arrange
         List<Todo> expectedTodos = Arrays.asList(testTodo);
         when(todoRepository.findAllByUserIdOrderByTodoIdDesc(anyLong())).thenReturn(expectedTodos);
         when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act
         todoService.getTodoItems();
 
+        // Assert
         verify(userLogService).logData(
                 eq(TEST_USER_ID.longValue()),
                 eq(SuccessMessages.TodoSuccessMessages.GetTodoItems),
-                eq(ApiRoutes.TodoSubRoute.GET_ITEMS)
-        );
+                eq(ApiRoutes.TodoSubRoute.GET_ITEMS));
     }
 
     /**
@@ -224,28 +247,27 @@ public class GetTodoItemsTest extends TodoServiceTestBase {
     @Test
     @DisplayName("Get Todo Items - Various special characters")
     void getTodoItems_VariousSpecialCharacters() {
+        // Arrange
         List<Todo> specialTodos = new ArrayList<>();
-        
         Todo todo1 = createTestTodo();
         todo1.setTodoId(1L);
         todo1.setTask("@#$%^&*()");
         specialTodos.add(todo1);
-
         Todo todo2 = createTestTodo();
         todo2.setTodoId(2L);
         todo2.setTask("你好世界");
         specialTodos.add(todo2);
-
         Todo todo3 = createTestTodo();
         todo3.setTodoId(3L);
         todo3.setTask("<html>");
         specialTodos.add(todo3);
-
         when(todoRepository.findAllByUserIdOrderByTodoIdDesc(anyLong())).thenReturn(specialTodos);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act
         List<TodoResponseModel> result = todoService.getTodoItems();
 
+        // Assert
         assertEquals(3, result.size());
         assertEquals("@#$%^&*()", result.get(0).getTask());
         assertEquals("你好世界", result.get(1).getTask());
@@ -258,15 +280,18 @@ public class GetTodoItemsTest extends TodoServiceTestBase {
 
     /**
      * Purpose: Verify null from repository is handled.
-     * Expected Result: NullPointerException or empty list depending on implementation.
+     * Expected Result: NullPointerException or empty list depending on
+     * implementation.
      * Assertions: Throws or returns empty.
      */
     @Test
     @DisplayName("Get Todo Items - Null from repository")
     void getTodoItems_NullFromRepository() {
+        // Arrange
         when(todoRepository.findAllByUserIdOrderByTodoIdDesc(anyLong())).thenReturn(null);
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
+        // Act & Assert
         // The service might throw NPE when mapping null to stream
         assertThrows(NullPointerException.class, () -> todoService.getTodoItems());
     }
