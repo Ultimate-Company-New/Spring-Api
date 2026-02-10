@@ -93,18 +93,19 @@ public class Package {
     /**
      * Default constructor.
      */
-    public Package() {}
+    public Package() {
+    }
 
     /**
      * Constructor for creating a new package.
      * 
-     * @param request The PackageRequestModel containing the package data
+     * @param request     The PackageRequestModel containing the package data
      * @param createdUser The user creating the package
      */
     public Package(PackageRequestModel request, String createdUser, long clientId) {
         validateRequest(request);
         validateUser(createdUser);
-        
+
         setFieldsFromRequest(request);
         this.createdUser = createdUser;
         this.clientId = clientId;
@@ -114,19 +115,20 @@ public class Package {
     /**
      * Constructor for updating an existing package.
      * 
-     * @param request The PackageRequestModel containing the updated package data
-     * @param modifiedUser The user modifying the package
+     * @param request         The PackageRequestModel containing the updated package
+     *                        data
+     * @param modifiedUser    The user modifying the package
      * @param existingPackage The existing package entity
      */
     public Package(PackageRequestModel request, String modifiedUser, Package existingPackage) {
         validateRequest(request);
         validateUser(modifiedUser);
-        
+
         this.packageId = existingPackage.getPackageId();
         this.clientId = existingPackage.getClientId();
         this.createdUser = existingPackage.getCreatedUser();
         this.createdAt = existingPackage.getCreatedAt();
-        
+
         setFieldsFromRequest(request);
         this.modifiedUser = modifiedUser;
     }
@@ -142,6 +144,9 @@ public class Package {
             throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidRequest);
         }
         if (request.getPackageName() == null || request.getPackageName().trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidPackageName);
+        }
+        if (request.getPackageName().length() > 255) {
             throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidPackageName);
         }
         if (request.getLength() == null || request.getLength() <= 0) {
@@ -165,7 +170,8 @@ public class Package {
         if (request.getPackageType() == null || request.getPackageType().trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidPackageType);
         }
-        // Note: clientId is passed as a constructor parameter from security context, not from request body
+        // Note: clientId is passed as a constructor parameter from security context,
+        // not from request body
         // Note: Packages don't require an address - they are stored at pickup locations
     }
 
@@ -180,8 +186,6 @@ public class Package {
             throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
         }
     }
-
-
 
     /**
      * Sets fields from the request model.

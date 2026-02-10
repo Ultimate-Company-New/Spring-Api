@@ -12,11 +12,11 @@ Summary:
 - `Test Count:` comments are present inside each test class and match annotated `@Test` counts.
 
 Test counts by class:
-- `ConfirmEmailTest` — 7 tests ([ConfirmEmailTest.java](ConfirmEmailTest.java#L24))
-- `GetTokenTest` — 12 tests ([GetTokenTest.java](GetTokenTest.java#L21))
-- `ResetPasswordTest` — 16 tests ([ResetPasswordTest.java](ResetPasswordTest.java#L20))
-- `SignInTest` — 21 tests ([SignInTest.java](SignInTest.java#L25))
-- `LoginServiceTestBase` — base test and centralized stubs ([LoginServiceTestBase.java](LoginServiceTestBase.java#L36))
+- `ConfirmEmailTest` — 7 tests ([ConfirmEmailTest.java](../ConfirmEmailTest.java#L24))
+- `GetTokenTest` — 12 tests ([GetTokenTest.java](../GetTokenTest.java#L21))
+- `ResetPasswordTest` — 16 tests ([ResetPasswordTest.java](../ResetPasswordTest.java#L20))
+- `SignInTest` — 21 tests ([SignInTest.java](../SignInTest.java#L25))
+- `LoginServiceTestBase` — base test and centralized stubs ([LoginServiceTestBase.java](../LoginServiceTestBase.java#L36))
 
 Rule-by-rule verification (short):
 
@@ -63,12 +63,12 @@ Rule-by-rule verification (short):
   - Inline Mockito constructions (e.g., MockedStatic for PasswordHelper) are used only within test-specific contexts and not as scattered repository mocks.
 
 Key evidence & locations
-- Centralized stubs and base test: [LoginServiceTestBase.java](LoginServiceTestBase.java#L45-L100)
+- Centralized stubs and base test: [LoginServiceTestBase.java](../LoginServiceTestBase.java#L45-L100)
 - Example test files with assertions and mocking patterns:
-  - [ConfirmEmailTest.java](ConfirmEmailTest.java#L24)
-  - [GetTokenTest.java](GetTokenTest.java#L21)
-  - [ResetPasswordTest.java](ResetPasswordTest.java#L20)
-  - [SignInTest.java](SignInTest.java#L25)
+  - [ConfirmEmailTest.java](../ConfirmEmailTest.java#L24)
+  - [GetTokenTest.java](../GetTokenTest.java#L21)
+  - [ResetPasswordTest.java](../ResetPasswordTest.java#L20)
+  - [SignInTest.java](../SignInTest.java#L25)
 
 Notes & recommendations
 - This report was generated after a focused verification of the Login tests. All 56 tests pass with 0 failures.

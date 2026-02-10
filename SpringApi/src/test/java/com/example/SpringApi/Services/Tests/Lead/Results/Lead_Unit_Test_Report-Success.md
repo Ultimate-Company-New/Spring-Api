@@ -12,14 +12,14 @@ Summary:
 - `// Total Tests:` comments are present inside each test class and match annotated `@Test` counts.
 
 Test counts by class:
-- `CreateLeadTest` — 30 tests ([CreateLeadTest.java](CreateLeadTest.java#L16))
-- `UpdateLeadTest` — 32 tests ([UpdateLeadTest.java](UpdateLeadTest.java#L16))
-- `ToggleLeadTest` — 11 tests ([ToggleLeadTest.java](ToggleLeadTest.java#L16))
-- `BulkCreateLeadsTest` — 15 tests ([BulkCreateLeadsTest.java](BulkCreateLeadsTest.java#L16))
-- `BulkCreateLeadsAsyncTest` — 3 tests ([BulkCreateLeadsAsyncTest.java](BulkCreateLeadsAsyncTest.java#L16))
-- `GetLeadDetailsByIdTest` — 9 tests ([GetLeadDetailsByIdTest.java](GetLeadDetailsByIdTest.java#L16))
-- `GetLeadDetailsByEmailTest` — 5 tests ([GetLeadDetailsByEmailTest.java](GetLeadDetailsByEmailTest.java#L16))
-- `GetLeadsInBatchesTest` — 3 tests ([GetLeadsInBatchesTest.java](GetLeadsInBatchesTest.java#L16))
+- `CreateLeadTest` — 30 tests ([CreateLeadTest.java](../CreateLeadTest.java#L16))
+- `UpdateLeadTest` — 32 tests ([UpdateLeadTest.java](../UpdateLeadTest.java#L16))
+- `ToggleLeadTest` — 11 tests ([ToggleLeadTest.java](../ToggleLeadTest.java#L16))
+- `BulkCreateLeadsTest` — 15 tests ([BulkCreateLeadsTest.java](../BulkCreateLeadsTest.java#L16))
+- `BulkCreateLeadsAsyncTest` — 3 tests ([BulkCreateLeadsAsyncTest.java](../BulkCreateLeadsAsyncTest.java#L16))
+- `GetLeadDetailsByIdTest` — 9 tests ([GetLeadDetailsByIdTest.java](../GetLeadDetailsByIdTest.java#L16))
+- `GetLeadDetailsByEmailTest` — 5 tests ([GetLeadDetailsByEmailTest.java](../GetLeadDetailsByEmailTest.java#L16))
+- `GetLeadsInBatchesTest` — 3 tests ([GetLeadsInBatchesTest.java](../GetLeadsInBatchesTest.java#L16))
 
 Rule-by-rule verification (short):
 
@@ -66,14 +66,14 @@ Rule-by-rule verification (short):
   - A scan of the Lead tests shows mocking only inside centralized `stub*` helpers and helper invocations.
 
 Key evidence & locations
-- Centralized stubs and service-level helpers: [LeadServiceTestBase.java](LeadServiceTestBase.java#L60-L189)
+- Centralized stubs and service-level helpers: [LeadServiceTestBase.java](../LeadServiceTestBase.java#L60-L189)
 - Example test files with `// Total Tests:` and comprehensive assertions:
-  - [CreateLeadTest.java](CreateLeadTest.java#L16)
-  - [UpdateLeadTest.java](UpdateLeadTest.java#L16)
-  - [ToggleLeadTest.java](ToggleLeadTest.java#L16)
-  - [BulkCreateLeadsTest.java](BulkCreateLeadsTest.java#L16)
-  - [GetLeadDetailsByIdTest.java](GetLeadDetailsByIdTest.java#L16)
-  - [GetLeadsInBatchesTest.java](GetLeadsInBatchesTest.java#L16)
+  - [CreateLeadTest.java](../CreateLeadTest.java#L16)
+  - [UpdateLeadTest.java](../UpdateLeadTest.java#L16)
+  - [ToggleLeadTest.java](../ToggleLeadTest.java#L16)
+  - [BulkCreateLeadsTest.java](../BulkCreateLeadsTest.java#L16)
+  - [GetLeadDetailsByIdTest.java](../GetLeadDetailsByIdTest.java#L16)
+  - [GetLeadsInBatchesTest.java](../GetLeadsInBatchesTest.java#L16)
 
 Notes & recommendations
 - This report was generated after a focused verification of the Lead tests including all 108 tests across 8 test files. For extra assurance, consider running: `mvn test -Dtest=Lead*Test`

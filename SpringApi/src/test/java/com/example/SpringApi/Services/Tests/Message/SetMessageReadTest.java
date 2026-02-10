@@ -21,10 +21,11 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for MessageService.setMessageReadByUserIdAndMessageId method.
- * Test Count: 12 tests
  */
 @DisplayName("SetMessageRead Tests")
 public class SetMessageReadTest extends MessageServiceTestBase {
+
+    // Total Tests: 13
 
     /*
      **********************************************************************************************
@@ -155,7 +156,8 @@ public class SetMessageReadTest extends MessageServiceTestBase {
     @DisplayName("Set Message Read - User Repository Exception - Propagates Exception")
     void setMessageReadByUserIdAndMessageId_UserRepositoryException_Propagates() {
         when(userRepository.findByUserIdAndClientId(anyLong(), anyLong())).thenThrow(new RuntimeException("DB Error"));
-        assertThrows(RuntimeException.class, () -> messageService.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID));
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID));
+        assertEquals("DB Error", ex.getMessage());
     }
 
     /*

@@ -18,7 +18,8 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for PickupLocationService.togglePickupLocation() method.
- * * Test Count: 9 tests
+ * Tests state transitions, edge cases, and client isolation.
+ * Test Count: 14 tests
  */
 @DisplayName("Toggle Pickup Location Tests")
 class TogglePickupLocationTest extends PickupLocationServiceTestBase {
@@ -165,6 +166,91 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> pickupLocationService.togglePickupLocation(0L));
         assertNotNull(ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify toggle preserves all other location properties except isDeleted.
+     * Expected Result: Only isDeleted is toggled, other properties unchanged.
+     * Assertions: ShipRocket ID and other properties remain the same.
+     */
+    @Test
+    @DisplayName("Toggle Pickup Location - Preserves Other Properties - Success")
+    void togglePickupLocation_PreservesOtherProperties_Success() {
+        // ARRANGE
+        testPickupLocation.setIsDeleted(false);
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                .thenReturn(testPickupLocation);
+        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+
+        // ACT
+        pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+
+        // ASSERT
+        verify(pickupLocationRepository).save(argThat(saved -> 
+            saved.getShipRocketPickupLocationId().equals(TEST_SHIPROCKET_ID)));
+    }
+
+    /**
+     * Purpose: Test toggle with very large ID.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message is not null.
+     */
+    @Test
+    @DisplayName("Toggle Pickup Location - Very Large ID - Throws NotFoundException")
+    void togglePickupLocation_VeryLargeId_ThrowsNotFoundException() {
+        // ARRANGE
+        Long largeId = 999999999999L;
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(largeId, TEST_CLIENT_ID))
+                .thenReturn(null);
+
+        // ACT & ASSERT
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> pickupLocationService.togglePickupLocation(largeId));
+        assertNotNull(ex.getMessage());
+    }
+
+    /**
+     * Purpose: Test toggle respects client isolation.
+     * Expected Result: Only searches for location in client's data.
+     * Assertions: Repository called with correct client ID.
+     */
+    @Test
+    @DisplayName("Toggle Pickup Location - Client Isolation - Success")
+    void togglePickupLocation_ClientIsolation_Success() {
+        // ARRANGE
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                .thenReturn(testPickupLocation);
+        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+
+        // ACT
+        pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+
+        // ASSERT
+        verify(pickupLocationRepository).findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
+    }
+
+    /**
+     * Purpose: Test consecutive toggles produce correct state sequence.
+     * Expected Result: Toggling 3 times results in active state.
+     * Assertions: State alternates correctly.
+     */
+    @Test
+    @DisplayName("Toggle Pickup Location - Three Consecutive Toggles - Success")
+    void togglePickupLocation_ThreeConsecutiveToggles_Success() {
+        // ARRANGE
+        testPickupLocation.setIsDeleted(false);
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                .thenReturn(testPickupLocation);
+        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+
+        // ACT - Toggle 3 times: false -> true -> false -> true
+        pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+        pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+        pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+
+        // ASSERT
+        verify(pickupLocationRepository, times(3)).save(testPickupLocation);
+        assertTrue(testPickupLocation.getIsDeleted());
     }
 
     /*

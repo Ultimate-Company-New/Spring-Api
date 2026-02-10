@@ -18,7 +18,8 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for PickupLocationService.getPickupLocationById() method.
- * * Test Count: 9 tests
+ * Tests successful retrieval, not found scenarios, and authorization.
+ * Test Count: 13 tests
  */
 @DisplayName("Get Pickup Location By ID Tests")
 class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
@@ -126,6 +127,65 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> pickupLocationService.getPickupLocationById(0L));
         assertTrue(ex.getMessage().contains("Pickup location not found"));
+    }
+
+    /**
+     * Purpose: Verify successful retrieval with deleted location marked as active.
+     * Expected Result: Active location is returned successfully.
+     * Assertions: Result is not null, isDeleted is false.
+     */
+    @Test
+    @DisplayName("Get Pickup Location By ID - Active Location - Success")
+    void getPickupLocationById_ActiveLocation_Success() {
+        // ARRANGE
+        testPickupLocation.setIsDeleted(false);
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                .thenReturn(testPickupLocation);
+
+        // ACT
+        PickupLocationResponseModel result = pickupLocationService.getPickupLocationById(TEST_PICKUP_LOCATION_ID);
+
+        // ASSERT
+        assertNotNull(result);
+        assertFalse(testPickupLocation.getIsDeleted());
+    }
+
+    /**
+     * Purpose: Verify retrieval with large ID value.
+     * Expected Result: NotFoundException is thrown for non-existent large ID.
+     * Assertions: Error indicates not found.
+     */
+    @Test
+    @DisplayName("Get Pickup Location By ID - Very Large ID - Throws NotFoundException")
+    void getPickupLocationById_VeryLargeId_ThrowsNotFoundException() {
+        // ARRANGE
+        Long largeId = 999999999999L;
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(largeId, TEST_CLIENT_ID))
+                .thenReturn(null);
+
+        // ACT & ASSERT
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> pickupLocationService.getPickupLocationById(largeId));
+        assertTrue(ex.getMessage().contains("Pickup location not found"));
+    }
+
+    /**
+     * Purpose: Verify repository is called with correct client ID.
+     * Expected Result: Repository method called with correct parameters.
+     * Assertions: Verify is called with expected ID and client ID.
+     */
+    @Test
+    @DisplayName("Get Pickup Location By ID - Verify Repository Call - Success")
+    void getPickupLocationById_VerifyRepositoryCall_Success() {
+        // ARRANGE
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
+                .thenReturn(testPickupLocation);
+
+        // ACT
+        pickupLocationService.getPickupLocationById(TEST_PICKUP_LOCATION_ID);
+
+        // ASSERT
+        verify(pickupLocationRepository).findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
     }
 
     /*

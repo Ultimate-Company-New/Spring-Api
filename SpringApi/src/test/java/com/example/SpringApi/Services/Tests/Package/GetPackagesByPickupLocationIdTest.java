@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,10 +21,10 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for PackageService.getPackagesByPickupLocationId() method.
- * * Test Count: 9 tests
  */
 @DisplayName("Get Packages By Pickup Location ID Tests")
 class GetPackagesByPickupLocationIdTest extends PackageServiceTestBase {
+    // Total Tests: 12
 
     /*
      **********************************************************************************************
@@ -84,6 +85,62 @@ class GetPackagesByPickupLocationIdTest extends PackageServiceTestBase {
         assertEquals(TEST_PACKAGE_ID, result.get(0).getPackageId());
     }
 
+    /**
+     * Purpose: Verify retrieval succeeds when 10+ packages are mapped to a location.
+     * Expected Result: All packages are returned in the result list.
+     * Assertions: result.size() equals the number of mappings.
+     */
+    @Test
+    @DisplayName("Get Packages By Pickup Location ID - Many Packages Result - Success")
+    void getPackagesByPickupLocationId_ManyPackagesResult_Success() {
+        when(pickupLocationRepository.countByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(1L);
+        
+        List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping> manyMappings = new ArrayList<>();
+        for (int i = 0; i < 15; i++) {
+            com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping mapping = createTestPackagePickupLocationMapping();
+            mapping.setPackageId((long)i);
+            manyMappings.add(mapping);
+        }
+        when(packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(manyMappings);
+        
+        List<PackageResponseModel> result = packageService.getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID);
+        
+        assertEquals(15, result.size());
+    }
+
+    /**
+     * Purpose: Reject retrieval when using very large location ID that doesn't exist.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception indicates location not found.
+     */
+    @Test
+    @DisplayName("Get Packages By Pickup Location ID - Very Large ID Not Found - Success")
+    void getPackagesByPickupLocationId_LargeId_NotFound() {
+        when(pickupLocationRepository.countByPickupLocationIdAndClientId(Long.MAX_VALUE - 1, TEST_CLIENT_ID)).thenReturn(0L);
+        
+        NotFoundException ex = assertThrows(NotFoundException.class, 
+            () -> packageService.getPackagesByPickupLocationId(Long.MAX_VALUE - 1));
+        
+        assertNotNull(ex);
+    }
+
+    /**
+     * Purpose: Verify retrieval succeeds with exactly one package in result.
+     * Expected Result: Single package is returned correctly.
+     * Assertions: result.size() equals 1 and package ID matches.
+     */
+    @Test
+    @DisplayName("Get Packages By Pickup Location ID - Single Package Result - Success")
+    void getPackagesByPickupLocationId_OnePackageResult_Success() {
+        when(pickupLocationRepository.countByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(1L);
+        when(packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(Arrays.asList(testMapping));
+        
+        List<PackageResponseModel> result = packageService.getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID);
+        
+        assertEquals(1, result.size());
+        assertEquals(TEST_PACKAGE_ID, result.get(0).getPackageId());
+    }
+
     /*
      **********************************************************************************************
      * FAILURE / EXCEPTION TESTS
@@ -136,6 +193,71 @@ class GetPackagesByPickupLocationIdTest extends PackageServiceTestBase {
     void getPackagesByPickupLocationId_ZeroId_ThrowsNotFoundException() {
         when(pickupLocationRepository.countByPickupLocationIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(0L);
         assertThrows(NotFoundException.class, () -> packageService.getPackagesByPickupLocationId(0L));
+    }
+
+    /**
+     * Purpose: Verify retrieval succeeds with extremely large number of mapped packages (1000+).
+     * Expected Result: All 1000+ packages are returned successfully.
+     * Assertions: Result size equals 1000.
+     */
+    @Test
+    @DisplayName("Get Packages By Pickup Location ID - Extreme Package Count - Success")
+    void getPackagesByPickupLocationId_ExtremePackageCount_Success() {
+        when(pickupLocationRepository.countByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(1L);
+        
+        List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping> manyMappings = new ArrayList<>();
+        for (int i = 0; i < 1000; i++) {
+            manyMappings.add(testMapping);
+        }
+        when(packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(manyMappings);
+        
+        List<PackageResponseModel> result = packageService.getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID);
+        
+        assertNotNull(result);
+        assertEquals(1000, result.size());
+    }
+
+    /**
+     * Purpose: Verify retrieval succeeds for very high location ID value.
+     * Expected Result: Packages are returned for the high ID location.
+     * Assertions: Result is not empty and contains package data.
+     */
+    @Test
+    @DisplayName("Get Packages By Pickup Location ID - Very High Location ID - Success")
+    void getPackagesByPickupLocationId_VeryHighLocationId_Success() {
+        long highLocationId = 9999999999L;
+        when(pickupLocationRepository.countByPickupLocationIdAndClientId(highLocationId, TEST_CLIENT_ID)).thenReturn(1L);
+        when(packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(highLocationId, TEST_CLIENT_ID)).thenReturn(Arrays.asList(testMapping));
+        
+        List<PackageResponseModel> result = packageService.getPackagesByPickupLocationId(highLocationId);
+        
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    /**
+     * Purpose: Verify retrieval handles cases where all result packages have identical properties.
+     * Expected Result: List contains packages with duplicate property values.
+     * Assertions: Result size is greater than 1 and properties match.
+     */
+    @Test
+    @DisplayName("Get Packages By Pickup Location ID - All Identical Packages - Success")
+    void getPackagesByPickupLocationId_AllIdenticalPackages_Success() {
+        when(pickupLocationRepository.countByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(1L);
+        
+        List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping> identicalMappings = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            identicalMappings.add(testMapping);
+        }
+        when(packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID)).thenReturn(identicalMappings);
+        
+        List<PackageResponseModel> result = packageService.getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID);
+        
+        assertEquals(5, result.size());
+        // All should have same package ID
+        for (PackageResponseModel pkg : result) {
+            assertEquals(TEST_PACKAGE_ID, pkg.getPackageId());
+        }
     }
 
     /*

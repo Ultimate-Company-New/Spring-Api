@@ -23,8 +23,11 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.util.Arrays;
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.anyList;
 
 /**
@@ -85,9 +88,23 @@ public abstract class PackageServiceTestBase extends BaseTest {
         testMapping.setPackageId(TEST_PACKAGE_ID);
         testMapping.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
         testMapping.setPackageEntity(testPackage);
+    }
 
-        lenient().when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
-        lenient().when(packageRepository.saveAll(anyList())).thenAnswer(i -> {
+    /**
+     * Stub method: Configures packageRepository.save() to return testPackage
+     * Call this method in individual test methods when needed
+     */
+    protected Package stubPackageRepositorySave() {
+        when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
+        return testPackage;
+    }
+
+    /**
+     * Stub method: Configures packageRepository.saveAll() to return packages with assigned IDs
+     * Call this method in individual test methods when needed
+     */
+    protected List<Package> stubPackageRepositorySaveAll() {
+        when(packageRepository.saveAll(anyList())).thenAnswer(i -> {
             java.util.List<Package> list = i.getArgument(0);
             long id = TEST_PACKAGE_ID;
             for (Package pkg : list) {
@@ -95,7 +112,23 @@ public abstract class PackageServiceTestBase extends BaseTest {
             }
             return list;
         });
-        lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+        return Arrays.asList(testPackage);
+    }
+
+    /**
+     * Stub method: Configures request.getHeader() to return authorization token
+     * Call this method in individual test methods when needed
+     */
+    protected String stubRequestGetHeaderAuthorization() {
+        when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+        return "Bearer test-token";
+    }
+
+    /**
+     * Stub method: Configures RequestContextHolder with mock HTTP request
+     * Call this method in individual test methods when needed
+     */
+    protected void stubRequestContextSetup() {
         MockHttpServletRequest mockRequest = new MockHttpServletRequest();
         mockRequest.addHeader("Authorization", "Bearer test-token");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockRequest));

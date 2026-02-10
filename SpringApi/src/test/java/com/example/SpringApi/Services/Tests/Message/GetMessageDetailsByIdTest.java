@@ -21,10 +21,11 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for MessageService.getMessageDetailsById method.
- * Test Count: 12 tests
  */
 @DisplayName("GetMessageDetailsById Tests")
 public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
+
+    // Total Tests: 11
 
     /*
      **********************************************************************************************
@@ -108,7 +109,8 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
     void getMessageDetailsById_RepositoryError_Propagates() {
         when(messageRepository.findByMessageIdAndClientIdWithTargets(anyLong(), anyLong()))
                 .thenThrow(new RuntimeException("Lookup failed"));
-        assertThrows(RuntimeException.class, () -> messageService.getMessageDetailsById(TEST_MESSAGE_ID));
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.getMessageDetailsById(TEST_MESSAGE_ID));
+        assertEquals("Lookup failed", ex.getMessage());
     }
 
     @Test

@@ -24,10 +24,10 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for PackageService.bulkCreatePackages() method.
  * Covers success, partial success, and exhaustive validation failures.
- * * Test Count: 14 tests
  */
 @DisplayName("Bulk Create Packages Tests")
 class BulkCreatePackagesTest extends PackageServiceTestBase {
+    // Total Tests: 15
 
     /*
      **********************************************************************************************
@@ -264,6 +264,75 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class, 
             () -> packageService.bulkCreatePackages(null));
         assertTrue(exception.getMessage().contains("Package list cannot be null or empty"));
+    }
+
+    /**
+     * Purpose: Verify bulk creation handles extremely large batch (1000 items).
+     * Expected Result: All 1000 packages are processed successfully.
+     * Assertions: Total requested equals 1000 and success count equals 1000.
+     */
+    @Test
+    @DisplayName("Bulk Create Packages - Extreme Batch Size 1000 - Success")
+    void bulkCreatePackages_ExtremeBatchSize_Success() {
+        List<PackageRequestModel> requests = new ArrayList<>();
+        for (int i = 0; i < 1000; i++) {
+            requests.add(createValidPackageRequest());
+        }
+        when(packageRepository.save(any())).thenReturn(testPackage);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        
+        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
+        
+        assertEquals(1000, result.getTotalRequested());
+        assertEquals(1000, result.getSuccessCount());
+    }
+
+    /**
+     * Purpose: Verify bulk creation with all packages having identical names (duplicate scenario).
+     * Expected Result: All duplicates are saved successfully (if business logic allows).
+     * Assertions: Success count equals number of duplicate packages.
+     */
+    @Test
+    @DisplayName("Bulk Create Packages - All Duplicate Names - Success if Allowed")
+    void bulkCreatePackages_AllDuplicateNames_Success() {
+        List<PackageRequestModel> requests = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            PackageRequestModel req = createValidPackageRequest();
+            req.setPackageName("DuplicateName");
+            requests.add(req);
+        }
+        when(packageRepository.save(any())).thenReturn(testPackage);
+        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        
+        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
+        
+        assertTrue(result.getSuccessCount() > 0);
+    }
+
+    /**
+     * Purpose: Verify bulk creation with alternating valid and invalid packages (stress test).
+     * Expected Result: Valid packages are saved, invalid ones are reported.
+     * Assertions: Failure count is greater than 0 for alternating valid/invalid pattern.
+     */
+    @Test
+    @DisplayName("Bulk Create Packages - Alternating Valid Invalid - Partial Success")
+    void bulkCreatePackages_AlternatingValidInvalid_PartialSuccess() {
+        List<PackageRequestModel> requests = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            if (i % 2 == 0) {
+                requests.add(createValidPackageRequest());
+            } else {
+                PackageRequestModel invalidReq = createValidPackageRequest();
+                invalidReq.setLength(0); // Invalid
+                requests.add(invalidReq);
+            }
+        }
+        when(packageRepository.save(any())).thenReturn(testPackage);
+        
+        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
+        
+        assertEquals(5, result.getSuccessCount());
+        assertEquals(5, result.getFailureCount());
     }
 
     /*

@@ -21,10 +21,11 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for MessageService.toggleMessage method.
- * Test Count: 10 tests
  */
 @DisplayName("ToggleMessage Tests")
 public class ToggleMessageTest extends MessageServiceTestBase {
+
+    // Total Tests: 11
 
     /*
      **********************************************************************************************
@@ -114,7 +115,8 @@ public class ToggleMessageTest extends MessageServiceTestBase {
     void toggleMessage_RepositorySaveError_Propagates() {
         when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(TEST_MESSAGE_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testMessage));
         when(messageRepository.save(any())).thenThrow(new RuntimeException("DB Error"));
-        assertThrows(RuntimeException.class, () -> messageService.toggleMessage(TEST_MESSAGE_ID));
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.toggleMessage(TEST_MESSAGE_ID));
+        assertEquals("DB Error", ex.getMessage());
     }
 
     @Test

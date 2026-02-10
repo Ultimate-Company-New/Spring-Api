@@ -30,10 +30,11 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for MessageService.updateMessage method.
- * Test Count: 32 tests
  */
 @DisplayName("UpdateMessage Tests")
 public class UpdateMessageTest extends MessageServiceTestBase {
+
+    // Total Tests: 31
 
     /*
      **********************************************************************************************
@@ -412,7 +413,8 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testMessage));
         when(messageRepository.save(any())).thenThrow(new RuntimeException("Update failed"));
-        assertThrows(RuntimeException.class, () -> messageService.updateMessage(validRequest));
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.updateMessage(validRequest));
+        assertEquals("Update failed", ex.getMessage());
     }
 
     @Test

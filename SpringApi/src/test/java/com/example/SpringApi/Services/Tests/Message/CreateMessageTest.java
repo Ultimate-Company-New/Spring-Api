@@ -29,13 +29,11 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for MessageService.createMessage method.
- * Test Count: 38 tests
  */
 @DisplayName("CreateMessage Tests")
 public class CreateMessageTest extends MessageServiceTestBase {
 
-    @Mock
-    IMessageSubTranslator messageServiceMock;
+    // Total Tests: 35
 
     /*
      **********************************************************************************************
@@ -368,7 +366,8 @@ public class CreateMessageTest extends MessageServiceTestBase {
     void createMessage_RepositorySaveFailure_Propagates() {
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(messageRepository.save(any())).thenThrow(new RuntimeException("DB Error"));
-        assertThrows(RuntimeException.class, () -> messageService.createMessage(validRequest));
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.createMessage(validRequest));
+        assertEquals("DB Error", ex.getMessage());
     }
 
     @Test

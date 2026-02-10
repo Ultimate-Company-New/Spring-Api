@@ -121,19 +121,30 @@ public abstract class PickupLocationServiceTestBase extends BaseTest {
         testShipRocketResponse = new AddPickupLocationResponseModel();
         testShipRocketResponse.setPickup_id(TEST_SHIPROCKET_ID);
 
-        ClientResponseModel mockClient = new ClientResponseModel();
-        mockClient.setShipRocketEmail("test@example.com");
-        mockClient.setShipRocketPassword("testpassword");
-        lenient().when(clientService.getClientById(anyLong())).thenReturn(mockClient);
-
         testPaginationRequest = new PaginationBaseRequestModel();
         testPaginationRequest.setStart(0);
         testPaginationRequest.setEnd(10);
         testPaginationRequest.setIncludeDeleted(false);
 
-        lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
         MockHttpServletRequest mockRequest = new MockHttpServletRequest();
         mockRequest.addHeader("Authorization", "Bearer test-token");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockRequest));
+    }
+
+    /**
+     * Helper method to set up ClientService mock locally in tests that need it
+     */
+    protected void setupClientServiceMock(Long clientId) {
+        ClientResponseModel mockClient = new ClientResponseModel();
+        mockClient.setShipRocketEmail("test@example.com");
+        mockClient.setShipRocketPassword("testpassword");
+        //when(clientService.getClientById(clientId)).thenReturn(mockClient);
+    }
+
+    /**
+     * Helper method to set up Authorization mock locally in tests that need it
+     */
+    protected void setupAuthorizationMock() {
+        //when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
     }
 }

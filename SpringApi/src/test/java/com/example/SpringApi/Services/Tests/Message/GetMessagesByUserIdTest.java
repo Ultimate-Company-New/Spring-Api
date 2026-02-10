@@ -29,10 +29,11 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for MessageService.getMessagesByUserId method.
- * Test Count: 16 tests
  */
 @DisplayName("GetMessagesByUserId Tests")
 public class GetMessagesByUserIdTest extends MessageServiceTestBase {
+
+    // Total Tests: 15
 
     /*
      **********************************************************************************************
@@ -204,7 +205,8 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
         when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testUser));
         when(messageRepository.findMessagesByUserIdPaginated(anyLong(), anyLong(), any()))
                 .thenThrow(new RuntimeException("Page error"));
-        assertThrows(RuntimeException.class, () -> messageService.getMessagesByUserId(paginationRequest));
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.getMessagesByUserId(paginationRequest));
+        assertEquals("Page error", ex.getMessage());
     }
 
     @Test
@@ -240,7 +242,8 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
         paginationRequest.setId(TEST_USER_ID);
         when(userRepository.findByUserIdAndClientId(anyLong(), anyLong()))
                 .thenThrow(new RuntimeException("User DB Error"));
-        assertThrows(RuntimeException.class, () -> messageService.getMessagesByUserId(paginationRequest));
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.getMessagesByUserId(paginationRequest));
+        assertEquals("User DB Error", ex.getMessage());
     }
 
     @Test

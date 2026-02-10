@@ -16,10 +16,11 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for MessageService.getUnreadMessageCount method.
- * Test Count: 10 tests
  */
 @DisplayName("GetUnreadMessageCount Tests")
 public class GetUnreadMessageCountTest extends MessageServiceTestBase {
+
+    // Total Tests: 11
 
     /*
      **********************************************************************************************
@@ -91,7 +92,8 @@ public class GetUnreadMessageCountTest extends MessageServiceTestBase {
         // Simulating error getting client context through repository call
         when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
                 .thenThrow(new RuntimeException("Context error"));
-        assertThrows(RuntimeException.class, () -> messageService.getUnreadMessageCount());
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.getUnreadMessageCount());
+        assertEquals("Context error", ex.getMessage());
     }
 
     @Test
@@ -100,8 +102,9 @@ public class GetUnreadMessageCountTest extends MessageServiceTestBase {
         when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
                 .thenThrow(new RuntimeException("Database connection failed"));
 
-        assertThrows(RuntimeException.class,
+        RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> messageService.getUnreadMessageCount());
+        assertEquals("Database connection failed", ex.getMessage());
 
         verify(messageRepository).countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID);
     }
@@ -119,7 +122,8 @@ public class GetUnreadMessageCountTest extends MessageServiceTestBase {
     @DisplayName("Get Unread Message Count - User ID Lookup Failure - Propagates")
     void getUnreadMessageCount_UserIdLookupFailure_Propagates() {
         doThrow(new RuntimeException("User lookup failed")).when(messageRepository).countUnreadMessagesByUserId(anyLong(), anyLong());
-        assertThrows(RuntimeException.class, () -> messageService.getUnreadMessageCount());
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.getUnreadMessageCount());
+        assertEquals("User lookup failed", ex.getMessage());
     }
 
     /*

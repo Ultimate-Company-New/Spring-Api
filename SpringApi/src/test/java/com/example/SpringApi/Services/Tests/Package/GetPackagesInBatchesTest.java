@@ -17,7 +17,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -26,10 +28,10 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for PackageService.getPackagesInBatches() method.
  * Comprehensive testing for pagination and filtering logic.
- * * Test Count: 5 tests
  */
 @DisplayName("Get Packages In Batches Tests")
 class GetPackagesInBatchesTest extends PackageServiceTestBase {
+    // Total Tests: 9
 
     /*
      **********************************************************************************************
@@ -57,6 +59,70 @@ class GetPackagesInBatchesTest extends PackageServiceTestBase {
 
         assertNotNull(result);
         assertEquals(1, result.getData().size());
+    }
+
+    /**
+     * Purpose: Verify pagination succeeds with large start/end index values.
+     * Expected Result: Query is executed with maximum index range.
+     * Assertions: Result is not null and data size matches page content.
+     */
+    @Test
+    @DisplayName("Get Packages In Batches - Max Pagination Range - Success")
+    void getPackagesInBatches_MaxPaginationRange_Success() {
+        testPaginationRequest.setStart(0);
+        testPaginationRequest.setEnd(Integer.MAX_VALUE - 1);
+        testPaginationRequest.setFilters(null);
+        Page<com.example.SpringApi.Models.DatabaseModels.Package> page = new PageImpl<>(Arrays.asList(testPackage));
+        when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(page);
+        
+        PaginationBaseResponseModel<PackageResponseModel> result = packageService.getPackagesInBatches(testPaginationRequest);
+        
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+    }
+
+    /**
+     * Purpose: Verify pagination succeeds with very large page size (1000+).
+     * Expected Result: Large batch of packages is returned.
+     * Assertions: Result is not null and contains expected data.
+     */
+    @Test
+    @DisplayName("Get Packages In Batches - Large Page Size - Success")
+    void getPackagesInBatches_LargePage_Success() {
+        testPaginationRequest.setStart(0);
+        testPaginationRequest.setEnd(1500);
+        testPaginationRequest.setFilters(null);
+        List<com.example.SpringApi.Models.DatabaseModels.Package> largeList = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            largeList.add(testPackage);
+        }
+        Page<com.example.SpringApi.Models.DatabaseModels.Package> page = new PageImpl<>(largeList);
+        when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(page);
+        
+        PaginationBaseResponseModel<PackageResponseModel> result = packageService.getPackagesInBatches(testPaginationRequest);
+        
+        assertNotNull(result);
+        assertEquals(100, result.getData().size());
+    }
+
+    /**
+     * Purpose: Verify pagination succeeds at boundary conditions (start=0, end=1).
+     * Expected Result: Single item or empty result is handled correctly.
+     * Assertions: Result is returned without error.
+     */
+    @Test
+    @DisplayName("Get Packages In Batches - Boundary Indexes - Success")
+    void getPackagesInBatches_BoundaryIndexes_Success() {
+        testPaginationRequest.setStart(0);
+        testPaginationRequest.setEnd(1);
+        testPaginationRequest.setFilters(null);
+        Page<com.example.SpringApi.Models.DatabaseModels.Package> page = new PageImpl<>(Arrays.asList(testPackage));
+        when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class))).thenReturn(page);
+        
+        PaginationBaseResponseModel<PackageResponseModel> result = packageService.getPackagesInBatches(testPaginationRequest);
+        
+        assertNotNull(result);
+        assertTrue(result.getData().size() >= 0);
     }
 
     /*

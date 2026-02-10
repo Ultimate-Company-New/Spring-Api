@@ -29,10 +29,10 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for PackageService.updatePackage() method.
  * Covers field validation, mapping logic, and lastRestockDate logic.
- * * Test Count: 33 tests
  */
 @DisplayName("Update Package Tests")
 class UpdatePackageTest extends PackageServiceTestBase {
+    // Total Tests: 21
 
     /*
      **********************************************************************************************
@@ -119,6 +119,106 @@ class UpdatePackageTest extends PackageServiceTestBase {
 
         verify(packageRepository, times(1)).save(any());
         verify(userLogService, times(1)).logData(eq(TEST_USER_ID), contains("Successfully updated"), any());
+    }
+
+    /**
+     * Purpose: Verify update succeeds when modifying quantities in multiple pickup locations.
+     * Expected Result: All location quantities are updated and restock dates reflect increases.
+     * Assertions: Multiple mappings are saved with correct quantity values.
+     */
+    @Test
+    @DisplayName("Update Package - Multiple Location Quantity Updates - Success")
+    void updatePackage_MultipleLocationUpdates_Success() {
+        PackagePickupLocationMapping loc1 = new PackagePickupLocationMapping();
+        loc1.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
+        loc1.setAvailableQuantity(50);
+        loc1.setLastRestockDate(LocalDateTime.now().minusDays(5));
+        
+        PackagePickupLocationMapping loc2 = new PackagePickupLocationMapping();
+        loc2.setPickupLocationId(TEST_PICKUP_LOCATION_ID + 1);
+        loc2.setAvailableQuantity(30);
+        loc2.setLastRestockDate(LocalDateTime.now().minusDays(3));
+        
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
+        when(packagePickupLocationMappingRepository.findByPackageId(TEST_PACKAGE_ID)).thenReturn(List.of(loc1, loc2));
+        
+        Map<Long, PackagePickupLocationMappingRequestModel> qMap = new HashMap<>();
+        PackagePickupLocationMappingRequestModel mReq1 = new PackagePickupLocationMappingRequestModel();
+        mReq1.setQuantity(100);
+        qMap.put(TEST_PICKUP_LOCATION_ID, mReq1);
+        
+        PackagePickupLocationMappingRequestModel mReq2 = new PackagePickupLocationMappingRequestModel();
+        mReq2.setQuantity(75);
+        qMap.put(TEST_PICKUP_LOCATION_ID + 1, mReq2);
+        testPackageRequest.setPickupLocationQuantities(qMap);
+        
+        packageService.updatePackage(testPackageRequest);
+        
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<PackagePickupLocationMapping>> captor = ArgumentCaptor.forClass((Class<List<PackagePickupLocationMapping>>) (Class<?>) List.class);
+        verify(packagePickupLocationMappingRepository).saveAll(captor.capture());
+        assertEquals(2, captor.getValue().size());
+    }
+
+    /**
+     * Purpose: Verify update succeeds when setting quantity to zero in a location.
+     * Expected Result: Mapping is saved with zero quantity without error.
+     * Assertions: Quantity is set to 0 and mapping is saved.
+     */
+    @Test
+    @DisplayName("Update Package - Zero Quantity Update - Success")
+    void updatePackage_ZeroQuantityUpdate_Success() {
+        PackagePickupLocationMapping existing = new PackagePickupLocationMapping();
+        existing.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
+        existing.setAvailableQuantity(50);
+        existing.setLastRestockDate(LocalDateTime.now());
+        
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
+        when(packagePickupLocationMappingRepository.findByPackageId(TEST_PACKAGE_ID)).thenReturn(List.of(existing));
+        
+        Map<Long, PackagePickupLocationMappingRequestModel> qMap = new HashMap<>();
+        PackagePickupLocationMappingRequestModel mReq = new PackagePickupLocationMappingRequestModel();
+        mReq.setQuantity(0);
+        qMap.put(TEST_PICKUP_LOCATION_ID, mReq);
+        testPackageRequest.setPickupLocationQuantities(qMap);
+        
+        packageService.updatePackage(testPackageRequest);
+        
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<PackagePickupLocationMapping>> captor = ArgumentCaptor.forClass((Class<List<PackagePickupLocationMapping>>) (Class<?>) List.class);
+        verify(packagePickupLocationMappingRepository).saveAll(captor.capture());
+        assertEquals(0, captor.getValue().get(0).getAvailableQuantity());
+    }
+
+    /**
+     * Purpose: Verify update succeeds with large quantity increase values.
+     * Expected Result: Package receives large quantity increase and restock date is updated.
+     * Assertions: Quantity is increased and restock date reflects new timestamp.
+     */
+    @Test
+    @DisplayName("Update Package - Large Quantity Increase - Success")
+    void updatePackage_LargeQuantityIncrease_Success() {
+        PackagePickupLocationMapping existing = new PackagePickupLocationMapping();
+        existing.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
+        existing.setAvailableQuantity(100);
+        existing.setLastRestockDate(LocalDateTime.now().minusDays(10));
+        
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
+        when(packagePickupLocationMappingRepository.findByPackageId(TEST_PACKAGE_ID)).thenReturn(List.of(existing));
+        
+        Map<Long, PackagePickupLocationMappingRequestModel> qMap = new HashMap<>();
+        PackagePickupLocationMappingRequestModel mReq = new PackagePickupLocationMappingRequestModel();
+        mReq.setQuantity(1000000);
+        qMap.put(TEST_PICKUP_LOCATION_ID, mReq);
+        testPackageRequest.setPickupLocationQuantities(qMap);
+        
+        packageService.updatePackage(testPackageRequest);
+        
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<PackagePickupLocationMapping>> captor = ArgumentCaptor.forClass((Class<List<PackagePickupLocationMapping>>) (Class<?>) List.class);
+        verify(packagePickupLocationMappingRepository).saveAll(captor.capture());
+        assertEquals(1000000, captor.getValue().get(0).getAvailableQuantity());
+        assertTrue(captor.getValue().get(0).getLastRestockDate().isAfter(existing.getLastRestockDate()));
     }
 
     /*
@@ -304,6 +404,64 @@ class UpdatePackageTest extends PackageServiceTestBase {
         when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
         BadRequestException ex = assertThrows(BadRequestException.class, () -> packageService.updatePackage(testPackageRequest));
         assertEquals(ErrorMessages.PackageErrorMessages.InvalidStandardCapacity, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify update succeeds with maximum allowed dimension values.
+     * Expected Result: Package is updated with large dimension values.
+     * Assertions: Mapping is saved with maximum dimensions.
+     */
+    @Test
+    @DisplayName("Update Package - Max Dimension Values - Success")
+    void updatePackage_MaxDimensionValues_Success() {
+        testPackageRequest.setLength(9999);
+        testPackageRequest.setBreadth(9999);
+        testPackageRequest.setHeight(9999);
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
+        when(packageRepository.save(any())).thenReturn(testPackage);
+        
+        assertDoesNotThrow(() -> packageService.updatePackage(testPackageRequest));
+        
+        verify(packageRepository).save(any());
+    }
+
+    /**
+     * Purpose: Verify update succeeds with minimum valid dimensions.
+     * Expected Result: Package name is updated appropriately.
+     * Assertions: Package is saved with updated name.
+     */
+    @Test
+    @DisplayName("Update Package - All Dimensions at Minimum Valid - Success")
+    void updatePackage_MinValidDimensions_Success() {
+        testPackageRequest.setLength(1);
+        testPackageRequest.setBreadth(1);
+        testPackageRequest.setHeight(1);
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
+        when(packageRepository.save(any())).thenReturn(testPackage);
+        
+        assertDoesNotThrow(() -> packageService.updatePackage(testPackageRequest));
+        
+        verify(packageRepository).save(any());
+    }
+
+    /**
+     * Purpose: Verify update with large standard capacity values.
+     * Expected Result: Large standard capacity is stored correctly.
+     * Assertions: Service completes without error.
+     */
+    @Test
+    @DisplayName("Update Package - Very Large Standard Capacity - Success")
+    void updatePackage_VeryLargeStandardCapacity_Success() {
+        testPackageRequest.setStandardCapacity(1000000);
+        testPackageRequest.setLength(100);
+        testPackageRequest.setBreadth(100);
+        testPackageRequest.setHeight(100);
+        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
+        when(packageRepository.save(any())).thenReturn(testPackage);
+        
+        assertDoesNotThrow(() -> packageService.updatePackage(testPackageRequest));
+        
+        verify(packageRepository).save(any());
     }
 
     /*

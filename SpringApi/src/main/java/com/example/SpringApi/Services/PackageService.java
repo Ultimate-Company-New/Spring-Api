@@ -488,6 +488,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         Package savedPackage = packageRepository.save(new Package(packageRequest, createdUser, clientId));
 
         // Make generated ID available to the caller (useful for bulk operations/tests)
+
         packageRequest.setPackageId(savedPackage.getPackageId());
 
         return savedPackage;

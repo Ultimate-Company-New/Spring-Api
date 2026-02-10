@@ -12,12 +12,12 @@ Summary:
 - `// Total Tests:` comments are present inside each test class and match annotated `@Test` counts.
 
 Test counts by class:
-- `InsertAddressTest` — 67 tests ([InsertAddressTest.java](InsertAddressTest.java#L24))
-- `UpdateAddressTest` — 30 tests ([UpdateAddressTest.java](UpdateAddressTest.java#L25))
-- `GetAddressByClientIdTest` — 15 tests ([GetAddressByClientIdTest.java](GetAddressByClientIdTest.java#L28))
-- `GetAddressByIdTest` — 10 tests ([GetAddressByIdTest.java](GetAddressByIdTest.java#L21))
-- `GetAddressByUserIdTest` — 11 tests ([GetAddressByUserIdTest.java](GetAddressByUserIdTest.java#L25))
-- `ToggleAddressTest` — 12 tests ([ToggleAddressTest.java](ToggleAddressTest.java#L21))
+- `InsertAddressTest` — 67 tests ([InsertAddressTest.java](../InsertAddressTest.java#L24))
+- `UpdateAddressTest` — 30 tests ([UpdateAddressTest.java](../UpdateAddressTest.java#L25))
+- `GetAddressByClientIdTest` — 15 tests ([GetAddressByClientIdTest.java](../GetAddressByClientIdTest.java#L28))
+- `GetAddressByIdTest` — 10 tests ([GetAddressByIdTest.java](../GetAddressByIdTest.java#L21))
+- `GetAddressByUserIdTest` — 11 tests ([GetAddressByUserIdTest.java](../GetAddressByUserIdTest.java#L25))
+- `ToggleAddressTest` — 12 tests ([ToggleAddressTest.java](../ToggleAddressTest.java#L21))
 
 Rule-by-rule verification (short):
 
@@ -64,9 +64,9 @@ Rule-by-rule verification (short):
   - A targeted scan of the Address tests found `doReturn`/`doNothing` usages only inside centralized `stub*` helpers and helper invocations.
 
 Key evidence & locations
-- Centralized stubs and service-level helpers: [AddressServiceTestBase.java](AddressServiceTestBase.java#L70-L80) and [AddressServiceTestBase.java](AddressServiceTestBase.java#L172-L210)
-- Example helper invocation in tests: `stubServiceInsertAddressDoNothing()` in `InsertAddressTest` ([InsertAddressTest.java](InsertAddressTest.java#L1279))
-- Test-count comment examples: `InsertAddressTest` ([InsertAddressTest.java](InsertAddressTest.java#L24)), `UpdateAddressTest` ([UpdateAddressTest.java](UpdateAddressTest.java#L25)).
+- Centralized stubs and service-level helpers: [AddressServiceTestBase.java](../AddressServiceTestBase.java#L70-L80) and [AddressServiceTestBase.java](../AddressServiceTestBase.java#L172-L210)
+- Example helper invocation in tests: `stubServiceInsertAddressDoNothing()` in `InsertAddressTest` ([InsertAddressTest.java](../InsertAddressTest.java#L1279))
+- Test-count comment examples: `InsertAddressTest` ([InsertAddressTest.java](../InsertAddressTest.java#L24)), `UpdateAddressTest` ([UpdateAddressTest.java](../UpdateAddressTest.java#L25)).
 
 Notes & recommendations
 - This report was generated after a focused verification of the Address tests. For extra assurance, consider running a repository-wide scan for any remaining `doReturn(` or `doNothing(` usages in other test packages.

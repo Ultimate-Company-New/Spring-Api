@@ -86,7 +86,7 @@ public abstract class MessageServiceTestBase extends BaseTest {
     @BeforeEach
     void setUp() {
         // Initialize valid request
-        validRequest = createValidMessageRequest();
+        validRequest = stubValidMessageRequest();
         validRequest.setMessageId(TEST_MESSAGE_ID);
         validRequest.setTitle(TEST_TITLE);
         validRequest.setDescriptionHtml(TEST_DESC_HTML);
@@ -97,31 +97,80 @@ public abstract class MessageServiceTestBase extends BaseTest {
         validRequest.setUserGroupIds(Arrays.asList(1L, 2L));
 
         // Initialize test message
-        testMessage = createTestMessage();
+        testMessage = stubTestMessage();
         testMessage.setMessageId(TEST_MESSAGE_ID);
         testMessage.setTitle(TEST_TITLE);
         testMessage.setCreatedAt(LocalDateTime.now());
         testMessage.setUpdatedAt(LocalDateTime.now());
 
         // Initialize test client
-        testClient = createTestClient();
+        testClient = stubTestClient();
         testClient.setClientId(TEST_CLIENT_ID);
         testClient.setSendGridApiKey("test-api-key");
         testClient.setSendGridEmailAddress("test@sendgrid.com");
         testClient.setSendgridSenderName("Test Sender");
 
         // Initialize test user
-        testUser = createTestUser();
+        testUser = stubTestUser();
         testUser.setUserId(TEST_USER_ID);
         testUser.setEmail(TEST_EMAIL);
         testUser.setIsDeleted(false);
 
-        lenient().when(userLogService.logData(eq(DEFAULT_USER_ID), eq("Message"), anyString())).thenReturn(true);
-        lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
-        lenient().when(environment.getProperty(eq("email.service"), anyString())).thenReturn("sendgrid");
+        stubUserLogServiceSuccess();
+        stubRequestHeaderSuccess();
+        stubEnvironmentPropertySuccess();
         
         MockHttpServletRequest mockRequest = new MockHttpServletRequest();
         mockRequest.addHeader("Authorization", "Bearer test-token");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockRequest));
+    }
+
+    /**
+     * Stub for valid message request initialization.
+     */
+    protected MessageRequestModel stubValidMessageRequest() {
+        return createValidMessageRequest();
+    }
+
+    /**
+     * Stub for test message initialization.
+     */
+    protected Message stubTestMessage() {
+        return createTestMessage();
+    }
+
+    /**
+     * Stub for test client initialization.
+     */
+    protected Client stubTestClient() {
+        return createTestClient();
+    }
+
+    /**
+     * Stub for test user initialization.
+     */
+    protected User stubTestUser() {
+        return createTestUser();
+    }
+
+    /**
+     * Stub for UserLogService.logData mocking.
+     */
+    protected void stubUserLogServiceSuccess() {
+        lenient().when(userLogService.logData(eq(DEFAULT_USER_ID), eq("Message"), anyString())).thenReturn(true);
+    }
+
+    /**
+     * Stub for HttpServletRequest header mocking.
+     */
+    protected void stubRequestHeaderSuccess() {
+        lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+    }
+
+    /**
+     * Stub for Environment property mocking.
+     */
+    protected void stubEnvironmentPropertySuccess() {
+        lenient().when(environment.getProperty(eq("email.service"), anyString())).thenReturn("sendgrid");
     }
 }
