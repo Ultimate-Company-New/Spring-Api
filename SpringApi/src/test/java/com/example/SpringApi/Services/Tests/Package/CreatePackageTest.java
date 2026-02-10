@@ -377,12 +377,12 @@ class CreatePackageTest extends PackageServiceTestBase {
     @Test
     @DisplayName("createPackage - Controller delegates to service")
     void createPackage_WithValidRequest_DelegatesToService() {
-        PackageController controller = new PackageController(packageService, null);
-        doNothing().when(packageService).createPackage(testPackageRequest);
+        PackageController controller = new PackageController(packageServiceMock, null);
+        doNothing().when(packageServiceMock).createPackage(testPackageRequest);
 
         ResponseEntity<?> response = controller.createPackage(testPackageRequest);
 
-        verify(packageService).createPackage(testPackageRequest);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(packageServiceMock).createPackage(testPackageRequest);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

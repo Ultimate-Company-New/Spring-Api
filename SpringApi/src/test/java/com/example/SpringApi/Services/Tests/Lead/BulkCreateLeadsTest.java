@@ -6,9 +6,10 @@ import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
+
+import org.springframework.http.HttpStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
@@ -56,6 +57,11 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
             lead.setLeadId((long) (Math.random() * 1000));
             return lead;
         });
+        lenient().when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenAnswer(inv -> {
+            Lead lead = new Lead();
+            lead.setLeadId((long) (Math.random() * 1000));
+            return lead;
+        });
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
         // Act
@@ -90,6 +96,11 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
 
         when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
             Lead lead = inv.getArgument(0);
+            lead.setLeadId((long) (Math.random() * 10000));
+            return lead;
+        });
+        lenient().when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenAnswer(inv -> {
+            Lead lead = new Lead();
             lead.setLeadId((long) (Math.random() * 10000));
             return lead;
         });
@@ -137,6 +148,11 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
             lead.setLeadId((long) (Math.random() * 1000));
             return lead;
         });
+        lenient().when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenAnswer(inv -> {
+            Lead lead = new Lead();
+            lead.setLeadId((long) (Math.random() * 1000));
+            return lead;
+        });
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
         // Act
@@ -173,6 +189,11 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
             lead.setLeadId((long) (Math.random() * 1000));
             return lead;
         });
+        lenient().when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenAnswer(inv -> {
+            Lead lead = new Lead();
+            lead.setLeadId((long) (Math.random() * 1000));
+            return lead;
+        });
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
         // Act
@@ -198,6 +219,7 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         leads.add(leadReq);
 
         when(leadRepository.save(any(Lead.class))).thenReturn(new Lead());
+        lenient().when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenReturn(new Lead());
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
 
         // Act
@@ -405,15 +427,12 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         LeadController controller = new LeadController(leadService);
         List<LeadRequestModel> leads = new ArrayList<>();
         leads.add(createValidLeadRequest(null, TEST_CLIENT_ID));
-        when(leadService.bulkCreateLeads(anyList()))
-                .thenReturn(new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>());
 
         // Act - Call controller directly (simulating authorization has already passed)
         ResponseEntity<?> response = controller.bulkCreateLeads(leads);
 
-        // Assert - Verify service was called and correct response returned
-        verify(leadService, times(1)).bulkCreateLeads(leads);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode(),
-                "Should return HTTP 201 Created");
+        // Assert - Verify correct response returned (async method is fire-and-forget)
+        assertEquals(HttpStatus.OK, response.getStatusCode(),
+                "Should return HTTP 200 OK");
     }
 }

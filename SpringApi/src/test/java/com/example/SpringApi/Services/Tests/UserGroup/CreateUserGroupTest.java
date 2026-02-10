@@ -1,5 +1,7 @@
 package com.example.SpringApi.Services.Tests.UserGroup;
 
+import com.example.SpringApi.Services.UserGroupService;
+
 import com.example.SpringApi.Controllers.UserGroupController;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
@@ -49,13 +51,14 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
     @Test
     @DisplayName("createUserGroup - Controller delegates to service")
     void createUserGroup_WithValidRequest_DelegatesToService() {
-        UserGroupController controller = new UserGroupController(userGroupService);
+        UserGroupService mockUserGroupService = mock(UserGroupService.class);
+        UserGroupController controller = new UserGroupController(mockUserGroupService);
         UserGroupRequestModel request = new UserGroupRequestModel();
-        doNothing().when(userGroupService).createUserGroup(request);
+        doNothing().when(mockUserGroupService).createUserGroup(request);
 
         ResponseEntity<?> response = controller.createUserGroup(request);
 
-        verify(userGroupService).createUserGroup(request);
+        verify(mockUserGroupService).createUserGroup(request);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
@@ -170,7 +173,7 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
     @DisplayName("Create User Group - Empty Description - Throws BadRequestException")
     void createUserGroup_EmptyDescription_ThrowsBadRequestException() {
         testUserGroupRequest.setDescription("");
-        
+
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.createUserGroup(testUserGroupRequest));
         assertEquals(ErrorMessages.UserGroupErrorMessages.ER003, ex.getMessage());
@@ -180,7 +183,7 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
     @DisplayName("Create User Group - Empty Group Name - Throws BadRequestException")
     void createUserGroup_EmptyGroupName_ThrowsBadRequestException() {
         testUserGroupRequest.setGroupName("");
-        
+
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.createUserGroup(testUserGroupRequest));
         assertEquals(ErrorMessages.UserGroupErrorMessages.ER002, ex.getMessage());
@@ -210,7 +213,7 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
     @DisplayName("Create User Group - Null Description - Throws BadRequestException")
     void createUserGroup_NullDescription_ThrowsBadRequestException() {
         testUserGroupRequest.setDescription(null);
-        
+
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.createUserGroup(testUserGroupRequest));
         assertEquals(ErrorMessages.UserGroupErrorMessages.ER003, ex.getMessage());
@@ -220,7 +223,7 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
     @DisplayName("Create User Group - Null Group Name - Throws BadRequestException")
     void createUserGroup_NullGroupName_ThrowsBadRequestException() {
         testUserGroupRequest.setGroupName(null);
-        
+
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.createUserGroup(testUserGroupRequest));
         assertEquals(ErrorMessages.UserGroupErrorMessages.ER002, ex.getMessage());
@@ -229,7 +232,8 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
     @Test
     @DisplayName("Create User Group - Null Request - Throws NullPointerException")
     void createUserGroup_NullRequest_ThrowsNullPointerException() {
-        // Service receives null request, which causes NPE when accessing request properties
+        // Service receives null request, which causes NPE when accessing request
+        // properties
         assertThrows(NullPointerException.class,
                 () -> userGroupService.createUserGroup(null));
     }
@@ -248,7 +252,7 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
     @DisplayName("Create User Group - Whitespace Group Name - Throws BadRequestException")
     void createUserGroup_WhitespaceGroupName_ThrowsBadRequestException() {
         testUserGroupRequest.setGroupName("   ");
-        
+
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.createUserGroup(testUserGroupRequest));
         assertEquals(ErrorMessages.UserGroupErrorMessages.ER002, ex.getMessage());

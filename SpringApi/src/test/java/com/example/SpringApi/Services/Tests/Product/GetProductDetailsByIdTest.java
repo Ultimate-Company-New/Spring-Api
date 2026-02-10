@@ -1,6 +1,7 @@
 package com.example.SpringApi.Services.Tests.Product;
 
 import com.example.SpringApi.Controllers.ProductController;
+import com.example.SpringApi.Services.ProductService;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.ResponseModels.ProductResponseModel;
 import com.example.SpringApi.Models.Authorizations;
@@ -94,13 +95,14 @@ public class GetProductDetailsByIdTest extends ProductServiceTestBase {
     @Test
     @DisplayName("getProductDetailsById - Controller delegates to service")
     void getProductDetailsById_WithValidId_DelegatesToService() {
-        ProductController controller = new ProductController(productService);
-        when(productService.getProductDetailsById(TEST_PRODUCT_ID))
+        ProductService mockProductService = mock(ProductService.class);
+        ProductController controller = new ProductController(mockProductService);
+        when(mockProductService.getProductDetailsById(TEST_PRODUCT_ID))
                 .thenReturn(mock(ProductResponseModel.class));
 
         ResponseEntity<?> response = controller.getProductDetailsById(TEST_PRODUCT_ID);
 
-        verify(productService).getProductDetailsById(TEST_PRODUCT_ID);
+        verify(mockProductService).getProductDetailsById(TEST_PRODUCT_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

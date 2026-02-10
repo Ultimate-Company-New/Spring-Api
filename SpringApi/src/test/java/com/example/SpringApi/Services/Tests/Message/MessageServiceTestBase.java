@@ -9,12 +9,14 @@ import com.example.SpringApi.Repositories.*;
 import com.example.SpringApi.Services.MessageService;
 import com.example.SpringApi.Services.Tests.BaseTest;
 import com.example.SpringApi.Services.UserLogService;
+import com.example.SpringApi.Services.Interface.IMessageSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -59,6 +61,12 @@ public abstract class MessageServiceTestBase extends BaseTest {
 
     @Mock
     protected Authorization authorization;
+
+    @Mock
+    protected Environment environment;
+
+    @Mock
+    IMessageSubTranslator messageServiceMock;
 
     @InjectMocks
     protected MessageService messageService;
@@ -110,6 +118,8 @@ public abstract class MessageServiceTestBase extends BaseTest {
 
         lenient().when(userLogService.logData(eq(DEFAULT_USER_ID), eq("Message"), anyString())).thenReturn(true);
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+        lenient().when(environment.getProperty(eq("email.service"), anyString())).thenReturn("sendgrid");
+        
         MockHttpServletRequest mockRequest = new MockHttpServletRequest();
         mockRequest.addHeader("Authorization", "Bearer test-token");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockRequest));

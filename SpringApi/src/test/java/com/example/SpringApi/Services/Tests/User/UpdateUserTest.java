@@ -1,5 +1,7 @@
 package com.example.SpringApi.Services.Tests.User;
 
+import com.example.SpringApi.Services.UserService;
+
 import com.example.SpringApi.Controllers.UserController;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
@@ -32,11 +34,11 @@ import static org.mockito.Mockito.*;
  * Unit tests for UserService - UpdateUser functionality.
  *
  * Test Summary:
- * | Test Group          | Number of Tests |
+ * | Test Group | Number of Tests |
  * | :------------------ | :-------------- |
- * | SUCCESS Tests       | 6               |
- * | FAILURE Tests       | 8               |
- * | **Total**           | **14**          |
+ * | SUCCESS Tests | 6 |
+ * | FAILURE Tests | 8 |
+ * | **Total** | **14** |
  */
 @DisplayName("UserService - UpdateUser Tests")
 class UpdateUserTest extends UserServiceTestBase {
@@ -58,15 +60,16 @@ class UpdateUserTest extends UserServiceTestBase {
     @Test
     @DisplayName("updateUser - Controller delegates to service")
     void updateUser_WithValidRequest_DelegatesToService() {
-        UserController controller = new UserController(userService);
+        UserService mockUserService = mock(UserService.class);
+        UserController controller = new UserController(mockUserService);
         Long userId = 1L;
         UserRequestModel request = new UserRequestModel();
         request.setId(userId);
-        doNothing().when(userService).updateUser(request);
+        doNothing().when(mockUserService).updateUser(request);
 
         ResponseEntity<?> response = controller.updateUser(userId, request);
 
-        verify(userService).updateUser(request);
+        verify(mockUserService).updateUser(request);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
@@ -121,7 +124,8 @@ class UpdateUserTest extends UserServiceTestBase {
         /**
          * Purpose: Verify successful user update.
          * Expected Result: User is updated and saved.
-         * Assertions: assertDoesNotThrow(); verify(userRepository).save(any(User.class));
+         * Assertions: assertDoesNotThrow();
+         * verify(userRepository).save(any(User.class));
          */
         @Test
         @DisplayName("Update User - Success - Updates user details")
@@ -397,7 +401,8 @@ class UpdateUserTest extends UserServiceTestBase {
         /**
          * Purpose: Verify empty permissions throws BadRequestException.
          * Expected Result: BadRequestException with permission required message.
-         * Assertions: assertEquals(ErrorMessages.CommonErrorMessages.AtLeastOnePermissionRequired,
+         * Assertions:
+         * assertEquals(ErrorMessages.CommonErrorMessages.AtLeastOnePermissionRequired,
          * ex.getMessage());
          */
         @Test
@@ -414,8 +419,10 @@ class UpdateUserTest extends UserServiceTestBase {
         }
 
         /**
-         * Purpose: Verify that loginName (email) from the request is preserved in update.
-         * Expected Result: User is successfully updated (loginName/email change is allowed in current implementation).
+         * Purpose: Verify that loginName (email) from the request is preserved in
+         * update.
+         * Expected Result: User is successfully updated (loginName/email change is
+         * allowed in current implementation).
          * Assertions: assertDoesNotThrow();
          * Note: The current service implementation does not prevent email changes.
          */
@@ -503,7 +510,8 @@ class UpdateUserTest extends UserServiceTestBase {
         /**
          * Purpose: Verify null permissions throws BadRequestException.
          * Expected Result: BadRequestException with permission required message.
-         * Assertions: assertEquals(ErrorMessages.CommonErrorMessages.AtLeastOnePermissionRequired,
+         * Assertions:
+         * assertEquals(ErrorMessages.CommonErrorMessages.AtLeastOnePermissionRequired,
          * ex.getMessage());
          */
         @Test

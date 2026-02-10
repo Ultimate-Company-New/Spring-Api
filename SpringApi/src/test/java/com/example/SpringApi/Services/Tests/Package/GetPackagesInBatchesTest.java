@@ -122,12 +122,12 @@ class GetPackagesInBatchesTest extends PackageServiceTestBase {
     @Test
     @DisplayName("getPackagesInBatches - Controller delegates to service")
     void getPackagesInBatches_WithValidRequest_DelegatesToService() {
-        PackageController controller = new PackageController(packageService, null);
-        when(packageService.getPackagesInBatches(testPaginationRequest)).thenReturn(new PaginationBaseResponseModel<PackageResponseModel>());
+        PackageController controller = new PackageController(packageServiceMock, null);
+        when(packageServiceMock.getPackagesInBatches(testPaginationRequest)).thenReturn(new PaginationBaseResponseModel<PackageResponseModel>());
 
         ResponseEntity<?> response = controller.getPackagesInBatches(testPaginationRequest);
 
-        verify(packageService).getPackagesInBatches(testPaginationRequest);
+        verify(packageServiceMock).getPackagesInBatches(testPaginationRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

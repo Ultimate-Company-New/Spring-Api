@@ -33,7 +33,8 @@ import static org.mockito.Mockito.lenient;
 
 /**
  * Base test class for PickupLocationService tests.
- * Contains common mocks, dependencies, and setup logic shared across all PickupLocationService test classes.
+ * Contains common mocks, dependencies, and setup logic shared across all
+ * PickupLocationService test classes.
  */
 @ExtendWith(MockitoExtension.class)
 public abstract class PickupLocationServiceTestBase extends BaseTest {
@@ -76,7 +77,7 @@ public abstract class PickupLocationServiceTestBase extends BaseTest {
     protected PickupLocationRequestModel testPickupLocationRequest;
     protected PaginationBaseRequestModel testPaginationRequest;
     protected AddPickupLocationResponseModel testShipRocketResponse;
-    
+
     protected static final Long TEST_PICKUP_LOCATION_ID = DEFAULT_PICKUP_LOCATION_ID;
     protected static final Long TEST_ADDRESS_ID = DEFAULT_ADDRESS_ID;
     protected static final Long TEST_CLIENT_ID = 1L;
@@ -124,6 +125,11 @@ public abstract class PickupLocationServiceTestBase extends BaseTest {
         mockClient.setShipRocketEmail("test@example.com");
         mockClient.setShipRocketPassword("testpassword");
         lenient().when(clientService.getClientById(anyLong())).thenReturn(mockClient);
+
+        testPaginationRequest = new PaginationBaseRequestModel();
+        testPaginationRequest.setStart(0);
+        testPaginationRequest.setEnd(10);
+        testPaginationRequest.setIncludeDeleted(false);
 
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
         MockHttpServletRequest mockRequest = new MockHttpServletRequest();

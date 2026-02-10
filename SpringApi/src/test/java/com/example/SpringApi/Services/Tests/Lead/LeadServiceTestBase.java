@@ -7,8 +7,12 @@ import com.example.SpringApi.Repositories.AddressRepository;
 import com.example.SpringApi.Repositories.LeadRepository;
 import com.example.SpringApi.Services.LeadService;
 import com.example.SpringApi.Services.MessageService;
-import com.example.SpringApi.Services.Tests.BaseTest;
 import com.example.SpringApi.Services.UserLogService;
+import com.example.SpringApi.Services.Tests.BaseTest;
+import com.example.SpringApi.Services.Interface.ILeadSubTranslator;
+
+import java.util.List;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +27,7 @@ import com.example.SpringApi.FilterQueryBuilder.LeadFilterQueryBuilder;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.lenient;
 
 /**
@@ -53,6 +58,9 @@ public abstract class LeadServiceTestBase extends BaseTest {
 
     @InjectMocks
     protected LeadService leadService;
+        
+    @Mock
+    ILeadSubTranslator leadServiceMock;
 
     // Use 1L to match the default behavior of BaseService.getClientId() in test
     // environment
@@ -89,6 +97,16 @@ public abstract class LeadServiceTestBase extends BaseTest {
             Address a = i.getArgument(0);
             a.setAddressId(DEFAULT_ADDRESS_ID);
             return a;
+        });
+
+        // Mock LeadRepository saveAll to return the input list with ids set to simulate successful saves
+        lenient().when(leadRepository.saveAll(anyList())).thenAnswer(i -> {
+            List<Lead> list = i.getArgument(0);
+            long id = DEFAULT_LEAD_ID;
+            for (Lead lead : list) {
+                lead.setLeadId(id++);
+            }
+            return list;
         });
     }
 }

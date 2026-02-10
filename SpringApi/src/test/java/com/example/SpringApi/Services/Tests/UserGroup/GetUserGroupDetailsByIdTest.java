@@ -1,5 +1,7 @@
 package com.example.SpringApi.Services.Tests.UserGroup;
 
+import com.example.SpringApi.Services.UserGroupService;
+
 import com.example.SpringApi.Controllers.UserGroupController;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
@@ -21,11 +23,11 @@ import static org.mockito.Mockito.*;
  * Unit tests for UserGroupService - GetUserGroupDetailsById functionality.
  *
  * Test Summary:
- * | Test Group          | Number of Tests |
+ * | Test Group | Number of Tests |
  * | :------------------ | :-------------- |
- * | SUCCESS Tests       | 4               |
- * | FAILURE Tests       | 5               |
- * | **Total**           | **9**           |
+ * | SUCCESS Tests | 4 |
+ * | FAILURE Tests | 5 |
+ * | **Total** | **9** |
  */
 @DisplayName("UserGroupService - GetUserGroupDetailsById Tests")
 class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
@@ -47,14 +49,15 @@ class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
     @Test
     @DisplayName("getUserGroupDetailsById - Controller delegates to service")
     void getUserGroupDetailsById_WithValidId_DelegatesToService() {
-        UserGroupController controller = new UserGroupController(userGroupService);
+        UserGroupService mockUserGroupService = mock(UserGroupService.class);
+        UserGroupController controller = new UserGroupController(mockUserGroupService);
         Long groupId = 1L;
         UserGroupResponseModel mockResponse = new UserGroupResponseModel();
-        when(userGroupService.getUserGroupDetailsById(groupId)).thenReturn(mockResponse);
+        when(mockUserGroupService.getUserGroupDetailsById(groupId)).thenReturn(mockResponse);
 
         ResponseEntity<?> response = controller.getUserGroupDetailsById(groupId);
 
-        verify(userGroupService).getUserGroupDetailsById(groupId);
+        verify(mockUserGroupService).getUserGroupDetailsById(groupId);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
@@ -69,7 +72,8 @@ class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
         /**
          * Purpose: Verify repository is called once.
          * Expected Result: findByIdWithUsers is called exactly once.
-         * Assertions: verify(userGroupRepository, times(1)).findByIdWithUsers(TEST_GROUP_ID);
+         * Assertions: verify(userGroupRepository,
+         * times(1)).findByIdWithUsers(TEST_GROUP_ID);
          */
         @Test
         @DisplayName("Get User Group By ID - Repository called once")
@@ -145,13 +149,14 @@ class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
         /**
          * Purpose: Verify max long ID not found throws NotFoundException.
          * Expected Result: NotFoundException with InvalidId message.
-         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId,
+         * ex.getMessage());
          */
         @Test
         @DisplayName("Get User Group By ID - Max Long ID - Not Found")
         void getUserGroupDetailsById_MaxLongId_ThrowsNotFoundException() {
             when(userGroupRepository.findByIdWithUsers(Long.MAX_VALUE)).thenReturn(null);
-            
+
             NotFoundException ex = assertThrows(NotFoundException.class,
                     () -> userGroupService.getUserGroupDetailsById(Long.MAX_VALUE));
             assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
@@ -160,13 +165,14 @@ class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
         /**
          * Purpose: Verify min long ID not found throws NotFoundException.
          * Expected Result: NotFoundException with InvalidId message.
-         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId,
+         * ex.getMessage());
          */
         @Test
         @DisplayName("Get User Group By ID - Min Long ID - Not Found")
         void getUserGroupDetailsById_MinLongId_ThrowsNotFoundException() {
             when(userGroupRepository.findByIdWithUsers(Long.MIN_VALUE)).thenReturn(null);
-            
+
             NotFoundException ex = assertThrows(NotFoundException.class,
                     () -> userGroupService.getUserGroupDetailsById(Long.MIN_VALUE));
             assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
@@ -175,13 +181,14 @@ class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
         /**
          * Purpose: Verify negative ID not found throws NotFoundException.
          * Expected Result: NotFoundException with InvalidId message.
-         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId,
+         * ex.getMessage());
          */
         @Test
         @DisplayName("Get User Group By ID - Negative ID - Not Found")
         void getUserGroupDetailsById_NegativeId_ThrowsNotFoundException() {
             when(userGroupRepository.findByIdWithUsers(-1L)).thenReturn(null);
-            
+
             NotFoundException ex = assertThrows(NotFoundException.class,
                     () -> userGroupService.getUserGroupDetailsById(-1L));
             assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
@@ -190,7 +197,8 @@ class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
         /**
          * Purpose: Verify group not found throws NotFoundException.
          * Expected Result: NotFoundException with InvalidId message.
-         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId,
+         * ex.getMessage());
          */
         @Test
         @DisplayName("Get User Group Details By ID - Not Found")
@@ -205,13 +213,14 @@ class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
         /**
          * Purpose: Verify zero ID not found throws NotFoundException.
          * Expected Result: NotFoundException with InvalidId message.
-         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId,
+         * ex.getMessage());
          */
         @Test
         @DisplayName("Get User Group By ID - Zero ID - Not Found")
         void getUserGroupDetailsById_ZeroId_ThrowsNotFoundException() {
             when(userGroupRepository.findByIdWithUsers(0L)).thenReturn(null);
-            
+
             NotFoundException ex = assertThrows(NotFoundException.class,
                     () -> userGroupService.getUserGroupDetailsById(0L));
             assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());

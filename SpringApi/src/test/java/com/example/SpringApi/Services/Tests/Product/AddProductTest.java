@@ -1,6 +1,7 @@
 package com.example.SpringApi.Services.Tests.Product;
 
 import com.example.SpringApi.Controllers.ProductController;
+import com.example.SpringApi.Services.ProductService;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
@@ -51,61 +52,61 @@ public class AddProductTest extends ProductServiceTestBase {
                 "additionalImage3 null",
                 "additionalImage3 empty",
                 "detailsImage present",
-                "defectImage present"
-        ).map(label -> DynamicTest.dynamicTest(label, () -> {
-            ProductRequestModel req = new ProductRequestModel();
-            req.setProductId(TEST_PRODUCT_ID);
-            req.setTitle(TEST_TITLE);
-            req.setDescriptionHtml(TEST_DESCRIPTION);
-            req.setBrand(TEST_BRAND);
-            req.setColorLabel(TEST_COLOR_LABEL);
-            req.setCondition(TEST_CONDITION);
-            req.setCountryOfManufacture(TEST_COUNTRY);
-            req.setUpc(TEST_UPC);
-            req.setPrice(TEST_PRICE);
-            req.setCategoryId(TEST_CATEGORY_ID);
-            req.setClientId(TEST_CLIENT_ID);
-            req.setIsDeleted(false);
-            req.setReturnWindowDays(30);
+                "defectImage present").map(label -> DynamicTest.dynamicTest(label, () -> {
+                    ProductRequestModel req = new ProductRequestModel();
+                    req.setProductId(TEST_PRODUCT_ID);
+                    req.setTitle(TEST_TITLE);
+                    req.setDescriptionHtml(TEST_DESCRIPTION);
+                    req.setBrand(TEST_BRAND);
+                    req.setColorLabel(TEST_COLOR_LABEL);
+                    req.setCondition(TEST_CONDITION);
+                    req.setCountryOfManufacture(TEST_COUNTRY);
+                    req.setUpc(TEST_UPC);
+                    req.setPrice(TEST_PRICE);
+                    req.setCategoryId(TEST_CATEGORY_ID);
+                    req.setClientId(TEST_CLIENT_ID);
+                    req.setIsDeleted(false);
+                    req.setReturnWindowDays(30);
 
-            Map<Long, Integer> quantities = new HashMap<>();
-            quantities.put(TEST_PICKUP_LOCATION_ID, 10);
-            req.setPickupLocationQuantities(quantities);
+                    Map<Long, Integer> quantities = new HashMap<>();
+                    quantities.put(TEST_PICKUP_LOCATION_ID, 10);
+                    req.setPickupLocationQuantities(quantities);
 
-            req.setMainImage(TEST_BASE64_IMAGE);
-            req.setTopImage(TEST_BASE64_IMAGE);
-            req.setBottomImage(TEST_BASE64_IMAGE);
-            req.setFrontImage(TEST_BASE64_IMAGE);
-            req.setBackImage(TEST_BASE64_IMAGE);
-            req.setRightImage(TEST_BASE64_IMAGE);
-            req.setLeftImage(TEST_BASE64_IMAGE);
-            req.setDetailsImage(TEST_BASE64_IMAGE);
-            req.setDefectImage(TEST_BASE64_IMAGE);
+                    req.setMainImage(TEST_BASE64_IMAGE);
+                    req.setTopImage(TEST_BASE64_IMAGE);
+                    req.setBottomImage(TEST_BASE64_IMAGE);
+                    req.setFrontImage(TEST_BASE64_IMAGE);
+                    req.setBackImage(TEST_BASE64_IMAGE);
+                    req.setRightImage(TEST_BASE64_IMAGE);
+                    req.setLeftImage(TEST_BASE64_IMAGE);
+                    req.setDetailsImage(TEST_BASE64_IMAGE);
+                    req.setDefectImage(TEST_BASE64_IMAGE);
 
-            req.setAdditionalImage1(TEST_BASE64_IMAGE);
-            req.setAdditionalImage2(TEST_BASE64_IMAGE);
-            req.setAdditionalImage3(TEST_BASE64_IMAGE);
+                    req.setAdditionalImage1(TEST_BASE64_IMAGE);
+                    req.setAdditionalImage2(TEST_BASE64_IMAGE);
+                    req.setAdditionalImage3(TEST_BASE64_IMAGE);
 
-            switch (label) {
-                case "additionalImage1 null" -> req.setAdditionalImage1(null);
-                case "additionalImage1 empty" -> req.setAdditionalImage1("");
-                case "additionalImage2 empty" -> req.setAdditionalImage2("");
-                case "additionalImage3 null" -> req.setAdditionalImage3(null);
-                case "additionalImage3 empty" -> req.setAdditionalImage3("");
-                default -> { }
-            }
+                    switch (label) {
+                        case "additionalImage1 null" -> req.setAdditionalImage1(null);
+                        case "additionalImage1 empty" -> req.setAdditionalImage1("");
+                        case "additionalImage2 empty" -> req.setAdditionalImage2("");
+                        case "additionalImage3 null" -> req.setAdditionalImage3(null);
+                        case "additionalImage3 empty" -> req.setAdditionalImage3("");
+                        default -> {
+                        }
+                    }
 
-            try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
-                    (mock, context) -> {
-                        ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
-                                "https://i.ibb.co/test/image.png",
-                                "test-delete-hash");
-                        when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
-                        when(mock.deleteImage(anyString())).thenReturn(true);
-                    })) {
-                assertDoesNotThrow(() -> productService.addProduct(req));
-            }
-        }));
+                    try (MockedConstruction<ImgbbHelper> imgbbHelperMock = mockConstruction(ImgbbHelper.class,
+                            (mock, context) -> {
+                                ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                                        "https://i.ibb.co/test/image.png",
+                                        "test-delete-hash");
+                                when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+                                when(mock.deleteImage(anyString())).thenReturn(true);
+                            })) {
+                        assertDoesNotThrow(() -> productService.addProduct(req));
+                    }
+                }));
     }
 
     @Test
@@ -125,7 +126,8 @@ public class AddProductTest extends ProductServiceTestBase {
             verify(productCategoryRepository, times(1)).findById(TEST_CATEGORY_ID);
             verify(clientService, times(1)).getClientById(TEST_CLIENT_ID);
             verify(productRepository, atLeastOnce()).save(any(Product.class));
-            verify(userLogService, times(1)).logDataWithContext(eq(1L), anyString(), eq(1L), anyString(), eq("addProduct"));
+            verify(userLogService, times(1)).logDataWithContext(eq(1L), anyString(), eq(1L), anyString(),
+                    eq("addProduct"));
         }
     }
 
@@ -189,7 +191,7 @@ public class AddProductTest extends ProductServiceTestBase {
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> productService.addProduct(testProductRequest));
-        assertTrue(exception.getMessage().contains("MAIN"));
+        assertTrue(exception.getMessage().contains("main"));
         verify(productRepository, times(1)).save(any());
     }
 
@@ -248,12 +250,13 @@ public class AddProductTest extends ProductServiceTestBase {
     @Test
     @DisplayName("addProduct - Controller delegates to service")
     void addProduct_WithValidRequest_DelegatesToService() throws Exception {
-        ProductController controller = new ProductController(productService);
-        doNothing().when(productService).addProduct(testProductRequest);
+        ProductService mockProductService = mock(ProductService.class);
+        ProductController controller = new ProductController(mockProductService);
+        doNothing().when(mockProductService).addProduct(testProductRequest);
 
         ResponseEntity<?> response = controller.addProduct(testProductRequest);
 
-        verify(productService).addProduct(testProductRequest);
+        verify(mockProductService).addProduct(testProductRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

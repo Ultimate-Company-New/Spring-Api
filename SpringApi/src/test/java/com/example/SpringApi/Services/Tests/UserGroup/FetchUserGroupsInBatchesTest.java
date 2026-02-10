@@ -1,5 +1,7 @@
 package com.example.SpringApi.Services.Tests.UserGroup;
 
+import com.example.SpringApi.Services.UserGroupService;
+
 import com.example.SpringApi.Controllers.UserGroupController;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
@@ -32,15 +34,17 @@ import static org.mockito.Mockito.*;
  * Unit tests for UserGroupService - Fetch User Groups In Batches functionality.
  * 
  * Contains 1 comprehensive test covering:
- * - All valid column and operator combinations for string, number, and boolean fields
+ * - All valid column and operator combinations for string, number, and boolean
+ * fields
  * - Invalid column names and logic operators
  * - Pagination edge cases
  * - Basic pagination without filters
  * 
- * This single test validates 30+ valid cases and 5+ invalid cases through nested loops.
+ * This single test validates 30+ valid cases and 5+ invalid cases through
+ * nested loops.
  */
 @DisplayName("UserGroupService - FetchUserGroupsInBatches Tests")
-public class FetchUserGroupsInBatchesTest extends UserGroupServiceTestBase {
+class FetchUserGroupsInBatchesTest extends UserGroupServiceTestBase {
 
     // ========================================
     // CONTROLLER AUTHORIZATION TESTS
@@ -59,14 +63,17 @@ public class FetchUserGroupsInBatchesTest extends UserGroupServiceTestBase {
     @Test
     @DisplayName("getUserGroupsInBatches - Controller delegates to service")
     void getUserGroupsInBatches_WithValidRequest_DelegatesToService() {
-        UserGroupController controller = new UserGroupController(userGroupService);
+        UserGroupService mockUserGroupService = mock(UserGroupService.class);
+        UserGroupController controller = new UserGroupController(mockUserGroupService);
         UserGroupRequestModel request = new UserGroupRequestModel();
+        request.setStart(0);
+        request.setEnd(10);
         PaginationBaseResponseModel<UserGroupResponseModel> mockResponse = new PaginationBaseResponseModel<>();
-        when(userGroupService.fetchUserGroupsInClientInBatches(request)).thenReturn(mockResponse);
+        when(mockUserGroupService.fetchUserGroupsInClientInBatches(request)).thenReturn(mockResponse);
 
         ResponseEntity<?> response = controller.getUserGroupsInBatches(request);
 
-        verify(userGroupService).fetchUserGroupsInClientInBatches(request);
+        verify(mockUserGroupService).fetchUserGroupsInClientInBatches(request);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
@@ -80,11 +87,12 @@ public class FetchUserGroupsInBatchesTest extends UserGroupServiceTestBase {
         int validTests = 0;
         int invalidTests = 0;
 
-        String[] logicOperators = {"AND", "OR", "and", "or"};
-        String[] invalidLogicOperators = {"XOR", "NAND", "invalid"};
-        String[] invalidColumns = {"invalidColumn", "xyz", "!@#$"};
+        String[] logicOperators = { "AND", "OR", "and", "or" };
+        String[] invalidLogicOperators = { "XOR", "NAND", "invalid" };
+        String[] invalidColumns = { "invalidColumn", "xyz", "!@#$" };
 
-        // ============== TEST 1: Valid column + valid operator combinations ==============
+        // ============== TEST 1: Valid column + valid operator combinations
+        // ==============
         for (String column : STRING_COLUMNS) {
             for (String operator : STRING_OPERATORS) {
                 UserGroupRequestModel request = createBasicPaginationRequest();
@@ -229,7 +237,7 @@ public class FetchUserGroupsInBatchesTest extends UserGroupServiceTestBase {
         }
 
         // ============== TEST 5: Pagination edge cases ==============
-        int[][] invalidPaginationCases = {{10, 10}, {10, 5}, {0, 0}};
+        int[][] invalidPaginationCases = { { 10, 10 }, { 10, 5 }, { 0, 0 } };
 
         for (int[] pagination : invalidPaginationCases) {
             if (pagination[1] - pagination[0] <= 0) {
@@ -256,10 +264,6 @@ public class FetchUserGroupsInBatchesTest extends UserGroupServiceTestBase {
 
         assertDoesNotThrow(() -> userGroupService.fetchUserGroupsInClientInBatches(noFilterRequest));
         validTests++;
-
-        System.out.println("Comprehensive UserGroup Batch Filter Test Summary:");
-        System.out.println("  Valid test cases passed: " + validTests);
-        System.out.println("  Invalid test cases (expected failures): " + invalidTests);
 
         assertTrue(validTests >= 30, "Should have at least 30 valid test cases");
         assertTrue(invalidTests >= 5, "Should have at least 5 invalid test cases");

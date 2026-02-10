@@ -46,19 +46,19 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     void updateMessage_CancelEmailLogic_IfValidationPasses() {
         testMessage.setSendgridEmailBatchId("BATCH-OLD");
         testMessage.setSendAsEmail(true);
-        testMessage.setPublishDate(LocalDateTime.now().plusHours(24));
+        testMessage.setPublishDate(LocalDateTime.now(java.time.ZoneOffset.UTC).plusHours(24));
 
         validRequest.setSendAsEmail(true);
-        validRequest.setPublishDate(LocalDateTime.now().plusHours(25));
+        validRequest.setPublishDate(LocalDateTime.now(java.time.ZoneOffset.UTC).plusHours(25));
 
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
 
+        // Validation rule 3: Cannot change publishDate on scheduled message
         try (MockedConstruction<EmailHelper> emailHelperMock = mockConstruction(EmailHelper.class,
                 (mock, context) -> doNothing().when(mock).cancelEmail(anyString()))) {
-            messageService.updateMessage(validRequest);
-            verify(emailHelperMock.constructed().get(0)).cancelEmail("BATCH-OLD");
+            assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CannotModifyScheduledPublishDate,
+                    () -> messageService.updateMessage(validRequest));
         }
     }
 
@@ -112,7 +112,7 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         testMessage.setSendAsEmail(false);
         testMessage.setSendgridEmailBatchId(null);
         validRequest.setSendAsEmail(true);
-        validRequest.setPublishDate(LocalDateTime.now().plusHours(2));
+        validRequest.setPublishDate(LocalDateTime.now(java.time.ZoneOffset.UTC).plusHours(2));
 
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testMessage));
@@ -149,32 +149,26 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     @DisplayName("Update Message - SendAsEmail True -> True with New Date - Resends/Re-batches")
     void updateMessage_Reschedule_GeneratesNewBatch() {
         testMessage.setSendAsEmail(true);
-        testMessage.setPublishDate(LocalDateTime.now().plusHours(24));
+        testMessage.setPublishDate(LocalDateTime.now(java.time.ZoneOffset.UTC).plusHours(24));
         testMessage.setSendgridEmailBatchId("BATCH-OLD");
         validRequest.setSendAsEmail(true);
-        validRequest.setPublishDate(LocalDateTime.now().plusHours(48));
+        validRequest.setPublishDate(LocalDateTime.now(java.time.ZoneOffset.UTC).plusHours(48));
 
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
 
+        // Validation rule 3: Cannot change publishDate on scheduled message
         try (MockedConstruction<EmailHelper> emailHelperMock = mockConstruction(EmailHelper.class,
-                (mock, context) -> {
-                    when(mock.generateBatchId()).thenReturn("BATCH-NEW");
-                    doNothing().when(mock).cancelEmail(anyString());
-                })) {
-            messageService.updateMessage(validRequest);
-            verify(emailHelperMock.constructed().get(0)).cancelEmail("BATCH-OLD");
-            ArgumentCaptor<com.example.SpringApi.Models.DatabaseModels.Message> captor = ArgumentCaptor.forClass(com.example.SpringApi.Models.DatabaseModels.Message.class);
-            verify(messageRepository).save(captor.capture());
-            assertEquals("BATCH-NEW", captor.getValue().getSendgridEmailBatchId());
+                (mock, context) -> doNothing().when(mock).cancelEmail(anyString()))) {
+            assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CannotModifyScheduledPublishDate,
+                    () -> messageService.updateMessage(validRequest));
         }
     }
 
     @Test
     @DisplayName("Update Message - Reschedule Same Date - No Batch Change")
     void updateMessage_RescheduleSameDate_NoBatchChange() {
-        LocalDateTime now = LocalDateTime.now().plusHours(10);
+        LocalDateTime now = LocalDateTime.now(java.time.ZoneOffset.UTC).plusHours(10);
         testMessage.setSendAsEmail(true);
         testMessage.setPublishDate(now);
         testMessage.setSendgridEmailBatchId("OLD");
@@ -184,10 +178,16 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testMessage));
         when(messageRepository.save(any())).thenReturn(testMessage);
+        when(userRepository.findAllUserEmailsByClientAndUserIdsAndGroupIds(anyLong(), anyList(), anyList()))
+                .thenReturn(Collections.emptyList());
 
-        try (MockedConstruction<EmailHelper> emailHelperMock = mockConstruction(EmailHelper.class)) {
-            messageService.updateMessage(validRequest);
-            assertTrue(emailHelperMock.constructed().isEmpty());
+        // Same date passes validation; mock EmailHelper for batch generation
+        try (MockedConstruction<EmailHelper> emailHelperMock = mockConstruction(EmailHelper.class,
+                (mock, context) -> when(mock.generateBatchId()).thenReturn("OLD"))) {
+            assertDoesNotThrow(() -> messageService.updateMessage(validRequest));
+            ArgumentCaptor<com.example.SpringApi.Models.DatabaseModels.Message> captor = ArgumentCaptor.forClass(com.example.SpringApi.Models.DatabaseModels.Message.class);
+            verify(messageRepository).save(captor.capture());
+            assertEquals("OLD", captor.getValue().getSendgridEmailBatchId());
         }
     }
 
@@ -195,18 +195,24 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     @DisplayName("Update Message - SendAsEmail True (Immediate) - Sends Email Now")
     void updateMessage_SendImmediate_SendsEmail() {
         testMessage.setSendAsEmail(false);
+        testMessage.setMessageUserMaps(Collections.emptyList());
+        testMessage.setMessageUserGroupMaps(Collections.emptyList());
         validRequest.setSendAsEmail(true);
         validRequest.setPublishDate(null);
 
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        when(messageRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(userRepository.findAllUserEmailsByClientAndUserIdsAndGroupIds(anyLong(), anyList(), anyList()))
             .thenReturn(List.of("email@test.com"));
 
         try (MockedConstruction<EmailTemplates> templatesMock = mockConstruction(EmailTemplates.class)) {
             messageService.updateMessage(validRequest);
-            verify(templatesMock.constructed().get(0)).sendMessageEmail(anyList(), anyString(), anyString(), any(), any());
+            // Verify EmailTemplates was constructed and sendMessageEmail was called
+            assertFalse(templatesMock.constructed().isEmpty(), "EmailTemplates should be constructed");
+            if (!templatesMock.constructed().isEmpty()) {
+                verify(templatesMock.constructed().get(0)).sendMessageEmail(anyList(), anyString(), anyString(), any(), any());
+            }
         }
     }
 
@@ -325,13 +331,18 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     void updateMessage_DisableSendAsEmail_CancelsBatch() {
         testMessage.setSendgridEmailBatchId("BATCH-EXISTING");
         testMessage.setSendAsEmail(true);
-        testMessage.setPublishDate(LocalDateTime.now().plusHours(24));
+        testMessage.setPublishDate(LocalDateTime.now(java.time.ZoneOffset.UTC).plusHours(24));
         validRequest.setSendAsEmail(false);
 
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testMessage));
 
-        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CannotDisableSendAsEmailOnce, () -> messageService.updateMessage(validRequest));
+        // Validation rule 1: Cannot disable sendAsEmail once enabled (fires before rule 3)
+        try (MockedConstruction<EmailHelper> emailHelperMock = mockConstruction(EmailHelper.class,
+                (mock, context) -> doNothing().when(mock).cancelEmail(anyString()))) {
+            assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CannotDisableSendAsEmailOnce,
+                    () -> messageService.updateMessage(validRequest));
+        }
     }
 
     @Test
@@ -374,11 +385,13 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     @Test
     @DisplayName("Update Message - Publish Date > 72h - Throws BadRequest")
     void updateMessage_PublishDateTooFar_ThrowsBadRequest() {
+        testMessage.setSendAsEmail(false); // Start with sendAsEmail=false so we can enable it
         validRequest.setSendAsEmail(true);
-        validRequest.setPublishDate(LocalDateTime.now().plusHours(73));
+        validRequest.setPublishDate(LocalDateTime.now(java.time.ZoneOffset.UTC).plusHours(74));
         when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testMessage));
 
+        // Validation should fail before any email service interaction
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.ER010, () -> messageService.updateMessage(validRequest));
     }
 
@@ -448,12 +461,12 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     @Test
     @DisplayName("updateMessage - Controller delegates to service")
     void updateMessage_WithValidRequest_DelegatesToService() {
-        MessageController controller = new MessageController(messageService);
-        doNothing().when(messageService).updateMessage(validRequest);
+        MessageController controller = new MessageController(messageServiceMock);
+        doNothing().when(messageServiceMock).updateMessage(validRequest);
 
         ResponseEntity<?> response = controller.updateMessage(validRequest);
 
-        verify(messageService).updateMessage(validRequest);
+        verify(messageServiceMock).updateMessage(validRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

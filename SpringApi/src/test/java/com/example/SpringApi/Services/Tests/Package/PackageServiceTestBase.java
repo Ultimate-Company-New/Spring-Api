@@ -12,6 +12,7 @@ import com.example.SpringApi.Repositories.PickupLocationRepository;
 import com.example.SpringApi.Services.PackageService;
 import com.example.SpringApi.Services.Tests.BaseTest;
 import com.example.SpringApi.Services.UserLogService;
+import com.example.SpringApi.Services.Interface.IPackageSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +25,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.ArgumentMatchers.anyList;
 
 /**
  * Base test class for PackageService tests.
@@ -52,6 +54,9 @@ public abstract class PackageServiceTestBase extends BaseTest {
 
     @Mock
     protected Authorization authorization;
+
+    @Mock
+    IPackageSubTranslator packageServiceMock;
 
     @InjectMocks
     protected PackageService packageService;
@@ -82,6 +87,14 @@ public abstract class PackageServiceTestBase extends BaseTest {
         testMapping.setPackageEntity(testPackage);
 
         lenient().when(packageRepository.save(any(Package.class))).thenReturn(testPackage);
+        lenient().when(packageRepository.saveAll(anyList())).thenAnswer(i -> {
+            java.util.List<Package> list = i.getArgument(0);
+            long id = TEST_PACKAGE_ID;
+            for (Package pkg : list) {
+                pkg.setPackageId(id++);
+            }
+            return list;
+        });
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
         MockHttpServletRequest mockRequest = new MockHttpServletRequest();
         mockRequest.addHeader("Authorization", "Bearer test-token");

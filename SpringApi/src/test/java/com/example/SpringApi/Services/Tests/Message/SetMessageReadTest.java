@@ -70,7 +70,7 @@ public class SetMessageReadTest extends MessageServiceTestBase {
 
         messageService.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID);
 
-        verify(userLogService).logData(eq(TEST_USER_ID), contains("marking message as read"), any());
+        verify(userLogService).logData(eq(TEST_USER_ID), contains("marked message as read"), any());
     }
 
     @Test
@@ -177,12 +177,12 @@ public class SetMessageReadTest extends MessageServiceTestBase {
     @Test
     @DisplayName("setMessageReadByUserIdAndMessageId - Controller delegates to service")
     void setMessageReadByUserIdAndMessageId_WithValidRequest_DelegatesToService() {
-        MessageController controller = new MessageController(messageService);
-        doNothing().when(messageService).setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID);
+        MessageController controller = new MessageController(messageServiceMock);
+        doNothing().when(messageServiceMock).setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID);
 
         ResponseEntity<?> response = controller.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID);
 
-        verify(messageService).setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID);
+        verify(messageServiceMock).setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

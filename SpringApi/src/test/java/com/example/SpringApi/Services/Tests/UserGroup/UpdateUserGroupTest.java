@@ -1,5 +1,7 @@
 package com.example.SpringApi.Services.Tests.UserGroup;
 
+import com.example.SpringApi.Services.UserGroupService;
+
 import com.example.SpringApi.Controllers.UserGroupController;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
@@ -34,7 +36,7 @@ import static org.mockito.Mockito.*;
  * - Repository interaction verification (delete old mappings, save new ones)
  */
 @DisplayName("UserGroupService - UpdateUserGroup Tests")
-public class UpdateUserGroupTest extends UserGroupServiceTestBase {
+class UpdateUserGroupTest extends UserGroupServiceTestBase {
 
     // ========================================
     // CONTROLLER AUTHORIZATION TESTS
@@ -53,15 +55,16 @@ public class UpdateUserGroupTest extends UserGroupServiceTestBase {
     @Test
     @DisplayName("updateUserGroup - Controller delegates to service")
     void updateUserGroup_WithValidRequest_DelegatesToService() {
-        UserGroupController controller = new UserGroupController(userGroupService);
+        UserGroupService mockUserGroupService = mock(UserGroupService.class);
+        UserGroupController controller = new UserGroupController(mockUserGroupService);
         Long groupId = 1L;
         UserGroupRequestModel request = new UserGroupRequestModel();
         request.setId(groupId);
-        doNothing().when(userGroupService).updateUserGroup(request);
+        doNothing().when(mockUserGroupService).updateUserGroup(request);
 
         ResponseEntity<?> response = controller.updateUserGroup(groupId, request);
 
-        verify(userGroupService).updateUserGroup(request);
+        verify(mockUserGroupService).updateUserGroup(request);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
@@ -224,9 +227,10 @@ public class UpdateUserGroupTest extends UserGroupServiceTestBase {
     @DisplayName("Update User Group - Null Name - Throws BadRequestException")
     void updateUserGroup_NullName_ThrowsBadRequestException() {
         testUserGroupRequest.setGroupName(null);
-        // Need to mock findById to return the existing group so validation proceeds to the name check
+        // Need to mock findById to return the existing group so validation proceeds to
+        // the name check
         when(userGroupRepository.findById(TEST_GROUP_ID)).thenReturn(Optional.of(testUserGroup));
-        
+
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.updateUserGroup(testUserGroupRequest));
         assertEquals(ErrorMessages.UserGroupErrorMessages.ER002, ex.getMessage());
@@ -236,7 +240,7 @@ public class UpdateUserGroupTest extends UserGroupServiceTestBase {
     @DisplayName("Update User Group - Null Users - Throws BadRequestException")
     void updateUserGroup_NullUsers_ThrowsBadRequestException() {
         testUserGroupRequest.setUserIds(null);
-        
+
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.updateUserGroup(testUserGroupRequest));
         assertEquals(ErrorMessages.UserGroupErrorMessages.ER004, ex.getMessage());

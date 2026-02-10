@@ -458,13 +458,13 @@ public class UserService extends BaseService implements IUserSubTranslator {
     @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public void bulkCreateUsersAsync(List<UserRequestModel> users, Long requestingUserId,
             String requestingUserLoginName, Long requestingClientId) {
-        try {
-            // Validate input
-            if (users == null || users.isEmpty()) {
-                throw new BadRequestException(
-                        String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "User"));
-            }
+        // Validate input immediately - should throw BadRequestException even if async
+        if (users == null || users.isEmpty()) {
+            throw new BadRequestException(
+                    String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "User"));
+        }
 
+        try {
             BulkUserInsertResponseModel response = new BulkUserInsertResponseModel();
             response.setTotalRequested(users.size());
 
@@ -517,7 +517,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
                     requestingUserLoginName, requestingClientId);
 
         } catch (Exception e) {
-            logger.error(new RuntimeException("Error in async bulk user creation: " + e.getMessage()));
+            logger.error(e);
             // Still send a message to user about the failure (using captured userId)
             BulkUserInsertResponseModel errorResponse = new BulkUserInsertResponseModel();
             errorResponse.setTotalRequested(users != null ? users.size() : 0);

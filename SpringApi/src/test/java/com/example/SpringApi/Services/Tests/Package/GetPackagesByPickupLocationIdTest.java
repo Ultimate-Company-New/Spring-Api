@@ -157,12 +157,12 @@ class GetPackagesByPickupLocationIdTest extends PackageServiceTestBase {
     @Test
     @DisplayName("getPackagesByPickupLocationId - Controller delegates to service")
     void getPackagesByPickupLocationId_WithValidRequest_DelegatesToService() {
-        PackageController controller = new PackageController(packageService, null);
-        when(packageService.getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID)).thenReturn(Arrays.asList(new PackageResponseModel(testPackage)));
+        PackageController controller = new PackageController(packageServiceMock, null);
+        when(packageServiceMock.getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID)).thenReturn(Arrays.asList(new PackageResponseModel(testPackage)));
 
         ResponseEntity<?> response = controller.getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID);
 
-        verify(packageService).getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID);
+        verify(packageServiceMock).getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

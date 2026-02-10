@@ -1,6 +1,7 @@
 package com.example.SpringApi.Services.Tests.PickupLocation;
 
 import com.example.SpringApi.Controllers.PickupLocationController;
+import com.example.SpringApi.Services.PickupLocationService;
 import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
@@ -91,11 +92,11 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     void bulkCreatePickupLocations_MixedInvalidAndValid_PartialSuccess() {
         List<PickupLocationRequestModel> requests = new ArrayList<>();
         requests.add(createValidPickupLocationRequest(1L, TEST_CLIENT_ID)); // Valid
-        
+
         PickupLocationRequestModel invalidReq = createValidPickupLocationRequest(2L, TEST_CLIENT_ID);
         invalidReq.setAddressNickName(""); // Invalid
         requests.add(invalidReq);
-        
+
         requests.add(createValidPickupLocationRequest(3L, TEST_CLIENT_ID)); // Valid
 
         when(addressRepository.save(any())).thenReturn(testAddress);
@@ -109,8 +110,6 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
         assertEquals(1, result.getFailureCount());
     }
 
-
-
     /**
      * Purpose: Verify creation of a single valid location via bulk method.
      * Expected Result: Single success recorded.
@@ -120,7 +119,7 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @DisplayName("Bulk Create Pickup Locations - Single Valid Item - Success")
     void bulkCreatePickupLocations_SingleValidItem_Success() {
         List<PickupLocationRequestModel> requests = List.of(createValidPickupLocationRequest(1L, TEST_CLIENT_ID));
-        
+
         when(addressRepository.save(any())).thenReturn(testAddress);
         when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
         lenient().when(shippingHelper.addPickupLocation(any())).thenReturn(testShipRocketResponse);
@@ -183,8 +182,8 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @DisplayName("Bulk Create Pickup Locations - Empty List - Throws BadRequestException")
     void bulkCreatePickupLocations_EmptyList_ThrowsBadRequestException() {
         List<PickupLocationRequestModel> requests = new ArrayList<>();
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> pickupLocationService.bulkCreatePickupLocations(requests));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.bulkCreatePickupLocations(requests));
         assertTrue(ex.getMessage().contains("list cannot be null or empty"));
     }
 
@@ -252,8 +251,8 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Bulk Create Pickup Locations - Null List - Throws BadRequestException")
     void bulkCreatePickupLocations_NullList_ThrowsBadRequestException() {
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> pickupLocationService.bulkCreatePickupLocations(null));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.bulkCreatePickupLocations(null));
         assertTrue(ex.getMessage().contains("list cannot be null or empty"));
     }
 
@@ -308,14 +307,18 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("bulkCreatePickupLocations - Controller delegates to service")
     void bulkCreatePickupLocations_WithValidRequests_DelegatesToService() {
-        PickupLocationController controller = new PickupLocationController(pickupLocationService);
+        PickupLocationService mockService = mock(PickupLocationService.class);
+        PickupLocationController controller = new PickupLocationController(mockService);
         List<PickupLocationRequestModel> requests = List.of(createValidPickupLocationRequest(1L, TEST_CLIENT_ID));
-        BulkInsertResponseModel<Long> mockResponse = new BulkInsertResponseModel<>();
-        when(pickupLocationService.bulkCreatePickupLocations(requests)).thenReturn(mockResponse);
+
+        when(mockService.getUserId()).thenReturn(1L);
+        when(mockService.getUser()).thenReturn("testuser");
+        when(mockService.getClientId()).thenReturn(TEST_CLIENT_ID);
+        doNothing().when(mockService).bulkCreatePickupLocationsAsync(eq(requests), anyLong(), anyString(), anyLong());
 
         ResponseEntity<?> response = controller.bulkCreatePickupLocations(requests);
 
-        verify(pickupLocationService).bulkCreatePickupLocations(requests);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(mockService).bulkCreatePickupLocationsAsync(eq(requests), eq(1L), eq("testuser"), eq(TEST_CLIENT_ID));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

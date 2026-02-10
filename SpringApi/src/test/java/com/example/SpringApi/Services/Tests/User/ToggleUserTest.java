@@ -1,5 +1,7 @@
 package com.example.SpringApi.Services.Tests.User;
 
+import com.example.SpringApi.Services.UserService;
+
 import com.example.SpringApi.Controllers.UserController;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
@@ -46,14 +48,15 @@ class ToggleUserTest extends UserServiceTestBase {
     @Test
     @DisplayName("toggleUser - Controller delegates to service")
     void toggleUser_WithValidId_DelegatesToService() {
-        UserController controller = new UserController(userService);
+        UserService mockUserService = mock(UserService.class);
+        UserController controller = new UserController(mockUserService);
         Long userId = 1L;
-        doNothing().when(userService).toggleUser(userId);
+        doNothing().when(mockUserService).toggleUser(userId);
 
         ResponseEntity<?> response = controller.toggleUser(userId);
 
-        verify(userService).toggleUser(userId);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(mockUserService).toggleUser(userId);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     // ========================================

@@ -166,7 +166,7 @@ class GetPackageByIdTest extends PackageServiceTestBase {
     @Test
     @DisplayName("getPackageById - Verify @PreAuthorize Annotation")
     void getPackageById_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        Method method = PackageController.class.getMethod("getPackageById", Long.class);
+        Method method = PackageController.class.getMethod("getPackageById", long.class);
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
         assertNotNull(annotation, "@PreAuthorize annotation should be present");
         assertTrue(annotation.value().contains(Authorizations.VIEW_PACKAGES_PERMISSION),
@@ -176,12 +176,12 @@ class GetPackageByIdTest extends PackageServiceTestBase {
     @Test
     @DisplayName("getPackageById - Controller delegates to service")
     void getPackageById_WithValidRequest_DelegatesToService() {
-        PackageController controller = new PackageController(packageService, null);
-        when(packageService.getPackageById(TEST_PACKAGE_ID)).thenReturn(new PackageResponseModel(testPackage));
+        PackageController controller = new PackageController(packageServiceMock, null);
+        when(packageServiceMock.getPackageById(TEST_PACKAGE_ID)).thenReturn(new PackageResponseModel(testPackage));
 
         ResponseEntity<?> response = controller.getPackageById(TEST_PACKAGE_ID);
 
-        verify(packageService).getPackageById(TEST_PACKAGE_ID);
+        verify(packageServiceMock).getPackageById(TEST_PACKAGE_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

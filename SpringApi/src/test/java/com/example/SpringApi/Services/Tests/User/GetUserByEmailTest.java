@@ -1,5 +1,7 @@
 package com.example.SpringApi.Services.Tests.User;
 
+import com.example.SpringApi.Services.UserService;
+
 import com.example.SpringApi.Controllers.UserController;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
@@ -46,14 +48,15 @@ class GetUserByEmailTest extends UserServiceTestBase {
     @Test
     @DisplayName("getUserByEmail - Controller delegates to service")
     void getUserByEmail_WithValidEmail_DelegatesToService() {
-        UserController controller = new UserController(userService);
+        UserService mockUserService = mock(UserService.class);
+        UserController controller = new UserController(mockUserService);
         String email = "test@example.com";
         UserResponseModel mockResponse = new UserResponseModel();
-        when(userService.getUserByEmail(email)).thenReturn(mockResponse);
+        when(mockUserService.getUserByEmail(email)).thenReturn(mockResponse);
 
         ResponseEntity<?> response = controller.getUserByEmail(email);
 
-        verify(userService).getUserByEmail(email);
+        verify(mockUserService).getUserByEmail(email);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
@@ -79,7 +82,8 @@ class GetUserByEmailTest extends UserServiceTestBase {
     /**
      * Purpose: Verify repository is called exactly once.
      * Expected Result: findByEmailWithAllRelations called once.
-     * Assertions: verify(userRepository, times(1)).findByEmailWithAllRelations(...);
+     * Assertions: verify(userRepository,
+     * times(1)).findByEmailWithAllRelations(...);
      */
     @Test
     @DisplayName("Get User By Email - Repository called once")
@@ -110,7 +114,8 @@ class GetUserByEmailTest extends UserServiceTestBase {
     /**
      * Purpose: Verify successful user retrieval by email.
      * Expected Result: UserResponseModel is returned with correct data.
-     * Assertions: assertNotNull(result); assertEquals(TEST_EMAIL, result.getEmail());
+     * Assertions: assertNotNull(result); assertEquals(TEST_EMAIL,
+     * result.getEmail());
      */
     @Test
     @DisplayName("Get User By Email - Success - Returns user")

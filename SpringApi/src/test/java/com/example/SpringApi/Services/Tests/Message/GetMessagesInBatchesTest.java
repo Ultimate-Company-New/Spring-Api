@@ -118,16 +118,16 @@ public class GetMessagesInBatchesTest extends MessageServiceTestBase {
     @Test
     @DisplayName("getMessagesInBatches - Controller delegates to service correctly")
     void getMessagesInBatches_WithValidRequest_DelegatesToService() {
-        MessageController controller = new MessageController(messageService);
+        MessageController controller = new MessageController(messageServiceMock);
         PaginationBaseRequestModel request = createValidPaginationRequest();
         request.setFilters(null);
         
         PaginationBaseResponseModel<MessageResponseModel> mockResponse = new PaginationBaseResponseModel<>();
-        when(messageService.getMessagesInBatches(any(PaginationBaseRequestModel.class))).thenReturn(mockResponse);
+        when(messageServiceMock.getMessagesInBatches(any(PaginationBaseRequestModel.class))).thenReturn(mockResponse);
 
         ResponseEntity<?> response = controller.getMessagesInBatches(request);
 
-        verify(messageService, times(1)).getMessagesInBatches(request);
+        verify(messageServiceMock, times(1)).getMessagesInBatches(request);
         assertEquals(HttpStatus.OK, response.getStatusCode(),
             "Should return HTTP 200 OK");
     }

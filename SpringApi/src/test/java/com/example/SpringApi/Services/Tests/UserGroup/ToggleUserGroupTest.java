@@ -1,5 +1,7 @@
 package com.example.SpringApi.Services.Tests.UserGroup;
 
+import com.example.SpringApi.Services.UserGroupService;
+
 import com.example.SpringApi.Controllers.UserGroupController;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
@@ -23,11 +25,11 @@ import static org.mockito.Mockito.*;
  * Unit tests for UserGroupService - ToggleUserGroup functionality.
  *
  * Test Summary:
- * | Test Group          | Number of Tests |
+ * | Test Group | Number of Tests |
  * | :------------------ | :-------------- |
- * | SUCCESS Tests       | 6               |
- * | FAILURE Tests       | 5               |
- * | **Total**           | **11**          |
+ * | SUCCESS Tests | 6 |
+ * | FAILURE Tests | 5 |
+ * | **Total** | **11** |
  */
 @DisplayName("UserGroupService - ToggleUserGroup Tests")
 class ToggleUserGroupTest extends UserGroupServiceTestBase {
@@ -49,14 +51,15 @@ class ToggleUserGroupTest extends UserGroupServiceTestBase {
     @Test
     @DisplayName("toggleUserGroup - Controller delegates to service")
     void toggleUserGroup_WithValidId_DelegatesToService() {
-        UserGroupController controller = new UserGroupController(userGroupService);
+        UserGroupService mockUserGroupService = mock(UserGroupService.class);
+        UserGroupController controller = new UserGroupController(mockUserGroupService);
         Long groupId = 1L;
-        doNothing().when(userGroupService).toggleUserGroup(groupId);
+        doNothing().when(mockUserGroupService).toggleUserGroup(groupId);
 
         ResponseEntity<?> response = controller.toggleUserGroup(groupId);
 
-        verify(userGroupService).toggleUserGroup(groupId);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(mockUserGroupService).toggleUserGroup(groupId);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Nested
@@ -186,7 +189,8 @@ class ToggleUserGroupTest extends UserGroupServiceTestBase {
         /**
          * Purpose: Verify group not found throws NotFoundException.
          * Expected Result: NotFoundException with InvalidId message.
-         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId,
+         * ex.getMessage());
          */
         @Test
         @DisplayName("Toggle User Group - Failure - Group not found")
@@ -201,13 +205,14 @@ class ToggleUserGroupTest extends UserGroupServiceTestBase {
         /**
          * Purpose: Verify max long ID not found throws NotFoundException.
          * Expected Result: NotFoundException with InvalidId message.
-         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId,
+         * ex.getMessage());
          */
         @Test
         @DisplayName("Toggle User Group - Max Long ID - Not Found")
         void toggleUserGroup_MaxLongId_ThrowsNotFoundException() {
             when(userGroupRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
-            
+
             NotFoundException ex = assertThrows(NotFoundException.class,
                     () -> userGroupService.toggleUserGroup(Long.MAX_VALUE));
             assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
@@ -216,13 +221,14 @@ class ToggleUserGroupTest extends UserGroupServiceTestBase {
         /**
          * Purpose: Verify min long ID not found throws NotFoundException.
          * Expected Result: NotFoundException with InvalidId message.
-         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId,
+         * ex.getMessage());
          */
         @Test
         @DisplayName("Toggle User Group - Min Long ID - Not Found")
         void toggleUserGroup_MinLongId_ThrowsNotFoundException() {
             when(userGroupRepository.findById(Long.MIN_VALUE)).thenReturn(Optional.empty());
-            
+
             NotFoundException ex = assertThrows(NotFoundException.class,
                     () -> userGroupService.toggleUserGroup(Long.MIN_VALUE));
             assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
@@ -231,13 +237,14 @@ class ToggleUserGroupTest extends UserGroupServiceTestBase {
         /**
          * Purpose: Verify negative ID not found throws NotFoundException.
          * Expected Result: NotFoundException with InvalidId message.
-         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId,
+         * ex.getMessage());
          */
         @Test
         @DisplayName("Toggle User Group - Negative ID - Not Found")
         void toggleUserGroup_NegativeId_ThrowsNotFoundException() {
             when(userGroupRepository.findById(-1L)).thenReturn(Optional.empty());
-            
+
             NotFoundException ex = assertThrows(NotFoundException.class,
                     () -> userGroupService.toggleUserGroup(-1L));
             assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
@@ -246,13 +253,14 @@ class ToggleUserGroupTest extends UserGroupServiceTestBase {
         /**
          * Purpose: Verify zero ID not found throws NotFoundException.
          * Expected Result: NotFoundException with InvalidId message.
-         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+         * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId,
+         * ex.getMessage());
          */
         @Test
         @DisplayName("Toggle User Group - Zero ID - Not Found")
         void toggleUserGroup_ZeroId_ThrowsNotFoundException() {
             when(userGroupRepository.findById(0L)).thenReturn(Optional.empty());
-            
+
             NotFoundException ex = assertThrows(NotFoundException.class,
                     () -> userGroupService.toggleUserGroup(0L));
             assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());

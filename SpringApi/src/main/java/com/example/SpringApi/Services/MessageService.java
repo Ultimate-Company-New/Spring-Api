@@ -267,7 +267,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
     @Transactional
     public void updateMessage(MessageRequestModel messageRequestModel) {
         // Validate messageId is provided
-        if (messageRequestModel.getMessageId() == null) {
+        if (messageRequestModel.getMessageId() == null || messageRequestModel.getMessageId() <= 0) {
             throw new BadRequestException(ErrorMessages.MessagesErrorMessages.InvalidId);
         }
         
@@ -448,6 +448,11 @@ public class MessageService extends BaseService implements IMessageSubTranslator
      */
     @Override
     public MessageResponseModel getMessageDetailsById(long id) {
+        // Validate message ID
+        if (id <= 0) {
+            throw new BadRequestException(ErrorMessages.MessagesErrorMessages.InvalidId);
+        }
+        
         // Validate message exists and belongs to current client, fetch with targets
         Optional<Message> messageOptional = messageRepository.findByMessageIdAndClientIdWithTargets(id, getClientId());
         if (messageOptional.isEmpty()) {
@@ -471,6 +476,11 @@ public class MessageService extends BaseService implements IMessageSubTranslator
     @Override
     public PaginationBaseResponseModel<MessageResponseModel> getMessagesByUserId(PaginationBaseRequestModel paginationBaseRequestModel) {
         long userId = paginationBaseRequestModel.getId();
+        
+        // Validate user ID
+        if (userId <= 0) {
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidId);
+        }
         
         // Validate user exists and belongs to current client
         Optional<User> userOptional = userRepository.findByUserIdAndClientId(userId, getClientId());

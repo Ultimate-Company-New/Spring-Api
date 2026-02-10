@@ -1,6 +1,7 @@
 package com.example.SpringApi.Services.Tests.Product;
 
 import com.example.SpringApi.Controllers.ProductController;
+import com.example.SpringApi.Services.ProductService;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.DatabaseModels.Product;
@@ -31,7 +32,7 @@ import static org.mockito.Mockito.*;
  * - FAILURE / EXCEPTION: 5 tests
  */
 @DisplayName("ProductService - EditProduct Tests")
-public class EditProductTest extends ProductServiceTestBase {
+class EditProductTest extends ProductServiceTestBase {
 
     // ===========================
     // SUCCESS TESTS
@@ -118,14 +119,15 @@ public class EditProductTest extends ProductServiceTestBase {
     }
 
     @Test
-    @DisplayName("editProduct - Controller delegates to service")
-    void editProduct_WithValidRequest_DelegatesToService() throws Exception {
-        ProductController controller = new ProductController(productService);
-        doNothing().when(productService).editProduct(testProductRequest);
+    @DisplayName("Edit Product - Valid Request - Delegates to Service")
+    void editProduct_WithValidRequest_DelegatesToService() {
+        ProductService mockProductService = mock(ProductService.class);
+        ProductController controller = new ProductController(mockProductService);
+        doNothing().when(mockProductService).editProduct(testProductRequest);
 
         ResponseEntity<?> response = controller.editProduct(testProductRequest);
 
-        verify(productService).editProduct(testProductRequest);
+        verify(mockProductService).editProduct(testProductRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

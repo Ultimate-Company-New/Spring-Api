@@ -149,7 +149,7 @@ class TogglePackageTest extends PackageServiceTestBase {
     @Test
     @DisplayName("togglePackage - Verify @PreAuthorize Annotation")
     void togglePackage_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        Method method = PackageController.class.getMethod("togglePackage", Long.class);
+        Method method = PackageController.class.getMethod("togglePackage", long.class);
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
         assertNotNull(annotation, "@PreAuthorize annotation should be present");
         assertTrue(annotation.value().contains(Authorizations.TOGGLE_PACKAGES_PERMISSION),
@@ -159,12 +159,12 @@ class TogglePackageTest extends PackageServiceTestBase {
     @Test
     @DisplayName("togglePackage - Controller delegates to service")
     void togglePackage_WithValidRequest_DelegatesToService() {
-        PackageController controller = new PackageController(packageService, null);
-        doNothing().when(packageService).togglePackage(TEST_PACKAGE_ID);
+        PackageController controller = new PackageController(packageServiceMock, null);
+        doNothing().when(packageServiceMock).togglePackage(TEST_PACKAGE_ID);
 
         ResponseEntity<?> response = controller.togglePackage(TEST_PACKAGE_ID);
 
-        verify(packageService).togglePackage(TEST_PACKAGE_ID);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(packageServiceMock).togglePackage(TEST_PACKAGE_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

@@ -10,9 +10,11 @@ import com.example.SpringApi.Helpers.EmailHelper;
 import com.example.SpringApi.Helpers.EmailTemplates;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.Services.Interface.IMessageSubTranslator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 
 import java.time.LocalDateTime;
@@ -27,10 +29,13 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for MessageService.createMessage method.
- * Test Count: 37 tests
+ * Test Count: 38 tests
  */
 @DisplayName("CreateMessage Tests")
 public class CreateMessageTest extends MessageServiceTestBase {
+
+    @Mock
+    IMessageSubTranslator messageServiceMock;
 
     /*
      **********************************************************************************************
@@ -328,6 +333,7 @@ public class CreateMessageTest extends MessageServiceTestBase {
     @Test
     @DisplayName("Create Message - Null Request - Throws BadRequestException")
     void createMessage_NullRequest_ThrowsBadRequestException() {
+        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         BadRequestException exception = assertThrows(BadRequestException.class, () -> messageService.createMessage(null));
         assertEquals(ErrorMessages.MessagesErrorMessages.InvalidId, exception.getMessage());
     }
@@ -335,6 +341,7 @@ public class CreateMessageTest extends MessageServiceTestBase {
     @Test
     @DisplayName("Create Message - Null request in Context - Throws BadRequestException")
     void createMessageWithContext_NullRequest_ThrowsBadRequestException() {
+        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
         BadRequestException exception = assertThrows(BadRequestException.class, () -> messageService.createMessageWithContext(null, TEST_USER_ID, "admin", TEST_CLIENT_ID));
         assertEquals(ErrorMessages.MessagesErrorMessages.InvalidId, exception.getMessage());
     }
@@ -427,13 +434,13 @@ public class CreateMessageTest extends MessageServiceTestBase {
     @Test
     @DisplayName("Create Message - Controller delegates to service correctly")
     void createMessage_WithValidRequest_DelegatesToService() {
-        MessageController controller = new MessageController(messageService);
-        doNothing().when(messageService).createMessage(any(com.example.SpringApi.Models.RequestModels.MessageRequestModel.class));
+        MessageController controller = new MessageController(messageServiceMock);
+        doNothing().when(messageServiceMock).createMessage(any(com.example.SpringApi.Models.RequestModels.MessageRequestModel.class));
 
         ResponseEntity<?> response = controller.createMessage(validRequest);
 
-        verify(messageService, times(1)).createMessage(validRequest);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode(),
-            "Should return HTTP 201 CREATED");
+        verify(messageServiceMock, times(1)).createMessage(validRequest);
+        assertEquals(HttpStatus.OK, response.getStatusCode(),
+            "Should return HTTP 200 OK");
     }
 }

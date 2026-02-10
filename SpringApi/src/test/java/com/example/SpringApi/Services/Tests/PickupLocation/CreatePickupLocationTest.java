@@ -1,6 +1,7 @@
 package com.example.SpringApi.Services.Tests.PickupLocation;
 
 import com.example.SpringApi.Controllers.PickupLocationController;
+import com.example.SpringApi.Services.PickupLocationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.Models.Authorizations;
@@ -47,8 +48,6 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
         assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
     }
 
-
-
     /**
      * Purpose: Verify basic success scenario where location is saved.
      * Expected Result: Pickup location and address are saved.
@@ -82,8 +81,8 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @DisplayName("Create Pickup Location - Null Address - Throws BadRequestException")
     void createPickupLocation_NullAddress_ThrowsBadRequestException() {
         testPickupLocationRequest.setAddress(null);
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER001, ex.getMessage());
     }
 
@@ -96,8 +95,8 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @DisplayName("Create Pickup Location - Null City - Throws BadRequestException")
     void createPickupLocation_NullCity_ThrowsBadRequestException() {
         testPickupLocationRequest.getAddress().setCity(null);
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER002, ex.getMessage());
     }
 
@@ -110,8 +109,8 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @DisplayName("Create Pickup Location - Null Country - Throws BadRequestException")
     void createPickupLocation_NullCountry_ThrowsBadRequestException() {
         testPickupLocationRequest.getAddress().setCountry(null);
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER005, ex.getMessage());
     }
 
@@ -124,8 +123,8 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @DisplayName("Create Pickup Location - Null Nickname - Throws BadRequestException")
     void createPickupLocation_NullNickname_ThrowsBadRequestException() {
         testPickupLocationRequest.setAddressNickName(null);
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
         assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickName, ex.getMessage());
     }
 
@@ -154,8 +153,8 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @DisplayName("Create Pickup Location - Null Postal Code - Throws BadRequestException")
     void createPickupLocation_NullPostalCode_ThrowsBadRequestException() {
         testPickupLocationRequest.getAddress().setPostalCode(null);
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER004, ex.getMessage());
     }
 
@@ -167,8 +166,8 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Create Pickup Location - Null Request - Throws BadRequestException")
     void createPickupLocation_NullRequest_ThrowsBadRequestException() {
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> pickupLocationService.createPickupLocation(null));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(null));
         assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidRequest, ex.getMessage());
     }
 
@@ -181,8 +180,8 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @DisplayName("Create Pickup Location - Null State - Throws BadRequestException")
     void createPickupLocation_NullState_ThrowsBadRequestException() {
         testPickupLocationRequest.getAddress().setState(null);
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER003, ex.getMessage());
     }
 
@@ -195,8 +194,8 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @DisplayName("Create Pickup Location - Null Street Address - Throws BadRequestException")
     void createPickupLocation_NullStreetAddress_ThrowsBadRequestException() {
         testPickupLocationRequest.getAddress().setStreetAddress(null);
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER001, ex.getMessage());
     }
 
@@ -209,8 +208,8 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @DisplayName("Create Pickup Location - Whitespace City - Throws BadRequestException")
     void createPickupLocation_WhitespaceCity_ThrowsBadRequestException() {
         testPickupLocationRequest.getAddress().setCity("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER002, ex.getMessage());
     }
 
@@ -223,8 +222,8 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @DisplayName("Create Pickup Location - Whitespace Country - Throws BadRequestException")
     void createPickupLocation_WhitespaceCountry_ThrowsBadRequestException() {
         testPickupLocationRequest.getAddress().setCountry("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER005, ex.getMessage());
     }
 
@@ -237,8 +236,8 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @DisplayName("Create Pickup Location - Whitespace Nickname - Throws BadRequestException")
     void createPickupLocation_WhitespaceNickname_ThrowsBadRequestException() {
         testPickupLocationRequest.setAddressNickName("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
         assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickName, ex.getMessage());
     }
 
@@ -267,8 +266,8 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @DisplayName("Create Pickup Location - Whitespace Postal Code - Throws BadRequestException")
     void createPickupLocation_WhitespacePostalCode_ThrowsBadRequestException() {
         testPickupLocationRequest.getAddress().setPostalCode("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER004, ex.getMessage());
     }
 
@@ -281,8 +280,8 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @DisplayName("Create Pickup Location - Whitespace State - Throws BadRequestException")
     void createPickupLocation_WhitespaceState_ThrowsBadRequestException() {
         testPickupLocationRequest.getAddress().setState("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER003, ex.getMessage());
     }
 
@@ -295,8 +294,8 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @DisplayName("Create Pickup Location - Whitespace Street Address - Throws BadRequestException")
     void createPickupLocation_WhitespaceStreetAddress_ThrowsBadRequestException() {
         testPickupLocationRequest.getAddress().setStreetAddress("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class, 
-            () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
         assertEquals(ErrorMessages.AddressErrorMessages.ER001, ex.getMessage());
     }
 
@@ -309,22 +308,24 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("createPickupLocation - Verify @PreAuthorize Annotation")
     void createPickupLocation_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        Method method = PickupLocationController.class.getMethod("createPickupLocation", PickupLocationRequestModel.class);
+        Method method = PickupLocationController.class.getMethod("createPickupLocation",
+                PickupLocationRequestModel.class);
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
         assertNotNull(annotation, "@PreAuthorize annotation should be present");
         assertTrue(annotation.value().contains(Authorizations.INSERT_PICKUP_LOCATIONS_PERMISSION),
-            "@PreAuthorize should reference INSERT_PICKUP_LOCATIONS_PERMISSION");
+                "@PreAuthorize should reference INSERT_PICKUP_LOCATIONS_PERMISSION");
     }
 
     @Test
     @DisplayName("createPickupLocation - Controller delegates to service")
     void createPickupLocation_WithValidRequest_DelegatesToService() throws Exception {
-        PickupLocationController controller = new PickupLocationController(pickupLocationService);
-        doNothing().when(pickupLocationService).createPickupLocation(testPickupLocationRequest);
+        PickupLocationService mockService = mock(PickupLocationService.class);
+        PickupLocationController controller = new PickupLocationController(mockService);
+        doNothing().when(mockService).createPickupLocation(testPickupLocationRequest);
 
         ResponseEntity<?> response = controller.createPickupLocation(testPickupLocationRequest);
 
-        verify(pickupLocationService).createPickupLocation(testPickupLocationRequest);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(mockService).createPickupLocation(testPickupLocationRequest);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

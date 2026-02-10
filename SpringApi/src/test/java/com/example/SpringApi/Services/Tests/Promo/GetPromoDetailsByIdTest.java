@@ -1,5 +1,7 @@
 package com.example.SpringApi.Services.Tests.Promo;
 
+import com.example.SpringApi.Services.PromoService;
+
 import com.example.SpringApi.Controllers.PromoController;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.NotFoundException;
@@ -144,13 +146,14 @@ public class GetPromoDetailsByIdTest extends PromoServiceTestBase {
     @Test
     @DisplayName("getPromoDetailsById - Controller delegates to service")
     void getPromoDetailsById_WithValidId_DelegatesToService() {
-        PromoController controller = new PromoController(promoService);
-        when(promoService.getPromoDetailsById(TEST_PROMO_ID))
+        PromoService mockPromoService = mock(PromoService.class);
+        PromoController controller = new PromoController(mockPromoService);
+        when(mockPromoService.getPromoDetailsById(TEST_PROMO_ID))
                 .thenReturn(mock(PromoResponseModel.class));
 
         ResponseEntity<?> response = controller.getPromoDetailsById(TEST_PROMO_ID);
 
-        verify(promoService).getPromoDetailsById(TEST_PROMO_ID);
+        verify(mockPromoService).getPromoDetailsById(TEST_PROMO_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

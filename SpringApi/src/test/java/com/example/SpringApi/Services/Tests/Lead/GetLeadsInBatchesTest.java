@@ -27,11 +27,10 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for LeadService.getLeadsInBatches() method.
  * Tests pagination, filtering, and validation logic.
- * * Test Count: 3 tests
+ * * Test Count: 4 tests
  */
 @DisplayName("Get Leads In Batches Tests")
 class GetLeadsInBatchesTest extends LeadServiceTestBase {
-
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -139,17 +138,17 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
     @DisplayName("Get Leads In Batches - Controller delegates to service correctly")
     void getLeadsInBatches_WithValidRequest_DelegatesToService() {
         // Arrange
-        LeadController controller = new LeadController(leadService);
+        LeadController controller = new LeadController(leadServiceMock);
         testLeadRequest.setStart(0);
         testLeadRequest.setEnd(10);
-        when(leadService.getLeadsInBatches(any(LeadRequestModel.class)))
+        when(leadServiceMock.getLeadsInBatches(any(LeadRequestModel.class)))
                 .thenReturn(new PaginationBaseResponseModel<>());
 
         // Act - Call controller directly (simulating authorization has already passed)
         ResponseEntity<?> response = controller.getLeadsInBatches(testLeadRequest);
 
         // Assert - Verify service was called and correct response returned
-        verify(leadService, times(1)).getLeadsInBatches(testLeadRequest);
+        verify(leadServiceMock, times(1)).getLeadsInBatches(testLeadRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode(),
                 "Should return HTTP 200 OK");
     }

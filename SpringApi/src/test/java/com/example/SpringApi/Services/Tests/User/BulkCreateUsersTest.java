@@ -6,6 +6,7 @@ import com.example.SpringApi.Helpers.PasswordHelper;
 import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
+import com.example.SpringApi.Exceptions.BadRequestException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -30,11 +31,11 @@ import static org.mockito.Mockito.*;
  * Unit tests for UserService - BulkCreateUsers functionality.
  *
  * Test Summary:
- * | Test Group          | Number of Tests |
+ * | Test Group | Number of Tests |
  * | :------------------ | :-------------- |
- * | SUCCESS Tests       | 4               |
- * | FAILURE Tests       | 4               |
- * | **Total**           | **8**           |
+ * | SUCCESS Tests | 4 |
+ * | FAILURE Tests | 4 |
+ * | **Total** | **8** |
  */
 @DisplayName("UserService - BulkCreateUsers Tests")
 class BulkCreateUsersTest extends UserServiceTestBase {
@@ -79,7 +80,7 @@ class BulkCreateUsersTest extends UserServiceTestBase {
             lenient().when(userRepository.save(any(User.class))).thenAnswer(inv -> {
                 User user = inv.getArgument(0);
                 if (user.getUserId() == null)
-                    user.setUserId((long) (Math.random() * 1000));
+                    user.setUserId(new java.util.Random().nextLong(1000));
                 savedUsers.put(user.getLoginName(), user);
                 return user;
             });
@@ -112,7 +113,7 @@ class BulkCreateUsersTest extends UserServiceTestBase {
             lenient().when(userRepository.save(any(User.class))).thenAnswer(inv -> {
                 User user = inv.getArgument(0);
                 if (user.getUserId() == null)
-                    user.setUserId((long) (Math.random() * 1000));
+                    user.setUserId(new java.util.Random().nextLong(1000));
                 savedUsers.put(user.getLoginName(), user);
                 return user;
             });
@@ -145,7 +146,7 @@ class BulkCreateUsersTest extends UserServiceTestBase {
             lenient().when(userRepository.save(any(User.class))).thenAnswer(inv -> {
                 User user = inv.getArgument(0);
                 if (user.getUserId() == null)
-                    user.setUserId((long) (Math.random() * 1000));
+                    user.setUserId(new java.util.Random().nextLong(1000));
                 savedUsers.put(user.getLoginName(), user);
                 return user;
             });
@@ -244,10 +245,11 @@ class BulkCreateUsersTest extends UserServiceTestBase {
          * Assertions: assertDoesNotThrow();
          */
         @Test
-        @DisplayName("Bulk Create Users - Empty List - No exception")
+        @DisplayName("Bulk Create Users - Empty List - Throws BadRequestException")
         void bulkCreateUsersAsync_EmptyList() {
-            assertDoesNotThrow(
-                    () -> userService.bulkCreateUsersAsync(new ArrayList<>(), TEST_USER_ID, TEST_LOGIN_NAME,
+            List<UserRequestModel> users = new ArrayList<>();
+            assertThrows(BadRequestException.class,
+                    () -> userService.bulkCreateUsersAsync(users, TEST_USER_ID, TEST_LOGIN_NAME,
                             TEST_CLIENT_ID));
         }
 
@@ -257,9 +259,9 @@ class BulkCreateUsersTest extends UserServiceTestBase {
          * Assertions: assertDoesNotThrow();
          */
         @Test
-        @DisplayName("Bulk Create Users - Null List - No exception")
+        @DisplayName("Bulk Create Users - Null List - Throws BadRequestException")
         void bulkCreateUsersAsync_NullList() {
-            assertDoesNotThrow(
+            assertThrows(BadRequestException.class,
                     () -> userService.bulkCreateUsersAsync(null, TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID));
         }
 

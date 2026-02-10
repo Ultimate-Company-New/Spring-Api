@@ -5,8 +5,10 @@ import com.example.SpringApi.Models.ResponseModels.LeadResponseModel;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Services.Interface.ILeadSubTranslator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -17,10 +19,13 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for LeadService.getLeadDetails methods.
  * Tests retrieval of lead details by ID and email.
- * * Test Count: 12 tests
+ * * Test Count: 13 tests
  */
 @DisplayName("Get Lead Details Tests")
 class GetLeadDetailsTest extends LeadServiceTestBase {
+
+    @Mock
+    ILeadSubTranslator leadServiceMock;
 
     /*
      **********************************************************************************************
@@ -248,14 +253,14 @@ class GetLeadDetailsTest extends LeadServiceTestBase {
     @DisplayName("Get Lead Details - Controller delegates to service correctly")
     void getLeadDetailsById_WithValidRequest_DelegatesToService() {
         // Arrange
-        LeadController controller = new LeadController(leadService);
-        when(leadService.getLeadDetailsById(DEFAULT_LEAD_ID)).thenReturn(new LeadResponseModel(testLead));
+        LeadController controller = new LeadController(leadServiceMock);
+        when(leadServiceMock.getLeadDetailsById(DEFAULT_LEAD_ID)).thenReturn(new LeadResponseModel(testLead));
 
         // Act - Call controller directly (simulating authorization has already passed)
         ResponseEntity<?> response = controller.getLeadDetailsById(DEFAULT_LEAD_ID);
 
         // Assert - Verify service was called and correct response returned
-        verify(leadService, times(1)).getLeadDetailsById(DEFAULT_LEAD_ID);
+        verify(leadServiceMock, times(1)).getLeadDetailsById(DEFAULT_LEAD_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode(),
                 "Should return HTTP 200 OK");
     }

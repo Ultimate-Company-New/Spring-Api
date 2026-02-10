@@ -1,5 +1,7 @@
 package com.example.SpringApi.Services.Tests.Promo;
 
+import com.example.SpringApi.Services.PromoService;
+
 import com.example.SpringApi.Controllers.PromoController;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
@@ -181,14 +183,15 @@ public class GetPromoDetailsByNameTest extends PromoServiceTestBase {
     @Test
     @DisplayName("getPromoDetailsByName - Controller delegates to service")
     void getPromoDetailsByName_WithValidCode_DelegatesToService() {
-        PromoController controller = new PromoController(promoService);
+        PromoService mockPromoService = mock(PromoService.class);
+        PromoController controller = new PromoController(mockPromoService);
         String promoCode = "TEST10";
-        when(promoService.getPromoDetailsByName(promoCode))
+        when(mockPromoService.getPromoDetailsByName(promoCode))
                 .thenReturn(mock(PromoResponseModel.class));
 
         ResponseEntity<?> response = controller.getPromoDetailsByName(promoCode);
 
-        verify(promoService).getPromoDetailsByName(promoCode);
+        verify(mockPromoService).getPromoDetailsByName(promoCode);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

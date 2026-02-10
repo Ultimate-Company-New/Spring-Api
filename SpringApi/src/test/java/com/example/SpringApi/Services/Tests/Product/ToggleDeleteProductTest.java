@@ -1,6 +1,7 @@
 package com.example.SpringApi.Services.Tests.Product;
 
 import com.example.SpringApi.Controllers.ProductController;
+import com.example.SpringApi.Services.ProductService;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.Authorizations;
 import org.junit.jupiter.api.DisplayName;
@@ -108,12 +109,13 @@ public class ToggleDeleteProductTest extends ProductServiceTestBase {
     @Test
     @DisplayName("toggleDeleteProduct - Controller delegates to service")
     void toggleDeleteProduct_WithValidId_DelegatesToService() {
-        ProductController controller = new ProductController(productService);
-        doNothing().when(productService).toggleDeleteProduct(TEST_PRODUCT_ID);
+        ProductService mockProductService = mock(ProductService.class);
+        ProductController controller = new ProductController(mockProductService);
+        doNothing().when(mockProductService).toggleDeleteProduct(TEST_PRODUCT_ID);
 
         ResponseEntity<?> response = controller.toggleDeleteProduct(TEST_PRODUCT_ID);
 
-        verify(productService).toggleDeleteProduct(TEST_PRODUCT_ID);
+        verify(mockProductService).toggleDeleteProduct(TEST_PRODUCT_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

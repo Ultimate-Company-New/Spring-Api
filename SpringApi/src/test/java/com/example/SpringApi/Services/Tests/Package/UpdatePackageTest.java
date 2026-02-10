@@ -325,12 +325,12 @@ class UpdatePackageTest extends PackageServiceTestBase {
     @Test
     @DisplayName("updatePackage - Controller delegates to service")
     void updatePackage_WithValidRequest_DelegatesToService() {
-        PackageController controller = new PackageController(packageService, null);
-        doNothing().when(packageService).updatePackage(testPackageRequest);
+        PackageController controller = new PackageController(packageServiceMock, null);
+        doNothing().when(packageServiceMock).updatePackage(testPackageRequest);
 
         ResponseEntity<?> response = controller.updatePackage(testPackageRequest);
 
-        verify(packageService).updatePackage(testPackageRequest);
+        verify(packageServiceMock).updatePackage(testPackageRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

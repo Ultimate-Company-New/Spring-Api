@@ -1,5 +1,7 @@
 package com.example.SpringApi.Services.Tests.User;
 
+import com.example.SpringApi.Services.UserService;
+
 import com.example.SpringApi.Controllers.UserController;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
@@ -48,14 +50,15 @@ class GetUserByIdTest extends UserServiceTestBase {
     @Test
     @DisplayName("getUserById - Controller delegates to service")
     void getUserById_WithValidId_DelegatesToService() {
-        UserController controller = new UserController(userService);
+        UserService mockUserService = mock(UserService.class);
+        UserController controller = new UserController(mockUserService);
         Long userId = 1L;
         UserResponseModel mockResponse = new UserResponseModel();
-        when(userService.getUserById(userId)).thenReturn(mockResponse);
+        when(mockUserService.getUserById(userId)).thenReturn(mockResponse);
 
         ResponseEntity<?> response = controller.getUserById(userId);
 
-        verify(userService).getUserById(userId);
+        verify(mockUserService).getUserById(userId);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 

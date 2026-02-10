@@ -1,5 +1,7 @@
 package com.example.SpringApi.Services.Tests.Promo;
 
+import com.example.SpringApi.Services.PromoService;
+
 import com.example.SpringApi.Controllers.PromoController;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
@@ -59,10 +61,10 @@ public class GetPromosInBatchesTest extends PromoServiceTestBase {
         filter2.setValue("0");
         multiFilterRequest.setFilters(Arrays.asList(filter1, filter2));
         multiFilterRequest.setLogicOperator("AND");
-        
+
         when(promoFilterQueryBuilder.getColumnType("promoCode")).thenReturn("string");
         when(promoFilterQueryBuilder.getColumnType("promoId")).thenReturn("number");
-        
+
         List<Promo> promoList = Arrays.asList(testPromo);
         Page<Promo> promoPage = new PageImpl<>(promoList, PageRequest.of(0, 10, Sort.by("promoId").descending()), 1);
         lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
@@ -121,7 +123,7 @@ public class GetPromosInBatchesTest extends PromoServiceTestBase {
         invalidColumn.setValue("test");
         invalidColumnRequest.setFilters(List.of(invalidColumn));
         invalidColumnRequest.setLogicOperator("AND");
-        
+
         // Act & Assert
         BadRequestException invalidColumnEx = assertThrows(BadRequestException.class,
                 () -> promoService.getPromosInBatches(invalidColumnRequest));
@@ -141,7 +143,7 @@ public class GetPromosInBatchesTest extends PromoServiceTestBase {
         invalidOperator.setValue("test");
         invalidOperatorRequest.setFilters(List.of(invalidOperator));
         invalidOperatorRequest.setLogicOperator("AND");
-        
+
         // Act & Assert
         BadRequestException invalidOperatorEx = assertThrows(BadRequestException.class,
                 () -> promoService.getPromosInBatches(invalidOperatorRequest));
@@ -155,7 +157,7 @@ public class GetPromosInBatchesTest extends PromoServiceTestBase {
         PaginationBaseRequestModel invalidPagination = new PaginationBaseRequestModel();
         invalidPagination.setStart(10);
         invalidPagination.setEnd(5);
-        
+
         // Act & Assert
         BadRequestException paginationEx = assertThrows(BadRequestException.class,
                 () -> promoService.getPromosInBatches(invalidPagination));
@@ -181,15 +183,18 @@ public class GetPromosInBatchesTest extends PromoServiceTestBase {
     @Test
     @DisplayName("getPromosInBatches - Controller delegates to service")
     void getPromosInBatches_WithValidRequest_DelegatesToService() {
-        PromoController controller = new PromoController(promoService);
+        PromoService mockPromoService = mock(PromoService.class);
+        PromoController controller = new PromoController(mockPromoService);
         PaginationBaseRequestModel request = new PaginationBaseRequestModel();
+        request.setStart(0);
+        request.setEnd(10);
         @SuppressWarnings("unchecked")
         PaginationBaseResponseModel<Promo> mockResponse = mock(PaginationBaseResponseModel.class);
-        when(promoService.getPromosInBatches(request)).thenReturn(mockResponse);
+        when(mockPromoService.getPromosInBatches(request)).thenReturn(mockResponse);
 
         ResponseEntity<?> response = controller.getPromosInBatches(request);
 
-        verify(promoService).getPromosInBatches(request);
+        verify(mockPromoService).getPromosInBatches(request);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }
