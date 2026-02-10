@@ -84,79 +84,119 @@ public abstract class ClientServiceTestBase extends BaseTest {
     }
 
     protected void stubClientExistsByName(String name, boolean exists) {
+        // Stubs repository lookups by client name.
+        // When 'exists' is true, both existsByName(name) and findByName(name)
+        // will return a positive result (Optional.of(testClient)). Otherwise
+        // they return false/empty to simulate not found.
         lenient().when(clientRepository.existsByName(name)).thenReturn(exists);
         lenient().when(clientRepository.findByName(name))
                 .thenReturn(exists ? Optional.of(testClient) : Optional.empty());
     }
 
+    /**
+     * Stub repository method findByName.
+     * @param name repository lookup name
+     * @param client optional client to return
+     */
     protected void stubClientFindByName(String name, Optional<Client> client) {
         lenient().when(clientRepository.findByName(name)).thenReturn(client);
     }
 
+    /**
+     * Stub repository method findById.
+     * @param id repository id to lookup
+     * @param client optional client to return
+     */
     protected void stubClientFindById(Long id, Optional<Client> client) {
         lenient().when(clientRepository.findById(id)).thenReturn(client);
     }
 
+    /**
+     * Stub repository save behavior.
+     * Returns the provided client when save(any(Client.class)) is called.
+     * @param clientToReturn the client instance to return from save
+     */
     protected void stubClientSave(Client clientToReturn) {
         lenient().when(clientRepository.save(any(Client.class))).thenReturn(clientToReturn);
     }
 
+    /**
+     * Stub repository method findByUserId.
+     * @param userId the user id used for lookup
+     * @param clients the list of clients to return
+     */
     protected void stubClientFindByUserId(Long userId, java.util.List<Client> clients) {
         lenient().when(clientRepository.findByUserId(userId)).thenReturn(clients);
     }
 
+    /**
+     * Stub GoogleCredRepository.findById.
+     * @param id the id to lookup
+     * @param cred optional GoogleCred to return
+     */
     protected void stubGoogleCredFindById(Long id, Optional<GoogleCred> cred) {
         lenient().when(googleCredRepository.findById(id)).thenReturn(cred);
     }
 
+    /**
+     * Stub environment active profiles.
+     * @param profiles array of profiles to return from environment.getActiveProfiles()
+     */
     protected void stubEnvironmentProfiles(String[] profiles) {
         lenient().when(environment.getActiveProfiles()).thenReturn(profiles);
     }
 
     /**
-     * Centralized stub for request headers.
+     * Stub request header retrieval.
+     * Returns the provided value when request.getHeader(name) is called.
+     * @param name header name
+     * @param value header value to return
      */
     protected void stubRequestHeader(String name, String value) {
         lenient().when(request.getHeader(name)).thenReturn(value);
     }
 
     /**
-     * Centralized stub for user log data results.
+     * Stub user log service return value for logData calls.
+     * Always returns the provided boolean result for any logData invocation.
+     * @param result boolean result to return from userLogService.logData(...)
      */
     protected void stubUserLogDataReturn(boolean result) {
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(result);
     }
 
     /**
-     * Stubs the client service createClient method for controller tests.
+     * Stub the controller-level createClient call to do nothing (for controller tests).
      */
     protected void stubServiceCreateClientDoNothing() {
         doNothing().when(mockClientService).createClient(any());
     }
 
     /**
-     * Stubs the client service updateClient method for controller tests.
+     * Stub the controller-level updateClient call to do nothing (for controller tests).
      */
     protected void stubServiceUpdateClientDoNothing() {
         doNothing().when(mockClientService).updateClient(any());
     }
 
     /**
-     * Stubs the client service toggleClient method for controller tests.
+     * Stub the controller-level toggleClient call to do nothing (for controller tests).
      */
     protected void stubServiceToggleClientDoNothing() {
         doNothing().when(mockClientService).toggleClient(anyLong());
     }
 
     /**
-     * Stubs the client service getClientById method for controller tests.
+     * Stub the controller-level getClientById to return a prepared response.
+     * @param response the ClientResponseModel to return
      */
     protected void stubServiceGetClientById(ClientResponseModel response) {
         when(mockClientService.getClientById(anyLong())).thenReturn(response);
     }
 
     /**
-     * Stubs the client service getClientsByUser method for controller tests.
+     * Stub the controller-level getClientsByUser to return a prepared list.
+     * @param response the list of ClientResponseModel to return
      */
     protected void stubServiceGetClientsByUser(java.util.List<ClientResponseModel> response) {
         when(mockClientService.getClientsByUser()).thenReturn(response);
