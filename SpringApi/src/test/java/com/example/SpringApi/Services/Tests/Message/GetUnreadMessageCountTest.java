@@ -3,7 +3,6 @@ package com.example.SpringApi.Services.Tests.Message;
 import com.example.SpringApi.Controllers.MessageController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
 import com.example.SpringApi.Models.Authorizations;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -18,7 +17,7 @@ import static org.mockito.Mockito.*;
  * Unit tests for MessageService.getUnreadMessageCount method.
  */
 @DisplayName("GetUnreadMessageCount Tests")
-public class GetUnreadMessageCountTest extends MessageServiceTestBase {
+class GetUnreadMessageCountTest extends MessageServiceTestBase {
 
     // Total Tests: 11
 
@@ -28,45 +27,83 @@ public class GetUnreadMessageCountTest extends MessageServiceTestBase {
      **********************************************************************************************
      */
 
+    /**
+     * Purpose: Verify that the service can handle and return large unread message
+     * counts.
+     * Scenario: Repository returns a count of 1000.
+     * Expected: Service returns 1000 as integer.
+     */
     @Test
     @DisplayName("Get Unread Message Count - Large count - Success")
     void getUnreadMessageCount_LargeCount_Success() {
+        // Arrange
         when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID)).thenReturn(1000L);
 
+        // Act
         int result = messageService.getUnreadMessageCount();
 
+        // Assert
         assertEquals(1000, result);
         verify(messageRepository).countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID);
     }
 
+    /**
+     * Purpose: Verify that the service correctly handles the maximum integer
+     * boundary for counts.
+     * Scenario: Repository returns a count equal to Integer.MAX_VALUE.
+     * Expected: Service returns Integer.MAX_VALUE.
+     */
     @Test
     @DisplayName("Get Unread Message Count - Max Integer Boundary - Success")
     void getUnreadMessageCount_MaxIntegerBoundary_Success() {
-        when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID)).thenReturn((long)Integer.MAX_VALUE);
+        // Arrange
+        when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
+                .thenReturn((long) Integer.MAX_VALUE);
+
+        // Act
         int result = messageService.getUnreadMessageCount();
+
+        // Assert
         assertEquals(Integer.MAX_VALUE, result);
     }
 
+    /**
+     * Purpose: Verify that the service returns zero when there are no unread
+     * messages.
+     * Scenario: Repository returns a count of 0.
+     * Expected: Service returns 0.
+     */
     @Test
     @DisplayName("Get Unread Message Count - No unread messages - Returns zero")
     void getUnreadMessageCount_NoUnreadMessages_ReturnsZero() {
+        // Arrange
         when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID)).thenReturn(0L);
 
+        // Act
         int result = messageService.getUnreadMessageCount();
 
+        // Assert
         assertEquals(0, result);
         verify(messageRepository).countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID);
     }
 
-
-
+    /**
+     * Purpose: Verify that the service successfully retrieves unread message count
+     * for current user.
+     * Scenario: Call getUnreadMessageCount when repository returns positive value
+     * (5).
+     * Expected: Service returns 5.
+     */
     @Test
     @DisplayName("Get Unread Message Count - Success")
     void getUnreadMessageCount_Success() {
+        // Arrange
         when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID)).thenReturn(5L);
 
+        // Act
         int result = messageService.getUnreadMessageCount();
 
+        // Assert
         assertEquals(5, result);
         verify(messageRepository).countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID);
     }
@@ -77,31 +114,53 @@ public class GetUnreadMessageCountTest extends MessageServiceTestBase {
      **********************************************************************************************
      */
 
+    /**
+     * Purpose: Verify that authorization denied scenarios are handled at controller
+     * level.
+     * Scenario: Service layer is called (service layer itself does not enforce
+     * security).
+     * Expected Result: Service returns valid result without throwing security
+     * exceptions.
+     */
     @Test
     @DisplayName("Get Unread Message Count - Authorization denied - ThrowsUnauthorizedException")
     void getUnreadMessageCount_AuthorizationDenied_ThrowsUnauthorizedException() {
+        // Arrange
         when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID)).thenReturn(5L);
 
-        // Note: Authorization is controller-level only, service doesn't check it
+        // Act & Assert
         assertDoesNotThrow(() -> messageService.getUnreadMessageCount());
     }
 
+    /**
+     * Purpose: Verify that exceptions during client context lookup are propagated.
+     * Expected Result: RuntimeException with appropriate error message.
+     */
     @Test
     @DisplayName("Get Unread Message Count - Client Lookup Error - Propagates")
     void getUnreadMessageCount_ClientLookupError_Propagates() {
-        // Simulating error getting client context through repository call
+        // Arrange
         when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
                 .thenThrow(new RuntimeException("Context error"));
+
+        // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.getUnreadMessageCount());
         assertEquals("Context error", ex.getMessage());
     }
 
+    /**
+     * Purpose: Reject retrieval request when end index is less than or equal to
+     * start index.
+     * Expected Result: BadRequestException with InvalidPagination error message.
+     */
     @Test
     @DisplayName("Get Unread Message Count - Repository exception - Throws Exception")
     void getUnreadMessageCount_RepositoryException_ThrowsException() {
+        // Arrange
         when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
                 .thenThrow(new RuntimeException("Database connection failed"));
 
+        // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> messageService.getUnreadMessageCount());
         assertEquals("Database connection failed", ex.getMessage());
@@ -109,19 +168,37 @@ public class GetUnreadMessageCountTest extends MessageServiceTestBase {
         verify(messageRepository).countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID);
     }
 
+    /**
+     * Purpose: Verify that unauthorized context scenarios are handled at controller
+     * level.
+     * Scenario: Service layer is called for a valid context (service doesn't
+     * enforce auth).
+     * Expected Result: Service returns valid result without throwing security
+     * exceptions.
+     */
     @Test
-    @DisplayName("Get Unread Message Count - Unauthorized Context - Throws UnauthorizedException")
-    void getUnreadMessageCount_UnauthorizedContext_ThrowsUnauthorizedException() {
-        when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID)).thenReturn(5L);
+    @DisplayName("Get Unread Message Count - Unauthorized Context - Should handle gracefully")
+    void getUnreadMessageCount_UnauthorizedContext_SuccessWithEmptyResult() {
+        // Arrange
+        when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID)).thenReturn(0L);
 
-        // Note: Authorization is controller-level only, service doesn't check it
+        // Act & Assert
         assertDoesNotThrow(() -> messageService.getUnreadMessageCount());
     }
 
+    /**
+     * Purpose: Propagate repository exceptions when user lookup fails during count
+     * check.
+     * Expected Result: RuntimeException with original database error message.
+     */
     @Test
     @DisplayName("Get Unread Message Count - User ID Lookup Failure - Propagates")
     void getUnreadMessageCount_UserIdLookupFailure_Propagates() {
-        doThrow(new RuntimeException("User lookup failed")).when(messageRepository).countUnreadMessagesByUserId(anyLong(), anyLong());
+        // Arrange
+        doThrow(new RuntimeException("User lookup failed")).when(messageRepository)
+                .countUnreadMessagesByUserId(anyLong(), anyLong());
+
+        // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.getUnreadMessageCount());
         assertEquals("User lookup failed", ex.getMessage());
     }
@@ -132,24 +209,43 @@ public class GetUnreadMessageCountTest extends MessageServiceTestBase {
      **********************************************************************************************
      */
 
+    /**
+     * Purpose: Verify that the getUnreadMessageCount controller method is protected
+     * by correct @PreAuthorize permission.
+     * Expected: Method has @PreAuthorize referencing VIEW_MESSAGES_PERMISSION.
+     */
     @Test
     @DisplayName("getUnreadMessageCount - Verify @PreAuthorize Annotation")
     void getUnreadMessageCount_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        // Arrange
         Method method = MessageController.class.getMethod("getUnreadMessageCount");
+
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
         assertNotNull(annotation, "@PreAuthorize annotation should be present");
         assertTrue(annotation.value().contains(Authorizations.VIEW_MESSAGES_PERMISSION),
-            "@PreAuthorize should reference VIEW_MESSAGES_PERMISSION");
+                "@PreAuthorize should reference VIEW_MESSAGES_PERMISSION");
     }
 
+    /**
+     * Purpose: Verify that the controller correctly delegates getUnreadMessageCount
+     * calls to the service layer.
+     * Expected: Status 200 returned upon delegation.
+     */
     @Test
     @DisplayName("getUnreadMessageCount - Controller delegates to service")
     void getUnreadMessageCount_WithValidRequest_DelegatesToService() {
-        MessageController controller = new MessageController(messageService);
-        when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID)).thenReturn(5L);
+        // Arrange
+        MessageController controller = new MessageController(messageServiceMock);
+        when(messageServiceMock.getUnreadMessageCount()).thenReturn(5);
 
+        // Act
         ResponseEntity<?> response = controller.getUnreadMessageCount();
 
+        // Assert
+        verify(messageServiceMock).getUnreadMessageCount();
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

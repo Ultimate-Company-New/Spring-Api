@@ -746,6 +746,7 @@ public class ErrorMessages {
         public static final String InvalidLogicOperator = "Invalid logic operator. Must be 'AND' or 'OR'.";
 
         // Filter errors
+        public static final String InvalidColumnName = "Invalid column name: %s";
         public static final String BooleanColumnsOnlySupportEquals = "Boolean columns only support 'equals' and 'notEquals' operators.";
 
         // List errors

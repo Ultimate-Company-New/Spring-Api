@@ -7,7 +7,6 @@ import com.example.SpringApi.Models.ResponseModels.MessageResponseModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import org.junit.jupiter.api.DisplayName;
@@ -25,148 +24,234 @@ import static org.mockito.Mockito.*;
 @DisplayName("GetMessageDetailsById Tests")
 public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
 
-    // Total Tests: 11
+        // Total Tests: 11
 
-    /*
-     **********************************************************************************************
-     * SUCCESS TESTS
-     **********************************************************************************************
-     */
+        /*
+         **********************************************************************************************
+         * SUCCESS TESTS
+         **********************************************************************************************
+         */
 
-    @Test
-    @DisplayName("Get Message Details By ID - Mapping Verification - Success")
-    void getMessageDetailsById_MappingVerification_Success() {
-        testMessage.setDescriptionHtml("<b>Test</b>");
-        when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+        /**
+         * Purpose: Verify message details are correctly mapped from database model to
+         * response model.
+         * Scenario: Retrieve message and verify HTML description is preserved in
+         * mapping.
+         * Expected: Message response contains exact database values for title and
+         * description.
+         */
+        @Test
+        @DisplayName("Get Message Details By ID - Mapping Verification - Success")
+        void getMessageDetailsById_MappingVerification_Success() {
+                // Arrange
+                testMessage.setDescriptionHtml("<b>Test</b>");
+                when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
+                                .thenReturn(Optional.of(testMessage));
 
-        MessageResponseModel result = messageService.getMessageDetailsById(TEST_MESSAGE_ID);
+                // Act
+                MessageResponseModel result = messageService.getMessageDetailsById(TEST_MESSAGE_ID);
 
-        assertEquals("<b>Test</b>", result.getDescriptionHtml());
-        assertEquals(TEST_TITLE, result.getTitle());
-    }
+                // Assert
+                assertEquals("<b>Test</b>", result.getDescriptionHtml());
+                assertEquals(TEST_TITLE, result.getTitle());
+        }
 
-    @Test
-    @DisplayName("Get Message Details By ID - Success")
-    void getMessageDetailsById_Success() {
-        when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+        /**
+         * Purpose: Verify that a message can be successfully retrieved by its ID.
+         * Scenario: Call getMessageDetailsById with a valid existing message ID.
+         * Expected: Correct message details returned with matching ID and title.
+         */
+        @Test
+        @DisplayName("Get Message Details By ID - Success")
+        void getMessageDetailsById_Success() {
+                // Arrange
+                when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
+                                .thenReturn(Optional.of(testMessage));
 
-        MessageResponseModel result = messageService.getMessageDetailsById(TEST_MESSAGE_ID);
+                // Act
+                MessageResponseModel result = messageService.getMessageDetailsById(TEST_MESSAGE_ID);
 
-        assertNotNull(result);
-        assertEquals(TEST_MESSAGE_ID, result.getMessageId());
-        assertEquals(TEST_TITLE, result.getTitle());
-    }
+                // Assert
+                assertNotNull(result);
+                assertEquals(TEST_MESSAGE_ID, result.getMessageId());
+                assertEquals(TEST_TITLE, result.getTitle());
+        }
 
-    @Test
-    @DisplayName("Get Message Details By ID - Verify SendAsEmail flag - Success")
-    void getMessageDetailsById_VerifySendAsEmail_Success() {
-        testMessage.setSendAsEmail(true);
-        when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+        /**
+         * Purpose: Verify that the sendAsEmail flag is correctly mapped in the
+         * response.
+         * Scenario: Retrieve message where sendAsEmail is set to true.
+         * Expected: Result object has sendAsEmail property set to true.
+         */
+        @Test
+        @DisplayName("Get Message Details By ID - Verify SendAsEmail flag - Success")
+        void getMessageDetailsById_VerifySendAsEmail_Success() {
+                // Arrange
+                testMessage.setSendAsEmail(true);
+                when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
+                                .thenReturn(Optional.of(testMessage));
 
-        MessageResponseModel result = messageService.getMessageDetailsById(TEST_MESSAGE_ID);
-        assertTrue(result.getSendAsEmail());
-    }
+                // Act
+                MessageResponseModel result = messageService.getMessageDetailsById(TEST_MESSAGE_ID);
 
-    @Test
-    @DisplayName("Get Message Details By ID - With Targets - Success")
-    void getMessageDetailsById_WithTargets_Success() {
-        // Logic check: ensure the query for targets is called
-        when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+                // Assert
+                assertTrue(result.getSendAsEmail());
+        }
 
-        assertDoesNotThrow(() -> messageService.getMessageDetailsById(TEST_MESSAGE_ID));
-        verify(messageRepository).findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID);
-    }
+        /**
+         * Purpose: Verify that the repository method for retrieving message with
+         * targets is called.
+         * Scenario: Call getMessageDetailsById for any valid ID.
+         * Expected: messageRepository.findByMessageIdAndClientIdWithTargets is invoked
+         * with provided ID.
+         */
+        @Test
+        @DisplayName("Get Message Details By ID - With Targets - Success")
+        void getMessageDetailsById_WithTargets_Success() {
+                // Arrange
+                when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
+                                .thenReturn(Optional.of(testMessage));
 
-    /*
-     **********************************************************************************************
-     * FAILURE / EXCEPTION TESTS
-     **********************************************************************************************
-     */
+                // Act & Assert
+                assertDoesNotThrow(() -> messageService.getMessageDetailsById(TEST_MESSAGE_ID));
+                verify(messageRepository).findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID);
+        }
 
-    @Test
-    @DisplayName("Get Message Details By ID - Message not found - Throws NotFoundException")
-    void getMessageDetailsById_MessageNotFound_ThrowsNotFoundException() {
-        when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.empty());
+        /*
+         **********************************************************************************************
+         * FAILURE / EXCEPTION TESTS
+         **********************************************************************************************
+         */
 
-        assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
-                () -> messageService.getMessageDetailsById(TEST_MESSAGE_ID));
-    }
+        /**
+         * Purpose: Reject retrieval request when message ID does not exist.
+         * Expected Result: NotFoundException with ER007/InvalidId error message.
+         */
+        @Test
+        @DisplayName("Get Message Details By ID - Message not found - Throws NotFoundException")
+        void getMessageDetailsById_MessageNotFound_ThrowsNotFoundException() {
+                // Arrange
+                when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
+                                .thenReturn(Optional.empty());
 
-    @Test
-    @DisplayName("Get Message Details By ID - Negative message ID - Throws BadRequestException")
-    void getMessageDetailsById_NegativeMessageId_ThrowsBadRequestException() {
-        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.InvalidId,
-                () -> messageService.getMessageDetailsById(-1L));
-    }
+                // Act & Assert
+                assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
+                                () -> messageService.getMessageDetailsById(TEST_MESSAGE_ID));
+        }
 
-    @Test
-    @DisplayName("Get Message Details By ID - Repository Error - Propagates Exception")
-    void getMessageDetailsById_RepositoryError_Propagates() {
-        when(messageRepository.findByMessageIdAndClientIdWithTargets(anyLong(), anyLong()))
-                .thenThrow(new RuntimeException("Lookup failed"));
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.getMessageDetailsById(TEST_MESSAGE_ID));
-        assertEquals("Lookup failed", ex.getMessage());
-    }
+        /**
+         * Purpose: Reject retrieval request when message ID is negative.
+         * Expected Result: BadRequestException with InvalidId error code.
+         */
+        @Test
+        @DisplayName("Get Message Details By ID - Negative message ID - Throws BadRequestException")
+        void getMessageDetailsById_NegativeMessageId_ThrowsBadRequestException() {
+                // Arrange & Act & Assert
+                assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.InvalidId,
+                                () -> messageService.getMessageDetailsById(-1L));
+        }
 
-    @Test
-    @DisplayName("Get Message Details By ID - Unauthorized Access - Throws UnauthorizedException")
-    void getMessageDetailsById_UnauthorizedAccess_ThrowsUnauthorizedException() {
-        when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+        /**
+         * Purpose: Propagate repository exceptions when message lookup fails.
+         * Expected Result: RuntimeException with original database error message.
+         */
+        @Test
+        @DisplayName("Get Message Details By ID - Repository Error - Propagates Exception")
+        void getMessageDetailsById_RepositoryError_Propagates() {
+                // Arrange
+                when(messageRepository.findByMessageIdAndClientIdWithTargets(anyLong(), anyLong()))
+                                .thenThrow(new RuntimeException("Lookup failed"));
 
-        // Note: Authorization is controller-level only, service doesn't check it
-        assertDoesNotThrow(() -> messageService.getMessageDetailsById(TEST_MESSAGE_ID));
-    }
+                // Act & Assert
+                RuntimeException ex = assertThrows(RuntimeException.class,
+                                () -> messageService.getMessageDetailsById(TEST_MESSAGE_ID));
+                assertEquals("Lookup failed", ex.getMessage());
+        }
 
-    @Test
-    @DisplayName("Get Message Details By ID - Zero message ID - ThrowsBadRequestException")
-    void getMessageDetailsById_ZeroMessageId_ThrowsBadRequestException() {
-        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.InvalidId,
-                () -> messageService.getMessageDetailsById(0L));
-    }
+        /**
+         * Purpose: Verify that unauthorized access checks are handled at controller
+         * level.
+         * Scenario: Service layer is called for a valid ID (service does not enforce
+         * auth).
+         * Expected: Service returns valid result without throwing exceptions.
+         */
+        @Test
+        @DisplayName("Get Message Details By ID - Unauthorized Access - Throws UnauthorizedException")
+        void getMessageDetailsById_UnauthorizedAccess_ThrowsUnauthorizedException() {
+                // Arrange
+                when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
+                                .thenReturn(Optional.of(testMessage));
 
-    /*
-     **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
-     **********************************************************************************************
-     */
+                // Act & Assert
+                assertDoesNotThrow(() -> messageService.getMessageDetailsById(TEST_MESSAGE_ID));
+        }
 
-    @Test
-    @DisplayName("getMessageDetailsById - Verify @PreAuthorize annotation")
-    void getMessageDetailsById_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        Method method = MessageController.class.getMethod(
-                "getMessageDetailsById",
-                com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.class);
+        /**
+         * Purpose: Reject retrieval request when message ID is zero.
+         * Expected Result: BadRequestException with InvalidId error code.
+         */
+        @Test
+        @DisplayName("Get Message Details By ID - Zero message ID - ThrowsBadRequestException")
+        void getMessageDetailsById_ZeroMessageId_ThrowsBadRequestException() {
+                // Arrange & Act & Assert
+                assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.InvalidId,
+                                () -> messageService.getMessageDetailsById(0L));
+        }
 
-        PreAuthorize preAuthorizeAnnotation = method.getAnnotation(PreAuthorize.class);
+        /*
+         **********************************************************************************************
+         * CONTROLLER AUTHORIZATION TESTS
+         **********************************************************************************************
+         */
 
-        assertNotNull(preAuthorizeAnnotation,
-                "getMessageDetailsById method should have @PreAuthorize annotation");
+        /**
+         * Purpose: Verify that the getMessageDetailsById controller method is protected
+         * by correct @PreAuthorize permission.
+         * Expected: Method has @PreAuthorize referencing VIEW_MESSAGES_PERMISSION.
+         */
+        @Test
+        @DisplayName("getMessageDetailsById - Verify @PreAuthorize annotation")
+        void getMessageDetailsById_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+                // Arrange
+                Method method = MessageController.class.getMethod(
+                                "getMessageDetailsById",
+                                com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.class);
 
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-                Authorizations.VIEW_MESSAGES_PERMISSION + "')";
+                // Act
+                PreAuthorize preAuthorizeAnnotation = method.getAnnotation(PreAuthorize.class);
 
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                "PreAuthorize annotation should reference VIEW_MESSAGES_PERMISSION");
-    }
+                // Assert
+                assertNotNull(preAuthorizeAnnotation,
+                                "getMessageDetailsById method should have @PreAuthorize annotation");
 
-    @Test
-    @DisplayName("getMessageDetailsById - Controller delegates to service correctly")
-    void getMessageDetailsById_WithValidRequest_DelegatesToService() {
-        MessageController controller = new MessageController(messageServiceMock);
-        PaginationBaseRequestModel request = new PaginationBaseRequestModel();
-        request.setId(TEST_MESSAGE_ID);
-        when(messageServiceMock.getMessageDetailsById(TEST_MESSAGE_ID)).thenReturn(new MessageResponseModel(testMessage));
+                String expectedPermission = "@customAuthorization.hasAuthority('" +
+                                Authorizations.VIEW_MESSAGES_PERMISSION + "')";
 
-        ResponseEntity<?> response = controller.getMessageDetailsById(request);
+                assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                                "PreAuthorize annotation should reference VIEW_MESSAGES_PERMISSION");
+        }
 
-        verify(messageServiceMock, times(1)).getMessageDetailsById(TEST_MESSAGE_ID);
-        assertEquals(HttpStatus.OK, response.getStatusCode(),
-                "Should return HTTP 200 OK");
-    }
+        /**
+         * Purpose: Verify that the controller correctly delegates getMessageDetailsById
+         * calls to the service layer.
+         * Expected: Service method called with correct ID and HTTP 200 returned.
+         */
+        @Test
+        @DisplayName("getMessageDetailsById - Controller delegates to service correctly")
+        void getMessageDetailsById_WithValidRequest_DelegatesToService() {
+                // Arrange
+                MessageController controller = new MessageController(messageServiceMock);
+                PaginationBaseRequestModel pRequest = new PaginationBaseRequestModel();
+                pRequest.setId(TEST_MESSAGE_ID);
+                when(messageServiceMock.getMessageDetailsById(TEST_MESSAGE_ID))
+                                .thenReturn(new MessageResponseModel(testMessage));
+
+                // Act
+                ResponseEntity<?> response = controller.getMessageDetailsById(pRequest);
+
+                // Assert
+                verify(messageServiceMock, times(1)).getMessageDetailsById(TEST_MESSAGE_ID);
+                assertEquals(HttpStatus.OK, response.getStatusCode(),
+                                "Should return HTTP 200 OK");
+        }
 }
