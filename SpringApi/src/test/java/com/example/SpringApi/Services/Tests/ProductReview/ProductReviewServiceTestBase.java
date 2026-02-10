@@ -22,7 +22,8 @@ import static org.mockito.Mockito.lenient;
 
 /**
  * Base test class for ProductReviewService tests.
- * Provides common setup, test data, and helper methods for all ProductReview test files.
+ * Provides common setup, test data, and helper methods for all ProductReview
+ * test files.
  */
 @ExtendWith(MockitoExtension.class)
 public abstract class ProductReviewServiceTestBase extends BaseTest {
@@ -57,7 +58,7 @@ public abstract class ProductReviewServiceTestBase extends BaseTest {
     void setUp() {
         initializeTestData();
 
-        lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+        stubAuthorizationHeader();
         MockHttpServletRequest mockRequest = new MockHttpServletRequest();
         mockRequest.addHeader("Authorization", "Bearer test-token");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockRequest));
@@ -92,14 +93,18 @@ public abstract class ProductReviewServiceTestBase extends BaseTest {
      * Build a valid ProductReviewRequestModel for test purposes.
      */
     protected ProductReviewRequestModel buildValidProductReviewRequest() {
-        ProductReviewRequestModel request = new ProductReviewRequestModel();
-        request.setReviewId(TEST_REVIEW_ID);
-        request.setRatings(TEST_RATING);
-        request.setReview(TEST_REVIEW_TEXT);
-        request.setUserId(TEST_USER_ID);
-        request.setProductId(TEST_PRODUCT_ID);
-        request.setParentId(null);
-        return request;
+        ProductReviewRequestModel requestModel = new ProductReviewRequestModel();
+        requestModel.setReviewId(TEST_REVIEW_ID);
+        requestModel.setRatings(TEST_RATING);
+        requestModel.setReview(TEST_REVIEW_TEXT);
+        requestModel.setUserId(TEST_USER_ID);
+        requestModel.setProductId(TEST_PRODUCT_ID);
+        requestModel.setParentId(null);
+        return requestModel;
+    }
+
+    protected void stubAuthorizationHeader() {
+        lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
     }
 
 }

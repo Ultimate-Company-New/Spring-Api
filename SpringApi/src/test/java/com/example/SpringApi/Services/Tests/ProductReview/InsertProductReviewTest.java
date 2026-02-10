@@ -5,14 +5,9 @@ import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Models.DatabaseModels.ProductReview;
 import com.example.SpringApi.Models.RequestModels.ProductReviewRequestModel;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -21,12 +16,14 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for ProductReviewService.insertProductReview method.
  * 
- * Test count: 38 tests
- * - SUCCESS: 20 tests (3 tests + 17 dynamic tests)
- * - FAILURE / EXCEPTION: 18 tests (13 tests + 5 dynamic tests)
+ * Test count: 60 tests
+ * - SUCCESS: 35 tests
+ * - FAILURE / EXCEPTION: 25 tests
  */
 @DisplayName("ProductReviewService - InsertProductReview Tests")
-public class InsertProductReviewTest extends ProductReviewServiceTestBase {
+class InsertProductReviewTest extends ProductReviewServiceTestBase {
+
+    // Total Tests: 60
 
     // ========================================
     // SUCCESS Tests
@@ -35,38 +32,49 @@ public class InsertProductReviewTest extends ProductReviewServiceTestBase {
     @Test
     @DisplayName("Insert Product Review - Success - Should create and save review")
     void insertProductReview_Success() {
+        // Arrange
         when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
 
+        // Act
         productReviewService.insertProductReview(testProductReviewRequest);
 
+        // Assert
         verify(productReviewRepository, times(1)).save(any(ProductReview.class));
         verify(userLogService, times(1)).logData(
-            eq(TEST_USER_ID.longValue()),
-            eq("Successfully inserted product review. null"),
-            eq("insertProductReview")
-        );
+                TEST_USER_ID.longValue(),
+                "Successfully inserted product review. null",
+                "insertProductReview");
     }
 
     @Test
     @DisplayName("Insert Product Review - Rating Exactly 1 - Success")
     void insertProductReview_RatingOne_Success() {
+        // Arrange
         testProductReviewRequest.setRatings(BigDecimal.ONE);
         when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
         assertDoesNotThrow(() -> productReviewService.insertProductReview(testProductReviewRequest));
     }
 
     @Test
     @DisplayName("Insert Product Review - Rating Exactly 5 - Success")
     void insertProductReview_RatingFive_Success() {
+        // Arrange
         testProductReviewRequest.setRatings(new BigDecimal("5.0"));
         when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
         assertDoesNotThrow(() -> productReviewService.insertProductReview(testProductReviewRequest));
     }
 
     @Test
     @DisplayName("Insert Product Review - Rating Zero - Success")
     void insertProductReview_RatingZero_Success() {
+        // Arrange
         testProductReviewRequest.setRatings(BigDecimal.ZERO);
+
+        // Act & Assert
         assertDoesNotThrow(() -> productReviewService.insertProductReview(testProductReviewRequest));
     }
 
@@ -77,12 +85,13 @@ public class InsertProductReviewTest extends ProductReviewServiceTestBase {
     @Test
     @DisplayName("Insert Product Review - Empty Review Text - Throws BadRequestException")
     void insertProductReview_EmptyReviewText_ThrowsBadRequestException() {
+        // Arrange
         testProductReviewRequest.setReview("");
 
+        // Act & Assert
         BadRequestException exception = assertThrows(
-            BadRequestException.class,
-            () -> productReviewService.insertProductReview(testProductReviewRequest)
-        );
+                BadRequestException.class,
+                () -> productReviewService.insertProductReview(testProductReviewRequest));
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER002, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
@@ -91,12 +100,13 @@ public class InsertProductReviewTest extends ProductReviewServiceTestBase {
     @Test
     @DisplayName("Insert Product Review - Invalid Ratings (Negative) - Throws BadRequestException")
     void insertProductReview_InvalidRatings_ThrowsBadRequestException() {
+        // Arrange
         testProductReviewRequest.setRatings(new BigDecimal("-1.0"));
 
+        // Act & Assert
         BadRequestException exception = assertThrows(
-            BadRequestException.class,
-            () -> productReviewService.insertProductReview(testProductReviewRequest)
-        );
+                BadRequestException.class,
+                () -> productReviewService.insertProductReview(testProductReviewRequest));
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
@@ -105,8 +115,10 @@ public class InsertProductReviewTest extends ProductReviewServiceTestBase {
     @Test
     @DisplayName("Insert Product Review - Negative Product ID - Throws BadRequestException")
     void insertProductReview_NegativeProductId_ThrowsBadRequestException() {
+        // Arrange
         testProductReviewRequest.setProductId(-1L);
 
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> productReviewService.insertProductReview(testProductReviewRequest));
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, ex.getMessage());
@@ -115,8 +127,10 @@ public class InsertProductReviewTest extends ProductReviewServiceTestBase {
     @Test
     @DisplayName("Insert Product Review - Negative User ID - Throws BadRequestException")
     void insertProductReview_NegativeUserId_ThrowsBadRequestException() {
+        // Arrange
         testProductReviewRequest.setUserId(-1L);
 
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> productReviewService.insertProductReview(testProductReviewRequest));
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER003, ex.getMessage());
@@ -125,12 +139,13 @@ public class InsertProductReviewTest extends ProductReviewServiceTestBase {
     @Test
     @DisplayName("Insert Product Review - Null Product ID - Throws BadRequestException")
     void insertProductReview_NullProductId_ThrowsBadRequestException() {
+        // Arrange
         testProductReviewRequest.setProductId(null);
 
+        // Act & Assert
         BadRequestException exception = assertThrows(
-            BadRequestException.class,
-            () -> productReviewService.insertProductReview(testProductReviewRequest)
-        );
+                BadRequestException.class,
+                () -> productReviewService.insertProductReview(testProductReviewRequest));
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
@@ -139,10 +154,10 @@ public class InsertProductReviewTest extends ProductReviewServiceTestBase {
     @Test
     @DisplayName("Insert Product Review - Null Request - Throws BadRequestException")
     void insertProductReview_NullRequest_ThrowsBadRequestException() {
+        // Act & Assert
         BadRequestException exception = assertThrows(
-            BadRequestException.class,
-            () -> productReviewService.insertProductReview(null)
-        );
+                BadRequestException.class,
+                () -> productReviewService.insertProductReview(null));
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.InvalidId, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
@@ -152,12 +167,13 @@ public class InsertProductReviewTest extends ProductReviewServiceTestBase {
     @Test
     @DisplayName("Insert Product Review - Null Review Text - Throws BadRequestException")
     void insertProductReview_NullReviewText_ThrowsBadRequestException() {
+        // Arrange
         testProductReviewRequest.setReview(null);
 
+        // Act & Assert
         BadRequestException exception = assertThrows(
-            BadRequestException.class,
-            () -> productReviewService.insertProductReview(testProductReviewRequest)
-        );
+                BadRequestException.class,
+                () -> productReviewService.insertProductReview(testProductReviewRequest));
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER002, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
@@ -166,12 +182,13 @@ public class InsertProductReviewTest extends ProductReviewServiceTestBase {
     @Test
     @DisplayName("Insert Product Review - Null User ID - Throws BadRequestException")
     void insertProductReview_NullUserId_ThrowsBadRequestException() {
+        // Arrange
         testProductReviewRequest.setUserId(null);
 
+        // Act & Assert
         BadRequestException exception = assertThrows(
-            BadRequestException.class,
-            () -> productReviewService.insertProductReview(testProductReviewRequest)
-        );
+                BadRequestException.class,
+                () -> productReviewService.insertProductReview(testProductReviewRequest));
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER003, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
@@ -180,12 +197,13 @@ public class InsertProductReviewTest extends ProductReviewServiceTestBase {
     @Test
     @DisplayName("Insert Product Review - Ratings Too High (> 5.0) - Throws BadRequestException")
     void insertProductReview_RatingsTooHigh_ThrowsBadRequestException() {
+        // Arrange
         testProductReviewRequest.setRatings(new BigDecimal("6.0"));
 
+        // Act & Assert
         BadRequestException exception = assertThrows(
-            BadRequestException.class,
-            () -> productReviewService.insertProductReview(testProductReviewRequest)
-        );
+                BadRequestException.class,
+                () -> productReviewService.insertProductReview(testProductReviewRequest));
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
@@ -194,8 +212,10 @@ public class InsertProductReviewTest extends ProductReviewServiceTestBase {
     @Test
     @DisplayName("Insert Product Review - Whitespace Review Text - Throws BadRequestException")
     void insertProductReview_WhitespaceReviewText_ThrowsBadRequestException() {
+        // Arrange
         testProductReviewRequest.setReview("   ");
 
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> productReviewService.insertProductReview(testProductReviewRequest));
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER002, ex.getMessage());
@@ -204,12 +224,13 @@ public class InsertProductReviewTest extends ProductReviewServiceTestBase {
     @Test
     @DisplayName("Insert Product Review - Zero Product ID - Throws BadRequestException")
     void insertProductReview_ZeroProductId_ThrowsBadRequestException() {
+        // Arrange
         testProductReviewRequest.setProductId(0L);
 
+        // Act & Assert
         BadRequestException exception = assertThrows(
-            BadRequestException.class,
-            () -> productReviewService.insertProductReview(testProductReviewRequest)
-        );
+                BadRequestException.class,
+                () -> productReviewService.insertProductReview(testProductReviewRequest));
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
@@ -218,166 +239,593 @@ public class InsertProductReviewTest extends ProductReviewServiceTestBase {
     @Test
     @DisplayName("Insert Product Review - Zero User ID - Throws BadRequestException")
     void insertProductReview_ZeroUserId_ThrowsBadRequestException() {
+        // Arrange
         testProductReviewRequest.setUserId(0L);
 
+        // Act & Assert
         BadRequestException exception = assertThrows(
-            BadRequestException.class,
-            () -> productReviewService.insertProductReview(testProductReviewRequest)
-        );
+                BadRequestException.class,
+                () -> productReviewService.insertProductReview(testProductReviewRequest));
 
         assertEquals(ErrorMessages.ProductReviewErrorMessages.ER003, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
     }
 
-    /**
-     * Purpose: Add dynamic coverage for additional insert validations and success paths.
-     * Expected Result: Invalid inputs throw BadRequestException; valid inputs succeed.
-     * Assertions: Exceptions match expected messages; valid cases do not throw.
-     */
-    @TestFactory
-    @DisplayName("Insert Product Review - Additional validation cases")
-    Stream<DynamicTest> insertProductReview_AdditionalValidationCases() {
-        List<DynamicTest> tests = new ArrayList<>();
+    @Test
+    @DisplayName("Insert Product Review - Null Request Duplicate - Throws BadRequestException")
+    void insertProductReview_NullRequestDuplicate_ThrowsBadRequestException() {
+        // Arrange
+        // (no setup needed)
 
-        tests.add(DynamicTest.dynamicTest("Null request - InvalidId", () -> {
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> productReviewService.insertProductReview(null));
-            assertEquals(ErrorMessages.ProductReviewErrorMessages.InvalidId, ex.getMessage());
-        }));
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(null));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.InvalidId, ex.getMessage());
+    }
 
-        tests.add(DynamicTest.dynamicTest("ParentId set - Success", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setParentId(555L);
-            when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
-            assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
-            verify(productReviewRepository, atLeastOnce()).save(any(ProductReview.class));
-        }));
+    @Test
+    @DisplayName("Insert Product Review - Parent ID Set - Success")
+    void insertProductReview_ParentIdSet_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setParentId(555L);
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
 
-        tests.add(DynamicTest.dynamicTest("ProductId 1 - Success", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setProductId(1L);
-            when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
-            assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
-        }));
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+        verify(productReviewRepository, atLeastOnce()).save(any(ProductReview.class));
+    }
 
-        tests.add(DynamicTest.dynamicTest("ProductId large - Success", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setProductId(Long.MAX_VALUE - 2);
-            when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
-            assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
-        }));
+    @Test
+    @DisplayName("Insert Product Review - Product ID 1 - Success")
+    void insertProductReview_ProductIdOne_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setProductId(1L);
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
 
-        tests.add(DynamicTest.dynamicTest("ProductId negative - ER004", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setProductId(-99L);
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> productReviewService.insertProductReview(request));
-            assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, ex.getMessage());
-        }));
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
 
-        tests.add(DynamicTest.dynamicTest("Ratings above max - ER001", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setRatings(new BigDecimal("5.01"));
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> productReviewService.insertProductReview(request));
-            assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
-        }));
+    @Test
+    @DisplayName("Insert Product Review - Product ID Large Value - Success")
+    void insertProductReview_ProductIdLarge_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setProductId(Long.MAX_VALUE - 2);
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
 
-        tests.add(DynamicTest.dynamicTest("Ratings at max boundary (5.0) - Success", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setRatings(new BigDecimal("5.0"));
-            when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
-            assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
-        }));
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
 
-        tests.add(DynamicTest.dynamicTest("Ratings at min boundary (0.0) - Success", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setRatings(new BigDecimal("0.0"));
-            when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
-            assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
-        }));
+    @Test
+    @DisplayName("Insert Product Review - Product ID Negative 99 - Throws BadRequestException")
+    void insertProductReview_ProductIdNegative99_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setProductId(-99L);
 
-        tests.add(DynamicTest.dynamicTest("Ratings exactly 5 - Success (duplicate)", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setRatings(new BigDecimal("5.0"));
-            when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
-            assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
-        }));
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, ex.getMessage());
+    }
 
-        tests.add(DynamicTest.dynamicTest("Ratings negative - ER001", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setRatings(new BigDecimal("-0.1"));
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> productReviewService.insertProductReview(request));
-            assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
-        }));
+    @Test
+    @DisplayName("Insert Product Review - Ratings Above Maximum 5.01 - Throws BadRequestException")
+    void insertProductReview_RatingsAboveMax_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("5.01"));
 
-        tests.add(DynamicTest.dynamicTest("Ratings null - ER001", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setRatings(null);
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> productReviewService.insertProductReview(request));
-            assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
-        }));
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
+    }
 
-        tests.add(DynamicTest.dynamicTest("Ratings valid decimal - Success", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setRatings(new BigDecimal("4.25"));
-            when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
-            assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
-        }));
+    @Test
+    @DisplayName("Insert Product Review - Ratings At Max Boundary 5.0 - Success")
+    void insertProductReview_RatingsAtMaxBoundary_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("5.0"));
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
 
-        tests.add(DynamicTest.dynamicTest("Review text long - Success", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setReview("x".repeat(500));
-            when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
-            assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
-        }));
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
 
-        tests.add(DynamicTest.dynamicTest("Review text single char - Success", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setReview("A");
-            when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
-            assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
-        }));
+    @Test
+    @DisplayName("Insert Product Review - Ratings At Min Boundary 0.0 - Success")
+    void insertProductReview_RatingsAtMinBoundary_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("0.0"));
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
 
-        tests.add(DynamicTest.dynamicTest("Review text whitespace - ER002", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setReview("\n\t ");
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> productReviewService.insertProductReview(request));
-            assertEquals(ErrorMessages.ProductReviewErrorMessages.ER002, ex.getMessage());
-        }));
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
 
-        tests.add(DynamicTest.dynamicTest("Review text with trailing spaces - Success", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setReview("Good product   ");
-            when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
-            assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
-        }));
+    @Test
+    @DisplayName("Insert Product Review - Ratings Exactly 5.0 Duplicate - Success")
+    void insertProductReview_RatingsExactlyFiveDuplicate_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("5.0"));
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
 
-        tests.add(DynamicTest.dynamicTest("UserId 1 - Success", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setUserId(1L);
-            when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
-            assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
-        }));
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
 
-        tests.add(DynamicTest.dynamicTest("UserId large - Success", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setUserId(Long.MAX_VALUE - 1);
-            when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
-            assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
-        }));
+    @Test
+    @DisplayName("Insert Product Review - Ratings Negative 0.1 - Throws BadRequestException")
+    void insertProductReview_RatingsNegativePointOne_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("-0.1"));
 
-        tests.add(DynamicTest.dynamicTest("UserId negative - ER003", () -> {
-            ProductReviewRequestModel request = buildValidProductReviewRequest();
-            request.setUserId(-99L);
-            BadRequestException ex = assertThrows(BadRequestException.class,
-                    () -> productReviewService.insertProductReview(request));
-            assertEquals(ErrorMessages.ProductReviewErrorMessages.ER003, ex.getMessage());
-        }));
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
+    }
 
-        return tests.stream();
+    @Test
+    @DisplayName("Insert Product Review - Ratings Null Duplicate - Throws BadRequestException")
+    void insertProductReview_RatingsNullDuplicate_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(null);
+
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Ratings Valid Decimal 4.25 - Success")
+    void insertProductReview_RatingsValidDecimal_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("4.25"));
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Review Text Long 500 Chars - Success")
+    void insertProductReview_ReviewTextLong_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview("x".repeat(500));
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Review Text Single Character - Success")
+    void insertProductReview_ReviewTextSingleChar_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview("A");
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Review Text Whitespace Only Tabs - Throws BadRequestException")
+    void insertProductReview_ReviewTextWhitespaceOnlyTabs_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview("\n\t ");
+
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER002, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Review Text With Trailing Spaces - Success")
+    void insertProductReview_ReviewTextTrailingSpaces_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview("Good product   ");
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - User ID 1 - Success")
+    void insertProductReview_UserIdOne_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setUserId(1L);
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - User ID Large Value - Success")
+    void insertProductReview_UserIdLarge_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setUserId(Long.MAX_VALUE - 1);
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - User ID Negative 99 - Throws BadRequestException")
+    void insertProductReview_UserIdNegative99_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setUserId(-99L);
+
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER003, ex.getMessage());
+    }
+
+    // ========================================
+    // ADDITIONAL EDGE CASE Tests
+    // ========================================
+
+    @Test
+    @DisplayName("Insert Product Review - Ratings 0.01 Minimum Positive - Success")
+    void insertProductReview_RatingsMinimumPositive_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("0.01"));
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Ratings 4.99 Just Below Max - Success")
+    void insertProductReview_RatingsJustBelowMax_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("4.99"));
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Ratings 2.5 Mid Range - Success")
+    void insertProductReview_RatingsMidRange_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("2.5"));
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Ratings 3.33 Repeating Decimal - Success")
+    void insertProductReview_RatingsRepeatingDecimal_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("3.33"));
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Ratings 5.001 Just Above Max - Throws BadRequestException")
+    void insertProductReview_RatingsJustAboveMax_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("5.001"));
+
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Ratings 10.0 Double Max - Throws BadRequestException")
+    void insertProductReview_RatingsDoubleMax_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("10.0"));
+
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Ratings Negative 1.0 - Throws BadRequestException")
+    void insertProductReview_RatingsNegativeOne_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("-1.0"));
+
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Review Text 1000 Characters - Success")
+    void insertProductReview_ReviewText1000Chars_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview("x".repeat(1000));
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Review Text 5000 Characters - Success")
+    void insertProductReview_ReviewText5000Chars_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview("x".repeat(5000));
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Review Text With Special Characters - Success")
+    void insertProductReview_ReviewTextSpecialChars_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview("Great product! @#$%^&*()_+-={}[]|:;<>?,./~`");
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Review Text With Unicode Characters - Success")
+    void insertProductReview_ReviewTextUnicode_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview("Excellent product! 优秀的产品 🌟🌟🌟🌟🌟");
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Review Text With Newlines - Success")
+    void insertProductReview_ReviewTextWithNewlines_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview("Great product!\nVery satisfied.\nHighly recommend.");
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Review Text Only Spaces - Throws BadRequestException")
+    void insertProductReview_ReviewTextOnlySpaces_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview("     ");
+
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER002, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Review Text Empty String - Throws BadRequestException")
+    void insertProductReview_ReviewTextEmptyString_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview("");
+
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER002, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Product ID Exactly 1 - Success")
+    void insertProductReview_ProductIdExactlyOne_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setProductId(1L);
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Product ID 1000000 Large - Success")
+    void insertProductReview_ProductIdLargeValue_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setProductId(1000000L);
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Product ID Zero - Throws BadRequestException")
+    void insertProductReview_ProductIdZero_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setProductId(0L);
+
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Product ID Negative 1 - Throws BadRequestException")
+    void insertProductReview_ProductIdNegativeOne_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setProductId(-1L);
+
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Product ID Null - Throws BadRequestException")
+    void insertProductReview_ProductIdNull_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setProductId(null);
+
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - User ID Exactly 1 - Success")
+    void insertProductReview_UserIdExactlyOne_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setUserId(1L);
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - User ID 1000000 Large - Success")
+    void insertProductReview_UserIdLargeValue_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setUserId(1000000L);
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - User ID Zero - Throws BadRequestException")
+    void insertProductReview_UserIdZero_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setUserId(0L);
+
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER003, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - User ID Negative 1 - Throws BadRequestException")
+    void insertProductReview_UserIdNegativeOne_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setUserId(-1L);
+
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER003, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - User ID Null - Throws BadRequestException")
+    void insertProductReview_UserIdNull_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setUserId(null);
+
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER003, ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Parent ID Null Optional Field - Success")
+    void insertProductReview_ParentIdNull_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setParentId(null);
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - Parent ID 100 Valid - Success")
+    void insertProductReview_ParentIdValid_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setParentId(100L);
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
+    }
+
+    @Test
+    @DisplayName("Insert Product Review - All Fields At Boundaries - Success")
+    void insertProductReview_AllFieldsAtBoundaries_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("5.0"));
+        request.setReview("A");
+        request.setUserId(1L);
+        request.setProductId(1L);
+        request.setParentId(1L);
+        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);
+
+        // Act & Assert
+        assertDoesNotThrow(() -> productReviewService.insertProductReview(request));
     }
 }
