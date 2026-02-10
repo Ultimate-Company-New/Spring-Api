@@ -1,11 +1,15 @@
 package com.example.SpringApi.Services.Tests.Todo;
 
+import com.example.SpringApi.Controllers.TodoController;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.SuccessMessages;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.access.prepost.PreAuthorize;
+
+import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -13,28 +17,25 @@ import static org.mockito.Mockito.*;
 
 /**
  * Test class for TodoService - DeleteTodo operation.
- * Contains 10 tests: 5 SUCCESS + 5 FAILURE/EXCEPTION cases.
  */
 @DisplayName("TodoService - DeleteTodo Tests")
 public class DeleteTodoTest extends TodoServiceTestBase {
 
-    // Total Tests: 10
+    // Total Tests: 11
 
     // ========================================
-    // SUCCESS TESTS
+    // Section 1: Success Tests
     // ========================================
 
-    /**
-     * Purpose: Verify repository existsById is called.
-     * Expected Result: existsById is called once.
-     * Assertions: verify(todoRepository).existsById(TEST_TODO_ID);
-     */
+    // Purpose: Verify repository existsById is called.
+    // Expected Result: existsById is called once.
+    // Assertions: verify(todoRepository).existsById(TEST_TODO_ID);
     @Test
-    @DisplayName("Delete Todo - Checks existence before delete")
-    void deleteTodo_ChecksExistenceBeforeDelete() {
+    @DisplayName("deleteTodo - Check Existence Before Delete - Success")
+    void deleteTodo_checkExistenceBeforeDelete_success() {
         // Arrange
-        when(todoRepository.existsById(TEST_TODO_ID)).thenReturn(true);
-        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubTodoRepositoryExistsById(TEST_TODO_ID, true);
+        stubUserLogServiceLogDataReturnsTrue();
 
         // Act
         todoService.deleteTodo(TEST_TODO_ID);
@@ -43,17 +44,15 @@ public class DeleteTodoTest extends TodoServiceTestBase {
         verify(todoRepository, times(1)).existsById(TEST_TODO_ID);
     }
 
-    /**
-     * Purpose: Verify deleteById is called with correct ID.
-     * Expected Result: deleteById called with exact ID.
-     * Assertions: verify(todoRepository).deleteById(TEST_TODO_ID);
-     */
+    // Purpose: Verify deleteById is called with correct ID.
+    // Expected Result: deleteById called with exact ID.
+    // Assertions: verify(todoRepository).deleteById(TEST_TODO_ID);
     @Test
-    @DisplayName("Delete Todo - DeleteById called with correct ID")
-    void deleteTodo_DeleteByIdCalledWithCorrectId() {
+    @DisplayName("deleteTodo - DeleteById Called With Correct ID - Success")
+    void deleteTodo_deleteByIdCalledWithCorrectId_success() {
         // Arrange
-        when(todoRepository.existsById(TEST_TODO_ID)).thenReturn(true);
-        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubTodoRepositoryExistsById(TEST_TODO_ID, true);
+        stubUserLogServiceLogDataReturnsTrue();
 
         // Act
         todoService.deleteTodo(TEST_TODO_ID);
@@ -62,17 +61,15 @@ public class DeleteTodoTest extends TodoServiceTestBase {
         verify(todoRepository).deleteById(TEST_TODO_ID);
     }
 
-    /**
-     * Purpose: Verify multiple deletes work independently.
-     * Expected Result: Each delete works correctly.
-     * Assertions: verify deleteById called correct times.
-     */
+    // Purpose: Verify multiple deletes work independently.
+    // Expected Result: Each delete works correctly.
+    // Assertions: verify deleteById called correct times.
     @Test
-    @DisplayName("Delete Todo - Multiple deletes work independently")
-    void deleteTodo_MultipleDeletes_WorkIndependently() {
+    @DisplayName("deleteTodo - Multiple Deletes - Success")
+    void deleteTodo_multipleDeletes_success() {
         // Arrange
-        when(todoRepository.existsById(anyLong())).thenReturn(true);
-        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubTodoRepositoryExistsByIdAny(true);
+        stubUserLogServiceLogDataReturnsTrue();
 
         // Act
         todoService.deleteTodo(1L);
@@ -83,37 +80,15 @@ public class DeleteTodoTest extends TodoServiceTestBase {
         verify(todoRepository, times(3)).deleteById(anyLong());
     }
 
-    /**
-     * Purpose: Verify successful todo deletion.
-     * Expected Result: Todo is deleted and logged.
-     * Assertions: verify(todoRepository).deleteById(TEST_TODO_ID);
-     */
+    // Purpose: Verify logging is called after successful delete.
+    // Expected Result: userLogService.logData is called.
+    // Assertions: verify(userLogService).logData(...);
     @Test
-    @DisplayName("Delete Todo - Success")
-    void deleteTodo_Success() {
+    @DisplayName("deleteTodo - Logs Operation - Success")
+    void deleteTodo_success_logsOperation() {
         // Arrange
-        when(todoRepository.existsById(TEST_TODO_ID)).thenReturn(true);
-        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-
-        // Act
-        assertDoesNotThrow(() -> todoService.deleteTodo(TEST_TODO_ID));
-
-        // Assert
-        verify(todoRepository).existsById(TEST_TODO_ID);
-        verify(todoRepository).deleteById(TEST_TODO_ID);
-    }
-
-    /**
-     * Purpose: Verify logging is called after successful delete.
-     * Expected Result: userLogService.logData is called.
-     * Assertions: verify(userLogService).logData(...);
-     */
-    @Test
-    @DisplayName("Delete Todo - Success - Logs the operation")
-    void deleteTodo_Success_LogsOperation() {
-        // Arrange
-        when(todoRepository.existsById(TEST_TODO_ID)).thenReturn(true);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubTodoRepositoryExistsById(TEST_TODO_ID, true);
+        stubUserLogServiceLogDataReturnsTrue();
 
         // Act
         todoService.deleteTodo(TEST_TODO_ID);
@@ -125,21 +100,36 @@ public class DeleteTodoTest extends TodoServiceTestBase {
                 eq(ApiRoutes.TodoSubRoute.DELETE_ITEM));
     }
 
+    // Purpose: Verify successful todo deletion.
+    // Expected Result: Todo is deleted and logged.
+    // Assertions: verify(todoRepository).deleteById(TEST_TODO_ID);
+    @Test
+    @DisplayName("deleteTodo - Valid ID - Success")
+    void deleteTodo_validId_success() {
+        // Arrange
+        stubTodoRepositoryExistsById(TEST_TODO_ID, true);
+        stubUserLogServiceLogDataReturnsTrue();
+
+        // Act
+        assertDoesNotThrow(() -> todoService.deleteTodo(TEST_TODO_ID));
+
+        // Assert
+        verify(todoRepository).existsById(TEST_TODO_ID);
+        verify(todoRepository).deleteById(TEST_TODO_ID);
+    }
+
     // ========================================
-    // FAILURE/EXCEPTION TESTS
+    // Section 2: Failure / Exception Tests
     // ========================================
 
-    /**
-     * Purpose: Verify max long id throws NotFoundException when not found.
-     * Expected Result: NotFoundException with InvalidId message.
-     * Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidId,
-     * ex.getMessage());
-     */
+    // Purpose: Verify max long id throws NotFoundException when not found.
+    // Expected Result: NotFoundException with InvalidId message.
+    // Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
     @Test
-    @DisplayName("Delete Todo - Max Long id - Throws NotFoundException")
-    void deleteTodo_MaxLongId_ThrowsNotFoundException() {
+    @DisplayName("deleteTodo - Max Long ID - Throws NotFoundException")
+    void deleteTodo_maxLongId_notFoundException() {
         // Arrange
-        when(todoRepository.existsById(Long.MAX_VALUE)).thenReturn(false);
+        stubTodoRepositoryExistsById(Long.MAX_VALUE, false);
 
         // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
@@ -149,17 +139,14 @@ public class DeleteTodoTest extends TodoServiceTestBase {
         assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
     }
 
-    /**
-     * Purpose: Verify min long id throws NotFoundException.
-     * Expected Result: NotFoundException with InvalidId message.
-     * Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidId,
-     * ex.getMessage());
-     */
+    // Purpose: Verify min long id throws NotFoundException.
+    // Expected Result: NotFoundException with InvalidId message.
+    // Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
     @Test
-    @DisplayName("Delete Todo - Min Long id - Throws NotFoundException")
-    void deleteTodo_MinLongId_ThrowsNotFoundException() {
+    @DisplayName("deleteTodo - Min Long ID - Throws NotFoundException")
+    void deleteTodo_minLongId_notFoundException() {
         // Arrange
-        when(todoRepository.existsById(Long.MIN_VALUE)).thenReturn(false);
+        stubTodoRepositoryExistsById(Long.MIN_VALUE, false);
 
         // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
@@ -169,17 +156,14 @@ public class DeleteTodoTest extends TodoServiceTestBase {
         assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
     }
 
-    /**
-     * Purpose: Verify negative id throws NotFoundException.
-     * Expected Result: NotFoundException with InvalidId message.
-     * Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidId,
-     * ex.getMessage());
-     */
+    // Purpose: Verify negative id throws NotFoundException.
+    // Expected Result: NotFoundException with InvalidId message.
+    // Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
     @Test
-    @DisplayName("Delete Todo - Negative id - Throws NotFoundException")
-    void deleteTodo_NegativeId_ThrowsNotFoundException() {
+    @DisplayName("deleteTodo - Negative ID - Throws NotFoundException")
+    void deleteTodo_negativeId_notFoundException() {
         // Arrange
-        when(todoRepository.existsById(-1L)).thenReturn(false);
+        stubTodoRepositoryExistsById(-1L, false);
 
         // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
@@ -189,17 +173,14 @@ public class DeleteTodoTest extends TodoServiceTestBase {
         assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
     }
 
-    /**
-     * Purpose: Verify non-existent todo throws NotFoundException.
-     * Expected Result: NotFoundException with InvalidId message.
-     * Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidId,
-     * ex.getMessage());
-     */
+    // Purpose: Verify non-existent todo throws NotFoundException.
+    // Expected Result: NotFoundException with InvalidId message.
+    // Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
     @Test
-    @DisplayName("Delete Todo - Not found - Throws NotFoundException")
-    void deleteTodo_NotFound_ThrowsNotFoundException() {
+    @DisplayName("deleteTodo - Not Found - Throws NotFoundException")
+    void deleteTodo_notFound_notFoundException() {
         // Arrange
-        when(todoRepository.existsById(TEST_TODO_ID)).thenReturn(false);
+        stubTodoRepositoryExistsById(TEST_TODO_ID, false);
 
         // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
@@ -210,17 +191,14 @@ public class DeleteTodoTest extends TodoServiceTestBase {
         verify(todoRepository, never()).deleteById(anyLong());
     }
 
-    /**
-     * Purpose: Verify zero id throws NotFoundException.
-     * Expected Result: NotFoundException with InvalidId message.
-     * Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidId,
-     * ex.getMessage());
-     */
+    // Purpose: Verify zero id throws NotFoundException.
+    // Expected Result: NotFoundException with InvalidId message.
+    // Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
     @Test
-    @DisplayName("Delete Todo - Zero id - Throws NotFoundException")
-    void deleteTodo_ZeroId_ThrowsNotFoundException() {
+    @DisplayName("deleteTodo - Zero ID - Throws NotFoundException")
+    void deleteTodo_zeroId_notFoundException() {
         // Arrange
-        when(todoRepository.existsById(0L)).thenReturn(false);
+        stubTodoRepositoryExistsById(0L, false);
 
         // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
@@ -228,5 +206,26 @@ public class DeleteTodoTest extends TodoServiceTestBase {
 
         // Assert
         assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    // ========================================
+    // Section 3: Controller Permission/Auth Tests
+    // ========================================
+
+    // Purpose: Verify @PreAuthorize Annotation on controller
+    // Expected Result: Annotation exists and has correct value
+    // Assertions: assertNotNull, assertEquals
+    @Test
+    @DisplayName("deleteItem - Verify @PreAuthorize Annotation")
+    void deleteItem_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
+        // Arrange
+        Method method = TodoController.class.getMethod("deleteItem", long.class);
+
+        // Act
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
+        assertNotNull(annotation, "deleteItem method should have @PreAuthorize annotation");
+        assertEquals("@customAuthorization.hasAuthority(null)", annotation.value());
     }
 }

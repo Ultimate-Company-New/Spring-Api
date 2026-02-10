@@ -14,6 +14,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.List;
+
+import static org.mockito.Mockito.lenient;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 
 /**
  * Base test class for TodoService tests.
@@ -36,7 +43,7 @@ public abstract class TodoServiceTestBase extends BaseTest {
 
     protected Todo testTodo;
     protected TodoRequestModel validRequest;
-    
+
     protected static final Long TEST_TODO_ID = DEFAULT_TODO_ID;
     protected static final Long TEST_USER_ID = DEFAULT_USER_ID;
     protected static final String TEST_TASK = DEFAULT_TODO_TITLE;
@@ -55,5 +62,41 @@ public abstract class TodoServiceTestBase extends BaseTest {
         testTodo.setUserId(TEST_USER_ID);
         testTodo.setCreatedAt(LocalDateTime.now());
         testTodo.setUpdatedAt(LocalDateTime.now());
+    }
+
+    // ==========================================
+    // STUBS
+    // ==========================================
+
+    protected void stubTodoRepositoryExistsById(Long id, boolean exists) {
+        lenient().when(todoRepository.existsById(id)).thenReturn(exists);
+    }
+
+    protected void stubTodoRepositoryExistsByIdAny(boolean exists) {
+        lenient().when(todoRepository.existsById(anyLong())).thenReturn(exists);
+    }
+
+    protected void stubTodoRepositorySave(Todo returnTodo) {
+        lenient().when(todoRepository.save(any(Todo.class))).thenReturn(returnTodo);
+    }
+
+    protected void stubTodoRepositoryFindById(Long id, Optional<Todo> result) {
+        lenient().when(todoRepository.findById(id)).thenReturn(result);
+    }
+
+    protected void stubTodoRepositoryFindByIdAny(Optional<Todo> result) {
+        lenient().when(todoRepository.findById(anyLong())).thenReturn(result);
+    }
+
+    protected void stubTodoRepositoryDeleteById(Long id) {
+        lenient().doNothing().when(todoRepository).deleteById(id);
+    }
+
+    protected void stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(List<Todo> result) {
+        lenient().when(todoRepository.findAllByUserIdOrderByTodoIdDesc(anyLong())).thenReturn(result);
+    }
+
+    protected void stubUserLogServiceLogDataReturnsTrue() {
+        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
     }
 }
