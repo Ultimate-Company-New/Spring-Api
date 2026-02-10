@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for GetToken functionality in LoginService.
- * Test Count: 14 tests
+ * Test Count: 12 tests
  */
 @DisplayName("Get Token Tests")
 public class GetTokenTest extends LoginServiceTestBase {
