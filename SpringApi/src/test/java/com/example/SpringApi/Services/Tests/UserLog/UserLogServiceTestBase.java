@@ -15,6 +15,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 
+import org.springframework.data.domain.Page;
+import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.SpringApi.Models.ResponseModels.UserLogsResponseModel;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+
 import static org.mockito.Mockito.lenient;
 
 /**
@@ -67,5 +74,31 @@ public abstract class UserLogServiceTestBase extends BaseTest {
 
     protected void stubAuthorizationHeader() {
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+    }
+
+    // ==========================================
+    // STUBS
+    // ==========================================
+
+    protected void stubUserLogRepositorySave(UserLog returnLog) {
+        lenient().when(userLogRepository.save(any(UserLog.class))).thenReturn(returnLog);
+    }
+
+    protected void stubUserLogFilterQueryBuilderGetColumnType(String column, String returnType) {
+        lenient().when(userLogFilterQueryBuilder.getColumnType(column)).thenReturn(returnType);
+    }
+
+    protected void stubUserLogFilterQueryBuilderGetColumnTypeAny(String returnType) {
+        lenient().when(userLogFilterQueryBuilder.getColumnType(anyString())).thenReturn(returnType);
+    }
+
+    protected void stubUserLogFilterQueryBuilderFindPaginatedEntities(Page<UserLog> page) {
+        lenient().when(userLogFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                any(), any(), any(), any(), any())).thenReturn(page);
+    }
+
+    protected void stubUserLogServiceFetchUserLogsInBatches(UserLogService mockService, UserLogsRequestModel req,
+            PaginationBaseResponseModel<UserLogsResponseModel> res) {
+        lenient().when(mockService.fetchUserLogsInBatches(req)).thenReturn(res);
     }
 }
