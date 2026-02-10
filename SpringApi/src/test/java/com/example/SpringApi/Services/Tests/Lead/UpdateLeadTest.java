@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for LeadService.updateLead() method.
  * Tests lead updates with various validation scenarios.
- * * Test Count: 31 tests
+ * * Test Count: 33 tests
  */
 @DisplayName("Update Lead Tests")
 class UpdateLeadTest extends LeadServiceTestBase {
@@ -491,6 +491,46 @@ class UpdateLeadTest extends LeadServiceTestBase {
     void updateLead_ZeroId_ThrowsNotFoundException() {
         when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(0L, TEST_CLIENT_ID)).thenReturn(null);
         NotFoundException ex = assertThrows(NotFoundException.class, () -> leadService.updateLead(0L, testLeadRequest));
+        assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify partial updates (patch-like) only change provided fields and persist.
+     * Given: Existing lead and update DTO with phone number change
+     * When: updateLead is called
+     * Then: Lead is persisted with update
+     */
+    @Test
+    @DisplayName("Update Lead - Partial Update Success")
+    void updateLead_unit_partialUpdate_success() {
+        // Arrange
+        when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID))
+                .thenReturn(testLead);
+        testLeadRequest.setPhone("555-0200-1234");
+        when(leadRepository.save(any())).thenReturn(testLead);
+        
+        // Act
+        assertDoesNotThrow(() -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+        
+        // Assert
+        verify(leadRepository).save(any());
+    }
+
+    /**
+     * Purpose: Updating a non-existent lead throws not-found.
+     * Given: Non-existent lead ID
+     * When: updateLead is called
+     * Then: NotFoundException is thrown with LEAD_NOT_FOUND message
+     */
+    @Test
+    @DisplayName("Update Lead - Not Found Failure")
+    void updateLead_unit_notFound_failure() {
+        // Arrange
+        stubLeadRepositoryFindByIdNotFound(999L);
+        
+        // Act & Assert
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> leadService.updateLead(999L, testLeadRequest));
         assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
     }
 

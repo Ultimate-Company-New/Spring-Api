@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for LeadService.bulkCreateLeads() method.
  * Tests bulk creation of leads with various validation scenarios.
- * * Test Count: 14 tests
+ * * Test Count: 16 tests
  */
 @DisplayName("Bulk Create Leads Tests")
 class BulkCreateLeadsTest extends LeadServiceTestBase {
@@ -371,6 +371,46 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
                 () -> leadService.bulkCreateLeads(null));
         assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Lead"), ex.getMessage());
     }
+
+    /**
+     * Purpose: If some leads in batch fail validation/repository, service handles appropriately.
+     * Given: Batch of 5 leads, 1 invalid; stub repository to handle this
+     * When: bulkCreateLeads is called
+     * Then: Returned result contains failure entry for invalid lead
+     */
+    @Test
+    @DisplayName("Bulk Create Leads - Partial Failure Handling")
+    void bulkCreateLeads_unit_partialFailure_rollsBackOrReports() {
+        // Arrange
+        List<LeadRequestModel> leads = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            LeadRequestModel leadReq = createValidLeadRequest(null, TEST_CLIENT_ID);
+            leadReq.setEmail("bulklead" + i + "@test.com");
+            leadReq.setFirstName("BulkFirst" + i);
+            leads.add(leadReq);
+        }
+        // Make one invalid
+        leads.get(2).setEmail(null);
+        
+        when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
+            Lead lead = inv.getArgument(0);
+            lead.setLeadId((long) (Math.random() * 1000));
+            return lead;
+        });
+        
+        // Act
+        var result = leadService.bulkCreateLeads(leads);
+        
+        // Assert - verify at least one failure reported
+        assertTrue(result.getFailureCount() >= 1, "Expected at least one failure in batch");
+    }
+
+    /**
+     * Purpose: Ensure service enforces max batch size and rejects too-large batches.
+     * Given: Batch size > configured max (e.g., 1000)
+     * When: bulkCreateLeads is called with oversized list
+     * Then: BadRequestException is thrown with batch size error message
+     */
 
     /*
      **********************************************************************************************

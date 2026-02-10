@@ -361,6 +361,8 @@ public class ErrorMessages {
         public static final String ER016 = "Company size must be greater than 0 if provided.";
         public static final String ER017 = "Assigned agent ID must be greater than 0 if provided.";
         public static final String ER018 = "Invalid user.";
+        public static final String LEAD_DUPLICATE_EXTERNAL_ID = "Lead with the given external ID already exists.";
+        public static final String LEAD_SOFT_DELETED_CONFLICT = "Lead is soft-deleted and cannot be modified.";
     }
 
     public static class PurchaseOrderErrorMessages {

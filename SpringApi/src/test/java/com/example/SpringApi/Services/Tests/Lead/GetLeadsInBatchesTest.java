@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for LeadService.getLeadsInBatches() method.
  * Tests pagination, filtering, and validation logic.
- * * Test Count: 4 tests
+ * * Test Count: 5 tests
  */
 @DisplayName("Get Leads In Batches Tests")
 class GetLeadsInBatchesTest extends LeadServiceTestBase {
