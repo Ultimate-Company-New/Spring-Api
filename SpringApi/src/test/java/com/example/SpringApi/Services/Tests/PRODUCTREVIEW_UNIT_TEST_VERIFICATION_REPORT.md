@@ -9,7 +9,7 @@
 ║  Public Methods Found: 4                                  ║
 ║  Test Files Expected: 4                                  ║
 ║  Test Files Found: 5                                     ║
-║  Total Violations: 37                                    ║
+║  Total Violations: 33                                    ║
 ╚════════════════════════════════════════════════════════════╝
 ```
 
@@ -18,7 +18,7 @@ VIOLATIONS BY RULE:
 | Rule | Description | Count |
 | --- | --- | --- |
 | 1 | One Test File per Method | 1 |
-| 2 | Test Count Declaration | 8 |
+| 2 | Test Count Declaration | 4 |
 | 3 | Controller Permission Test | 1 |
 | 5 | Test Naming Convention | 3 |
 | 6 | Centralized Mocking | 4 |
@@ -42,24 +42,18 @@ Package: com.example.SpringApi.Services.Tests.ProductReview
 Class: * Test class for ProductReviewService.getProductReviewsInBatchesGivenProductId method.
 Extends: None
 Lines of Code: 343
-Last Modified: 2026-02-10 20:20:42
-Declared Test Count: 22 (first occurrence line 32)
+Last Modified: 2026-02-10 23:11:31
+Declared Test Count: 14 (first occurrence line 32)
 Actual @Test Count: 14
 
 VIOLATIONS FOUND:
 
-VIOLATION 1: Rule 2 - Test Count Declaration
-- Severity: CRITICAL
-- Line: 32
-- Current: 22
-- Required: 14
-
-VIOLATION 2: Rule 6 - Centralized Mocking
+VIOLATION 1: Rule 6 - Centralized Mocking
 - Severity: HIGH
 - Line: 313 has mock usage `IProductReviewSubTranslator serviceMock = mock(IProductReviewSubTranslator.class);`
 - Required: Move mocks to base test file.
 
-VIOLATION 3: Rule 5 - Test Naming Convention
+VIOLATION 2: Rule 5 - Test Naming Convention
 - Severity: MEDIUM
 - Line: 47 method `getProductReviewsInBatches_Success_Success`
 - Required rename: `getProductReviewsInBatchesGivenProductId_Success_Success`
@@ -86,27 +80,26 @@ VIOLATION 3: Rule 5 - Test Naming Convention
 - Line: 286 method `getProductReviewsInBatches_ReversedPagination_ThrowsBadRequestException`
 - Required rename: `getProductReviewsInBatchesGivenProductId_ReversedPagination_ThrowsBadRequestException`
 
-VIOLATION 4: Rule 14 - No Inline Mocks
+VIOLATION 3: Rule 14 - No Inline Mocks
 - Severity: CRITICAL
 - Line: 315 inline mock in `getProductReviewsInBatchesGivenProductId_controller_permission_unauthorized`: `doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))`
 - Required: Move to base test stub method and call stub in test.
 - Line: 316 inline mock in `getProductReviewsInBatchesGivenProductId_controller_permission_unauthorized`: `.when(serviceMock).getProductReviewsInBatchesGivenProductId(any(), anyLong());`
 - Required: Move to base test stub method and call stub in test.
 
-VIOLATION 5: Rule 10 - Test Ordering
+VIOLATION 4: Rule 10 - Test Ordering
 - Severity: MEDIUM
 - Section SUCCESS not alphabetical.
 - Current order: getProductReviewsInBatches_Success_Success, getProductReviewsInBatches_EmptyResults_Success, getProductReviewsInBatches_SingleItem_Success, getProductReviewsInBatches_LargePage_Success, getProductReviewsInBatches_MiddlePage_Success, getProductReviewsInBatches_ProductIdOne_Success, getProductReviewsInBatches_ProductIdLarge_Success, getProductReviewsInBatches_MultipleResults_Success
 - Required order: getProductReviewsInBatches_EmptyResults_Success, getProductReviewsInBatches_LargePage_Success, getProductReviewsInBatches_MiddlePage_Success, getProductReviewsInBatches_MultipleResults_Success, getProductReviewsInBatches_ProductIdLarge_Success, getProductReviewsInBatches_ProductIdOne_Success, getProductReviewsInBatches_SingleItem_Success, getProductReviewsInBatches_Success_Success
 
-VIOLATION 6: Rule 10 - Test Ordering
+VIOLATION 5: Rule 10 - Test Ordering
 - Severity: MEDIUM
 - Section FAILURE not alphabetical.
 - Current order: getProductReviewsInBatches_InvalidPagination_ThrowsBadRequestException, getProductReviewsInBatches_ZeroPageSize_ThrowsBadRequestException, getProductReviewsInBatches_EqualStartEnd_ThrowsBadRequestException, getProductReviewsInBatches_ReversedPagination_ThrowsBadRequestException
 - Required order: getProductReviewsInBatches_EqualStartEnd_ThrowsBadRequestException, getProductReviewsInBatches_InvalidPagination_ThrowsBadRequestException, getProductReviewsInBatches_ReversedPagination_ThrowsBadRequestException, getProductReviewsInBatches_ZeroPageSize_ThrowsBadRequestException
 
 REQUIRED FIXES SUMMARY:
-- Fix Rule 2 issues above.
 - Fix Rule 6 issues above.
 - Fix Rule 5 issues above.
 - Fix Rule 14 issues above.
@@ -120,34 +113,28 @@ Package: com.example.SpringApi.Services.Tests.ProductReview
 Class: * Test class for ProductReviewService.setProductReviewScore method.
 Extends: None
 Lines of Code: 927
-Last Modified: 2026-02-10 20:20:42
-Declared Test Count: 26 (first occurrence line 31)
+Last Modified: 2026-02-10 23:11:31
+Declared Test Count: 50 (first occurrence line 31)
 Actual @Test Count: 50
 
 VIOLATIONS FOUND:
 
 VIOLATION 1: Rule 2 - Test Count Declaration
 - Severity: CRITICAL
-- Line: 31
-- Current: 26
-- Required: 50
-
-VIOLATION 2: Rule 2 - Test Count Declaration
-- Severity: CRITICAL
 - Lines: 31, 559
 - Required: Keep only the first declaration at the class start; remove duplicates.
 
-VIOLATION 3: Rule 6 - Centralized Mocking
+VIOLATION 2: Rule 6 - Centralized Mocking
 - Severity: HIGH
 - Line: 517 has mock usage `IProductReviewSubTranslator serviceMock = mock(IProductReviewSubTranslator.class);`
 - Required: Move mocks to base test file.
 
-VIOLATION 4: Rule 9 - Test Documentation
+VIOLATION 3: Rule 9 - Test Documentation
 - Severity: MEDIUM
 - Missing documentation blocks for: setProductReviewScore_Success_DecreaseToZero (line 584), setProductReviewScore_Success_IncreaseScore (line 601), setProductReviewScore_Success_NullScore (line 618), setProductReviewScore_NegativeId_ThrowsNotFoundException (line 651), setProductReviewScore_ReviewNotFound_ThrowsNotFoundException (line 663), setProductReviewScore_ZeroId_ThrowsNotFoundException (line 679), setProductReviewScore_DecreaseFrom1To0_Success (line 691), setProductReviewScore_DecreaseWhenNullScore_Stays0 (line 706), setProductReviewScore_IncreaseFrom0To1_Success (line 721), setProductReviewScore_IncreaseFrom10To11_Success (line 736), setProductReviewScore_IdNegative5_ThrowsNotFoundException (line 752), setProductReviewScore_Id2_ThrowsNotFoundException (line 764), setProductReviewScore_Id99_ThrowsNotFoundException (line 776), setProductReviewScore_IdMinLong_ThrowsNotFoundException (line 788), setProductReviewScore_IdMaxLong_ThrowsNotFoundException (line 800), setProductReviewScore_IncreaseFromLargeScore_Success (line 816), setProductReviewScore_IncreaseFromVeryLargeScore_Success (line 832), setProductReviewScore_DecreaseFromLargeScore_Success (line 848), setProductReviewScore_DecreaseNearZero_Success (line 864), setProductReviewScore_DecreaseWhenAlreadyZero_StaysZero (line 880), setProductReviewScore_IncreaseWhenNullScore_SetsToOne (line 896), setProductReviewScore_IncreaseFromMidRange_Success (line 912)
 - Required: Add /* Purpose / Expected Result / Assertions */ above each @Test.
 
-VIOLATION 5: Rule 14 - No Inline Mocks
+VIOLATION 4: Rule 14 - No Inline Mocks
 - Severity: CRITICAL
 - Line: 519 inline mock in `setProductReviewScore_controller_permission_unauthorized`: `doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))`
 - Required: Move to base test stub method and call stub in test.
@@ -196,20 +183,19 @@ VIOLATION 5: Rule 14 - No Inline Mocks
 - Line: 919 inline mock in `setProductReviewScore_IncreaseFromMidRange_Success`: `when(productReviewRepository.save(any(ProductReview.class))).thenReturn(testProductReview);`
 - Required: Move to base test stub method and call stub in test.
 
-VIOLATION 6: Rule 10 - Test Ordering
+VIOLATION 5: Rule 10 - Test Ordering
 - Severity: MEDIUM
 - Section SUCCESS not alphabetical.
 - Current order: setProductReviewScore_Success_DecreaseScore, setProductReviewScore_Success_DecreaseToZero, setProductReviewScore_Success_IncreaseScore, setProductReviewScore_Success_NullScore, setProductReviewScore_DecreaseFrom1To0_Success, setProductReviewScore_DecreaseWhenNullScore_Stays0, setProductReviewScore_IncreaseFrom0To1_Success, setProductReviewScore_IncreaseFrom10To11_Success, setProductReviewScore_IncreaseFromLargeScore_Success, setProductReviewScore_IncreaseFromVeryLargeScore_Success, setProductReviewScore_DecreaseFromLargeScore_Success, setProductReviewScore_DecreaseNearZero_Success, setProductReviewScore_DecreaseWhenAlreadyZero_StaysZero, setProductReviewScore_IncreaseWhenNullScore_SetsToOne, setProductReviewScore_IncreaseFromMidRange_Success, setProductReviewScore_Success_DecreaseScore, setProductReviewScore_Success_DecreaseToZero, setProductReviewScore_Success_IncreaseScore, setProductReviewScore_Success_NullScore
 - Required order: setProductReviewScore_DecreaseFrom1To0_Success, setProductReviewScore_DecreaseFromLargeScore_Success, setProductReviewScore_DecreaseNearZero_Success, setProductReviewScore_DecreaseWhenAlreadyZero_StaysZero, setProductReviewScore_DecreaseWhenNullScore_Stays0, setProductReviewScore_IncreaseFrom0To1_Success, setProductReviewScore_IncreaseFrom10To11_Success, setProductReviewScore_IncreaseFromLargeScore_Success, setProductReviewScore_IncreaseFromMidRange_Success, setProductReviewScore_IncreaseFromVeryLargeScore_Success, setProductReviewScore_IncreaseWhenNullScore_SetsToOne, setProductReviewScore_Success_DecreaseScore, setProductReviewScore_Success_DecreaseScore, setProductReviewScore_Success_DecreaseToZero, setProductReviewScore_Success_DecreaseToZero, setProductReviewScore_Success_IncreaseScore, setProductReviewScore_Success_IncreaseScore, setProductReviewScore_Success_NullScore, setProductReviewScore_Success_NullScore
 
-VIOLATION 7: Rule 10 - Test Ordering
+VIOLATION 6: Rule 10 - Test Ordering
 - Severity: MEDIUM
 - Section FAILURE not alphabetical.
 - Current order: setProductReviewScore_MaxLongId_ThrowsNotFoundException, setProductReviewScore_NegativeId_ThrowsNotFoundException, setProductReviewScore_ReviewNotFound_ThrowsNotFoundException, setProductReviewScore_ZeroId_ThrowsNotFoundException, setProductReviewScore_IdNegative5_ThrowsNotFoundException, setProductReviewScore_Id2_ThrowsNotFoundException, setProductReviewScore_Id99_ThrowsNotFoundException, setProductReviewScore_IdMinLong_ThrowsNotFoundException, setProductReviewScore_IdMaxLong_ThrowsNotFoundException, setProductReviewScore_MaxLongId_ThrowsNotFoundException, setProductReviewScore_NegativeId_ThrowsNotFoundException, setProductReviewScore_ReviewNotFound_ThrowsNotFoundException, setProductReviewScore_ZeroId_ThrowsNotFoundException, setProductReviewScore_DecreaseFrom1To0_Success, setProductReviewScore_DecreaseWhenNullScore_Stays0, setProductReviewScore_IncreaseFrom0To1_Success, setProductReviewScore_IncreaseFrom10To11_Success, setProductReviewScore_IdNegative5_ThrowsNotFoundException, setProductReviewScore_Id2_ThrowsNotFoundException, setProductReviewScore_Id99_ThrowsNotFoundException, setProductReviewScore_IdMinLong_ThrowsNotFoundException, setProductReviewScore_IdMaxLong_ThrowsNotFoundException, setProductReviewScore_IncreaseFromLargeScore_Success, setProductReviewScore_IncreaseFromVeryLargeScore_Success, setProductReviewScore_DecreaseFromLargeScore_Success, setProductReviewScore_DecreaseNearZero_Success, setProductReviewScore_DecreaseWhenAlreadyZero_StaysZero, setProductReviewScore_IncreaseWhenNullScore_SetsToOne, setProductReviewScore_IncreaseFromMidRange_Success
 - Required order: setProductReviewScore_DecreaseFrom1To0_Success, setProductReviewScore_DecreaseFromLargeScore_Success, setProductReviewScore_DecreaseNearZero_Success, setProductReviewScore_DecreaseWhenAlreadyZero_StaysZero, setProductReviewScore_DecreaseWhenNullScore_Stays0, setProductReviewScore_Id2_ThrowsNotFoundException, setProductReviewScore_Id2_ThrowsNotFoundException, setProductReviewScore_Id99_ThrowsNotFoundException, setProductReviewScore_Id99_ThrowsNotFoundException, setProductReviewScore_IdMaxLong_ThrowsNotFoundException, setProductReviewScore_IdMaxLong_ThrowsNotFoundException, setProductReviewScore_IdMinLong_ThrowsNotFoundException, setProductReviewScore_IdMinLong_ThrowsNotFoundException, setProductReviewScore_IdNegative5_ThrowsNotFoundException, setProductReviewScore_IdNegative5_ThrowsNotFoundException, setProductReviewScore_IncreaseFrom0To1_Success, setProductReviewScore_IncreaseFrom10To11_Success, setProductReviewScore_IncreaseFromLargeScore_Success, setProductReviewScore_IncreaseFromMidRange_Success, setProductReviewScore_IncreaseFromVeryLargeScore_Success, setProductReviewScore_IncreaseWhenNullScore_SetsToOne, setProductReviewScore_MaxLongId_ThrowsNotFoundException, setProductReviewScore_MaxLongId_ThrowsNotFoundException, setProductReviewScore_NegativeId_ThrowsNotFoundException, setProductReviewScore_NegativeId_ThrowsNotFoundException, setProductReviewScore_ReviewNotFound_ThrowsNotFoundException, setProductReviewScore_ReviewNotFound_ThrowsNotFoundException, setProductReviewScore_ZeroId_ThrowsNotFoundException, setProductReviewScore_ZeroId_ThrowsNotFoundException
 
 REQUIRED FIXES SUMMARY:
-- Fix Rule 2 issues above.
 - Fix Rule 2 issues above.
 - Fix Rule 6 issues above.
 - Fix Rule 9 issues above.
@@ -224,34 +210,28 @@ Package: com.example.SpringApi.Services.Tests.ProductReview
 Class: * Test class for ProductReviewService.toggleProductReview method.
 Extends: None
 Lines of Code: 512
-Last Modified: 2026-02-10 20:20:42
-Declared Test Count: 14 (first occurrence line 26)
+Last Modified: 2026-02-10 23:11:31
+Declared Test Count: 26 (first occurrence line 26)
 Actual @Test Count: 26
 
 VIOLATIONS FOUND:
 
 VIOLATION 1: Rule 2 - Test Count Declaration
 - Severity: CRITICAL
-- Line: 26
-- Current: 14
-- Required: 26
-
-VIOLATION 2: Rule 2 - Test Count Declaration
-- Severity: CRITICAL
 - Lines: 26, 329
 - Required: Keep only the first declaration at the class start; remove duplicates.
 
-VIOLATION 3: Rule 6 - Centralized Mocking
+VIOLATION 2: Rule 6 - Centralized Mocking
 - Severity: HIGH
 - Line: 288 has mock usage `IProductReviewSubTranslator serviceMock = mock(IProductReviewSubTranslator.class);`
 - Required: Move mocks to base test file.
 
-VIOLATION 4: Rule 9 - Test Documentation
+VIOLATION 3: Rule 9 - Test Documentation
 - Severity: MEDIUM
 - Missing documentation blocks for: toggleProductReview_Success_MarkAsDeleted (line 335), toggleProductReview_Success_RestoreFromDeleted (line 355), toggleProductReview_MultipleToggles_StatePersists (line 374), toggleProductReview_NegativeId_ThrowsNotFoundException (line 400), toggleProductReview_ReviewNotFound_ThrowsNotFoundException (line 412), toggleProductReview_ZeroId_ThrowsNotFoundException (line 429), toggleProductReview_IdNegative100_ThrowsNotFoundException (line 441), toggleProductReview_Id2_ThrowsNotFoundException (line 453), toggleProductReview_Id999_ThrowsNotFoundException (line 465), toggleProductReview_IdMinLong_ThrowsNotFoundException (line 477), toggleProductReview_IdMaxLong_ThrowsNotFoundException (line 489), toggleProductReview_Id12345_ThrowsNotFoundException (line 501)
 - Required: Add /* Purpose / Expected Result / Assertions */ above each @Test.
 
-VIOLATION 5: Rule 14 - No Inline Mocks
+VIOLATION 4: Rule 14 - No Inline Mocks
 - Severity: CRITICAL
 - Line: 290 inline mock in `toggleProductReview_controller_permission_unauthorized`: `doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))`
 - Required: Move to base test stub method and call stub in test.
@@ -290,20 +270,19 @@ VIOLATION 5: Rule 14 - No Inline Mocks
 - Line: 505 inline mock in `toggleProductReview_Id12345_ThrowsNotFoundException`: `when(productReviewRepository.findByReviewIdAndClientId(12345L, TEST_CLIENT_ID)).thenReturn(null);`
 - Required: Move to base test stub method and call stub in test.
 
-VIOLATION 6: Rule 10 - Test Ordering
+VIOLATION 5: Rule 10 - Test Ordering
 - Severity: MEDIUM
 - Section SUCCESS not alphabetical.
 - Current order: toggleProductReview_Success_MarkAsDeleted, toggleProductReview_Success_RestoreFromDeleted, toggleProductReview_MultipleToggles_StatePersists, toggleProductReview_Success_MarkAsDeleted, toggleProductReview_Success_RestoreFromDeleted, toggleProductReview_MultipleToggles_StatePersists
 - Required order: toggleProductReview_MultipleToggles_StatePersists, toggleProductReview_MultipleToggles_StatePersists, toggleProductReview_Success_MarkAsDeleted, toggleProductReview_Success_MarkAsDeleted, toggleProductReview_Success_RestoreFromDeleted, toggleProductReview_Success_RestoreFromDeleted
 
-VIOLATION 7: Rule 10 - Test Ordering
+VIOLATION 6: Rule 10 - Test Ordering
 - Severity: MEDIUM
 - Section FAILURE not alphabetical.
 - Current order: toggleProductReview_NegativeId_ThrowsNotFoundException, toggleProductReview_ReviewNotFound_ThrowsNotFoundException, toggleProductReview_ZeroId_ThrowsNotFoundException, toggleProductReview_IdNegative100_ThrowsNotFoundException, toggleProductReview_Id2_ThrowsNotFoundException, toggleProductReview_Id999_ThrowsNotFoundException, toggleProductReview_IdMinLong_ThrowsNotFoundException, toggleProductReview_IdMaxLong_ThrowsNotFoundException, toggleProductReview_Id12345_ThrowsNotFoundException, toggleProductReview_NegativeId_ThrowsNotFoundException, toggleProductReview_ReviewNotFound_ThrowsNotFoundException, toggleProductReview_ZeroId_ThrowsNotFoundException, toggleProductReview_IdNegative100_ThrowsNotFoundException, toggleProductReview_Id2_ThrowsNotFoundException, toggleProductReview_Id999_ThrowsNotFoundException, toggleProductReview_IdMinLong_ThrowsNotFoundException, toggleProductReview_IdMaxLong_ThrowsNotFoundException, toggleProductReview_Id12345_ThrowsNotFoundException
 - Required order: toggleProductReview_Id12345_ThrowsNotFoundException, toggleProductReview_Id12345_ThrowsNotFoundException, toggleProductReview_Id2_ThrowsNotFoundException, toggleProductReview_Id2_ThrowsNotFoundException, toggleProductReview_Id999_ThrowsNotFoundException, toggleProductReview_Id999_ThrowsNotFoundException, toggleProductReview_IdMaxLong_ThrowsNotFoundException, toggleProductReview_IdMaxLong_ThrowsNotFoundException, toggleProductReview_IdMinLong_ThrowsNotFoundException, toggleProductReview_IdMinLong_ThrowsNotFoundException, toggleProductReview_IdNegative100_ThrowsNotFoundException, toggleProductReview_IdNegative100_ThrowsNotFoundException, toggleProductReview_NegativeId_ThrowsNotFoundException, toggleProductReview_NegativeId_ThrowsNotFoundException, toggleProductReview_ReviewNotFound_ThrowsNotFoundException, toggleProductReview_ReviewNotFound_ThrowsNotFoundException, toggleProductReview_ZeroId_ThrowsNotFoundException, toggleProductReview_ZeroId_ThrowsNotFoundException
 
 REQUIRED FIXES SUMMARY:
-- Fix Rule 2 issues above.
 - Fix Rule 2 issues above.
 - Fix Rule 6 issues above.
 - Fix Rule 9 issues above.
@@ -318,7 +297,7 @@ Package: com.example.SpringApi.Services.Tests.ProductReview
 Class: * Test class for ProductReviewService.insertProductReview method.
 Extends: None
 Lines of Code: 1344
-Last Modified: 2026-02-10 20:20:42
+Last Modified: 2026-02-10 23:11:31
 Declared Test Count: 24 (first occurrence line 29)
 Actual @Test Count: 86
 
@@ -453,99 +432,92 @@ FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-
 Package: com.example.SpringApi.Services.Tests.ProductReview
 Class: * Test class for ProductReviewService.getProductReviewsInBatchesGivenProductId
 Extends: None
-Lines of Code: 489
-Last Modified: 2026-02-10 01:10:30
-Declared Test Count: 25 (first occurrence line 32)
+Lines of Code: 487
+Last Modified: 2026-02-10 23:11:31
+Declared Test Count: 22 (first occurrence line 30)
 Actual @Test Count: 22
 
 VIOLATIONS FOUND:
 
-VIOLATION 1: Rule 2 - Test Count Declaration
-- Severity: CRITICAL
-- Line: 32
-- Current: 25
-- Required: 22
-
-VIOLATION 2: Rule 3 - Controller Permission Test
+VIOLATION 1: Rule 3 - Controller Permission Test
 - Severity: CRITICAL
 - Problem: No controller permission test found.
 - Required: Add `getProductReviewsInBatches_controller_permission_forbidden` or `getProductReviewsInBatches_controller_permission_unauthorized` under the PERMISSION section. Ensure it calls controller and asserts HttpStatus 401/403.
 
-VIOLATION 3: Rule 5 - Test Naming Convention
+VIOLATION 2: Rule 5 - Test Naming Convention
 - Severity: MEDIUM
-- Line: 36 method `getProductReviewsInBatches_Success`
+- Line: 34 method `getProductReviewsInBatches_Success`
 - Required rename: `getProductReviewsInBatches_Success_Success`
 
-VIOLATION 4: Rule 9 - Test Documentation
+VIOLATION 3: Rule 9 - Test Documentation
 - Severity: MEDIUM
-- Missing documentation blocks for: getProductReviewsInBatches_Success (line 34), getProductReviewsInBatches_EmptyResults_Success (line 56), getProductReviewsInBatches_InvalidPagination_ThrowsBadRequestException (line 77), getProductReviewsInBatches_SingleItem_Success (line 96), getProductReviewsInBatches_LargePage_Success (line 118), getProductReviewsInBatches_MiddlePage_Success (line 140), getProductReviewsInBatches_ZeroPageSize_ThrowsBadRequestException (line 162), getProductReviewsInBatches_EqualStartEnd_ThrowsBadRequestException (line 177), getProductReviewsInBatches_ReversedPagination_ThrowsBadRequestException (line 192), getProductReviewsInBatches_ProductIdOne_Success (line 207), getProductReviewsInBatches_ProductIdLarge_Success (line 226), getProductReviewsInBatches_MultipleResults_Success (line 247), getProductReviewsInBatches_LargeTotalCount_Success (line 275), getProductReviewsInBatches_FirstPage_Success (line 295), getProductReviewsInBatches_LastPage_Success (line 317), getProductReviewsInBatches_FullDataset_Success (line 339), getProductReviewsInBatches_NullFilters_Success (line 361), getProductReviewsInBatches_IncludeDeletedTrue_Success (line 382), getProductReviewsInBatches_IncludeDeletedFalse_Success (line 403), getProductReviewsInBatches_OffsetPagination_Success (line 424), getProductReviewsInBatches_NearEnd_Success (line 446), getProductReviewsInBatches_NegativeStart_Success (line 468)
+- Missing documentation blocks for: getProductReviewsInBatches_Success (line 32), getProductReviewsInBatches_EmptyResults_Success (line 54), getProductReviewsInBatches_InvalidPagination_ThrowsBadRequestException (line 75), getProductReviewsInBatches_SingleItem_Success (line 94), getProductReviewsInBatches_LargePage_Success (line 116), getProductReviewsInBatches_MiddlePage_Success (line 138), getProductReviewsInBatches_ZeroPageSize_ThrowsBadRequestException (line 160), getProductReviewsInBatches_EqualStartEnd_ThrowsBadRequestException (line 175), getProductReviewsInBatches_ReversedPagination_ThrowsBadRequestException (line 190), getProductReviewsInBatches_ProductIdOne_Success (line 205), getProductReviewsInBatches_ProductIdLarge_Success (line 224), getProductReviewsInBatches_MultipleResults_Success (line 245), getProductReviewsInBatches_LargeTotalCount_Success (line 273), getProductReviewsInBatches_FirstPage_Success (line 293), getProductReviewsInBatches_LastPage_Success (line 315), getProductReviewsInBatches_FullDataset_Success (line 337), getProductReviewsInBatches_NullFilters_Success (line 359), getProductReviewsInBatches_IncludeDeletedTrue_Success (line 380), getProductReviewsInBatches_IncludeDeletedFalse_Success (line 401), getProductReviewsInBatches_OffsetPagination_Success (line 422), getProductReviewsInBatches_NearEnd_Success (line 444), getProductReviewsInBatches_NegativeStart_Success (line 466)
 - Required: Add /* Purpose / Expected Result / Assertions */ above each @Test.
 
-VIOLATION 5: Rule 14 - No Inline Mocks
+VIOLATION 4: Rule 14 - No Inline Mocks
 - Severity: CRITICAL
-- Line: 40 inline mock in `getProductReviewsInBatches_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 38 inline mock in `getProductReviewsInBatches_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 61 inline mock in `getProductReviewsInBatches_EmptyResults_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 59 inline mock in `getProductReviewsInBatches_EmptyResults_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 104 inline mock in `getProductReviewsInBatches_SingleItem_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 102 inline mock in `getProductReviewsInBatches_SingleItem_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 126 inline mock in `getProductReviewsInBatches_LargePage_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 124 inline mock in `getProductReviewsInBatches_LargePage_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 148 inline mock in `getProductReviewsInBatches_MiddlePage_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 146 inline mock in `getProductReviewsInBatches_MiddlePage_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 213 inline mock in `getProductReviewsInBatches_ProductIdOne_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 211 inline mock in `getProductReviewsInBatches_ProductIdOne_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 233 inline mock in `getProductReviewsInBatches_ProductIdLarge_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 231 inline mock in `getProductReviewsInBatches_ProductIdLarge_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 260 inline mock in `getProductReviewsInBatches_MultipleResults_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 258 inline mock in `getProductReviewsInBatches_MultipleResults_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 281 inline mock in `getProductReviewsInBatches_LargeTotalCount_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 279 inline mock in `getProductReviewsInBatches_LargeTotalCount_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 303 inline mock in `getProductReviewsInBatches_FirstPage_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 301 inline mock in `getProductReviewsInBatches_FirstPage_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 325 inline mock in `getProductReviewsInBatches_LastPage_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 323 inline mock in `getProductReviewsInBatches_LastPage_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 347 inline mock in `getProductReviewsInBatches_FullDataset_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 345 inline mock in `getProductReviewsInBatches_FullDataset_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 368 inline mock in `getProductReviewsInBatches_NullFilters_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 366 inline mock in `getProductReviewsInBatches_NullFilters_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 389 inline mock in `getProductReviewsInBatches_IncludeDeletedTrue_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 387 inline mock in `getProductReviewsInBatches_IncludeDeletedTrue_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 410 inline mock in `getProductReviewsInBatches_IncludeDeletedFalse_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 408 inline mock in `getProductReviewsInBatches_IncludeDeletedFalse_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 432 inline mock in `getProductReviewsInBatches_OffsetPagination_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 430 inline mock in `getProductReviewsInBatches_OffsetPagination_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 454 inline mock in `getProductReviewsInBatches_NearEnd_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 452 inline mock in `getProductReviewsInBatches_NearEnd_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
-- Line: 476 inline mock in `getProductReviewsInBatches_NegativeStart_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
+- Line: 474 inline mock in `getProductReviewsInBatches_NegativeStart_Success`: `when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(`
 - Required: Move to base test stub method and call stub in test.
 
-VIOLATION 6: Rule 8 - Error Constants
+VIOLATION 5: Rule 8 - Error Constants
 - Severity: HIGH
-- Line: 89 has hardcoded message: `assertTrue(exception.getMessage().contains("Invalid pagination"));`
+- Line: 87 has hardcoded message: `assertTrue(exception.getMessage().contains("Invalid pagination"));`
 - Required: Replace with an ErrorMessages constant (add one if missing).
-- Line: 89 has hardcoded message: `assertTrue(exception.getMessage().contains("Invalid pagination"));`
+- Line: 87 has hardcoded message: `assertTrue(exception.getMessage().contains("Invalid pagination"));`
 - Required: Replace with an ErrorMessages constant (add one if missing).
-- Line: 174 has hardcoded message: `assertTrue(exception.getMessage().contains("Invalid pagination"));`
+- Line: 172 has hardcoded message: `assertTrue(exception.getMessage().contains("Invalid pagination"));`
 - Required: Replace with an ErrorMessages constant (add one if missing).
-- Line: 174 has hardcoded message: `assertTrue(exception.getMessage().contains("Invalid pagination"));`
+- Line: 172 has hardcoded message: `assertTrue(exception.getMessage().contains("Invalid pagination"));`
 - Required: Replace with an ErrorMessages constant (add one if missing).
-- Line: 189 has hardcoded message: `assertTrue(exception.getMessage().contains("Invalid pagination"));`
+- Line: 187 has hardcoded message: `assertTrue(exception.getMessage().contains("Invalid pagination"));`
 - Required: Replace with an ErrorMessages constant (add one if missing).
-- Line: 189 has hardcoded message: `assertTrue(exception.getMessage().contains("Invalid pagination"));`
+- Line: 187 has hardcoded message: `assertTrue(exception.getMessage().contains("Invalid pagination"));`
 - Required: Replace with an ErrorMessages constant (add one if missing).
-- Line: 204 has hardcoded message: `assertTrue(exception.getMessage().contains("Invalid pagination"));`
+- Line: 202 has hardcoded message: `assertTrue(exception.getMessage().contains("Invalid pagination"));`
 - Required: Replace with an ErrorMessages constant (add one if missing).
-- Line: 204 has hardcoded message: `assertTrue(exception.getMessage().contains("Invalid pagination"));`
+- Line: 202 has hardcoded message: `assertTrue(exception.getMessage().contains("Invalid pagination"));`
 - Required: Replace with an ErrorMessages constant (add one if missing).
 
-VIOLATION 7: Rule 10 - Test Ordering
+VIOLATION 6: Rule 10 - Test Ordering
 - Severity: MEDIUM
-- Missing sections: PERMISSION
+- Missing sections: FAILURE, PERMISSION, SUCCESS
 - Required: Add Success, Failure, Permission section headers.
 
 REQUIRED FIXES SUMMARY:
-- Fix Rule 2 issues above.
 - Fix Rule 3 issues above.
 - Fix Rule 5 issues above.
 - Fix Rule 9 issues above.

@@ -18,56 +18,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
-// Total Tests: 10
-@DisplayName("UserService - Get User By ID Tests")
+/**
+ * Unit tests for UserService.getUserById method.
+ * 
+ * Total Tests: 11
+ */
+@DisplayName("UserService - GetUserById Tests")
 class GetUserByIdTest extends UserServiceTestBase {
-
-    // ========================================
-    // CONTROLLER AUTHORIZATION TESTS
-    // ========================================
-
-    /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
-     * Expected Result: The method should be annotated with VIEW_USER_PERMISSION.
-     * Assertions: Annotation is present and contains expected permission string.
-     */
-    @Test
-    @DisplayName("getUserById - Verify @PreAuthorize Annotation")
-    void getUserById_controller_permission_forbidden() throws NoSuchMethodException {
-        // Arrange
-        Method method = UserController.class.getMethod("getUserById", Long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "getUserById method should have @PreAuthorize annotation");
-        assertTrue(annotation.value().contains(Authorizations.VIEW_USER_PERMISSION),
-                "@PreAuthorize annotation should check for VIEW_USER_PERMISSION");
-    }
-
-    /**
-     * Purpose: Verify controller delegates to service.
-     * Expected Result: Service method is called.
-     * Assertions: verify(userService).getUserById(userId);
-     */
-    @Test
-    @DisplayName("getUserById - Controller delegates to service")
-    void getUserById_WithValidId_DelegatesToService() {
-        // Arrange
-        Long userId = 1L;
-        com.example.SpringApi.Services.UserService mockUserService = mock(
-                com.example.SpringApi.Services.UserService.class);
-        UserController localController = new UserController(mockUserService);
-        doReturn(new UserResponseModel()).when(mockUserService).getUserById(userId);
-
-        // Act
-        ResponseEntity<?> response = localController.getUserById(userId);
-
-        // Assert
-        verify(mockUserService, times(1)).getUserById(userId);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
+    // Total Tests: 11
 
     // ========================================
     // SUCCESS TESTS
@@ -76,10 +34,10 @@ class GetUserByIdTest extends UserServiceTestBase {
     /**
      * Purpose: Verify user with no permissions returns empty or null permissions.
      * Expected Result: Empty or null permissions list.
-     * Assertions: Permissions is null or empty.
+     * Assertions: assertTrue
      */
     @Test
-    @DisplayName("getUserById - No Permissions - Returns empty or null permissions")
+    @DisplayName("getUserById - Success - No Permissions")
     void getUserById_noPermissions_returnsEmptyPermissionsList() {
         // Arrange
         testUser.setUserClientPermissionMappings(new HashSet<>());
@@ -96,11 +54,11 @@ class GetUserByIdTest extends UserServiceTestBase {
     /**
      * Purpose: Verify repository is called exactly once.
      * Expected Result: findByIdWithAllRelations called once.
-     * Assertions: verify(userRepository, times(1)).findByIdWithAllRelations(...);
+     * Assertions: verify
      */
     @Test
-    @DisplayName("getUserById - Repository called once")
-    void getUserById_repositoryCalledOnce() {
+    @DisplayName("getUserById - Success - Repository Called Once")
+    void getUserById_repositoryCalledOnce_Success() {
         // Arrange
         stubUserRepositoryFindByIdWithAllRelations(testUser);
 
@@ -114,10 +72,10 @@ class GetUserByIdTest extends UserServiceTestBase {
     /**
      * Purpose: Verify user permissions are returned.
      * Expected Result: Permissions list is populated.
-     * Assertions: assertNotNull(result.getPermissions());
+     * Assertions: assertEquals
      */
     @Test
-    @DisplayName("getUserById - Success - Returns permissions")
+    @DisplayName("getUserById - Success - Returns Permissions")
     void getUserById_success_returnsPermissions() {
         // Arrange
         com.example.SpringApi.Models.DatabaseModels.Permission p1 = new com.example.SpringApi.Models.DatabaseModels.Permission();
@@ -147,10 +105,10 @@ class GetUserByIdTest extends UserServiceTestBase {
     /**
      * Purpose: Verify successful user retrieval by ID.
      * Expected Result: UserResponseModel is returned with correct data.
-     * Assertions: correct ID, email, login name.
+     * Assertions: assertEquals
      */
     @Test
-    @DisplayName("getUserById - Success - Returns user with all details")
+    @DisplayName("getUserById - Success - Returns User Details")
     void getUserById_success_returnsUserWithDetails() {
         // Arrange
         stubUserRepositoryFindByIdWithAllRelations(testUser);
@@ -171,10 +129,11 @@ class GetUserByIdTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify max long ID throws NotFoundException when not found.
-     * Expected Result: NotFoundException with "Invalid User Id" message.
+     * Expected Result: NotFoundException with InvalidId message.
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("getUserById - Max Long ID - Throws NotFoundException")
+    @DisplayName("getUserById - Failure - Max Long ID")
     void getUserById_maxLongId_throwsNotFoundException() {
         // Arrange
         stubUserRepositoryFindByIdWithAllRelations(null);
@@ -189,10 +148,11 @@ class GetUserByIdTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify negative ID throws NotFoundException.
-     * Expected Result: NotFoundException with "Invalid User Id" message.
+     * Expected Result: NotFoundException with InvalidId message.
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("getUserById - Negative ID - Throws NotFoundException")
+    @DisplayName("getUserById - Failure - Negative ID")
     void getUserById_negativeId_throwsNotFoundException() {
         // Arrange
         stubUserRepositoryFindByIdWithAllRelations(null);
@@ -207,10 +167,11 @@ class GetUserByIdTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify that non-existent user throws NotFoundException.
-     * Expected Result: NotFoundException with "Invalid User Id" message.
+     * Expected Result: NotFoundException with InvalidId message.
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("getUserById - User Not Found - Throws NotFoundException")
+    @DisplayName("getUserById - Failure - User Not Found")
     void getUserById_userNotFound_throwsNotFoundException() {
         // Arrange
         stubUserRepositoryFindByIdWithAllRelations(null);
@@ -225,10 +186,11 @@ class GetUserByIdTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify zero ID throws NotFoundException.
-     * Expected Result: NotFoundException with "Invalid User Id" message.
+     * Expected Result: NotFoundException with InvalidId message.
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("getUserById - Zero ID - Throws NotFoundException")
+    @DisplayName("getUserById - Failure - Zero ID")
     void getUserById_zeroId_throwsNotFoundException() {
         // Arrange
         stubUserRepositoryFindByIdWithAllRelations(null);
@@ -239,5 +201,67 @@ class GetUserByIdTest extends UserServiceTestBase {
 
         // Assert
         assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    // ========================================
+    // PERMISSION TESTS
+    // ========================================
+
+    /**
+     * Purpose: Verify controller handles unauthorized access via HTTP status.
+     * Expected Result: HTTP UNAUTHORIZED status returned.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     */
+    @Test
+    @DisplayName("getUserById - Controller permission forbidden")
+    void getUserById_controller_permission_forbidden() {
+        // Arrange
+        stubServiceThrowsUnauthorizedException();
+
+        // Act
+        ResponseEntity<?> response = userControllerWithMock.getUserById(1L);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
+     * Expected Result: The method should be annotated with VIEW_USER_PERMISSION.
+     * Assertions: assertNotNull, assertTrue
+     */
+    @Test
+    @DisplayName("getUserById - Verify @PreAuthorize Annotation")
+    void getUserById_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
+        // Arrange
+        Method method = UserController.class.getMethod("getUserById", Long.class);
+
+        // Act
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
+        assertNotNull(annotation, "getUserById method should have @PreAuthorize annotation");
+        assertTrue(annotation.value().contains(Authorizations.VIEW_USER_PERMISSION),
+                "@PreAuthorize annotation should check for VIEW_USER_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller delegates to service.
+     * Expected Result: Service method is called.
+     * Assertions: verify, HttpStatus.OK
+     */
+    @Test
+    @DisplayName("getUserById - Controller delegates to service")
+    void getUserById_withValidId_delegatesToService() {
+        // Arrange
+        Long userId = 1L;
+        stubMockUserServiceGetUserById(userId, new UserResponseModel());
+
+        // Act
+        ResponseEntity<?> response = userControllerWithMock.getUserById(userId);
+
+        // Assert
+        verify(mockUserService, times(1)).getUserById(userId);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

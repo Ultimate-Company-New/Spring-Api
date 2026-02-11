@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("TodoService - GetTodoItems Tests")
 class GetTodoItemsTest extends TodoServiceTestBase {
 
-    // Total Tests: 13
+    // Total Tests: 14
 
     // ========================================
     // Section 1: Success Tests
@@ -50,30 +50,6 @@ class GetTodoItemsTest extends TodoServiceTestBase {
     }
 
     /*
-     * Purpose: Verify entity fields map into response.
-     * Expected Result: Response contains expected values.
-     * Assertions: todoId and task match.
-     */
-    @Test
-    @DisplayName("getTodoItems - Maps fields - Success")
-    void getTodoItems_mapsFields_success() {
-        // Arrange
-        Todo todo = createTestTodo();
-        todo.setTodoId(TEST_TODO_ID);
-        todo.setTask("Mapped Task");
-        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(List.of(todo));
-        stubUserLogServiceLogDataReturnsTrue();
-
-        // Act
-        List<TodoResponseModel> result = todoService.getTodoItems();
-
-        // Assert
-        assertEquals(1, result.size());
-        assertEquals(TEST_TODO_ID, result.get(0).getTodoId());
-        assertEquals("Mapped Task", result.get(0).getTask());
-    }
-
-    /*
      * Purpose: Verify many todos are returned.
      * Expected Result: All todos returned.
      * Assertions: result size equals input.
@@ -96,6 +72,30 @@ class GetTodoItemsTest extends TodoServiceTestBase {
 
         // Assert
         assertEquals(20, result.size());
+    }
+
+    /*
+     * Purpose: Verify entity fields map into response.
+     * Expected Result: Response contains expected values.
+     * Assertions: todoId and task match.
+     */
+    @Test
+    @DisplayName("getTodoItems - Maps fields - Success")
+    void getTodoItems_mapsFields_success() {
+        // Arrange
+        Todo todo = createTestTodo();
+        todo.setTodoId(TEST_TODO_ID);
+        todo.setTask("Mapped Task");
+        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(List.of(todo));
+        stubUserLogServiceLogDataReturnsTrue();
+
+        // Act
+        List<TodoResponseModel> result = todoService.getTodoItems();
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals(TEST_TODO_ID, result.get(0).getTodoId());
+        assertEquals("Mapped Task", result.get(0).getTask());
     }
 
     /*
@@ -167,6 +167,25 @@ class GetTodoItemsTest extends TodoServiceTestBase {
     }
 
     /*
+     * Purpose: Verify success logs operation.
+     * Expected Result: userLogService.logData called.
+     * Assertions: verify logData call.
+     */
+    @Test
+    @DisplayName("getTodoItems - Success Logs Operation")
+    void getTodoItems_success_logsOperation() {
+        // Arrange
+        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(List.of(testTodo));
+        stubUserLogServiceLogDataReturnsTrue();
+
+        // Act
+        todoService.getTodoItems();
+
+        // Assert
+        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
+    }
+
+    /*
      * Purpose: Verify basic success returns todos.
      * Expected Result: Result contains todos.
      * Assertions: size equals 1.
@@ -186,24 +205,10 @@ class GetTodoItemsTest extends TodoServiceTestBase {
     }
 
     /*
-     * Purpose: Verify success logs operation.
-     * Expected Result: userLogService.logData called.
-     * Assertions: verify logData call.
+     * Purpose: Verify basic success case returns todos.
+     * Expected Result: Result contains todos.
+     * Assertions: assertNotNull, size equals 1.
      */
-    @Test
-    @DisplayName("getTodoItems - Success Logs Operation")
-    void getTodoItems_success_logsOperation() {
-        // Arrange
-        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(List.of(testTodo));
-        stubUserLogServiceLogDataReturnsTrue();
-
-        // Act
-        todoService.getTodoItems();
-
-        // Assert
-        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
-    }
-
     @Test
     @DisplayName("getTodoItems - Success - returns todos (basic)")
     void getTodoItems_success_returnsTodos_basic() {

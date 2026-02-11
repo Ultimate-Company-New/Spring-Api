@@ -9,7 +9,7 @@
 ║  Public Methods Found: 8                                  ║
 ║  Test Files Expected: 8                                  ║
 ║  Test Files Found: 8                                     ║
-║  Total Violations: 29                                    ║
+║  Total Violations: 26                                    ║
 ╚════════════════════════════════════════════════════════════╝
 ```
 
@@ -18,36 +18,16 @@ VIOLATIONS BY RULE:
 | Rule | Description | Count |
 | --- | --- | --- |
 | 2 | Test Count Declaration | 6 |
-| 3 | Controller Permission Test | 6 |
-| 5 | Test Naming Convention | 5 |
-| 10 | Test Ordering | 4 |
-| 11 | Complete Coverage | 2 |
-| 12 | Arrange/Act/Assert | 6 |
+| 3 | Controller Permission Test | 3 |
+| 5 | Test Naming Convention | 2 |
+| 6 | Centralized Mocking | 1 |
+| 10 | Test Ordering | 6 |
+| 11 | Complete Coverage | 1 |
+| 12 | Arrange/Act/Assert | 4 |
+| 14 | No Inline Mocks | 3 |
 
 
 **FILE-BY-FILE BREAKDOWN**
-
-======================================================================
-FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/GetLeadDetailsByIdTest.java`
-======================================================================
-Package: com.example.SpringApi.Services.Tests.Lead
-Class: class GetLeadDetailsByIdTest extends LeadServiceTestBase {
-Extends: LeadServiceTestBase
-Lines of Code: 230
-Last Modified: 2026-02-10 17:39:20
-Declared Test Count: 10 (first occurrence line 23)
-Actual @Test Count: 9
-
-VIOLATIONS FOUND:
-
-VIOLATION 1: Rule 2 - Test Count Declaration
-- Severity: CRITICAL
-- Line: 23
-- Current: 10
-- Required: 9
-
-REQUIRED FIXES SUMMARY:
-- Fix Rule 2 issues above.
 
 ======================================================================
 FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/BulkCreateLeadsTest.java`
@@ -55,49 +35,48 @@ FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-
 Package: com.example.SpringApi.Services.Tests.Lead
 Class: * Test class for LeadService.bulkCreateLeads() method.
 Extends: None
-Lines of Code: 442
-Last Modified: 2026-02-10 17:39:20
-Declared Test Count: MISSING/MISPLACED (first occurrence line N/A)
-Actual @Test Count: 15
+Lines of Code: 476
+Last Modified: 2026-02-10 23:11:31
+Declared Test Count: 15 (first occurrence line 31)
+Actual @Test Count: 16
 
 VIOLATIONS FOUND:
 
 VIOLATION 1: Rule 2 - Test Count Declaration
 - Severity: CRITICAL
-- Line: N/A
-- Problem: `// Total Tests: X` is missing or not the first line inside class body.
-- Required: Insert `// Total Tests: 15` immediately after the class opening brace.
+- Line: 31
+- Current: 15
+- Required: 16
 
-VIOLATION 2: Rule 3 - Controller Permission Test
+VIOLATION 2: Rule 6 - Centralized Mocking
+- Severity: HIGH
+- Line: 433 has mock usage `LeadService service = mock(LeadService.class);`
+- Required: Move mocks to base test file.
+
+VIOLATION 3: Rule 14 - No Inline Mocks
 - Severity: CRITICAL
-- Problem: No controller permission test found.
-- Required: Add `bulkCreateLeads_controller_permission_forbidden` or `bulkCreateLeads_controller_permission_unauthorized` under the PERMISSION section. Ensure it calls controller and asserts HttpStatus 401/403.
+- Line: 436 inline mock in `bulkCreateLeads_controller_permission_unauthorized`: `doReturn(TEST_CLIENT_ID).when(service).getClientId();`
+- Required: Move to base test stub method and call stub in test.
+- Line: 437 inline mock in `bulkCreateLeads_controller_permission_unauthorized`: `doReturn(DEFAULT_USER_ID).when(service).getUserId();`
+- Required: Move to base test stub method and call stub in test.
+- Line: 438 inline mock in `bulkCreateLeads_controller_permission_unauthorized`: `doReturn(DEFAULT_LOGIN_NAME).when(service).getUser();`
+- Required: Move to base test stub method and call stub in test.
+- Line: 439 inline mock in `bulkCreateLeads_controller_permission_unauthorized`: `doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))`
+- Required: Move to base test stub method and call stub in test.
+- Line: 440 inline mock in `bulkCreateLeads_controller_permission_unauthorized`: `.when(service).bulkCreateLeadsAsync(anyList(), anyLong(), anyString(), anyLong());`
+- Required: Move to base test stub method and call stub in test.
 
-VIOLATION 3: Rule 5 - Test Naming Convention
+VIOLATION 4: Rule 10 - Test Ordering
 - Severity: MEDIUM
-- Line: 151 method `bulkCreateLeads_PartialSuccess`
-- Required rename: `bulkCreateLeads_PartialSuccess_Success`
-- Line: 208 method `bulkCreateLeads_VerifyLoggingCalled`
-- Required rename: `bulkCreateLeads_VerifyLoggingCalled_Success`
-- Line: 229 method `bulkCreateLeads_VerifyMessageNotification`
-- Required rename: `bulkCreateLeads_VerifyMessageNotification_Success`
-- Line: 397 method `bulkCreateLeads_VerifyPreAuthorizeAnnotation`
-- Required rename: `bulkCreateLeads_VerifyPreAuthorizeAnnotation_Success`
-
-VIOLATION 4: Rule 12 - Arrange/Act/Assert
-- Severity: MEDIUM
-- Line: 279 in `bulkCreateLeads_EmptyList_ThrowsBadRequestException` missing AAA comments: Arrange
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 336 in `bulkCreateLeads_NullList_ThrowsBadRequestException` missing AAA comments: Arrange
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 397 in `bulkCreateLeads_VerifyPreAuthorizeAnnotation` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
+- Section PERMISSION not alphabetical.
+- Current order: bulkCreateLeads_VerifyPreAuthorizeAnnotation_Success, bulkCreateLeads_controller_permission_unauthorized, bulkCreateLeads_WithValidRequest_DelegatesToService
+- Required order: bulkCreateLeads_controller_permission_unauthorized, bulkCreateLeads_VerifyPreAuthorizeAnnotation_Success, bulkCreateLeads_WithValidRequest_DelegatesToService
 
 REQUIRED FIXES SUMMARY:
 - Fix Rule 2 issues above.
-- Fix Rule 3 issues above.
-- Fix Rule 5 issues above.
-- Fix Rule 12 issues above.
+- Fix Rule 6 issues above.
+- Fix Rule 14 issues above.
+- Fix Rule 10 issues above.
 
 ======================================================================
 FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/GetLeadsInBatchesTest.java`
@@ -105,56 +84,36 @@ FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-
 Package: com.example.SpringApi.Services.Tests.Lead
 Class: * Test class for LeadService.getLeadsInBatches() method.
 Extends: None
-Lines of Code: 144
-Last Modified: 2026-02-10 20:20:42
-Declared Test Count: MISSING/MISPLACED (first occurrence line N/A)
-Actual @Test Count: 3
+Lines of Code: 198
+Last Modified: 2026-02-10 23:11:31
+Declared Test Count: 3 (first occurrence line 31)
+Actual @Test Count: 5
 
 VIOLATIONS FOUND:
 
 VIOLATION 1: Rule 2 - Test Count Declaration
 - Severity: CRITICAL
-- Line: N/A
-- Problem: `// Total Tests: X` is missing or not the first line inside class body.
-- Required: Insert `// Total Tests: 3` immediately after the class opening brace.
+- Line: 31
+- Current: 3
+- Required: 5
 
-VIOLATION 2: Rule 3 - Controller Permission Test
+VIOLATION 2: Rule 14 - No Inline Mocks
 - Severity: CRITICAL
-- Problem: No controller permission test found.
-- Required: Add `getLeadsInBatches_controller_permission_forbidden` or `getLeadsInBatches_controller_permission_unauthorized` under the PERMISSION section. Ensure it calls controller and asserts HttpStatus 401/403.
+- Line: 159 inline mock in `getLeadsInBatches_controller_permission_unauthorized`: `doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))`
+- Required: Move to base test stub method and call stub in test.
+- Line: 160 inline mock in `getLeadsInBatches_controller_permission_unauthorized`: `.when(leadServiceMock).getLeadsInBatches(any());`
+- Required: Move to base test stub method and call stub in test.
 
-VIOLATION 3: Rule 5 - Test Naming Convention
+VIOLATION 3: Rule 10 - Test Ordering
 - Severity: MEDIUM
-- Line: 47 method `getLeadsInBatches_SingleComprehensiveTest`
-- Required rename: `getLeadsInBatches_SingleComprehensiveTest_Success`
-- Line: 97 method `getLeadsInBatches_VerifyPreAuthorizeAnnotation`
-- Required rename: `getLeadsInBatches_VerifyPreAuthorizeAnnotation_Success`
-
-VIOLATION 4: Rule 12 - Arrange/Act/Assert
-- Severity: MEDIUM
-- Line: 47 in `getLeadsInBatches_SingleComprehensiveTest` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 97 in `getLeadsInBatches_VerifyPreAuthorizeAnnotation` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-
-VIOLATION 5: Rule 10 - Test Ordering
-- Severity: MEDIUM
-- Missing sections: FAILURE
-- Required: Add Success, Failure, Permission section headers.
-
-VIOLATION 6: Rule 11 - Complete Coverage
-- Severity: HIGH
-- Coverage by test names is incomplete.
-- Missing: at least one *_success test.
-- Missing: at least one failure/exception test (e.g., *_throws*, *_exception*, *_invalid*).
+- Section PERMISSION not alphabetical.
+- Current order: getLeadsInBatches_VerifyPreAuthorizeAnnotation_Success, getLeadsInBatches_controller_permission_unauthorized, getLeadsInBatches_WithValidRequest_DelegatesToService
+- Required order: getLeadsInBatches_controller_permission_unauthorized, getLeadsInBatches_VerifyPreAuthorizeAnnotation_Success, getLeadsInBatches_WithValidRequest_DelegatesToService
 
 REQUIRED FIXES SUMMARY:
 - Fix Rule 2 issues above.
-- Fix Rule 3 issues above.
-- Fix Rule 5 issues above.
-- Fix Rule 12 issues above.
+- Fix Rule 14 issues above.
 - Fix Rule 10 issues above.
-- Fix Rule 11 issues above.
 
 ======================================================================
 FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/CreateLeadTest.java`
@@ -162,69 +121,56 @@ FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-
 Package: com.example.SpringApi.Services.Tests.Lead
 Class: * Test class for LeadService.createLead() method.
 Extends: None
-Lines of Code: 517
-Last Modified: 2026-02-10 20:20:42
+Lines of Code: 561
+Last Modified: 2026-02-10 23:11:31
 Declared Test Count: 32 (first occurrence line 24)
-Actual @Test Count: 32
+Actual @Test Count: 33
 
 VIOLATIONS FOUND:
 
-VIOLATION 1: Rule 3 - Controller Permission Test
+VIOLATION 1: Rule 2 - Test Count Declaration
 - Severity: CRITICAL
-- Problem: No controller permission test found.
-- Required: Add `createLead_controller_permission_forbidden` or `createLead_controller_permission_unauthorized` under the PERMISSION section. Ensure it calls controller and asserts HttpStatus 401/403.
+- Line: 24
+- Current: 32
+- Required: 33
 
-VIOLATION 2: Rule 5 - Test Naming Convention
+VIOLATION 2: Rule 12 - Arrange/Act/Assert
 - Severity: MEDIUM
-- Line: 479 method `createLead_VerifyPreAuthorizeAnnotation`
-- Required rename: `createLead_VerifyPreAuthorizeAnnotation_Success`
+- Line: 294 in `createLead_MissingAddress_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
+- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
+- Line: 308 in `createLead_NegativeCompanySize_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
+- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
+- Line: 321 in `createLead_NullEmail_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
+- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
+- Line: 334 in `createLead_NullFirstName_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
+- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
+- Line: 347 in `createLead_NullLastName_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
+- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
+- Line: 360 in `createLead_NullPhone_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
+- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
+- Line: 373 in `createLead_NullRequest_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
+- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
+- Line: 385 in `createLead_NullStatus_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
+- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
+- Line: 398 in `createLead_WhitespaceEmail_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
+- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
+- Line: 411 in `createLead_WhitespaceFirstName_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
+- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
+- Line: 424 in `createLead_WhitespaceLastName_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
+- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
+- Line: 437 in `createLead_WhitespacePhone_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
+- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
+- Line: 450 in `createLead_WhitespaceStatus_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
+- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
+- Line: 463 in `createLead_ZeroCompanySize_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
+- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
 
-VIOLATION 3: Rule 12 - Arrange/Act/Assert
-- Severity: MEDIUM
-- Line: 166 in `createLead_EmptyEmail_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 179 in `createLead_EmptyFirstName_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 192 in `createLead_EmptyLastName_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 205 in `createLead_EmptyPhone_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 218 in `createLead_EmptyStatus_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 231 in `createLead_InvalidEmailFormat_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 244 in `createLead_InvalidPhoneFormat_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 257 in `createLead_InvalidStatusUnknown_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 270 in `createLead_MissingAddress_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 284 in `createLead_NegativeCompanySize_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 297 in `createLead_NullEmail_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 310 in `createLead_NullFirstName_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 323 in `createLead_NullLastName_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 336 in `createLead_NullPhone_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 349 in `createLead_NullRequest_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 361 in `createLead_NullStatus_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 374 in `createLead_WhitespaceEmail_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 387 in `createLead_WhitespaceFirstName_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 400 in `createLead_WhitespaceLastName_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 413 in `createLead_WhitespacePhone_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 426 in `createLead_WhitespaceStatus_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 439 in `createLead_ZeroCompanySize_ThrowsBadRequestException` missing AAA comments: Arrange, Act, Assert
-- Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
+VIOLATION 3: Rule 14 - No Inline Mocks
+- Severity: CRITICAL
+- Line: 533 inline mock in `createLead_controller_permission_unauthorized`: `doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))`
+- Required: Move to base test stub method and call stub in test.
+- Line: 534 inline mock in `createLead_controller_permission_unauthorized`: `.when(leadServiceMock).createLead(any());`
+- Required: Move to base test stub method and call stub in test.
 
 VIOLATION 4: Rule 10 - Test Ordering
 - Severity: MEDIUM
@@ -232,10 +178,17 @@ VIOLATION 4: Rule 10 - Test Ordering
 - Current order: createLead_EmptyEmail_ThrowsBadRequestException, createLead_EmptyFirstName_ThrowsBadRequestException, createLead_EmptyLastName_ThrowsBadRequestException, createLead_EmptyPhone_ThrowsBadRequestException, createLead_EmptyStatus_ThrowsBadRequestException, createLead_InvalidEmailFormat_ThrowsBadRequestException, createLead_InvalidPhoneFormat_ThrowsBadRequestException, createLead_InvalidStatusUnknown_ThrowsBadRequestException, createLead_MissingAddress_ThrowsBadRequestException, createLead_NegativeCompanySize_ThrowsBadRequestException, createLead_NullEmail_ThrowsBadRequestException, createLead_NullFirstName_ThrowsBadRequestException, createLead_NullLastName_ThrowsBadRequestException, createLead_NullPhone_ThrowsBadRequestException, createLead_NullRequest_ThrowsBadRequestException, createLead_NullStatus_ThrowsBadRequestException, createLead_WhitespaceEmail_ThrowsBadRequestException, createLead_WhitespaceFirstName_ThrowsBadRequestException, createLead_WhitespaceLastName_ThrowsBadRequestException, createLead_WhitespacePhone_ThrowsBadRequestException, createLead_WhitespaceStatus_ThrowsBadRequestException, createLead_ZeroCompanySize_ThrowsBadRequestException, createLead_unit_validation_missingEmail
 - Required order: createLead_EmptyEmail_ThrowsBadRequestException, createLead_EmptyFirstName_ThrowsBadRequestException, createLead_EmptyLastName_ThrowsBadRequestException, createLead_EmptyPhone_ThrowsBadRequestException, createLead_EmptyStatus_ThrowsBadRequestException, createLead_InvalidEmailFormat_ThrowsBadRequestException, createLead_InvalidPhoneFormat_ThrowsBadRequestException, createLead_InvalidStatusUnknown_ThrowsBadRequestException, createLead_MissingAddress_ThrowsBadRequestException, createLead_NegativeCompanySize_ThrowsBadRequestException, createLead_NullEmail_ThrowsBadRequestException, createLead_NullFirstName_ThrowsBadRequestException, createLead_NullLastName_ThrowsBadRequestException, createLead_NullPhone_ThrowsBadRequestException, createLead_NullRequest_ThrowsBadRequestException, createLead_NullStatus_ThrowsBadRequestException, createLead_unit_validation_missingEmail, createLead_WhitespaceEmail_ThrowsBadRequestException, createLead_WhitespaceFirstName_ThrowsBadRequestException, createLead_WhitespaceLastName_ThrowsBadRequestException, createLead_WhitespacePhone_ThrowsBadRequestException, createLead_WhitespaceStatus_ThrowsBadRequestException, createLead_ZeroCompanySize_ThrowsBadRequestException
 
+VIOLATION 5: Rule 10 - Test Ordering
+- Severity: MEDIUM
+- Section PERMISSION not alphabetical.
+- Current order: createLead_VerifyPreAuthorizeAnnotation_Success, createLead_controller_permission_unauthorized, createLead_WithValidRequest_DelegatesToService
+- Required order: createLead_controller_permission_unauthorized, createLead_VerifyPreAuthorizeAnnotation_Success, createLead_WithValidRequest_DelegatesToService
+
 REQUIRED FIXES SUMMARY:
-- Fix Rule 3 issues above.
-- Fix Rule 5 issues above.
+- Fix Rule 2 issues above.
 - Fix Rule 12 issues above.
+- Fix Rule 14 issues above.
+- Fix Rule 10 issues above.
 - Fix Rule 10 issues above.
 
 ======================================================================
@@ -442,18 +395,17 @@ REQUIRED FIXES SUMMARY:
 
 
 **IMPLEMENTATION PLAN (STEP-BY-STEP)**
-1. Update `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/GetLeadDetailsByIdTest.java` using the violations listed above. Apply line-level fixes, rename methods, add missing sections/comments, remove inline mocks, and update test count declaration.
-2. Update `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/BulkCreateLeadsTest.java` using the violations listed above. Apply line-level fixes, rename methods, add missing sections/comments, remove inline mocks, and update test count declaration.
-3. Update `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/GetLeadsInBatchesTest.java` using the violations listed above. Apply line-level fixes, rename methods, add missing sections/comments, remove inline mocks, and update test count declaration.
-4. Update `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/CreateLeadTest.java` using the violations listed above. Apply line-level fixes, rename methods, add missing sections/comments, remove inline mocks, and update test count declaration.
-5. Update `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/UpdateLeadTest.java` using the violations listed above. Apply line-level fixes, rename methods, add missing sections/comments, remove inline mocks, and update test count declaration.
-6. Update `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/ToggleLeadTest.java` using the violations listed above. Apply line-level fixes, rename methods, add missing sections/comments, remove inline mocks, and update test count declaration.
-7. Update `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/BulkCreateLeadsAsyncTest.java` using the violations listed above. Apply line-level fixes, rename methods, add missing sections/comments, remove inline mocks, and update test count declaration.
+1. Update `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/BulkCreateLeadsTest.java` using the violations listed above. Apply line-level fixes, rename methods, add missing sections/comments, remove inline mocks, and update test count declaration.
+2. Update `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/GetLeadsInBatchesTest.java` using the violations listed above. Apply line-level fixes, rename methods, add missing sections/comments, remove inline mocks, and update test count declaration.
+3. Update `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/CreateLeadTest.java` using the violations listed above. Apply line-level fixes, rename methods, add missing sections/comments, remove inline mocks, and update test count declaration.
+4. Update `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/UpdateLeadTest.java` using the violations listed above. Apply line-level fixes, rename methods, add missing sections/comments, remove inline mocks, and update test count declaration.
+5. Update `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/ToggleLeadTest.java` using the violations listed above. Apply line-level fixes, rename methods, add missing sections/comments, remove inline mocks, and update test count declaration.
+6. Update `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-Api/SpringApi/src/test/java/com/example/SpringApi/Services/Tests/Lead/BulkCreateLeadsAsyncTest.java` using the violations listed above. Apply line-level fixes, rename methods, add missing sections/comments, remove inline mocks, and update test count declaration.
 
 Verification Commands (run after fixes):
-- mvn -Dtest=GetLeadDetailsByIdTest test
 - mvn -Dtest=BulkCreateLeadsTest test
 - mvn -Dtest=GetLeadsInBatchesTest test
 - mvn -Dtest=CreateLeadTest test
 - mvn -Dtest=UpdateLeadTest test
 - mvn -Dtest=ToggleLeadTest test
+- mvn -Dtest=BulkCreateLeadsAsyncTest test

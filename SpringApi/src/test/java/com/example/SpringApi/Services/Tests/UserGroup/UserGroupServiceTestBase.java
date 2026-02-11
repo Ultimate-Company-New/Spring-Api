@@ -7,6 +7,8 @@ import com.example.SpringApi.Models.DatabaseModels.UserGroup;
 import com.example.SpringApi.Models.DatabaseModels.UserGroupUserMap;
 import com.example.SpringApi.Models.RequestModels.UserGroupRequestModel;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
+import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.SpringApi.Models.ResponseModels.UserGroupResponseModel;
 import com.example.SpringApi.Repositories.UserGroupRepository;
 import com.example.SpringApi.Repositories.UserGroupUserMapRepository;
 import com.example.SpringApi.Repositories.UserRepository;
@@ -29,6 +31,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 
 /**
@@ -71,7 +75,11 @@ public abstract class UserGroupServiceTestBase {
     @InjectMocks
     protected UserGroupService userGroupService;
 
+    @Mock
+    protected UserGroupService mockUserGroupService;
+
     protected UserGroupController userGroupController;
+    protected UserGroupController userGroupControllerWithMock;
 
     protected UserGroup testUserGroup;
     protected UserGroupRequestModel testUserGroupRequest;
@@ -125,6 +133,7 @@ public abstract class UserGroupServiceTestBase {
         testMapping.setMappingId(1L);
 
         userGroupController = new UserGroupController(userGroupService);
+        userGroupControllerWithMock = new UserGroupController(mockUserGroupService);
 
         stubRequestAuthorizationHeader("Bearer test-token");
     }
@@ -203,6 +212,95 @@ public abstract class UserGroupServiceTestBase {
             storage.put(group.getGroupName(), group);
             return group;
         });
+    }
+
+    // ==========================================
+    // HELPER METHODS
+    // ==========================================
+
+    protected UserGroupRequestModel createBasicPaginationRequest() {
+        UserGroupRequestModel userGroupRequest = new UserGroupRequestModel();
+        userGroupRequest.setStart(0);
+        userGroupRequest.setEnd(10);
+        userGroupRequest.setIncludeDeleted(false);
+        return userGroupRequest;
+    }
+
+    protected void stubFetchUserGroupsInClientInBatches(PaginationBaseResponseModel<UserGroupResponseModel> response) {
+        doReturn(response).when(userGroupService).fetchUserGroupsInClientInBatches(any(UserGroupRequestModel.class));
+    }
+
+    protected void stubBulkCreateUserGroupsAsync() {
+        doNothing().when(userGroupService).bulkCreateUserGroupsAsync(anyList(), anyLong(), anyString(), anyLong());
+    }
+
+    protected void stubUserGroupRepositoryFindByGroupNameForPartialFailure(String validName, String duplicateName) {
+        lenient().when(userGroupRepository.findByGroupName(validName)).thenReturn(null);
+        lenient().when(userGroupRepository.findByGroupName(duplicateName)).thenReturn(testUserGroup);
+    }
+
+    protected void stubUserGroupRepositorySaveWithException() {
+        lenient().when(userGroupRepository.save(any())).thenThrow(new RuntimeException("Unexpected error"));
+    }
+
+    protected void stubMockUserGroupServiceGetUserId(Long userId) {
+        lenient().when(mockUserGroupService.getUserId()).thenReturn(userId);
+    }
+
+    protected void stubMockUserGroupServiceGetUser(String user) {
+        lenient().when(mockUserGroupService.getUser()).thenReturn(user);
+    }
+
+    protected void stubMockUserGroupServiceGetClientId(Long clientId) {
+        lenient().when(mockUserGroupService.getClientId()).thenReturn(clientId);
+    }
+
+    protected void stubMockUserGroupServiceBulkCreateUserGroupsAsync() {
+        lenient().doNothing().when(mockUserGroupService).bulkCreateUserGroupsAsync(anyList(), anyLong(), anyString(),
+                anyLong());
+    }
+
+    protected void stubMockUserGroupServiceCreateUserGroup(UserGroupRequestModel userGroupRequest) {
+        lenient().doNothing().when(mockUserGroupService).createUserGroup(userGroupRequest);
+    }
+
+    protected void stubMockUserGroupServiceUpdateUserGroup(UserGroupRequestModel userGroupRequest) {
+        lenient().doNothing().when(mockUserGroupService).updateUserGroup(userGroupRequest);
+    }
+
+    protected void stubMockUserGroupServiceToggleUserGroup(Long groupId) {
+        lenient().doNothing().when(mockUserGroupService).toggleUserGroup(groupId);
+    }
+
+    protected void stubMockUserGroupServiceGetUserGroupDetailsById(Long groupId, UserGroupResponseModel result) {
+        lenient().when(mockUserGroupService.getUserGroupDetailsById(groupId)).thenReturn(result);
+    }
+
+    protected void stubMockUserGroupServiceFetchUserGroupsInClientInBatches(
+            PaginationBaseResponseModel<UserGroupResponseModel> result) {
+        lenient().when(mockUserGroupService.fetchUserGroupsInClientInBatches(any(UserGroupRequestModel.class)))
+                .thenReturn(result);
+    }
+
+    protected void stubServiceThrowsUnauthorizedException() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockUserGroupService).bulkCreateUserGroupsAsync(anyList(), anyLong(), anyString(), anyLong());
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockUserGroupService).createUserGroup(any());
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockUserGroupService).updateUserGroup(any());
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockUserGroupService).toggleUserGroup(anyLong());
+        lenient().when(mockUserGroupService.getUserGroupDetailsById(anyLong()))
+                .thenThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                        com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED));
+        lenient().when(mockUserGroupService.fetchUserGroupsInClientInBatches(any()))
+                .thenThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                        com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED));
     }
 
 }

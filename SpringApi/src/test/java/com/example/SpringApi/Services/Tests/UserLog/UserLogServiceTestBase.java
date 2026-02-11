@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services.Tests.UserLog;
 
+import com.example.SpringApi.Controllers.UserLogController;
 import com.example.SpringApi.Models.DatabaseModels.UserLog;
 import com.example.SpringApi.Models.RequestModels.UserLogsRequestModel;
 import com.example.SpringApi.Repositories.UserLogRepository;
@@ -42,6 +43,13 @@ public abstract class UserLogServiceTestBase {
     @InjectMocks
     protected UserLogService userLogService;
 
+    // For controller delegation tests
+    @Mock
+    protected UserLogService mockUserLogService;
+
+    protected UserLogController userLogController;
+    protected UserLogController userLogControllerWithMock;
+
     protected UserLog testUserLog;
     protected UserLogsRequestModel testUserLogsRequest;
 
@@ -65,6 +73,9 @@ public abstract class UserLogServiceTestBase {
     protected void setUp() {
         stubAuthorizationHeader();
 
+        userLogController = new UserLogController(userLogService);
+        userLogControllerWithMock = new UserLogController(mockUserLogService);
+
         testUserLog = new UserLog(TEST_USER_ID, TEST_CARRIER_ID, TEST_ACTION, TEST_OLD_VALUE, TEST_NEW_VALUE, "admin");
         testUserLog.setLogId(1L);
         testUserLog.setCreatedAt(LocalDateTime.now());
@@ -83,6 +94,10 @@ public abstract class UserLogServiceTestBase {
         lenient().when(userLogRepository.save(any(UserLog.class))).thenReturn(returnLog);
     }
 
+    protected void stubUserLogRepositorySaveThrows(RuntimeException exception) {
+        lenient().when(userLogRepository.save(any(UserLog.class))).thenThrow(exception);
+    }
+
     protected void stubUserLogFilterQueryBuilderGetColumnType(String column, String returnType) {
         lenient().when(userLogFilterQueryBuilder.getColumnType(column)).thenReturn(returnType);
     }
@@ -99,5 +114,15 @@ public abstract class UserLogServiceTestBase {
     protected void stubUserLogServiceFetchUserLogsInBatches(UserLogService mockService, UserLogsRequestModel req,
             PaginationBaseResponseModel<UserLogsResponseModel> res) {
         lenient().when(mockService.fetchUserLogsInBatches(req)).thenReturn(res);
+    }
+
+    protected void stubUserLogServiceFetchUserLogsInBatchesMock(UserLogsRequestModel req,
+            PaginationBaseResponseModel<UserLogsResponseModel> res) {
+        lenient().when(mockUserLogService.fetchUserLogsInBatches(req)).thenReturn(res);
+    }
+
+    protected void stubServiceThrowsUnauthorizedException() {
+        lenient().when(mockUserLogService.fetchUserLogsInBatches(any()))
+                .thenThrow(new com.example.SpringApi.Exceptions.UnauthorizedException("Unauthorized"));
     }
 }

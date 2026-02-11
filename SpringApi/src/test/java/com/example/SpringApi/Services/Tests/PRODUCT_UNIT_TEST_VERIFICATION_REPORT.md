@@ -78,22 +78,24 @@ FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-
 Package: com.example.SpringApi.Services.Tests.Product
 Class: * Consolidated test class for ProductService.getCategoryPathsByIds.
 Extends: None
-Lines of Code: 144
-Last Modified: 2026-02-10 15:55:28
-Declared Test Count: MISSING/MISPLACED (first occurrence line 26)
-Actual @Test Count: 7
+Lines of Code: 162
+Last Modified: 2026-02-11 00:58:16
+Declared Test Count: MISSING/MISPLACED (first occurrence line 27)
+Actual @Test Count: 8
 
 VIOLATIONS FOUND:
 
 VIOLATION 1: Rule 2 - Test Count Declaration
 - Severity: CRITICAL
-- Line: 26
+- Line: 27
 - Problem: `// Total Tests: X` is missing or not the first line inside class body.
-- Required: Insert `// Total Tests: 7` immediately after the class opening brace.
+- Required: Insert `// Total Tests: 8` immediately after the class opening brace.
 
 VIOLATION 2: Rule 6 - Centralized Mocking
 - Severity: HIGH
-- Line: 120 has mock usage `ProductService mockService = mock(ProductService.class);`
+- Line: 121 has mock usage `ProductService mockService = mock(ProductService.class);`
+- Required: Move mocks to base test file.
+- Line: 137 has mock usage `ProductService mockService = mock(ProductService.class);`
 - Required: Move mocks to base test file.
 
 VIOLATION 3: Rule 3 - Controller Permission Test
@@ -103,34 +105,36 @@ VIOLATION 3: Rule 3 - Controller Permission Test
 
 VIOLATION 4: Rule 5 - Test Naming Convention
 - Severity: MEDIUM
-- Line: 109 method `getCategoryPathsByIds_VerifyPreAuthorizeAnnotation`
+- Line: 110 method `getCategoryPathsByIds_VerifyPreAuthorizeAnnotation`
 - Required rename: `getCategoryPathsByIds_VerifyPreAuthorizeAnnotation_Success`
 
 VIOLATION 5: Rule 9 - Test Documentation
 - Severity: MEDIUM
-- Missing documentation blocks for: getCategoryPathsByIds_VerifyPreAuthorizeAnnotation (line 107), getCategoryPathsByIds_ControllerDelegation_Success (line 116), getCategoryPathsByIds_InvalidId_Skips (line 132)
+- Missing documentation blocks for: getCategoryPathsByIds_VerifyPreAuthorizeAnnotation (line 108), getCategoryPathsByIds_ControllerDelegation_Success (line 117), getCategoryPathsByIds_NoPermission_Unauthorized (line 133), getCategoryPathsByIds_InvalidId_Skips (line 150)
 - Required: Add /* Purpose / Expected Result / Assertions */ above each @Test.
 
 VIOLATION 6: Rule 12 - Arrange/Act/Assert
 - Severity: MEDIUM
-- Line: 81 in `getCategoryPathsByIds_EmptyInput_Success` missing AAA comments: Arrange
+- Line: 82 in `getCategoryPathsByIds_EmptyInput_Success` missing AAA comments: Arrange
 - Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 95 in `getCategoryPathsByIds_NullList_Success` missing AAA comments: Arrange
+- Line: 96 in `getCategoryPathsByIds_NullList_Success` missing AAA comments: Arrange
 - Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 109 in `getCategoryPathsByIds_VerifyPreAuthorizeAnnotation` missing AAA comments: Arrange, Act, Assert
+- Line: 110 in `getCategoryPathsByIds_VerifyPreAuthorizeAnnotation` missing AAA comments: Arrange, Act, Assert
 - Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
 
 VIOLATION 7: Rule 14 - No Inline Mocks
 - Severity: CRITICAL
-- Line: 45 inline mock in `getCategoryPathsByIds_MultipleLevels_Success`: `when(productCategoryRepository.findById(TEST_CATEGORY_ID)).thenReturn(Optional.of(testCategory));`
+- Line: 46 inline mock in `getCategoryPathsByIds_MultipleLevels_Success`: `when(productCategoryRepository.findById(TEST_CATEGORY_ID)).thenReturn(Optional.of(testCategory));`
 - Required: Move to base test stub method and call stub in test.
-- Line: 46 inline mock in `getCategoryPathsByIds_MultipleLevels_Success`: `when(productCategoryRepository.findById(1L)).thenReturn(Optional.of(parent));`
+- Line: 47 inline mock in `getCategoryPathsByIds_MultipleLevels_Success`: `when(productCategoryRepository.findById(1L)).thenReturn(Optional.of(parent));`
 - Required: Move to base test stub method and call stub in test.
-- Line: 66 inline mock in `getCategoryPathsByIds_RootLevel_Success`: `when(productCategoryRepository.findById(TEST_CATEGORY_ID)).thenReturn(Optional.of(testCategory));`
+- Line: 67 inline mock in `getCategoryPathsByIds_RootLevel_Success`: `when(productCategoryRepository.findById(TEST_CATEGORY_ID)).thenReturn(Optional.of(testCategory));`
 - Required: Move to base test stub method and call stub in test.
-- Line: 122 inline mock in `getCategoryPathsByIds_ControllerDelegation_Success`: `when(mockService.getCategoryPathsByIds(any())).thenReturn(Collections.emptyMap());`
+- Line: 123 inline mock in `getCategoryPathsByIds_ControllerDelegation_Success`: `when(mockService.getCategoryPathsByIds(any())).thenReturn(Collections.emptyMap());`
 - Required: Move to base test stub method and call stub in test.
-- Line: 136 inline mock in `getCategoryPathsByIds_InvalidId_Skips`: `when(productCategoryRepository.findById(999L)).thenReturn(Optional.empty());`
+- Line: 139 inline mock in `getCategoryPathsByIds_NoPermission_Unauthorized`: `when(mockService.getCategoryPathsByIds(any()))`
+- Required: Move to base test stub method and call stub in test.
+- Line: 154 inline mock in `getCategoryPathsByIds_InvalidId_Skips`: `when(productCategoryRepository.findById(999L)).thenReturn(Optional.empty());`
 - Required: Move to base test stub method and call stub in test.
 
 VIOLATION 8: Rule 10 - Test Ordering
@@ -154,24 +158,26 @@ FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-
 Package: com.example.SpringApi.Services.Tests.Product
 Class: * Consolidated test class for ProductService.toggleDeleteProduct.
 Extends: None
-Lines of Code: 153
-Last Modified: 2026-02-10 15:48:26
-Declared Test Count: MISSING/MISPLACED (first occurrence line 23)
-Actual @Test Count: 8
+Lines of Code: 171
+Last Modified: 2026-02-10 23:11:31
+Declared Test Count: MISSING/MISPLACED (first occurrence line 24)
+Actual @Test Count: 9
 
 VIOLATIONS FOUND:
 
 VIOLATION 1: Rule 2 - Test Count Declaration
 - Severity: CRITICAL
-- Line: 23
+- Line: 24
 - Problem: `// Total Tests: X` is missing or not the first line inside class body.
-- Required: Insert `// Total Tests: 8` immediately after the class opening brace.
+- Required: Insert `// Total Tests: 9` immediately after the class opening brace.
 
 VIOLATION 2: Rule 6 - Centralized Mocking
 - Severity: HIGH
-- Line: 130 has mock usage `ProductService mockService = mock(ProductService.class);`
+- Line: 131 has mock usage `ProductService mockService = mock(ProductService.class);`
 - Required: Move mocks to base test file.
-- Line: 146 has mock usage `ProductService mockService = mock(ProductService.class);`
+- Line: 147 has mock usage `ProductService mockService = mock(ProductService.class);`
+- Required: Move mocks to base test file.
+- Line: 164 has mock usage `ProductService mockService = mock(ProductService.class);`
 - Required: Move mocks to base test file.
 
 VIOLATION 3: Rule 3 - Controller Permission Test
@@ -181,31 +187,35 @@ VIOLATION 3: Rule 3 - Controller Permission Test
 
 VIOLATION 4: Rule 5 - Test Naming Convention
 - Severity: MEDIUM
-- Line: 119 method `toggleDeleteProduct_VerifyPreAuthorizeAnnotation`
+- Line: 120 method `toggleDeleteProduct_VerifyPreAuthorizeAnnotation`
 - Required rename: `toggleDeleteProduct_VerifyPreAuthorizeAnnotation_Success`
 
 VIOLATION 5: Rule 9 - Test Documentation
 - Severity: MEDIUM
-- Missing documentation blocks for: toggleDeleteProduct_VerifyPreAuthorizeAnnotation (line 117), toggleDeleteProduct_ControllerDelegation_Success (line 126), toggleDeleteProduct_NoPermission_Forbidden (line 142)
+- Missing documentation blocks for: toggleDeleteProduct_VerifyPreAuthorizeAnnotation (line 118), toggleDeleteProduct_ControllerDelegation_Success (line 127), toggleDeleteProduct_NoPermission_Unauthorized (line 143), toggleDeleteProduct_NoPermission_Forbidden (line 160)
 - Required: Add /* Purpose / Expected Result / Assertions */ above each @Test.
 
 VIOLATION 6: Rule 12 - Arrange/Act/Assert
 - Severity: MEDIUM
-- Line: 119 in `toggleDeleteProduct_VerifyPreAuthorizeAnnotation` missing AAA comments: Arrange, Act, Assert
+- Line: 120 in `toggleDeleteProduct_VerifyPreAuthorizeAnnotation` missing AAA comments: Arrange, Act, Assert
 - Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
 
 VIOLATION 7: Rule 14 - No Inline Mocks
 - Severity: CRITICAL
-- Line: 132 inline mock in `toggleDeleteProduct_ControllerDelegation_Success`: `doNothing().when(mockService).toggleDeleteProduct(TEST_PRODUCT_ID);`
+- Line: 133 inline mock in `toggleDeleteProduct_ControllerDelegation_Success`: `doNothing().when(mockService).toggleDeleteProduct(TEST_PRODUCT_ID);`
+- Required: Move to base test stub method and call stub in test.
+- Line: 149 inline mock in `toggleDeleteProduct_NoPermission_Unauthorized`: `doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))`
+- Required: Move to base test stub method and call stub in test.
+- Line: 150 inline mock in `toggleDeleteProduct_NoPermission_Unauthorized`: `.when(mockService).toggleDeleteProduct(TEST_PRODUCT_ID);`
 - Required: Move to base test stub method and call stub in test.
 
 VIOLATION 8: Rule 7 - Exception Assertions
 - Severity: HIGH
-- Line: 84 in `toggleDeleteProduct_NotFound_ThrowsNotFound`
+- Line: 85 in `toggleDeleteProduct_NotFound_ThrowsNotFound`
 - Required: Capture exception and assert exact message using ErrorMessages constant.
-- Line: 97 in `toggleDeleteProduct_IdZero_ThrowsNotFound`
+- Line: 98 in `toggleDeleteProduct_IdZero_ThrowsNotFound`
 - Required: Capture exception and assert exact message using ErrorMessages constant.
-- Line: 110 in `toggleDeleteProduct_IdNegative_ThrowsNotFound`
+- Line: 111 in `toggleDeleteProduct_IdNegative_ThrowsNotFound`
 - Required: Capture exception and assert exact message using ErrorMessages constant.
 
 VIOLATION 9: Rule 10 - Test Ordering
@@ -230,22 +240,24 @@ FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-
 Package: com.example.SpringApi.Services.Tests.Product
 Class: * Consolidated test class for ProductService.findCategoriesByParentId.
 Extends: None
-Lines of Code: 128
-Last Modified: 2026-02-10 15:55:48
-Declared Test Count: MISSING/MISPLACED (first occurrence line 26)
-Actual @Test Count: 6
+Lines of Code: 146
+Last Modified: 2026-02-10 23:11:31
+Declared Test Count: MISSING/MISPLACED (first occurrence line 27)
+Actual @Test Count: 7
 
 VIOLATIONS FOUND:
 
 VIOLATION 1: Rule 2 - Test Count Declaration
 - Severity: CRITICAL
-- Line: 26
+- Line: 27
 - Problem: `// Total Tests: X` is missing or not the first line inside class body.
-- Required: Insert `// Total Tests: 6` immediately after the class opening brace.
+- Required: Insert `// Total Tests: 7` immediately after the class opening brace.
 
 VIOLATION 2: Rule 6 - Centralized Mocking
 - Severity: HIGH
-- Line: 95 has mock usage `ProductService mockService = mock(ProductService.class);`
+- Line: 96 has mock usage `ProductService mockService = mock(ProductService.class);`
+- Required: Move mocks to base test file.
+- Line: 112 has mock usage `ProductService mockService = mock(ProductService.class);`
 - Required: Move mocks to base test file.
 
 VIOLATION 3: Rule 3 - Controller Permission Test
@@ -255,32 +267,36 @@ VIOLATION 3: Rule 3 - Controller Permission Test
 
 VIOLATION 4: Rule 5 - Test Naming Convention
 - Severity: MEDIUM
-- Line: 84 method `findCategoriesByParentId_VerifyPreAuthorizeAnnotation`
+- Line: 85 method `findCategoriesByParentId_VerifyPreAuthorizeAnnotation`
 - Required rename: `findCategoriesByParentId_VerifyPreAuthorizeAnnotation_Success`
 
 VIOLATION 5: Rule 9 - Test Documentation
 - Severity: MEDIUM
-- Missing documentation blocks for: findCategoriesByParentId_VerifyPreAuthorizeAnnotation (line 82), findCategoriesByParentId_ControllerDelegation_Success (line 91), findCategoriesByParentId_EmptyResults_Success (line 107), findCategoriesByParentId_InvalidParentId_Success (line 118)
+- Missing documentation blocks for: findCategoriesByParentId_VerifyPreAuthorizeAnnotation (line 83), findCategoriesByParentId_ControllerDelegation_Success (line 92), findCategoriesByParentId_NoPermission_Unauthorized (line 108), findCategoriesByParentId_EmptyResults_Success (line 125), findCategoriesByParentId_InvalidParentId_Success (line 136)
 - Required: Add /* Purpose / Expected Result / Assertions */ above each @Test.
 
 VIOLATION 6: Rule 12 - Arrange/Act/Assert
 - Severity: MEDIUM
-- Line: 84 in `findCategoriesByParentId_VerifyPreAuthorizeAnnotation` missing AAA comments: Arrange, Act, Assert
+- Line: 85 in `findCategoriesByParentId_VerifyPreAuthorizeAnnotation` missing AAA comments: Arrange, Act, Assert
 - Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
 
 VIOLATION 7: Rule 14 - No Inline Mocks
 - Severity: CRITICAL
-- Line: 42 inline mock in `findCategoriesByParentId_Root_Success`: `when(productCategoryRepository.findAll())`
+- Line: 43 inline mock in `findCategoriesByParentId_Root_Success`: `when(productCategoryRepository.findAll())`
 - Required: Move to base test stub method and call stub in test.
-- Line: 65 inline mock in `findCategoriesByParentId_Child_Success`: `when(productCategoryRepository.findAll())`
+- Line: 66 inline mock in `findCategoriesByParentId_Child_Success`: `when(productCategoryRepository.findAll())`
 - Required: Move to base test stub method and call stub in test.
-- Line: 68 inline mock in `findCategoriesByParentId_Child_Success`: `when(productCategoryRepository.findById(10L)).thenReturn(Optional.empty()); // Stop path traversal`
+- Line: 69 inline mock in `findCategoriesByParentId_Child_Success`: `when(productCategoryRepository.findById(10L)).thenReturn(Optional.empty()); // Stop path traversal`
 - Required: Move to base test stub method and call stub in test.
-- Line: 97 inline mock in `findCategoriesByParentId_ControllerDelegation_Success`: `when(mockService.findCategoriesByParentId(any())).thenReturn(Collections.emptyList());`
+- Line: 98 inline mock in `findCategoriesByParentId_ControllerDelegation_Success`: `when(mockService.findCategoriesByParentId(any())).thenReturn(Collections.emptyList());`
 - Required: Move to base test stub method and call stub in test.
-- Line: 111 inline mock in `findCategoriesByParentId_EmptyResults_Success`: `when(productCategoryRepository.findAll()).thenReturn(Collections.emptyList());`
+- Line: 114 inline mock in `findCategoriesByParentId_NoPermission_Unauthorized`: `doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))`
 - Required: Move to base test stub method and call stub in test.
-- Line: 122 inline mock in `findCategoriesByParentId_InvalidParentId_Success`: `when(productCategoryRepository.findAll()).thenReturn(Collections.emptyList());`
+- Line: 115 inline mock in `findCategoriesByParentId_NoPermission_Unauthorized`: `.when(mockService).findCategoriesByParentId(any());`
+- Required: Move to base test stub method and call stub in test.
+- Line: 129 inline mock in `findCategoriesByParentId_EmptyResults_Success`: `when(productCategoryRepository.findAll()).thenReturn(Collections.emptyList());`
+- Required: Move to base test stub method and call stub in test.
+- Line: 140 inline mock in `findCategoriesByParentId_InvalidParentId_Success`: `when(productCategoryRepository.findAll()).thenReturn(Collections.emptyList());`
 - Required: Move to base test stub method and call stub in test.
 
 VIOLATION 8: Rule 10 - Test Ordering
@@ -364,10 +380,10 @@ FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-
 Package: com.example.SpringApi.Services.Tests.Product
 Class: * Consolidated test class for ProductService.editProduct.
 Extends: None
-Lines of Code: 269
-Last Modified: 2026-02-10 16:09:58
+Lines of Code: 286
+Last Modified: 2026-02-10 23:11:31
 Declared Test Count: MISSING/MISPLACED (first occurrence line 33)
-Actual @Test Count: 11
+Actual @Test Count: 12
 
 VIOLATIONS FOUND:
 
@@ -375,11 +391,13 @@ VIOLATION 1: Rule 2 - Test Count Declaration
 - Severity: CRITICAL
 - Line: 33
 - Problem: `// Total Tests: X` is missing or not the first line inside class body.
-- Required: Insert `// Total Tests: 11` immediately after the class opening brace.
+- Required: Insert `// Total Tests: 12` immediately after the class opening brace.
 
 VIOLATION 2: Rule 6 - Centralized Mocking
 - Severity: HIGH
 - Line: 258 has mock usage `ProductService mockService = mock(ProductService.class);`
+- Required: Move mocks to base test file.
+- Line: 274 has mock usage `ProductService mockService = mock(ProductService.class);`
 - Required: Move mocks to base test file.
 
 VIOLATION 3: Rule 3 - Controller Permission Test
@@ -394,7 +412,7 @@ VIOLATION 4: Rule 5 - Test Naming Convention
 
 VIOLATION 5: Rule 9 - Test Documentation
 - Severity: MEDIUM
-- Missing documentation blocks for: editProduct_VerifyPreAuthorizeAnnotation (line 245), editProduct_ControllerDelegation_Success (line 254)
+- Missing documentation blocks for: editProduct_VerifyPreAuthorizeAnnotation (line 245), editProduct_ControllerDelegation_Success (line 254), editProduct_NoPermission_Unauthorized (line 270)
 - Required: Add /* Purpose / Expected Result / Assertions */ above each @Test.
 
 VIOLATION 6: Rule 12 - Arrange/Act/Assert
@@ -405,6 +423,10 @@ VIOLATION 6: Rule 12 - Arrange/Act/Assert
 VIOLATION 7: Rule 14 - No Inline Mocks
 - Severity: CRITICAL
 - Line: 260 inline mock in `editProduct_ControllerDelegation_Success`: `doNothing().when(mockService).editProduct(testProductRequest);`
+- Required: Move to base test stub method and call stub in test.
+- Line: 276 inline mock in `editProduct_NoPermission_Unauthorized`: `doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))`
+- Required: Move to base test stub method and call stub in test.
+- Line: 277 inline mock in `editProduct_NoPermission_Unauthorized`: `.when(mockService).editProduct(any(ProductRequestModel.class));`
 - Required: Move to base test stub method and call stub in test.
 
 VIOLATION 8: Rule 8 - Error Constants
@@ -436,24 +458,24 @@ FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-
 Package: com.example.SpringApi.Services.Tests.Product
 Class: * Consolidated test class for ProductService.getProductDetailsById.
 Extends: None
-Lines of Code: 132
-Last Modified: 2026-02-10 15:47:30
-Declared Test Count: MISSING/MISPLACED (first occurrence line 23)
+Lines of Code: 138
+Last Modified: 2026-02-10 23:11:31
+Declared Test Count: MISSING/MISPLACED (first occurrence line 24)
 Actual @Test Count: 7
 
 VIOLATIONS FOUND:
 
 VIOLATION 1: Rule 2 - Test Count Declaration
 - Severity: CRITICAL
-- Line: 23
+- Line: 24
 - Problem: `// Total Tests: X` is missing or not the first line inside class body.
 - Required: Insert `// Total Tests: 7` immediately after the class opening brace.
 
 VIOLATION 2: Rule 6 - Centralized Mocking
 - Severity: HIGH
-- Line: 109 has mock usage `ProductService mockService = mock(ProductService.class);`
+- Line: 110 has mock usage `ProductService mockService = mock(ProductService.class);`
 - Required: Move mocks to base test file.
-- Line: 125 has mock usage `ProductService mockService = mock(ProductService.class);`
+- Line: 126 has mock usage `ProductService mockService = mock(ProductService.class);`
 - Required: Move mocks to base test file.
 
 VIOLATION 3: Rule 3 - Controller Permission Test
@@ -463,31 +485,35 @@ VIOLATION 3: Rule 3 - Controller Permission Test
 
 VIOLATION 4: Rule 5 - Test Naming Convention
 - Severity: MEDIUM
-- Line: 98 method `getProductDetailsById_VerifyPreAuthorizeAnnotation`
+- Line: 99 method `getProductDetailsById_VerifyPreAuthorizeAnnotation`
 - Required rename: `getProductDetailsById_VerifyPreAuthorizeAnnotation_Success`
 
 VIOLATION 5: Rule 9 - Test Documentation
 - Severity: MEDIUM
-- Missing documentation blocks for: getProductDetailsById_VerifyPreAuthorizeAnnotation (line 96), getProductDetailsById_ControllerDelegation_Success (line 105), getProductDetailsById_NoPermission_Forbidden (line 121)
+- Missing documentation blocks for: getProductDetailsById_VerifyPreAuthorizeAnnotation (line 97), getProductDetailsById_ControllerDelegation_Success (line 106), getProductDetailsById_NoPermission_Unauthorized (line 122)
 - Required: Add /* Purpose / Expected Result / Assertions */ above each @Test.
 
 VIOLATION 6: Rule 12 - Arrange/Act/Assert
 - Severity: MEDIUM
-- Line: 98 in `getProductDetailsById_VerifyPreAuthorizeAnnotation` missing AAA comments: Arrange, Act, Assert
+- Line: 99 in `getProductDetailsById_VerifyPreAuthorizeAnnotation` missing AAA comments: Arrange, Act, Assert
 - Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
 
 VIOLATION 7: Rule 14 - No Inline Mocks
 - Severity: CRITICAL
-- Line: 111 inline mock in `getProductDetailsById_ControllerDelegation_Success`: `when(mockService.getProductDetailsById(TEST_PRODUCT_ID)).thenReturn(new ProductResponseModel(testProduct));`
+- Line: 112 inline mock in `getProductDetailsById_ControllerDelegation_Success`: `when(mockService.getProductDetailsById(TEST_PRODUCT_ID)).thenReturn(new ProductResponseModel(testProduct));`
+- Required: Move to base test stub method and call stub in test.
+- Line: 128 inline mock in `getProductDetailsById_NoPermission_Unauthorized`: `doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))`
+- Required: Move to base test stub method and call stub in test.
+- Line: 129 inline mock in `getProductDetailsById_NoPermission_Unauthorized`: `.when(mockService).getProductDetailsById(TEST_PRODUCT_ID);`
 - Required: Move to base test stub method and call stub in test.
 
 VIOLATION 8: Rule 7 - Exception Assertions
 - Severity: HIGH
-- Line: 63 in `getProductDetailsById_NotFound_ThrowsNotFound`
+- Line: 64 in `getProductDetailsById_NotFound_ThrowsNotFound`
 - Required: Capture exception and assert exact message using ErrorMessages constant.
-- Line: 76 in `getProductDetailsById_IdZero_ThrowsNotFound`
+- Line: 77 in `getProductDetailsById_IdZero_ThrowsNotFound`
 - Required: Capture exception and assert exact message using ErrorMessages constant.
-- Line: 89 in `getProductDetailsById_IdNegative_ThrowsNotFound`
+- Line: 90 in `getProductDetailsById_IdNegative_ThrowsNotFound`
 - Required: Capture exception and assert exact message using ErrorMessages constant.
 
 VIOLATION 9: Rule 10 - Test Ordering
@@ -512,22 +538,22 @@ FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-
 Package: com.example.SpringApi.Services.Tests.Product
 Class: * Consolidated test class for ProductService.bulkAddProducts.
 Extends: None
-Lines of Code: 158
-Last Modified: 2026-02-10 20:20:42
-Declared Test Count: MISSING/MISPLACED (first occurrence line 28)
+Lines of Code: 165
+Last Modified: 2026-02-10 23:11:31
+Declared Test Count: MISSING/MISPLACED (first occurrence line 30)
 Actual @Test Count: 7
 
 VIOLATIONS FOUND:
 
 VIOLATION 1: Rule 2 - Test Count Declaration
 - Severity: CRITICAL
-- Line: 28
+- Line: 30
 - Problem: `// Total Tests: X` is missing or not the first line inside class body.
 - Required: Insert `// Total Tests: 7` immediately after the class opening brace.
 
 VIOLATION 2: Rule 6 - Centralized Mocking
 - Severity: HIGH
-- Line: 150 has mock usage `ProductService mockService = mock(ProductService.class);`
+- Line: 152 has mock usage `ProductService mockService = mock(ProductService.class);`
 - Required: Move mocks to base test file.
 
 VIOLATION 3: Rule 3 - Controller Permission Test
@@ -537,26 +563,30 @@ VIOLATION 3: Rule 3 - Controller Permission Test
 
 VIOLATION 4: Rule 5 - Test Naming Convention
 - Severity: MEDIUM
-- Line: 139 method `bulkAddProducts_VerifyPreAuthorizeAnnotation`
+- Line: 141 method `bulkAddProducts_VerifyPreAuthorizeAnnotation`
 - Required rename: `bulkAddProducts_VerifyPreAuthorizeAnnotation_Success`
 
 VIOLATION 5: Rule 9 - Test Documentation
 - Severity: MEDIUM
-- Missing documentation blocks for: bulkAddProducts_VerifyPreAuthorizeAnnotation (line 137), bulkAddProducts_NoPermission_Forbidden (line 146)
+- Missing documentation blocks for: bulkAddProducts_VerifyPreAuthorizeAnnotation (line 139), bulkAddProducts_NoPermission_Unauthorized (line 148)
 - Required: Add /* Purpose / Expected Result / Assertions */ above each @Test.
 
 VIOLATION 6: Rule 12 - Arrange/Act/Assert
 - Severity: MEDIUM
-- Line: 99 in `bulkAddProducts_EmptyList_ThrowsBadRequest` missing AAA comments: Arrange, Act, Assert
+- Line: 101 in `bulkAddProducts_EmptyList_ThrowsBadRequest` missing AAA comments: Arrange, Act, Assert
 - Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 109 in `bulkAddProducts_NullList_ThrowsBadRequest` missing AAA comments: Arrange, Act, Assert
+- Line: 111 in `bulkAddProducts_NullList_ThrowsBadRequest` missing AAA comments: Arrange, Act, Assert
 - Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
-- Line: 139 in `bulkAddProducts_VerifyPreAuthorizeAnnotation` missing AAA comments: Arrange, Act, Assert
+- Line: 141 in `bulkAddProducts_VerifyPreAuthorizeAnnotation` missing AAA comments: Arrange, Act, Assert
 - Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
 
 VIOLATION 7: Rule 14 - No Inline Mocks
 - Severity: CRITICAL
-- Line: 123 inline mock in `bulkAddProducts_DatabaseError_Success`: `when(productRepository.save(any())).thenThrow(new RuntimeException("DB Error"));`
+- Line: 125 inline mock in `bulkAddProducts_DatabaseError_Success`: `when(productRepository.save(any())).thenThrow(new RuntimeException("DB Error"));`
+- Required: Move to base test stub method and call stub in test.
+- Line: 155 inline mock in `bulkAddProducts_NoPermission_Unauthorized`: `doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))`
+- Required: Move to base test stub method and call stub in test.
+- Line: 156 inline mock in `bulkAddProducts_NoPermission_Unauthorized`: `.when(mockService).bulkAddProducts(requests);`
 - Required: Move to base test stub method and call stub in test.
 
 VIOLATION 8: Rule 10 - Test Ordering
@@ -580,24 +610,24 @@ FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-
 Package: com.example.SpringApi.Services.Tests.Product
 Class: * Consolidated test class for ProductService.toggleReturnProduct.
 Extends: None
-Lines of Code: 158
-Last Modified: 2026-02-10 15:48:26
-Declared Test Count: MISSING/MISPLACED (first occurrence line 23)
+Lines of Code: 164
+Last Modified: 2026-02-10 23:11:31
+Declared Test Count: MISSING/MISPLACED (first occurrence line 24)
 Actual @Test Count: 8
 
 VIOLATIONS FOUND:
 
 VIOLATION 1: Rule 2 - Test Count Declaration
 - Severity: CRITICAL
-- Line: 23
+- Line: 24
 - Problem: `// Total Tests: X` is missing or not the first line inside class body.
 - Required: Insert `// Total Tests: 8` immediately after the class opening brace.
 
 VIOLATION 2: Rule 6 - Centralized Mocking
 - Severity: HIGH
-- Line: 135 has mock usage `ProductService mockService = mock(ProductService.class);`
+- Line: 136 has mock usage `ProductService mockService = mock(ProductService.class);`
 - Required: Move mocks to base test file.
-- Line: 151 has mock usage `ProductService mockService = mock(ProductService.class);`
+- Line: 152 has mock usage `ProductService mockService = mock(ProductService.class);`
 - Required: Move mocks to base test file.
 
 VIOLATION 3: Rule 3 - Controller Permission Test
@@ -607,29 +637,33 @@ VIOLATION 3: Rule 3 - Controller Permission Test
 
 VIOLATION 4: Rule 5 - Test Naming Convention
 - Severity: MEDIUM
-- Line: 124 method `toggleReturnProduct_VerifyPreAuthorizeAnnotation`
+- Line: 125 method `toggleReturnProduct_VerifyPreAuthorizeAnnotation`
 - Required rename: `toggleReturnProduct_VerifyPreAuthorizeAnnotation_Success`
 
 VIOLATION 5: Rule 9 - Test Documentation
 - Severity: MEDIUM
-- Missing documentation blocks for: toggleReturnProduct_VerifyPreAuthorizeAnnotation (line 122), toggleReturnProduct_ControllerDelegation_Success (line 131), toggleReturnProduct_NoPermission_Forbidden (line 147)
+- Missing documentation blocks for: toggleReturnProduct_VerifyPreAuthorizeAnnotation (line 123), toggleReturnProduct_ControllerDelegation_Success (line 132), toggleReturnProduct_NoPermission_Unauthorized (line 148)
 - Required: Add /* Purpose / Expected Result / Assertions */ above each @Test.
 
 VIOLATION 6: Rule 12 - Arrange/Act/Assert
 - Severity: MEDIUM
-- Line: 124 in `toggleReturnProduct_VerifyPreAuthorizeAnnotation` missing AAA comments: Arrange, Act, Assert
+- Line: 125 in `toggleReturnProduct_VerifyPreAuthorizeAnnotation` missing AAA comments: Arrange, Act, Assert
 - Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
 
 VIOLATION 7: Rule 14 - No Inline Mocks
 - Severity: CRITICAL
-- Line: 137 inline mock in `toggleReturnProduct_ControllerDelegation_Success`: `doNothing().when(mockService).toggleReturnProduct(TEST_PRODUCT_ID);`
+- Line: 138 inline mock in `toggleReturnProduct_ControllerDelegation_Success`: `doNothing().when(mockService).toggleReturnProduct(TEST_PRODUCT_ID);`
+- Required: Move to base test stub method and call stub in test.
+- Line: 154 inline mock in `toggleReturnProduct_NoPermission_Unauthorized`: `doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))`
+- Required: Move to base test stub method and call stub in test.
+- Line: 155 inline mock in `toggleReturnProduct_NoPermission_Unauthorized`: `.when(mockService).toggleReturnProduct(TEST_PRODUCT_ID);`
 - Required: Move to base test stub method and call stub in test.
 
 VIOLATION 8: Rule 7 - Exception Assertions
 - Severity: HIGH
-- Line: 102 in `toggleReturnProduct_NotFound_ThrowsNotFound`
+- Line: 103 in `toggleReturnProduct_NotFound_ThrowsNotFound`
 - Required: Capture exception and assert exact message using ErrorMessages constant.
-- Line: 115 in `toggleReturnProduct_IdZero_ThrowsNotFound`
+- Line: 116 in `toggleReturnProduct_IdZero_ThrowsNotFound`
 - Required: Capture exception and assert exact message using ErrorMessages constant.
 
 VIOLATION 9: Rule 10 - Test Ordering
@@ -654,10 +688,10 @@ FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-
 Package: com.example.SpringApi.Services.Tests.Product
 Class: * Consolidated test class for ProductService.getProductInBatches.
 Extends: None
-Lines of Code: 308
-Last Modified: 2026-02-10 15:48:39
+Lines of Code: 312
+Last Modified: 2026-02-11 01:18:18
 Declared Test Count: MISSING/MISPLACED (first occurrence line 36)
-Actual @Test Count: 14
+Actual @Test Count: 15
 
 VIOLATIONS FOUND:
 
@@ -665,11 +699,13 @@ VIOLATION 1: Rule 2 - Test Count Declaration
 - Severity: CRITICAL
 - Line: 36
 - Problem: `// Total Tests: X` is missing or not the first line inside class body.
-- Required: Insert `// Total Tests: 14` immediately after the class opening brace.
+- Required: Insert `// Total Tests: 15` immediately after the class opening brace.
 
 VIOLATION 2: Rule 6 - Centralized Mocking
 - Severity: HIGH
-- Line: 288 has mock usage `ProductService mockService = mock(ProductService.class);`
+- Line: 274 has mock usage `ProductService mockService = mock(ProductService.class);`
+- Required: Move mocks to base test file.
+- Line: 291 has mock usage `ProductService mockService = mock(ProductService.class);`
 - Required: Move mocks to base test file.
 
 VIOLATION 3: Rule 3 - Controller Permission Test
@@ -679,67 +715,73 @@ VIOLATION 3: Rule 3 - Controller Permission Test
 
 VIOLATION 4: Rule 5 - Test Naming Convention
 - Severity: MEDIUM
-- Line: 72 method `getProductInBatches_NoFilters_Success`
+- Line: 58 method `getProductInBatches_NoFilters_Success`
 - Required rename: `getProductsInBatches_NoFilters_Success`
-- Line: 95 method `getProductInBatches_TitleContains_Success`
+- Line: 81 method `getProductInBatches_TitleContains_Success`
 - Required rename: `getProductsInBatches_TitleContains_Success`
-- Line: 109 method `getProductInBatches_PriceGreaterThan_Success`
+- Line: 95 method `getProductInBatches_PriceGreaterThan_Success`
 - Required rename: `getProductsInBatches_PriceGreaterThan_Success`
-- Line: 123 method `getProductInBatches_MultipleFiltersAnd_Success`
+- Line: 109 method `getProductInBatches_MultipleFiltersAnd_Success`
 - Required rename: `getProductsInBatches_MultipleFiltersAnd_Success`
-- Line: 142 method `getProductInBatches_MultipleFiltersOr_Success`
+- Line: 128 method `getProductInBatches_MultipleFiltersOr_Success`
 - Required rename: `getProductsInBatches_MultipleFiltersOr_Success`
-- Line: 161 method `getProductInBatches_IncludeDeleted_Success`
+- Line: 147 method `getProductInBatches_IncludeDeleted_Success`
 - Required rename: `getProductsInBatches_IncludeDeleted_Success`
-- Line: 177 method `getProductInBatches_PickupLocationFilter_Success`
+- Line: 163 method `getProductInBatches_PickupLocationFilter_Success`
 - Required rename: `getProductsInBatches_PickupLocationFilter_Success`
-- Line: 195 method `getProductInBatches_InvalidRange_ThrowsBadRequest`
+- Line: 181 method `getProductInBatches_InvalidRange_ThrowsBadRequest`
 - Required rename: `getProductsInBatches_InvalidRange_ThrowsBadRequest`
-- Line: 211 method `getProductInBatches_ZeroPageSize_ThrowsBadRequest`
+- Line: 197 method `getProductInBatches_ZeroPageSize_ThrowsBadRequest`
 - Required rename: `getProductsInBatches_ZeroPageSize_ThrowsBadRequest`
-- Line: 227 method `getProductInBatches_UnknownColumn_ThrowsBadRequest`
+- Line: 213 method `getProductInBatches_UnknownColumn_ThrowsBadRequest`
 - Required rename: `getProductsInBatches_UnknownColumn_ThrowsBadRequest`
-- Line: 243 method `getProductInBatches_InvalidOperatorForType_ThrowsBadRequest`
+- Line: 229 method `getProductInBatches_InvalidOperatorForType_ThrowsBadRequest`
 - Required rename: `getProductsInBatches_InvalidOperatorForType_ThrowsBadRequest`
-- Line: 259 method `getProductInBatches_MalformedOperator_ThrowsBadRequest`
+- Line: 245 method `getProductInBatches_MalformedOperator_ThrowsBadRequest`
 - Required rename: `getProductsInBatches_MalformedOperator_ThrowsBadRequest`
-- Line: 276 method `getProductInBatches_VerifyPreAuthorizeAnnotation`
+- Line: 262 method `getProductInBatches_VerifyPreAuthorizeAnnotation`
 - Required rename: `getProductInBatches_VerifyPreAuthorizeAnnotation_Success`
-- Line: 276 method `getProductInBatches_VerifyPreAuthorizeAnnotation`
+- Line: 262 method `getProductInBatches_VerifyPreAuthorizeAnnotation`
 - Required rename: `getProductInBatches_VerifyPreAuthorizeAnnotation_Success`
-- Line: 286 method `getProductInBatches_ControllerDelegation_Success`
+- Line: 272 method `getProductInBatches_ControllerDelegation_Success`
 - Required rename: `getProductsInBatches_ControllerDelegation_Success`
+- Line: 289 method `getProductInBatches_NoPermission_Unauthorized`
+- Required rename: `getProductsInBatches_NoPermission_Unauthorized`
 
 VIOLATION 5: Rule 9 - Test Documentation
 - Severity: MEDIUM
-- Missing documentation blocks for: getProductInBatches_VerifyPreAuthorizeAnnotation (line 274), getProductInBatches_ControllerDelegation_Success (line 284)
+- Missing documentation blocks for: getProductInBatches_VerifyPreAuthorizeAnnotation (line 260), getProductInBatches_ControllerDelegation_Success (line 270), getProductInBatches_NoPermission_Unauthorized (line 287)
 - Required: Add /* Purpose / Expected Result / Assertions */ above each @Test.
 
 VIOLATION 6: Rule 12 - Arrange/Act/Assert
 - Severity: MEDIUM
-- Line: 276 in `getProductInBatches_VerifyPreAuthorizeAnnotation` missing AAA comments: Arrange, Act, Assert
+- Line: 262 in `getProductInBatches_VerifyPreAuthorizeAnnotation` missing AAA comments: Arrange, Act, Assert
 - Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
 
 VIOLATION 7: Rule 14 - No Inline Mocks
 - Severity: CRITICAL
-- Line: 77 inline mock in `getProductInBatches_NoFilters_Success`: `when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(anyLong(), any(), anyString(),`
+- Line: 63 inline mock in `getProductInBatches_NoFilters_Success`: `when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(anyLong(), any(), anyString(),`
 - Required: Move to base test stub method and call stub in test.
-- Line: 291 inline mock in `getProductInBatches_ControllerDelegation_Success`: `when(mockService.getProductInBatches(request)).thenReturn(new PaginationBaseResponseModel<>());`
+- Line: 277 inline mock in `getProductInBatches_ControllerDelegation_Success`: `when(mockService.getProductInBatches(request)).thenReturn(new PaginationBaseResponseModel<>());`
+- Required: Move to base test stub method and call stub in test.
+- Line: 294 inline mock in `getProductInBatches_NoPermission_Unauthorized`: `doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))`
+- Required: Move to base test stub method and call stub in test.
+- Line: 295 inline mock in `getProductInBatches_NoPermission_Unauthorized`: `.when(mockService).getProductInBatches(request);`
 - Required: Move to base test stub method and call stub in test.
 
 VIOLATION 8: Rule 8 - Error Constants
 - Severity: HIGH
-- Line: 235 has hardcoded message: `assertTrue(exception.getMessage().contains("nonExistent"));`
+- Line: 221 has hardcoded message: `assertTrue(exception.getMessage().contains("nonExistent"));`
 - Required: Replace with an ErrorMessages constant (add one if missing).
-- Line: 235 has hardcoded message: `assertTrue(exception.getMessage().contains("nonExistent"));`
+- Line: 221 has hardcoded message: `assertTrue(exception.getMessage().contains("nonExistent"));`
 - Required: Replace with an ErrorMessages constant (add one if missing).
-- Line: 251 has hardcoded message: `assertTrue(exception.getMessage().contains("greaterThan"));`
+- Line: 237 has hardcoded message: `assertTrue(exception.getMessage().contains("greaterThan"));`
 - Required: Replace with an ErrorMessages constant (add one if missing).
-- Line: 251 has hardcoded message: `assertTrue(exception.getMessage().contains("greaterThan"));`
+- Line: 237 has hardcoded message: `assertTrue(exception.getMessage().contains("greaterThan"));`
 - Required: Replace with an ErrorMessages constant (add one if missing).
-- Line: 267 has hardcoded message: `assertTrue(exception.getMessage().contains("unknown_op"));`
+- Line: 253 has hardcoded message: `assertTrue(exception.getMessage().contains("unknown_op"));`
 - Required: Replace with an ErrorMessages constant (add one if missing).
-- Line: 267 has hardcoded message: `assertTrue(exception.getMessage().contains("unknown_op"));`
+- Line: 253 has hardcoded message: `assertTrue(exception.getMessage().contains("unknown_op"));`
 - Required: Replace with an ErrorMessages constant (add one if missing).
 
 VIOLATION 9: Rule 10 - Test Ordering
@@ -764,8 +806,8 @@ FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-
 Package: com.example.SpringApi.Services.Tests.Product
 Class: * Consolidated test class for ProductService.addProduct.
 Extends: None
-Lines of Code: 662
-Last Modified: 2026-02-10 16:13:13
+Lines of Code: 667
+Last Modified: 2026-02-10 23:11:31
 Declared Test Count: MISSING/MISPLACED (first occurrence line 34)
 Actual @Test Count: 34
 
@@ -803,6 +845,10 @@ VIOLATION 6: Rule 14 - No Inline Mocks
 - Severity: CRITICAL
 - Line: 527 inline mock in `addProduct_ControllerDelegation_Success`: `doNothing().when(mockService).addProduct(testProductRequest);`
 - Required: Move to base test stub method and call stub in test.
+- Line: 547 inline mock in `addProduct_NoPermission_Unauthorized`: `doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))`
+- Required: Move to base test stub method and call stub in test.
+- Line: 548 inline mock in `addProduct_NoPermission_Unauthorized`: `.when(mockService).addProduct(any(ProductRequestModel.class));`
+- Required: Move to base test stub method and call stub in test.
 
 VIOLATION 7: Rule 8 - Error Constants
 - Severity: HIGH
@@ -834,8 +880,8 @@ VIOLATION 9: Rule 10 - Test Ordering
 VIOLATION 10: Rule 10 - Test Ordering
 - Severity: MEDIUM
 - Section PERMISSION not alphabetical.
-- Current order: addProduct_VerifyPreAuthorizeAnnotation, addProduct_ControllerDelegation_Success, addProduct_NoPermission_Forbidden, addProduct_MinimumValidDimensions_Success, addProduct_OnlyRequiredImages_Success, addProduct_PartialOptionalImages_Success, addProduct_AllOptionalImagesPresent_Success, addProduct_ZeroWeight_Success
-- Required order: addProduct_AllOptionalImagesPresent_Success, addProduct_ControllerDelegation_Success, addProduct_MinimumValidDimensions_Success, addProduct_NoPermission_Forbidden, addProduct_OnlyRequiredImages_Success, addProduct_PartialOptionalImages_Success, addProduct_VerifyPreAuthorizeAnnotation, addProduct_ZeroWeight_Success
+- Current order: addProduct_VerifyPreAuthorizeAnnotation, addProduct_ControllerDelegation_Success, addProduct_NoPermission_Unauthorized, addProduct_MinimumValidDimensions_Success, addProduct_OnlyRequiredImages_Success, addProduct_PartialOptionalImages_Success, addProduct_AllOptionalImagesPresent_Success, addProduct_ZeroWeight_Success
+- Required order: addProduct_AllOptionalImagesPresent_Success, addProduct_ControllerDelegation_Success, addProduct_MinimumValidDimensions_Success, addProduct_NoPermission_Unauthorized, addProduct_OnlyRequiredImages_Success, addProduct_PartialOptionalImages_Success, addProduct_VerifyPreAuthorizeAnnotation, addProduct_ZeroWeight_Success
 
 REQUIRED FIXES SUMMARY:
 - Fix Rule 2 issues above.

@@ -840,6 +840,11 @@ class InsertAddressTest extends AddressServiceTestBase {
         assertEquals(ErrorMessages.AddressErrorMessages.ER006, exception.getMessage());
     }
 
+    /*
+     * Purpose: Verify that insertAddress throws BadRequestException when address type contains invalid characters
+     * Expected Result: BadRequestException with message ER006
+     * Assertions: Exception type and error message
+     */
     @Test
     @DisplayName("Insert Address - Invalid address type (home123) - ThrowsBadRequestException")
     void insertAddress_InvalidAddressTypeHome123_ThrowsBadRequestException() {

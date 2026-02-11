@@ -39,10 +39,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/" + ApiRoutes.ApiControllerNames.USER)
 public class UserController {
-    
+
     private final IUserSubTranslator userService;
     private final ContextualLogger logger;
-    
+
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
@@ -60,22 +60,27 @@ public class UserController {
      * @return ResponseEntity containing UserResponseModel or ErrorResponseModel
      */
     @GetMapping("/" + ApiRoutes.UsersSubRoute.GET_USER_BY_ID + "/{id}")
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_USER_PERMISSION +"')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.VIEW_USER_PERMISSION + "')")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(userService.getUserById(id));
         } catch (BadRequestException bre) {
             logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST,
+                    bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException nfe) {
             logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException ue) {
             logger.error(ue);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
@@ -89,22 +94,27 @@ public class UserController {
      * @return ResponseEntity containing UserResponseModel or ErrorResponseModel
      */
     @GetMapping("/" + ApiRoutes.UsersSubRoute.GET_USER_BY_EMAIL + "/{email}")
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_USER_PERMISSION +"')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.VIEW_USER_PERMISSION + "')")
     public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
         try {
             return ResponseEntity.ok(userService.getUserByEmail(email));
         } catch (BadRequestException bre) {
             logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST,
+                    bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException nfe) {
             logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException ue) {
             logger.error(ue);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
@@ -116,10 +126,11 @@ public class UserController {
      * such as createdUser, modifiedUser, and timestamps.
      * 
      * @param user The UserRequestModel containing the user data to insert
-     * @return ResponseEntity containing true if user was created successfully or ErrorResponseModel
+     * @return ResponseEntity containing true if user was created successfully or
+     *         ErrorResponseModel
      */
     @PutMapping("/" + ApiRoutes.UsersSubRoute.CREATE_USER)
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.CREATE_USER_PERMISSION +"')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.CREATE_USER_PERMISSION + "')")
     public ResponseEntity<?> createUser(@RequestBody UserRequestModel user) {
         try {
             // Always send email for single user creation
@@ -127,16 +138,21 @@ public class UserController {
             return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST,
+                    bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException nfe) {
             logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException ue) {
             logger.error(ue);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
@@ -147,98 +163,124 @@ public class UserController {
      * and updates the user while preserving audit information like createdUser
      * and createdAt. Only the modifiedUser and updatedAt fields are updated.
      * 
-     * @param id The unique identifier of the user to update
+     * @param id   The unique identifier of the user to update
      * @param user The UserRequestModel containing the updated user data
      * @return ResponseEntity containing the updated user ID or ErrorResponseModel
      */
     @PostMapping("/" + ApiRoutes.UsersSubRoute.UPDATE_USER + "/{id}")
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.UPDATE_USER_PERMISSION +"')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.UPDATE_USER_PERMISSION + "')")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserRequestModel user) {
         try {
             userService.updateUser(user);
             return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST,
+                    bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException nfe) {
             logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException ue) {
             logger.error(ue);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
     /**
      * Toggles the deletion status of a user by its ID.
      * 
-     * This endpoint performs a soft delete operation by toggling the isDeleted flag.
-     * If the user is currently active (isDeleted = false), it will be marked as deleted.
+     * This endpoint performs a soft delete operation by toggling the isDeleted
+     * flag.
+     * If the user is currently active (isDeleted = false), it will be marked as
+     * deleted.
      * If the user is currently deleted (isDeleted = true), it will be restored.
      * 
      * @param id The unique identifier of the user to toggle
      * @return ResponseEntity with no content on success or ErrorResponseModel
      */
     @DeleteMapping("/" + ApiRoutes.UsersSubRoute.TOGGLE_USER + "/{id}")
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.DELETE_USER_PERMISSION +"')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.DELETE_USER_PERMISSION + "')")
     public ResponseEntity<?> toggleUser(@PathVariable Long id) {
         try {
             userService.toggleUser(id);
             return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST,
+                    bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException nfe) {
             logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException ue) {
             logger.error(ue);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
     /**
-     * Retrieves users in the carrier in paginated batches with advanced filtering and sorting.
-     * Fetches users associated with the current carrier in a paginated, filterable, and sortable manner.
-     * Accepts a {@link UserRequestModel} containing pagination parameters (start, end), filter expressions,
-     * column names for sorting, and other options. Returns a {@link PaginationBaseResponseModel} with user data
-     * and total count, enabling efficient client-side pagination and search. Ideal for large user lists in admin panels.
+     * Retrieves users in the carrier in paginated batches with advanced filtering
+     * and sorting.
+     * Fetches users associated with the current carrier in a paginated, filterable,
+     * and sortable manner.
+     * Accepts a {@link UserRequestModel} containing pagination parameters (start,
+     * end), filter expressions,
+     * column names for sorting, and other options. Returns a
+     * {@link PaginationBaseResponseModel} with user data
+     * and total count, enabling efficient client-side pagination and search. Ideal
+     * for large user lists in admin panels.
      *
-     * @param userRequestModel The request model containing pagination, filter, and sort options.
-     * @return {@link PaginationBaseResponseModel} of {@link UserResponseModel} for the requested batch.
+     * @param userRequestModel The request model containing pagination, filter, and
+     *                         sort options.
+     * @return {@link PaginationBaseResponseModel} of {@link UserResponseModel} for
+     *         the requested batch.
      */
     @PostMapping("/" + ApiRoutes.UsersSubRoute.GET_USERS_IN_CARRIER_IN_BATCHES)
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.VIEW_USER_PERMISSION +"')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.VIEW_USER_PERMISSION + "')")
     public ResponseEntity<?> fetchUsersInCarrierInBatches(@RequestBody UserRequestModel userRequestModel) {
         try {
             return ResponseEntity.ok(userService.fetchUsersInCarrierInBatches(userRequestModel));
         } catch (BadRequestException bre) {
             logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST,
+                    bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException nfe) {
             logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException ue) {
             logger.error(ue);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
     /**
      * Confirms user email using userId and token from email link.
-     * This is a PUBLIC endpoint (no authentication required) as users haven't logged in yet.
+     * This is a PUBLIC endpoint (no authentication required) as users haven't
+     * logged in yet.
      * 
      * @param userId User ID from the email link (path variable)
-     * @param token Verification token from the email link (query parameter to avoid URL encoding issues with bcrypt)
+     * @param token  Verification token from the email link (query parameter to
+     *               avoid URL encoding issues with bcrypt)
      * @return Success message or error response
      */
     @PostMapping(ApiRoutes.UserSubRoute.CONFIRM_EMAIL + "/{userId}")
@@ -251,16 +293,21 @@ public class UserController {
             return ResponseEntity.ok("Email confirmed successfully");
         } catch (BadRequestException bre) {
             logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST,
+                    bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException nfe) {
             logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException ue) {
             logger.error(ue);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
@@ -272,67 +319,86 @@ public class UserController {
      * for populating permission selection dropdowns in user management interfaces.
      * Only non-deleted permissions are returned.
      * 
-     * @return ResponseEntity containing List of PermissionResponseModel or ErrorResponseModel
+     * @return ResponseEntity containing List of PermissionResponseModel or
+     *         ErrorResponseModel
      */
     @GetMapping("/" + ApiRoutes.UsersSubRoute.GET_ALL_PERMISSIONS)
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.CREATE_USER_PERMISSION +"')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.CREATE_USER_PERMISSION + "')")
     public ResponseEntity<?> getAllPermissions() {
         try {
             return ResponseEntity.ok(userService.getAllPermissions());
         } catch (BadRequestException bre) {
             logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST,
+                    bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException nfe) {
             logger.error(nfe);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_NOT_FOUND, nfe.getMessage(), HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException ue) {
             logger.error(ue);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
     /**
-     * Creates multiple users in the system efficiently with partial success support.
+     * Creates multiple users in the system efficiently with partial success
+     * support.
      * 
-     * This endpoint performs bulk user insertion ASYNCHRONOUSLY with the following characteristics:
+     * This endpoint performs bulk user insertion ASYNCHRONOUSLY with the following
+     * characteristics:
      * - Immediately returns 202 Accepted to the client
      * - Processes users in background thread
      * - Uses batch database operations for maximum efficiency
-     * - Supports partial success: if some users fail validation, others still succeed
+     * - Supports partial success: if some users fail validation, others still
+     * succeed
      * - Does NOT send email confirmations (unlike createUser endpoint)
-     * - Sends results to the user via message notification after processing completes
+     * - Sends results to the user via message notification after processing
+     * completes
      * 
      * This is ideal for importing large numbers of users from external systems or
      * bulk user provisioning scenarios. The endpoint can handle millions of records
      * efficiently through batched database operations without blocking the client.
      * 
      * @param users List of UserRequestModel containing the user data to insert
-     * @return ResponseEntity with 202 Accepted status indicating job has been queued
+     * @return ResponseEntity with 202 Accepted status indicating job has been
+     *         queued
      */
     @PutMapping("/" + ApiRoutes.UsersSubRoute.BULK_CREATE_USER)
-    @PreAuthorize("@customAuthorization.hasAuthority('"+ Authorizations.CREATE_USER_PERMISSION +"')")
+    @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.CREATE_USER_PERMISSION + "')")
     public ResponseEntity<?> bulkCreateUsers(@RequestBody List<UserRequestModel> users) {
         try {
-            // Cast to UserService to access BaseService methods (security context not available in async thread)
+            // Cast to UserService to access BaseService methods (security context not
+            // available in async thread)
             UserService service = (UserService) userService;
             Long userId = service.getUserId();
             String loginName = service.getUser();
             Long clientId = service.getClientId();
-            
+
             // Trigger async processing - returns immediately
             userService.bulkCreateUsersAsync(users, userId, loginName, clientId);
-            
+
             // Return 200 OK - processing will continue in background
             return ResponseEntity.ok().build();
         } catch (BadRequestException bre) {
             logger.error(bre);
-            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST,
+                    bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (UnauthorizedException ue) {
+            logger.error(ue);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(
+                    ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 }

@@ -1,12 +1,13 @@
 package com.example.SpringApi.Services.Tests.User;
 
 import com.example.SpringApi.Controllers.UserController;
-
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.DatabaseModels.*;
+import com.example.SpringApi.Models.DatabaseModels.Address;
+import com.example.SpringApi.Models.DatabaseModels.GoogleCred;
+import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
@@ -26,71 +27,98 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-// Total Tests: 16
+/**
+ * Unit tests for UserService.updateUser method.
+ * 
+ * Total Tests: 17
+ */
 @DisplayName("UserService - UpdateUser Tests")
 class UpdateUserTest extends UserServiceTestBase {
-
-    // ========================================
-    // CONTROLLER AUTHORIZATION TESTS
-    // ========================================
-
-    /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
-     * Expected Result: The method should be annotated with UPDATE_USER_PERMISSION.
-     * Assertions: Annotation is present and contains expected permission string.
-     */
-    @Test
-    @DisplayName("Update User - Controller permission forbidden - Success")
-    void updateUser_controller_permission_forbidden() throws NoSuchMethodException {
-        // Arrange
-        Method method = UserController.class.getMethod("updateUser", Long.class, UserRequestModel.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "updateUser method should have @PreAuthorize annotation");
-        assertTrue(annotation.value().contains(Authorizations.UPDATE_USER_PERMISSION),
-                "@PreAuthorize annotation should check for UPDATE_USER_PERMISSION");
-    }
-
-    /**
-     * Purpose: Verify controller delegates to service.
-     * Expected Result: Service method is called.
-     * Assertions: verify(userService).updateUser(request);
-     */
-    @Test
-    @DisplayName("Update User - Controller delegates to service")
-    void updateUser_WithValidRequest_DelegatesToService() {
-        // Arrange
-        Long userId = 1L;
-        UserRequestModel request = new UserRequestModel();
-        request.setId(userId);
-
-        com.example.SpringApi.Services.UserService mockUserService = mock(
-                com.example.SpringApi.Services.UserService.class);
-        UserController localController = new UserController(mockUserService);
-        doNothing().when(mockUserService).updateUser(request);
-
-        // Act
-        ResponseEntity<?> response = localController.updateUser(userId, request);
-
-        // Assert
-        verify(mockUserService, times(1)).updateUser(request);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
+    // Total Tests: 17
 
     // ========================================
     // SUCCESS TESTS
     // ========================================
 
     /**
-     * Purpose: Verify single permission update is allowed.
-     * Expected Result: User is updated with single permission.
-     * Assertions: verify(userClientPermissionMappingRepository).saveAll(anyList());
+     * Purpose: Verify creating new address when user had no address.
+     * Expected Result: New address is created and linked to user.
+     * Assertions: verify
      */
     @Test
-    @DisplayName("Update User - Single Permission - Success")
+    @DisplayName("updateUser - Success - Creates New Address")
+    void updateUser_createsNewAddressWhenNoneExists_Success() {
+        // Arrange
+        AddressRequestModel addressRequest = new AddressRequestModel();
+        addressRequest.setStreetAddress("123 New St");
+        addressRequest.setCity("New City");
+        addressRequest.setState("NC");
+        addressRequest.setPostalCode("11111");
+        addressRequest.setCountry("New Country");
+        addressRequest.setAddressType("HOME");
+        testUserRequest.setAddress(addressRequest);
+        testUser.setAddressId(null);
+
+        Address newAddress = new Address();
+        newAddress.setAddressId(2L);
+
+        setupUpdateUserMocks();
+        stubAddressRepositorySave(newAddress);
+
+        // Act
+        assertDoesNotThrow(() -> userService.updateUser(testUserRequest));
+
+        // Assert
+        verify(addressRepository, times(1)).save(any(Address.class));
+    }
+
+    /**
+     * Purpose: Verify that loginName (email) from the request is preserved in
+     * update.
+     * Expected Result: User is successfully updated.
+     * Assertions: verify
+     */
+    @Test
+    @DisplayName("updateUser - Success - Login Name Change Allowed")
+    void updateUser_loginNameChange_allowed() {
+        // Arrange
+        UserRequestModel changeEmailRequest = new UserRequestModel();
+        changeEmailRequest.setUserId(TEST_USER_ID);
+        changeEmailRequest.setLoginName("newemail@example.com");
+        changeEmailRequest.setFirstName("Test");
+        changeEmailRequest.setLastName("User");
+        changeEmailRequest.setPhone("1234567890");
+        changeEmailRequest.setRole("Admin");
+        changeEmailRequest.setDob(LocalDate.of(1990, 1, 1));
+        changeEmailRequest.setPermissionIds(Arrays.asList(1L, 2L, 3L));
+        changeEmailRequest.setIsDeleted(false);
+
+        stubUserRepositoryFindByIdWithAllRelations(testUser);
+        stubUserRepositorySave(testUser);
+        stubUserClientPermissionMappingRepositoryFindByUserIdAndClientId(new ArrayList<>());
+        stubUserClientPermissionMappingRepositorySaveAll(new ArrayList<>());
+        stubUserGroupUserMapRepositoryFindByUserId(new ArrayList<>());
+        stubGoogleCredRepositoryFindByIdAny(Optional.of(new GoogleCred()));
+        stubClientRepositoryFindByIdAny(Optional.of(createTestClient()));
+        stubClientServiceGetClientById(new ClientResponseModel());
+        stubUserLogServiceLogData(true);
+        stubEnvironmentActiveProfiles(new String[] { "test" });
+        stubImgbbHelper();
+
+        // Act
+        assertDoesNotThrow(() -> userService.updateUser(changeEmailRequest));
+
+        // Assert
+        verify(userRepository, atLeastOnce()).save(any(User.class));
+    }
+
+    /**
+     * Purpose: Verify single permission update is allowed.
+     * Expected Result: User is updated with single permission.
+     * Assertions: verify
+     */
+    @Test
+    @DisplayName("updateUser - Success - Single Permission")
     void updateUser_singlePermission_success() {
         // Arrange
         testUserRequest.setPermissionIds(Arrays.asList(1L));
@@ -104,12 +132,30 @@ class UpdateUserTest extends UserServiceTestBase {
     }
 
     /**
-     * Purpose: Verify successful user update.
-     * Expected Result: User is updated and saved.
-     * Assertions: verify(userRepository).save(any(User.class));
+     * Purpose: Verify user log is called after successful update.
+     * Expected Result: userLogService.logData is called.
+     * Assertions: verify
      */
     @Test
-    @DisplayName("Update User - Success - Updates user details")
+    @DisplayName("updateUser - Success - Logs Operation")
+    void updateUser_success_logsOperation() {
+        // Arrange
+        setupUpdateUserMocks();
+
+        // Act
+        assertDoesNotThrow(() -> userService.updateUser(testUserRequest));
+
+        // Assert
+        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
+    }
+
+    /**
+     * Purpose: Verify successful user update.
+     * Expected Result: User is updated and saved.
+     * Assertions: verify
+     */
+    @Test
+    @DisplayName("updateUser - Success - Updates User Details")
     void updateUser_success_updatesUserDetails() {
         // Arrange
         testUserRequest.setFirstName("Updated");
@@ -125,31 +171,13 @@ class UpdateUserTest extends UserServiceTestBase {
     }
 
     /**
-     * Purpose: Verify user log is called after successful update.
-     * Expected Result: userLogService.logData is called.
-     * Assertions: verify(userLogService).logData(...);
-     */
-    @Test
-    @DisplayName("Update User - Success - Logs the operation")
-    void updateUser_success_logsOperation() {
-        // Arrange
-        setupUpdateUserMocks();
-
-        // Act
-        assertDoesNotThrow(() -> userService.updateUser(testUserRequest));
-
-        // Assert
-        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
-    }
-
-    /**
      * Purpose: Verify permissions are updated.
      * Expected Result: Old permissions deleted, new ones saved.
-     * Assertions: verify(userClientPermissionMappingRepository).saveAll(anyList());
+     * Assertions: verify
      */
     @Test
-    @DisplayName("Update User - Updates permissions")
-    void updateUser_updatesPermissions() {
+    @DisplayName("updateUser - Success - Updates Permissions")
+    void updateUser_updatesPermissions_Success() {
         // Arrange
         testUserRequest.setPermissionIds(Arrays.asList(4L, 5L));
         setupUpdateUserMocks();
@@ -164,11 +192,11 @@ class UpdateUserTest extends UserServiceTestBase {
     /**
      * Purpose: Verify user groups are updated.
      * Expected Result: Old group mappings deleted, new ones saved.
-     * Assertions: verify(userGroupUserMapRepository).saveAll(anyList());
+     * Assertions: verify
      */
     @Test
-    @DisplayName("Update User - Updates user groups")
-    void updateUser_updatesUserGroups() {
+    @DisplayName("updateUser - Success - Updates User Groups")
+    void updateUser_updatesUserGroups_Success() {
         // Arrange
         testUserRequest.setSelectedGroupIds(Arrays.asList(3L, 4L));
         setupUpdateUserMocks();
@@ -184,10 +212,10 @@ class UpdateUserTest extends UserServiceTestBase {
     /**
      * Purpose: Verify address update is successful.
      * Expected Result: Address is updated.
-     * Assertions: verify(addressRepository).save(any(Address.class));
+     * Assertions: verify
      */
     @Test
-    @DisplayName("Update User - With Address - Updates address")
+    @DisplayName("updateUser - Success - With Address")
     void updateUser_withAddress_updatesAddress() {
         // Arrange
         AddressRequestModel addressRequest = new AddressRequestModel();
@@ -219,43 +247,13 @@ class UpdateUserTest extends UserServiceTestBase {
     // ========================================
 
     /**
-     * Purpose: Verify creating new address when user had no address.
-     * Expected Result: New address is created and linked to user.
-     * Assertions: verify(addressRepository).save(any(Address.class));
-     */
-    @Test
-    @DisplayName("Update User - Creates new address when none exists")
-    void updateUser_createsNewAddressWhenNoneExists() {
-        // Arrange
-        AddressRequestModel addressRequest = new AddressRequestModel();
-        addressRequest.setStreetAddress("123 New St");
-        addressRequest.setCity("New City");
-        addressRequest.setState("NC");
-        addressRequest.setPostalCode("11111");
-        addressRequest.setCountry("New Country");
-        addressRequest.setAddressType("HOME");
-        testUserRequest.setAddress(addressRequest);
-        testUser.setAddressId(null);
-
-        Address newAddress = new Address();
-        newAddress.setAddressId(2L);
-
-        setupUpdateUserMocks();
-        stubAddressRepositorySave(newAddress);
-
-        // Act
-        assertDoesNotThrow(() -> userService.updateUser(testUserRequest));
-
-        // Assert
-        verify(addressRepository, times(1)).save(any(Address.class));
-    }
-
-    /**
      * Purpose: Verify empty permissions throws BadRequestException.
-     * Expected Result: BadRequestException with permission required message.
+     * Expected Result: BadRequestException with AtLeastOnePermissionRequired
+     * message.
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("Update User - Empty Permissions - Throws BadRequestException")
+    @DisplayName("updateUser - Failure - Empty Permissions")
     void updateUser_emptyPermissions_throwsBadRequestException() {
         // Arrange
         testUserRequest.setPermissionIds(new ArrayList<>());
@@ -270,53 +268,12 @@ class UpdateUserTest extends UserServiceTestBase {
     }
 
     /**
-     * Purpose: Verify that loginName (email) from the request is preserved in
-     * update.
-     * Expected Result: User is successfully updated.
-     */
-    @Test
-    @DisplayName("Update User - Login Name Change - Allowed")
-    void updateUser_loginNameChange_allowed() {
-        // Arrange
-        UserRequestModel changeEmailRequest = new UserRequestModel();
-        changeEmailRequest.setUserId(TEST_USER_ID);
-        changeEmailRequest.setLoginName("newemail@example.com");
-        changeEmailRequest.setFirstName("Test");
-        changeEmailRequest.setLastName("User");
-        changeEmailRequest.setPhone("1234567890");
-        changeEmailRequest.setRole("Admin");
-        changeEmailRequest.setDob(LocalDate.of(1990, 1, 1));
-        changeEmailRequest.setPermissionIds(Arrays.asList(1L, 2L, 3L));
-        changeEmailRequest.setIsDeleted(false);
-
-        // Setup mocks for this specific request
-        // Since setupUpdateUserMocks uses testUserRequest, we need to adapt or just set
-        // mocks manually
-        stubUserRepositoryFindByIdWithAllRelations(testUser);
-        stubUserRepositorySave(testUser);
-        stubUserClientPermissionMappingRepositoryFindByUserIdAndClientId(new ArrayList<>());
-        stubUserClientPermissionMappingRepositorySaveAll(new ArrayList<>());
-        stubUserGroupUserMapRepositoryFindByUserId(new ArrayList<>());
-        stubGoogleCredRepositoryFindByIdAny(Optional.of(new GoogleCred()));
-        stubClientRepositoryFindByIdAny(Optional.of(createTestClient()));
-        stubClientServiceGetClientById(new ClientResponseModel());
-        stubUserLogServiceLogData(true);
-        stubEnvironmentActiveProfiles(new String[] { "test" });
-        stubImgbbHelper();
-
-        // Act
-        assertDoesNotThrow(() -> userService.updateUser(changeEmailRequest));
-
-        // Assert
-        verify(userRepository, atLeastOnce()).save(any(User.class));
-    }
-
-    /**
      * Purpose: Verify max long ID throws NotFoundException when not found.
-     * Expected Result: NotFoundException with "Invalid User Id" message.
+     * Expected Result: NotFoundException with InvalidId message.
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("Update User - Max Long ID - Throws NotFoundException")
+    @DisplayName("updateUser - Failure - Max Long ID")
     void updateUser_maxLongId_throwsNotFoundException() {
         // Arrange
         testUserRequest.setUserId(Long.MAX_VALUE);
@@ -332,10 +289,11 @@ class UpdateUserTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify negative ID throws NotFoundException.
-     * Expected Result: NotFoundException with "Invalid User Id" message.
+     * Expected Result: NotFoundException with InvalidId message.
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("Update User - Negative ID - Throws NotFoundException")
+    @DisplayName("updateUser - Failure - Negative ID")
     void updateUser_negativeId_throwsNotFoundException() {
         // Arrange
         testUserRequest.setUserId(-1L);
@@ -351,10 +309,12 @@ class UpdateUserTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify null permissions throws BadRequestException.
-     * Expected Result: BadRequestException with permission required message.
+     * Expected Result: BadRequestException with AtLeastOnePermissionRequired
+     * message.
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("Update User - Null Permissions - Throws BadRequestException")
+    @DisplayName("updateUser - Failure - Null Permissions")
     void updateUser_nullPermissions_throwsBadRequestException() {
         // Arrange
         testUserRequest.setPermissionIds(null);
@@ -370,10 +330,11 @@ class UpdateUserTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify update of non-existent user throws NotFoundException.
-     * Expected Result: NotFoundException with "Invalid User Id" message.
+     * Expected Result: NotFoundException with InvalidId message.
+     * Assertions: assertThrows, assertEquals, verify
      */
     @Test
-    @DisplayName("Update User - User Not Found - Throws NotFoundException")
+    @DisplayName("updateUser - Failure - User Not Found")
     void updateUser_userNotFound_throwsNotFoundException() {
         // Arrange
         stubUserRepositoryFindByIdWithAllRelations(null);
@@ -389,10 +350,11 @@ class UpdateUserTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify zero ID throws NotFoundException.
-     * Expected Result: NotFoundException with "Invalid User Id" message.
+     * Expected Result: NotFoundException with InvalidId message.
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("Update User - Zero ID - Throws NotFoundException")
+    @DisplayName("updateUser - Failure - Zero ID")
     void updateUser_zeroId_throwsNotFoundException() {
         // Arrange
         testUserRequest.setUserId(0L);
@@ -406,20 +368,67 @@ class UpdateUserTest extends UserServiceTestBase {
         assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
     }
 
-    private void setupUpdateUserMocks() {
-        stubUserRepositoryFindByIdWithAllRelations(testUser);
-        stubUserRepositorySave(testUser);
-        stubUserClientPermissionMappingRepositoryFindByUserIdAndClientId(new ArrayList<>());
-        stubUserClientPermissionMappingRepositorySaveAll(new ArrayList<>());
-        stubUserGroupUserMapRepositoryFindByUserId(new ArrayList<>());
-        stubUserGroupUserMapRepositorySaveAll(new ArrayList<>());
-        stubGoogleCredRepositoryFindByIdAny(Optional.of(new GoogleCred()));
-        stubClientRepositoryFindByIdAny(Optional.of(createTestClient()));
-        stubClientServiceGetClientById(new ClientResponseModel());
-        stubUserLogServiceLogData(true);
-        stubEnvironmentActiveProfiles(new String[] { "test" });
-        stubImgbbHelper();
+    // ========================================
+    // PERMISSION TESTS
+    // ========================================
+
+    /**
+     * Purpose: Verify controller handles unauthorized access via HTTP status.
+     * Expected Result: HTTP UNAUTHORIZED status returned.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     */
+    @Test
+    @DisplayName("updateUser - Controller permission forbidden")
+    void updateUser_controller_permission_forbidden() {
+        // Arrange
+        stubServiceThrowsUnauthorizedException();
+
+        // Act
+        ResponseEntity<?> response = userControllerWithMock.updateUser(1L, new UserRequestModel());
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
-    // Helper stubs are provided by UserServiceTestBase.
+    /**
+     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
+     * Expected Result: The method should be annotated with UPDATE_USER_PERMISSION.
+     * Assertions: assertNotNull, assertTrue
+     */
+    @Test
+    @DisplayName("updateUser - Verify @PreAuthorize Annotation")
+    void updateUser_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
+        // Arrange
+        Method method = UserController.class.getMethod("updateUser", Long.class, UserRequestModel.class);
+
+        // Act
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
+        assertNotNull(annotation, "updateUser method should have @PreAuthorize annotation");
+        assertTrue(annotation.value().contains(Authorizations.UPDATE_USER_PERMISSION),
+                "@PreAuthorize annotation should check for UPDATE_USER_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller delegates to service.
+     * Expected Result: Service method is called.
+     * Assertions: verify, HttpStatus.OK
+     */
+    @Test
+    @DisplayName("updateUser - Controller delegates to service")
+    void updateUser_withValidRequest_delegatesToService() {
+        // Arrange
+        Long userId = 1L;
+        UserRequestModel userRequest = new UserRequestModel();
+        userRequest.setId(userId);
+        stubMockUserServiceUpdateUser(userRequest);
+
+        // Act
+        ResponseEntity<?> response = userControllerWithMock.updateUser(userId, userRequest);
+
+        // Assert
+        verify(mockUserService, times(1)).updateUser(userRequest);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
 }

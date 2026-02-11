@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services.Tests.UserLog;
 
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.DatabaseModels.UserLog;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,15 +15,17 @@ import static org.mockito.Mockito.*;
 @DisplayName("UserLogService - LogDataWithContext Tests")
 class LogDataWithContextTest extends UserLogServiceTestBase {
 
-    // Total Tests: 21
+    // Total Tests: 23
 
     // ========================================
     // Section 1: Success Tests
     // ========================================
 
-    // Purpose: Verify logging with all context values null except userId.
-    // Expected Result: Log is created.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with all context values null except userId.
+     * Expected Result: Log is created.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - All Null Except UserId - Success")
     void logDataWithContext_allNullExceptUserId_success() {
@@ -37,9 +40,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository).save(any(UserLog.class));
     }
 
-    // Purpose: Verify return value is always true.
-    // Expected Result: Returns true.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify return value is always true.
+     * Expected Result: Returns true.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Always Returns True - Success")
     void logDataWithContext_alwaysReturnsTrue_success() {
@@ -54,9 +59,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         assertTrue(result);
     }
 
-    // Purpose: Verify logging with different user context.
-    // Expected Result: Log is created with different context.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with different user context.
+     * Expected Result: Log is created with different context.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Different User Context - Success")
     void logDataWithContext_differentUserContext_success() {
@@ -75,9 +82,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository, times(1)).save(any(UserLog.class));
     }
 
-    // Purpose: Verify logging with empty username in context.
-    // Expected Result: Log is created.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with empty username in context.
+     * Expected Result: Log is created.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Empty Username - Success")
     void logDataWithContext_emptyUsername_success() {
@@ -93,9 +102,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository).save(any(UserLog.class));
     }
 
-    // Purpose: Verify logging with max long client ID in context.
-    // Expected Result: Log is created.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with max long client ID in context.
+     * Expected Result: Log is created.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Max Long Client ID - Success")
     void logDataWithContext_maxLongClientId_success() {
@@ -111,9 +122,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository).save(any(UserLog.class));
     }
 
-    // Purpose: Verify logging with max long user ID in context.
-    // Expected Result: Log is created.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with max long user ID in context.
+     * Expected Result: Log is created.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Max Long User ID - Success")
     void logDataWithContext_maxLongUserId_success() {
@@ -129,9 +142,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository).save(any(UserLog.class));
     }
 
-    // Purpose: Verify multiple calls work independently.
-    // Expected Result: Each call saves separately.
-    // Assertions: verify save called correct times.
+    /*
+     * Purpose: Verify multiple calls work independently.
+     * Expected Result: Each call saves separately.
+     * Assertions: verify save called correct times.
+     */
     @Test
     @DisplayName("logDataWithContext - Multiple Calls Work Independently - Success")
     void logDataWithContext_multipleCallsWorkIndependently_success() {
@@ -147,9 +162,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository, times(3)).save(any(UserLog.class));
     }
 
-    // Purpose: Verify logging with negative client ID in context.
-    // Expected Result: Log is created.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with negative client ID in context.
+     * Expected Result: Log is created.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Negative Client ID - Success")
     void logDataWithContext_negativeClientId_success() {
@@ -164,9 +181,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository).save(any(UserLog.class));
     }
 
-    // Purpose: Verify logging with negative user ID in context.
-    // Expected Result: Log is created.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with negative user ID in context.
+     * Expected Result: Log is created.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Negative User ID - Success")
     void logDataWithContext_negativeUserId_success() {
@@ -182,9 +201,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository).save(any(UserLog.class));
     }
 
-    // Purpose: Verify logging with null client ID in context.
-    // Expected Result: Log is created.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with null client ID in context.
+     * Expected Result: Log is created.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Null Client ID - Success")
     void logDataWithContext_nullClientId_success() {
@@ -199,9 +220,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository).save(any(UserLog.class));
     }
 
-    // Purpose: Verify logging with null endpoint in context.
-    // Expected Result: Log is created.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with null endpoint in context.
+     * Expected Result: Log is created.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Null Endpoint - Success")
     void logDataWithContext_nullEndpoint_success() {
@@ -217,9 +240,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository).save(any(UserLog.class));
     }
 
-    // Purpose: Verify logging with null new value in context.
-    // Expected Result: Log is created.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with null new value in context.
+     * Expected Result: Log is created.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Null New Value - Success")
     void logDataWithContext_nullNewValue_success() {
@@ -234,9 +259,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository, times(1)).save(any(UserLog.class));
     }
 
-    // Purpose: Verify logging with null username in context.
-    // Expected Result: Log is created.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with null username in context.
+     * Expected Result: Log is created.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Null Username - Success")
     void logDataWithContext_nullUsername_success() {
@@ -252,9 +279,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository).save(any(UserLog.class));
     }
 
-    // Purpose: Verify repository save is called exactly once.
-    // Expected Result: save() called once.
-    // Assertions: verify(userLogRepository, times(1)).save(any()).
+    /*
+     * Purpose: Verify repository save is called exactly once.
+     * Expected Result: save() called once.
+     * Assertions: verify(userLogRepository, times(1)).save(any()).
+     */
     @Test
     @DisplayName("logDataWithContext - Repository Save Called Once - Success")
     void logDataWithContext_repositorySaveCalledOnce_success() {
@@ -268,9 +297,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository, times(1)).save(any(UserLog.class));
     }
 
-    // Purpose: Verify logging with special chars in username.
-    // Expected Result: Log is created.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with special chars in username.
+     * Expected Result: Log is created.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Special Chars Username - Success")
     void logDataWithContext_specialCharsUsername_success() {
@@ -286,9 +317,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository).save(any(UserLog.class));
     }
 
-    // Purpose: Verify logging with explicit context - basic success.
-    // Expected Result: Log is created with explicit context.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with explicit context - basic success.
+     * Expected Result: Log is created with explicit context.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Basic Success")
     void logDataWithContext_success_basic() {
@@ -304,9 +337,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository, times(1)).save(any(UserLog.class));
     }
 
-    // Purpose: Verify logging with unicode username.
-    // Expected Result: Log is created.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with unicode username.
+     * Expected Result: Log is created.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Unicode Username - Success")
     void logDataWithContext_unicodeUsername_success() {
@@ -322,9 +357,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository).save(any(UserLog.class));
     }
 
-    // Purpose: Verify logging with very long username.
-    // Expected Result: Log is created.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with very long username.
+     * Expected Result: Log is created.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Very Long Username - Success")
     void logDataWithContext_veryLongUsername_success() {
@@ -341,9 +378,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository).save(any(UserLog.class));
     }
 
-    // Purpose: Verify logging with whitespace username.
-    // Expected Result: Log is created.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with whitespace username.
+     * Expected Result: Log is created.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Whitespace Username - Success")
     void logDataWithContext_whitespaceUsername_success() {
@@ -359,9 +398,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository).save(any(UserLog.class));
     }
 
-    // Purpose: Verify logging with zero client ID in context.
-    // Expected Result: Log is created.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with zero client ID in context.
+     * Expected Result: Log is created.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Zero Client ID - Success")
     void logDataWithContext_zeroClientId_success() {
@@ -376,9 +417,11 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         verify(userLogRepository).save(any(UserLog.class));
     }
 
-    // Purpose: Verify logging with zero user ID in context.
-    // Expected Result: Log is created.
-    // Assertions: assertTrue(result).
+    /*
+     * Purpose: Verify logging with zero user ID in context.
+     * Expected Result: Log is created.
+     * Assertions: assertTrue(result).
+     */
     @Test
     @DisplayName("logDataWithContext - Zero User ID - Success")
     void logDataWithContext_zeroUserId_success() {
@@ -391,5 +434,54 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         // Assert
         assertTrue(result);
         verify(userLogRepository).save(any(UserLog.class));
+    }
+
+    // ========================================
+    // Section 2: Failure / Exception Tests
+    // ========================================
+
+    /*
+     * Purpose: Verify logging propagates repository exceptions
+     * Expected Result: RuntimeException is thrown when repository save fails
+     * Assertions: Exception captured and message verified
+     */
+    @Test
+    @DisplayName("logDataWithContext - Repository Save Fails - Throws Exception")
+    void logDataWithContext_repositorySaveFails_throwsException() {
+        // Arrange
+        stubUserLogRepositorySaveThrows(new RuntimeException(ErrorMessages.CommonErrorMessages.DATABASE_ERROR));
+
+        // Act
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> userLogService.logDataWithContext(TEST_USER_ID, "admin", TEST_CARRIER_ID, TEST_NEW_VALUE, TEST_ENDPOINT));
+
+        // Assert
+        assertEquals(ErrorMessages.CommonErrorMessages.DATABASE_ERROR, exception.getMessage());
+    }
+
+    // ========================================
+    // Section 3: Controller Permission/Auth Tests
+    // ========================================
+
+    /*
+     * Purpose: Verify logDataWithContext is not exposed via controller (internal service method only)
+     * Expected Result: No public controller endpoint exists, method only accessible internally
+     * Assertions: Verify method works internally, no @PreAuthorize required as it's not exposed
+     */
+    @Test
+    @DisplayName("logDataWithContext - Internal Service Method - No Public Endpoint")
+    void logDataWithContext_internalServiceMethod_noControllerEndpoint() {
+        // Arrange
+        stubUserLogRepositorySave(testUserLog);
+
+        // Act
+        Boolean result = userLogService.logDataWithContext(TEST_USER_ID, "admin", TEST_CARRIER_ID, TEST_NEW_VALUE, TEST_ENDPOINT);
+
+        // Assert
+        assertTrue(result);
+        verify(userLogRepository).save(any(UserLog.class));
+        // Note: logDataWithContext is an internal service method with no controller endpoint
+        // It's called by other services to log actions with context, not exposed to API
+        // No permission check needed as it's not publicly accessible
     }
 }

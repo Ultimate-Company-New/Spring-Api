@@ -22,63 +22,26 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for UserGroupService - Create User Group functionality.
+ * Unit tests for UserGroupService.createUserGroup method.
  * 
- * Total Tests: 19
- *
- * Tests cover:
- * - Successful user group creation with various inputs
- * - Validation of required fields (group name, description, user IDs)
- * - Edge cases (single user, many users, special characters, unicode)
- * - Repository interaction verification
- * - Controller authorization and delegation
+ * Total Tests: 21
  */
 @DisplayName("UserGroupService - CreateUserGroup Tests")
-public class CreateUserGroupTest extends UserGroupServiceTestBase {
-
-    // ========================================
-    // CONTROLLER AUTHORIZATION TESTS
-    // ========================================
-
-    @Test
-    @DisplayName("createUserGroup - Verify @PreAuthorize Annotation")
-    void createUserGroup_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        // Arrange
-        Method method = UserGroupController.class.getMethod("createUserGroup", UserGroupRequestModel.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present on createUserGroup method");
-        assertTrue(annotation.value().contains(Authorizations.INSERT_GROUPS_PERMISSION),
-                "@PreAuthorize annotation should check for INSERT_GROUPS_PERMISSION");
-    }
-
-    @Test
-    @DisplayName("createUserGroup - Controller delegates to service")
-    void createUserGroup_WithValidRequest_DelegatesToService() {
-        // Arrange
-        stubUserGroupRepositoryFindByGroupName(TEST_GROUP_NAME, null);
-        stubUserGroupRepositorySave(testUserGroup);
-        stubUserGroupUserMapRepositorySaveAll(new ArrayList<>());
-        stubUserLogServiceLogData(true);
-
-        // Act
-        ResponseEntity<?> response = userGroupController.createUserGroup(testUserGroupRequest);
-
-        // Assert
-        verify(userGroupService).createUserGroup(testUserGroupRequest);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-    }
+class CreateUserGroupTest extends UserGroupServiceTestBase {
+    // Total Tests: 21
 
     // ========================================
     // SUCCESS TESTS
     // ========================================
 
+    /**
+     * Purpose: Verify long description is allowed.
+     * Expected Result: No exception thrown, save is called.
+     * Assertions: assertDoesNotThrow, verify
+     */
     @Test
-    @DisplayName("Create User Group - Long description - Success")
-    void createUserGroup_LongDescription_Success() {
+    @DisplayName("createUserGroup - Success - Long Description")
+    void createUserGroup_longDescription_success() {
         // Arrange
         testUserGroupRequest.setDescription("D".repeat(1000));
         stubUserGroupRepositoryFindByGroupName(TEST_GROUP_NAME, null);
@@ -93,9 +56,14 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
         verify(userGroupRepository).save(any(UserGroup.class));
     }
 
+    /**
+     * Purpose: Verify many users can be added to group.
+     * Expected Result: No exception thrown, save is called.
+     * Assertions: assertDoesNotThrow, verify
+     */
     @Test
-    @DisplayName("Create User Group - Many Users - Success")
-    void createUserGroup_ManyUsers_Success() {
+    @DisplayName("createUserGroup - Success - Many Users")
+    void createUserGroup_manyUsers_success() {
         // Arrange
         testUserGroupRequest.setUserIds(Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L));
         stubUserGroupRepositoryFindByGroupName(TEST_GROUP_NAME, null);
@@ -110,9 +78,14 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
         verify(userGroupRepository).save(any(UserGroup.class));
     }
 
+    /**
+     * Purpose: Verify single user group creation.
+     * Expected Result: No exception thrown, save is called.
+     * Assertions: assertDoesNotThrow, verify
+     */
     @Test
-    @DisplayName("Create User Group - Single User - Success")
-    void createUserGroup_SingleUser_Success() {
+    @DisplayName("createUserGroup - Success - Single User")
+    void createUserGroup_singleUser_success() {
         // Arrange
         testUserGroupRequest.setUserIds(Collections.singletonList(TEST_USER_ID));
         stubUserGroupRepositoryFindByGroupName(TEST_GROUP_NAME, null);
@@ -127,9 +100,14 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
         verify(userGroupRepository).save(any(UserGroup.class));
     }
 
+    /**
+     * Purpose: Verify special characters in group name are allowed.
+     * Expected Result: No exception thrown, save is called.
+     * Assertions: assertDoesNotThrow, verify
+     */
     @Test
-    @DisplayName("Create User Group - Special chars in name - Success")
-    void createUserGroup_SpecialCharsInName_Success() {
+    @DisplayName("createUserGroup - Success - Special Chars In Name")
+    void createUserGroup_specialCharsInName_success() {
         // Arrange
         String specialName = "Test @#$% Group!";
         testUserGroupRequest.setGroupName(specialName);
@@ -145,9 +123,14 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
         verify(userGroupRepository).save(any(UserGroup.class));
     }
 
+    /**
+     * Purpose: Verify successful create operation.
+     * Expected Result: No exception thrown, repos save called.
+     * Assertions: assertDoesNotThrow, verify
+     */
     @Test
-    @DisplayName("Create User Group - Success")
-    void createUserGroup_Success() {
+    @DisplayName("createUserGroup - Success - Basic Validation")
+    void createUserGroup_success_basicValidation() {
         // Arrange
         stubUserGroupRepositoryFindByGroupName(TEST_GROUP_NAME, null);
         stubUserGroupRepositorySave(testUserGroup);
@@ -162,9 +145,14 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
         verify(userGroupUserMapRepository).saveAll(anyList());
     }
 
+    /**
+     * Purpose: Verify unicode characters in group name are allowed.
+     * Expected Result: No exception thrown, save is called.
+     * Assertions: assertDoesNotThrow, verify
+     */
     @Test
-    @DisplayName("Create User Group - Unicode chars in name - Success")
-    void createUserGroup_UnicodeCharsInName_Success() {
+    @DisplayName("createUserGroup - Success - Unicode Chars In Name")
+    void createUserGroup_unicodeCharsInName_success() {
         // Arrange
         String unicodeName = "测试组 Test";
         testUserGroupRequest.setGroupName(unicodeName);
@@ -180,9 +168,14 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
         verify(userGroupRepository).save(any(UserGroup.class));
     }
 
+    /**
+     * Purpose: Verify user-group mappings are saved.
+     * Expected Result: saveAll is called on userGroupUserMapRepository.
+     * Assertions: verify
+     */
     @Test
-    @DisplayName("Create User Group - Verify mappings saved")
-    void createUserGroup_VerifyMappingsSaved() {
+    @DisplayName("createUserGroup - Success - Verify Mappings Saved")
+    void createUserGroup_verifyMappingsSaved_success() {
         // Arrange
         stubUserGroupRepositoryFindByGroupName(TEST_GROUP_NAME, null);
         stubUserGroupRepositorySave(testUserGroup);
@@ -196,9 +189,14 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
         verify(userGroupUserMapRepository).saveAll(anyList());
     }
 
+    /**
+     * Purpose: Verify repository save method is called.
+     * Expected Result: save is called on userGroupRepository.
+     * Assertions: verify
+     */
     @Test
-    @DisplayName("Create User Group - Verify repository save called")
-    void createUserGroup_VerifyRepositorySaveCalled() {
+    @DisplayName("createUserGroup - Success - Verify Repository Save")
+    void createUserGroup_verifyRepositorySaveCalled_success() {
         // Arrange
         stubUserGroupRepositoryFindByGroupName(TEST_GROUP_NAME, null);
         stubUserGroupRepositorySave(testUserGroup);
@@ -216,9 +214,14 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
     // FAILURE TESTS
     // ========================================
 
+    /**
+     * Purpose: Verify empty description throws BadRequestException.
+     * Expected Result: BadRequestException with ER003 message.
+     * Assertions: assertThrows, assertEquals
+     */
     @Test
-    @DisplayName("Create User Group - Empty Description - Throws BadRequestException")
-    void createUserGroup_EmptyDescription_ThrowsBadRequestException() {
+    @DisplayName("createUserGroup - Failure - Empty Description")
+    void createUserGroup_emptyDescription_throwsBadRequestException() {
         // Arrange
         testUserGroupRequest.setDescription("");
 
@@ -228,9 +231,14 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
         assertEquals(ErrorMessages.UserGroupErrorMessages.ER003, ex.getMessage());
     }
 
+    /**
+     * Purpose: Verify empty group name throws BadRequestException.
+     * Expected Result: BadRequestException with ER002 message.
+     * Assertions: assertThrows, assertEquals
+     */
     @Test
-    @DisplayName("Create User Group - Empty Group Name - Throws BadRequestException")
-    void createUserGroup_EmptyGroupName_ThrowsBadRequestException() {
+    @DisplayName("createUserGroup - Failure - Empty Group Name")
+    void createUserGroup_emptyGroupName_throwsBadRequestException() {
         // Arrange
         testUserGroupRequest.setGroupName("");
 
@@ -240,9 +248,14 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
         assertEquals(ErrorMessages.UserGroupErrorMessages.ER002, ex.getMessage());
     }
 
+    /**
+     * Purpose: Verify duplicate group name throws BadRequestException.
+     * Expected Result: BadRequestException with GroupNameExists message.
+     * Assertions: assertThrows, assertEquals
+     */
     @Test
-    @DisplayName("Create User Group - Group Name Exists - Throws BadRequestException")
-    void createUserGroup_GroupNameExists_ThrowsBadRequestException() {
+    @DisplayName("createUserGroup - Failure - Group Name Exists")
+    void createUserGroup_groupNameExists_throwsBadRequestException() {
         // Arrange
         stubUserGroupRepositoryFindByGroupName(TEST_GROUP_NAME, testUserGroup);
 
@@ -252,9 +265,14 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
         assertEquals(ErrorMessages.UserGroupErrorMessages.GroupNameExists, ex.getMessage());
     }
 
+    /**
+     * Purpose: Verify no users throws BadRequestException.
+     * Expected Result: BadRequestException with ER004 message.
+     * Assertions: assertThrows, assertEquals
+     */
     @Test
-    @DisplayName("Create User Group - No Users - Throws BadRequestException")
-    void createUserGroup_NoUsers_ThrowsBadRequestException() {
+    @DisplayName("createUserGroup - Failure - No Users")
+    void createUserGroup_noUsers_throwsBadRequestException() {
         // Arrange
         testUserGroupRequest.setUserIds(new ArrayList<>());
 
@@ -264,9 +282,14 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
         assertEquals(ErrorMessages.UserGroupErrorMessages.ER004, ex.getMessage());
     }
 
+    /**
+     * Purpose: Verify null description throws BadRequestException.
+     * Expected Result: BadRequestException with ER003 message.
+     * Assertions: assertThrows, assertEquals
+     */
     @Test
-    @DisplayName("Create User Group - Null Description - Throws BadRequestException")
-    void createUserGroup_NullDescription_ThrowsBadRequestException() {
+    @DisplayName("createUserGroup - Failure - Null Description")
+    void createUserGroup_nullDescription_throwsBadRequestException() {
         // Arrange
         testUserGroupRequest.setDescription(null);
 
@@ -276,9 +299,14 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
         assertEquals(ErrorMessages.UserGroupErrorMessages.ER003, ex.getMessage());
     }
 
+    /**
+     * Purpose: Verify null group name throws BadRequestException.
+     * Expected Result: BadRequestException with ER002 message.
+     * Assertions: assertThrows, assertEquals
+     */
     @Test
-    @DisplayName("Create User Group - Null Group Name - Throws BadRequestException")
-    void createUserGroup_NullGroupName_ThrowsBadRequestException() {
+    @DisplayName("createUserGroup - Failure - Null Group Name")
+    void createUserGroup_nullGroupName_throwsBadRequestException() {
         // Arrange
         testUserGroupRequest.setGroupName(null);
 
@@ -288,17 +316,29 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
         assertEquals(ErrorMessages.UserGroupErrorMessages.ER002, ex.getMessage());
     }
 
+    /**
+     * Purpose: Verify null request throws NullPointerException.
+     * Expected Result: NullPointerException thrown.
+     * Assertions: assertThrows
+     */
     @Test
-    @DisplayName("Create User Group - Null Request - Throws NullPointerException")
-    void createUserGroup_NullRequest_ThrowsNullPointerException() {
+    @DisplayName("createUserGroup - Failure - Null Request")
+    void createUserGroup_nullRequest_throwsNullPointerException() {
+        // Arrange
+
         // Act & Assert
         assertThrows(NullPointerException.class,
                 () -> userGroupService.createUserGroup(null));
     }
 
+    /**
+     * Purpose: Verify null user list throws BadRequestException.
+     * Expected Result: BadRequestException with ER004 message.
+     * Assertions: assertThrows, assertEquals
+     */
     @Test
-    @DisplayName("Create User Group - Null User List - Throws BadRequestException")
-    void createUserGroup_NullUserList_ThrowsBadRequestException() {
+    @DisplayName("createUserGroup - Failure - Null User List")
+    void createUserGroup_nullUserList_throwsBadRequestException() {
         // Arrange
         testUserGroupRequest.setUserIds(null);
 
@@ -308,9 +348,14 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
         assertEquals(ErrorMessages.UserGroupErrorMessages.ER004, ex.getMessage());
     }
 
+    /**
+     * Purpose: Verify whitespace-only group name throws BadRequestException.
+     * Expected Result: BadRequestException with ER002 message.
+     * Assertions: assertThrows, assertEquals
+     */
     @Test
-    @DisplayName("Create User Group - Whitespace Group Name - Throws BadRequestException")
-    void createUserGroup_WhitespaceGroupName_ThrowsBadRequestException() {
+    @DisplayName("createUserGroup - Failure - Whitespace Group Name")
+    void createUserGroup_whitespaceGroupName_throwsBadRequestException() {
         // Arrange
         testUserGroupRequest.setGroupName("   ");
 
@@ -318,5 +363,67 @@ public class CreateUserGroupTest extends UserGroupServiceTestBase {
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.createUserGroup(testUserGroupRequest));
         assertEquals(ErrorMessages.UserGroupErrorMessages.ER002, ex.getMessage());
+    }
+
+    // ========================================
+    // PERMISSION TESTS
+    // ========================================
+
+    /**
+     * Purpose: Verify controller handles unauthorized access via HTTP status.
+     * Expected Result: HTTP UNAUTHORIZED status returned.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     */
+    @Test
+    @DisplayName("createUserGroup - Controller permission forbidden")
+    void createUserGroup_controller_permission_forbidden() {
+        // Arrange
+        stubServiceThrowsUnauthorizedException();
+
+        // Act
+        ResponseEntity<?> response = userGroupControllerWithMock.createUserGroup(testUserGroupRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
+     * Expected Result: The method should be annotated with
+     * INSERT_GROUPS_PERMISSION.
+     * Assertions: assertNotNull, assertTrue
+     */
+    @Test
+    @DisplayName("createUserGroup - Verify @PreAuthorize Annotation")
+    void createUserGroup_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
+        // Arrange
+        Method method = UserGroupController.class.getMethod("createUserGroup", UserGroupRequestModel.class);
+
+        // Act
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
+        assertNotNull(annotation, "@PreAuthorize annotation should be present on createUserGroup method");
+        assertTrue(annotation.value().contains(Authorizations.INSERT_GROUPS_PERMISSION),
+                "@PreAuthorize annotation should check for INSERT_GROUPS_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller delegates to service.
+     * Expected Result: Service method is called and HTTP 201 is returned.
+     * Assertions: verify, HttpStatus.CREATED
+     */
+    @Test
+    @DisplayName("createUserGroup - Controller delegates to service")
+    void createUserGroup_withValidRequest_delegatesToService() {
+        // Arrange
+        stubMockUserGroupServiceCreateUserGroup(testUserGroupRequest);
+
+        // Act
+        ResponseEntity<?> response = userGroupControllerWithMock.createUserGroup(testUserGroupRequest);
+
+        // Assert
+        verify(mockUserGroupService, times(1)).createUserGroup(testUserGroupRequest);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 }

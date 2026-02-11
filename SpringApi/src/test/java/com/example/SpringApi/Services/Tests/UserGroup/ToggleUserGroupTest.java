@@ -19,54 +19,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for UserGroupService - ToggleUserGroup functionality.
- *
- * Test Summary:
- * - Controller authorization and delegation
- * - Successful toggle (soft delete/restore) operations
- * - State persistence check
- * - Logging verification
- * - Failure cases (group not found, invalid IDs)
- *
- * Total Tests: 13
+ * Unit tests for UserGroupService.toggleUserGroup method.
+ * 
+ * Total Tests: 14
  */
 @DisplayName("UserGroupService - ToggleUserGroup Tests")
-public class ToggleUserGroupTest extends UserGroupServiceTestBase {
-
-    // ========================================
-    // CONTROLLER AUTHORIZATION TESTS
-    // ========================================
-
-    @Test
-    @DisplayName("toggleUserGroup - Verify @PreAuthorize Annotation")
-    void toggleUserGroup_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        // Arrange
-        Method method = UserGroupController.class.getMethod("toggleUserGroup", Long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present on toggleUserGroup method");
-        assertTrue(annotation.value().contains(Authorizations.DELETE_GROUPS_PERMISSION),
-                "@PreAuthorize annotation should check for DELETE_GROUPS_PERMISSION");
-    }
-
-    @Test
-    @DisplayName("toggleUserGroup - Controller delegates to service")
-    void toggleUserGroup_WithValidId_DelegatesToService() {
-        // Arrange
-        stubUserGroupRepositoryFindById(TEST_GROUP_ID, Optional.of(testUserGroup));
-        stubUserGroupRepositorySave(testUserGroup);
-        stubUserLogServiceLogData(true);
-
-        // Act
-        ResponseEntity<?> response = userGroupController.toggleUserGroup(TEST_GROUP_ID);
-
-        // Assert
-        verify(userGroupService).toggleUserGroup(TEST_GROUP_ID);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
+class ToggleUserGroupTest extends UserGroupServiceTestBase {
+    // Total Tests: 14
 
     // ========================================
     // SUCCESS TESTS
@@ -75,11 +34,11 @@ public class ToggleUserGroupTest extends UserGroupServiceTestBase {
     /**
      * Purpose: Toggle multiple times and verify state persists.
      * Expected Result: State toggles correctly each time.
-     * Assertions: assertTrue/assertFalse for each toggle.
+     * Assertions: assertTrue, assertFalse
      */
     @Test
-    @DisplayName("Toggle User Group - Multiple Toggles - State Persistence")
-    void toggleUserGroup_MultipleToggles_StatePersists() {
+    @DisplayName("toggleUserGroup - Success - Multiple Toggles")
+    void toggleUserGroup_multipleToggles_statePersists() {
         // Arrange
         testUserGroup.setIsDeleted(false);
         stubUserGroupRepositoryFindById(TEST_GROUP_ID, Optional.of(testUserGroup));
@@ -99,11 +58,11 @@ public class ToggleUserGroupTest extends UserGroupServiceTestBase {
     /**
      * Purpose: Verify deleted group can be restored.
      * Expected Result: isDeleted changes from true to false.
-     * Assertions: assertFalse(testUserGroup.getIsDeleted());
+     * Assertions: assertFalse
      */
     @Test
-    @DisplayName("Toggle User Group - Restores deleted group")
-    void toggleUserGroup_RestoresDeletedGroup() {
+    @DisplayName("toggleUserGroup - Success - Restore Group")
+    void toggleUserGroup_restoresDeletedGroup_success() {
         // Arrange
         testUserGroup.setIsDeleted(true);
         stubUserGroupRepositoryFindById(TEST_GROUP_ID, Optional.of(testUserGroup));
@@ -120,11 +79,11 @@ public class ToggleUserGroupTest extends UserGroupServiceTestBase {
     /**
      * Purpose: Verify successful toggle operation.
      * Expected Result: isDeleted flag is toggled.
-     * Assertions: assertDoesNotThrow(); verify save called.
+     * Assertions: assertDoesNotThrow, verify
      */
     @Test
-    @DisplayName("Toggle User Group - Success - Should toggle isDeleted flag")
-    void toggleUserGroup_Success() {
+    @DisplayName("toggleUserGroup - Success - Basic Validation")
+    void toggleUserGroup_success_basicValidation() {
         // Arrange
         stubUserGroupRepositoryFindById(TEST_GROUP_ID, Optional.of(testUserGroup));
         stubUserGroupRepositorySave(testUserGroup);
@@ -141,11 +100,11 @@ public class ToggleUserGroupTest extends UserGroupServiceTestBase {
     /**
      * Purpose: Verify operation is logged.
      * Expected Result: userLogService.logData is called.
-     * Assertions: verify(userLogService).logData(...);
+     * Assertions: verify
      */
     @Test
-    @DisplayName("Toggle User Group - Success - Logs operation")
-    void toggleUserGroup_Success_LogsOperation() {
+    @DisplayName("toggleUserGroup - Success - Verify Logging")
+    void toggleUserGroup_success_verifyLogging() {
         // Arrange
         stubUserGroupRepositoryFindById(TEST_GROUP_ID, Optional.of(testUserGroup));
         stubUserGroupRepositorySave(testUserGroup);
@@ -161,11 +120,11 @@ public class ToggleUserGroupTest extends UserGroupServiceTestBase {
     /**
      * Purpose: Verify logging is called.
      * Expected Result: userLogService.logData is called.
-     * Assertions: verify(userLogService).logData(...);
+     * Assertions: verify
      */
     @Test
-    @DisplayName("Toggle User Group - Verify logging called")
-    void toggleUserGroup_VerifyLoggingCalled() {
+    @DisplayName("toggleUserGroup - Success - Verify Logging Called")
+    void toggleUserGroup_verifyLoggingCalled_success() {
         // Arrange
         stubUserGroupRepositoryFindById(TEST_GROUP_ID, Optional.of(testUserGroup));
         stubUserGroupRepositorySave(testUserGroup);
@@ -181,11 +140,11 @@ public class ToggleUserGroupTest extends UserGroupServiceTestBase {
     /**
      * Purpose: Verify repository methods are called.
      * Expected Result: findById and save are called once each.
-     * Assertions: verify calls.
+     * Assertions: verify
      */
     @Test
-    @DisplayName("Toggle User Group - Verify repository called")
-    void toggleUserGroup_VerifyRepositoryCalled() {
+    @DisplayName("toggleUserGroup - Success - Verify Repository")
+    void toggleUserGroup_verifyRepositoryCalled_success() {
         // Arrange
         stubUserGroupRepositoryFindById(TEST_GROUP_ID, Optional.of(testUserGroup));
         stubUserGroupRepositorySave(testUserGroup);
@@ -206,12 +165,11 @@ public class ToggleUserGroupTest extends UserGroupServiceTestBase {
     /**
      * Purpose: Verify group not found throws NotFoundException.
      * Expected Result: NotFoundException with InvalidId message.
-     * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId,
-     * ex.getMessage());
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("Toggle User Group - Failure - Group not found")
-    void toggleUserGroup_GroupNotFound_ThrowsNotFoundException() {
+    @DisplayName("toggleUserGroup - Failure - Group Not Found")
+    void toggleUserGroup_groupNotFound_throwsNotFoundException() {
         // Arrange
         stubUserGroupRepositoryFindById(TEST_GROUP_ID, Optional.empty());
 
@@ -224,12 +182,11 @@ public class ToggleUserGroupTest extends UserGroupServiceTestBase {
     /**
      * Purpose: Verify max long ID not found throws NotFoundException.
      * Expected Result: NotFoundException with InvalidId message.
-     * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId,
-     * ex.getMessage());
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("Toggle User Group - Max Long ID - Not Found")
-    void toggleUserGroup_MaxLongId_ThrowsNotFoundException() {
+    @DisplayName("toggleUserGroup - Failure - Max Long ID")
+    void toggleUserGroup_maxLongId_throwsNotFoundException() {
         // Arrange
         stubUserGroupRepositoryFindById(Long.MAX_VALUE, Optional.empty());
 
@@ -242,12 +199,11 @@ public class ToggleUserGroupTest extends UserGroupServiceTestBase {
     /**
      * Purpose: Verify min long ID not found throws NotFoundException.
      * Expected Result: NotFoundException with InvalidId message.
-     * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId,
-     * ex.getMessage());
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("Toggle User Group - Min Long ID - Not Found")
-    void toggleUserGroup_MinLongId_ThrowsNotFoundException() {
+    @DisplayName("toggleUserGroup - Failure - Min Long ID")
+    void toggleUserGroup_minLongId_throwsNotFoundException() {
         // Arrange
         stubUserGroupRepositoryFindById(Long.MIN_VALUE, Optional.empty());
 
@@ -260,12 +216,11 @@ public class ToggleUserGroupTest extends UserGroupServiceTestBase {
     /**
      * Purpose: Verify negative ID not found throws NotFoundException.
      * Expected Result: NotFoundException with InvalidId message.
-     * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId,
-     * ex.getMessage());
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("Toggle User Group - Negative ID - Not Found")
-    void toggleUserGroup_NegativeId_ThrowsNotFoundException() {
+    @DisplayName("toggleUserGroup - Failure - Negative ID")
+    void toggleUserGroup_negativeId_throwsNotFoundException() {
         // Arrange
         stubUserGroupRepositoryFindById(-1L, Optional.empty());
 
@@ -278,12 +233,11 @@ public class ToggleUserGroupTest extends UserGroupServiceTestBase {
     /**
      * Purpose: Verify zero ID not found throws NotFoundException.
      * Expected Result: NotFoundException with InvalidId message.
-     * Assertions: assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId,
-     * ex.getMessage());
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("Toggle User Group - Zero ID - Not Found")
-    void toggleUserGroup_ZeroId_ThrowsNotFoundException() {
+    @DisplayName("toggleUserGroup - Failure - Zero ID")
+    void toggleUserGroup_zeroId_throwsNotFoundException() {
         // Arrange
         stubUserGroupRepositoryFindById(0L, Optional.empty());
 
@@ -291,5 +245,67 @@ public class ToggleUserGroupTest extends UserGroupServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userGroupService.toggleUserGroup(0L));
         assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    // ========================================
+    // PERMISSION TESTS
+    // ========================================
+
+    /**
+     * Purpose: Verify controller handles unauthorized access via HTTP status.
+     * Expected Result: HTTP UNAUTHORIZED status returned.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     */
+    @Test
+    @DisplayName("toggleUserGroup - Controller permission forbidden")
+    void toggleUserGroup_controller_permission_forbidden() {
+        // Arrange
+        stubServiceThrowsUnauthorizedException();
+
+        // Act
+        ResponseEntity<?> response = userGroupControllerWithMock.toggleUserGroup(TEST_GROUP_ID);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
+     * Expected Result: The method should be annotated with
+     * DELETE_GROUPS_PERMISSION.
+     * Assertions: assertNotNull, assertTrue
+     */
+    @Test
+    @DisplayName("toggleUserGroup - Verify @PreAuthorize Annotation")
+    void toggleUserGroup_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
+        // Arrange
+        Method method = UserGroupController.class.getMethod("toggleUserGroup", Long.class);
+
+        // Act
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
+        assertNotNull(annotation, "@PreAuthorize annotation should be present on toggleUserGroup method");
+        assertTrue(annotation.value().contains(Authorizations.DELETE_GROUPS_PERMISSION),
+                "@PreAuthorize annotation should check for DELETE_GROUPS_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller delegates to service.
+     * Expected Result: Service method is called and HTTP 200 is returned.
+     * Assertions: verify, HttpStatus.OK
+     */
+    @Test
+    @DisplayName("toggleUserGroup - Controller delegates to service")
+    void toggleUserGroup_withValidId_delegatesToService() {
+        // Arrange
+        stubMockUserGroupServiceToggleUserGroup(TEST_GROUP_ID);
+
+        // Act
+        ResponseEntity<?> response = userGroupControllerWithMock.toggleUserGroup(TEST_GROUP_ID);
+
+        // Assert
+        verify(mockUserGroupService).toggleUserGroup(TEST_GROUP_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

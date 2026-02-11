@@ -9,7 +9,7 @@
 ║  Public Methods Found: 6                                  ║
 ║  Test Files Expected: 6                                  ║
 ║  Test Files Found: 6                                     ║
-║  Total Violations: 49                                    ║
+║  Total Violations: 48                                    ║
 ╚════════════════════════════════════════════════════════════╝
 ```
 
@@ -17,7 +17,7 @@ VIOLATIONS BY RULE:
 
 | Rule | Description | Count |
 | --- | --- | --- |
-| 2 | Test Count Declaration | 9 |
+| 2 | Test Count Declaration | 8 |
 | 5 | Test Naming Convention | 6 |
 | 7 | Exception Assertions | 5 |
 | 10 | Test Ordering | 17 |
@@ -34,8 +34,8 @@ Package: com.example.SpringApi.Services.Tests.Promo
 Class: * Test class for PromoService.createPromo method.
 Extends: None
 Lines of Code: 960
-Last Modified: 2026-02-10 20:20:42
-Declared Test Count: 14 (first occurrence line 29)
+Last Modified: 2026-02-10 23:11:31
+Declared Test Count: 13 (first occurrence line 29)
 Actual @Test Count: 52
 
 VIOLATIONS FOUND:
@@ -43,7 +43,7 @@ VIOLATIONS FOUND:
 VIOLATION 1: Rule 2 - Test Count Declaration
 - Severity: CRITICAL
 - Line: 29
-- Current: 14
+- Current: 13
 - Required: 52
 
 VIOLATION 2: Rule 2 - Test Count Declaration
@@ -149,7 +149,7 @@ Package: com.example.SpringApi.Services.Tests.Promo
 Class: * Test class for PromoService.togglePromo method.
 Extends: None
 Lines of Code: 644
-Last Modified: 2026-02-10 20:20:42
+Last Modified: 2026-02-11 01:13:18
 Declared Test Count: 16 (first occurrence line 25)
 Actual @Test Count: 32
 
@@ -205,10 +205,6 @@ VIOLATION 5: Rule 14 - No Inline Mocks
 - Line: 391 inline mock in `togglePromo_DoubleToggle_Success`: `when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID))`
 - Required: Move to base test stub method and call stub in test.
 - Line: 393 inline mock in `togglePromo_DoubleToggle_Success`: `when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);`
-- Required: Move to base test stub method and call stub in test.
-- Line: 415 inline mock in `togglePromo_Isolation_Success`: `lenient().when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID))`
-- Required: Move to base test stub method and call stub in test.
-- Line: 417 inline mock in `togglePromo_Isolation_Success`: `lenient().when(promoRepository.findByPromoIdAndClientId(999L, TEST_CLIENT_ID))`
 - Required: Move to base test stub method and call stub in test.
 - Line: 442 inline mock in `togglePromo_InvalidId_999L`: `when(promoRepository.findByPromoIdAndClientId(id, TEST_CLIENT_ID))`
 - Required: Move to base test stub method and call stub in test.
@@ -499,8 +495,8 @@ Package: com.example.SpringApi.Services.Tests.Promo
 Class: * Test class for PromoService.getPromoDetailsById method.
 Extends: None
 Lines of Code: 527
-Last Modified: 2026-02-10 20:20:42
-Declared Test Count: 11 (first occurrence line 23)
+Last Modified: 2026-02-10 23:11:31
+Declared Test Count: 9 (first occurrence line 23)
 Actual @Test Count: 26
 
 VIOLATIONS FOUND:
@@ -508,7 +504,7 @@ VIOLATIONS FOUND:
 VIOLATION 1: Rule 2 - Test Count Declaration
 - Severity: CRITICAL
 - Line: 23
-- Current: 11
+- Current: 9
 - Required: 26
 
 VIOLATION 2: Rule 2 - Test Count Declaration
@@ -617,114 +613,91 @@ FILE: `/Users/nahushraichura/Documents/Personal Development Repositories/Spring-
 Package: com.example.SpringApi.Services.Tests.Promo
 Class: * Test class for PromoService.bulkCreatePromosAsync method.
 Extends: None
-Lines of Code: 583
-Last Modified: 2026-02-10 00:29:33
-Declared Test Count: 22 (first occurrence line 30)
+Lines of Code: 579
+Last Modified: 2026-02-11 01:13:18
+Declared Test Count: 21 (first occurrence line 30)
 Actual @Test Count: 21
 
 VIOLATIONS FOUND:
 
-VIOLATION 1: Rule 2 - Test Count Declaration
-- Severity: CRITICAL
-- Line: 30
-- Current: 22
-- Required: 21
-
-VIOLATION 2: Rule 5 - Test Naming Convention
+VIOLATION 1: Rule 5 - Test Naming Convention
 - Severity: MEDIUM
-- Line: 427 method `bulkCreatePromosAsync_MixedValidity`
+- Line: 424 method `bulkCreatePromosAsync_MixedValidity`
 - Required rename: `bulkCreatePromosAsync_MixedValidity_Success`
-- Line: 501 method `bulkCreatePromosAsync_ControllerHandlesBadRequest`
+- Line: 497 method `bulkCreatePromosAsync_ControllerHandlesBadRequest`
 - Required rename: `bulkCreatePromosAsync_ControllerHandlesBadRequest_Success`
-- Line: 519 method `bulkCreatePromosAsync_ControllerHandlesInternalError`
+- Line: 515 method `bulkCreatePromosAsync_ControllerHandlesInternalError`
 - Required rename: `bulkCreatePromosAsync_ControllerHandlesInternalError_Failure`
-- Line: 537 method `bulkCreatePromosAsync_ContextRetrievalError`
+- Line: 533 method `bulkCreatePromosAsync_ContextRetrievalError`
 - Required rename: `bulkCreatePromosAsync_ContextRetrievalError_Failure`
-- Line: 555 method `bulkCreatePromosAsync_ControllerWithEmptyList`
+- Line: 551 method `bulkCreatePromosAsync_ControllerWithEmptyList`
 - Required rename: `bulkCreatePromosAsync_ControllerWithEmptyList_Success`
-- Line: 572 method `bulkCreatePromosAsync_ControllerWithNullList`
+- Line: 568 method `bulkCreatePromosAsync_ControllerWithNullList`
 - Required rename: `bulkCreatePromosAsync_ControllerWithNullList_Success`
 
-VIOLATION 3: Rule 12 - Arrange/Act/Assert
+VIOLATION 2: Rule 12 - Arrange/Act/Assert
 - Severity: MEDIUM
-- Line: 307 in `bulkCreatePromosAsync_NullList_CapturesFailure` missing AAA comments: Arrange
+- Line: 306 in `bulkCreatePromosAsync_NullList_CapturesFailure` missing AAA comments: Arrange
 - Required: Add `// Arrange`, `// Act`, `// Assert` (or `// Act & Assert`).
 
-VIOLATION 4: Rule 14 - No Inline Mocks
+VIOLATION 3: Rule 14 - No Inline Mocks
 - Severity: CRITICAL
-- Line: 59 inline mock in `bulkCreatePromosAsync_AllValid_Success`: `lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))`
+- Line: 62 inline mock in `bulkCreatePromosAsync_AllValid_Success`: `when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID)))`
 - Required: Move to base test stub method and call stub in test.
-- Line: 61 inline mock in `bulkCreatePromosAsync_AllValid_Success`: `lenient().when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID)))`
-- Required: Move to base test stub method and call stub in test.
-- Line: 67 inline mock in `bulkCreatePromosAsync_AllValid_Success`: `when(promoRepository.save(any(Promo.class))).thenAnswer(invocation -> {`
-- Required: Move to base test stub method and call stub in test.
-- Line: 119 inline mock in `bulkCreatePromosAsync_LargeBatch_Success`: `lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))`
+- Line: 68 inline mock in `bulkCreatePromosAsync_AllValid_Success`: `when(promoRepository.save(any(Promo.class))).thenAnswer(invocation -> {`
 - Required: Move to base test stub method and call stub in test.
 - Line: 121 inline mock in `bulkCreatePromosAsync_LargeBatch_Success`: `when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);`
 - Required: Move to base test stub method and call stub in test.
-- Line: 153 inline mock in `bulkCreatePromosAsync_PerformanceTest_Success`: `lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))`
+- Line: 154 inline mock in `bulkCreatePromosAsync_PerformanceTest_Success`: `when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);`
 - Required: Move to base test stub method and call stub in test.
-- Line: 155 inline mock in `bulkCreatePromosAsync_PerformanceTest_Success`: `when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);`
+- Line: 228 inline mock in `bulkCreatePromosAsync_DatabaseError_CapturesFailure`: `when(promoRepository.save(any(Promo.class)))`
 - Required: Move to base test stub method and call stub in test.
-- Line: 174 inline mock in `bulkCreatePromosAsync_Single_Success`: `lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))`
+- Line: 264 inline mock in `bulkCreatePromosAsync_Overlapping_PartialSuccess`: `when(promoRepository.findOverlappingPromos(eq("P11"), anyLong(), any(), any()))`
 - Required: Move to base test stub method and call stub in test.
-- Line: 226 inline mock in `bulkCreatePromosAsync_DatabaseError_CapturesFailure`: `lenient().when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID)))`
+- Line: 266 inline mock in `bulkCreatePromosAsync_Overlapping_PartialSuccess`: `when(promoRepository.findOverlappingPromos(eq("P22"), anyLong(), any(), any()))`
 - Required: Move to base test stub method and call stub in test.
-- Line: 229 inline mock in `bulkCreatePromosAsync_DatabaseError_CapturesFailure`: `lenient().when(promoRepository.save(any(Promo.class)))`
+- Line: 288 inline mock in `bulkCreatePromosAsync_DuplicatePromoCode_PartialSuccess`: `when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))`
 - Required: Move to base test stub method and call stub in test.
-- Line: 265 inline mock in `bulkCreatePromosAsync_Overlapping_PartialSuccess`: `when(promoRepository.findOverlappingPromos(eq("P11"), anyLong(), any(), any()))`
+- Line: 400 inline mock in `bulkCreatePromosAsync_PartialFailure_Reporting_Success`: `when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))`
 - Required: Move to base test stub method and call stub in test.
-- Line: 267 inline mock in `bulkCreatePromosAsync_Overlapping_PartialSuccess`: `when(promoRepository.findOverlappingPromos(eq("P22"), anyLong(), any(), any()))`
+- Line: 402 inline mock in `bulkCreatePromosAsync_PartialFailure_Reporting_Success`: `when(promoRepository.save(any(Promo.class))).thenAnswer(invocation -> invocation.getArgument(0));`
 - Required: Move to base test stub method and call stub in test.
-- Line: 289 inline mock in `bulkCreatePromosAsync_DuplicatePromoCode_PartialSuccess`: `when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))`
+- Line: 405 inline mock in `bulkCreatePromosAsync_PartialFailure_Reporting_Success`: `when(promoRepository.findByPromoCodeAndClientId(eq("SUCCESS"), eq(TEST_CLIENT_ID)))`
 - Required: Move to base test stub method and call stub in test.
-- Line: 343 inline mock in `bulkCreatePromosAsync_PartialFailure_InvalidDateRange`: `lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))`
+- Line: 465 inline mock in `bulkCreatePromosAsync_ControllerDelegation_Success`: `doNothing().when(promoService).bulkCreatePromosAsync(anyList(), anyLong(), anyString(), anyLong());`
 - Required: Move to base test stub method and call stub in test.
-- Line: 372 inline mock in `bulkCreatePromosAsync_SomeFailValidation_PartialSuccess`: `lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))`
+- Line: 500 inline mock in `bulkCreatePromosAsync_ControllerHandlesBadRequest`: `doThrow(new com.example.SpringApi.Exceptions.BadRequestException("Empty list"))`
 - Required: Move to base test stub method and call stub in test.
-- Line: 403 inline mock in `bulkCreatePromosAsync_PartialFailure_Reporting_Success`: `when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))`
+- Line: 501 inline mock in `bulkCreatePromosAsync_ControllerHandlesBadRequest`: `.when(promoService).bulkCreatePromosAsync(any(), anyLong(), anyString(), anyLong());`
 - Required: Move to base test stub method and call stub in test.
-- Line: 405 inline mock in `bulkCreatePromosAsync_PartialFailure_Reporting_Success`: `when(promoRepository.save(any(Promo.class))).thenAnswer(invocation -> invocation.getArgument(0));`
+- Line: 518 inline mock in `bulkCreatePromosAsync_ControllerHandlesInternalError`: `doThrow(new RuntimeException("Critical failure"))`
 - Required: Move to base test stub method and call stub in test.
-- Line: 408 inline mock in `bulkCreatePromosAsync_PartialFailure_Reporting_Success`: `when(promoRepository.findByPromoCodeAndClientId(eq("SUCCESS"), eq(TEST_CLIENT_ID)))`
+- Line: 519 inline mock in `bulkCreatePromosAsync_ControllerHandlesInternalError`: `.when(promoService).bulkCreatePromosAsync(any(), anyLong(), anyString(), anyLong());`
 - Required: Move to base test stub method and call stub in test.
-- Line: 440 inline mock in `bulkCreatePromosAsync_MixedValidity`: `lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))`
+- Line: 535 inline mock in `bulkCreatePromosAsync_ContextRetrievalError`: `doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException("Context missing"))`
 - Required: Move to base test stub method and call stub in test.
-- Line: 469 inline mock in `bulkCreatePromosAsync_ControllerDelegation_Success`: `doNothing().when(promoService).bulkCreatePromosAsync(anyList(), anyLong(), anyString(), anyLong());`
+- Line: 536 inline mock in `bulkCreatePromosAsync_ContextRetrievalError`: `.when(promoService).getUserId();`
 - Required: Move to base test stub method and call stub in test.
-- Line: 504 inline mock in `bulkCreatePromosAsync_ControllerHandlesBadRequest`: `doThrow(new com.example.SpringApi.Exceptions.BadRequestException("Empty list"))`
+- Line: 554 inline mock in `bulkCreatePromosAsync_ControllerWithEmptyList`: `doNothing().when(promoService).bulkCreatePromosAsync(any(), anyLong(), anyString(), anyLong());`
 - Required: Move to base test stub method and call stub in test.
-- Line: 505 inline mock in `bulkCreatePromosAsync_ControllerHandlesBadRequest`: `.when(promoService).bulkCreatePromosAsync(any(), anyLong(), anyString(), anyLong());`
+- Line: 570 inline mock in `bulkCreatePromosAsync_ControllerWithNullList`: `doThrow(new com.example.SpringApi.Exceptions.BadRequestException("Null list"))`
 - Required: Move to base test stub method and call stub in test.
-- Line: 522 inline mock in `bulkCreatePromosAsync_ControllerHandlesInternalError`: `doThrow(new RuntimeException("Critical failure"))`
-- Required: Move to base test stub method and call stub in test.
-- Line: 523 inline mock in `bulkCreatePromosAsync_ControllerHandlesInternalError`: `.when(promoService).bulkCreatePromosAsync(any(), anyLong(), anyString(), anyLong());`
-- Required: Move to base test stub method and call stub in test.
-- Line: 539 inline mock in `bulkCreatePromosAsync_ContextRetrievalError`: `doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException("Context missing"))`
-- Required: Move to base test stub method and call stub in test.
-- Line: 540 inline mock in `bulkCreatePromosAsync_ContextRetrievalError`: `.when(promoService).getUserId();`
-- Required: Move to base test stub method and call stub in test.
-- Line: 558 inline mock in `bulkCreatePromosAsync_ControllerWithEmptyList`: `doNothing().when(promoService).bulkCreatePromosAsync(any(), anyLong(), anyString(), anyLong());`
-- Required: Move to base test stub method and call stub in test.
-- Line: 574 inline mock in `bulkCreatePromosAsync_ControllerWithNullList`: `doThrow(new com.example.SpringApi.Exceptions.BadRequestException("Null list"))`
-- Required: Move to base test stub method and call stub in test.
-- Line: 575 inline mock in `bulkCreatePromosAsync_ControllerWithNullList`: `.when(promoService).bulkCreatePromosAsync(isNull(), anyLong(), anyString(), anyLong());`
+- Line: 571 inline mock in `bulkCreatePromosAsync_ControllerWithNullList`: `.when(promoService).bulkCreatePromosAsync(isNull(), anyLong(), anyString(), anyLong());`
 - Required: Move to base test stub method and call stub in test.
 
-VIOLATION 5: Rule 10 - Test Ordering
+VIOLATION 4: Rule 10 - Test Ordering
 - Severity: MEDIUM
 - Section FAILURE not alphabetical.
 - Current order: bulkCreatePromosAsync_AllInvalid_NoSaves, bulkCreatePromosAsync_DatabaseError_CapturesFailure, bulkCreatePromosAsync_Overlapping_PartialSuccess, bulkCreatePromosAsync_DuplicatePromoCode_PartialSuccess, bulkCreatePromosAsync_NullList_CapturesFailure, bulkCreatePromosAsync_PartialFailure_InvalidDateRange, bulkCreatePromosAsync_SomeFailValidation_PartialSuccess, bulkCreatePromosAsync_PartialFailure_Reporting_Success, bulkCreatePromosAsync_MixedValidity
 - Required order: bulkCreatePromosAsync_AllInvalid_NoSaves, bulkCreatePromosAsync_DatabaseError_CapturesFailure, bulkCreatePromosAsync_DuplicatePromoCode_PartialSuccess, bulkCreatePromosAsync_MixedValidity, bulkCreatePromosAsync_NullList_CapturesFailure, bulkCreatePromosAsync_Overlapping_PartialSuccess, bulkCreatePromosAsync_PartialFailure_InvalidDateRange, bulkCreatePromosAsync_PartialFailure_Reporting_Success, bulkCreatePromosAsync_SomeFailValidation_PartialSuccess
 
-VIOLATION 6: Rule 10 - Test Ordering
+VIOLATION 5: Rule 10 - Test Ordering
 - Severity: MEDIUM
 - Section PERMISSION not alphabetical.
 - Current order: bulkCreatePromosAsync_ControllerDelegation_Success, bulkCreatePromosAsync_controller_permission_unauthorized, bulkCreatePromosAsync_ControllerHandlesBadRequest, bulkCreatePromosAsync_ControllerHandlesInternalError, bulkCreatePromosAsync_ContextRetrievalError, bulkCreatePromosAsync_ControllerWithEmptyList, bulkCreatePromosAsync_ControllerWithNullList
 - Required order: bulkCreatePromosAsync_ContextRetrievalError, bulkCreatePromosAsync_controller_permission_unauthorized, bulkCreatePromosAsync_ControllerDelegation_Success, bulkCreatePromosAsync_ControllerHandlesBadRequest, bulkCreatePromosAsync_ControllerHandlesInternalError, bulkCreatePromosAsync_ControllerWithEmptyList, bulkCreatePromosAsync_ControllerWithNullList
 
 REQUIRED FIXES SUMMARY:
-- Fix Rule 2 issues above.
 - Fix Rule 5 issues above.
 - Fix Rule 12 issues above.
 - Fix Rule 14 issues above.

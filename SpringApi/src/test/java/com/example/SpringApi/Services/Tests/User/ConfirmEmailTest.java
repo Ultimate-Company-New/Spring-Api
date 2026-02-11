@@ -18,56 +18,37 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-// Total Tests: 13 (2 Controller + 3 Success + 8 Failure)
 @DisplayName("UserService - ConfirmEmail Tests")
 class ConfirmEmailTest extends UserServiceTestBase {
-
-    // ========================================
-    // CONTROLLER AUTHORIZATION TESTS
-    // ========================================
-
-    /**
-     * Purpose: Verify controller has @PreAuthorize annotation.
-     * Expected Result: Annotation is present and permitAll().
-     * Assertions: assertNotNull, assertEquals("permitAll()", annotation.value()).
-     */
-    @Test
-    @DisplayName("confirmEmail - Verify @PreAuthorize Annotation")
-    void confirmEmail_verifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        // Arrange
-        Method method = UserController.class.getMethod("confirmEmail", Long.class, String.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "confirmEmail method should have @PreAuthorize annotation");
-        assertEquals("permitAll()", annotation.value());
-    }
-
-    @Test
-    @DisplayName("confirmEmail - Controller delegates to service")
-    void confirmEmail_withValidToken_delegatesToService() {
-        // Arrange
-        Long userId = 1L;
-        String token = "valid-token";
-
-        com.example.SpringApi.Services.UserService mockUserService = mock(
-                com.example.SpringApi.Services.UserService.class);
-        UserController localController = new UserController(mockUserService);
-        doNothing().when(mockUserService).confirmEmail(userId, token);
-
-        // Act
-        ResponseEntity<?> response = localController.confirmEmail(userId, token);
-
-        // Assert
-        verify(mockUserService, times(1)).confirmEmail(userId, token);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
+    // Total Tests: 13
 
     // ========================================
     // SUCCESS TESTS
     // ========================================
+
+    /**
+     * Purpose: Verify repository is called exactly once to find user.
+     * Expected Result: findById is called once.
+     * Assertions: verify(userRepository, times(1)).findById(TEST_USER_ID);
+     */
+    @Test
+    @DisplayName("Confirm Email - Repository findById called once - Success")
+    void confirmEmail_findByIdCalledOnce_Success() {
+        // Arrange
+        User userToConfirm = new User(testUserRequest, CREATED_USER);
+        userToConfirm.setUserId(TEST_USER_ID);
+        userToConfirm.setToken("valid-token");
+        userToConfirm.setEmailConfirmed(false);
+
+        stubUserRepositoryFindById(TEST_USER_ID, Optional.of(userToConfirm));
+        stubUserRepositorySave(userToConfirm);
+
+        // Act
+        userService.confirmEmail(TEST_USER_ID, "valid-token");
+
+        // Assert
+        verify(userRepository, times(1)).findById(TEST_USER_ID);
+    }
 
     /**
      * Purpose: Verify null emailConfirmed is treated as false and updated.
@@ -92,30 +73,6 @@ class ConfirmEmailTest extends UserServiceTestBase {
         // Assert
         assertTrue(userWithNullConfirmed.getEmailConfirmed());
         verify(userRepository, times(1)).save(userWithNullConfirmed);
-    }
-
-    /**
-     * Purpose: Verify repository is called exactly once to find user.
-     * Expected Result: findById is called once.
-     * Assertions: verify(userRepository, times(1)).findById(TEST_USER_ID);
-     */
-    @Test
-    @DisplayName("Confirm Email - Repository findById called once")
-    void confirmEmail_findByIdCalledOnce() {
-        // Arrange
-        User userToConfirm = new User(testUserRequest, CREATED_USER);
-        userToConfirm.setUserId(TEST_USER_ID);
-        userToConfirm.setToken("valid-token");
-        userToConfirm.setEmailConfirmed(false);
-
-        stubUserRepositoryFindById(TEST_USER_ID, Optional.of(userToConfirm));
-        stubUserRepositorySave(userToConfirm);
-
-        // Act
-        userService.confirmEmail(TEST_USER_ID, "valid-token");
-
-        // Assert
-        verify(userRepository, times(1)).findById(TEST_USER_ID);
     }
 
     /**
@@ -314,5 +271,57 @@ class ConfirmEmailTest extends UserServiceTestBase {
 
         // Assert
         assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    // ========================================
+    // PERMISSION TESTS
+    // ========================================
+
+    /**
+     * Purpose: Verify controller has @PreAuthorize annotation.
+     * Expected Result: Annotation is present and permitAll().
+     * Assertions: assertNotNull, assertEquals("permitAll()", annotation.value()),
+     * HTTP status OK.
+     */
+    @Test
+    @DisplayName("confirmEmail - Verify @PreAuthorize Annotation")
+    void confirmEmail_controller_permission_success() throws NoSuchMethodException {
+        // Arrange
+        Method method = UserController.class.getMethod("confirmEmail", Long.class, String.class);
+        Long userId = 1L;
+        String token = "valid-token";
+        UserController localController = new UserController(mockUserService);
+        stubMockUserServiceConfirmEmail(userId, token);
+
+        // Act
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+        ResponseEntity<?> response = localController.confirmEmail(userId, token);
+
+        // Assert
+        assertNotNull(annotation, "confirmEmail method should have @PreAuthorize annotation");
+        assertEquals("permitAll()", annotation.value());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify controller delegates to service.
+     * Expected Result: Service method is called.
+     * Assertions: verify(userService).confirmEmail(userId, token); HTTP status OK.
+     */
+    @Test
+    @DisplayName("confirmEmail - Controller delegates to service")
+    void confirmEmail_withValidToken_delegatesToService() {
+        // Arrange
+        Long userId = 1L;
+        String token = "valid-token";
+        UserController localController = new UserController(mockUserService);
+        stubMockUserServiceConfirmEmail(userId, token);
+
+        // Act
+        ResponseEntity<?> response = localController.confirmEmail(userId, token);
+
+        // Assert
+        verify(mockUserService, times(1)).confirmEmail(userId, token);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

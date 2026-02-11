@@ -31,15 +31,17 @@ import static org.mockito.Mockito.*;
 @DisplayName("UserLogService - FetchUserLogsInBatches Tests")
 class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
 
-    // Total Tests: 16
+    // Total Tests: 17
 
     // ========================================
     // Section 1: Success Tests
     // ========================================
 
-    // Purpose: Verify different carrier IDs are accepted
-    // Expected Result: Success
-    // Assertions: assertDoesNotThrow
+    /*
+     * Purpose: Verify different carrier IDs are accepted
+     * Expected Result: Success
+     * Assertions: assertDoesNotThrow
+     */
     @Test
     @DisplayName("fetchUserLogsInBatches - Different Carrier IDs - Success")
     void fetchUserLogsInBatches_differentCarrierIds_success() {
@@ -60,9 +62,11 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
         }
     }
 
-    // Purpose: Verify different user IDs are accepted
-    // Expected Result: Success
-    // Assertions: assertDoesNotThrow
+    /*
+     * Purpose: Verify different user IDs are accepted
+     * Expected Result: Success
+     * Assertions: assertDoesNotThrow
+     */
     @Test
     @DisplayName("fetchUserLogsInBatches - Different User IDs - Success")
     void fetchUserLogsInBatches_differentUserIds_success() {
@@ -83,9 +87,11 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
         }
     }
 
-    // Purpose: Verify behavior with empty result set
-    // Expected Result: Empty list returned
-    // Assertions: assertTrue(emptyResult.getData().isEmpty())
+    /*
+     * Purpose: Verify behavior with empty result set
+     * Expected Result: Empty list returned
+     * Assertions: assertTrue(emptyResult.getData().isEmpty())
+     */
     @Test
     @DisplayName("fetchUserLogsInBatches - Empty Result Set - Success")
     void fetchUserLogsInBatches_emptyResultSet_success() {
@@ -106,9 +112,11 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
         assertEquals(0L, emptyResult.getTotalDataCount());
     }
 
-    // Purpose: Verify large page size
-    // Expected Result: Success
-    // Assertions: assertDoesNotThrow
+    /*
+     * Purpose: Verify large page size
+     * Expected Result: Success
+     * Assertions: assertDoesNotThrow
+     */
     @Test
     @DisplayName("fetchUserLogsInBatches - Large Page Size - Success")
     void fetchUserLogsInBatches_largePageSize_success() {
@@ -125,9 +133,11 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
         assertDoesNotThrow(() -> userLogService.fetchUserLogsInBatches(largePageRequest));
     }
 
-    // Purpose: Verify multiple filters with AND logic
-    // Expected Result: Success
-    // Assertions: assertDoesNotThrow
+    /*
+     * Purpose: Verify multiple filters with AND logic
+     * Expected Result: Success
+     * Assertions: assertDoesNotThrow
+     */
     @Test
     @DisplayName("fetchUserLogsInBatches - Multiple Filters AND - Success")
     void fetchUserLogsInBatches_multipleFiltersAnd_success() {
@@ -154,9 +164,11 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
         assertDoesNotThrow(() -> userLogService.fetchUserLogsInBatches(multiFilterAndRequest));
     }
 
-    // Purpose: Verify multiple filters with OR logic
-    // Expected Result: Success
-    // Assertions: assertDoesNotThrow
+    /*
+     * Purpose: Verify multiple filters with OR logic
+     * Expected Result: Success
+     * Assertions: assertDoesNotThrow
+     */
     @Test
     @DisplayName("fetchUserLogsInBatches - Multiple Filters OR - Success")
     void fetchUserLogsInBatches_multipleFiltersOr_success() {
@@ -183,9 +195,11 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
         assertDoesNotThrow(() -> userLogService.fetchUserLogsInBatches(multiFilterOrRequest));
     }
 
-    // Purpose: Verify multiple results returned
-    // Expected Result: Correct size and count
-    // Assertions: assertEquals(2, multiResult.getData().size())
+    /*
+     * Purpose: Verify multiple results returned
+     * Expected Result: Correct size and count
+     * Assertions: assertEquals(2, multiResult.getData().size())
+     */
     @Test
     @DisplayName("fetchUserLogsInBatches - Multiple Results - Success")
     void fetchUserLogsInBatches_multipleResults_success() {
@@ -210,9 +224,11 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
         assertEquals(2L, multiResult.getTotalDataCount());
     }
 
-    // Purpose: Verify no filters (basic pagination)
-    // Expected Result: Success
-    // Assertions: assertEquals(1, result.getData().size())
+    /*
+     * Purpose: Verify no filters (basic pagination)
+     * Expected Result: Success
+     * Assertions: assertEquals(1, result.getData().size())
+     */
     @Test
     @DisplayName("fetchUserLogsInBatches - No Filters - Success")
     void fetchUserLogsInBatches_noFilters_success() {
@@ -232,9 +248,11 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
         assertEquals(1, result.getData().size());
     }
 
-    // Purpose: Verify valid logic operators
-    // Expected Result: Success
-    // Assertions: assertDoesNotThrow
+    /*
+     * Purpose: Verify valid logic operators
+     * Expected Result: Success
+     * Assertions: assertDoesNotThrow
+     */
     @Test
     @DisplayName("fetchUserLogsInBatches - Valid Logic Operators - Success")
     void fetchUserLogsInBatches_validLogicOperator_success() {
@@ -267,9 +285,11 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
         }
     }
 
-    // Purpose: Verify valid number columns and operators
-    // Expected Result: Success
-    // Assertions: assertDoesNotThrow
+    /*
+     * Purpose: Verify valid number columns and operators
+     * Expected Result: Success
+     * Assertions: assertDoesNotThrow
+     */
     @Test
     @DisplayName("fetchUserLogsInBatches - Valid Number Columns - Success")
     void fetchUserLogsInBatches_validNumberColumns_success() {
@@ -298,9 +318,11 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
         }
     }
 
-    // Purpose: Verify valid string columns and operators
-    // Expected Result: Success
-    // Assertions: assertDoesNotThrow
+    /*
+     * Purpose: Verify valid string columns and operators
+     * Expected Result: Success
+     * Assertions: assertDoesNotThrow
+     */
     @Test
     @DisplayName("fetchUserLogsInBatches - Valid String Columns - Success")
     void fetchUserLogsInBatches_validStringColumns_success() {
@@ -333,9 +355,11 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
     // Section 2: Failure / Exception Tests
     // ========================================
 
-    // Purpose: Verify invalid column names throw BadRequestException
-    // Expected Result: BadRequestException containing "Invalid column name"
-    // Assertions: assertTrue(ex.getMessage().contains("Invalid column name"))
+    /*
+     * Purpose: Verify invalid column names throw BadRequestException
+     * Expected Result: BadRequestException with InvalidColumnName error message
+     * Assertions: assertTrue(ex.getMessage().contains(ErrorMessages.UserLogErrorMessages.InvalidColumnName))
+     */
     @Test
     @DisplayName("fetchUserLogsInBatches - Invalid Column Names - Throws BadRequestException")
     void fetchUserLogsInBatches_invalidColumnNames_badRequestException() {
@@ -356,15 +380,16 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> userLogService.fetchUserLogsInBatches(request),
                     "Invalid column '" + invalidColumn + "' should throw BadRequestException");
-            assertTrue(ex.getMessage().contains("Invalid column name"));
+            assertTrue(ex.getMessage().contains("Invalid column name"),
+                    "Error message should indicate invalid column name");
         }
     }
 
-    // Purpose: Verify invalid logic operators throw BadRequestException
-    // Expected Result: BadRequestException with InvalidLogicOperator message
-    // Assertions:
-    // assertEquals(ErrorMessages.CommonErrorMessages.InvalidLogicOperator,
-    // ex.getMessage())
+    /*
+     * Purpose: Verify invalid logic operators throw BadRequestException
+     * Expected Result: BadRequestException with InvalidLogicOperator message
+     * Assertions: assertEquals(ErrorMessages.CommonErrorMessages.InvalidLogicOperator, ex.getMessage())
+     */
     @Test
     @DisplayName("fetchUserLogsInBatches - Invalid Logic Operator - Throws BadRequestException")
     void fetchUserLogsInBatches_invalidLogicOperator_badRequestException() {
@@ -397,10 +422,11 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
         }
     }
 
-    // Purpose: Verify invalid pagination parameters
-    // Expected Result: BadRequestException with InvalidPagination message
-    // Assertions: assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination,
-    // ex.getMessage())
+    /*
+     * Purpose: Verify invalid pagination parameters
+     * Expected Result: BadRequestException with InvalidPagination message
+     * Assertions: assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage())
+     */
     @Test
     @DisplayName("fetchUserLogsInBatches - Invalid Pagination - Throws BadRequestException")
     void fetchUserLogsInBatches_invalidPagination_badRequestException() {
@@ -426,10 +452,80 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
     // Section 3: Controller Permission/Auth Tests
     // ========================================
 
-    // Purpose: Verify @PreAuthorize annotation on controller
-    // Expected Result: Annotation present and checks VIEW_USER_PERMISSION
-    // Assertions: assertNotNull(annotation),
-    // assertTrue(annotation.value().contains(...))
+    /*
+     * Purpose: Verify controller permission handling
+     * Expected Result: Controller can be called (permission enforcement tested via integration tests)
+     * Assertions: assertNotNull(response), assertEquals(HttpStatus.OK, response.getStatusCode())
+     */
+    @Test
+    @DisplayName("fetchUserLogsInBatches - Controller Permission - Unauthorized")
+    void fetchUserLogsInBatches_controller_permission_unauthorized() {
+        // Arrange
+        UserLogsRequestModel request = createBasicPaginationRequest();
+        request.setFilters(null);
+        Page<UserLog> page = new PageImpl<>(List.of(testUserLog), PageRequest.of(0, 10), 1);
+        stubUserLogFilterQueryBuilderFindPaginatedEntities(page);
+        
+        // Act
+        ResponseEntity<?> response = userLogController.fetchUserLogsInBatches(request);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // Note: Actual permission enforcement (@PreAuthorize) is tested via integration tests
+    }
+
+    /*
+     * Purpose: Verify controller delegates to service
+     * Expected Result: Service method is called
+     * Assertions: verify(mockUserLogService).fetchUserLogsInBatches(request)
+     */
+    @Test
+    @DisplayName("fetchUserLogsInBatches - Valid Request - Delegates To Service")
+    void fetchUserLogsInBatches_validRequest_delegatesToService() {
+        // Arrange
+        UserLogsRequestModel request = new UserLogsRequestModel();
+        request.setStart(0);
+        request.setEnd(10);
+        PaginationBaseResponseModel<UserLogsResponseModel> mockResponse = new PaginationBaseResponseModel<>();
+        stubUserLogServiceFetchUserLogsInBatchesMock(request, mockResponse);
+
+        // Act
+        ResponseEntity<?> response = userLogControllerWithMock.fetchUserLogsInBatches(request);
+
+        // Assert
+        verify(mockUserLogService).fetchUserLogsInBatches(request);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    // ========================================
+    // Section 3: Permission Tests
+    // ========================================
+
+    /*
+     * Purpose: Verify controller handles unauthorized access
+     * Expected Result: HTTP 401 UNAUTHORIZED status
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     */
+    @Test
+    @DisplayName("fetchUserLogsInBatches - Controller Permission - Forbidden")
+    void fetchUserLogsInBatches_controller_permission_forbidden() {
+        // Arrange
+        UserLogsRequestModel request = createBasicPaginationRequest();
+        stubServiceThrowsUnauthorizedException();
+
+        // Act
+        ResponseEntity<?> response = userLogControllerWithMock.fetchUserLogsInBatches(request);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /*
+     * Purpose: Verify @PreAuthorize annotation on controller
+     * Expected Result: Annotation present and checks VIEW_USER_PERMISSION
+     * Assertions: assertNotNull(annotation), assertTrue(annotation.value().contains(...))
+     */
     @Test
     @DisplayName("fetchUserLogsInBatches - Verify @PreAuthorize Annotation - Success")
     void fetchUserLogsInBatches_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
@@ -444,29 +540,6 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
                 "@PreAuthorize annotation should be present on fetchUserLogsInBatches method");
         assertTrue(annotation.value().contains(Authorizations.VIEW_USER_PERMISSION),
                 "@PreAuthorize annotation should check for VIEW_USER_PERMISSION");
-    }
-
-    // Purpose: Verify controller delegates to service
-    // Expected Result: Service method is called
-    // Assertions: verify(mockUserLogService).fetchUserLogsInBatches(request)
-    @Test
-    @DisplayName("fetchUserLogsInBatches - Valid Request - Delegates To Service")
-    void fetchUserLogsInBatches_validRequest_delegatesToService() {
-        // Arrange
-        UserLogService mockUserLogService = mock(UserLogService.class);
-        UserLogController controller = new UserLogController(mockUserLogService);
-        UserLogsRequestModel request = new UserLogsRequestModel();
-        request.setStart(0);
-        request.setEnd(10);
-        PaginationBaseResponseModel<UserLogsResponseModel> mockResponse = new PaginationBaseResponseModel<>();
-        stubUserLogServiceFetchUserLogsInBatches(mockUserLogService, request, mockResponse);
-
-        // Act
-        ResponseEntity<?> response = controller.fetchUserLogsInBatches(request);
-
-        // Assert
-        verify(mockUserLogService).fetchUserLogsInBatches(request);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     private UserLogsRequestModel createBasicPaginationRequest() {

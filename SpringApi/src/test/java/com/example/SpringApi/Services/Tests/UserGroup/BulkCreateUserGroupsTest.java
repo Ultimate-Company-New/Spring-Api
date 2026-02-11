@@ -26,61 +26,26 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for UserGroupService - Bulk Create User Groups functionality.
+ * Unit tests for UserGroupService.bulkCreateUserGroups method.
  * 
- * Total Tests: 11
- *
- * Tests cover:
- * - Successful bulk creation with varying numbers of groups
- * - Partial success scenarios (some valid, some invalid)
- * - Complete failure scenarios (all groups invalid)
- * - Validation for null/empty lists and duplicate group names
- * - Verification of logging service integration
+ * Total Tests: 14
  */
 @DisplayName("UserGroupService - BulkCreateUserGroups Tests")
 class BulkCreateUserGroupsTest extends UserGroupServiceTestBase {
-
-    // ========================================
-    // CONTROLLER AUTHORIZATION TESTS
-    // ========================================
-
-    @Test
-    @DisplayName("bulkCreateUserGroups - Verify @PreAuthorize Annotation")
-    void bulkCreateUserGroups_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        // Arrange
-        Method method = UserGroupController.class.getMethod("bulkCreateUserGroups", List.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present on bulkCreateUserGroups method");
-        assertTrue(annotation.value().contains(Authorizations.INSERT_GROUPS_PERMISSION),
-                "@PreAuthorize annotation should check for INSERT_GROUPS_PERMISSION");
-    }
-
-    @Test
-    @DisplayName("bulkCreateUserGroups - Controller delegates to service")
-    void bulkCreateUserGroups_WithValidRequest_DelegatesToService() {
-        // Arrange
-        List<UserGroupRequestModel> request = Collections.singletonList(testUserGroupRequest);
-        doNothing().when(userGroupService).bulkCreateUserGroupsAsync(anyList(), anyLong(), anyString(), anyLong());
-
-        // Act
-        ResponseEntity<?> response = userGroupController.bulkCreateUserGroups(request);
-
-        // Assert
-        verify(userGroupService).bulkCreateUserGroupsAsync(eq(request), anyLong(), anyString(), anyLong());
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
+    // Total Tests: 14
 
     // ========================================
     // SUCCESS TESTS
     // ========================================
 
+    /**
+     * Purpose: Verify all valid groups are created successfully.
+     * Expected Result: All groups saved, success count matches total.
+     * Assertions: assertEquals, verify
+     */
     @Test
-    @DisplayName("Bulk Create User Groups - All Valid - Success")
-    void bulkCreateUserGroups_AllValid_Success() {
+    @DisplayName("bulkCreateUserGroups - Success - All Valid")
+    void bulkCreateUserGroups_allValid_success() {
         // Arrange
         List<UserGroupRequestModel> userGroups = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
@@ -106,9 +71,14 @@ class BulkCreateUserGroupsTest extends UserGroupServiceTestBase {
         verify(userGroupRepository, times(3)).save(any(UserGroup.class));
     }
 
+    /**
+     * Purpose: Verify many groups can be bulk created.
+     * Expected Result: All 10 groups created successfully.
+     * Assertions: assertEquals
+     */
     @Test
-    @DisplayName("Bulk Create User Groups - Many groups - Success")
-    void bulkCreateUserGroups_ManyGroups_Success() {
+    @DisplayName("bulkCreateUserGroups - Success - Many Groups")
+    void bulkCreateUserGroups_manyGroups_success() {
         // Arrange
         List<UserGroupRequestModel> userGroups = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
@@ -133,9 +103,14 @@ class BulkCreateUserGroupsTest extends UserGroupServiceTestBase {
         assertEquals(10, result.getSuccessCount());
     }
 
+    /**
+     * Purpose: Verify partial success scenario (some valid, some invalid).
+     * Expected Result: Valid groups created, invalid ones fail.
+     * Assertions: assertEquals
+     */
     @Test
-    @DisplayName("Bulk Create User Groups - Partial Success")
-    void bulkCreateUserGroups_PartialSuccess() {
+    @DisplayName("bulkCreateUserGroups - Success - Partial Success")
+    void bulkCreateUserGroups_partialSuccess_success() {
         // Arrange
         List<UserGroupRequestModel> userGroups = new ArrayList<>();
 
@@ -165,14 +140,19 @@ class BulkCreateUserGroupsTest extends UserGroupServiceTestBase {
         assertEquals(1, result.getFailureCount());
     }
 
+    /**
+     * Purpose: Verify single group can be bulk created.
+     * Expected Result: Group created successfully.
+     * Assertions: assertEquals
+     */
     @Test
-    @DisplayName("Bulk Create User Groups - Single Group - Success")
-    void bulkCreateUserGroups_SingleGroup_Success() {
+    @DisplayName("bulkCreateUserGroups - Success - Single Group")
+    void bulkCreateUserGroups_singleGroup_success() {
         // Arrange
         List<UserGroupRequestModel> userGroups = new ArrayList<>();
         UserGroupRequestModel groupReq = new UserGroupRequestModel();
         groupReq.setGroupName("SingleGroup");
-        groupReq.setDescription("Single group description");
+        groupReq.setDescription("Single description");
         groupReq.setUserIds(Collections.singletonList(1L));
         userGroups.add(groupReq);
 
@@ -190,9 +170,14 @@ class BulkCreateUserGroupsTest extends UserGroupServiceTestBase {
         assertEquals(0, result.getFailureCount());
     }
 
+    /**
+     * Purpose: Verify logging service is called.
+     * Expected Result: logData is called.
+     * Assertions: verify
+     */
     @Test
-    @DisplayName("Bulk Create User Groups - Verify logging called")
-    void bulkCreateUserGroups_VerifyLoggingCalled() {
+    @DisplayName("bulkCreateUserGroups - Success - Verify Logging")
+    void bulkCreateUserGroups_verifyLogging_success() {
         // Arrange
         List<UserGroupRequestModel> userGroups = new ArrayList<>();
         UserGroupRequestModel groupReq = new UserGroupRequestModel();
@@ -217,18 +202,22 @@ class BulkCreateUserGroupsTest extends UserGroupServiceTestBase {
     // FAILURE TESTS
     // ========================================
 
+    /**
+     * Purpose: Verify all failures scenario.
+     * Expected Result: No groups created, all fail.
+     * Assertions: assertEquals
+     */
     @Test
-    @DisplayName("Bulk Create User Groups - All failures")
-    void bulkCreateUserGroups_AllFailures() {
+    @DisplayName("bulkCreateUserGroups - Failure - All Failures")
+    void bulkCreateUserGroups_allFailures_failure() {
         // Arrange
         List<UserGroupRequestModel> userGroups = new ArrayList<>();
 
-        // All groups without userIds - will fail
         for (int i = 0; i < 3; i++) {
             UserGroupRequestModel groupReq = new UserGroupRequestModel();
             groupReq.setGroupName("FailGroup" + i);
             groupReq.setDescription("Description");
-            groupReq.setUserIds(null); // No users
+            groupReq.setUserIds(null);
             userGroups.add(groupReq);
         }
 
@@ -243,9 +232,14 @@ class BulkCreateUserGroupsTest extends UserGroupServiceTestBase {
         assertEquals(3, result.getFailureCount());
     }
 
+    /**
+     * Purpose: Verify duplicate name handling in bulk create.
+     * Expected Result: New group created, duplicate fails.
+     * Assertions: assertEquals
+     */
     @Test
-    @DisplayName("Bulk Create User Groups - Duplicate Name")
-    void bulkCreateUserGroups_DuplicateName() {
+    @DisplayName("bulkCreateUserGroups - Failure - Duplicate Name")
+    void bulkCreateUserGroups_duplicateName_failure() {
         // Arrange
         List<UserGroupRequestModel> userGroups = new ArrayList<>();
 
@@ -279,9 +273,14 @@ class BulkCreateUserGroupsTest extends UserGroupServiceTestBase {
         assertEquals(1, result.getFailureCount());
     }
 
+    /**
+     * Purpose: Verify empty list throws BadRequestException.
+     * Expected Result: BadRequestException with ListCannotBeNullOrEmpty message.
+     * Assertions: assertThrows, assertTrue
+     */
     @Test
-    @DisplayName("Bulk Create User Groups - Empty List - Throws BadRequestException")
-    void bulkCreateUserGroups_EmptyList() {
+    @DisplayName("bulkCreateUserGroups - Failure - Empty List")
+    void bulkCreateUserGroups_emptyList_throwsBadRequestException() {
         // Arrange
         List<UserGroupRequestModel> emptyList = new ArrayList<>();
 
@@ -292,13 +291,90 @@ class BulkCreateUserGroupsTest extends UserGroupServiceTestBase {
                 .contains(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "User group")));
     }
 
+    /**
+     * Purpose: Verify null list throws BadRequestException.
+     * Expected Result: BadRequestException with ListCannotBeNullOrEmpty message.
+     * Assertions: assertThrows, assertTrue
+     */
     @Test
-    @DisplayName("Bulk Create User Groups - Null List - Throws BadRequestException")
-    void bulkCreateUserGroups_NullList() {
+    @DisplayName("bulkCreateUserGroups - Failure - Null List")
+    void bulkCreateUserGroups_nullList_throwsBadRequestException() {
+        // Arrange
+
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.bulkCreateUserGroups(null));
         assertTrue(ex.getMessage()
                 .contains(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "User group")));
+    }
+
+    // ========================================
+    // PERMISSION TESTS
+    // ========================================
+
+    /**
+     * Purpose: Verify controller handles unauthorized access via HTTP status.
+     * Expected Result: HTTP UNAUTHORIZED status returned.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     */
+    @Test
+    @DisplayName("bulkCreateUserGroups - Controller permission forbidden")
+    void bulkCreateUserGroups_controller_permission_forbidden() {
+        // Arrange
+        List<UserGroupRequestModel> request = Collections.singletonList(testUserGroupRequest);
+        stubMockUserGroupServiceGetUserId(TEST_USER_ID);
+        stubMockUserGroupServiceGetUser(CREATED_USER);
+        stubMockUserGroupServiceGetClientId(TEST_CLIENT_ID);
+        stubServiceThrowsUnauthorizedException();
+
+        // Act
+        ResponseEntity<?> response = userGroupControllerWithMock.bulkCreateUserGroups(request);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
+     * Expected Result: The method should be annotated with
+     * INSERT_GROUPS_PERMISSION.
+     * Assertions: assertNotNull, assertTrue
+     */
+    @Test
+    @DisplayName("bulkCreateUserGroups - Verify @PreAuthorize Annotation")
+    void bulkCreateUserGroups_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
+        // Arrange
+        Method method = UserGroupController.class.getMethod("bulkCreateUserGroups", List.class);
+
+        // Act
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
+        assertNotNull(annotation, "@PreAuthorize annotation should be present on bulkCreateUserGroups method");
+        assertTrue(annotation.value().contains(Authorizations.INSERT_GROUPS_PERMISSION),
+                "@PreAuthorize annotation should check for INSERT_GROUPS_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller delegates to service.
+     * Expected Result: Service method is called and HTTP 201 is returned.
+     * Assertions: verify, HttpStatus.CREATED
+     */
+    @Test
+    @DisplayName("bulkCreateUserGroups - Controller delegates to service")
+    void bulkCreateUserGroups_withValidRequest_delegatesToService() {
+        // Arrange
+        List<UserGroupRequestModel> requestList = Collections.singletonList(testUserGroupRequest);
+        stubMockUserGroupServiceGetUserId(TEST_USER_ID);
+        stubMockUserGroupServiceGetUser(CREATED_USER);
+        stubMockUserGroupServiceGetClientId(TEST_CLIENT_ID);
+        stubMockUserGroupServiceBulkCreateUserGroupsAsync();
+
+        // Act
+        ResponseEntity<?> response = userGroupControllerWithMock.bulkCreateUserGroups(requestList);
+
+        // Assert
+        verify(mockUserGroupService, times(1)).bulkCreateUserGroupsAsync(anyList(), anyLong(), anyString(), anyLong());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 }

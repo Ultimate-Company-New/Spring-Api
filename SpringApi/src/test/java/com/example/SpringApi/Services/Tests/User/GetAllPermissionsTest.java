@@ -19,52 +19,84 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-// Total Tests: 7
+/**
+ * Unit tests for UserService.getAllPermissions method.
+ * 
+ * Total Tests: 8
+ */
 @DisplayName("UserService - GetAllPermissions Tests")
 class GetAllPermissionsTest extends UserServiceTestBase {
-
-    // ========================================
-    // CONTROLLER AUTHORIZATION TESTS
-    // ========================================
-
-    @Test
-    @DisplayName("getAllPermissions - Verify @PreAuthorize Annotation")
-    void getAllPermissions_controller_permission_forbidden() throws NoSuchMethodException {
-        // Arrange
-        Method method = UserController.class.getMethod("getAllPermissions");
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "getAllPermissions method should have @PreAuthorize annotation");
-        assertTrue(annotation.value().contains(Authorizations.CREATE_USER_PERMISSION),
-                "@PreAuthorize annotation should check for CREATE_USER_PERMISSION");
-    }
-
-    @Test
-    @DisplayName("getAllPermissions - Controller delegates to service")
-    void getAllPermissions_WithValidRequest_DelegatesToService() {
-        // Arrange
-        com.example.SpringApi.Services.UserService mockUserService = mock(
-                com.example.SpringApi.Services.UserService.class);
-        UserController localController = new UserController(mockUserService);
-        when(mockUserService.getAllPermissions()).thenReturn(new ArrayList<>());
-
-        // Act
-        ResponseEntity<?> response = localController.getAllPermissions();
-
-        // Assert
-        verify(mockUserService, times(1)).getAllPermissions();
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
+    // Total Tests: 8
 
     // ========================================
     // SUCCESS TESTS
     // ========================================
 
+    /**
+     * Purpose: Verify empty list is returned when all permissions are deleted.
+     * Expected Result: Returns empty list.
+     * Assertions: assertTrue
+     */
     @Test
-    @DisplayName("getAllPermissions - Success - Returns non-deleted permissions")
+    @DisplayName("getAllPermissions - Success - All Deleted Returns Empty")
+    void getAllPermissions_Success_AllDeletedReturnsEmpty() {
+        // Arrange
+        Permission p1 = createPermission(1L, "p1", "desc1", true);
+        stubPermissionRepositoryFindAll(Collections.singletonList(p1));
+
+        // Act
+        List<PermissionResponseModel> result = userService.getAllPermissions();
+
+        // Assert
+        assertTrue(result.isEmpty());
+    }
+
+    /**
+     * Purpose: Verify empty list is returned when no permissions exist.
+     * Expected Result: Returns empty list.
+     * Assertions: assertTrue
+     */
+    @Test
+    @DisplayName("getAllPermissions - Success - Empty List")
+    void getAllPermissions_Success_EmptyList() {
+        // Arrange
+        stubPermissionRepositoryFindAll(Collections.emptyList());
+
+        // Act
+        List<PermissionResponseModel> result = userService.getAllPermissions();
+
+        // Assert
+        assertTrue(result.isEmpty());
+    }
+
+    /**
+     * Purpose: Verify that the deleted permissions are filtered out.
+     * Expected Result: Returns only non-deleted permissions.
+     * Assertions: assertEquals
+     */
+    @Test
+    @DisplayName("getAllPermissions - Success - Filters Deleted Permissions")
+    void getAllPermissions_Success_FiltersDeletedPermissions() {
+        // Arrange
+        Permission p1 = createPermission(1L, "p1", "desc1", false);
+        Permission p2 = createPermission(2L, "p2", "desc2", true); // Deleted
+        stubPermissionRepositoryFindAll(Arrays.asList(p1, p2));
+
+        // Act
+        List<PermissionResponseModel> result = userService.getAllPermissions();
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("p1", result.get(0).getPermissionName());
+    }
+
+    /**
+     * Purpose: Verify successful retrieval of all non-deleted permissions.
+     * Expected Result: Returns list of non-deleted permissions.
+     * Assertions: assertEquals
+     */
+    @Test
+    @DisplayName("getAllPermissions - Success - Returns Non-Deleted Permissions")
     void getAllPermissions_Success_ReturnsNonDeletedPermissions() {
         // Arrange
         Permission p1 = createPermission(1L, "p1", "desc1", false);
@@ -80,6 +112,11 @@ class GetAllPermissionsTest extends UserServiceTestBase {
         assertEquals("p2", result.get(1).getPermissionName());
     }
 
+    /**
+     * Purpose: Verify permissions are sorted by permission ID in ascending order.
+     * Expected Result: Returns permissions sorted by ID.
+     * Assertions: assertEquals
+     */
     @Test
     @DisplayName("getAllPermissions - Success - Sorts by Permission ID Ascending")
     void getAllPermissions_Success_SortsByPermissionIdAsc() {
@@ -87,7 +124,6 @@ class GetAllPermissionsTest extends UserServiceTestBase {
         Permission p1 = createPermission(1L, "p1", "desc1", false);
         Permission p2 = createPermission(2L, "p2", "desc2", false);
         Permission p3 = createPermission(3L, "p3", "desc3", false);
-        // Return unsorted list from repo to verify service sorting logic
         stubPermissionRepositoryFindAll(Arrays.asList(p3, p1, p2));
 
         // Act
@@ -100,56 +136,68 @@ class GetAllPermissionsTest extends UserServiceTestBase {
         assertEquals(3L, result.get(2).getPermissionId());
     }
 
+    // ========================================
+    // FAILURE TESTS
+    // ========================================
+
+    // ========================================
+    // PERMISSION TESTS
+    // ========================================
+
+    /**
+     * Purpose: Verify controller handles unauthorized access via HTTP status.
+     * Expected Result: HTTP UNAUTHORIZED status returned.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     */
     @Test
-    @DisplayName("getAllPermissions - Success - Filters deleted permissions")
-    void getAllPermissions_Success_FiltersDeletedPermissions() {
+    @DisplayName("getAllPermissions - Controller permission forbidden")
+    void getAllPermissions_controller_permission_forbidden() {
         // Arrange
-        Permission p1 = createPermission(1L, "p1", "desc1", false);
-        Permission p2 = createPermission(2L, "p2", "desc2", true); // Deleted
-        stubPermissionRepositoryFindAll(Arrays.asList(p1, p2));
+        stubServiceThrowsUnauthorizedException();
 
         // Act
-        List<PermissionResponseModel> result = userService.getAllPermissions();
+        ResponseEntity<?> response = userControllerWithMock.getAllPermissions();
 
         // Assert
-        assertEquals(1, result.size());
-        assertEquals("p1", result.get(0).getPermissionName());
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
+    /**
+     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
+     * Expected Result: The method should be annotated with CREATE_USER_PERMISSION.
+     * Assertions: assertNotNull, assertTrue
+     */
     @Test
-    @DisplayName("getAllPermissions - Success - Empty list")
-    void getAllPermissions_Success_EmptyList() {
+    @DisplayName("getAllPermissions - Verify @PreAuthorize Annotation")
+    void getAllPermissions_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
         // Arrange
-        stubPermissionRepositoryFindAll(Collections.emptyList());
+        Method method = UserController.class.getMethod("getAllPermissions");
 
         // Act
-        List<PermissionResponseModel> result = userService.getAllPermissions();
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
         // Assert
-        assertTrue(result.isEmpty());
+        assertNotNull(annotation, "getAllPermissions method should have @PreAuthorize annotation");
+        assertTrue(annotation.value().contains(Authorizations.CREATE_USER_PERMISSION),
+                "@PreAuthorize annotation should check for CREATE_USER_PERMISSION");
     }
 
+    /**
+     * Purpose: Verify controller delegates to service.
+     * Expected Result: Service method is called.
+     * Assertions: verify, HttpStatus.OK
+     */
     @Test
-    @DisplayName("getAllPermissions - Success - All deleted returns empty")
-    void getAllPermissions_Success_AllDeletedReturnsEmpty() {
+    @DisplayName("getAllPermissions - Controller delegates to service")
+    void getAllPermissions_withValidRequest_delegatesToService() {
         // Arrange
-        Permission p1 = createPermission(1L, "p1", "desc1", true);
-        stubPermissionRepositoryFindAll(Collections.singletonList(p1));
+        stubMockUserServiceGetAllPermissions(new ArrayList<>());
 
         // Act
-        List<PermissionResponseModel> result = userService.getAllPermissions();
+        ResponseEntity<?> response = userControllerWithMock.getAllPermissions();
 
         // Assert
-        assertTrue(result.isEmpty());
-    }
-
-    private Permission createPermission(Long id, String name, String desc, boolean isDeleted) {
-        Permission p = new Permission();
-        p.setPermissionId(id);
-        p.setPermissionName(name);
-        p.setPermissionCode(name.toUpperCase());
-        p.setDescription(desc);
-        p.setIsDeleted(isDeleted);
-        return p;
+        verify(mockUserService, times(1)).getAllPermissions();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

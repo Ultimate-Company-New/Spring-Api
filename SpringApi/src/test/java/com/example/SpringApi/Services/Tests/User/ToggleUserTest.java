@@ -17,81 +17,18 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-// Total Tests: 11
-@DisplayName("UserService - Toggle User Tests")
+/**
+ * Unit tests for UserService.toggleUser method.
+ * 
+ * Total Tests: 12
+ */
+@DisplayName("UserService - ToggleUser Tests")
 class ToggleUserTest extends UserServiceTestBase {
-
-    // ========================================
-    // CONTROLLER AUTHORIZATION TESTS
-    // ========================================
-
-    /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
-     * Expected Result: The method should be annotated with DELETE_USER_PERMISSION.
-     * Assertions: Annotation is present and contains expected permission string.
-     */
-    @Test
-    @DisplayName("toggleUser - Verify @PreAuthorize Annotation")
-    void toggleUser_controller_permission_forbidden() throws NoSuchMethodException {
-        // Arrange
-        Method method = UserController.class.getMethod("toggleUser", Long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "toggleUser method should have @PreAuthorize annotation");
-        assertTrue(annotation.value().contains(Authorizations.DELETE_USER_PERMISSION),
-                "@PreAuthorize annotation should check for DELETE_USER_PERMISSION");
-    }
-
-    /**
-     * Purpose: Verify controller delegates to service.
-     * Expected Result: Service method is called.
-     * Assertions: verify(userService).toggleUser(userId);
-     */
-    @Test
-    @DisplayName("toggleUser - Controller delegates to service")
-    void toggleUser_WithValidId_DelegatesToService() {
-        // Arrange
-        Long userId = 1L;
-        com.example.SpringApi.Services.UserService mockUserService = mock(
-                com.example.SpringApi.Services.UserService.class);
-        UserController localController = new UserController(mockUserService);
-        doNothing().when(mockUserService).toggleUser(userId);
-
-        // Act
-        ResponseEntity<?> response = localController.toggleUser(userId);
-
-        // Assert
-        verify(mockUserService, times(1)).toggleUser(userId);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
+    // Total Tests: 12
 
     // ========================================
     // SUCCESS TESTS
     // ========================================
-
-    /**
-     * Purpose: Verify that user log is called after successful toggle.
-     * Expected Result: userLogService.logData is called.
-     * Assertions: verify(userLogService).logData(...);
-     */
-    @Test
-    @DisplayName("Toggle User - Success - Logs the operation")
-    void toggleUser_success_logsOperation() {
-        // Arrange
-        testUser.setIsDeleted(false);
-        stubUserRepositoryFindByIdWithAllRelations(testUser);
-        stubUserRepositorySave(testUser);
-        stubUserLogServiceLogData(true);
-
-        // Act
-        userService.toggleUser(TEST_USER_ID);
-
-        // Assert
-        verify(userLogService, times(1)).logData(anyLong(), contains("deletion status"), anyString());
-    }
 
     /**
      * Purpose: Verify that multiple toggles persist state correctly.
@@ -99,7 +36,7 @@ class ToggleUserTest extends UserServiceTestBase {
      * Assertions: State alternates correctly.
      */
     @Test
-    @DisplayName("Toggle User - Multiple Toggles - State Persists")
+    @DisplayName("toggleUser - Success - Multiple Toggles")
     void toggleUser_multipleToggles_statePersists() {
         // Arrange
         testUser.setIsDeleted(false);
@@ -121,12 +58,33 @@ class ToggleUserTest extends UserServiceTestBase {
     }
 
     /**
-     * Purpose: Verify that a deleted user can be restored.
-     * Expected Result: The user's isDeleted status is set to false.
-     * Assertions: assertFalse(testUser.getIsDeleted());
+     * Purpose: Verify that user log is called after successful toggle.
+     * Expected Result: userLogService.logData is called.
+     * Assertions: verify
      */
     @Test
-    @DisplayName("Toggle User - Success - Should restore deleted user")
+    @DisplayName("toggleUser - Success - Logs Operation")
+    void toggleUser_success_logsOperation() {
+        // Arrange
+        testUser.setIsDeleted(false);
+        stubUserRepositoryFindByIdWithAllRelations(testUser);
+        stubUserRepositorySave(testUser);
+        stubUserLogServiceLogData(true);
+
+        // Act
+        userService.toggleUser(TEST_USER_ID);
+
+        // Assert
+        verify(userLogService, times(1)).logData(anyLong(), contains("deletion status"), anyString());
+    }
+
+    /**
+     * Purpose: Verify that a deleted user can be restored.
+     * Expected Result: The user's isDeleted status is set to false.
+     * Assertions: assertFalse
+     */
+    @Test
+    @DisplayName("toggleUser - Success - Restores Deleted User")
     void toggleUser_success_restoresDeletedUser() {
         // Arrange
         testUser.setIsDeleted(true);
@@ -145,10 +103,10 @@ class ToggleUserTest extends UserServiceTestBase {
     /**
      * Purpose: Verify that a user can be successfully toggled (soft deleted).
      * Expected Result: The user's isDeleted status is set to true.
-     * Assertions: assertTrue(testUser.getIsDeleted());
+     * Assertions: assertTrue
      */
     @Test
-    @DisplayName("Toggle User - Success - Should set isDeleted to true")
+    @DisplayName("toggleUser - Success - Soft Delete")
     void toggleUser_success_setsIsDeletedTrue() {
         // Arrange
         testUser.setIsDeleted(false);
@@ -167,10 +125,10 @@ class ToggleUserTest extends UserServiceTestBase {
     /**
      * Purpose: Verify that modifiedUser is updated on toggle.
      * Expected Result: modifiedUser field is updated.
-     * Assertions: verify setModifiedUser is called.
+     * Assertions: assertNotNull
      */
     @Test
-    @DisplayName("Toggle User - Success - Updates modifiedUser")
+    @DisplayName("toggleUser - Success - Updates Modified User")
     void toggleUser_success_updatesModifiedUser() {
         // Arrange
         testUser.setIsDeleted(false);
@@ -192,10 +150,11 @@ class ToggleUserTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify that toggling user with max long ID throws NotFoundException.
-     * Expected Result: NotFoundException with "Invalid User Id" message.
+     * Expected Result: NotFoundException with InvalidId message.
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("Toggle User - Max Long ID - Throws NotFoundException")
+    @DisplayName("toggleUser - Failure - Max Long ID")
     void toggleUser_maxLongId_throwsNotFoundException() {
         // Arrange
         stubUserRepositoryFindByIdWithAllRelations(null);
@@ -210,10 +169,11 @@ class ToggleUserTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify that toggling user with negative ID throws NotFoundException.
-     * Expected Result: NotFoundException with "Invalid User Id" message.
+     * Expected Result: NotFoundException with InvalidId message.
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("Toggle User - Negative ID - Throws NotFoundException")
+    @DisplayName("toggleUser - Failure - Negative ID")
     void toggleUser_negativeId_throwsNotFoundException() {
         // Arrange
         stubUserRepositoryFindByIdWithAllRelations(null);
@@ -228,10 +188,11 @@ class ToggleUserTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify that toggling a non-existent user throws NotFoundException.
-     * Expected Result: NotFoundException with "Invalid User Id" message.
+     * Expected Result: NotFoundException with InvalidId message.
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("Toggle User - User Not Found - Throws NotFoundException")
+    @DisplayName("toggleUser - Failure - User Not Found")
     void toggleUser_userNotFound_throwsNotFoundException() {
         // Arrange
         stubUserRepositoryFindByIdWithAllRelations(null);
@@ -247,10 +208,11 @@ class ToggleUserTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify that toggling user with zero ID throws NotFoundException.
-     * Expected Result: NotFoundException with "Invalid User Id" message.
+     * Expected Result: NotFoundException with InvalidId message.
+     * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("Toggle User - Zero ID - Throws NotFoundException")
+    @DisplayName("toggleUser - Failure - Zero ID")
     void toggleUser_zeroId_throwsNotFoundException() {
         // Arrange
         stubUserRepositoryFindByIdWithAllRelations(null);
@@ -261,5 +223,67 @@ class ToggleUserTest extends UserServiceTestBase {
 
         // Assert
         assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    // ========================================
+    // PERMISSION TESTS
+    // ========================================
+
+    /**
+     * Purpose: Verify controller handles unauthorized access via HTTP status.
+     * Expected Result: HTTP UNAUTHORIZED status returned.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     */
+    @Test
+    @DisplayName("toggleUser - Controller permission forbidden")
+    void toggleUser_controller_permission_forbidden() {
+        // Arrange
+        stubServiceThrowsUnauthorizedException();
+
+        // Act
+        ResponseEntity<?> response = userControllerWithMock.toggleUser(1L);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
+     * Expected Result: The method should be annotated with DELETE_USER_PERMISSION.
+     * Assertions: assertNotNull, assertTrue
+     */
+    @Test
+    @DisplayName("toggleUser - Verify @PreAuthorize Annotation")
+    void toggleUser_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
+        // Arrange
+        Method method = UserController.class.getMethod("toggleUser", Long.class);
+
+        // Act
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
+        assertNotNull(annotation, "toggleUser method should have @PreAuthorize annotation");
+        assertTrue(annotation.value().contains(Authorizations.DELETE_USER_PERMISSION),
+                "@PreAuthorize annotation should check for DELETE_USER_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller delegates to service.
+     * Expected Result: Service method is called.
+     * Assertions: verify, HttpStatus.OK
+     */
+    @Test
+    @DisplayName("toggleUser - Controller delegates to service")
+    void toggleUser_withValidId_delegatesToService() {
+        // Arrange
+        Long userId = 1L;
+        stubMockUserServiceToggleUser(userId);
+
+        // Act
+        ResponseEntity<?> response = userControllerWithMock.toggleUser(userId);
+
+        // Assert
+        verify(mockUserService, times(1)).toggleUser(userId);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

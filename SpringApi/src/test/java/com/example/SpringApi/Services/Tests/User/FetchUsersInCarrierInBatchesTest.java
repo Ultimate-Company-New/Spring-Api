@@ -19,22 +19,344 @@ import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-// Total Tests: 21
+/**
+ * Unit tests for UserService.fetchUsersInCarrierInBatches method.
+ * 
+ * Total Tests: 22
+ */
 @DisplayName("UserService - FetchUsersInCarrierInBatches Tests")
 class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
+        // Total Tests: 22
 
         // ========================================
-        // CONTROLLER AUTHORIZATION TESTS
+        // SUCCESS TESTS
         // ========================================
+
+        /**
+         * Purpose: Verify filtering users by address ID.
+         * Expected Result: Method completes without exception.
+         * Assertions: assertDoesNotThrow()
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Filter by AddressId - Success")
+        void fetchUsersInCarrierInBatches_filterByAddressId_success() {
+                // Act & Assert
+                testNumberFilter("addressId", "equals", "100");
+        }
+
+        /**
+         * Purpose: Verify filtering users by email.
+         * Expected Result: Method completes without exception.
+         * Assertions: assertDoesNotThrow()
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Filter by Email - Success")
+        void fetchUsersInCarrierInBatches_filterByEmail_success() {
+                // Act & Assert
+                testStringFilter("email", "endsWith", "@example.com");
+        }
+
+        /**
+         * Purpose: Verify filtering users by email confirmed status.
+         * Expected Result: Method completes without exception.
+         * Assertions: assertDoesNotThrow()
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Filter by EmailConfirmed - Success")
+        void fetchUsersInCarrierInBatches_filterByEmailConfirmed_success() {
+                // Act & Assert
+                testBooleanFilter("emailConfirmed", "is", "true");
+        }
+
+        /**
+         * Purpose: Verify filtering users by first name.
+         * Expected Result: Method completes without exception.
+         * Assertions: assertDoesNotThrow()
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Filter by FirstName - Success")
+        void fetchUsersInCarrierInBatches_filterByFirstName_success() {
+                // Act & Assert
+                testStringFilter("firstName", "contains", "John");
+        }
+
+        /**
+         * Purpose: Verify filtering users by deleted status.
+         * Expected Result: Method completes without exception.
+         * Assertions: assertDoesNotThrow()
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Filter by IsDeleted - Success")
+        void fetchUsersInCarrierInBatches_filterByIsDeleted_success() {
+                // Act & Assert
+                testBooleanFilter("isDeleted", "is", "false");
+        }
+
+        /**
+         * Purpose: Verify filtering users by last name.
+         * Expected Result: Method completes without exception.
+         * Assertions: assertDoesNotThrow()
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Filter by LastName - Success")
+        void fetchUsersInCarrierInBatches_filterByLastName_success() {
+                // Act & Assert
+                testStringFilter("lastName", "startsWith", "Doe");
+        }
+
+        /**
+         * Purpose: Verify filtering users by locked status.
+         * Expected Result: Method completes without exception.
+         * Assertions: assertDoesNotThrow()
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Filter by Locked - Success")
+        void fetchUsersInCarrierInBatches_filterByLocked_success() {
+                // Act & Assert
+                testBooleanFilter("locked", "is", "false");
+        }
+
+        /**
+         * Purpose: Verify filtering users by login attempts.
+         * Expected Result: Method completes without exception.
+         * Assertions: assertDoesNotThrow()
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Filter by LoginAttempts - Success")
+        void fetchUsersInCarrierInBatches_filterByLoginAttempts_success() {
+                // Act & Assert
+                testNumberFilter("loginAttempts", ">", "0");
+        }
+
+        /**
+         * Purpose: Verify filtering users by login name.
+         * Expected Result: Method completes without exception.
+         * Assertions: assertDoesNotThrow()
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Filter by LoginName - Success")
+        void fetchUsersInCarrierInBatches_filterByLoginName_success() {
+                // Act & Assert
+                testStringFilter("loginName", "equals", "admin@example.com");
+        }
+
+        /**
+         * Purpose: Verify filtering users by phone number.
+         * Expected Result: Method completes without exception.
+         * Assertions: assertDoesNotThrow()
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Filter by Phone - Success")
+        void fetchUsersInCarrierInBatches_filterByPhone_success() {
+                // Act & Assert
+                testStringFilter("phone", "contains", "555");
+        }
+
+        /**
+         * Purpose: Verify filtering users by role.
+         * Expected Result: Method completes without exception.
+         * Assertions: assertDoesNotThrow()
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Filter by Role - Success")
+        void fetchUsersInCarrierInBatches_filterByRole_success() {
+                // Act & Assert
+                testStringFilter("role", "equals", "ADMIN");
+        }
+
+        /**
+         * Purpose: Verify filtering users by user ID.
+         * Expected Result: Method completes without exception.
+         * Assertions: assertDoesNotThrow()
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Filter by UserId - Success")
+        void fetchUsersInCarrierInBatches_filterByUserId_success() {
+                // Act & Assert
+                testNumberFilter("userId", "equals", "1");
+        }
+
+        /**
+         * Purpose: Verify logic operator AND works correctly.
+         * Expected Result: Method completes without exception.
+         * Assertions: assertDoesNotThrow()
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Logic Operator AND - Success")
+        void fetchUsersInCarrierInBatches_logicOperatorAND_success() {
+                // Act & Assert
+                testLogicOperator("AND");
+        }
+
+        /**
+         * Purpose: Verify logic operator OR works correctly.
+         * Expected Result: Method completes without exception.
+         * Assertions: assertDoesNotThrow()
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Logic Operator OR - Success")
+        void fetchUsersInCarrierInBatches_logicOperatorOR_success() {
+                // Act & Assert
+                testLogicOperator("OR");
+        }
+
+        /**
+         * Purpose: Verify valid pagination parameters work correctly.
+         * Expected Result: Method completes without exception.
+         * Assertions: assertDoesNotThrow()
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Valid Pagination - Success")
+        void fetchUsersInCarrierInBatches_validPagination_success() {
+                // Arrange
+                UserRequestModel request = new UserRequestModel();
+                request.setStart(0);
+                request.setEnd(20);
+
+                stubUserFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Arrays.asList(testUser)));
+
+                // Act & Assert
+                assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(request));
+        }
+
+        // ========================================
+        // FAILURE TESTS
+        // ========================================
+
+        /**
+         * Purpose: Verify invalid column name throws BadRequestException.
+         * Expected Result: BadRequestException with invalid column message.
+         * Assertions: assertThrows, assertTrue
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Invalid Column - Throws BadRequestException")
+        void fetchUsersInCarrierInBatches_invalidColumn_throwsBadRequestException() {
+                // Arrange
+                UserRequestModel request = createBasicPaginationRequest();
+                PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+                filter.setColumn("invalidColumn");
+                filter.setOperator("equals");
+                filter.setValue("test");
+                request.setFilters(Arrays.asList(filter));
+
+                // Act
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> userService.fetchUsersInCarrierInBatches(request));
+
+                // Assert
+                assertTrue(ex.getMessage().contains("Invalid column"));
+        }
+
+        /**
+         * Purpose: Verify invalid logic operator throws BadRequestException.
+         * Expected Result: BadRequestException with invalid logic operator message.
+         * Assertions: assertThrows, assertEquals
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Invalid Logic Operator - Throws BadRequestException")
+        void fetchUsersInCarrierInBatches_invalidLogicOperator_throwsBadRequestException() {
+                // Arrange
+                UserRequestModel request = createBasicPaginationRequest();
+                PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
+                filter1.setColumn("firstName");
+                filter1.setOperator("equals");
+                filter1.setValue("test");
+                PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
+                filter2.setColumn("lastName");
+                filter2.setOperator("equals");
+                filter2.setValue("test");
+                request.setFilters(Arrays.asList(filter1, filter2));
+                request.setLogicOperator("INVALID");
+
+                stubUserFilterQueryBuilderGetColumnType("firstName", "string");
+                stubUserFilterQueryBuilderGetColumnType("lastName", "string");
+
+                // Act
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> userService.fetchUsersInCarrierInBatches(request));
+
+                // Assert
+                assertEquals(ErrorMessages.CommonErrorMessages.InvalidLogicOperator, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Verify invalid operator throws BadRequestException.
+         * Expected Result: BadRequestException with invalid operator message.
+         * Assertions: assertThrows, assertTrue
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Invalid Operator - Throws BadRequestException")
+        void fetchUsersInCarrierInBatches_invalidOperator_throwsBadRequestException() {
+                // Arrange
+                UserRequestModel request = createBasicPaginationRequest();
+                PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
+                filter.setColumn("firstName");
+                filter.setOperator("invalidOp");
+                filter.setValue("test");
+                request.setFilters(Arrays.asList(filter));
+
+                stubUserFilterQueryBuilderGetColumnType("firstName", "string");
+
+                // Act
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> userService.fetchUsersInCarrierInBatches(request));
+
+                // Assert
+                assertTrue(ex.getMessage().contains("Invalid operator"));
+        }
+
+        /**
+         * Purpose: Verify invalid pagination parameters throw BadRequestException.
+         * Expected Result: BadRequestException with invalid pagination message.
+         * Assertions: assertThrows, assertEquals
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Invalid Pagination - Throws BadRequestException")
+        void fetchUsersInCarrierInBatches_invalidPagination_throwsBadRequestException() {
+                // Arrange
+                UserRequestModel request = new UserRequestModel();
+                request.setStart(10);
+                request.setEnd(5);
+
+                // Act
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> userService.fetchUsersInCarrierInBatches(request));
+
+                // Assert
+                assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        }
+
+        // ========================================
+        // PERMISSION TESTS
+        // ========================================
+
+        /**
+         * Purpose: Verify controller handles unauthorized access via HTTP status.
+         * Expected Result: HTTP UNAUTHORIZED status returned.
+         * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+         */
+        @Test
+        @DisplayName("fetchUsersInBatches - Controller permission forbidden")
+        void fetchUsersInCarrierInBatches_controller_permission_forbidden() {
+                // Arrange
+                stubServiceThrowsUnauthorizedException();
+
+                // Act
+                ResponseEntity<?> response = userControllerWithMock
+                                .fetchUsersInCarrierInBatches(new UserRequestModel());
+
+                // Assert
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        }
 
         /**
          * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
          * Expected Result: The method should be annotated with VIEW_USER_PERMISSION.
-         * Assertions: Annotation is present and contains expected permission string.
+         * Assertions: assertNotNull, assertTrue
          */
         @Test
-        @DisplayName("fetchUsersInCarrierInBatches - Verify @PreAuthorize Annotation")
-        void fetchUsersInCarrierInBatches_controller_permission_forbidden() throws NoSuchMethodException {
+        @DisplayName("fetchUsersInBatches - Verify @PreAuthorize Annotation")
+        void fetchUsersInCarrierInBatches_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
                 // Arrange
                 Method method = UserController.class.getMethod("fetchUsersInCarrierInBatches", UserRequestModel.class);
 
@@ -51,302 +373,22 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
         /**
          * Purpose: Verify controller delegates to service.
          * Expected Result: Service method is called.
-         * Assertions: verify(userService).fetchUsersInCarrierInBatches(request);
+         * Assertions: verify, HttpStatus.OK
          */
         @Test
-        @DisplayName("fetchUsersInCarrierInBatches - Controller delegates to service")
+        @DisplayName("fetchUsersInBatches - Controller delegates to service")
         void fetchUsersInCarrierInBatches_withValidRequest_delegatesToService() {
                 // Arrange
                 UserRequestModel request = new UserRequestModel();
                 request.setStart(0);
                 request.setEnd(10);
-
-                // Mock the service call using the spy/mock from base (but for delegation we
-                // usually just verify call)
-                // Since userService is @InjectMocks, we can't easily mock it unless we spy it
-                // or assume it's mocked if we declared it as @Mock (but it's @InjectMocks).
-                // Best approach for delegation test is to use a local controller with a Mock
-                // service,
-                // OR rely on the structure if we modified UserServiceTestBase to have
-                // userService as a Spy/Mock.
-                // It's defined as @InjectMocks.
-                // Let's use a local controller with a mock here for safety, just like
-                // UpdateUserTest.
-
-                com.example.SpringApi.Services.UserService mockService = mock(
-                                com.example.SpringApi.Services.UserService.class);
-                UserController localController = new UserController(mockService);
+                stubMockUserServiceFetchUsersInCarrierInBatches(null);
 
                 // Act
-                ResponseEntity<?> response = localController.fetchUsersInCarrierInBatches(request);
+                ResponseEntity<?> response = userControllerWithMock.fetchUsersInCarrierInBatches(request);
 
                 // Assert
-                verify(mockService, times(1)).fetchUsersInCarrierInBatches(request);
+                verify(mockUserService, times(1)).fetchUsersInCarrierInBatches(request);
                 assertEquals(HttpStatus.OK, response.getStatusCode());
-        }
-
-        // ========================================
-        // COMPREHENSIVE TEST
-        // ========================================
-
-        /**
-         * Purpose: Comprehensive test covering all combinations of filters, operators,
-         * columns, pagination, and logic operators.
-         * 
-         * Expected Result: Valid combinations succeed, invalid combinations throw
-         * BadRequestException.
-         * Assertions: Multiple assertions for each combination.
-         */
-
-        // ========================================
-        // GRANULAR TESTS
-        // ========================================
-
-        // --- User String Filters ---
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Filter by FirstName - Success")
-        void fetchUsersInBatches_filterByFirstName_success() {
-                testStringFilter("firstName", "contains", "John");
-        }
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Filter by LastName - Success")
-        void fetchUsersInBatches_filterByLastName_success() {
-                testStringFilter("lastName", "startsWith", "Doe");
-        }
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Filter by Email - Success")
-        void fetchUsersInBatches_filterByEmail_success() {
-                testStringFilter("email", "endsWith", "@example.com");
-        }
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Filter by Role - Success")
-        void fetchUsersInBatches_filterByRole_success() {
-                testStringFilter("role", "equals", "ADMIN");
-        }
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Filter by Phone - Success")
-        void fetchUsersInBatches_filterByPhone_success() {
-                testStringFilter("phone", "contains", "555");
-        }
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Filter by LoginName - Success")
-        void fetchUsersInBatches_filterByLoginName_success() {
-                testStringFilter("loginName", "equals", "admin@example.com");
-        }
-
-        private void testStringFilter(String column, String operator, String value) {
-                UserRequestModel request = createBasicPaginationRequest();
-                PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
-                filter.setColumn(column);
-                filter.setOperator(operator);
-                filter.setValue(value);
-                request.setFilters(Arrays.asList(filter));
-                request.setLogicOperator("AND");
-
-                stubUserFilterQueryBuilderGetColumnType(column, "string");
-                stubUserFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Arrays.asList(testUser)));
-
-                assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(request));
-        }
-
-        // --- Numeric Filters ---
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Filter by UserId - Success")
-        void fetchUsersInBatches_filterByUserId_success() {
-                testNumberFilter("userId", "equals", "1");
-        }
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Filter by LoginAttempts - Success")
-        void fetchUsersInBatches_filterByLoginAttempts_success() {
-                testNumberFilter("loginAttempts", ">", "0");
-        }
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Filter by AddressId - Success")
-        void fetchUsersInBatches_filterByAddressId_success() {
-                testNumberFilter("addressId", "equals", "100");
-        }
-
-        private void testNumberFilter(String column, String operator, String value) {
-                UserRequestModel request = createBasicPaginationRequest();
-                PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
-                filter.setColumn(column);
-                filter.setOperator(operator);
-                filter.setValue(value);
-                request.setFilters(Arrays.asList(filter));
-                request.setLogicOperator("AND");
-
-                stubUserFilterQueryBuilderGetColumnType(column, "number");
-                stubUserFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Arrays.asList(testUser)));
-
-                assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(request));
-        }
-
-        // --- Boolean Filters ---
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Filter by IsDeleted - Success")
-        void fetchUsersInBatches_filterByIsDeleted_success() {
-                testBooleanFilter("isDeleted", "is", "false");
-        }
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Filter by Locked - Success")
-        void fetchUsersInBatches_filterByLocked_success() {
-                testBooleanFilter("locked", "is", "false");
-        }
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Filter by EmailConfirmed - Success")
-        void fetchUsersInBatches_filterByEmailConfirmed_success() {
-                testBooleanFilter("emailConfirmed", "is", "true");
-        }
-
-        private void testBooleanFilter(String column, String operator, String value) {
-                UserRequestModel request = createBasicPaginationRequest();
-                PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
-                filter.setColumn(column);
-                filter.setOperator(operator);
-                filter.setValue(value);
-                request.setFilters(Arrays.asList(filter));
-                request.setLogicOperator("AND");
-
-                stubUserFilterQueryBuilderGetColumnType(column, "boolean");
-                stubUserFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Arrays.asList(testUser)));
-
-                assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(request));
-        }
-
-        // --- Operator Logic ---
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Logic Operator AND - Success")
-        void fetchUsersInBatches_logicOperatorAND_success() {
-                testLogicOperator("AND");
-        }
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Logic Operator OR - Success")
-        void fetchUsersInBatches_logicOperatorOR_success() {
-                testLogicOperator("OR");
-        }
-
-        private void testLogicOperator(String logicOperator) {
-                UserRequestModel request = createBasicPaginationRequest();
-                PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
-                filter1.setColumn("firstName");
-                filter1.setOperator("equals");
-                filter1.setValue("test");
-                PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
-                filter2.setColumn("lastName");
-                filter2.setOperator("equals");
-                filter2.setValue("test");
-                request.setFilters(Arrays.asList(filter1, filter2));
-                request.setLogicOperator(logicOperator);
-
-                stubUserFilterQueryBuilderGetColumnType("firstName", "string");
-                stubUserFilterQueryBuilderGetColumnType("lastName", "string");
-                stubUserFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Arrays.asList(testUser)));
-
-                assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(request));
-        }
-
-        // --- Error Cases ---
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Invalid Column - Throws BadRequestException")
-        void fetchUsersInBatches_invalidColumn_throwsBadRequestException() {
-                UserRequestModel request = createBasicPaginationRequest();
-                PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
-                filter.setColumn("invalidColumn");
-                filter.setOperator("equals");
-                filter.setValue("test");
-                request.setFilters(Arrays.asList(filter));
-
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                                () -> userService.fetchUsersInCarrierInBatches(request));
-                assertTrue(ex.getMessage().contains("Invalid column"));
-        }
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Invalid Operator - Throws BadRequestException")
-        void fetchUsersInBatches_invalidOperator_throwsBadRequestException() {
-                UserRequestModel request = createBasicPaginationRequest();
-                PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
-                filter.setColumn("firstName");
-                filter.setOperator("invalidOp");
-                filter.setValue("test");
-                request.setFilters(Arrays.asList(filter));
-
-                stubUserFilterQueryBuilderGetColumnType("firstName", "string");
-
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                                () -> userService.fetchUsersInCarrierInBatches(request));
-                assertTrue(ex.getMessage().contains("Invalid operator"));
-        }
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Invalid Logic Operator - Throws BadRequestException")
-        void fetchUsersInBatches_invalidLogicOperator_throwsBadRequestException() {
-                UserRequestModel request = createBasicPaginationRequest();
-                PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
-                filter1.setColumn("firstName");
-                filter1.setOperator("equals");
-                filter1.setValue("test");
-                PaginationBaseRequestModel.FilterCondition filter2 = new PaginationBaseRequestModel.FilterCondition();
-                filter2.setColumn("lastName");
-                filter2.setOperator("equals");
-                filter2.setValue("test");
-                request.setFilters(Arrays.asList(filter1, filter2));
-                request.setLogicOperator("INVALID");
-
-                stubUserFilterQueryBuilderGetColumnType("firstName", "string");
-                stubUserFilterQueryBuilderGetColumnType("lastName", "string");
-
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                                () -> userService.fetchUsersInCarrierInBatches(request));
-                assertEquals(ErrorMessages.CommonErrorMessages.InvalidLogicOperator, ex.getMessage());
-        }
-
-        // --- Pagination ---
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Invalid Pagination - Throws BadRequestException")
-        void fetchUsersInBatches_invalidPagination_throwsBadRequestException() {
-                UserRequestModel request = new UserRequestModel();
-                request.setStart(10);
-                request.setEnd(5); // Invalid: start > end
-
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                                () -> userService.fetchUsersInCarrierInBatches(request));
-                assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
-        }
-
-        @Test
-        @DisplayName("fetchUsersInBatches - Valid Pagination - Success")
-        void fetchUsersInBatches_validPagination_success() {
-                UserRequestModel request = new UserRequestModel();
-                request.setStart(0);
-                request.setEnd(20);
-
-                stubUserFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Arrays.asList(testUser)));
-
-                assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(request));
-        }
-
-        private UserRequestModel createBasicPaginationRequest() {
-                UserRequestModel request = new UserRequestModel();
-                request.setStart(0);
-                request.setEnd(10);
-                request.setIncludeDeleted(false);
-                return request;
         }
 }
