@@ -63,7 +63,7 @@ public class SetMessageReadByUserIdAndMessageIdTest extends MessageServiceTestBa
      */
     @Test
     @DisplayName("Set Message Read - Success")
-    void setMessageReadByUserIdAndMessageId_Success() {
+    void setMessageReadByUserIdAndMessageId_Success_Success() {
         // Arrange
         stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
         stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
@@ -229,12 +229,12 @@ public class SetMessageReadByUserIdAndMessageIdTest extends MessageServiceTestBa
     @DisplayName("Set Message Read - User Repository Exception - Propagates Exception")
     void setMessageReadByUserIdAndMessageId_UserRepositoryException_Propagates() {
         // Arrange
-        stubUserRepositoryFindByUserIdAndClientIdThrows("DB Error");
+        stubUserRepositoryFindByUserIdAndClientIdThrows(ErrorMessages.MessagesErrorMessages.DbError);
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> messageService.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID));
-        assertEquals("DB Error", ex.getMessage());
+        assertEquals(ErrorMessages.MessagesErrorMessages.DbError, ex.getMessage());
     }
 
     /*
@@ -244,13 +244,32 @@ public class SetMessageReadByUserIdAndMessageIdTest extends MessageServiceTestBa
      */
 
     /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("Set Message Read - Controller permission unauthorized - Success")
+    void setMessageReadByUserIdAndMessageId_controller_permission_unauthorized() {
+        // Arrange
+        MessageController controller = new MessageController(messageServiceMock);
+        stubMessageServiceSetMessageReadByUserIdAndMessageIdThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
      * Purpose: Verify that the setMessageReadByUserIdAndMessageId controller method
      * is protected by correct @PreAuthorize permission.
      * Expected: Method has @PreAuthorize referencing VIEW_MESSAGES_PERMISSION.
      */
     @Test
     @DisplayName("setMessageReadByUserIdAndMessageId - Verify @PreAuthorize Annotation")
-    void setMessageReadByUserIdAndMessageId_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void setMessageReadByUserIdAndMessageId_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = MessageController.class.getMethod("setMessageReadByUserIdAndMessageId", Long.class, Long.class);
 

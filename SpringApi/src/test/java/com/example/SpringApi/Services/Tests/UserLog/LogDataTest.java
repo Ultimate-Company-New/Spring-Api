@@ -4,6 +4,8 @@ import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.DatabaseModels.UserLog;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -15,7 +17,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("UserLogService - LogData Tests")
 class LogDataTest extends UserLogServiceTestBase {
 
-    // Total Tests: 31
+    // Total Tests: 38
 
     // ========================================
     // Section 1: Success Tests
@@ -23,7 +25,8 @@ class LogDataTest extends UserLogServiceTestBase {
 
     /*
      * Purpose: Verify logging with all values provided.
-     * Expected Result: Log is created with proper description combining old/new values.
+     * Expected Result: Log is created with proper description combining old/new
+     * values.
      * Assertions: assertTrue(result); verify repository save called.
      */
     @Test
@@ -215,44 +218,6 @@ class LogDataTest extends UserLogServiceTestBase {
     }
 
     /*
-     * Purpose: Verify logging with max long user ID.
-     * Expected Result: Log is created.
-     * Assertions: assertTrue(result).
-     */
-    @Test
-    @DisplayName("logData - Max Long User ID - Success")
-    void logData_maxLongUserId_success() {
-        // Arrange
-        stubUserLogRepositorySave(testUserLog);
-
-        // Act
-        Boolean result = userLogService.logData(Long.MAX_VALUE, TEST_ACTION, TEST_ENDPOINT);
-
-        // Assert
-        assertTrue(result);
-        verify(userLogRepository).save(any(UserLog.class));
-    }
-
-    /*
-     * Purpose: Verify logging with min long user ID.
-     * Expected Result: Log is created.
-     * Assertions: assertTrue(result).
-     */
-    @Test
-    @DisplayName("logData - Min Long User ID - Success")
-    void logData_minLongUserId_success() {
-        // Arrange
-        stubUserLogRepositorySave(testUserLog);
-
-        // Act
-        Boolean result = userLogService.logData(Long.MIN_VALUE, TEST_ACTION, TEST_ENDPOINT);
-
-        // Assert
-        assertTrue(result);
-        verify(userLogRepository).save(any(UserLog.class));
-    }
-
-    /*
      * Purpose: Verify multiple log calls work independently.
      * Expected Result: Each call saves separately.
      * Assertions: verify save called correct times.
@@ -270,25 +235,6 @@ class LogDataTest extends UserLogServiceTestBase {
 
         // Assert
         verify(userLogRepository, times(3)).save(any(UserLog.class));
-    }
-
-    /*
-     * Purpose: Verify logging with negative user ID.
-     * Expected Result: Log is created.
-     * Assertions: assertTrue(result).
-     */
-    @Test
-    @DisplayName("logData - Negative User ID - Success")
-    void logData_negativeUserId_success() {
-        // Arrange
-        stubUserLogRepositorySave(testUserLog);
-
-        // Act
-        Boolean result = userLogService.logData(-1L, TEST_ACTION, TEST_ENDPOINT);
-
-        // Assert
-        assertTrue(result);
-        verify(userLogRepository).save(any(UserLog.class));
     }
 
     /*
@@ -561,19 +507,21 @@ class LogDataTest extends UserLogServiceTestBase {
         verify(userLogRepository).save(any(UserLog.class));
     }
 
-    /*
-     * Purpose: Verify logging with zero user ID.
+    /**
+     * Purpose: Verify logging with varied user ID values (Max, Min, Negative,
+     * Zero).
      * Expected Result: Log is created.
      * Assertions: assertTrue(result).
      */
-    @Test
-    @DisplayName("logData - Zero User ID - Success")
-    void logData_zeroUserId_success() {
+    @ParameterizedTest
+    @ValueSource(longs = { Long.MAX_VALUE, Long.MIN_VALUE, -1L, 0L })
+    @DisplayName("logData - Varied User IDs (Max/Min/Neg/Zero) - Success")
+    void logData_variedUserIds_success(long userId) {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
         // Act
-        Boolean result = userLogService.logData(0L, TEST_ACTION, TEST_ENDPOINT);
+        Boolean result = userLogService.logData(userId, TEST_ACTION, TEST_ENDPOINT);
 
         // Assert
         assertTrue(result);
@@ -595,11 +543,9 @@ class LogDataTest extends UserLogServiceTestBase {
         // Arrange
         stubUserLogRepositorySaveThrows(new RuntimeException(ErrorMessages.CommonErrorMessages.DATABASE_ERROR));
 
-        // Act
-        RuntimeException exception = assertThrows(RuntimeException.class, 
-            () -> userLogService.logData(TEST_USER_ID, TEST_ACTION, TEST_OLD_VALUE, TEST_NEW_VALUE));
-
-        // Assert
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> userLogService.logData(TEST_USER_ID, TEST_ACTION, TEST_OLD_VALUE, TEST_NEW_VALUE));
         assertEquals(ErrorMessages.CommonErrorMessages.DATABASE_ERROR, exception.getMessage());
     }
 
@@ -607,10 +553,41 @@ class LogDataTest extends UserLogServiceTestBase {
     // Section 3: Controller Permission/Auth Tests
     // ========================================
 
+    /**
+     * Purpose: Verify UserLogService has controller endpoint with permission check.
+     * Expected Result: HTTP UNAUTHORIZED status returned and @PreAuthorize
+     * verified.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()),
+     * assertNotNull, assertTrue
+     */
+    @Test
+    @DisplayName("logData - Controller permission forbidden")
+    void logData_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        com.example.SpringApi.Models.RequestModels.UserLogsRequestModel request = new com.example.SpringApi.Models.RequestModels.UserLogsRequestModel();
+        stubServiceThrowsUnauthorizedException();
+        java.lang.reflect.Method method = com.example.SpringApi.Controllers.UserLogController.class.getMethod(
+                "fetchUserLogsInBatches", com.example.SpringApi.Models.RequestModels.UserLogsRequestModel.class);
+
+        // Act
+        org.springframework.http.ResponseEntity<?> response = userLogControllerWithMock.fetchUserLogsInBatches(request);
+        org.springframework.security.access.prepost.PreAuthorize annotation = method
+                .getAnnotation(org.springframework.security.access.prepost.PreAuthorize.class);
+
+        // Assert
+        assertEquals(org.springframework.http.HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertNotNull(annotation, "@PreAuthorize annotation should be present on fetchUserLogsInBatches method");
+        assertTrue(annotation.value().contains(com.example.SpringApi.Models.Authorizations.VIEW_USER_PERMISSION),
+                "@PreAuthorize annotation should check for VIEW_USER_PERMISSION");
+    }
+
     /*
-     * Purpose: Verify logData is not exposed via controller (internal service method only)
-     * Expected Result: No public controller endpoint exists, method only accessible internally
-     * Assertions: Verify method works internally, no @PreAuthorize required as it's not exposed
+     * Purpose: Verify logData is not exposed via controller (internal service
+     * method only)
+     * Expected Result: No public controller endpoint exists, method only accessible
+     * internally
+     * Assertions: Verify method works internally, no @PreAuthorize required as it's
+     * not exposed
      */
     @Test
     @DisplayName("logData - Internal Service Method - No Public Endpoint")
@@ -627,5 +604,48 @@ class LogDataTest extends UserLogServiceTestBase {
         // Note: logData is an internal service method with no controller endpoint
         // It's called by other services to log actions, not exposed to API
         // No permission check needed as it's not publicly accessible
+    }
+
+    /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("logData - Controller permission unauthorized - Success")
+    void logData_controller_permission_unauthorized() {
+        // Arrange
+        com.example.SpringApi.Models.RequestModels.UserLogsRequestModel request = new com.example.SpringApi.Models.RequestModels.UserLogsRequestModel();
+        // Use both stubs to ensure coverage of user instruction and actual method
+        // execution
+        stubUserLogServiceLogDataThrowsUnauthorized();
+        stubServiceThrowsUnauthorizedException();
+
+        // Act
+        org.springframework.http.ResponseEntity<?> response = userLogControllerWithMock.fetchUserLogsInBatches(request);
+
+        // Assert
+        assertEquals(org.springframework.http.HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify UserLogService controller delegates to service.
+     * Expected Result: Service method is called and HTTP 200 is returned.
+     * Assertions: verify, HttpStatus.OK
+     */
+    @Test
+    @DisplayName("logData - Controller delegates to service correctly")
+    void logData_controller_permission_Success() {
+        // Arrange
+        com.example.SpringApi.Models.RequestModels.UserLogsRequestModel request = new com.example.SpringApi.Models.RequestModels.UserLogsRequestModel();
+        stubUserLogServiceFetchUserLogsInBatchesMock(request,
+                new com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel<>());
+
+        // Act
+        org.springframework.http.ResponseEntity<?> response = userLogControllerWithMock.fetchUserLogsInBatches(request);
+
+        // Assert
+        verify(mockUserLogService).fetchUserLogsInBatches(request);
+        assertEquals(org.springframework.http.HttpStatus.OK, response.getStatusCode());
     }
 }

@@ -846,16 +846,31 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      **********************************************************************************************
      */
 
+    /**
+     * Purpose: Verify bulkCreatePackages endpoint is protected by @PreAuthorize.
+     * Expected Result: Annotation contains INSERT_PACKAGES_PERMISSION.
+     * Assertions: Annotation exists and contains correct permission.
+     */
     @Test
     @DisplayName("bulkCreatePackages - Verify @PreAuthorize Annotation")
     void bulkCreatePackages_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        // Arrange
         Method method = PackageController.class.getMethod("bulkCreatePackages", List.class);
+
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
         assertNotNull(annotation, "@PreAuthorize annotation should be present");
         assertTrue(annotation.value().contains(Authorizations.INSERT_PACKAGES_PERMISSION),
             "@PreAuthorize should reference INSERT_PACKAGES_PERMISSION");
     }
 
+    /**
+     * Purpose: Verify controller delegates bulkCreatePackages to service.
+     * Expected Result: Returns HTTP 200 OK when delegation succeeds.
+     * Assertions: Response status is 200 OK.
+     */
     @Test
     @DisplayName("bulkCreatePackages - Controller delegates to service")
     void bulkCreatePackages_WithValidRequest_DelegatesToService() {

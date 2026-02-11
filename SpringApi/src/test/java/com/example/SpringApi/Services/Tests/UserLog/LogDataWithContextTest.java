@@ -15,7 +15,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("UserLogService - LogDataWithContext Tests")
 class LogDataWithContextTest extends UserLogServiceTestBase {
 
-    // Total Tests: 23
+    // Total Tests: 25
 
     // ========================================
     // Section 1: Success Tests
@@ -453,7 +453,8 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
 
         // Act
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userLogService.logDataWithContext(TEST_USER_ID, "admin", TEST_CARRIER_ID, TEST_NEW_VALUE, TEST_ENDPOINT));
+                () -> userLogService.logDataWithContext(TEST_USER_ID, "admin", TEST_CARRIER_ID, TEST_NEW_VALUE,
+                        TEST_ENDPOINT));
 
         // Assert
         assertEquals(ErrorMessages.CommonErrorMessages.DATABASE_ERROR, exception.getMessage());
@@ -463,10 +464,41 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
     // Section 3: Controller Permission/Auth Tests
     // ========================================
 
+    /**
+     * Purpose: Verify UserLogService has controller endpoint with permission check.
+     * Expected Result: HTTP UNAUTHORIZED status returned and @PreAuthorize
+     * verified.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()),
+     * assertNotNull, assertTrue
+     */
+    @Test
+    @DisplayName("logDataWithContext - Controller permission forbidden")
+    void logDataWithContext_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        com.example.SpringApi.Models.RequestModels.UserLogsRequestModel request = new com.example.SpringApi.Models.RequestModels.UserLogsRequestModel();
+        stubServiceThrowsUnauthorizedException();
+        java.lang.reflect.Method method = com.example.SpringApi.Controllers.UserLogController.class.getMethod(
+                "fetchUserLogsInBatches", com.example.SpringApi.Models.RequestModels.UserLogsRequestModel.class);
+
+        // Act
+        org.springframework.http.ResponseEntity<?> response = userLogControllerWithMock.fetchUserLogsInBatches(request);
+        org.springframework.security.access.prepost.PreAuthorize annotation = method
+                .getAnnotation(org.springframework.security.access.prepost.PreAuthorize.class);
+
+        // Assert
+        assertEquals(org.springframework.http.HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertNotNull(annotation, "@PreAuthorize annotation should be present on fetchUserLogsInBatches method");
+        assertTrue(annotation.value().contains(com.example.SpringApi.Models.Authorizations.VIEW_USER_PERMISSION),
+                "@PreAuthorize annotation should check for VIEW_USER_PERMISSION");
+    }
+
     /*
-     * Purpose: Verify logDataWithContext is not exposed via controller (internal service method only)
-     * Expected Result: No public controller endpoint exists, method only accessible internally
-     * Assertions: Verify method works internally, no @PreAuthorize required as it's not exposed
+     * Purpose: Verify logDataWithContext is not exposed via controller (internal
+     * service method only)
+     * Expected Result: No public controller endpoint exists, method only accessible
+     * internally
+     * Assertions: Verify method works internally, no @PreAuthorize required as it's
+     * not exposed
      */
     @Test
     @DisplayName("logDataWithContext - Internal Service Method - No Public Endpoint")
@@ -475,13 +507,36 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
         stubUserLogRepositorySave(testUserLog);
 
         // Act
-        Boolean result = userLogService.logDataWithContext(TEST_USER_ID, "admin", TEST_CARRIER_ID, TEST_NEW_VALUE, TEST_ENDPOINT);
+        Boolean result = userLogService.logDataWithContext(TEST_USER_ID, "admin", TEST_CARRIER_ID, TEST_NEW_VALUE,
+                TEST_ENDPOINT);
 
         // Assert
         assertTrue(result);
         verify(userLogRepository).save(any(UserLog.class));
-        // Note: logDataWithContext is an internal service method with no controller endpoint
+        // Note: logDataWithContext is an internal service method with no controller
+        // endpoint
         // It's called by other services to log actions with context, not exposed to API
         // No permission check needed as it's not publicly accessible
+    }
+
+    /**
+     * Purpose: Verify UserLogService controller delegates to service.
+     * Expected Result: Service method is called and HTTP 200 is returned.
+     * Assertions: verify, HttpStatus.OK
+     */
+    @Test
+    @DisplayName("logDataWithContext - Service controller delegates properly")
+    void logDataWithContext_serviceControllerDelegatesProperly_success() {
+        // Arrange
+        com.example.SpringApi.Models.RequestModels.UserLogsRequestModel request = new com.example.SpringApi.Models.RequestModels.UserLogsRequestModel();
+        stubUserLogServiceFetchUserLogsInBatchesMock(request,
+                new com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel<>());
+
+        // Act
+        org.springframework.http.ResponseEntity<?> response = userLogControllerWithMock.fetchUserLogsInBatches(request);
+
+        // Assert
+        verify(mockUserLogService).fetchUserLogsInBatches(request);
+        assertEquals(org.springframework.http.HttpStatus.OK, response.getStatusCode());
     }
 }

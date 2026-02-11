@@ -22,11 +22,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserService.getUserByEmail method.
  * 
- * Total Tests: 12
+ * Total Tests: 11
  */
 @DisplayName("UserService - GetUserByEmail Tests")
 class GetUserByEmailTest extends UserServiceTestBase {
-    // Total Tests: 12
+    // Total Tests: 11
 
     // ========================================
     // SUCCESS TESTS
@@ -228,37 +228,24 @@ class GetUserByEmailTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify controller handles unauthorized access via HTTP status.
-     * Expected Result: HTTP UNAUTHORIZED status returned.
-     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     * Expected Result: HTTP UNAUTHORIZED status returned and @PreAuthorize
+     * verified.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()),
+     * assertNotNull, assertTrue
      */
     @Test
     @DisplayName("getUserByEmail - Controller permission forbidden")
-    void getUserByEmail_controller_permission_forbidden() {
+    void getUserByEmail_controller_permission_forbidden() throws NoSuchMethodException {
         // Arrange
-        stubServiceThrowsUnauthorizedException();
-
-        // Act
-        ResponseEntity<?> response = userControllerWithMock.getUserByEmail("test@example.com");
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
-    /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
-     * Expected Result: The method should be annotated with VIEW_USER_PERMISSION.
-     * Assertions: assertNotNull, assertTrue
-     */
-    @Test
-    @DisplayName("getUserByEmail - Verify @PreAuthorize Annotation")
-    void getUserByEmail_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
+        stubMockUserServiceGetUserByEmailThrowsUnauthorized(null);
         Method method = UserController.class.getMethod("getUserByEmail", String.class);
 
         // Act
+        ResponseEntity<?> response = userControllerWithMock.getUserByEmail(TEST_EMAIL);
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
         // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertNotNull(annotation, "getUserByEmail method should have @PreAuthorize annotation");
         assertTrue(annotation.value().contains(Authorizations.VIEW_USER_PERMISSION),
                 "@PreAuthorize annotation should check for VIEW_USER_PERMISSION");

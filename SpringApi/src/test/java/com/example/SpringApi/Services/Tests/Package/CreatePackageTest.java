@@ -274,15 +274,15 @@ class CreatePackageTest extends PackageServiceTestBase {
     }
 
     /**
-     * Purpose: Reject creation when max weight is negative.
-     * Expected Result: BadRequestException is thrown.
+     * Purpose: Verify creation fails with negative max weight (duplicate validation).
+     * Expected Result: BadRequestException is thrown for negative weight.
      * Assertions: Exception message matches InvalidMaxWeight error.
      */
     @Test
-    @DisplayName("Create Package - Negative Max Weight - Throws BadRequestException")
-    void createPackage_NegativeMaxWeight_Throws() {
+    @DisplayName("Create Package - Negative Max Weight (Duplicate) - Throws BadRequestException")
+    void createPackage_NegativeMaxWeight_Duplicate_ThrowsBadRequestException() {
         // Arrange
-        testPackageRequest.setMaxWeight(BigDecimal.valueOf(-1.0));
+        testPackageRequest.setMaxWeight(new BigDecimal("-50.00"));
 
         // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
@@ -293,15 +293,15 @@ class CreatePackageTest extends PackageServiceTestBase {
     }
 
     /**
-     * Purpose: Verify creation fails with negative max weight (duplicate validation).
-     * Expected Result: BadRequestException is thrown for negative weight.
+     * Purpose: Reject creation when max weight is negative.
+     * Expected Result: BadRequestException is thrown.
      * Assertions: Exception message matches InvalidMaxWeight error.
      */
     @Test
-    @DisplayName("Create Package - Negative Max Weight (Duplicate) - Throws BadRequestException")
-    void createPackage_NegativeMaxWeight_Duplicate_ThrowsBadRequestException() {
+    @DisplayName("Create Package - Negative Max Weight - Throws BadRequestException")
+    void createPackage_NegativeMaxWeight_Throws() {
         // Arrange
-        testPackageRequest.setMaxWeight(new BigDecimal("-50.00"));
+        testPackageRequest.setMaxWeight(BigDecimal.valueOf(-1.0));
 
         // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
@@ -471,6 +471,8 @@ class CreatePackageTest extends PackageServiceTestBase {
     @Test
     @DisplayName("Create Package - Null Request - Throws BadRequestException")
     void createPackage_NullRequest_Throws() {
+        // Arrange
+
         // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> packageService.createPackage(null));
@@ -515,6 +517,26 @@ class CreatePackageTest extends PackageServiceTestBase {
 
         // Assert
         assertEquals(ErrorMessages.PackageErrorMessages.InvalidPackageType, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Reject creation when package name exceeds maximum length validation.
+     * Expected Result: BadRequestException is thrown for name length validation.
+     * Assertions: Exception message matches InvalidPackageName error.
+     */
+    @Test
+    @DisplayName("Create Package - Name Too Long - Throws BadRequestException")
+    void createPackage_PackageName_TooLong_Throws() {
+        // Arrange
+        String tooLongName = "A".repeat(300);
+        testPackageRequest.setPackageName(tooLongName);
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> packageService.createPackage(testPackageRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.PackageErrorMessages.InvalidPackageName, ex.getMessage());
     }
 
     /**
@@ -610,26 +632,6 @@ class CreatePackageTest extends PackageServiceTestBase {
 
         // Assert
         assertEquals(ErrorMessages.PackageErrorMessages.InvalidStandardCapacity, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Reject creation when package name exceeds maximum length validation.
-     * Expected Result: BadRequestException is thrown for name length validation.
-     * Assertions: Exception message matches InvalidPackageName error.
-     */
-    @Test
-    @DisplayName("Create Package - Name Too Long - Throws BadRequestException")
-    void createPackage_PackageName_TooLong_Throws() {
-        // Arrange
-        String tooLongName = "A".repeat(300);
-        testPackageRequest.setPackageName(tooLongName);
-
-        // Act
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> packageService.createPackage(testPackageRequest));
-
-        // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidPackageName, ex.getMessage());
     }
 
     /*

@@ -175,6 +175,12 @@ public class ErrorMessages {
         // standard error messages
         public static final String InvalidId = "Invalid message Id.";
 
+        public static final String DbError = "DB Error";
+        public static final String PageError = "Page error";
+        public static final String UserDbError = "User DB Error";
+        public static final String LookupFailed = "Lookup failed";
+        public static final String NullPaginationRequest = "Cannot invoke \"com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.getId()\" because \"paginationBaseRequestModel\" is null";
+
         // Additional error messages
         public static final String ER001 = "This message cannot be edited as the email is scheduled within 10 minutes from the current time/";
         public static final String ER002 = "There was an error cancelling the scheduled email.";

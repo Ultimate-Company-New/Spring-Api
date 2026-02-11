@@ -143,6 +143,50 @@ class UpdatePackageTest extends PackageServiceTestBase {
     }
 
     /**
+     * Purpose: Verify update succeeds with maximum allowed dimension values.
+     * Expected Result: Package is updated with large dimension values.
+     * Assertions: Mapping is saved with maximum dimensions.
+     */
+    @Test
+    @DisplayName("Update Package - Max Dimension Values - Success")
+    void updatePackage_MaxDimensionValues_Success() {
+        // Arrange
+        testPackageRequest.setLength(9999);
+        testPackageRequest.setBreadth(9999);
+        testPackageRequest.setHeight(9999);
+        stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, testPackage);
+        stubPackageRepositorySave(testPackage);
+
+        // Act
+        assertDoesNotThrow(() -> packageService.updatePackage(testPackageRequest));
+
+        // Assert
+        verify(packageRepository).save(any());
+    }
+
+    /**
+     * Purpose: Verify update succeeds with minimum valid dimensions.
+     * Expected Result: Package name is updated appropriately.
+     * Assertions: Package is saved with updated name.
+     */
+    @Test
+    @DisplayName("Update Package - All Dimensions at Minimum Valid - Success")
+    void updatePackage_MinValidDimensions_Success() {
+        // Arrange
+        testPackageRequest.setLength(1);
+        testPackageRequest.setBreadth(1);
+        testPackageRequest.setHeight(1);
+        stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, testPackage);
+        stubPackageRepositorySave(testPackage);
+
+        // Act
+        assertDoesNotThrow(() -> packageService.updatePackage(testPackageRequest));
+
+        // Assert
+        verify(packageRepository).save(any());
+    }
+
+    /**
      * Purpose: Verify update succeeds when modifying quantities in multiple pickup locations.
      * Expected Result: All location quantities are updated and restock dates reflect increases.
      * Assertions: Multiple mappings are saved with correct quantity values.
@@ -205,6 +249,29 @@ class UpdatePackageTest extends PackageServiceTestBase {
     }
 
     /**
+     * Purpose: Verify update with large standard capacity values.
+     * Expected Result: Large standard capacity is stored correctly.
+     * Assertions: Service completes without error.
+     */
+    @Test
+    @DisplayName("Update Package - Very Large Standard Capacity - Success")
+    void updatePackage_VeryLargeStandardCapacity_Success() {
+        // Arrange
+        testPackageRequest.setStandardCapacity(1000000);
+        testPackageRequest.setLength(100);
+        testPackageRequest.setBreadth(100);
+        testPackageRequest.setHeight(100);
+        stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, testPackage);
+        stubPackageRepositorySave(testPackage);
+
+        // Act
+        assertDoesNotThrow(() -> packageService.updatePackage(testPackageRequest));
+
+        // Assert
+        verify(packageRepository).save(any());
+    }
+
+    /**
      * Purpose: Verify update succeeds when setting quantity to zero in a location.
      * Expected Result: Mapping is saved with zero quantity without error.
      * Assertions: Quantity is set to 0 and mapping is saved.
@@ -233,73 +300,6 @@ class UpdatePackageTest extends PackageServiceTestBase {
         ArgumentCaptor<List<PackagePickupLocationMapping>> captor = ArgumentCaptor.forClass(List.class);
         verify(packagePickupLocationMappingRepository).saveAll(captor.capture());
         assertEquals(0, captor.getValue().get(0).getAvailableQuantity());
-    }
-
-    /**
-     * Purpose: Verify update succeeds with maximum allowed dimension values.
-     * Expected Result: Package is updated with large dimension values.
-     * Assertions: Mapping is saved with maximum dimensions.
-     */
-    @Test
-    @DisplayName("Update Package - Max Dimension Values - Success")
-    void updatePackage_MaxDimensionValues_Success() {
-        // Arrange
-        testPackageRequest.setLength(9999);
-        testPackageRequest.setBreadth(9999);
-        testPackageRequest.setHeight(9999);
-        stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, testPackage);
-        stubPackageRepositorySave(testPackage);
-
-        // Act
-        assertDoesNotThrow(() -> packageService.updatePackage(testPackageRequest));
-
-        // Assert
-        verify(packageRepository).save(any());
-    }
-
-    /**
-     * Purpose: Verify update succeeds with minimum valid dimensions.
-     * Expected Result: Package name is updated appropriately.
-     * Assertions: Package is saved with updated name.
-     */
-    @Test
-    @DisplayName("Update Package - All Dimensions at Minimum Valid - Success")
-    void updatePackage_MinValidDimensions_Success() {
-        // Arrange
-        testPackageRequest.setLength(1);
-        testPackageRequest.setBreadth(1);
-        testPackageRequest.setHeight(1);
-        stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, testPackage);
-        stubPackageRepositorySave(testPackage);
-
-        // Act
-        assertDoesNotThrow(() -> packageService.updatePackage(testPackageRequest));
-
-        // Assert
-        verify(packageRepository).save(any());
-    }
-
-    /**
-     * Purpose: Verify update with large standard capacity values.
-     * Expected Result: Large standard capacity is stored correctly.
-     * Assertions: Service completes without error.
-     */
-    @Test
-    @DisplayName("Update Package - Very Large Standard Capacity - Success")
-    void updatePackage_VeryLargeStandardCapacity_Success() {
-        // Arrange
-        testPackageRequest.setStandardCapacity(1000000);
-        testPackageRequest.setLength(100);
-        testPackageRequest.setBreadth(100);
-        testPackageRequest.setHeight(100);
-        stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, testPackage);
-        stubPackageRepositorySave(testPackage);
-
-        // Act
-        assertDoesNotThrow(() -> packageService.updatePackage(testPackageRequest));
-
-        // Assert
-        verify(packageRepository).save(any());
     }
 
     /*

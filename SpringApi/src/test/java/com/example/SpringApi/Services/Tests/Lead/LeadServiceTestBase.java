@@ -11,6 +11,7 @@ import com.example.SpringApi.Services.LeadService;
 import com.example.SpringApi.Services.MessageService;
 import com.example.SpringApi.Services.UserLogService;
 import com.example.SpringApi.Services.Interface.ILeadSubTranslator;
+import com.example.SpringApi.ErrorMessages;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -73,10 +74,11 @@ public abstract class LeadServiceTestBase {
     protected static final Long DEFAULT_CREATED_BY_ID = 1L;
     protected static final Long DEFAULT_ASSIGNED_AGENT_ID = 2L;
 
-    protected static final String[] LEAD_STRING_COLUMNS = {"firstName", "lastName", "email", "phone", "company", "leadStatus"};
-    protected static final String[] LEAD_NUMBER_COLUMNS = {"leadId", "companySize"};
-    protected static final String[] LEAD_BOOLEAN_COLUMNS = {"isDeleted"};
-    protected static final String[] LEAD_DATE_COLUMNS = {"createdAt", "updatedAt"};
+    protected static final String[] LEAD_STRING_COLUMNS = { "firstName", "lastName", "email", "phone", "company",
+            "leadStatus" };
+    protected static final String[] LEAD_NUMBER_COLUMNS = { "leadId", "companySize" };
+    protected static final String[] LEAD_BOOLEAN_COLUMNS = { "isDeleted" };
+    protected static final String[] LEAD_DATE_COLUMNS = { "createdAt", "updatedAt" };
 
     @Mock
     protected LeadRepository leadRepository;
@@ -100,7 +102,7 @@ public abstract class LeadServiceTestBase {
     protected LeadService leadService;
 
     @Mock
-    ILeadSubTranslator leadServiceMock;
+    LeadService leadServiceMock;
 
     // Use 1L to match the default behavior of BaseService.getClientId() in test
     // environment
@@ -129,6 +131,11 @@ public abstract class LeadServiceTestBase {
         // Default stubs that are commonly used (can be overridden in specific tests)
         stubUserLogServiceLogData(true);
         stubAddressRepositorySave(new Address(testLeadRequest.getAddress(), DEFAULT_CREATED_USER));
+
+        // Configure mock to return default values for controller tests
+        lenient().when(leadServiceMock.getUserId()).thenReturn(DEFAULT_USER_ID);
+        lenient().when(leadServiceMock.getUser()).thenReturn(DEFAULT_LOGIN_NAME);
+        lenient().when(leadServiceMock.getClientId()).thenReturn(TEST_CLIENT_ID);
     }
 
     protected void stubLeadRepositoryFindLeadWithDetailsById(Long id, Long clientId, Lead lead) {
@@ -172,7 +179,7 @@ public abstract class LeadServiceTestBase {
     protected void stubLeadFilterQueryBuilderFindPaginatedEntities(Page<Lead> page) {
         lenient().when(leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
                 anyLong(), anyString(),
-            org.mockito.ArgumentMatchers.<List<com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition>>any(),
+                org.mockito.ArgumentMatchers.<List<com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition>>any(),
                 anyBoolean(),
                 any(Pageable.class))).thenReturn(page);
     }
@@ -254,14 +261,16 @@ public abstract class LeadServiceTestBase {
     /**
      * Stub controller service call for getLeadDetailsByEmail.
      */
-    protected void stubLeadServiceGetLeadDetailsByEmail(String email, com.example.SpringApi.Models.ResponseModels.LeadResponseModel response) {
+    protected void stubLeadServiceGetLeadDetailsByEmail(String email,
+            com.example.SpringApi.Models.ResponseModels.LeadResponseModel response) {
         lenient().when(leadServiceMock.getLeadDetailsByEmail(email)).thenReturn(response);
     }
 
     /**
      * Stub controller service call for getLeadDetailsById.
      */
-    protected void stubLeadServiceGetLeadDetailsById(Long id, com.example.SpringApi.Models.ResponseModels.LeadResponseModel response) {
+    protected void stubLeadServiceGetLeadDetailsById(Long id,
+            com.example.SpringApi.Models.ResponseModels.LeadResponseModel response) {
         lenient().when(leadServiceMock.getLeadDetailsById(id)).thenReturn(response);
     }
 
@@ -271,6 +280,53 @@ public abstract class LeadServiceTestBase {
     protected void stubLeadServiceGetLeadsInBatches(
             com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel<com.example.SpringApi.Models.ResponseModels.LeadResponseModel> response) {
         lenient().when(leadServiceMock.getLeadsInBatches(any(LeadRequestModel.class))).thenReturn(response);
+    }
+
+    // ==================== UNAUTHORIZED STUBS ====================
+
+    protected LeadService buildLeadServiceMockForBulkCreateUnauthorized() {
+        LeadService service = org.mockito.Mockito.mock(LeadService.class);
+        lenient().when(service.getClientId()).thenReturn(TEST_CLIENT_ID);
+        lenient().when(service.getUserId()).thenReturn(DEFAULT_USER_ID);
+        lenient().when(service.getUser()).thenReturn(DEFAULT_LOGIN_NAME);
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(service).bulkCreateLeadsAsync(anyList(), anyLong(), anyString(), anyLong());
+        return service;
+    }
+
+    protected void stubLeadServiceGetLeadsInBatchesThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(leadServiceMock).getLeadsInBatches(any(LeadRequestModel.class));
+    }
+
+    protected void stubLeadServiceCreateLeadThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(leadServiceMock).createLead(any(LeadRequestModel.class));
+    }
+
+    protected void stubLeadServiceUpdateLeadThrowsUnauthorized(Long leadId) {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(leadServiceMock).updateLead(eq(leadId), any());
+    }
+
+    protected void stubLeadServiceUpdateLeadThrowsForbidden(Long leadId) {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.PermissionException("Forbidden"))
+                .when(leadServiceMock).updateLead(eq(leadId), any());
+    }
+
+    protected void stubLeadServiceToggleLeadThrowsUnauthorized(Long leadId) {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(leadServiceMock).toggleLead(eq(leadId));
+    }
+
+    protected void stubLeadServiceToggleLeadThrowsForbidden(Long leadId) {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.PermissionException("Forbidden"))
+                .when(leadServiceMock).toggleLead(eq(leadId));
+    }
+
+    protected void stubLeadServiceBulkCreateLeadsAsyncThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(leadServiceMock).bulkCreateLeadsAsync(anyList(), anyLong(), anyString(), anyLong());
     }
 
     // ==================== FACTORY METHODS ====================

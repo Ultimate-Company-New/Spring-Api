@@ -16,10 +16,12 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for LeadService.toggleLead() method.
  * Tests lead deletion toggle functionality.
- * * Test Count: 12 tests
+ * * Test Count: 11 tests
  */
 @DisplayName("Toggle Lead Tests")
 class ToggleLeadTest extends LeadServiceTestBase {
+
+    // Total Tests: 11
 
     /*
      **********************************************************************************************
@@ -40,15 +42,16 @@ class ToggleLeadTest extends LeadServiceTestBase {
         stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
         stubLeadRepositorySave(testLead);
 
-        // First toggle: false -> true
+        // Act - First toggle: false -> true
         leadService.toggleLead(DEFAULT_LEAD_ID);
         assertTrue(testLead.getIsDeleted());
 
-        // Second toggle: true -> false
+        // Act - Second toggle: true -> false
         testLead.setIsDeleted(true);
         leadService.toggleLead(DEFAULT_LEAD_ID);
         assertFalse(testLead.getIsDeleted());
 
+        // Assert
         verify(leadRepository, times(2)).save(testLead);
     }
 
@@ -59,7 +62,7 @@ class ToggleLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Lead - Success")
-    void toggleLead_Success() {
+    void toggleLead_Success_Success() {
         // Arrange
         testLead.setIsDeleted(false);
         stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
@@ -88,7 +91,10 @@ class ToggleLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Toggle Lead - Max Long ID - ThrowsNotFoundException")
     void toggleLead_MaxLongId_ThrowsNotFoundException() {
+        // Arrange
         stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(Long.MAX_VALUE, TEST_CLIENT_ID, null);
+
+        // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class, () -> leadService.toggleLead(Long.MAX_VALUE));
         assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
     }
@@ -102,7 +108,10 @@ class ToggleLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Toggle Lead - Min Long ID - ThrowsNotFoundException")
     void toggleLead_MinLongId_ThrowsNotFoundException() {
+        // Arrange
         stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(Long.MIN_VALUE, TEST_CLIENT_ID, null);
+
+        // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class, () -> leadService.toggleLead(Long.MIN_VALUE));
         assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
     }
@@ -115,7 +124,10 @@ class ToggleLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Toggle Lead - Negative ID - ThrowsNotFoundException")
     void toggleLead_NegativeId_ThrowsNotFoundException() {
+        // Arrange
         stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(-1L, TEST_CLIENT_ID, null);
+
+        // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class, () -> leadService.toggleLead(-1L));
         assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
     }
@@ -128,7 +140,10 @@ class ToggleLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Toggle Lead - NotFound - ThrowsNotFoundException")
     void toggleLead_NotFound_ThrowsNotFoundException() {
+        // Arrange
         stubLeadRepositoryFindByIdIncludingDeletedAny(null);
+
+        // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class, () -> leadService.toggleLead(DEFAULT_LEAD_ID));
         assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
     }
@@ -141,63 +156,57 @@ class ToggleLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Toggle Lead - Zero ID - ThrowsNotFoundException")
     void toggleLead_ZeroId_ThrowsNotFoundException() {
+        // Arrange
         stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(0L, TEST_CLIENT_ID, null);
+
+        // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class, () -> leadService.toggleLead(0L));
         assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Verify toggling active->active should be idempotent (no change).
-     * Given: Existing lead with active=true (isDeleted=false)
-     * When: toggleLead is called with active status
-     * Then: State remains unchanged, repository save not called or state is preserved
-     */
-    @Test
-    @DisplayName("Toggle Lead - Already Active No Op")
-    void toggleLead_unit_alreadyActive_noOp() {
-        // Arrange
-        testLead.setIsDeleted(false);
-        stubLeadRepositoryFindByIdSuccessActive(DEFAULT_LEAD_ID);
-        stubLeadRepositorySave(testLead);
-        
-        // Act
-        leadService.toggleLead(DEFAULT_LEAD_ID);
-        
-        // Assert - verify save was called (standard toggle behavior)
-        verify(leadRepository).save(any());
-    }
-
-    /**
-     * Purpose: Controller-level permission test to assert unauthorized cannot toggle lead.
-     * Given: Unauthenticated/insufficient role request
-     * When: PATCH/PUT to toggle endpoint is performed
-     * Then: Expect 403 and no repository interactions
-     */
-    @Test
-    @DisplayName("Toggle Lead - Controller Permission Forbidden")
-    void toggleLead_controller_permission_forbidden() {
-        // This test verifies controller-level authorization is configured
-        // (Actual Spring Security AOP enforcement tested in integration tests)
-        // Verify @PreAuthorize annotation exists on toggleLead
-        try {
-            var method = LeadController.class.getMethod("toggleLead", Long.class);
-            var preAuthorizeAnnotation = method.getAnnotation(
-                    org.springframework.security.access.prepost.PreAuthorize.class);
-            assertNotNull(preAuthorizeAnnotation, "toggleLead method should have @PreAuthorize annotation");
-        } catch (NoSuchMethodException e) {
-            fail("toggleLead method not found on controller");
-        }
     }
 
     /*
      **********************************************************************************************
      * CONTROLLER AUTHORIZATION TESTS
      **********************************************************************************************
-     * The following tests verify that authorization is properly configured at the
-     * controller level.
-     * These tests check that @PreAuthorize annotations are present and correctly
-     * configured.
      */
+
+    /**
+     * Purpose: Verify forbidden access is handled at the controller level.
+     * Expected Result: Forbidden status is returned.
+     * Assertions: Response status is 403 FORBIDDEN.
+     */
+    @Test
+    @DisplayName("Toggle Lead - Controller permission forbidden - Success")
+    void toggleLead_controller_permission_forbidden() {
+        // Arrange
+        LeadController controller = new LeadController(leadServiceMock);
+        stubLeadServiceToggleLeadThrowsForbidden(DEFAULT_LEAD_ID);
+
+        // Act
+        ResponseEntity<?> response = controller.toggleLead(DEFAULT_LEAD_ID);
+
+        // Assert
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("Toggle Lead - Controller permission unauthorized - Success")
+    void toggleLead_controller_permission_unauthorized() {
+        // Arrange
+        LeadController controller = new LeadController(leadServiceMock);
+        stubLeadServiceToggleLeadThrowsUnauthorized(DEFAULT_LEAD_ID);
+
+        // Act
+        ResponseEntity<?> response = controller.toggleLead(DEFAULT_LEAD_ID);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
 
     /**
      * Purpose: Verify @PreAuthorize annotation is declared on toggleLead method.
@@ -206,14 +215,16 @@ class ToggleLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Lead - Verify @PreAuthorize annotation is configured correctly")
-    void toggleLead_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        // Use reflection to verify the @PreAuthorize annotation is present
+    void toggleLead_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        // Arrange - Use reflection to verify the @PreAuthorize annotation is present
         var method = LeadController.class.getMethod("toggleLead",
                 Long.class);
 
+        // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
 
+        // Assert
         assertNotNull(preAuthorizeAnnotation,
                 "toggleLead method should have @PreAuthorize annotation");
 

@@ -411,6 +411,64 @@ public abstract class MessageServiceTestBase {
     }
 
     /**
+     * Stub controller service createMessage to throw UnauthorizedException.
+     */
+    protected void stubMessageServiceCreateMessageThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(messageServiceMock).createMessage(any(MessageRequestModel.class));
+    }
+
+    /**
+     * Stub controller service getMessagesInBatches to throw UnauthorizedException.
+     */
+    protected void stubMessageServiceGetMessagesInBatchesThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(messageServiceMock).getMessagesInBatches(any(
+                        com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.class));
+    }
+
+    /**
+     * Stub controller service getUnreadMessageCount to throw UnauthorizedException.
+     */
+    protected void stubMessageServiceGetUnreadMessageCountThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(messageServiceMock).getUnreadMessageCount();
+    }
+
+    /**
+     * Stub controller service getMessagesByUserId to throw UnauthorizedException.
+     */
+    protected void stubMessageServiceGetMessagesByUserIdThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(messageServiceMock).getMessagesByUserId(any(
+                        com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.class));
+    }
+
+    /**
+     * Stub controller service setMessageReadByUserIdAndMessageId to throw UnauthorizedException.
+     */
+    protected void stubMessageServiceSetMessageReadByUserIdAndMessageIdThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(messageServiceMock).setMessageReadByUserIdAndMessageId(anyLong(), anyLong());
+    }
+
+    /**
+     * Stub controller service toggleMessage to throw UnauthorizedException.
+     */
+    protected void stubMessageServiceToggleMessageThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(messageServiceMock).toggleMessage(anyLong());
+    }
+
+    /**
+     * Stub controller service getMessageDetailsById to throw UnauthorizedException.
+     */
+    protected void stubMessageServiceGetMessageDetailsByIdThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(messageServiceMock).getMessageDetailsById(anyLong());
+    }
+
+    /**
      * Stub controller service toggleMessage.
      */
     protected void stubMessageServiceToggleMessageDoNothing() {

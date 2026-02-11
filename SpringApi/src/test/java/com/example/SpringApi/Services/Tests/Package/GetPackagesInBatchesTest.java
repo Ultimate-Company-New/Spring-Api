@@ -121,7 +121,7 @@ class GetPackagesInBatchesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Get Packages In Batches - Success")
-    void getPackagesInBatches_Success() {
+    void getPackagesInBatches_Success_Success() {
         // Arrange
         testPaginationRequest.setStart(0);
         testPaginationRequest.setEnd(10);

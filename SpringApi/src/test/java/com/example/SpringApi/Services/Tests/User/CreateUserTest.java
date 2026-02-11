@@ -32,9 +32,11 @@ import static org.mockito.Mockito.*;
 class CreateUserTest extends UserServiceTestBase {
     // Total Tests: 17
 
-    // ========================================
-    // SUCCESS TESTS
-    // ========================================
+    /*
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
 
     /**
      * Purpose: Verify user with many permissions is created successfully.
@@ -42,8 +44,8 @@ class CreateUserTest extends UserServiceTestBase {
      * Assertions: verify
      */
     @Test
-    @DisplayName("createUser - Success - Many Permissions")
-    void createUser_manyPermissions_success() {
+    @DisplayName("Create User - Many Permissions - Success")
+    void createUser_ManyPermissions_Success() {
         // Arrange
         testUserRequest.setPermissionIds(Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L));
         setupCreateUserMocks();
@@ -61,8 +63,8 @@ class CreateUserTest extends UserServiceTestBase {
      * Assertions: verify
      */
     @Test
-    @DisplayName("createUser - Success - Single Permission")
-    void createUser_singlePermission_success() {
+    @DisplayName("Create User - Single Permission - Success")
+    void createUser_SinglePermission_Success() {
         // Arrange
         testUserRequest.setPermissionIds(Collections.singletonList(1L));
         setupCreateUserMocks();
@@ -80,8 +82,8 @@ class CreateUserTest extends UserServiceTestBase {
      * Assertions: verify
      */
     @Test
-    @DisplayName("createUser - Success - User Client Mapping")
-    void createUser_success_createsUserClientMapping() {
+    @DisplayName("Create User - User Client Mapping - Success")
+    void createUser_Success_CreatesUserClientMapping() {
         // Arrange
         setupCreateUserMocks();
 
@@ -98,8 +100,8 @@ class CreateUserTest extends UserServiceTestBase {
      * Assertions: assertDoesNotThrow, verify
      */
     @Test
-    @DisplayName("createUser - Success - User With Permissions")
-    void createUser_success_createsUserWithPermissions() {
+    @DisplayName("Create User - User With Permissions - Success")
+    void createUser_Success_CreatesUserWithPermissions() {
         // Arrange
         setupCreateUserMocks();
 
@@ -115,8 +117,8 @@ class CreateUserTest extends UserServiceTestBase {
      * Assertions: verify
      */
     @Test
-    @DisplayName("createUser - Success - Logs Operation")
-    void createUser_success_logsOperation() {
+    @DisplayName("Create User - Logs Operation - Success")
+    void createUser_Success_LogsOperation() {
         // Arrange
         setupCreateUserMocks();
 
@@ -133,8 +135,8 @@ class CreateUserTest extends UserServiceTestBase {
      * Assertions: verify
      */
     @Test
-    @DisplayName("createUser - Success - With Address")
-    void createUser_withAddress_savesAddress() {
+    @DisplayName("Create User - With Address - Success")
+    void createUser_WithAddress_SavesAddress() {
         // Arrange
         AddressRequestModel addressRequest = new AddressRequestModel();
         addressRequest.setStreetAddress("123 Test St");
@@ -156,33 +158,13 @@ class CreateUserTest extends UserServiceTestBase {
     }
 
     /**
-     * Purpose: Verify user creation with user groups.
-     * Expected Result: User group mappings are saved.
-     * Assertions: verify
-     */
-    @Test
-    @DisplayName("createUser - Success - With User Groups")
-    void createUser_withUserGroups_savesGroupMappings() {
-        // Arrange
-        testUserRequest.setSelectedGroupIds(Arrays.asList(1L, 2L));
-        setupCreateUserMocks();
-        stubUserGroupUserMapRepositorySaveAll(new ArrayList<>());
-
-        // Act
-        userService.createUser(testUserRequest);
-
-        // Assert
-        verify(userGroupUserMapRepository, times(1)).saveAll(anyList());
-    }
-
-    /**
      * Purpose: Verify user without address is created successfully.
-     * Expected Result: User is saved without address.
+     * Expected Result: User is saved and address repository is not called.
      * Assertions: verify
      */
     @Test
-    @DisplayName("createUser - Success - Without Address")
-    void createUser_withoutAddress_success() {
+    @DisplayName("Create User - Without Address - Success")
+    void createUser_WithoutAddress_Success() {
         // Arrange
         testUserRequest.setAddress(null);
         setupCreateUserMocks();
@@ -200,8 +182,8 @@ class CreateUserTest extends UserServiceTestBase {
      * Assertions: verify
      */
     @Test
-    @DisplayName("createUser - Success - Without User Groups")
-    void createUser_withoutUserGroups_success() {
+    @DisplayName("Create User - Without User Groups - Success")
+    void createUser_WithoutUserGroups_Success() {
         // Arrange
         testUserRequest.setSelectedGroupIds(null);
         setupCreateUserMocks();
@@ -213,9 +195,31 @@ class CreateUserTest extends UserServiceTestBase {
         verify(userGroupUserMapRepository, never()).saveAll(anyList());
     }
 
-    // ========================================
-    // FAILURE TESTS
-    // ========================================
+    /**
+     * Purpose: Verify user creation with user groups.
+     * Expected Result: User group mappings are saved.
+     * Assertions: verify
+     */
+    @Test
+    @DisplayName("Create User - With User Groups - Success")
+    void createUser_WithUserGroups_SavesGroupMappings() {
+        // Arrange
+        testUserRequest.setSelectedGroupIds(Arrays.asList(1L, 2L));
+        setupCreateUserMocks();
+        stubUserGroupUserMapRepositorySaveAll(new ArrayList<>());
+
+        // Act
+        userService.createUser(testUserRequest);
+
+        // Assert
+        verify(userGroupUserMapRepository, times(1)).saveAll(anyList());
+    }
+
+    /*
+     **********************************************************************************************
+     * FAILURE TESTS
+     **********************************************************************************************
+     */
 
     /**
      * Purpose: Verify checking for duplicate email during creation.
@@ -223,8 +227,8 @@ class CreateUserTest extends UserServiceTestBase {
      * Assertions: assertThrows, assertTrue, verify
      */
     @Test
-    @DisplayName("createUser - Failure - Checks Duplicate Email")
-    void createUser_checksDuplicateEmail_success() {
+    @DisplayName("Create User - Checks Duplicate Email - Failure")
+    void createUser_ChecksDuplicateEmail_Failure() {
         // Arrange
         stubUserRepositoryFindByLoginNameAny(testUser);
 
@@ -244,8 +248,8 @@ class CreateUserTest extends UserServiceTestBase {
      * Assertions: assertThrows, assertTrue, verify
      */
     @Test
-    @DisplayName("createUser - Failure - Duplicate Email")
-    void createUser_duplicateEmail_throwsBadRequestException() {
+    @DisplayName("Create User - Duplicate Email - ThrowsBadRequestException")
+    void createUser_DuplicateEmail_ThrowsBadRequestException() {
         // Arrange
         stubUserRepositoryFindByLoginNameAny(testUser);
 
@@ -265,8 +269,8 @@ class CreateUserTest extends UserServiceTestBase {
      * Assertions: assertThrows, assertTrue
      */
     @Test
-    @DisplayName("createUser - Failure - Duplicate Login Name")
-    void createUser_duplicateLoginName_throwsBadRequestException() {
+    @DisplayName("Create User - Duplicate Login Name - ThrowsBadRequestException")
+    void createUser_DuplicateLoginName_ThrowsBadRequestException() {
         // Arrange
         stubUserRepositoryFindByLoginName(testUserRequest.getLoginName(), testUser);
 
@@ -285,8 +289,8 @@ class CreateUserTest extends UserServiceTestBase {
      * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("createUser - Failure - Empty Permissions")
-    void createUser_emptyPermissions_throwsBadRequestException() {
+    @DisplayName("Create User - Empty Permissions - ThrowsBadRequestException")
+    void createUser_EmptyPermissions_ThrowsBadRequestException() {
         // Arrange
         testUserRequest.setPermissionIds(new ArrayList<>());
         setupCreateUserMocks();
@@ -305,8 +309,8 @@ class CreateUserTest extends UserServiceTestBase {
      * Assertions: assertThrows, assertEquals
      */
     @Test
-    @DisplayName("createUser - Failure - Null Permissions")
-    void createUser_nullPermissions_throwsBadRequestException() {
+    @DisplayName("Create User - Null Permissions - ThrowsBadRequestException")
+    void createUser_NullPermissions_ThrowsBadRequestException() {
         // Arrange
         testUserRequest.setPermissionIds(null);
         setupCreateUserMocks();
@@ -319,47 +323,11 @@ class CreateUserTest extends UserServiceTestBase {
         assertEquals(ErrorMessages.CommonErrorMessages.AtLeastOnePermissionRequired, ex.getMessage());
     }
 
-    // ========================================
-    // PERMISSION TESTS
-    // ========================================
-
-    /**
-     * Purpose: Verify controller handles unauthorized access via HTTP status.
-     * Expected Result: HTTP UNAUTHORIZED status returned.
-     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
      */
-    @Test
-    @DisplayName("createUser - Controller permission forbidden")
-    void createUser_controller_permission_forbidden() {
-        // Arrange
-        stubServiceThrowsUnauthorizedException();
-
-        // Act
-        ResponseEntity<?> response = userControllerWithMock.createUser(new UserRequestModel());
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
-    /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
-     * Expected Result: The method should be annotated with CREATE_USER_PERMISSION.
-     * Assertions: assertNotNull, assertTrue
-     */
-    @Test
-    @DisplayName("createUser - Verify @PreAuthorize Annotation")
-    void createUser_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
-        Method method = UserController.class.getMethod("createUser", UserRequestModel.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "createUser method should have @PreAuthorize annotation");
-        assertTrue(annotation.value().contains(Authorizations.CREATE_USER_PERMISSION),
-                "@PreAuthorize annotation should check for CREATE_USER_PERMISSION");
-    }
 
     /**
      * Purpose: Verify controller delegates to service.
@@ -367,8 +335,8 @@ class CreateUserTest extends UserServiceTestBase {
      * Assertions: verify, HttpStatus.OK
      */
     @Test
-    @DisplayName("createUser - Controller delegates to service")
-    void createUser_withValidRequest_delegatesToService() {
+    @DisplayName("Create User - Controller delegates to service")
+    void createUser_WithValidRequest_DelegatesToService() {
         // Arrange
         UserRequestModel userRequest = new UserRequestModel();
         stubMockUserServiceCreateUser(userRequest);
@@ -379,5 +347,48 @@ class CreateUserTest extends UserServiceTestBase {
         // Assert
         verify(mockUserService, times(1)).createUser(userRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify controller handles unauthorized access via HTTP status.
+     * Expected Result: HTTP UNAUTHORIZED status returned and @PreAuthorize
+     * verified.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()),
+     * assertNotNull, assertTrue
+     */
+    @Test
+    @DisplayName("Create User - Controller permission unauthorized")
+    void createUser_controller_permission_unauthorized() throws NoSuchMethodException {
+        // Arrange
+        stubMockUserServiceCreateUserThrowsUnauthorized(null);
+        Method method = UserController.class.getMethod("createUser", UserRequestModel.class);
+
+        // Act
+        ResponseEntity<?> response = userControllerWithMock.createUser(new UserRequestModel());
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertNotNull(annotation, "createUser method should have @PreAuthorize annotation");
+        assertTrue(annotation.value().contains(Authorizations.CREATE_USER_PERMISSION),
+                "@PreAuthorize annotation should check for CREATE_USER_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller handles forbidden access via HTTP status.
+     * Expected Result: HTTP FORBIDDEN status returned.
+     * Assertions: assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode())
+     */
+    @Test
+    @DisplayName("Create User - Controller permission forbidden")
+    void createUser_controller_permission_forbidden() {
+        // Arrange
+        stubMockUserServiceCreateUserThrowsForbidden(null);
+
+        // Act
+        ResponseEntity<?> response = userControllerWithMock.createUser(new UserRequestModel());
+
+        // Assert
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 }

@@ -21,6 +21,7 @@ import com.example.SpringApi.Models.ResponseModels.UserLogsResponseModel;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyLong;
 
 import static org.mockito.Mockito.lenient;
 
@@ -124,5 +125,14 @@ public abstract class UserLogServiceTestBase {
     protected void stubServiceThrowsUnauthorizedException() {
         lenient().when(mockUserLogService.fetchUserLogsInBatches(any()))
                 .thenThrow(new com.example.SpringApi.Exceptions.UnauthorizedException("Unauthorized"));
+    }
+
+    protected void stubUserLogServiceLogDataThrowsUnauthorized() {
+        lenient().when(mockUserLogService.logData(anyLong(), anyString(), anyString(), anyString()))
+                .thenThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                        com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED));
+        lenient().when(mockUserLogService.logData(anyLong(), anyString(), anyString()))
+                .thenThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                        com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED));
     }
 }

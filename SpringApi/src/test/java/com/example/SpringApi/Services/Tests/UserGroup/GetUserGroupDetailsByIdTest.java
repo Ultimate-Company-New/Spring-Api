@@ -19,11 +19,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserGroupService.getUserGroupDetailsById method.
  * 
- * Total Tests: 12
+ * Total Tests: 11
  */
 @DisplayName("UserGroupService - GetUserGroupDetailsById Tests")
 class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
-    // Total Tests: 12
+    // Total Tests: 11
 
     // ========================================
     // SUCCESS TESTS
@@ -203,37 +203,24 @@ class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
 
     /**
      * Purpose: Verify controller handles unauthorized access via HTTP status.
-     * Expected Result: HTTP UNAUTHORIZED status returned.
-     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     * Expected Result: HTTP UNAUTHORIZED status returned and @PreAuthorize
+     * verified.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()),
+     * assertNotNull, assertTrue
      */
     @Test
     @DisplayName("getUserGroupDetailsById - Controller permission forbidden")
-    void getUserGroupDetailsById_controller_permission_forbidden() {
+    void getUserGroupDetailsById_controller_permission_forbidden() throws NoSuchMethodException {
         // Arrange
         stubServiceThrowsUnauthorizedException();
-
-        // Act
-        ResponseEntity<?> response = userGroupControllerWithMock.getUserGroupDetailsById(TEST_GROUP_ID);
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
-    /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
-     * Expected Result: The method should be annotated with VIEW_GROUPS_PERMISSION.
-     * Assertions: assertNotNull, assertTrue
-     */
-    @Test
-    @DisplayName("getUserGroupDetailsById - Verify @PreAuthorize Annotation")
-    void getUserGroupDetailsById_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
         Method method = UserGroupController.class.getMethod("getUserGroupDetailsById", Long.class);
 
         // Act
+        ResponseEntity<?> response = userGroupControllerWithMock.getUserGroupDetailsById(TEST_GROUP_ID);
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
         // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertNotNull(annotation, "@PreAuthorize annotation should be present on getUserGroupDetailsById method");
         assertTrue(annotation.value().contains(Authorizations.VIEW_GROUPS_PERMISSION),
                 "@PreAuthorize annotation should check for VIEW_GROUPS_PERMISSION");

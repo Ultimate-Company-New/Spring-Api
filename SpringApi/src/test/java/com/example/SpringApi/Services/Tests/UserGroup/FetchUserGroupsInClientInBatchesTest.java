@@ -28,11 +28,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserGroupService.fetchUserGroupsInClientInBatches method.
  * 
- * Total Tests: 10
+ * Total Tests: 9
  */
 @DisplayName("UserGroupService - FetchUserGroupsInClientInBatches Tests")
 class FetchUserGroupsInClientInBatchesTest extends UserGroupServiceTestBase {
-    // Total Tests: 10
+    // Total Tests: 9
 
     // ========================================
     // SUCCESS TESTS
@@ -218,38 +218,25 @@ class FetchUserGroupsInClientInBatchesTest extends UserGroupServiceTestBase {
 
     /**
      * Purpose: Verify controller handles unauthorized access via HTTP status.
-     * Expected Result: HTTP UNAUTHORIZED status returned.
-     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     * Expected Result: HTTP UNAUTHORIZED status returned and @PreAuthorize
+     * verified.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()),
+     * assertNotNull, assertTrue
      */
     @Test
     @DisplayName("fetchUserGroupsInClientInBatches - Controller permission forbidden")
-    void fetchUserGroupsInClientInBatches_controller_permission_forbidden() {
+    void fetchUserGroupsInClientInBatches_controller_permission_forbidden() throws NoSuchMethodException {
         // Arrange
         UserGroupRequestModel request = new UserGroupRequestModel();
         stubServiceThrowsUnauthorizedException();
-
-        // Act
-        ResponseEntity<?> response = userGroupControllerWithMock.getUserGroupsInBatches(request);
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
-    /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
-     * Expected Result: The method should be annotated with VIEW_GROUPS_PERMISSION.
-     * Assertions: assertNotNull, assertTrue
-     */
-    @Test
-    @DisplayName("fetchUserGroupsInClientInBatches - Verify @PreAuthorize Annotation")
-    void fetchUserGroupsInClientInBatches_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
         Method method = UserGroupController.class.getMethod("getUserGroupsInBatches", UserGroupRequestModel.class);
 
         // Act
+        ResponseEntity<?> response = userGroupControllerWithMock.getUserGroupsInBatches(request);
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
         // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertNotNull(annotation, "@PreAuthorize annotation should be present on getUserGroupsInBatches method");
         assertTrue(annotation.value().contains(Authorizations.VIEW_GROUPS_PERMISSION),
                 "@PreAuthorize annotation should check for VIEW_GROUPS_PERMISSION");

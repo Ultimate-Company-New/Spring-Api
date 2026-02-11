@@ -1,9 +1,12 @@
 package com.example.SpringApi.Services.Tests.Message;
 
+import com.example.SpringApi.Controllers.MessageController;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,7 +19,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("CreateMessageWithContext Tests")
 class CreateMessageWithContextTest extends MessageServiceTestBase {
 
-    // Total Tests: 5
+    // Total Tests: 6
 
     /*
      **********************************************************************************************
@@ -111,5 +114,30 @@ class CreateMessageWithContextTest extends MessageServiceTestBase {
         // Act & Assert
         assertThrowsNotFound(ErrorMessages.ClientErrorMessages.InvalidId,
                 () -> messageService.createMessageWithContext(validRequest, TEST_USER_ID, "admin", 9999L));
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("Create Message With Context - Controller permission unauthorized - Success")
+    void createMessageWithContext_controller_permission_unauthorized() {
+        // Arrange
+        MessageController controller = new MessageController(messageServiceMock);
+        stubMessageServiceCreateMessageThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.createMessage(validRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }

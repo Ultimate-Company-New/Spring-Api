@@ -22,548 +22,642 @@ import static org.mockito.Mockito.*;
 @DisplayName("Update Lead Tests")
 class UpdateLeadTest extends LeadServiceTestBase {
 
-    /*
-     **********************************************************************************************
-     * SUCCESS TESTS
-     **********************************************************************************************
-     */
+        // Total Tests: 33
 
-    /**
-     * Purpose: Verify successful update when all fields are changed.
-     * Expected Result: Lead is persisted with all new data.
-     * Assertions: Repository save is invoked with the updated model.
-     */
-    @Test
-    @DisplayName("Update Lead - All fields updated - Success")
-    void updateLead_AllFieldsUpdated_Success() {
-        // Arrange
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setFirstName("UpdatedFirst");
-        testLeadRequest.setLastName("UpdatedLast");
-        testLeadRequest.setEmail("updated@example.com");
-        testLeadRequest.setPhone("5551234567");
-        testLeadRequest.setCompany("UpdatedCorp");
-        testLeadRequest.setLeadStatus("Contacted");
-        stubLeadRepositorySave(testLead);
+        /*
+         **********************************************************************************************
+         * SUCCESS TESTS
+         **********************************************************************************************
+         */
 
-        // Act & Assert
-        assertDoesNotThrow(() -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        verify(leadRepository).save(any());
-    }
+        /**
+         * Purpose: Verify successful update when all fields are changed.
+         * Expected Result: Lead is persisted with all new data.
+         * Assertions: Repository save is invoked with the updated model.
+         */
+        @Test
+        @DisplayName("Update Lead - All fields updated - Success")
+        void updateLead_AllFieldsUpdated_Success() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setFirstName("UpdatedFirst");
+                testLeadRequest.setLastName("UpdatedLast");
+                testLeadRequest.setEmail("updated@example.com");
+                testLeadRequest.setPhone("5551234567");
+                testLeadRequest.setCompany("UpdatedCorp");
+                testLeadRequest.setLeadStatus("Contacted");
+                stubLeadRepositorySave(testLead);
 
-    /**
-     * Purpose: Verify update succeeds with special characters in field values.
-     * Expected Result: Non-standard characters are handled correctly.
-     * Assertions: Process completes without error.
-     */
-    @Test
-    @DisplayName("Update Lead - Special Characters - Success")
-    void updateLead_SpecialCharacters_Success() {
-        // Arrange
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setFirstName("François");
-        testLeadRequest.setCompany("O'Reilly & Associates");
-        stubLeadRepositorySave(testLead);
+                // Act & Assert
+                assertDoesNotThrow(() -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                verify(leadRepository).save(any());
+        }
 
-        // Act & Assert
-        assertDoesNotThrow(() -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-    }
+        /**
+         * Purpose: Verify partial updates (patch-like) only change provided fields and
+         * persist.
+         * Given: Existing lead and update DTO with phone number change
+         * When: updateLead is called
+         * Then: Lead is persisted with update
+         */
+        @Test
+        @DisplayName("Update Lead - Partial Update Success")
+        void updateLead_PartialUpdate_Success() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setPhone("555-0200-1234");
+                stubLeadRepositorySave(testLead);
 
-    /**
-     * Purpose: Verify basic successful update scenario.
-     * Expected Result: Existing lead is found and saved.
-     * Assertions: Repository save and address save occur.
-     */
-    @Test
-    @DisplayName("Update Lead - Success")
-    void updateLead_Success() {
-        // Arrange
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        stubLeadRepositorySave(testLead);
-        stubAddressRepositorySave(testLead.getAddress());
+                // Act
+                assertDoesNotThrow(() -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
 
-        // Act & Assert
-        assertDoesNotThrow(() -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        verify(leadRepository).save(any());
-    }
+                // Assert
+                verify(leadRepository).save(any());
+        }
 
-    /**
-     * Purpose: Verify update succeeds with very long name values.
-     * Expected Result: Long strings are persisted successfully.
-     * Assertions: Repository save is invoked.
-     */
-    @Test
-    @DisplayName("Update Lead - Very Long Name - Success")
-    void updateLead_VeryLongName_Success() {
-        // Arrange
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setFirstName("VeryVeryVeryVeryVeryLongFirstName");
-        testLeadRequest.setLastName("VeryVeryVeryVeryVeryLongLastName");
-        stubLeadRepositorySave(testLead);
+        /**
+         * Purpose: Verify update succeeds with special characters in field values.
+         * Expected Result: Non-standard characters are handled correctly.
+         * Assertions: Process completes without error.
+         */
+        @Test
+        @DisplayName("Update Lead - Special Characters - Success")
+        void updateLead_SpecialCharacters_Success() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setFirstName("François");
+                testLeadRequest.setCompany("O'Reilly & Associates");
+                stubLeadRepositorySave(testLead);
 
-        // Act & Assert
-        assertDoesNotThrow(() -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-    }
+                // Act & Assert
+                assertDoesNotThrow(() -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+        }
 
-    /*
-     **********************************************************************************************
-     * FAILURE / EXCEPTION TESTS
-     **********************************************************************************************
-     */
+        /**
+         * Purpose: Verify basic successful update scenario.
+         * Expected Result: Existing lead is found and saved.
+         * Assertions: Repository save and address save occur.
+         */
+        @Test
+        @DisplayName("Update Lead - Success")
+        void updateLead_Success_Success() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                stubLeadRepositorySave(testLead);
+                stubAddressRepositorySave(testLead.getAddress());
 
-    /**
-     * Purpose: Reject updates for leads already marked as deleted.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Error message matches expectations.
-     */
-    @Test
-    @DisplayName("Update Lead - Deleted - ThrowsNotFoundException")
-    void updateLead_Deleted_ThrowsNotFoundException() {
-        testLead.setIsDeleted(true);
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
-    }
+                // Act & Assert
+                assertDoesNotThrow(() -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                verify(leadRepository).save(any());
+        }
 
-    /**
-     * Purpose: Reject updates Consisting of an empty email string.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER001.
-     */
-    @Test
-    @DisplayName("Update Lead - Empty Email - ThrowsBadRequestException")
-    void updateLead_EmptyEmail_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setEmail("");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER001, ex.getMessage());
-    }
+        /**
+         * Purpose: Verify update succeeds with very long name values.
+         * Expected Result: Long strings are persisted successfully.
+         * Assertions: Repository save is invoked.
+         */
+        @Test
+        @DisplayName("Update Lead - Very Long Name - Success")
+        void updateLead_VeryLongName_Success() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setFirstName("VeryVeryVeryVeryVeryLongFirstName");
+                testLeadRequest.setLastName("VeryVeryVeryVeryVeryLongLastName");
+                stubLeadRepositorySave(testLead);
 
-    /**
-     * Purpose: Reject updates with an empty first name.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER002.
-     */
-    @Test
-    @DisplayName("Update Lead - Empty First Name - ThrowsBadRequestException")
-    void updateLead_EmptyFirstName_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setFirstName("");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER002, ex.getMessage());
-    }
+                // Act & Assert
+                assertDoesNotThrow(() -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+        }
 
-    /**
-     * Purpose: Reject updates with an empty last name.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER003.
-     */
-    @Test
-    @DisplayName("Update Lead - Empty Last Name - ThrowsBadRequestException")
-    void updateLead_EmptyLastName_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setLastName("");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER003, ex.getMessage());
-    }
+        /*
+         **********************************************************************************************
+         * FAILURE / EXCEPTION TESTS
+         **********************************************************************************************
+         */
 
-    /**
-     * Purpose: Reject updates with an empty phone string.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER004.
-     */
-    @Test
-    @DisplayName("Update Lead - Empty Phone - ThrowsBadRequestException")
-    void updateLead_EmptyPhone_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setPhone("");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER004, ex.getMessage());
-    }
+        /**
+         * Purpose: Reject updates for leads already marked as deleted.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches expectations.
+         */
+        @Test
+        @DisplayName("Update Lead - Deleted - ThrowsNotFoundException")
+        void updateLead_Deleted_ThrowsNotFoundException() {
+                // Arrange
+                testLead.setIsDeleted(true);
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
 
-    /**
-     * Purpose: Reject updates with an empty status string.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER008.
-     */
-    @Test
-    @DisplayName("Update Lead - Empty Status - ThrowsBadRequestException")
-    void updateLead_EmptyStatus_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setLeadStatus("");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER008, ex.getMessage());
-    }
+                // Act & Assert
+                NotFoundException ex = assertThrows(NotFoundException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
+        }
 
-    /**
-     * Purpose: Reject update with an invalid email format.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches expectations.
-     */
-    @Test
-    @DisplayName("Update Lead - Invalid Email Format")
-    void updateLead_InvalidEmailFormat_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setEmail("invalid-email");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER010, ex.getMessage());
-    }
+        /**
+         * Purpose: Reject updates Consisting of an empty email string.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER001.
+         */
+        @Test
+        @DisplayName("Update Lead - Empty Email - ThrowsBadRequestException")
+        void updateLead_EmptyEmail_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setEmail("");
 
-    /**
-     * Purpose: Reject update with an invalid phone format.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches expectations.
-     */
-    @Test
-    @DisplayName("Update Lead - Invalid Phone Format - ThrowsBadRequestException")
-    void updateLead_InvalidPhoneFormat_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setPhone("invalid-phone");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER011, ex.getMessage());
-    }
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER001, ex.getMessage());
+        }
 
-    /**
-     * Purpose: Reject updates to an unknown lead status.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message contains ER007.
-     */
-    @Test
-    @DisplayName("Update Lead - Invalid Status (Unknown) - ThrowsBadRequestException")
-    void updateLead_InvalidStatus_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setLeadStatus("InvalidStatus");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertTrue(ex.getMessage().contains(ErrorMessages.LeadsErrorMessages.ER007));
-    }
+        /**
+         * Purpose: Reject updates with an empty first name.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER002.
+         */
+        @Test
+        @DisplayName("Update Lead - Empty First Name - ThrowsBadRequestException")
+        void updateLead_EmptyFirstName_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setFirstName("");
 
-    /**
-     * Purpose: Reject updates for negative lead IDs.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Error message matches LEAD_NOT_FOUND.
-     */
-    @Test
-    @DisplayName("Update Lead - Negative ID - ThrowsNotFoundException")
-    void updateLead_NegativeId_ThrowsNotFoundException() {
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER002, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Reject updates with an empty last name.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER003.
+         */
+        @Test
+        @DisplayName("Update Lead - Empty Last Name - ThrowsBadRequestException")
+        void updateLead_EmptyLastName_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setLastName("");
+
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER003, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Reject updates with an empty phone string.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER004.
+         */
+        @Test
+        @DisplayName("Update Lead - Empty Phone - ThrowsBadRequestException")
+        void updateLead_EmptyPhone_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setPhone("");
+
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER004, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Reject updates with an empty status string.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER008.
+         */
+        @Test
+        @DisplayName("Update Lead - Empty Status - ThrowsBadRequestException")
+        void updateLead_EmptyStatus_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setLeadStatus("");
+
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER008, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Reject update with an invalid email format.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches expectations.
+         */
+        @Test
+        @DisplayName("Update Lead - Invalid Email Format")
+        void updateLead_InvalidEmailFormat_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setEmail("invalid-email");
+
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER010, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Reject update with an invalid phone format.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches expectations.
+         */
+        @Test
+        @DisplayName("Update Lead - Invalid Phone Format - ThrowsBadRequestException")
+        void updateLead_InvalidPhoneFormat_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setPhone("invalid-phone");
+
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER011, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Reject updates to an unknown lead status.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message contains ER007.
+         */
+        @Test
+        @DisplayName("Update Lead - Invalid Status (Unknown) - ThrowsBadRequestException")
+        void updateLead_InvalidStatus_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setLeadStatus("InvalidStatus");
+
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertTrue(ex.getMessage().contains(ErrorMessages.LeadsErrorMessages.ER007));
+        }
+
+        /**
+         * Purpose: Reject updates for negative lead IDs.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches LEAD_NOT_FOUND.
+         */
+        @Test
+        @DisplayName("Update Lead - Negative ID - ThrowsNotFoundException")
+        void updateLead_NegativeId_ThrowsNotFoundException() {
+                // Arrange
                 stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(-1L, TEST_CLIENT_ID, null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> leadService.updateLead(-1L, testLeadRequest));
-        assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
-    }
 
-    /**
-     * Purpose: Reject updates when the lead ID does not exist.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Error message matches LEAD_NOT_FOUND.
-     */
-    @Test
-    @DisplayName("Update Lead - NotFound - ThrowsNotFoundException")
-    void updateLead_NotFound_ThrowsNotFoundException() {
+                // Act & Assert
+                NotFoundException ex = assertThrows(NotFoundException.class,
+                                () -> leadService.updateLead(-1L, testLeadRequest));
+                assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Reject updates when the lead ID does not exist.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches LEAD_NOT_FOUND.
+         */
+        @Test
+        @DisplayName("Update Lead - NotFound - ThrowsNotFoundException")
+        void updateLead_NotFound_ThrowsNotFoundException() {
+                // Arrange
                 stubLeadRepositoryFindByIdIncludingDeletedAny(null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
-    }
 
-    /**
-     * Purpose: Reject updates when the request email is null.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER001.
-     */
-    @Test
-    @DisplayName("Update Lead - Null Email - ThrowsBadRequestException")
-    void updateLead_NullEmail_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setEmail(null);
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER001, ex.getMessage());
-    }
+                // Act & Assert
+                NotFoundException ex = assertThrows(NotFoundException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
+        }
 
-    /**
-     * Purpose: Reject updates when first name is null.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER002.
-     */
-    @Test
-    @DisplayName("Update Lead - Null First Name - ThrowsBadRequestException")
-    void updateLead_NullFirstName_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setFirstName(null);
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER002, ex.getMessage());
-    }
+        /**
+         * Purpose: Reject updates when the request email is null.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER001.
+         */
+        @Test
+        @DisplayName("Update Lead - Null Email - ThrowsBadRequestException")
+        void updateLead_NullEmail_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setEmail(null);
 
-    /**
-     * Purpose: Reject updates when last name is null.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER003.
-     */
-    @Test
-    @DisplayName("Update Lead - Null Last Name - ThrowsBadRequestException")
-    void updateLead_NullLastName_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setLastName(null);
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER003, ex.getMessage());
-    }
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER001, ex.getMessage());
+        }
 
-    /**
-     * Purpose: Reject updates when phone is null.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER004.
-     */
-    @Test
-    @DisplayName("Update Lead - Null Phone - ThrowsBadRequestException")
-    void updateLead_NullPhone_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setPhone(null);
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER004, ex.getMessage());
-    }
+        /**
+         * Purpose: Reject updates when first name is null.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER002.
+         */
+        @Test
+        @DisplayName("Update Lead - Null First Name - ThrowsBadRequestException")
+        void updateLead_NullFirstName_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setFirstName(null);
 
-    /**
-     * Purpose: Reject updates when the entire request model is null.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER009.
-     */
-    @Test
-    @DisplayName("Update Lead - Null Request - ThrowsBadRequestException")
-    void updateLead_NullRequest_ThrowsBadRequestException() {
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, null));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER009, ex.getMessage());
-    }
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER002, ex.getMessage());
+        }
 
-    /**
-     * Purpose: Reject updates when lead status is null.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER008.
-     */
-    @Test
-    @DisplayName("Update Lead - Null Status - ThrowsBadRequestException")
-    void updateLead_NullStatus_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setLeadStatus(null);
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER008, ex.getMessage());
-    }
+        /**
+         * Purpose: Reject updates when last name is null.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER003.
+         */
+        @Test
+        @DisplayName("Update Lead - Null Last Name - ThrowsBadRequestException")
+        void updateLead_NullLastName_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setLastName(null);
 
-    /**
-     * Purpose: Reject updates Consisting of a company size of zero.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER016.
-     */
-    @Test
-    @DisplayName("Update Lead - Valid Company Size Zero - ThrowsBadRequestException")
-    void updateLead_ValidCompanySizeZero_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setCompanySize(0);
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER016, ex.getMessage());
-    }
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER003, ex.getMessage());
+        }
 
-    /**
-     * Purpose: Reject email strings consisting only of whitespace.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER001.
-     */
-    @Test
-    @DisplayName("Update Lead - Whitespace Email - ThrowsBadRequestException")
-    void updateLead_WhitespaceEmail_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setEmail("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER001, ex.getMessage());
-    }
+        /**
+         * Purpose: Reject updates when phone is null.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER004.
+         */
+        @Test
+        @DisplayName("Update Lead - Null Phone - ThrowsBadRequestException")
+        void updateLead_NullPhone_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setPhone(null);
 
-    /**
-     * Purpose: Reject first name strings consisting only of whitespace.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER002.
-     */
-    @Test
-    @DisplayName("Update Lead - Whitespace First Name - ThrowsBadRequestException")
-    void updateLead_WhitespaceFirstName_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setFirstName("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER002, ex.getMessage());
-    }
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER004, ex.getMessage());
+        }
 
-    /**
-     * Purpose: Reject last name strings consisting only of whitespace.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER003.
-     */
-    @Test
-    @DisplayName("Update Lead - Whitespace Last Name - ThrowsBadRequestException")
-    void updateLead_WhitespaceLastName_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setLastName("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER003, ex.getMessage());
-    }
+        /**
+         * Purpose: Reject updates when the entire request model is null.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER009.
+         */
+        @Test
+        @DisplayName("Update Lead - Null Request - ThrowsBadRequestException")
+        void updateLead_NullRequest_ThrowsBadRequestException() {
+                // Arrange
 
-    /**
-     * Purpose: Reject phone strings consisting only of whitespace.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER004.
-     */
-    @Test
-    @DisplayName("Update Lead - Whitespace Phone - ThrowsBadRequestException")
-    void updateLead_WhitespacePhone_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setPhone("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER004, ex.getMessage());
-    }
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, null));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER009, ex.getMessage());
+        }
 
-    /**
-     * Purpose: Reject status strings consisting only of whitespace.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER008.
-     */
-    @Test
-    @DisplayName("Update Lead - Whitespace Status - ThrowsBadRequestException")
-    void updateLead_WhitespaceStatus_ThrowsBadRequestException() {
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setLeadStatus("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER008, ex.getMessage());
-    }
+        /**
+         * Purpose: Reject updates when lead status is null.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER008.
+         */
+        @Test
+        @DisplayName("Update Lead - Null Status - ThrowsBadRequestException")
+        void updateLead_NullStatus_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setLeadStatus(null);
 
-    /**
-     * Purpose: Reject zero as a lead ID.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Error message matches LEAD_NOT_FOUND.
-     */
-    @Test
-    @DisplayName("Update Lead - Zero ID - ThrowsNotFoundException")
-    void updateLead_ZeroId_ThrowsNotFoundException() {
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER008, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Reject updates Consisting of a company size of zero.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER016.
+         */
+        @Test
+        @DisplayName("Update Lead - Valid Company Size Zero - ThrowsBadRequestException")
+        void updateLead_ValidCompanySizeZero_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setCompanySize(0);
+
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER016, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Reject email strings consisting only of whitespace.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER001.
+         */
+        @Test
+        @DisplayName("Update Lead - Whitespace Email - ThrowsBadRequestException")
+        void updateLead_WhitespaceEmail_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setEmail("   ");
+
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER001, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Reject first name strings consisting only of whitespace.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER002.
+         */
+        @Test
+        @DisplayName("Update Lead - Whitespace First Name - ThrowsBadRequestException")
+        void updateLead_WhitespaceFirstName_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setFirstName("   ");
+
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER002, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Reject last name strings consisting only of whitespace.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER003.
+         */
+        @Test
+        @DisplayName("Update Lead - Whitespace Last Name - ThrowsBadRequestException")
+        void updateLead_WhitespaceLastName_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setLastName("   ");
+
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER003, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Reject phone strings consisting only of whitespace.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER004.
+         */
+        @Test
+        @DisplayName("Update Lead - Whitespace Phone - ThrowsBadRequestException")
+        void updateLead_WhitespacePhone_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setPhone("   ");
+
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER004, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Reject status strings consisting only of whitespace.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches ER008.
+         */
+        @Test
+        @DisplayName("Update Lead - Whitespace Status - ThrowsBadRequestException")
+        void updateLead_WhitespaceStatus_ThrowsBadRequestException() {
+                // Arrange
+                stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+                testLeadRequest.setLeadStatus("   ");
+
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
+                assertEquals(ErrorMessages.LeadsErrorMessages.ER008, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Reject zero as a lead ID.
+         * Expected Result: NotFoundException is thrown.
+         * Assertions: Error message matches LEAD_NOT_FOUND.
+         */
+        @Test
+        @DisplayName("Update Lead - Zero ID - ThrowsNotFoundException")
+        void updateLead_ZeroId_ThrowsNotFoundException() {
+                // Arrange
                 stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(0L, TEST_CLIENT_ID, null);
-        NotFoundException ex = assertThrows(NotFoundException.class, () -> leadService.updateLead(0L, testLeadRequest));
-        assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
-    }
 
-    /**
-     * Purpose: Verify partial updates (patch-like) only change provided fields and persist.
-     * Given: Existing lead and update DTO with phone number change
-     * When: updateLead is called
-     * Then: Lead is persisted with update
-     */
-    @Test
-    @DisplayName("Update Lead - Partial Update Success")
-    void updateLead_unit_partialUpdate_success() {
-        // Arrange
-        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
-        testLeadRequest.setPhone("555-0200-1234");
-        stubLeadRepositorySave(testLead);
-        
-        // Act
-        assertDoesNotThrow(() -> leadService.updateLead(DEFAULT_LEAD_ID, testLeadRequest));
-        
-        // Assert
-        verify(leadRepository).save(any());
-    }
+                // Act & Assert
+                NotFoundException ex = assertThrows(NotFoundException.class,
+                                () -> leadService.updateLead(0L, testLeadRequest));
+                assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
+        }
 
-    /**
-     * Purpose: Updating a non-existent lead throws not-found.
-     * Given: Non-existent lead ID
-     * When: updateLead is called
-     * Then: NotFoundException is thrown with LEAD_NOT_FOUND message
-     */
-    @Test
-    @DisplayName("Update Lead - Not Found Failure")
-    void updateLead_unit_notFound_failure() {
-        // Arrange
-        stubLeadRepositoryFindByIdNotFound(999L);
-        
-        // Act & Assert
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> leadService.updateLead(999L, testLeadRequest));
-        assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
-    }
+        /*
+         **********************************************************************************************
+         * CONTROLLER AUTHORIZATION TESTS
+         **********************************************************************************************
+         */
 
-    /*
-     **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
-     **********************************************************************************************
-     * The following tests verify that authorization is properly configured at the
-     * controller level.
-     * These tests check that @PreAuthorize annotations are present and correctly
-     * configured.
-     */
+        /**
+         * Purpose: Verify forbidden access is handled at the controller level.
+         * Expected Result: Forbidden status is returned.
+         * Assertions: Response status is 403 FORBIDDEN.
+         */
+        @Test
+        @DisplayName("Update Lead - Controller permission forbidden - Success")
+        void updateLead_controller_permission_forbidden() {
+                // Arrange
+                LeadController controller = new LeadController(leadServiceMock);
+                stubLeadServiceUpdateLeadThrowsForbidden(DEFAULT_LEAD_ID);
 
-    /**
-     * Purpose: Verify @PreAuthorize annotation is declared on updateLead method.
-     * Expected Result: Method has @PreAuthorize annotation with correct permission.
-     * Assertions: Annotation exists and references UPDATE_LEADS_PERMISSION.
-     */
-    @Test
-    @DisplayName("Update Lead - Verify @PreAuthorize annotation is configured correctly")
-    void updateLead_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        // Use reflection to verify the @PreAuthorize annotation is present
-        var method = LeadController.class.getMethod("updateLead",
-                Long.class, com.example.SpringApi.Models.RequestModels.LeadRequestModel.class);
+                // Act
+                ResponseEntity<?> response = controller.updateLead(DEFAULT_LEAD_ID, testLeadRequest);
 
-        var preAuthorizeAnnotation = method.getAnnotation(
-                org.springframework.security.access.prepost.PreAuthorize.class);
+                // Assert
+                assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        }
 
-        assertNotNull(preAuthorizeAnnotation,
-                "updateLead method should have @PreAuthorize annotation");
+        /**
+         * Purpose: Verify unauthorized access is handled at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+        @Test
+        @DisplayName("Update Lead - Controller permission unauthorized - Success")
+        void updateLead_controller_permission_unauthorized() {
+                // Arrange
+                LeadController controller = new LeadController(leadServiceMock);
+                stubLeadServiceUpdateLeadThrowsUnauthorized(DEFAULT_LEAD_ID);
 
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-                Authorizations.UPDATE_LEADS_PERMISSION + "')";
+                // Act
+                ResponseEntity<?> response = controller.updateLead(DEFAULT_LEAD_ID, testLeadRequest);
 
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                "PreAuthorize annotation should reference UPDATE_LEADS_PERMISSION");
-    }
+                // Assert
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        }
 
-    /**
-     * Purpose: Verify controller calls service when authorization passes
-     * (simulated).
-     * Expected Result: Service method is called and correct HTTP status is
-     * returned.
-     * Assertions: Service called once, HTTP status is correct.
-     * 
-     * Note: This test simulates the happy path assuming authorization has already
-     * passed.
-     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
-     * in end-to-end tests.
-     */
-    @Test
-    @DisplayName("Update Lead - Controller delegates to service correctly")
-    void updateLead_WithValidRequest_DelegatesToService() {
-        // Arrange
-        LeadController controller = new LeadController(leadServiceMock);
+        /**
+         * Purpose: Verify @PreAuthorize annotation is declared on updateLead method.
+         * Expected Result: Method has @PreAuthorize annotation with correct permission.
+         * Assertions: Annotation exists and references UPDATE_LEADS_PERMISSION.
+         */
+        @Test
+        @DisplayName("Update Lead - Verify @PreAuthorize annotation is configured correctly")
+        void updateLead_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+                // Arrange - Use reflection to verify the @PreAuthorize annotation is present
+                var method = LeadController.class.getMethod("updateLead",
+                                Long.class, com.example.SpringApi.Models.RequestModels.LeadRequestModel.class);
+
+                // Act
+                var preAuthorizeAnnotation = method.getAnnotation(
+                                org.springframework.security.access.prepost.PreAuthorize.class);
+
+                // Assert
+                assertNotNull(preAuthorizeAnnotation,
+                                "updateLead method should have @PreAuthorize annotation");
+
+                String expectedPermission = "@customAuthorization.hasAuthority('" +
+                                Authorizations.UPDATE_LEADS_PERMISSION + "')";
+
+                assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                                "PreAuthorize annotation should reference UPDATE_LEADS_PERMISSION");
+        }
+
+        /**
+         * Purpose: Verify controller calls service when authorization passes
+         * (simulated).
+         * Expected Result: Service method is called and correct HTTP status is
+         * returned.
+         * Assertions: Service called once, HTTP status is correct.
+         * 
+         * Note: This test simulates the happy path assuming authorization has already
+         * passed.
+         * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
+         * in end-to-end tests.
+         */
+        @Test
+        @DisplayName("Update Lead - Controller delegates to service correctly")
+        void updateLead_WithValidRequest_DelegatesToService() {
+                // Arrange
+                LeadController controller = new LeadController(leadServiceMock);
                 stubLeadServiceUpdateLeadDoNothing(DEFAULT_LEAD_ID);
 
-        // Act - Call controller directly (simulating authorization has already passed)
-        ResponseEntity<?> response = controller.updateLead(DEFAULT_LEAD_ID, testLeadRequest);
+                // Act - Call controller directly (simulating authorization has already passed)
+                ResponseEntity<?> response = controller.updateLead(DEFAULT_LEAD_ID, testLeadRequest);
 
-        // Assert - Verify service was called and correct response returned
-        verify(leadServiceMock, times(1)).updateLead(DEFAULT_LEAD_ID, testLeadRequest);
-        assertEquals(HttpStatus.OK, response.getStatusCode(),
-                "Should return HTTP 200 OK");
-    }
+                // Assert - Verify service was called and correct response returned
+                verify(leadServiceMock, times(1)).updateLead(DEFAULT_LEAD_ID, testLeadRequest);
+                assertEquals(HttpStatus.OK, response.getStatusCode(),
+                                "Should return HTTP 200 OK");
+        }
 }

@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("GetUnreadMessageCount Tests")
 class GetUnreadMessageCountTest extends MessageServiceTestBase {
 
-    // Total Tests: 11
+    // Total Tests: 12
 
     /*
      **********************************************************************************************
@@ -208,6 +208,25 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
      */
 
     /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("getUnreadMessageCount - Controller permission unauthorized - Success")
+    void getUnreadMessageCount_controller_permission_unauthorized() {
+        // Arrange
+        MessageController controller = new MessageController(messageServiceMock);
+        stubMessageServiceGetUnreadMessageCountThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.getUnreadMessageCount();
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
      * Purpose: Verify that the getUnreadMessageCount controller method is protected
      * by correct @PreAuthorize permission.
      * Expected: Method has @PreAuthorize referencing VIEW_MESSAGES_PERMISSION.
@@ -245,25 +264,5 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
         // Assert
         verify(messageServiceMock).getUnreadMessageCount();
         assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
-
-    /**
-     * Purpose: Verify unauthorized access is handled at the controller level.
-     * Expected Result: Unauthorized status is returned.
-     * Assertions: Response status is 401 UNAUTHORIZED.
-     */
-    @Test
-    @DisplayName("getUnreadMessageCount - Controller permission unauthorized - Success")
-    void getUnreadMessageCount_controller_permission_unauthorized() {
-        // Arrange
-        MessageController controller = new MessageController(messageServiceMock);
-        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(messageServiceMock).getUnreadMessageCount();
-
-        // Act
-        ResponseEntity<?> response = controller.getUnreadMessageCount();
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }

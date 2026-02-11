@@ -166,11 +166,11 @@ public class ToggleMessageTest extends MessageServiceTestBase {
     void toggleMessage_RepositorySaveError_Propagates() {
         // Arrange
         stubMessageRepositoryFindByMessageIdAndClientIdIncludingDeleted(Optional.of(testMessage));
-        stubMessageRepositorySaveThrowsRuntimeException("DB Error");
+        stubMessageRepositorySaveThrowsRuntimeException(ErrorMessages.MessagesErrorMessages.DbError);
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.toggleMessage(TEST_MESSAGE_ID));
-        assertEquals("DB Error", ex.getMessage());
+        assertEquals(ErrorMessages.MessagesErrorMessages.DbError, ex.getMessage());
     }
 
     /**
@@ -213,13 +213,32 @@ public class ToggleMessageTest extends MessageServiceTestBase {
      */
 
     /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("Toggle Message - Controller permission unauthorized - Success")
+    void toggleMessage_controller_permission_unauthorized() {
+        // Arrange
+        MessageController controller = new MessageController(messageServiceMock);
+        stubMessageServiceToggleMessageThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.toggleMessage(TEST_MESSAGE_ID);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
      * Purpose: Verify that the toggleMessage controller method is protected by
      * correct @PreAuthorize permission.
      * Expected: Method has @PreAuthorize referencing DELETE_MESSAGES_PERMISSION.
      */
     @Test
     @DisplayName("toggleMessage - Verify @PreAuthorize Annotation")
-    void toggleMessage_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void toggleMessage_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = MessageController.class.getMethod("toggleMessage", Long.class);
 

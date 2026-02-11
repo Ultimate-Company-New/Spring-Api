@@ -12,6 +12,7 @@ import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Exceptions.UnauthorizedException;
+import com.example.SpringApi.Exceptions.PermissionException;
 import com.example.SpringApi.Logging.ContextualLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -148,6 +149,10 @@ public class UserController {
             logger.error(ue);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(
                     ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+        } catch (PermissionException pe) {
+            logger.error(pe);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponseModel(
+                    "Forbidden", pe.getMessage(), HttpStatus.FORBIDDEN.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -148,7 +148,7 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
          */
         @Test
         @DisplayName("Get Messages By User ID - Success")
-        void getMessagesByUserId_Success() {
+        void getMessagesByUserId_Success_Success() {
                 // Arrange
                 PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
                 paginationRequest.setId(TEST_USER_ID);
@@ -251,9 +251,10 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
         @Test
         @DisplayName("Get Messages By User ID - Null pagination request - ThrowsNullPointerException")
         void getMessagesByUserId_NullPaginationRequest_ThrowsNullPointerException() {
-                // Arrange & Act & Assert
-                assertThrows(NullPointerException.class,
+                // Act & Assert
+                NullPointerException ex = assertThrows(NullPointerException.class,
                                 () -> messageService.getMessagesByUserId(null));
+                assertEquals(ErrorMessages.MessagesErrorMessages.NullPaginationRequest, ex.getMessage());
         }
 
         /**
@@ -267,12 +268,12 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
                 paginationRequest.setId(TEST_USER_ID);
                 stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
-                stubMessageRepositoryFindMessagesByUserIdPaginatedThrows("Page error");
+                stubMessageRepositoryFindMessagesByUserIdPaginatedThrows(ErrorMessages.MessagesErrorMessages.PageError);
 
                 // Act & Assert
                 RuntimeException ex = assertThrows(RuntimeException.class,
                                 () -> messageService.getMessagesByUserId(paginationRequest));
-                assertEquals("Page error", ex.getMessage());
+                assertEquals(ErrorMessages.MessagesErrorMessages.PageError, ex.getMessage());
         }
 
         /**
@@ -324,12 +325,12 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 // Arrange
                 PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
                 paginationRequest.setId(TEST_USER_ID);
-                stubUserRepositoryFindByUserIdAndClientIdThrows("User DB Error");
+                stubUserRepositoryFindByUserIdAndClientIdThrows(ErrorMessages.MessagesErrorMessages.UserDbError);
 
                 // Act & Assert
                 RuntimeException ex = assertThrows(RuntimeException.class,
                                 () -> messageService.getMessagesByUserId(paginationRequest));
-                assertEquals("User DB Error", ex.getMessage());
+                assertEquals(ErrorMessages.MessagesErrorMessages.UserDbError, ex.getMessage());
         }
 
         /**
@@ -355,13 +356,32 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
          */
 
         /**
+         * Purpose: Verify unauthorized access is handled at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+        @Test
+        @DisplayName("getMessagesByUserId - Controller permission unauthorized - Success")
+        void getMessagesByUserId_controller_permission_unauthorized() {
+                // Arrange
+                MessageController controller = new MessageController(messageServiceMock);
+                stubMessageServiceGetMessagesByUserIdThrowsUnauthorized();
+
+                // Act
+                ResponseEntity<?> response = controller.getMessagesByUserId(createValidPaginationRequest());
+
+                // Assert
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        }
+
+        /**
          * Purpose: Verify that the getMessagesByUserId controller method is protected
          * by correct @PreAuthorize permission.
          * Expected: Method has @PreAuthorize referencing VIEW_MESSAGES_PERMISSION.
          */
         @Test
         @DisplayName("getMessagesByUserId - Verify @PreAuthorize annotation")
-        void getMessagesByUserId_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        void getMessagesByUserId_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
                 // Arrange
                 Method method = MessageController.class.getMethod(
                                 "getMessagesByUserId",

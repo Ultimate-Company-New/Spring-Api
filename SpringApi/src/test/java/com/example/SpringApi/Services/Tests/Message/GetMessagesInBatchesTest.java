@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("GetMessagesInBatches Tests")
 public class GetMessagesInBatchesTest extends MessageServiceTestBase {
 
-    // Total Tests: 6
+    // Total Tests: 7
 
     /*
      **********************************************************************************************
@@ -145,6 +145,25 @@ public class GetMessagesInBatchesTest extends MessageServiceTestBase {
      */
 
     /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("getMessagesInBatches - Controller permission unauthorized - Success")
+    void getMessagesInBatches_controller_permission_unauthorized() {
+        // Arrange
+        MessageController controller = new MessageController(messageServiceMock);
+        stubMessageServiceGetMessagesInBatchesThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.getMessagesInBatches(createValidPaginationRequest());
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
      * Purpose: Verify that the getMessagesInBatches controller method is protected
      * by correct @PreAuthorize permission.
      * Expected: Method has @PreAuthorize referencing VIEW_MESSAGES_PERMISSION.
@@ -169,26 +188,6 @@ public class GetMessagesInBatchesTest extends MessageServiceTestBase {
 
         assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
                 "PreAuthorize annotation should reference VIEW_MESSAGES_PERMISSION");
-    }
-
-    /**
-     * Purpose: Verify unauthorized access is handled at the controller level.
-     * Expected Result: Unauthorized status is returned.
-     * Assertions: Response status is 401 UNAUTHORIZED.
-     */
-    @Test
-    @DisplayName("getMessagesInBatches - Controller permission unauthorized - Success")
-    void getMessagesInBatches_controller_permission_unauthorized() {
-        // Arrange
-        MessageController controller = new MessageController(messageServiceMock);
-        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(messageServiceMock).getMessagesInBatches(any());
-
-        // Act
-        ResponseEntity<?> response = controller.getMessagesInBatches(createValidPaginationRequest());
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
     /**

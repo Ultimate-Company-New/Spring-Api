@@ -22,11 +22,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserService.bulkCreateUsersAsync method.
  * 
- * Total Tests: 11
+ * Total Tests: 10
  */
 @DisplayName("UserService - BulkCreateUsersAsync Tests")
 class BulkCreateUsersAsyncTest extends UserServiceTestBase {
-    // Total Tests: 11
+    // Total Tests: 10
 
     // ========================================
     // SUCCESS TESTS
@@ -170,7 +170,8 @@ class BulkCreateUsersAsyncTest extends UserServiceTestBase {
                 () -> userService.bulkCreateUsersAsync(users, TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID));
 
         // Assert
-        assertEquals(ErrorMessages.ERROR_BAD_REQUEST, exception.getMessage());
+        assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "User"),
+                exception.getMessage());
     }
 
     /**
@@ -188,7 +189,8 @@ class BulkCreateUsersAsyncTest extends UserServiceTestBase {
                 () -> userService.bulkCreateUsersAsync(null, TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID));
 
         // Assert
-        assertEquals(ErrorMessages.ERROR_BAD_REQUEST, exception.getMessage());
+        assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "User"),
+                exception.getMessage());
     }
 
     // ========================================
@@ -197,37 +199,27 @@ class BulkCreateUsersAsyncTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify controller handles unauthorized access via HTTP status.
-     * Expected Result: HTTP UNAUTHORIZED status returned.
-     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     * Expected Result: HTTP UNAUTHORIZED status returned and @PreAuthorize
+     * verified.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()),
+     * assertNotNull, assertTrue
      */
     @Test
     @DisplayName("bulkCreateUsersAsync - Controller permission forbidden")
-    void bulkCreateUsersAsync_controller_permission_forbidden() {
+    void bulkCreateUsersAsync_controller_permission_forbidden() throws NoSuchMethodException {
         // Arrange
-        stubServiceThrowsUnauthorizedException();
-
-        // Act
-        ResponseEntity<?> response = userControllerWithMock.bulkCreateUsers(new ArrayList<>());
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
-    /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
-     * Expected Result: The method should be annotated with CREATE_USER_PERMISSION.
-     * Assertions: assertNotNull, assertTrue
-     */
-    @Test
-    @DisplayName("bulkCreateUsersAsync - Verify @PreAuthorize Annotation")
-    void bulkCreateUsersAsync_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
+        stubMockUserServiceGetUserId(TEST_USER_ID);
+        stubMockUserServiceGetUser(TEST_LOGIN_NAME);
+        stubMockUserServiceGetClientId(TEST_CLIENT_ID);
+        stubMockUserServiceBulkCreateUsersAsyncThrowsUnauthorized(null);
         Method method = UserController.class.getMethod("bulkCreateUsers", List.class);
 
         // Act
+        ResponseEntity<?> response = userControllerWithMock.bulkCreateUsers(new ArrayList<>());
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
         // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertNotNull(annotation, "@PreAuthorize annotation should be present on bulkCreateUsers method");
         assertTrue(annotation.value().contains(Authorizations.CREATE_USER_PERMISSION),
                 "@PreAuthorize annotation should check for CREATE_USER_PERMISSION");
@@ -245,9 +237,14 @@ class BulkCreateUsersAsyncTest extends UserServiceTestBase {
         List<UserRequestModel> users = createValidUserList(1);
 
         // Act
-        userControllerWithMock.bulkCreateUsers(users);
+        stubMockUserServiceGetUserId(TEST_USER_ID);
+        stubMockUserServiceGetUser(TEST_LOGIN_NAME);
+        stubMockUserServiceGetClientId(TEST_CLIENT_ID);
+        stubMockUserServiceBulkCreateUsersAsync(users);
+        ResponseEntity<?> response = userControllerWithMock.bulkCreateUsers(users);
 
         // Assert
         verify(mockUserService, times(1)).bulkCreateUsersAsync(eq(users), any(), any(), any());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("CreateMessage Tests")
 class CreateMessageTest extends MessageServiceTestBase {
 
-    // Total Tests: 30
+    // Total Tests: 31
 
     /*
      **********************************************************************************************
@@ -158,37 +158,6 @@ class CreateMessageTest extends MessageServiceTestBase {
     }
 
     /**
-     * Purpose: Verify that an email is sent to recipients when sendAsEmail is true
-     * and recipients are found.
-     * Scenario: CreateMessage with sendAsEmail=true and repository returns a list
-     * of recipient emails.
-     * Expected: EmailTemplates.sendMessageEmail is called with correct parameters.
-     */
-    @Test
-    @DisplayName("Create Message - SendAsEmail true with recipients - Sends email")
-    void createMessage_SendAsEmailWithRecipients_SendsEmail() {
-        // Arrange
-        validRequest.setSendAsEmail(true);
-        validRequest.setPublishDate(LocalDateTime.now(ZoneOffset.UTC).plusHours(1));
-        testMessage.setSendAsEmail(true);
-        testMessage.setDescriptionHtml(TEST_DESC_HTML);
-
-        stubClientRepositoryFindById(Optional.of(testClient));
-        stubMessageRepositorySave(testMessage);
-        stubUserRepositoryFindAllUserEmails(List.of(TEST_EMAIL));
-
-        // Act & Assert
-        try (MockedConstruction<EmailHelper> emailHelperMock = stubEmailHelperGenerateBatchId("batch-email");
-            MockedConstruction<EmailTemplates> templatesMock = stubEmailTemplatesSendEmail(true)) {
-            assertDoesNotThrow(() -> messageService.createMessage(validRequest));
-
-            EmailTemplates constructed = templatesMock.constructed().get(0);
-            verify(constructed).sendMessageEmail(eq(List.of(TEST_EMAIL)), eq(TEST_TITLE), eq(TEST_DESC_HTML), any(),
-                    any());
-        }
-    }
-
-    /**
      * Purpose: Verify that no batch ID is generated when an immediate email (no
      * publishDate) is created.
      * Scenario: CreateMessage with sendAsEmail=true but null publishDate.
@@ -238,6 +207,37 @@ class CreateMessageTest extends MessageServiceTestBase {
                     .forClass(com.example.SpringApi.Models.DatabaseModels.Message.class);
             verify(messageRepository).save(messageCaptor.capture());
             assertEquals("batch-123", messageCaptor.getValue().getSendgridEmailBatchId());
+        }
+    }
+
+    /**
+     * Purpose: Verify that an email is sent to recipients when sendAsEmail is true
+     * and recipients are found.
+     * Scenario: CreateMessage with sendAsEmail=true and repository returns a list
+     * of recipient emails.
+     * Expected: EmailTemplates.sendMessageEmail is called with correct parameters.
+     */
+    @Test
+    @DisplayName("Create Message - SendAsEmail true with recipients - Sends email")
+    void createMessage_SendAsEmailWithRecipients_SendsEmail() {
+        // Arrange
+        validRequest.setSendAsEmail(true);
+        validRequest.setPublishDate(LocalDateTime.now(ZoneOffset.UTC).plusHours(1));
+        testMessage.setSendAsEmail(true);
+        testMessage.setDescriptionHtml(TEST_DESC_HTML);
+
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySave(testMessage);
+        stubUserRepositoryFindAllUserEmails(List.of(TEST_EMAIL));
+
+        // Act & Assert
+        try (MockedConstruction<EmailHelper> emailHelperMock = stubEmailHelperGenerateBatchId("batch-email");
+            MockedConstruction<EmailTemplates> templatesMock = stubEmailTemplatesSendEmail(true)) {
+            assertDoesNotThrow(() -> messageService.createMessage(validRequest));
+
+            EmailTemplates constructed = templatesMock.constructed().get(0);
+            verify(constructed).sendMessageEmail(eq(List.of(TEST_EMAIL)), eq(TEST_TITLE), eq(TEST_DESC_HTML), any(),
+                    any());
         }
     }
 
@@ -594,7 +594,26 @@ class CreateMessageTest extends MessageServiceTestBase {
      * controller level.
      * These tests check that @PreAuthorize annotations are present and correctly
      * configured.
+    */
+
+    /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
      */
+    @Test
+    @DisplayName("Create Message - Controller permission unauthorized - Success")
+    void createMessage_controller_permission_unauthorized() {
+        // Arrange
+        MessageController controller = new MessageController(messageServiceMock);
+        stubMessageServiceCreateMessageThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.createMessage(validRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
 
     /**
      * Purpose: Verify that the createMessage controller method is protected by
@@ -621,26 +640,6 @@ class CreateMessageTest extends MessageServiceTestBase {
 
         assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
                 "PreAuthorize annotation should reference INSERT_MESSAGES_PERMISSION");
-    }
-
-    /**
-     * Purpose: Verify unauthorized access is handled at the controller level.
-     * Expected Result: Unauthorized status is returned.
-     * Assertions: Response status is 401 UNAUTHORIZED.
-     */
-    @Test
-    @DisplayName("Create Message - Controller permission unauthorized - Success")
-    void createMessage_controller_permission_unauthorized() {
-        // Arrange
-        MessageController controller = new MessageController(messageServiceMock);
-        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(messageServiceMock).createMessage(any());
-
-        // Act
-        ResponseEntity<?> response = controller.createMessage(validRequest);
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
     /**

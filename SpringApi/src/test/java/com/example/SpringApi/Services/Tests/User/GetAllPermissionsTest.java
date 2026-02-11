@@ -20,13 +20,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for UserService.getAllPermissions method.
- * 
- * Total Tests: 8
+ * Unit cases for UserService.getAllPermissions method.
  */
 @DisplayName("UserService - GetAllPermissions Tests")
 class GetAllPermissionsTest extends UserServiceTestBase {
-    // Total Tests: 8
+    // Total Tests: 7
 
     // ========================================
     // SUCCESS TESTS
@@ -39,7 +37,7 @@ class GetAllPermissionsTest extends UserServiceTestBase {
      */
     @Test
     @DisplayName("getAllPermissions - Success - All Deleted Returns Empty")
-    void getAllPermissions_Success_AllDeletedReturnsEmpty() {
+    void getAllPermissions_allDeletedReturnsEmpty_success() {
         // Arrange
         Permission p1 = createPermission(1L, "p1", "desc1", true);
         stubPermissionRepositoryFindAll(Collections.singletonList(p1));
@@ -58,7 +56,7 @@ class GetAllPermissionsTest extends UserServiceTestBase {
      */
     @Test
     @DisplayName("getAllPermissions - Success - Empty List")
-    void getAllPermissions_Success_EmptyList() {
+    void getAllPermissions_emptyList_success() {
         // Arrange
         stubPermissionRepositoryFindAll(Collections.emptyList());
 
@@ -76,7 +74,7 @@ class GetAllPermissionsTest extends UserServiceTestBase {
      */
     @Test
     @DisplayName("getAllPermissions - Success - Filters Deleted Permissions")
-    void getAllPermissions_Success_FiltersDeletedPermissions() {
+    void getAllPermissions_filtersDeletedPermissions_success() {
         // Arrange
         Permission p1 = createPermission(1L, "p1", "desc1", false);
         Permission p2 = createPermission(2L, "p2", "desc2", true); // Deleted
@@ -97,7 +95,7 @@ class GetAllPermissionsTest extends UserServiceTestBase {
      */
     @Test
     @DisplayName("getAllPermissions - Success - Returns Non-Deleted Permissions")
-    void getAllPermissions_Success_ReturnsNonDeletedPermissions() {
+    void getAllPermissions_returnsNonDeletedPermissions_success() {
         // Arrange
         Permission p1 = createPermission(1L, "p1", "desc1", false);
         Permission p2 = createPermission(2L, "p2", "desc2", false);
@@ -119,7 +117,7 @@ class GetAllPermissionsTest extends UserServiceTestBase {
      */
     @Test
     @DisplayName("getAllPermissions - Success - Sorts by Permission ID Ascending")
-    void getAllPermissions_Success_SortsByPermissionIdAsc() {
+    void getAllPermissions_sortsByPermissionIdAsc_success() {
         // Arrange
         Permission p1 = createPermission(1L, "p1", "desc1", false);
         Permission p2 = createPermission(2L, "p2", "desc2", false);
@@ -146,37 +144,24 @@ class GetAllPermissionsTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify controller handles unauthorized access via HTTP status.
-     * Expected Result: HTTP UNAUTHORIZED status returned.
-     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     * Expected Result: HTTP UNAUTHORIZED status returned and @PreAuthorize
+     * verified.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()),
+     * assertNotNull, assertTrue
      */
     @Test
     @DisplayName("getAllPermissions - Controller permission forbidden")
-    void getAllPermissions_controller_permission_forbidden() {
+    void getAllPermissions_controller_permission_forbidden() throws NoSuchMethodException {
         // Arrange
-        stubServiceThrowsUnauthorizedException();
-
-        // Act
-        ResponseEntity<?> response = userControllerWithMock.getAllPermissions();
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
-    /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
-     * Expected Result: The method should be annotated with CREATE_USER_PERMISSION.
-     * Assertions: assertNotNull, assertTrue
-     */
-    @Test
-    @DisplayName("getAllPermissions - Verify @PreAuthorize Annotation")
-    void getAllPermissions_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
+        stubMockUserServiceGetAllPermissionsThrowsUnauthorized();
         Method method = UserController.class.getMethod("getAllPermissions");
 
         // Act
+        ResponseEntity<?> response = userControllerWithMock.getAllPermissions();
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
         // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertNotNull(annotation, "getAllPermissions method should have @PreAuthorize annotation");
         assertTrue(annotation.value().contains(Authorizations.CREATE_USER_PERMISSION),
                 "@PreAuthorize annotation should check for CREATE_USER_PERMISSION");

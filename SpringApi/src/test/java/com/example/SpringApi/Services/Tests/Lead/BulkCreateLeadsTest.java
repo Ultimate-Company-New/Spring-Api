@@ -23,12 +23,12 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for LeadService.bulkCreateLeads() method.
  * Tests bulk creation of leads with various validation scenarios.
- * * Test Count: 15 tests
+ * * Test Count: 16 tests
  */
 @DisplayName("Bulk Create Leads Tests")
 class BulkCreateLeadsTest extends LeadServiceTestBase {
 
-     // Total Tests: 15
+    // Total Tests: 16
 
     /*
      **********************************************************************************************
@@ -348,7 +348,8 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
     }
 
     /**
-     * Purpose: If some leads in batch fail validation/repository, service handles appropriately.
+     * Purpose: If some leads in batch fail validation/repository, service handles
+     * appropriately.
      * Given: Batch of 5 leads, 1 invalid; stub repository to handle this
      * When: bulkCreateLeads is called
      * Then: Returned result contains failure entry for invalid lead
@@ -366,22 +367,15 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         }
         // Make one invalid
         leads.get(2).setEmail(null);
-        
+
         stubLeadRepositorySaveAssignsId();
-        
+
         // Act
         var result = leadService.bulkCreateLeads(leads);
-        
+
         // Assert - verify at least one failure reported
         assertTrue(result.getFailureCount() >= 1, "Expected at least one failure in batch");
     }
-
-    /**
-     * Purpose: Ensure service enforces max batch size and rejects too-large batches.
-     * Given: Batch size > configured max (e.g., 1000)
-     * When: bulkCreateLeads is called with oversized list
-     * Then: BadRequestException is thrown with batch size error message
-     */
 
     /*
      **********************************************************************************************
@@ -394,6 +388,26 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
      */
 
     /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("Bulk Create Leads - Controller permission unauthorized - Success")
+    void bulkCreateLeads_controller_permission_unauthorized() {
+        // Arrange
+        stubLeadServiceBulkCreateLeadsAsyncThrowsUnauthorized();
+        LeadController controller = new LeadController(leadServiceMock);
+        List<LeadRequestModel> leads = new ArrayList<>();
+
+        // Act
+        ResponseEntity<?> response = controller.bulkCreateLeads(leads);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
      * Purpose: Verify @PreAuthorize annotation is declared on bulkCreateLeads
      * method.
      * Expected Result: Method has @PreAuthorize annotation with correct permission.
@@ -401,7 +415,7 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Leads - Verify @PreAuthorize annotation is configured correctly")
-        void bulkCreateLeads_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void bulkCreateLeads_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         var method = LeadController.class.getMethod("bulkCreateLeads",
                 java.util.List.class);
@@ -422,31 +436,6 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
     }
 
     /**
-     * Purpose: Verify unauthorized access is handled at the controller level.
-     * Expected Result: Unauthorized status is returned.
-     * Assertions: Response status is 401 UNAUTHORIZED.
-     */
-    @Test
-    @DisplayName("Bulk Create Leads - Controller permission unauthorized - Success")
-    void bulkCreateLeads_controller_permission_unauthorized() {
-        // Arrange
-        LeadService service = mock(LeadService.class);
-        LeadController controller = new LeadController(service);
-        List<LeadRequestModel> leads = new ArrayList<>();
-        doReturn(TEST_CLIENT_ID).when(service).getClientId();
-        doReturn(DEFAULT_USER_ID).when(service).getUserId();
-        doReturn(DEFAULT_LOGIN_NAME).when(service).getUser();
-        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(service).bulkCreateLeadsAsync(anyList(), anyLong(), anyString(), anyLong());
-
-        // Act
-        ResponseEntity<?> response = controller.bulkCreateLeads(leads);
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
-    /**
      * Purpose: Verify controller calls service when authorization passes
      * (simulated).
      * Expected Result: Service method is called and correct HTTP status is
@@ -462,7 +451,7 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
     @DisplayName("Bulk Create Leads - Controller delegates to service correctly")
     void bulkCreateLeads_WithValidRequest_DelegatesToService() {
         // Arrange
-        LeadController controller = new LeadController(leadService);
+        LeadController controller = new LeadController(leadServiceMock);
         List<LeadRequestModel> leads = new ArrayList<>();
         leads.add(createValidLeadRequest(null, TEST_CLIENT_ID));
 
@@ -472,5 +461,10 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         // Assert - Verify correct response returned (async method is fire-and-forget)
         assertEquals(HttpStatus.OK, response.getStatusCode(),
                 "Should return HTTP 200 OK");
+
+        // Check if asynchronous method was called on the service
+        // Since we are using a mock, we can verify this call
+        // Note: bulkCreateLeads calls bulkCreateLeadsAsync
+        verify(leadServiceMock).bulkCreateLeadsAsync(anyList(), anyLong(), anyString(), anyLong());
     }
 }

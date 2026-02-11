@@ -2,6 +2,7 @@ package com.example.SpringApi.Services.Tests.User;
 
 import com.example.SpringApi.FilterQueryBuilder.UserFilterQueryBuilder;
 import com.example.SpringApi.Helpers.PasswordHelper;
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
@@ -10,6 +11,9 @@ import com.example.SpringApi.Repositories.*;
 import com.example.SpringApi.Services.ClientService;
 import com.example.SpringApi.Services.UserLogService;
 import com.example.SpringApi.Services.UserService;
+import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.SpringApi.Models.ResponseModels.PermissionResponseModel;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -121,6 +125,22 @@ public abstract class UserServiceTestBase {
         stubEnvironmentActiveProfiles(new String[] { "localhost" });
         stubEnvironmentImageLocation("firebase");
         ReflectionTestUtils.setField(userService, "imageLocation", "imgbb");
+
+        lenient().when(mockUserService.getUserId()).thenReturn(TEST_USER_ID);
+        lenient().when(mockUserService.getUser()).thenReturn(TEST_LOGIN_NAME);
+        lenient().when(mockUserService.getClientId()).thenReturn(TEST_CLIENT_ID);
+    }
+
+    protected void stubMockUserServiceGetUserId(Long userId) {
+        lenient().when(mockUserService.getUserId()).thenReturn(userId);
+    }
+
+    protected void stubMockUserServiceGetUser(String username) {
+        lenient().when(mockUserService.getUser()).thenReturn(username);
+    }
+
+    protected void stubMockUserServiceGetClientId(Long clientId) {
+        lenient().when(mockUserService.getClientId()).thenReturn(clientId);
     }
 
     // ==========================================
@@ -304,62 +324,103 @@ public abstract class UserServiceTestBase {
         lenient().doNothing().when(userGroupUserMapRepository).deleteByUserId(anyLong());
     }
 
-    // ==========================================
-    // MOCK USER SERVICE STUBS (For Controller Tests)
-    // ==========================================
-
-    protected void stubMockUserServiceBulkCreateUsersAsync() {
-        lenient().doNothing().when(mockUserService).bulkCreateUsersAsync(anyList(), anyLong(), anyString(), anyLong());
+    protected void stubMockUserServiceCreateUserThrowsUnauthorized(UserRequestModel request) {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockUserService).createUser(any(UserRequestModel.class));
     }
 
-    protected void stubMockUserServiceConfirmEmail(Long userId, String token) {
-        lenient().doNothing().when(mockUserService).confirmEmail(userId, token);
+    protected void stubMockUserServiceCreateUserThrowsForbidden(UserRequestModel request) {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.PermissionException("Forbidden"))
+                .when(mockUserService).createUser(any(UserRequestModel.class));
     }
 
-    protected void stubMockUserServiceCreateUser(UserRequestModel userRequest) {
-        lenient().doNothing().when(mockUserService).createUser(userRequest);
+    protected void stubMockUserServiceCreateUser(UserRequestModel request) {
+        lenient().doNothing().when(mockUserService).createUser(any(UserRequestModel.class));
     }
 
-    protected void stubMockUserServiceGetAllPermissions(
-            List<com.example.SpringApi.Models.ResponseModels.PermissionResponseModel> result) {
-        lenient().when(mockUserService.getAllPermissions()).thenReturn(result);
+    protected void stubMockUserServiceUpdateUserThrowsUnauthorized(UserRequestModel request) {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockUserService).updateUser(any(UserRequestModel.class));
+    }
+
+    protected void stubMockUserServiceUpdateUserThrowsForbidden(UserRequestModel request) {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.PermissionException("Forbidden"))
+                .when(mockUserService).updateUser(any(UserRequestModel.class));
+    }
+
+    protected void stubMockUserServiceUpdateUser(UserRequestModel request) {
+        lenient().doNothing().when(mockUserService).updateUser(any(UserRequestModel.class));
+    }
+
+    protected void stubMockUserServiceToggleUserThrowsUnauthorized(Long id) {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockUserService).toggleUser(anyLong());
+    }
+
+    protected void stubMockUserServiceToggleUserThrowsForbidden(Long id) {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.PermissionException("Forbidden"))
+                .when(mockUserService).toggleUser(anyLong());
+    }
+
+    protected void stubMockUserServiceToggleUser(Long id) {
+        lenient().doNothing().when(mockUserService).toggleUser(anyLong());
+    }
+
+    protected void stubMockUserServiceFetchUsersInCarrierInBatchesThrowsUnauthorized(UserRequestModel request) {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockUserService).fetchUsersInCarrierInBatches(any(UserRequestModel.class));
+    }
+
+    protected void stubMockUserServiceFetchUsersInCarrierInBatches(UserRequestModel request) {
+        lenient().when(mockUserService.fetchUsersInCarrierInBatches(any(UserRequestModel.class)))
+                .thenReturn(new PaginationBaseResponseModel<>());
+    }
+
+    protected void stubMockUserServiceConfirmEmailThrowsUnauthorized(Long id, String token) {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockUserService).confirmEmail(anyLong(), anyString());
+    }
+
+    protected void stubMockUserServiceConfirmEmail(Long id, String token) {
+        lenient().doNothing().when(mockUserService).confirmEmail(anyLong(), anyString());
+    }
+
+    protected void stubMockUserServiceGetAllPermissionsThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockUserService).getAllPermissions();
+    }
+
+    protected void stubMockUserServiceGetAllPermissions(List<PermissionResponseModel> permissions) {
+        lenient().when(mockUserService.getAllPermissions()).thenReturn(permissions);
+    }
+
+    protected void stubMockUserServiceGetUserByEmailThrowsUnauthorized(String email) {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockUserService).getUserByEmail(anyString());
     }
 
     protected void stubMockUserServiceGetUserByEmail(String email,
-            com.example.SpringApi.Models.ResponseModels.UserResponseModel result) {
-        lenient().when(mockUserService.getUserByEmail(email)).thenReturn(result);
+            com.example.SpringApi.Models.ResponseModels.UserResponseModel response) {
+        lenient().when(mockUserService.getUserByEmail(anyString())).thenReturn(response);
     }
 
-    protected void stubMockUserServiceGetUserById(Long userId,
-            com.example.SpringApi.Models.ResponseModels.UserResponseModel result) {
-        lenient().when(mockUserService.getUserById(userId)).thenReturn(result);
+    protected void stubMockUserServiceGetUserByIdThrowsUnauthorized(Long id) {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockUserService).getUserById(anyLong());
     }
 
-    protected void stubMockUserServiceToggleUser(Long userId) {
-        lenient().doNothing().when(mockUserService).toggleUser(userId);
+    protected void stubMockUserServiceGetUserById(Long id,
+            com.example.SpringApi.Models.ResponseModels.UserResponseModel response) {
+        lenient().when(mockUserService.getUserById(anyLong())).thenReturn(response);
     }
 
-    protected void stubMockUserServiceUpdateUser(UserRequestModel userRequest) {
-        lenient().doNothing().when(mockUserService).updateUser(userRequest);
+    protected void stubMockUserServiceBulkCreateUsersAsyncThrowsUnauthorized(List<UserRequestModel> users) {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockUserService).bulkCreateUsersAsync(anyList(), anyLong(), anyString(), anyLong());
     }
 
-    protected void stubMockUserServiceFetchUsersInCarrierInBatches(
-            com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel<com.example.SpringApi.Models.ResponseModels.UserResponseModel> result) {
-        lenient().when(mockUserService.fetchUsersInCarrierInBatches(any(UserRequestModel.class))).thenReturn(result);
-    }
-
-    protected void stubServiceThrowsUnauthorizedException() {
-        com.example.SpringApi.Exceptions.UnauthorizedException ex = new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED);
-        lenient().doThrow(ex).when(mockUserService).bulkCreateUsersAsync(anyList(), anyLong(), anyString(), anyLong());
-        lenient().doThrow(ex).when(mockUserService).confirmEmail(anyLong(), anyString());
-        lenient().doThrow(ex).when(mockUserService).createUser(any());
-        lenient().when(mockUserService.getAllPermissions()).thenThrow(ex);
-        lenient().when(mockUserService.getUserByEmail(anyString())).thenThrow(ex);
-        lenient().when(mockUserService.getUserById(anyLong())).thenThrow(ex);
-        lenient().doThrow(ex).when(mockUserService).toggleUser(anyLong());
-        lenient().doThrow(ex).when(mockUserService).updateUser(any());
-        lenient().when(mockUserService.fetchUsersInCarrierInBatches(any())).thenThrow(ex);
+    protected void stubMockUserServiceBulkCreateUsersAsync(List<UserRequestModel> users) {
+        lenient().doNothing().when(mockUserService).bulkCreateUsersAsync(anyList(), anyLong(), anyString(), anyLong());
     }
 
     // Static and Construction Mocks
@@ -499,52 +560,52 @@ public abstract class UserServiceTestBase {
     }
 
     protected void testStringFilter(String column, String operator, String value) {
-        UserRequestModel paginationRequest = createBasicPaginationRequest();
+        UserRequestModel request = createBasicPaginationRequest();
         PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
         filter.setColumn(column);
         filter.setOperator(operator);
         filter.setValue(value);
-        paginationRequest.setFilters(Arrays.asList(filter));
-        paginationRequest.setLogicOperator("AND");
+        request.setFilters(Arrays.asList(filter));
+        request.setLogicOperator("AND");
 
         stubUserFilterQueryBuilderGetColumnType(column, "string");
         stubUserFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Arrays.asList(testUser)));
 
-        assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(paginationRequest));
+        assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(request));
     }
 
     protected void testNumberFilter(String column, String operator, String value) {
-        UserRequestModel paginationRequest = createBasicPaginationRequest();
+        UserRequestModel request = createBasicPaginationRequest();
         PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
         filter.setColumn(column);
         filter.setOperator(operator);
         filter.setValue(value);
-        paginationRequest.setFilters(Arrays.asList(filter));
-        paginationRequest.setLogicOperator("AND");
+        request.setFilters(Arrays.asList(filter));
+        request.setLogicOperator("AND");
 
         stubUserFilterQueryBuilderGetColumnType(column, "number");
         stubUserFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Arrays.asList(testUser)));
 
-        assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(paginationRequest));
+        assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(request));
     }
 
     protected void testBooleanFilter(String column, String operator, String value) {
-        UserRequestModel paginationRequest = createBasicPaginationRequest();
+        UserRequestModel request = createBasicPaginationRequest();
         PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
         filter.setColumn(column);
         filter.setOperator(operator);
         filter.setValue(value);
-        paginationRequest.setFilters(Arrays.asList(filter));
-        paginationRequest.setLogicOperator("AND");
+        request.setFilters(Arrays.asList(filter));
+        request.setLogicOperator("AND");
 
         stubUserFilterQueryBuilderGetColumnType(column, "boolean");
         stubUserFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Arrays.asList(testUser)));
 
-        assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(paginationRequest));
+        assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(request));
     }
 
     protected void testLogicOperator(String logicOperator) {
-        UserRequestModel paginationRequest = createBasicPaginationRequest();
+        UserRequestModel request = createBasicPaginationRequest();
         PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
         filter1.setColumn("firstName");
         filter1.setOperator("equals");
@@ -553,14 +614,14 @@ public abstract class UserServiceTestBase {
         filter2.setColumn("lastName");
         filter2.setOperator("equals");
         filter2.setValue("test");
-        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
-        paginationRequest.setLogicOperator(logicOperator);
+        request.setFilters(Arrays.asList(filter1, filter2));
+        request.setLogicOperator(logicOperator);
 
         stubUserFilterQueryBuilderGetColumnType("firstName", "string");
         stubUserFilterQueryBuilderGetColumnType("lastName", "string");
         stubUserFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Arrays.asList(testUser)));
 
-        assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(paginationRequest));
+        assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(request));
     }
 
     protected UserRequestModel createBasicPaginationRequest() {

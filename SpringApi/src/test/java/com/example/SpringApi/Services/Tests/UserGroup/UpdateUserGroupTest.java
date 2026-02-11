@@ -27,11 +27,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserGroupService.updateUserGroup method.
  * 
- * Total Tests: 16
+ * Total Tests: 15
  */
 @DisplayName("UserGroupService - UpdateUserGroup Tests")
 class UpdateUserGroupTest extends UserGroupServiceTestBase {
-    // Total Tests: 16
+    // Total Tests: 15
 
     // ========================================
     // SUCCESS TESTS
@@ -236,6 +236,25 @@ class UpdateUserGroupTest extends UserGroupServiceTestBase {
     }
 
     /**
+     * Purpose: Verify that updating a non-existent group throws NotFoundException.
+     * Expected Result: NotFoundException with InvalidId message.
+     * Assertions: assertThrows, assertEquals
+     */
+    @Test
+    @DisplayName("updateUserGroup - Failure - Not Found")
+    void updateUserGroup_notFound_throwsNotFoundException() {
+        // Arrange
+        stubUserGroupRepositoryFindById(TEST_GROUP_ID, Optional.empty());
+
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> userGroupService.updateUserGroup(testUserGroupRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /**
      * Purpose: Verify no users throws BadRequestException.
      * Expected Result: BadRequestException with ER004 message.
      * Assertions: assertThrows, assertEquals
@@ -250,23 +269,6 @@ class UpdateUserGroupTest extends UserGroupServiceTestBase {
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.updateUserGroup(testUserGroupRequest));
         assertEquals(ErrorMessages.UserGroupErrorMessages.ER004, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Verify group not found throws NotFoundException.
-     * Expected Result: NotFoundException with InvalidId message.
-     * Assertions: assertThrows, assertEquals
-     */
-    @Test
-    @DisplayName("updateUserGroup - Failure - Not Found")
-    void updateUserGroup_notFound_throwsNotFoundException() {
-        // Arrange
-        stubUserGroupRepositoryFindById(TEST_GROUP_ID, Optional.empty());
-
-        // Act & Assert
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> userGroupService.updateUserGroup(testUserGroupRequest));
-        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
     }
 
     /**
@@ -328,38 +330,24 @@ class UpdateUserGroupTest extends UserGroupServiceTestBase {
 
     /**
      * Purpose: Verify controller handles unauthorized access via HTTP status.
-     * Expected Result: HTTP UNAUTHORIZED status returned.
-     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     * Expected Result: HTTP UNAUTHORIZED status returned and @PreAuthorize
+     * verified.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()),
+     * assertNotNull, assertTrue
      */
     @Test
     @DisplayName("updateUserGroup - Controller permission forbidden")
-    void updateUserGroup_controller_permission_forbidden() {
+    void updateUserGroup_controller_permission_forbidden() throws NoSuchMethodException {
         // Arrange
         stubServiceThrowsUnauthorizedException();
-
-        // Act
-        ResponseEntity<?> response = userGroupControllerWithMock.updateUserGroup(TEST_GROUP_ID, testUserGroupRequest);
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
-    /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
-     * Expected Result: The method should be annotated with
-     * UPDATE_GROUPS_PERMISSION.
-     * Assertions: assertNotNull, assertTrue
-     */
-    @Test
-    @DisplayName("updateUserGroup - Verify @PreAuthorize Annotation")
-    void updateUserGroup_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
         Method method = UserGroupController.class.getMethod("updateUserGroup", Long.class, UserGroupRequestModel.class);
 
         // Act
+        ResponseEntity<?> response = userGroupControllerWithMock.updateUserGroup(TEST_GROUP_ID, testUserGroupRequest);
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
         // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertNotNull(annotation, "@PreAuthorize annotation should be present on updateUserGroup method");
         assertTrue(annotation.value().contains(Authorizations.UPDATE_GROUPS_PERMISSION),
                 "@PreAuthorize annotation should check for UPDATE_GROUPS_PERMISSION");

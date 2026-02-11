@@ -24,11 +24,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserGroupService.createUserGroup method.
  * 
- * Total Tests: 21
+ * Total Tests: 19
  */
 @DisplayName("UserGroupService - CreateUserGroup Tests")
 class CreateUserGroupTest extends UserGroupServiceTestBase {
-    // Total Tests: 21
+    // Total Tests: 19
 
     // ========================================
     // SUCCESS TESTS
@@ -326,9 +326,13 @@ class CreateUserGroupTest extends UserGroupServiceTestBase {
     void createUserGroup_nullRequest_throwsNullPointerException() {
         // Arrange
 
-        // Act & Assert
-        assertThrows(NullPointerException.class,
+        // Act
+        NullPointerException ex = assertThrows(NullPointerException.class,
                 () -> userGroupService.createUserGroup(null));
+
+        // Assert
+        assertNotNull(ex);
+        assertTrue(ex.getMessage().contains("userGroupRequest"));
     }
 
     /**
@@ -371,38 +375,24 @@ class CreateUserGroupTest extends UserGroupServiceTestBase {
 
     /**
      * Purpose: Verify controller handles unauthorized access via HTTP status.
-     * Expected Result: HTTP UNAUTHORIZED status returned.
-     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     * Expected Result: HTTP UNAUTHORIZED status returned and @PreAuthorize
+     * verified.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()),
+     * assertNotNull, assertTrue
      */
     @Test
     @DisplayName("createUserGroup - Controller permission forbidden")
-    void createUserGroup_controller_permission_forbidden() {
+    void createUserGroup_controller_permission_forbidden() throws NoSuchMethodException {
         // Arrange
         stubServiceThrowsUnauthorizedException();
-
-        // Act
-        ResponseEntity<?> response = userGroupControllerWithMock.createUserGroup(testUserGroupRequest);
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
-    /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
-     * Expected Result: The method should be annotated with
-     * INSERT_GROUPS_PERMISSION.
-     * Assertions: assertNotNull, assertTrue
-     */
-    @Test
-    @DisplayName("createUserGroup - Verify @PreAuthorize Annotation")
-    void createUserGroup_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
         Method method = UserGroupController.class.getMethod("createUserGroup", UserGroupRequestModel.class);
 
         // Act
+        ResponseEntity<?> response = userGroupControllerWithMock.createUserGroup(testUserGroupRequest);
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
         // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertNotNull(annotation, "@PreAuthorize annotation should be present on createUserGroup method");
         assertTrue(annotation.value().contains(Authorizations.INSERT_GROUPS_PERMISSION),
                 "@PreAuthorize annotation should check for INSERT_GROUPS_PERMISSION");

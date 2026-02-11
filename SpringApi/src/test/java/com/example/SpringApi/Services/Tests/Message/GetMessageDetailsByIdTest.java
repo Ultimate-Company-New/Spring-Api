@@ -62,7 +62,7 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
          */
         @Test
         @DisplayName("Get Message Details By ID - Success")
-        void getMessageDetailsById_Success() {
+        void getMessageDetailsById_Success_Success() {
                 // Arrange
                 stubMessageRepositoryFindByMessageIdAndClientIdWithTargets(Optional.of(testMessage));
 
@@ -154,12 +154,13 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
         @DisplayName("Get Message Details By ID - Repository Error - Propagates Exception")
         void getMessageDetailsById_RepositoryError_Propagates() {
                 // Arrange
-                stubMessageRepositoryFindByMessageIdAndClientIdWithTargetsThrows("Lookup failed");
+                stubMessageRepositoryFindByMessageIdAndClientIdWithTargetsThrows(
+                                ErrorMessages.MessagesErrorMessages.LookupFailed);
 
                 // Act & Assert
                 RuntimeException ex = assertThrows(RuntimeException.class,
                                 () -> messageService.getMessageDetailsById(TEST_MESSAGE_ID));
-                assertEquals("Lookup failed", ex.getMessage());
+                assertEquals(ErrorMessages.MessagesErrorMessages.LookupFailed, ex.getMessage());
         }
 
         /**
@@ -198,13 +199,34 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
          */
 
         /**
+         * Purpose: Verify unauthorized access is handled at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+        @Test
+        @DisplayName("getMessageDetailsById - Controller permission unauthorized - Success")
+        void getMessageDetailsById_controller_permission_unauthorized() {
+                // Arrange
+                MessageController controller = new MessageController(messageServiceMock);
+                PaginationBaseRequestModel pRequest = new PaginationBaseRequestModel();
+                pRequest.setId(TEST_MESSAGE_ID);
+                stubMessageServiceGetMessageDetailsByIdThrowsUnauthorized();
+
+                // Act
+                ResponseEntity<?> response = controller.getMessageDetailsById(pRequest);
+
+                // Assert
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        }
+
+        /**
          * Purpose: Verify that the getMessageDetailsById controller method is protected
          * by correct @PreAuthorize permission.
          * Expected: Method has @PreAuthorize referencing VIEW_MESSAGES_PERMISSION.
          */
         @Test
         @DisplayName("getMessageDetailsById - Verify @PreAuthorize annotation")
-        void getMessageDetailsById_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        void getMessageDetailsById_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
                 // Arrange
                 Method method = MessageController.class.getMethod(
                                 "getMessageDetailsById",

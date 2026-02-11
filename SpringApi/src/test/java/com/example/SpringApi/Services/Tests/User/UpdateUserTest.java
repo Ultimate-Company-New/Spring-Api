@@ -30,11 +30,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserService.updateUser method.
  * 
- * Total Tests: 17
+ * Total Tests: 16
  */
 @DisplayName("UserService - UpdateUser Tests")
 class UpdateUserTest extends UserServiceTestBase {
-    // Total Tests: 17
+    // Total Tests: 16
 
     // ========================================
     // SUCCESS TESTS
@@ -374,37 +374,24 @@ class UpdateUserTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify controller handles unauthorized access via HTTP status.
-     * Expected Result: HTTP UNAUTHORIZED status returned.
-     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     * Expected Result: HTTP UNAUTHORIZED status returned and @PreAuthorize
+     * verified.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()),
+     * assertNotNull, assertTrue
      */
     @Test
     @DisplayName("updateUser - Controller permission forbidden")
-    void updateUser_controller_permission_forbidden() {
+    void updateUser_controller_permission_forbidden() throws NoSuchMethodException {
         // Arrange
-        stubServiceThrowsUnauthorizedException();
-
-        // Act
-        ResponseEntity<?> response = userControllerWithMock.updateUser(1L, new UserRequestModel());
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
-    /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
-     * Expected Result: The method should be annotated with UPDATE_USER_PERMISSION.
-     * Assertions: assertNotNull, assertTrue
-     */
-    @Test
-    @DisplayName("updateUser - Verify @PreAuthorize Annotation")
-    void updateUser_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
+        stubMockUserServiceUpdateUserThrowsUnauthorized(null);
         Method method = UserController.class.getMethod("updateUser", Long.class, UserRequestModel.class);
 
         // Act
+        ResponseEntity<?> response = userControllerWithMock.updateUser(TEST_USER_ID, new UserRequestModel());
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
         // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertNotNull(annotation, "updateUser method should have @PreAuthorize annotation");
         assertTrue(annotation.value().contains(Authorizations.UPDATE_USER_PERMISSION),
                 "@PreAuthorize annotation should check for UPDATE_USER_PERMISSION");

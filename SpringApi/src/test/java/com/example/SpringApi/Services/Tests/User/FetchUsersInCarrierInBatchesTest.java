@@ -22,11 +22,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserService.fetchUsersInCarrierInBatches method.
  * 
- * Total Tests: 22
+ * Total Tests: 21
  */
 @DisplayName("UserService - FetchUsersInCarrierInBatches Tests")
 class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
-        // Total Tests: 22
+        // Total Tests: 21
 
         // ========================================
         // SUCCESS TESTS
@@ -40,6 +40,7 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
         @Test
         @DisplayName("fetchUsersInBatches - Filter by AddressId - Success")
         void fetchUsersInCarrierInBatches_filterByAddressId_success() {
+                // Arrange
                 // Act & Assert
                 testNumberFilter("addressId", "equals", "100");
         }
@@ -52,6 +53,7 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
         @Test
         @DisplayName("fetchUsersInBatches - Filter by Email - Success")
         void fetchUsersInCarrierInBatches_filterByEmail_success() {
+                // Arrange
                 // Act & Assert
                 testStringFilter("email", "endsWith", "@example.com");
         }
@@ -64,6 +66,7 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
         @Test
         @DisplayName("fetchUsersInBatches - Filter by EmailConfirmed - Success")
         void fetchUsersInCarrierInBatches_filterByEmailConfirmed_success() {
+                // Arrange
                 // Act & Assert
                 testBooleanFilter("emailConfirmed", "is", "true");
         }
@@ -76,6 +79,7 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
         @Test
         @DisplayName("fetchUsersInBatches - Filter by FirstName - Success")
         void fetchUsersInCarrierInBatches_filterByFirstName_success() {
+                // Arrange
                 // Act & Assert
                 testStringFilter("firstName", "contains", "John");
         }
@@ -88,6 +92,7 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
         @Test
         @DisplayName("fetchUsersInBatches - Filter by IsDeleted - Success")
         void fetchUsersInCarrierInBatches_filterByIsDeleted_success() {
+                // Arrange
                 // Act & Assert
                 testBooleanFilter("isDeleted", "is", "false");
         }
@@ -100,6 +105,7 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
         @Test
         @DisplayName("fetchUsersInBatches - Filter by LastName - Success")
         void fetchUsersInCarrierInBatches_filterByLastName_success() {
+                // Arrange
                 // Act & Assert
                 testStringFilter("lastName", "startsWith", "Doe");
         }
@@ -112,6 +118,7 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
         @Test
         @DisplayName("fetchUsersInBatches - Filter by Locked - Success")
         void fetchUsersInCarrierInBatches_filterByLocked_success() {
+                // Arrange
                 // Act & Assert
                 testBooleanFilter("locked", "is", "false");
         }
@@ -124,6 +131,7 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
         @Test
         @DisplayName("fetchUsersInBatches - Filter by LoginAttempts - Success")
         void fetchUsersInCarrierInBatches_filterByLoginAttempts_success() {
+                // Arrange
                 // Act & Assert
                 testNumberFilter("loginAttempts", ">", "0");
         }
@@ -136,6 +144,7 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
         @Test
         @DisplayName("fetchUsersInBatches - Filter by LoginName - Success")
         void fetchUsersInCarrierInBatches_filterByLoginName_success() {
+                // Arrange
                 // Act & Assert
                 testStringFilter("loginName", "equals", "admin@example.com");
         }
@@ -148,6 +157,7 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
         @Test
         @DisplayName("fetchUsersInBatches - Filter by Phone - Success")
         void fetchUsersInCarrierInBatches_filterByPhone_success() {
+                // Arrange
                 // Act & Assert
                 testStringFilter("phone", "contains", "555");
         }
@@ -160,6 +170,7 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
         @Test
         @DisplayName("fetchUsersInBatches - Filter by Role - Success")
         void fetchUsersInCarrierInBatches_filterByRole_success() {
+                // Arrange
                 // Act & Assert
                 testStringFilter("role", "equals", "ADMIN");
         }
@@ -172,6 +183,7 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
         @Test
         @DisplayName("fetchUsersInBatches - Filter by UserId - Success")
         void fetchUsersInCarrierInBatches_filterByUserId_success() {
+                // Arrange
                 // Act & Assert
                 testNumberFilter("userId", "equals", "1");
         }
@@ -184,6 +196,7 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
         @Test
         @DisplayName("fetchUsersInBatches - Logic Operator AND - Success")
         void fetchUsersInCarrierInBatches_logicOperatorAND_success() {
+                // Arrange
                 // Act & Assert
                 testLogicOperator("AND");
         }
@@ -196,6 +209,7 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
         @Test
         @DisplayName("fetchUsersInBatches - Logic Operator OR - Success")
         void fetchUsersInCarrierInBatches_logicOperatorOR_success() {
+                // Arrange
                 // Act & Assert
                 testLogicOperator("OR");
         }
@@ -333,37 +347,23 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
         /**
          * Purpose: Verify controller handles unauthorized access via HTTP status.
          * Expected Result: HTTP UNAUTHORIZED status returned.
-         * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+         * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()),
+         * verify @PreAuthorize annotation.
          */
         @Test
         @DisplayName("fetchUsersInBatches - Controller permission forbidden")
-        void fetchUsersInCarrierInBatches_controller_permission_forbidden() {
+        void fetchUsersInCarrierInBatches_controller_permission_forbidden() throws NoSuchMethodException {
                 // Arrange
-                stubServiceThrowsUnauthorizedException();
+                stubMockUserServiceFetchUsersInCarrierInBatchesThrowsUnauthorized(null);
+                Method method = UserController.class.getMethod("fetchUsersInCarrierInBatches", UserRequestModel.class);
 
                 // Act
                 ResponseEntity<?> response = userControllerWithMock
                                 .fetchUsersInCarrierInBatches(new UserRequestModel());
-
-                // Assert
-                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        }
-
-        /**
-         * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
-         * Expected Result: The method should be annotated with VIEW_USER_PERMISSION.
-         * Assertions: assertNotNull, assertTrue
-         */
-        @Test
-        @DisplayName("fetchUsersInBatches - Verify @PreAuthorize Annotation")
-        void fetchUsersInCarrierInBatches_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-                // Arrange
-                Method method = UserController.class.getMethod("fetchUsersInCarrierInBatches", UserRequestModel.class);
-
-                // Act
                 PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
                 // Assert
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
                 assertNotNull(annotation,
                                 "@PreAuthorize annotation should be present on fetchUsersInCarrierInBatches method");
                 assertTrue(annotation.value().contains(Authorizations.VIEW_USER_PERMISSION),

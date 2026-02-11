@@ -79,23 +79,25 @@ class GetPackageByIdTest extends PackageServiceTestBase {
     }
 
     /**
-     * Purpose: Verify successful retrieval of package by valid ID.
-     * Expected Result: PackageResponseModel is returned with correct data.
-     * Assertions: Result is not null, ID and name match expected values.
+    /**
+     * Purpose: Verify package with very specific ID (9999999999) is retrieved correctly.
+     * Expected Result: Correct package is returned.
+     * Assertions: Result contains expected data with specific ID.
      */
     @Test
-    @DisplayName("Get Package By ID - Valid ID - Success")
-    void getPackageById_Success() {
+    @DisplayName("Get Package By ID - High Value ID - Success")
+    void getPackageById_HighValueId_Success() {
         // Arrange
-        stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, testPackage);
+        long highId = 9999999999L;
+        testPackage.setPackageName("High ID Package");
+        stubPackageRepositoryFindByPackageIdAndClientId(highId, TEST_CLIENT_ID, testPackage);
 
         // Act
-        PackageResponseModel result = packageService.getPackageById(TEST_PACKAGE_ID);
+        PackageResponseModel result = packageService.getPackageById(highId);
 
         // Assert
         assertNotNull(result);
-        assertEquals(TEST_PACKAGE_ID, result.getPackageId());
-        assertEquals(DEFAULT_PACKAGE_NAME, result.getPackageName());
+        assertEquals("High ID Package", result.getPackageName());
     }
 
     /**
@@ -122,27 +124,6 @@ class GetPackageByIdTest extends PackageServiceTestBase {
     }
 
     /**
-     * Purpose: Verify package with many pickup location mappings is retrieved correctly.
-     * Expected Result: Package is returned successfully even with multiple location mappings.
-     * Assertions: Package data and ID are correctly mapped in response.
-     */
-    @Test
-    @DisplayName("Get Package By ID - With Many Location Mappings - Success")
-    void getPackageById_WithManyMappings_Success() {
-        // Arrange
-        testPackage.setPackageName("Multi-Location Package");
-        stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, testPackage);
-
-        // Act
-        PackageResponseModel result = packageService.getPackageById(TEST_PACKAGE_ID);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(TEST_PACKAGE_ID, result.getPackageId());
-        assertEquals("Multi-Location Package", result.getPackageName());
-    }
-
-    /**
      * Purpose: Verify package with maximum long ID value is retrieved successfully.
      * Expected Result: PackageResponseModel is returned with all fields.
      * Assertions: Result is not null and contains correct data.
@@ -163,27 +144,6 @@ class GetPackageByIdTest extends PackageServiceTestBase {
     }
 
     /**
-     * Purpose: Verify package with very specific ID (9999999999) is retrieved correctly.
-     * Expected Result: Correct package is returned.
-     * Assertions: Result contains expected data with specific ID.
-     */
-    @Test
-    @DisplayName("Get Package By ID - High Value ID - Success")
-    void getPackageById_HighValueId_Success() {
-        // Arrange
-        long highId = 9999999999L;
-        testPackage.setPackageName("High ID Package");
-        stubPackageRepositoryFindByPackageIdAndClientId(highId, TEST_CLIENT_ID, testPackage);
-
-        // Act
-        PackageResponseModel result = packageService.getPackageById(highId);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals("High ID Package", result.getPackageName());
-    }
-
-    /**
      * Purpose: Verify retrieval of package with special characters in name.
      * Expected Result: Package with special characters is returned correctly.
      * Assertions: Package name with special characters is preserved in response.
@@ -201,6 +161,47 @@ class GetPackageByIdTest extends PackageServiceTestBase {
         // Assert
         assertNotNull(result);
         assertEquals("Box-#123!@$%^&*()_+-=[]{}", result.getPackageName());
+    }
+
+    /**
+     * Purpose: Verify successful retrieval of package by valid ID.
+     * Expected Result: PackageResponseModel is returned with correct data.
+     * Assertions: Result is not null, ID and name match expected values.
+     */
+    @Test
+    @DisplayName("Get Package By ID - Valid ID - Success")
+    void getPackageById_Success_Success() {
+        // Arrange
+        stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, testPackage);
+
+        // Act
+        PackageResponseModel result = packageService.getPackageById(TEST_PACKAGE_ID);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(TEST_PACKAGE_ID, result.getPackageId());
+        assertEquals(DEFAULT_PACKAGE_NAME, result.getPackageName());
+    }
+
+    /**
+     * Purpose: Verify package with many pickup location mappings is retrieved correctly.
+     * Expected Result: Package is returned successfully even with multiple location mappings.
+     * Assertions: Package data and ID are correctly mapped in response.
+     */
+    @Test
+    @DisplayName("Get Package By ID - With Many Location Mappings - Success")
+    void getPackageById_WithManyMappings_Success() {
+        // Arrange
+        testPackage.setPackageName("Multi-Location Package");
+        stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, testPackage);
+
+        // Act
+        PackageResponseModel result = packageService.getPackageById(TEST_PACKAGE_ID);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(TEST_PACKAGE_ID, result.getPackageId());
+        assertEquals("Multi-Location Package", result.getPackageName());
     }
 
     /*

@@ -42,7 +42,8 @@ public class LeadController {
      * Retrieves leads in paginated batches with optional filtering and sorting.
      * Supports pagination, sorting by multiple fields, and filtering capabilities.
      * 
-     * @param leadRequestModel The request model containing pagination and filter parameters
+     * @param leadRequestModel The request model containing pagination and filter
+     *                         parameters
      * @return ResponseEntity containing paginated lead data
      */
     @PostMapping("/" + ApiRoutes.LeadsSubRoute.GET_LEADS_IN_BATCHES)
@@ -54,19 +55,23 @@ public class LeadController {
         } catch (BadRequestException e) {
             logger.error(e);
             return ResponseEntity.badRequest()
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(),
+                            HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(), HttpStatus.NOT_FOUND.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(),
+                            HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(),
+                            HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
@@ -85,19 +90,23 @@ public class LeadController {
         } catch (BadRequestException e) {
             logger.error(e);
             return ResponseEntity.badRequest()
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(),
+                            HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(), HttpStatus.NOT_FOUND.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(),
+                            HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(),
+                            HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
@@ -116,19 +125,23 @@ public class LeadController {
         } catch (BadRequestException e) {
             logger.error(e);
             return ResponseEntity.badRequest()
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(),
+                            HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(), HttpStatus.NOT_FOUND.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(),
+                            HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(),
+                            HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
@@ -148,21 +161,25 @@ public class LeadController {
         } catch (BadRequestException e) {
             logger.error(e);
             return ResponseEntity.badRequest()
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(),
+                            HttpStatus.BAD_REQUEST.value()));
         } catch (UnauthorizedException e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(),
+                            HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
     /**
      * Creates multiple leads asynchronously in a single operation.
-     * Processing happens in background thread; results sent via message notification.
+     * Processing happens in background thread; results sent via message
+     * notification.
      * 
      * @param leads List of LeadRequestModel containing the lead data to insert
      * @return ResponseEntity with 200 OK status indicating job has been queued
@@ -171,29 +188,33 @@ public class LeadController {
     @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.INSERT_LEADS_PERMISSION + "')")
     public ResponseEntity<?> bulkCreateLeads(@RequestBody java.util.List<LeadRequestModel> leads) {
         try {
-            // Cast to LeadService to access BaseService methods (security context not available in async thread)
+            // Cast to LeadService to access BaseService methods (security context not
+            // available in async thread)
             LeadService service = (LeadService) leadService;
             Long userId = service.getUserId();
             String loginName = service.getUser();
             Long clientId = service.getClientId();
-            
+
             // Trigger async processing - returns immediately
             leadService.bulkCreateLeadsAsync(leads, userId, loginName, clientId);
-            
+
             // Return 200 OK - processing will continue in background
             return ResponseEntity.ok().build();
         } catch (BadRequestException e) {
             logger.error(e);
             return ResponseEntity.badRequest()
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(), HttpStatus.BAD_REQUEST.value()));
-            } catch (UnauthorizedException e) {
-                logger.error(e);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(),
+                            HttpStatus.BAD_REQUEST.value()));
+        } catch (UnauthorizedException e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(),
+                            HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
@@ -201,33 +222,41 @@ public class LeadController {
      * Updates an existing lead with new information.
      * Validates updated data and modifies the lead record.
      * 
-     * @param leadId The unique identifier of the lead to update
+     * @param leadId           The unique identifier of the lead to update
      * @param leadRequestModel The updated lead data
      * @return ResponseEntity containing the updated lead
      */
     @PostMapping("/" + ApiRoutes.LeadsSubRoute.UPDATE_LEAD + "/{leadId}")
     @PreAuthorize("@customAuthorization.hasAuthority('" + Authorizations.UPDATE_LEADS_PERMISSION + "')")
     public ResponseEntity<?> updateLead(@PathVariable Long leadId,
-                                          @RequestBody LeadRequestModel leadRequestModel) {
+            @RequestBody LeadRequestModel leadRequestModel) {
         try {
             leadService.updateLead(leadId, leadRequestModel);
             return ResponseEntity.ok().build();
         } catch (BadRequestException e) {
             logger.error(e);
             return ResponseEntity.badRequest()
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(),
+                            HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(), HttpStatus.NOT_FOUND.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(),
+                            HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(),
+                            HttpStatus.UNAUTHORIZED.value()));
+        } catch (com.example.SpringApi.Exceptions.PermissionException e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ErrorResponseModel("Forbidden", e.getMessage(), HttpStatus.FORBIDDEN.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
@@ -247,19 +276,27 @@ public class LeadController {
         } catch (BadRequestException e) {
             logger.error(e);
             return ResponseEntity.badRequest()
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(),
+                            HttpStatus.BAD_REQUEST.value()));
         } catch (NotFoundException e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(), HttpStatus.NOT_FOUND.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(),
+                            HttpStatus.NOT_FOUND.value()));
         } catch (UnauthorizedException e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(),
+                            HttpStatus.UNAUTHORIZED.value()));
+        } catch (com.example.SpringApi.Exceptions.PermissionException e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ErrorResponseModel("Forbidden", e.getMessage(), HttpStatus.FORBIDDEN.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 }

@@ -55,6 +55,12 @@ class BulkCreatePackagesAsyncTest extends PackageServiceTestBase {
     }
 
     /*
+     **********************************************************************************************
+     * FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
+     */
+
+    /*
      * Purpose: Reject async bulk creation when list is empty.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Exception message matches CommonErrorMessages.ListCannotBeNullOrEmpty.

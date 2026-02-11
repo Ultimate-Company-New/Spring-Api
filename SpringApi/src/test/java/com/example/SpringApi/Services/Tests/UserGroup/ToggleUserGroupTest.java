@@ -21,11 +21,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserGroupService.toggleUserGroup method.
  * 
- * Total Tests: 14
+ * Total Tests: 12
  */
 @DisplayName("UserGroupService - ToggleUserGroup Tests")
 class ToggleUserGroupTest extends UserGroupServiceTestBase {
-    // Total Tests: 14
+    // Total Tests: 12
 
     // ========================================
     // SUCCESS TESTS
@@ -105,26 +105,6 @@ class ToggleUserGroupTest extends UserGroupServiceTestBase {
     @Test
     @DisplayName("toggleUserGroup - Success - Verify Logging")
     void toggleUserGroup_success_verifyLogging() {
-        // Arrange
-        stubUserGroupRepositoryFindById(TEST_GROUP_ID, Optional.of(testUserGroup));
-        stubUserGroupRepositorySave(testUserGroup);
-        stubUserLogServiceLogData(true);
-
-        // Act
-        userGroupService.toggleUserGroup(TEST_GROUP_ID);
-
-        // Assert
-        verify(userLogService).logData(anyLong(), anyString(), anyString());
-    }
-
-    /**
-     * Purpose: Verify logging is called.
-     * Expected Result: userLogService.logData is called.
-     * Assertions: verify
-     */
-    @Test
-    @DisplayName("toggleUserGroup - Success - Verify Logging Called")
-    void toggleUserGroup_verifyLoggingCalled_success() {
         // Arrange
         stubUserGroupRepositoryFindById(TEST_GROUP_ID, Optional.of(testUserGroup));
         stubUserGroupRepositorySave(testUserGroup);
@@ -253,38 +233,24 @@ class ToggleUserGroupTest extends UserGroupServiceTestBase {
 
     /**
      * Purpose: Verify controller handles unauthorized access via HTTP status.
-     * Expected Result: HTTP UNAUTHORIZED status returned.
-     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     * Expected Result: HTTP UNAUTHORIZED status returned and @PreAuthorize
+     * verified.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()),
+     * assertNotNull, assertTrue
      */
     @Test
     @DisplayName("toggleUserGroup - Controller permission forbidden")
-    void toggleUserGroup_controller_permission_forbidden() {
+    void toggleUserGroup_controller_permission_forbidden() throws NoSuchMethodException {
         // Arrange
         stubServiceThrowsUnauthorizedException();
-
-        // Act
-        ResponseEntity<?> response = userGroupControllerWithMock.toggleUserGroup(TEST_GROUP_ID);
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
-    /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
-     * Expected Result: The method should be annotated with
-     * DELETE_GROUPS_PERMISSION.
-     * Assertions: assertNotNull, assertTrue
-     */
-    @Test
-    @DisplayName("toggleUserGroup - Verify @PreAuthorize Annotation")
-    void toggleUserGroup_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
         Method method = UserGroupController.class.getMethod("toggleUserGroup", Long.class);
 
         // Act
+        ResponseEntity<?> response = userGroupControllerWithMock.toggleUserGroup(TEST_GROUP_ID);
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
         // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertNotNull(annotation, "@PreAuthorize annotation should be present on toggleUserGroup method");
         assertTrue(annotation.value().contains(Authorizations.DELETE_GROUPS_PERMISSION),
                 "@PreAuthorize annotation should check for DELETE_GROUPS_PERMISSION");

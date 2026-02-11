@@ -21,11 +21,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserService.getUserById method.
  * 
- * Total Tests: 11
+ * Total Tests: 10
  */
 @DisplayName("UserService - GetUserById Tests")
 class GetUserByIdTest extends UserServiceTestBase {
-    // Total Tests: 11
+    // Total Tests: 10
 
     // ========================================
     // SUCCESS TESTS
@@ -209,37 +209,24 @@ class GetUserByIdTest extends UserServiceTestBase {
 
     /**
      * Purpose: Verify controller handles unauthorized access via HTTP status.
-     * Expected Result: HTTP UNAUTHORIZED status returned.
-     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode())
+     * Expected Result: HTTP UNAUTHORIZED status returned and @PreAuthorize
+     * verified.
+     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()),
+     * assertNotNull, assertTrue
      */
     @Test
     @DisplayName("getUserById - Controller permission forbidden")
-    void getUserById_controller_permission_forbidden() {
+    void getUserById_controller_permission_forbidden() throws NoSuchMethodException {
         // Arrange
-        stubServiceThrowsUnauthorizedException();
-
-        // Act
-        ResponseEntity<?> response = userControllerWithMock.getUserById(1L);
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
-    /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
-     * Expected Result: The method should be annotated with VIEW_USER_PERMISSION.
-     * Assertions: assertNotNull, assertTrue
-     */
-    @Test
-    @DisplayName("getUserById - Verify @PreAuthorize Annotation")
-    void getUserById_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
+        stubMockUserServiceGetUserByIdThrowsUnauthorized(null);
         Method method = UserController.class.getMethod("getUserById", Long.class);
 
         // Act
+        ResponseEntity<?> response = userControllerWithMock.getUserById(TEST_USER_ID);
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
         // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertNotNull(annotation, "getUserById method should have @PreAuthorize annotation");
         assertTrue(annotation.value().contains(Authorizations.VIEW_USER_PERMISSION),
                 "@PreAuthorize annotation should check for VIEW_USER_PERMISSION");
