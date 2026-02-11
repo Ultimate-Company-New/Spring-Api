@@ -14,7 +14,7 @@ import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaymentVerificationResponseModel;
 import com.example.SpringApi.Models.ResponseModels.RazorpayOrderResponseModel;
 import com.example.SpringApi.Services.Interface.IPaymentSubTranslator;
-import com.example.SpringApi.Services.ShipmentProcessingService;
+import com.example.SpringApi.Services.ShippingService;
 import com.itextpdf.text.DocumentException;
 import freemarker.template.TemplateException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,12 +42,12 @@ public class PaymentController {
     
     private static final ContextualLogger logger = ContextualLogger.getLogger(PaymentController.class);
     private final IPaymentSubTranslator paymentService;
-    private final ShipmentProcessingService shipmentProcessingService;
+    private final ShippingService shippingService;
     
     @Autowired
-    public PaymentController(IPaymentSubTranslator paymentService, ShipmentProcessingService shipmentProcessingService) {
+    public PaymentController(IPaymentSubTranslator paymentService, ShippingService shippingService) {
         this.paymentService = paymentService;
-        this.shipmentProcessingService = shipmentProcessingService;
+        this.shippingService = shippingService;
     }
     
     /**
@@ -236,14 +236,14 @@ public class PaymentController {
                 if (request.getCashPaymentRequest() == null) {
                     throw new BadRequestException("Cash payment request is required when isCashPayment is true");
                 }
-                response = shipmentProcessingService
+                response = shippingService
                         .processShipmentsAfterPaymentApproval(request.getCashPaymentRequest().getPurchaseOrderId(), 
                                                              request.getCashPaymentRequest());
             } else {
                 if (request.getOnlinePaymentRequest() == null) {
                     throw new BadRequestException("Online payment request is required when isCashPayment is false");
                 }
-                response = shipmentProcessingService
+                response = shippingService
                         .processShipmentsAfterPaymentApproval(request.getOnlinePaymentRequest().getPurchaseOrderId(),
                                                              request.getOnlinePaymentRequest());
             }

@@ -24,7 +24,7 @@ import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Helpers.ShippingHelper;
+import com.example.SpringApi.Helpers.ShipRocketHelper;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.SuccessMessages;
 
@@ -37,8 +37,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -68,7 +66,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
     private final PackagePickupLocationMappingRepository packageMappingRepository;
     private final UserLogService userLogService;
     private final ClientService clientService;
-    private final ShippingHelper shippingHelper;
+    private final ShipRocketHelper shipRocketHelper;
     private final PickupLocationFilterQueryBuilder pickupLocationFilterQueryBuilder;
     private final MessageService messageService;
 
@@ -80,8 +78,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
             UserLogService userLogService,
             ClientService clientService,
             PickupLocationFilterQueryBuilder pickupLocationFilterQueryBuilder,
-            MessageService messageService,
-            HttpServletRequest request) {
+            MessageService messageService) {
         super();
         this.pickupLocationRepository = pickupLocationRepository;
         this.addressRepository = addressRepository;
@@ -89,30 +86,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         this.packageMappingRepository = packageMappingRepository;
         this.userLogService = userLogService;
         this.clientService = clientService;
-        this.shippingHelper = null; // Will be initialized on demand
-        this.pickupLocationFilterQueryBuilder = pickupLocationFilterQueryBuilder;
-        this.messageService = messageService;
-    }
-
-    // Constructor for testing with mock ShippingHelper
-    public PickupLocationService(PickupLocationRepository pickupLocationRepository,
-            AddressRepository addressRepository,
-            ProductPickupLocationMappingRepository productMappingRepository,
-            PackagePickupLocationMappingRepository packageMappingRepository,
-            UserLogService userLogService,
-            ClientService clientService,
-            ShippingHelper shippingHelper,
-            PickupLocationFilterQueryBuilder pickupLocationFilterQueryBuilder,
-            MessageService messageService,
-            HttpServletRequest request) {
-        super();
-        this.pickupLocationRepository = pickupLocationRepository;
-        this.addressRepository = addressRepository;
-        this.productMappingRepository = productMappingRepository;
-        this.packageMappingRepository = packageMappingRepository;
-        this.userLogService = userLogService;
-        this.clientService = clientService;
-        this.shippingHelper = shippingHelper;
+        this.shipRocketHelper = null; // Initialized in getShipRocketHelper() for proper client context
         this.pickupLocationFilterQueryBuilder = pickupLocationFilterQueryBuilder;
         this.messageService = messageService;
     }
@@ -308,12 +282,12 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         pickupLocation = pickupLocationRepository.save(pickupLocation);
 
         // Call ShipRocket to create pickup location
-        ShippingHelper shippingHelper = getShippingHelper();
-        AddPickupLocationResponseModel addPickupLocationResponse = shippingHelper.addPickupLocation(pickupLocation);
+        ShipRocketHelper shipRocketHelper = getShipRocketHelper();
+        AddPickupLocationResponseModel addPickupLocationResponse = shipRocketHelper.addPickupLocation(pickupLocation);
 
         // Extract and set the ShipRocket ID
         Long shipRocketPickupLocationId = extractShipRocketPickupLocationId(
-                shippingHelper, addPickupLocationResponse, pickupLocation);
+                shipRocketHelper, addPickupLocationResponse, pickupLocation);
         pickupLocation.setShipRocketPickupLocationId(shipRocketPickupLocationId);
         pickupLocation = pickupLocationRepository.save(pickupLocation);
 
@@ -391,11 +365,11 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         // Only call Shiprocket if physical address fields have changed
         if (addressFieldsChanged) {
             // Create new pickup location in ShipRocket and get new ID
-            ShippingHelper shippingHelper = getShippingHelper();
-            AddPickupLocationResponseModel addPickupLocationResponse = shippingHelper
+            ShipRocketHelper shipRocketHelper = getShipRocketHelper();
+            AddPickupLocationResponseModel addPickupLocationResponse = shipRocketHelper
                     .addPickupLocation(updatedPickupLocation);
             Long shipRocketPickupLocationId = extractShipRocketPickupLocationId(
-                    shippingHelper, addPickupLocationResponse, updatedPickupLocation);
+                    shipRocketHelper, addPickupLocationResponse, updatedPickupLocation);
             updatedPickupLocation.setShipRocketPickupLocationId(shipRocketPickupLocationId);
         } else {
             // Keep the existing Shiprocket ID
@@ -404,6 +378,9 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
 
         // Save the updated pickup location to database
         updatedPickupLocation = pickupLocationRepository.save(updatedPickupLocation);
+        if (updatedPickupLocation == null) {
+            updatedPickupLocation = existingPickupLocation;
+        }
 
         // Update product mappings if provided (delete existing and recreate)
         if (pickupLocationRequestModel.getProductMappings() != null) {
@@ -628,34 +605,34 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
     // ============================================================================
 
     /**
-     * Creates a ShippingHelper instance initialized with the current client's
+     * Creates a ShipRocketHelper instance initialized with the current client's
      * ShipRocket credentials.
      * For testing, returns the injected mock if available.
      * 
-     * @return ShippingHelper instance with client credentials
+     * @return ShipRocketHelper instance with client credentials
      */
-    private ShippingHelper getShippingHelper() {
-        if (shippingHelper != null) {
-            return shippingHelper; // For testing with mock
+    private ShipRocketHelper getShipRocketHelper() {
+        if (shipRocketHelper != null) {
+            return shipRocketHelper; // For testing with mock
         }
         ClientResponseModel client = clientService.getClientById(getClientId());
-        return new ShippingHelper(client.getShipRocketEmail(), client.getShipRocketPassword());
+        return new ShipRocketHelper(client.getShipRocketEmail(), client.getShipRocketPassword());
     }
 
     /**
-     * Creates a ShippingHelper instance initialized with a specific client's
+     * Creates a ShipRocketHelper instance initialized with a specific client's
      * ShipRocket credentials.
      * Used for bulk operations where clientId is passed explicitly.
      * 
      * @param clientId The client ID to get credentials for
-     * @return ShippingHelper instance with client credentials
+     * @return ShipRocketHelper instance with client credentials
      */
-    private ShippingHelper getShippingHelper(Long clientId) {
-        if (shippingHelper != null) {
-            return shippingHelper; // For testing with mock
+    private ShipRocketHelper getShipRocketHelper(Long clientId) {
+        if (shipRocketHelper != null) {
+            return shipRocketHelper; // For testing with mock
         }
         ClientResponseModel client = clientService.getClientById(clientId);
-        return new ShippingHelper(client.getShipRocketEmail(), client.getShipRocketPassword());
+        return new ShipRocketHelper(client.getShipRocketEmail(), client.getShipRocketPassword());
     }
 
     /**
@@ -725,13 +702,13 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         pickupLocation = pickupLocationRepository.save(pickupLocation);
 
         // Call ShipRocket to create pickup location
-        ShippingHelper shippingHelperInstance = getShippingHelper(clientId);
-        AddPickupLocationResponseModel addPickupLocationResponse = shippingHelperInstance
+        ShipRocketHelper shipRocketHelperInstance = getShipRocketHelper(clientId);
+        AddPickupLocationResponseModel addPickupLocationResponse = shipRocketHelperInstance
                 .addPickupLocation(pickupLocation);
 
         // Extract and set the ShipRocket ID
         Long shipRocketPickupLocationId = extractShipRocketPickupLocationId(
-                shippingHelperInstance, addPickupLocationResponse, pickupLocation);
+                shipRocketHelperInstance, addPickupLocationResponse, pickupLocation);
         pickupLocation.setShipRocketPickupLocationId(shipRocketPickupLocationId);
         pickupLocationRepository.save(pickupLocation);
 
@@ -747,7 +724,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
     /**
      * Extracts the ShipRocket pickup location ID from the API response.
      * 
-     * @param shippingHelper            The ShippingHelper instance (unused, kept
+     * @param shipRocketHelper            The ShipRocketHelper instance (unused, kept
      *                                  for compatibility)
      * @param addPickupLocationResponse The response from adding pickup location
      * @param pickupLocation            The pickup location entity (unused, kept for
@@ -756,7 +733,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
      * @throws BadRequestException if pickup_id is invalid or missing
      */
     private Long extractShipRocketPickupLocationId(
-            ShippingHelper shippingHelper,
+            ShipRocketHelper shipRocketHelper,
             AddPickupLocationResponseModel addPickupLocationResponse,
             PickupLocation pickupLocation) throws Exception {
 

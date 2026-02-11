@@ -8,8 +8,9 @@ import com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem;
 import com.example.SpringApi.Repositories.*;
 import com.example.SpringApi.Services.PurchaseOrderService;
 import com.example.SpringApi.Services.MessageService;
-import com.example.SpringApi.Services.Tests.BaseTest;
 import com.example.SpringApi.Services.UserLogService;
+import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.Exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -25,13 +26,15 @@ import java.util.*;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.lenient;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Base test class for PurchaseOrderService tests.
  * Provides common setup, test data, and helper methods for all PurchaseOrder test files.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class PurchaseOrderServiceTestBase extends BaseTest {
+public abstract class PurchaseOrderServiceTestBase {
 
     @Mock
     protected PurchaseOrderRepository purchaseOrderRepository;
@@ -112,6 +115,30 @@ public abstract class PurchaseOrderServiceTestBase extends BaseTest {
         lenient().when(environment.getProperty("imageLocation")).thenReturn("imgbb");
         lenient().when(environment.getActiveProfiles()).thenReturn(new String[] { "test" });
         lenient().when(clientRepository.findById(anyLong())).thenReturn(Optional.of(testClient));
+        lenient().when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(),
+            any(), any(), any(), any(), any(), any(), any())).thenReturn(Optional.empty());
+        lenient().when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
+        lenient().when(orderSummaryRepository.findByEntityTypeAndEntityId(anyString(), anyLong()))
+            .thenReturn(Optional.empty());
+        lenient().when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
+        lenient().when(shipmentRepository.findByOrderSummaryId(anyLong())).thenReturn(Collections.emptyList());
+        lenient().when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> {
+            Shipment shipment = invocation.getArgument(0);
+            if (shipment.getShipmentId() == null) {
+                shipment.setShipmentId(1L);
+            }
+            return shipment;
+        });
+        lenient().when(shipmentPackageRepository.findByShipmentId(anyLong())).thenReturn(Collections.emptyList());
+        lenient().when(shipmentPackageRepository.save(any(ShipmentPackage.class))).thenAnswer(invocation -> {
+            ShipmentPackage shipmentPackage = invocation.getArgument(0);
+            if (shipmentPackage.getShipmentPackageId() == null) {
+                shipmentPackage.setShipmentPackageId(1L);
+            }
+            return shipmentPackage;
+        });
+        lenient().when(shipmentProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(shipmentPackageProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Set up RequestContextHolder so BaseService.getClientId() works
         MockHttpServletRequest mockRequest = new MockHttpServletRequest();
@@ -134,8 +161,8 @@ public abstract class PurchaseOrderServiceTestBase extends BaseTest {
                 paymentRepository,
                 userLogService,
                 purchaseOrderFilterQueryBuilder,
-                messageService,
-                environment
+            messageService,
+            environment
         );
     }
 
@@ -280,5 +307,17 @@ public abstract class PurchaseOrderServiceTestBase extends BaseTest {
         testPurchaseOrder.setUpdatedAt(LocalDateTime.now());
         testPurchaseOrder.setCreatedUser(CREATED_USER);
         testPurchaseOrder.setModifiedUser(CREATED_USER);
+    }
+
+    // ==================== ASSERTION HELPERS ====================
+
+    protected void assertThrowsBadRequest(String expectedMessage, org.junit.jupiter.api.function.Executable executable) {
+        BadRequestException ex = assertThrows(BadRequestException.class, executable);
+        assertEquals(expectedMessage, ex.getMessage());
+    }
+
+    protected void assertThrowsNotFound(String expectedMessage, org.junit.jupiter.api.function.Executable executable) {
+        NotFoundException ex = assertThrows(NotFoundException.class, executable);
+        assertEquals(expectedMessage, ex.getMessage());
     }
 }

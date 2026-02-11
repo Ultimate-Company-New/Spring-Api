@@ -1,8 +1,11 @@
 package com.example.SpringApi.Services.Interface;
 
 import com.example.SpringApi.Models.RequestModels.OrderOptimizationRequestModel;
+import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.ShippingCalculationRequestModel;
 import com.example.SpringApi.Models.ResponseModels.OrderOptimizationResponseModel;
+import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.SpringApi.Models.ResponseModels.ShipmentResponseModel;
 import com.example.SpringApi.Models.ResponseModels.ShippingCalculationResponseModel;
 
 /**
@@ -10,14 +13,41 @@ import com.example.SpringApi.Models.ResponseModels.ShippingCalculationResponseMo
  * 
  * Defines the contract for shipping service implementations including
  * order-level shipping calculations that can combine multiple products
- * from the same pickup location.
- * 
+ * from the same pickup location, shipment management, and returns.
+ *
  * @author SpringApi Team
  * @version 1.0
  * @since 2024-01-15
  */
 public interface IShippingSubTranslator {
     
+    // ============================================================================
+    // SHIPMENT OPERATIONS
+    // ============================================================================
+
+    /**
+     * Retrieves shipments in batches with pagination support.
+     *
+     * This method returns a paginated list of shipments based on the provided
+     * pagination parameters. It supports filtering and sorting options.
+     *
+     * @param paginationBaseRequestModel The pagination parameters including page size, number, filters, and sorting
+     * @return Paginated response containing shipment data
+     */
+    PaginationBaseResponseModel<ShipmentResponseModel> getShipmentsInBatches(PaginationBaseRequestModel paginationBaseRequestModel);
+
+    /**
+     * Retrieves detailed information about a specific shipment by ID.
+     *
+     * @param shipmentId The ID of the shipment to retrieve
+     * @return The shipment response model with all details
+     */
+    ShipmentResponseModel getShipmentById(Long shipmentId);
+
+    // ============================================================================
+    // SHIPPING CALCULATION & OPTIMIZATION
+    // ============================================================================
+
     /**
      * Calculate shipping options for an order.
      * Groups products by pickup location and returns available couriers for each location.
@@ -41,6 +71,10 @@ public interface IShippingSubTranslator {
      */
     OrderOptimizationResponseModel optimizeOrder(OrderOptimizationRequestModel request);
     
+    // ============================================================================
+    // SHIPMENT LIFECYCLE MANAGEMENT
+    // ============================================================================
+
     /**
      * Cancel a shipment.
      * Cancels the shipment in ShipRocket and updates the local shipment status to CANCELLED.

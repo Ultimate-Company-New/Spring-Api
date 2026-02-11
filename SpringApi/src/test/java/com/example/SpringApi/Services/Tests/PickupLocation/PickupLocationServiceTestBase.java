@@ -2,6 +2,7 @@ package com.example.SpringApi.Services.Tests.PickupLocation;
 
 import com.example.SpringApi.Authentication.Authorization;
 import com.example.SpringApi.FilterQueryBuilder.PickupLocationFilterQueryBuilder;
+import com.example.SpringApi.Helpers.ShipRocketHelper;
 import com.example.SpringApi.Models.DatabaseModels.Address;
 import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
@@ -15,9 +16,7 @@ import com.example.SpringApi.Repositories.PickupLocationRepository;
 import com.example.SpringApi.Repositories.ProductPickupLocationMappingRepository;
 import com.example.SpringApi.Services.ClientService;
 import com.example.SpringApi.Services.PickupLocationService;
-import com.example.SpringApi.Services.Tests.BaseTest;
 import com.example.SpringApi.Services.UserLogService;
-import com.example.SpringApi.Helpers.ShippingHelper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,8 +27,8 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.lenient;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Base test class for PickupLocationService tests.
@@ -37,7 +36,13 @@ import static org.mockito.Mockito.lenient;
  * PickupLocationService test classes.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class PickupLocationServiceTestBase extends BaseTest {
+public abstract class PickupLocationServiceTestBase {
+
+    // ==================== COMMON TEST CONSTANTS ====================
+
+    protected static final Long DEFAULT_PICKUP_LOCATION_ID = 1L;
+    protected static final Long DEFAULT_ADDRESS_ID = 1L;
+    protected static final String DEFAULT_CREATED_USER = "admin";
 
     @Mock
     protected PickupLocationRepository pickupLocationRepository;
@@ -58,7 +63,7 @@ public abstract class PickupLocationServiceTestBase extends BaseTest {
     protected ClientService clientService;
 
     @Mock
-    protected ShippingHelper shippingHelper;
+    protected ShipRocketHelper shipRocketHelper;
 
     @Mock
     protected PickupLocationFilterQueryBuilder pickupLocationFilterQueryBuilder;
@@ -113,6 +118,8 @@ public abstract class PickupLocationServiceTestBase extends BaseTest {
 
         testAddress = new Address(addressRequest, CREATED_USER);
         testAddress.setAddressId(TEST_ADDRESS_ID);
+        lenient().when(addressRepository.findById(TEST_ADDRESS_ID))
+            .thenReturn(java.util.Optional.of(testAddress));
 
         testPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER, TEST_CLIENT_ID);
         testPickupLocation.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
@@ -129,22 +136,194 @@ public abstract class PickupLocationServiceTestBase extends BaseTest {
         MockHttpServletRequest mockRequest = new MockHttpServletRequest();
         mockRequest.addHeader("Authorization", "Bearer test-token");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockRequest));
+
+        // CRITICAL: Inject the mock shipRocketHelper into the service
+        // The service's constructor sets shipRocketHelper = null, which overrides
+        // @InjectMocks
+        // We must manually inject it after construction to prevent real API calls
+        org.springframework.test.util.ReflectionTestUtils.setField(
+                pickupLocationService, "shipRocketHelper", shipRocketHelper);
+
+        // Default ShipRocket helper stub to avoid null responses in tests
+        lenient().when(shipRocketHelper.addPickupLocation(any(PickupLocation.class)))
+            .thenReturn(testShipRocketResponse);
     }
 
+    // ==========================================
+    // COMMON STUB SETUP HELPERS
+    // ==========================================
+
     /**
-     * Helper method to set up ClientService mock locally in tests that need it
+     * Sets up all common stubs needed for successful pickup location creation.
+     * Call this in success tests to avoid repetitive stub setup.
      */
-    protected void setupClientServiceMock(Long clientId) {
+    protected void stubSuccessfulPickupLocationCreation() {
         ClientResponseModel mockClient = new ClientResponseModel();
         mockClient.setShipRocketEmail("test@example.com");
         mockClient.setShipRocketPassword("testpassword");
-        //when(clientService.getClientById(clientId)).thenReturn(mockClient);
+
+        stubClientServiceGetClientById(TEST_CLIENT_ID, mockClient);
+        stubAddressRepositorySave(testAddress);
+        stubPickupLocationRepositorySave(testPickupLocation);
+        stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
+    }
+
+    // ==========================================
+    // STUB METHODS
+    // ==========================================
+
+    /**
+     * Stub for pickupLocationRepository.findPickupLocationByIdAndClientId
+     */
+    protected void stubPickupLocationRepositoryFindByIdAndClientId(Long pickupLocationId, Long clientId,
+            PickupLocation pickupLocation) {
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(pickupLocationId, clientId))
+                .thenReturn(pickupLocation);
     }
 
     /**
-     * Helper method to set up Authorization mock locally in tests that need it
+     * Stub for pickupLocationRepository.findPickupLocationByIdAndClientId returning
+     * null
      */
-    protected void setupAuthorizationMock() {
-        //when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+    protected void stubPickupLocationRepositoryFindByIdAndClientIdNotFound(Long pickupLocationId, Long clientId) {
+        when(pickupLocationRepository.findPickupLocationByIdAndClientId(pickupLocationId, clientId))
+                .thenReturn(null);
+    }
+
+    /**
+     * Stub for pickupLocationRepository.save
+     */
+    protected void stubPickupLocationRepositorySave(PickupLocation pickupLocation) {
+        when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(pickupLocation);
+    }
+
+    /**
+     * Stub for addressRepository.save
+     */
+    protected void stubAddressRepositorySave(Address address) {
+        when(addressRepository.save(any(Address.class))).thenReturn(address);
+    }
+
+    /**
+     * Stub for addressRepository.findById
+     */
+    protected void stubAddressRepositoryFindById(Long addressId, Address address) {
+        when(addressRepository.findById(addressId)).thenReturn(java.util.Optional.of(address));
+    }
+
+    /**
+     * Stub for addressRepository.findById returning empty
+     */
+    protected void stubAddressRepositoryFindByIdNotFound(Long addressId) {
+        when(addressRepository.findById(addressId)).thenReturn(java.util.Optional.empty());
+    }
+
+    /**
+     * Stub for shipRocketHelper.addPickupLocation
+     */
+    protected void stubShipRocketHelperAddPickupLocation(AddPickupLocationResponseModel response) {
+        lenient().when(shipRocketHelper.addPickupLocation(any(PickupLocation.class))).thenReturn(response);
+    }
+
+    /**
+     * Stub for clientService.getClientById
+     */
+    protected void stubClientServiceGetClientById(Long clientId, ClientResponseModel client) {
+        lenient().when(clientService.getClientById(clientId)).thenReturn(client);
+    }
+
+    /**
+     * Stub for
+     * pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters
+     */
+    protected void stubPickupLocationFilterQueryBuilderFindPaginatedEntities(
+            org.springframework.data.domain.Page<PickupLocation> page) {
+        when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), any(), anyString(), any(), anyBoolean(), any()))
+                .thenReturn(page);
+    }
+
+    /**
+     * Stub for userLogService.logData
+     */
+    protected void stubUserLogServiceLogData() {
+        doNothing().when(userLogService).logData(anyLong(), anyString(), anyString());
+    }
+
+    /**
+     * Stub for userLogService.logDataWithContext
+     */
+    protected void stubUserLogServiceLogDataWithContext() {
+        doNothing().when(userLogService).logDataWithContext(anyLong(), anyString(), anyLong(), anyString(),
+                anyString());
+    }
+
+    /**
+     * Stub for productMappingRepository.countByPickupLocationIds
+     */
+    protected void stubProductMappingRepositoryCountByPickupLocationIds(java.util.List<Object[]> counts) {
+        when(productMappingRepository.countByPickupLocationIds(any())).thenReturn(counts);
+    }
+
+    /**
+     * Stub for packageMappingRepository.countByPickupLocationIds
+     */
+    protected void stubPackageMappingRepositoryCountByPickupLocationIds(java.util.List<Object[]> counts) {
+        when(packageMappingRepository.countByPickupLocationIds(any())).thenReturn(counts);
+    }
+
+    /**
+     * Stub for productMappingRepository.deleteByPickupLocationId
+     */
+    protected void stubProductMappingRepositoryDeleteByPickupLocationId() {
+        doNothing().when(productMappingRepository).deleteByPickupLocationId(anyLong());
+    }
+
+    /**
+     * Stub for packageMappingRepository.deleteByPickupLocationId
+     */
+    protected void stubPackageMappingRepositoryDeleteByPickupLocationId() {
+        doNothing().when(packageMappingRepository).deleteByPickupLocationId(anyLong());
+    }
+
+    /**
+     * Stub for productMappingRepository.saveAll
+     */
+    protected void stubProductMappingRepositorySaveAll() {
+        when(productMappingRepository.saveAll(any())).thenReturn(java.util.Collections.emptyList());
+    }
+
+    /**
+     * Stub for packageMappingRepository.saveAll
+     */
+    protected void stubPackageMappingRepositorySaveAll() {
+        when(packageMappingRepository.saveAll(any())).thenReturn(java.util.Collections.emptyList());
+    }
+
+    // ==========================================
+    // HELPER METHODS
+    // ==========================================
+
+    /**
+     * Helper method to create a valid PickupLocationRequestModel for bulk tests.
+     */
+    protected PickupLocationRequestModel createValidPickupLocationRequest(Long id) {
+        AddressRequestModel addressRequest = new AddressRequestModel();
+        addressRequest.setStreetAddress("Street " + id);
+        addressRequest.setCity("City " + id);
+        addressRequest.setState("NY");
+        addressRequest.setPostalCode("10001");
+        addressRequest.setCountry("USA");
+        addressRequest.setAddressType("WAREHOUSE");
+        addressRequest.setNameOnAddress("Name " + id);
+        addressRequest.setEmailOnAddress("email" + id + "@example.com");
+        addressRequest.setPhoneOnAddress("1234567890");
+
+        PickupLocationRequestModel request = new PickupLocationRequestModel();
+        request.setPickupLocationId(id);
+        request.setAddressNickName("Nick " + id);
+        request.setAddress(addressRequest);
+        request.setIsDeleted(false);
+        return request;
     }
 }

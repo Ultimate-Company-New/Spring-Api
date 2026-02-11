@@ -28,7 +28,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * Test class for PurchaseOrderService.getPurchaseOrdersInBatches method.
- * 
+ *
  * Test count: 1 comprehensive test
  * - Covers invalid pagination, invalid column, invalid operator, and success scenarios
  */
@@ -121,14 +121,15 @@ public class GetPOsInBatchesTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("getPurchaseOrdersInBatches - Controller delegates to service")
     void getPurchaseOrdersInBatches_WithValidRequest_DelegatesToService() {
-        PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderService);
+                com.example.SpringApi.Services.PurchaseOrderService mockService = mock(com.example.SpringApi.Services.PurchaseOrderService.class);
+                PurchaseOrderController controller = new PurchaseOrderController(mockService);
         PaginationBaseRequestModel request = new PaginationBaseRequestModel();
         PaginationBaseResponseModel<PurchaseOrderResponseModel> mockResponse = new PaginationBaseResponseModel<>();
-        when(purchaseOrderService.getPurchaseOrdersInBatches(request)).thenReturn(mockResponse);
+                when(mockService.getPurchaseOrdersInBatches(request)).thenReturn(mockResponse);
 
         ResponseEntity<?> response = controller.getPurchaseOrdersInBatches(request);
 
-        verify(purchaseOrderService).getPurchaseOrdersInBatches(request);
+                verify(mockService).getPurchaseOrdersInBatches(request);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

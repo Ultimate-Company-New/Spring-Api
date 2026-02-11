@@ -30,7 +30,7 @@ import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketReturnOrderR
 import com.example.SpringApi.Adapters.DateAdapter;
 import com.example.SpringApi.Adapters.LocalDateTimeAdapter;
 
-public class ShippingHelper {
+public class ShipRocketHelper {
     private final String _apiUrl = "https://apiv2.shiprocket.in/v1/external";
     private final String _email;
     private final String _password;
@@ -58,7 +58,7 @@ public class ShippingHelper {
                 .build();
     }
 
-    public ShippingHelper(String email, String password) {
+    public ShipRocketHelper(String email, String password) {
         this._email = email;
         this._password = password;
     }
