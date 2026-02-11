@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("ProductReviewService - ToggleProductReview Tests")
 class ToggleProductReviewTest extends ProductReviewServiceTestBase {
 
-    // Total Tests: 14
+    // Total Tests: 26
 
     /*
      **********************************************************************************************

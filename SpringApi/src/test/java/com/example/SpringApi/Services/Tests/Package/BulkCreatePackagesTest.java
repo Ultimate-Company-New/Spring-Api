@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Bulk Create Packages Tests")
 class BulkCreatePackagesTest extends PackageServiceTestBase {
-    // Total Tests: 19
+    // Total Tests: 37
 
     /*
      **********************************************************************************************
@@ -413,12 +413,10 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("bulkCreatePackages - Controller Permission - Unauthorized")
-        void bulkCreatePackages_controller_permission_unauthorized() {
+    void bulkCreatePackages_controller_permission_unauthorized() {
         // Arrange
-        com.example.SpringApi.Services.PackageService concreteMock = mock(com.example.SpringApi.Services.PackageService.class);
-        when(concreteMock.getUserId()).thenThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
-            ErrorMessages.ERROR_UNAUTHORIZED));
-        PackageController controller = new PackageController(packageServiceMock, concreteMock);
+        stubConcretePackageServiceThrowsUnauthorized();
+        PackageController controller = new PackageController(packageServiceMock, concretePackageServiceMock);
 
         // Act
         ResponseEntity<?> response = controller.bulkCreatePackages(new ArrayList<>());
@@ -457,13 +455,9 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
     @DisplayName("bulkCreatePackages - Controller delegates to service")
     void bulkCreatePackages_WithValidRequest_DelegatesToService() {
         // Arrange
-        com.example.SpringApi.Services.PackageService concreteMock = mock(com.example.SpringApi.Services.PackageService.class);
-        when(concreteMock.getUserId()).thenReturn(TEST_USER_ID);
-        when(concreteMock.getUser()).thenReturn("testuser");
-        when(concreteMock.getClientId()).thenReturn(TEST_CLIENT_ID);
-        PackageController controller = new PackageController(packageServiceMock, concreteMock);
-        doNothing().when(packageServiceMock)
-                .bulkCreatePackagesAsync(anyList(), anyLong(), anyString(), anyLong());
+        stubConcretePackageServiceUserContext(TEST_USER_ID, "testuser", TEST_CLIENT_ID);
+        PackageController controller = new PackageController(packageServiceMock, concretePackageServiceMock);
+        stubPackageServiceBulkCreatePackagesAsyncDoNothing();
 
         // Act
         ResponseEntity<?> response = controller.bulkCreatePackages(List.of(createValidPackageRequest()));
@@ -480,13 +474,37 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
  */
 @DisplayName("Bulk Create Packages Tests - Duplicate Block")
 class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
-    // Total Tests: 15
 
     /*
      **********************************************************************************************
      * SUCCESS TESTS
      **********************************************************************************************
      */
+
+    /**
+     * Purpose: Verify bulk creation with all packages having identical names (duplicate scenario).
+     * Expected Result: All duplicates are saved successfully (if business logic allows).
+     * Assertions: Success count equals number of duplicate packages.
+     */
+    @Test
+    @DisplayName("Bulk Create Packages - All Duplicate Names - Success if Allowed")
+    void bulkCreatePackages_AllDuplicateNames_Success() {
+        // Arrange
+        List<PackageRequestModel> requests = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            PackageRequestModel req = createValidPackageRequest();
+            req.setPackageName("DuplicateName");
+            requests.add(req);
+        }
+        stubPackageRepositorySave(testPackage);
+        stubUserLogServiceLogDataReturnsTrue();
+
+        // Act
+        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
+
+        // Assert
+        assertTrue(result.getSuccessCount() > 0);
+    }
 
     /**
      * Purpose: Verify successful bulk creation when all provided packages are valid.
@@ -496,22 +514,77 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
     @Test
     @DisplayName("Bulk Create Packages - All Valid - Success")
     void bulkCreatePackages_AllValid_Success() {
+        // Arrange
         List<PackageRequestModel> packages = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             PackageRequestModel pkgReq = createValidPackageRequest();
             pkgReq.setPackageName("Package" + i);
             packages.add(pkgReq);
         }
+        stubPackageRepositorySave(testPackage);
+        stubUserLogServiceLogDataReturnsTrue();
 
-        when(packageRepository.save(any(com.example.SpringApi.Models.DatabaseModels.Package.class))).thenReturn(testPackage);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-
+        // Act
         BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(packages);
 
+        // Assert
         assertNotNull(result);
         assertEquals(3, result.getSuccessCount());
         assertEquals(0, result.getFailureCount());
         verify(packageRepository, times(3)).save(any());
+    }
+
+    /**
+     * Purpose: Verify bulk creation with alternating valid and invalid packages (stress test).
+     * Expected Result: Valid packages are saved, invalid ones are reported.
+     * Assertions: Failure count is greater than 0 for alternating valid/invalid pattern.
+     */
+    @Test
+    @DisplayName("Bulk Create Packages - Alternating Valid Invalid - Partial Success")
+    void bulkCreatePackages_AlternatingValidInvalid_PartialSuccess() {
+        // Arrange
+        List<PackageRequestModel> requests = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            if (i % 2 == 0) {
+                requests.add(createValidPackageRequest());
+            } else {
+                PackageRequestModel invalidReq = createValidPackageRequest();
+                invalidReq.setLength(0);
+                requests.add(invalidReq);
+            }
+        }
+        stubPackageRepositorySave(testPackage);
+
+        // Act
+        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
+
+        // Assert
+        assertEquals(5, result.getSuccessCount());
+        assertEquals(5, result.getFailureCount());
+    }
+
+    /**
+     * Purpose: Verify bulk creation handles extremely large batch (1000 items).
+     * Expected Result: All 1000 packages are processed successfully.
+     * Assertions: Total requested equals 1000 and success count equals 1000.
+     */
+    @Test
+    @DisplayName("Bulk Create Packages - Extreme Batch Size 1000 - Success")
+    void bulkCreatePackages_ExtremeBatchSize_Success() {
+        // Arrange
+        List<PackageRequestModel> requests = new ArrayList<>();
+        for (int i = 0; i < 1000; i++) {
+            requests.add(createValidPackageRequest());
+        }
+        stubPackageRepositorySave(testPackage);
+        stubUserLogServiceLogDataReturnsTrue();
+
+        // Act
+        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
+
+        // Assert
+        assertEquals(1000, result.getTotalRequested());
+        assertEquals(1000, result.getSuccessCount());
     }
 
     /**
@@ -522,13 +595,17 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
     @Test
     @DisplayName("Bulk Create Packages - Large Batch - Success")
     void bulkCreatePackages_LargeBatch_Success() {
+        // Arrange
         List<PackageRequestModel> requests = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             requests.add(createValidPackageRequest());
         }
+        stubPackageRepositorySave(testPackage);
 
-        when(packageRepository.save(any())).thenReturn(testPackage);
+        // Act
         BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
+
+        // Assert
         assertEquals(100, result.getTotalRequested());
     }
 
@@ -540,26 +617,24 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
     @Test
     @DisplayName("Bulk Create Packages - Mixed Invalid and Valid - Partial Success")
     void bulkCreatePackages_MixedInvalidAndValid_PartialSuccess() {
+        // Arrange
         List<PackageRequestModel> requests = new ArrayList<>();
         requests.add(createValidPackageRequest());
-        
         PackageRequestModel invalidPkg = createValidPackageRequest();
-        invalidPkg.setPackageName(""); // Invalid
+        invalidPkg.setPackageName("");
         requests.add(invalidPkg);
-        
         requests.add(createValidPackageRequest());
+        stubPackageRepositorySave(testPackage);
+        stubUserLogServiceLogDataReturnsTrue();
 
-        when(packageRepository.save(any())).thenReturn(testPackage);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-        
+        // Act
         BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
 
+        // Assert
         assertEquals(3, result.getTotalRequested());
         assertEquals(2, result.getSuccessCount());
         assertEquals(1, result.getFailureCount());
     }
-
-
 
     /**
      * Purpose: Verify creation of a single valid package via bulk method.
@@ -569,12 +644,15 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
     @Test
     @DisplayName("Bulk Create Packages - Single Valid Item - Success")
     void bulkCreatePackages_SingleValidItem_Success() {
+        // Arrange
         List<PackageRequestModel> packages = List.of(createValidPackageRequest());
-        when(packageRepository.save(any())).thenReturn(testPackage);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubPackageRepositorySave(testPackage);
+        stubUserLogServiceLogDataReturnsTrue();
 
+        // Act
         BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(packages);
 
+        // Assert
         assertEquals(1, result.getSuccessCount());
         assertEquals(0, result.getFailureCount());
     }
@@ -593,14 +671,18 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
     @Test
     @DisplayName("Bulk Create Packages - All Invalid Names - All Fail")
     void bulkCreatePackages_AllInvalidNames_AllFail() {
+        // Arrange
         List<PackageRequestModel> requests = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             PackageRequestModel req = createValidPackageRequest();
-            req.setPackageName(""); 
+            req.setPackageName("");
             requests.add(req);
         }
 
+        // Act
         BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
+
+        // Assert
         assertEquals(5, result.getFailureCount());
         verify(packageRepository, never()).save(any());
     }
@@ -613,11 +695,14 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
     @Test
     @DisplayName("Bulk Create Packages - Database Error - Records Failure")
     void bulkCreatePackages_DatabaseError_RecordsFailure() {
+        // Arrange
         List<PackageRequestModel> packages = List.of(createValidPackageRequest());
-        when(packageRepository.save(any())).thenThrow(new RuntimeException("DB Error"));
+        stubPackageRepositorySaveThrows(new RuntimeException("DB Error"));
 
+        // Act
         BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(packages);
 
+        // Assert
         assertEquals(0, result.getSuccessCount());
         assertEquals(1, result.getFailureCount());
     }
@@ -630,10 +715,16 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
     @Test
     @DisplayName("Bulk Create Packages - Empty List - Throws BadRequestException")
     void bulkCreatePackages_EmptyList_ThrowsBadRequestException() {
+        // Arrange
         List<PackageRequestModel> packages = new ArrayList<>();
-        BadRequestException exception = assertThrows(BadRequestException.class, 
-            () -> packageService.bulkCreatePackages(packages));
-        assertTrue(exception.getMessage().contains("Package list cannot be null or empty"));
+
+        // Act
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> packageService.bulkCreatePackages(packages));
+
+        // Assert
+        assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Package"),
+                exception.getMessage());
     }
 
     /**
@@ -644,9 +735,14 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
     @Test
     @DisplayName("Bulk Create Packages - Invalid Breadth Zero - Fails")
     void bulkCreatePackages_InvalidBreadthZero_Fails() {
+        // Arrange
         PackageRequestModel req = createValidPackageRequest();
         req.setBreadth(0);
+
+        // Act
         BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(List.of(req));
+
+        // Assert
         assertEquals(1, result.getFailureCount());
     }
 
@@ -658,9 +754,14 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
     @Test
     @DisplayName("Bulk Create Packages - Invalid Height Zero - Fails")
     void bulkCreatePackages_InvalidHeightZero_Fails() {
+        // Arrange
         PackageRequestModel req = createValidPackageRequest();
         req.setHeight(0);
+
+        // Act
         BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(List.of(req));
+
+        // Assert
         assertEquals(1, result.getFailureCount());
     }
 
@@ -672,9 +773,14 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
     @Test
     @DisplayName("Bulk Create Packages - Invalid Length Zero - Fails")
     void bulkCreatePackages_InvalidLengthZero_Fails() {
+        // Arrange
         PackageRequestModel req = createValidPackageRequest();
         req.setLength(0);
+
+        // Act
         BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(List.of(req));
+
+        // Assert
         assertEquals(1, result.getFailureCount());
     }
 
@@ -686,23 +792,14 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
     @Test
     @DisplayName("Bulk Create Packages - Invalid Negative Weight - Fails")
     void bulkCreatePackages_InvalidNegativeWeight_Fails() {
+        // Arrange
         PackageRequestModel req = createValidPackageRequest();
         req.setMaxWeight(new BigDecimal("-1.0"));
-        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(List.of(req));
-        assertEquals(1, result.getFailureCount());
-    }
 
-    /**
-     * Purpose: Reject bulk creation when the package name is null.
-     * Expected Result: Failure count is 1.
-     * Assertions: Result failure count is 1.
-     */
-    @Test
-    @DisplayName("Bulk Create Packages - Null Package Name - Fails")
-    void bulkCreatePackages_NullPackageName_Fails() {
-        PackageRequestModel req = createValidPackageRequest();
-        req.setPackageName(null);
+        // Act
         BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(List.of(req));
+
+        // Assert
         assertEquals(1, result.getFailureCount());
     }
 
@@ -714,78 +811,33 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
     @Test
     @DisplayName("Bulk Create Packages - Null List - Throws BadRequestException")
     void bulkCreatePackages_NullList_ThrowsBadRequestException() {
-        BadRequestException exception = assertThrows(BadRequestException.class, 
-            () -> packageService.bulkCreatePackages(null));
-        assertTrue(exception.getMessage().contains("Package list cannot be null or empty"));
+        // Arrange
+        // Act
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> packageService.bulkCreatePackages(null));
+
+        // Assert
+        assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Package"),
+                exception.getMessage());
     }
 
     /**
-     * Purpose: Verify bulk creation handles extremely large batch (1000 items).
-     * Expected Result: All 1000 packages are processed successfully.
-     * Assertions: Total requested equals 1000 and success count equals 1000.
+     * Purpose: Reject bulk creation when the package name is null.
+     * Expected Result: Failure count is 1.
+     * Assertions: Result failure count is 1.
      */
     @Test
-    @DisplayName("Bulk Create Packages - Extreme Batch Size 1000 - Success")
-    void bulkCreatePackages_ExtremeBatchSize_Success() {
-        List<PackageRequestModel> requests = new ArrayList<>();
-        for (int i = 0; i < 1000; i++) {
-            requests.add(createValidPackageRequest());
-        }
-        when(packageRepository.save(any())).thenReturn(testPackage);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-        
-        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
-        
-        assertEquals(1000, result.getTotalRequested());
-        assertEquals(1000, result.getSuccessCount());
-    }
+    @DisplayName("Bulk Create Packages - Null Package Name - Fails")
+    void bulkCreatePackages_NullPackageName_Fails() {
+        // Arrange
+        PackageRequestModel req = createValidPackageRequest();
+        req.setPackageName(null);
 
-    /**
-     * Purpose: Verify bulk creation with all packages having identical names (duplicate scenario).
-     * Expected Result: All duplicates are saved successfully (if business logic allows).
-     * Assertions: Success count equals number of duplicate packages.
-     */
-    @Test
-    @DisplayName("Bulk Create Packages - All Duplicate Names - Success if Allowed")
-    void bulkCreatePackages_AllDuplicateNames_Success() {
-        List<PackageRequestModel> requests = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            PackageRequestModel req = createValidPackageRequest();
-            req.setPackageName("DuplicateName");
-            requests.add(req);
-        }
-        when(packageRepository.save(any())).thenReturn(testPackage);
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-        
-        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
-        
-        assertTrue(result.getSuccessCount() > 0);
-    }
+        // Act
+        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(List.of(req));
 
-    /**
-     * Purpose: Verify bulk creation with alternating valid and invalid packages (stress test).
-     * Expected Result: Valid packages are saved, invalid ones are reported.
-     * Assertions: Failure count is greater than 0 for alternating valid/invalid pattern.
-     */
-    @Test
-    @DisplayName("Bulk Create Packages - Alternating Valid Invalid - Partial Success")
-    void bulkCreatePackages_AlternatingValidInvalid_PartialSuccess() {
-        List<PackageRequestModel> requests = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            if (i % 2 == 0) {
-                requests.add(createValidPackageRequest());
-            } else {
-                PackageRequestModel invalidReq = createValidPackageRequest();
-                invalidReq.setLength(0); // Invalid
-                requests.add(invalidReq);
-            }
-        }
-        when(packageRepository.save(any())).thenReturn(testPackage);
-        
-        BulkInsertResponseModel<Long> result = packageService.bulkCreatePackages(requests);
-        
-        assertEquals(5, result.getSuccessCount());
-        assertEquals(5, result.getFailureCount());
+        // Assert
+        assertEquals(1, result.getFailureCount());
     }
 
     /*
@@ -796,7 +848,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
 
     @Test
     @DisplayName("bulkCreatePackages - Verify @PreAuthorize Annotation")
-    void bulkCreatePackages_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void bulkCreatePackages_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         Method method = PackageController.class.getMethod("bulkCreatePackages", List.class);
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
         assertNotNull(annotation, "@PreAuthorize annotation should be present");
@@ -807,11 +859,16 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
     @Test
     @DisplayName("bulkCreatePackages - Controller delegates to service")
     void bulkCreatePackages_WithValidRequest_DelegatesToService() {
-        PackageController controller = new PackageController(packageService, packageService);
+        // Arrange
+        stubConcretePackageServiceUserContext(TEST_USER_ID, "testuser", TEST_CLIENT_ID);
+        PackageController controller = new PackageController(packageServiceMock, concretePackageServiceMock);
         List<PackageRequestModel> packages = List.of(createValidPackageRequest());
+        stubPackageServiceBulkCreatePackagesAsyncDoNothing();
 
+        // Act
         ResponseEntity<?> response = controller.bulkCreatePackages(packages);
 
+        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

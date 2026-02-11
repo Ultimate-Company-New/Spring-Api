@@ -4,6 +4,7 @@ import com.example.SpringApi.Controllers.MessageController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.Models.Authorizations;
+import com.example.SpringApi.ErrorMessages;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -95,7 +96,7 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
      */
     @Test
     @DisplayName("Get Unread Message Count - Success")
-    void getUnreadMessageCount_Success() {
+    void getUnreadMessageCount_Success_Success() {
         // Arrange
         stubMessageRepositoryCountUnreadMessagesByUserId(5L);
 
@@ -139,11 +140,11 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
     @DisplayName("Get Unread Message Count - Client Lookup Error - Propagates")
     void getUnreadMessageCount_ClientLookupError_Propagates() {
         // Arrange
-        stubMessageRepositoryCountUnreadMessagesByUserIdThrows("Context error");
+        stubMessageRepositoryCountUnreadMessagesByUserIdThrows(ErrorMessages.CommonErrorMessages.DATABASE_ERROR);
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.getUnreadMessageCount());
-        assertEquals("Context error", ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.DATABASE_ERROR, ex.getMessage());
     }
 
     /**
@@ -155,12 +156,13 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
     @DisplayName("Get Unread Message Count - Repository exception - Throws Exception")
     void getUnreadMessageCount_RepositoryException_ThrowsException() {
         // Arrange
-        stubMessageRepositoryCountUnreadMessagesByUserIdThrows("Database connection failed");
+        stubMessageRepositoryCountUnreadMessagesByUserIdThrows(
+            ErrorMessages.CommonErrorMessages.DATABASE_CONNECTION_ERROR);
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> messageService.getUnreadMessageCount());
-        assertEquals("Database connection failed", ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.DATABASE_CONNECTION_ERROR, ex.getMessage());
 
         verify(messageRepository).countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID);
     }
@@ -192,11 +194,11 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
     @DisplayName("Get Unread Message Count - User ID Lookup Failure - Propagates")
     void getUnreadMessageCount_UserIdLookupFailure_Propagates() {
         // Arrange
-        stubMessageRepositoryCountUnreadMessagesByUserIdThrows("User lookup failed");
+        stubMessageRepositoryCountUnreadMessagesByUserIdThrows(ErrorMessages.CommonErrorMessages.DATABASE_ERROR);
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.getUnreadMessageCount());
-        assertEquals("User lookup failed", ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.DATABASE_ERROR, ex.getMessage());
     }
 
     /*
@@ -212,7 +214,7 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
      */
     @Test
     @DisplayName("getUnreadMessageCount - Verify @PreAuthorize Annotation")
-    void getUnreadMessageCount_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void getUnreadMessageCount_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = MessageController.class.getMethod("getUnreadMessageCount");
 
@@ -243,5 +245,25 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
         // Assert
         verify(messageServiceMock).getUnreadMessageCount();
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("getUnreadMessageCount - Controller permission unauthorized - Success")
+    void getUnreadMessageCount_controller_permission_unauthorized() {
+        // Arrange
+        MessageController controller = new MessageController(messageServiceMock);
+        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(messageServiceMock).getUnreadMessageCount();
+
+        // Act
+        ResponseEntity<?> response = controller.getUnreadMessageCount();
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }

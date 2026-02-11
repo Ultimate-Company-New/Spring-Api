@@ -210,10 +210,14 @@ class GetAddressByIdTest extends AddressServiceTestBase {
     void getAddressById_controller_permission_forbidden() throws NoSuchMethodException {
         // Arrange
         var method = AddressController.class.getMethod("getAddressById", Long.class);
+        AddressResponseModel mockResponse = new AddressResponseModel();
+        mockResponse.setAddressId(DEFAULT_ADDRESS_ID);
+        stubServiceGetAddressById(DEFAULT_ADDRESS_ID, mockResponse);
 
         // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
+        ResponseEntity<?> response = addressController.getAddressById(DEFAULT_ADDRESS_ID);
 
         // Assert
         assertNotNull(preAuthorizeAnnotation, "getAddressById method should have @PreAuthorize annotation");
@@ -223,6 +227,7 @@ class GetAddressByIdTest extends AddressServiceTestBase {
 
         assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
                 "PreAuthorize annotation should reference VIEW_ADDRESS_PERMISSION");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
     }
 
     /**

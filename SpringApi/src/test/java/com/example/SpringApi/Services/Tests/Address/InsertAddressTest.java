@@ -18,17 +18,197 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for AddressService insert functionality.
- * Tests for: InsertAddressTests (67 tests)
+ * Tests for: InsertAddressTests (68 tests)
  */
 @DisplayName("Insert Address Tests")
 class InsertAddressTest extends AddressServiceTestBase {
-    // Total Tests: 67
+    // Total Tests: 68
 
     /*
      **********************************************************************************************
      * SUCCESS TESTS
      **********************************************************************************************
      */
+
+    /**
+     * Purpose: Accept valid address types (case-insensitive).
+     * Expected Result: Insert succeeds for each valid type.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Insert Address - Address type BILLING - Success")
+    void insertAddress_addressType_BILLING_success() {
+        // Arrange
+        testAddressRequest.setAddressType("BILLING");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    /**
+     * Purpose: Accept lowercase home address type.
+     * Expected Result: Insert succeeds.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Insert Address - Address type home (lowercase) - Success")
+    void insertAddress_addressType_home_lowercase_success() {
+        // Arrange
+        testAddressRequest.setAddressType("home");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    /**
+     * Purpose: Accept mixed-case Home address type.
+     * Expected Result: Insert succeeds.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Insert Address - Address type Home (mixed) - Success")
+    void insertAddress_addressType_Home_mixedcase_success() {
+        // Arrange
+        testAddressRequest.setAddressType("Home");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    /**
+     * Purpose: Accept uppercase HOME address type.
+     * Expected Result: Insert succeeds.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Insert Address - Address type HOME - Success")
+    void insertAddress_addressType_HOME_success() {
+        // Arrange
+        testAddressRequest.setAddressType("HOME");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    /**
+     * Purpose: Accept OFFICE address type.
+     * Expected Result: Insert succeeds.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Insert Address - Address type OFFICE - Success")
+    void insertAddress_addressType_OFFICE_success() {
+        // Arrange
+        testAddressRequest.setAddressType("OFFICE");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    /**
+     * Purpose: Accept SHIPPING address type.
+     * Expected Result: Insert succeeds.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Insert Address - Address type SHIPPING - Success")
+    void insertAddress_addressType_SHIPPING_success() {
+        // Arrange
+        testAddressRequest.setAddressType("SHIPPING");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    /**
+     * Purpose: Accept WAREHOUSE address type.
+     * Expected Result: Insert succeeds.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Insert Address - Address type WAREHOUSE - Success")
+    void insertAddress_addressType_WAREHOUSE_success() {
+        // Arrange
+        testAddressRequest.setAddressType("WAREHOUSE");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    /**
+     * Purpose: Accept lowercase work address type.
+     * Expected Result: Insert succeeds.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Insert Address - Address type work (lowercase) - Success")
+    void insertAddress_addressType_work_lowercase_success() {
+        // Arrange
+        testAddressRequest.setAddressType("work");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    /**
+     * Purpose: Accept mixed-case Work address type.
+     * Expected Result: Insert succeeds.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Insert Address - Address type Work (mixed) - Success")
+    void insertAddress_addressType_Work_mixedcase_success() {
+        // Arrange
+        testAddressRequest.setAddressType("Work");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    /**
+     * Purpose: Accept uppercase WORK address type.
+     * Expected Result: Insert succeeds.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Insert Address - Address type WORK - Success")
+    void insertAddress_addressType_WORK_success() {
+        // Arrange
+        testAddressRequest.setAddressType("WORK");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
 
     /**
      * Purpose: Normalize address type to uppercase on insert.
@@ -393,6 +573,42 @@ class InsertAddressTest extends AddressServiceTestBase {
     }
 
     /**
+     * Purpose: Accept valid postal code length of 6 digits.
+     * Expected Result: Insert succeeds.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Insert Address - Postal code 123456 - Success")
+    void insertAddress_postalCode_123456_success() {
+        // Arrange
+        testAddressRequest.setPostalCode("123456");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    /**
+     * Purpose: Allow valid postal code lengths.
+     * Expected Result: Insert succeeds for each postal code.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Insert Address - Postal code 12345 - Success")
+    void insertAddress_postalCode_12345_success() {
+        // Arrange
+        testAddressRequest.setPostalCode("12345");
+        stubBaseServiceBehaviors();
+        stubAddressRepositorySave(testAddress);
+        stubUserLogSuccess();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+    }
+
+    /**
      * Purpose: Accept postal codes with leading zeros.
      * Expected Result: Insert succeeds.
      * Assertions: No exception is thrown.
@@ -456,172 +672,6 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_UnicodeCharactersInCity_Success() {
         // Arrange
         testAddressRequest.setCity("München");
-        stubBaseServiceBehaviors();
-        stubAddressRepositorySave(testAddress);
-        stubUserLogSuccess();
-
-        // Act & Assert
-        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
-    }
-
-    /**
-     * Purpose: Accept valid address types (case-insensitive).
-     * Expected Result: Insert succeeds for each valid type.
-     * Assertions: No exception is thrown.
-     */
-    @Test
-    @DisplayName("Insert Address - Address type BILLING - Success")
-    void insertAddress_addressType_BILLING_success() {
-        // Arrange
-        testAddressRequest.setAddressType("BILLING");
-        stubBaseServiceBehaviors();
-        stubAddressRepositorySave(testAddress);
-        stubUserLogSuccess();
-
-        // Act & Assert
-        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
-    }
-
-    @Test
-    @DisplayName("Insert Address - Address type HOME - Success")
-    void insertAddress_addressType_HOME_success() {
-        // Arrange
-        testAddressRequest.setAddressType("HOME");
-        stubBaseServiceBehaviors();
-        stubAddressRepositorySave(testAddress);
-        stubUserLogSuccess();
-
-        // Act & Assert
-        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
-    }
-
-    @Test
-    @DisplayName("Insert Address - Address type Home (mixed) - Success")
-    void insertAddress_addressType_Home_mixedcase_success() {
-        // Arrange
-        testAddressRequest.setAddressType("Home");
-        stubBaseServiceBehaviors();
-        stubAddressRepositorySave(testAddress);
-        stubUserLogSuccess();
-
-        // Act & Assert
-        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
-    }
-
-    @Test
-    @DisplayName("Insert Address - Address type OFFICE - Success")
-    void insertAddress_addressType_OFFICE_success() {
-        // Arrange
-        testAddressRequest.setAddressType("OFFICE");
-        stubBaseServiceBehaviors();
-        stubAddressRepositorySave(testAddress);
-        stubUserLogSuccess();
-
-        // Act & Assert
-        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
-    }
-
-    @Test
-    @DisplayName("Insert Address - Address type SHIPPING - Success")
-    void insertAddress_addressType_SHIPPING_success() {
-        // Arrange
-        testAddressRequest.setAddressType("SHIPPING");
-        stubBaseServiceBehaviors();
-        stubAddressRepositorySave(testAddress);
-        stubUserLogSuccess();
-
-        // Act & Assert
-        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
-    }
-
-    @Test
-    @DisplayName("Insert Address - Address type WAREHOUSE - Success")
-    void insertAddress_addressType_WAREHOUSE_success() {
-        // Arrange
-        testAddressRequest.setAddressType("WAREHOUSE");
-        stubBaseServiceBehaviors();
-        stubAddressRepositorySave(testAddress);
-        stubUserLogSuccess();
-
-        // Act & Assert
-        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
-    }
-
-    @Test
-    @DisplayName("Insert Address - Address type WORK - Success")
-    void insertAddress_addressType_WORK_success() {
-        // Arrange
-        testAddressRequest.setAddressType("WORK");
-        stubBaseServiceBehaviors();
-        stubAddressRepositorySave(testAddress);
-        stubUserLogSuccess();
-
-        // Act & Assert
-        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
-    }
-
-    @Test
-    @DisplayName("Insert Address - Address type Work (mixed) - Success")
-    void insertAddress_addressType_Work_mixedcase_success() {
-        // Arrange
-        testAddressRequest.setAddressType("Work");
-        stubBaseServiceBehaviors();
-        stubAddressRepositorySave(testAddress);
-        stubUserLogSuccess();
-
-        // Act & Assert
-        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
-    }
-
-    @Test
-    @DisplayName("Insert Address - Address type home (lowercase) - Success")
-    void insertAddress_addressType_home_lowercase_success() {
-        // Arrange
-        testAddressRequest.setAddressType("home");
-        stubBaseServiceBehaviors();
-        stubAddressRepositorySave(testAddress);
-        stubUserLogSuccess();
-
-        // Act & Assert
-        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
-    }
-
-    @Test
-    @DisplayName("Insert Address - Address type work (lowercase) - Success")
-    void insertAddress_addressType_work_lowercase_success() {
-        // Arrange
-        testAddressRequest.setAddressType("work");
-        stubBaseServiceBehaviors();
-        stubAddressRepositorySave(testAddress);
-        stubUserLogSuccess();
-
-        // Act & Assert
-        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
-    }
-
-    /**
-     * Purpose: Allow valid postal code lengths.
-     * Expected Result: Insert succeeds for each postal code.
-     * Assertions: No exception is thrown.
-     */
-    @Test
-    @DisplayName("Insert Address - Postal code 12345 - Success")
-    void insertAddress_postalCode_12345_success() {
-        // Arrange
-        testAddressRequest.setPostalCode("12345");
-        stubBaseServiceBehaviors();
-        stubAddressRepositorySave(testAddress);
-        stubUserLogSuccess();
-
-        // Act & Assert
-        assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
-    }
-
-    @Test
-    @DisplayName("Insert Address - Postal code 123456 - Success")
-    void insertAddress_postalCode_123456_success() {
-        // Arrange
-        testAddressRequest.setPostalCode("123456");
         stubBaseServiceBehaviors();
         stubAddressRepositorySave(testAddress);
         stubUserLogSuccess();
@@ -753,10 +803,43 @@ class InsertAddressTest extends AddressServiceTestBase {
     }
 
     /**
-     * Purpose: Reject address type with mixed case and numbers.
+     * Purpose: Reject invalid address type (COMMERCIAL).
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches ER006.
      */
+    @Test
+    @DisplayName("Insert Address - Invalid address type (COMMERCIAL) - ThrowsBadRequestException")
+    void insertAddress_InvalidAddressTypeCommercial_ThrowsBadRequestException() {
+        // Arrange
+        testAddressRequest.setAddressType("COMMERCIAL");
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
+                () -> addressService.insertAddress(testAddressRequest));
+
+        assertEquals(ErrorMessages.AddressErrorMessages.ER006, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Reject invalid address type (empty).
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Error message matches ER006.
+     */
+    @Test
+    @DisplayName("Insert Address - Invalid address type (empty) - ThrowsBadRequestException")
+    void insertAddress_InvalidAddressTypeEmpty_ThrowsBadRequestException() {
+        // Arrange
+        testAddressRequest.setAddressType("");
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(
+                BadRequestException.class,
+                () -> addressService.insertAddress(testAddressRequest));
+
+        assertEquals(ErrorMessages.AddressErrorMessages.ER006, exception.getMessage());
+    }
+
     @Test
     @DisplayName("Insert Address - Invalid address type (home123) - ThrowsBadRequestException")
     void insertAddress_InvalidAddressTypeHome123_ThrowsBadRequestException() {
@@ -810,44 +893,6 @@ class InsertAddressTest extends AddressServiceTestBase {
     }
 
     /**
-     * Purpose: Reject commercial address type (not supported).
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER006.
-     */
-    @Test
-    @DisplayName("Insert Address - Invalid address type (COMMERCIAL) - ThrowsBadRequestException")
-    void insertAddress_InvalidAddressTypeCommercial_ThrowsBadRequestException() {
-        // Arrange
-        testAddressRequest.setAddressType("COMMERCIAL");
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> addressService.insertAddress(testAddressRequest));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.ER006, exception.getMessage());
-    }
-
-    /**
-     * Purpose: Reject empty address type.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER006.
-     */
-    @Test
-    @DisplayName("Insert Address - Invalid address type (empty) - ThrowsBadRequestException")
-    void insertAddress_InvalidAddressTypeEmpty_ThrowsBadRequestException() {
-        // Arrange
-        testAddressRequest.setAddressType("");
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> addressService.insertAddress(testAddressRequest));
-
-        assertEquals(ErrorMessages.AddressErrorMessages.ER006, exception.getMessage());
-    }
-
-    /**
      * Purpose: Reject invalid created user.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches InvalidUser.
@@ -867,15 +912,15 @@ class InsertAddressTest extends AddressServiceTestBase {
     }
 
     /**
-     * Purpose: Reject invalid postal code with letters.
+     * Purpose: Reject invalid postal code with hyphens.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches ER007.
      */
     @Test
-    @DisplayName("Insert Address - Invalid postal code (letters) - ThrowsBadRequestException")
-    void insertAddress_InvalidPostalCodeLetters_ThrowsBadRequestException() {
+    @DisplayName("Insert Address - Invalid postal code (hyphens) - ThrowsBadRequestException")
+    void insertAddress_InvalidPostalCodeHyphens_ThrowsBadRequestException() {
         // Arrange
-        testAddressRequest.setPostalCode("abcde");
+        testAddressRequest.setPostalCode("12-345");
 
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -886,15 +931,15 @@ class InsertAddressTest extends AddressServiceTestBase {
     }
 
     /**
-     * Purpose: Reject invalid postal code with hyphens.
+     * Purpose: Reject invalid postal code with letters.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches ER007.
      */
     @Test
-    @DisplayName("Insert Address - Invalid postal code (hyphens) - ThrowsBadRequestException")
-    void insertAddress_InvalidPostalCodeHyphens_ThrowsBadRequestException() {
+    @DisplayName("Insert Address - Invalid postal code (letters) - ThrowsBadRequestException")
+    void insertAddress_InvalidPostalCodeLetters_ThrowsBadRequestException() {
         // Arrange
-        testAddressRequest.setPostalCode("12-345");
+        testAddressRequest.setPostalCode("abcde");
 
         // Act & Assert
         BadRequestException exception = assertThrows(
@@ -1251,10 +1296,12 @@ class InsertAddressTest extends AddressServiceTestBase {
         // Arrange
         var method = AddressController.class.getMethod("createAddress",
                 com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
+        stubServiceInsertAddressDoNothing();
 
         // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
+        ResponseEntity<?> response = addressController.createAddress(testAddressRequest);
 
         // Assert
         assertNotNull(preAuthorizeAnnotation, "createAddress method should have @PreAuthorize annotation");
@@ -1264,6 +1311,8 @@ class InsertAddressTest extends AddressServiceTestBase {
 
         assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
                 "PreAuthorize annotation should reference INSERT_ADDRESS_PERMISSION");
+        assertEquals(HttpStatus.CREATED, response.getStatusCode(),
+            "Should return HTTP 201 Created on successful insertion");
     }
 
     /**

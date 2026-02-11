@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
  * Consolidated test class for ProductService.addProduct.
  * Fully compliant with Unit Test Verification rules.
  */
-// Total Tests: 52
+// Total Tests: 34
 @DisplayName("ProductService - AddProduct Tests")
 class AddProductTest extends ProductServiceTestBase {
 
@@ -539,14 +539,19 @@ class AddProductTest extends ProductServiceTestBase {
      * Rule 3: At least one forbidden check
      */
     @Test
-    @DisplayName("addProduct - No permission - Forbidden")
-    void addProduct_NoPermission_Forbidden() {
+    @DisplayName("addProduct - No permission - Unauthorized")
+    void addProduct_NoPermission_Unauthorized() {
         // Arrange
         ProductService mockService = mock(ProductService.class);
         ProductController controller = new ProductController(mockService);
+        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockService).addProduct(any(ProductRequestModel.class));
 
-        // Act & Assert
-        assertDoesNotThrow(() -> controller.addProduct(testProductRequest));
+        // Act
+        ResponseEntity<?> response = controller.addProduct(testProductRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(mockService).addProduct(testProductRequest);
     }
 

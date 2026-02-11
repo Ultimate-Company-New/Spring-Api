@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for PickupLocationService.updatePickupLocation() method.
  * Extensive validation of updates and mapping updates.
- * Test Count: 40 tests
+ * Test Count: 41 tests
  */
 @DisplayName("Update Pickup Location Tests")
 class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
@@ -47,11 +47,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
                                 TEST_CLIENT_ID);
                 existingPickupLocation.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
 
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(existingPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                existingPickupLocation);
                 when(addressRepository.findById(any())).thenReturn(Optional.of(testAddress));
                 when(addressRepository.save(any())).thenReturn(testAddress);
                 when(pickupLocationRepository.save(any())).thenReturn(existingPickupLocation);
@@ -73,11 +70,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
                 PickupLocation existing = new PickupLocation(testPickupLocationRequest, CREATED_USER, TEST_CLIENT_ID);
                 testPickupLocationRequest.setShipRocketPickupLocationId(TEST_SHIPROCKET_ID);
 
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(existing);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                existing);
                 when(addressRepository.findById(any())).thenReturn(Optional.of(testAddress));
                 when(addressRepository.save(any())).thenReturn(testAddress);
                 when(pickupLocationRepository.save(any())).thenReturn(existing);
@@ -104,9 +98,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @DisplayName("Update Pickup Location - Max Long ID - Throws NotFoundException")
         void updatePickupLocation_MaxLongId_ThrowsNotFoundException() {
                 testPickupLocationRequest.setPickupLocationId(Long.MAX_VALUE);
-                lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(Long.MAX_VALUE,
-                                TEST_CLIENT_ID))
-                                .thenReturn(null);
+                stubPickupLocationRepositoryFindByIdAndClientIdNotFound(Long.MAX_VALUE, TEST_CLIENT_ID);
                 NotFoundException ex = assertThrows(NotFoundException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
                 assertTrue(ex.getMessage().contains(String.valueOf(Long.MAX_VALUE)));
@@ -121,9 +113,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @DisplayName("Update Pickup Location - Min Long ID - Throws NotFoundException")
         void updatePickupLocation_MinLongId_ThrowsNotFoundException() {
                 testPickupLocationRequest.setPickupLocationId(Long.MIN_VALUE);
-                lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(Long.MIN_VALUE,
-                                TEST_CLIENT_ID))
-                                .thenReturn(null);
+                stubPickupLocationRepositoryFindByIdAndClientIdNotFound(Long.MIN_VALUE, TEST_CLIENT_ID);
                 NotFoundException ex = assertThrows(NotFoundException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
                 assertTrue(ex.getMessage().contains(String.valueOf(Long.MIN_VALUE)));
@@ -138,8 +128,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @DisplayName("Update Pickup Location - Negative ID - Throws NotFoundException")
         void updatePickupLocation_NegativeId_ThrowsNotFoundException() {
                 testPickupLocationRequest.setPickupLocationId(-100L);
-                lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(-100L, TEST_CLIENT_ID))
-                                .thenReturn(null);
+                stubPickupLocationRepositoryFindByIdAndClientIdNotFound(-100L, TEST_CLIENT_ID);
                 NotFoundException ex = assertThrows(NotFoundException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
                 assertTrue(ex.getMessage().contains("-100"));
@@ -153,11 +142,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Update Pickup Location - Null Address - Throws BadRequestException")
         void updatePickupLocation_NullAddress_ThrowsBadRequestException() {
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
                 testPickupLocationRequest.setAddress(null);
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -172,11 +158,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Update Pickup Location - Null City - Throws BadRequestException")
         void updatePickupLocation_NullCity_ThrowsBadRequestException() {
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
                 testPickupLocationRequest.getAddress().setCity(null);
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -191,11 +174,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Update Pickup Location - Null Country - Throws BadRequestException")
         void updatePickupLocation_NullCountry_ThrowsBadRequestException() {
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
                 testPickupLocationRequest.getAddress().setCountry(null);
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -210,11 +190,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Update Pickup Location - Null Nickname - Throws BadRequestException")
         void updatePickupLocation_NullNickname_ThrowsBadRequestException() {
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
                 testPickupLocationRequest.setAddressNickName(null);
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -229,11 +206,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Update Pickup Location - Null Phone - Success")
         void updatePickupLocation_NullPhone_Success() {
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
                 testPickupLocationRequest.getAddress().setPhoneOnAddress(null);
                 when(addressRepository.findById(any())).thenReturn(Optional.of(testAddress));
                 when(addressRepository.save(any())).thenReturn(testAddress);
@@ -250,11 +224,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Update Pickup Location - Null Postal Code - Throws BadRequestException")
         void updatePickupLocation_NullPostalCode_ThrowsBadRequestException() {
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
                 testPickupLocationRequest.getAddress().setPostalCode(null);
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -271,7 +242,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         void updatePickupLocation_NullRequest_ThrowsBadRequestException() {
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.updatePickupLocation(null));
-                assertEquals("Pickup location request cannot be null.", ex.getMessage());
+                assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidRequest, ex.getMessage());
         }
 
         /**
@@ -282,11 +253,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Update Pickup Location - Null State - Throws BadRequestException")
         void updatePickupLocation_NullState_ThrowsBadRequestException() {
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
                 testPickupLocationRequest.getAddress().setState(null);
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -301,11 +269,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Update Pickup Location - Null Street Address - Throws BadRequestException")
         void updatePickupLocation_NullStreetAddress_ThrowsBadRequestException() {
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
                 testPickupLocationRequest.getAddress().setStreetAddress(null);
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -320,11 +285,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Update Pickup Location - Whitespace City - Throws BadRequestException")
         void updatePickupLocation_WhitespaceCity_ThrowsBadRequestException() {
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
                 testPickupLocationRequest.getAddress().setCity("   ");
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -339,11 +301,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Update Pickup Location - Whitespace Country - Throws BadRequestException")
         void updatePickupLocation_WhitespaceCountry_ThrowsBadRequestException() {
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
                 testPickupLocationRequest.getAddress().setCountry("   ");
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -358,11 +317,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Update Pickup Location - Whitespace Nickname - Throws BadRequestException")
         void updatePickupLocation_WhitespaceNickname_ThrowsBadRequestException() {
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
                 testPickupLocationRequest.setAddressNickName("   ");
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -377,11 +333,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Update Pickup Location - Whitespace Phone - Success")
         void updatePickupLocation_WhitespacePhone_Success() {
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
                 testPickupLocationRequest.getAddress().setPhoneOnAddress("   ");
                 when(addressRepository.findById(any())).thenReturn(Optional.of(testAddress));
                 when(addressRepository.save(any())).thenReturn(testAddress);
@@ -398,11 +351,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Update Pickup Location - Whitespace Postal Code - Throws BadRequestException")
         void updatePickupLocation_WhitespacePostalCode_ThrowsBadRequestException() {
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
                 testPickupLocationRequest.getAddress().setPostalCode("   ");
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -417,11 +367,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Update Pickup Location - Whitespace State - Throws BadRequestException")
         void updatePickupLocation_WhitespaceState_ThrowsBadRequestException() {
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
                 testPickupLocationRequest.getAddress().setState("   ");
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -436,11 +383,8 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Update Pickup Location - Whitespace Street Address - Throws BadRequestException")
         void updatePickupLocation_WhitespaceStreetAddress_ThrowsBadRequestException() {
-                lenient()
-                                .when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                                TEST_PICKUP_LOCATION_ID,
-                                                TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
                 testPickupLocationRequest.getAddress().setStreetAddress("   ");
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -456,8 +400,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @DisplayName("Update Pickup Location - Zero ID - Throws NotFoundException")
         void updatePickupLocation_ZeroId_ThrowsNotFoundException() {
                 testPickupLocationRequest.setPickupLocationId(0L);
-                lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(0L, TEST_CLIENT_ID))
-                                .thenReturn(null);
+                stubPickupLocationRepositoryFindByIdAndClientIdNotFound(0L, TEST_CLIENT_ID);
                 NotFoundException ex = assertThrows(NotFoundException.class,
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
                 assertTrue(ex.getMessage().contains("0"));
@@ -474,11 +417,10 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         void updatePickupLocation_PreservesCreatedTimestamp_Success() {
                 // ARRANGE
                 testPickupLocationRequest.setAddressNickName("Updated Warehouse");
-                lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
-                lenient().when(addressRepository.save(any())).thenReturn(testAddress);
-                lenient().when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
+                stubAddressRepositorySave(testAddress);
+                stubPickupLocationRepositorySave(testPickupLocation);
 
                 // ACT
                 assertDoesNotThrow(() -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -499,11 +441,10 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
                 // ARRANGE
                 String newNickname = "New Main Warehouse";
                 testPickupLocationRequest.setAddressNickName(newNickname);
-                lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
-                lenient().when(addressRepository.save(any())).thenReturn(testAddress);
-                lenient().when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
+                stubAddressRepositorySave(testAddress);
+                stubPickupLocationRepositorySave(testPickupLocation);
 
                 // ACT
                 assertDoesNotThrow(() -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -524,11 +465,10 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
                 // ARRANGE
                 String longNickname = "Regional Distribution Center - Main";
                 testPickupLocationRequest.setAddressNickName(longNickname);
-                lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
-                lenient().when(addressRepository.save(any())).thenReturn(testAddress);
-                lenient().when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
+                stubAddressRepositorySave(testAddress);
+                stubPickupLocationRepositorySave(testPickupLocation);
 
                 // ACT & ASSERT
                 assertDoesNotThrow(() -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -544,12 +484,11 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         void updatePickupLocation_SpecialCharactersInAddress_Success() {
                 // ARRANGE
                 testPickupLocationRequest.getAddress().setStreetAddress("123 St. Paul's Ave #456 (South)");
-                lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
-                lenient().when(addressRepository.save(any())).thenReturn(testAddress);
-                lenient().when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-                lenient().when(shipRocketHelper.addPickupLocation(any())).thenReturn(testShipRocketResponse);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
+                stubAddressRepositorySave(testAddress);
+                stubPickupLocationRepositorySave(testPickupLocation);
+                stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
                 // ACT & ASSERT
                 assertDoesNotThrow(() -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -566,12 +505,11 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
                 // ARRANGE
                 testPickupLocationRequest.getAddress().setCity("São Paulo");
                 testPickupLocationRequest.getAddress().setCountry("Brasil");
-                lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
-                lenient().when(addressRepository.save(any())).thenReturn(testAddress);
-                lenient().when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-                lenient().when(shipRocketHelper.addPickupLocation(any())).thenReturn(testShipRocketResponse);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
+                stubAddressRepositorySave(testAddress);
+                stubPickupLocationRepositorySave(testPickupLocation);
+                stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
                 // ACT & ASSERT
                 assertDoesNotThrow(() -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -589,11 +527,10 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
                 Long largeId = 999999999999L;
                 testPickupLocationRequest.setPickupLocationId(largeId);
                 testPickupLocation.setPickupLocationId(largeId);
-                lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                largeId, TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
-                lenient().when(addressRepository.save(any())).thenReturn(testAddress);
-                lenient().when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(largeId, TEST_CLIENT_ID,
+                                testPickupLocation);
+                stubAddressRepositorySave(testAddress);
+                stubPickupLocationRepositorySave(testPickupLocation);
 
                 // ACT & ASSERT
                 assertDoesNotThrow(() -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -608,11 +545,10 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @DisplayName("Update Pickup Location - Verify Client Isolation - Success")
         void updatePickupLocation_VerifyClientIsolation_Success() throws Exception {
                 // ARRANGE
-                lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
-                lenient().when(addressRepository.save(any())).thenReturn(testAddress);
-                lenient().when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
+                stubAddressRepositorySave(testAddress);
+                stubPickupLocationRepositorySave(testPickupLocation);
 
                 // ACT
                 pickupLocationService.updatePickupLocation(testPickupLocationRequest);
@@ -631,11 +567,10 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         @DisplayName("Update Pickup Location - Repository Returns Null - Success")
         void updatePickupLocation_RepositoryReturnsNull_Success() {
                 // ARRANGE
-                lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
-                lenient().when(addressRepository.save(any())).thenReturn(testAddress);
-                lenient().when(pickupLocationRepository.save(any())).thenReturn(null);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
+                stubAddressRepositorySave(testAddress);
+                stubPickupLocationRepositorySaveReturnsNull();
 
                 // ACT & ASSERT
                 assertDoesNotThrow(() -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -651,11 +586,10 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
         void updatePickupLocation_NumericPostalCode_Success() {
                 // ARRANGE
                 testPickupLocationRequest.getAddress().setPostalCode("987654");
-                lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(
-                                TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                                .thenReturn(testPickupLocation);
-                lenient().when(addressRepository.save(any())).thenReturn(testAddress);
-                lenient().when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+                stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                                testPickupLocation);
+                stubAddressRepositorySave(testAddress);
+                stubPickupLocationRepositorySave(testPickupLocation);
 
                 // ACT & ASSERT
                 assertDoesNotThrow(() -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
@@ -666,6 +600,26 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
          * CONTROLLER AUTHORIZATION TESTS
          **********************************************************************************************
          */
+
+        /**
+         * Purpose: Verify unauthorized access is blocked at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+        @Test
+        @DisplayName("updatePickupLocation - Controller Permission - Unauthorized")
+        void updatePickupLocation_controller_permission_unauthorized() throws Exception {
+                // ARRANGE
+                PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
+                stubPickupLocationServiceThrowsUnauthorizedOnUpdate();
+
+                // ACT
+                ResponseEntity<?> response = controller.updatePickupLocation(TEST_PICKUP_LOCATION_ID,
+                                testPickupLocationRequest);
+
+                // ASSERT
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        }
 
         @Test
         @DisplayName("updatePickupLocation - Verify @PreAuthorize Annotation")

@@ -27,6 +27,8 @@ import static org.mockito.Mockito.*;
  * - State persistence check
  * - Logging verification
  * - Failure cases (group not found, invalid IDs)
+ *
+ * Total Tests: 13
  */
 @DisplayName("UserGroupService - ToggleUserGroup Tests")
 public class ToggleUserGroupTest extends UserGroupServiceTestBase {

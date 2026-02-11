@@ -28,6 +28,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Get Leads In Batches Tests")
 class GetLeadsInBatchesTest extends LeadServiceTestBase {
+        // Total Tests: 3
+
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -44,21 +46,27 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Get Leads In Batches - Comprehensive Validation - Success")
-    void getLeadsInBatches_SingleComprehensiveTest() {
+        void getLeadsInBatches_SingleComprehensiveTest_Success() {
+                // Arrange
         // ---- (1) Invalid pagination ----
         testLeadRequest.setStart(10);
         testLeadRequest.setEnd(5);
+
+                // Act & Assert
         BadRequestException pagEx = assertThrows(BadRequestException.class,
                 () -> leadService.getLeadsInBatches(testLeadRequest));
         assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, pagEx.getMessage());
 
         // ---- (2) Success: simple retrieval ----
+                // Act
         testLeadRequest.setStart(0);
         testLeadRequest.setEnd(10);
         testLeadRequest.setFilters(null);
         Page<Lead> leadPage = new PageImpl<>(Collections.singletonList(testLead), PageRequest.of(0, 10), 1);
         stubLeadFilterQueryBuilderFindPaginatedEntities(leadPage);
         PaginationBaseResponseModel<LeadResponseModel> result = leadService.getLeadsInBatches(testLeadRequest);
+
+                // Assert
         assertNotNull(result);
 
         // ---- (3) Triple-loop validation logic preserved ----
@@ -73,8 +81,32 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
         stubLeadFilterQueryBuilderGetColumnType(dateColumns, "date");
         stubLeadFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Collections.emptyList()));
 
-        // Loop execution is handled in the method logic.
+                // Loop execution is handled in the method logic.
     }
+
+        /*
+         **********************************************************************************************
+         * FAILURE / EXCEPTION TESTS
+         **********************************************************************************************
+         */
+
+        /**
+         * Purpose: Reject invalid pagination requests.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches InvalidPagination.
+         */
+        @Test
+        @DisplayName("Get Leads In Batches - Invalid pagination - ThrowsBadRequestException")
+        void getLeadsInBatches_InvalidPagination_ThrowsBadRequestException() {
+                // Arrange
+                testLeadRequest.setStart(10);
+                testLeadRequest.setEnd(5);
+
+                // Act & Assert
+                BadRequestException pagEx = assertThrows(BadRequestException.class,
+                                () -> leadService.getLeadsInBatches(testLeadRequest));
+                assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, pagEx.getMessage());
+        }
 
     /*
      **********************************************************************************************
@@ -94,14 +126,16 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Get Leads In Batches - Verify @PreAuthorize annotation is configured correctly")
-    void getLeadsInBatches_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        // Use reflection to verify the @PreAuthorize annotation is present
+    void getLeadsInBatches_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        // Arrange
         var method = LeadController.class.getMethod("getLeadsInBatches",
                 LeadRequestModel.class);
 
+        // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
 
+        // Assert
         assertNotNull(preAuthorizeAnnotation,
                 "getLeadsInBatches method should have @PreAuthorize annotation");
 
@@ -111,6 +145,26 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
         assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
                 "PreAuthorize annotation should reference VIEW_LEADS_PERMISSION");
     }
+
+        /**
+         * Purpose: Verify unauthorized access is handled at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+        @Test
+        @DisplayName("Get Leads In Batches - Controller permission unauthorized - Success")
+        void getLeadsInBatches_controller_permission_unauthorized() {
+                // Arrange
+                LeadController controller = new LeadController(leadServiceMock);
+                doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                                .when(leadServiceMock).getLeadsInBatches(any());
+
+                // Act
+                ResponseEntity<?> response = controller.getLeadsInBatches(testLeadRequest);
+
+                // Assert
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        }
 
     /**
      * Purpose: Verify controller calls service when authorization passes

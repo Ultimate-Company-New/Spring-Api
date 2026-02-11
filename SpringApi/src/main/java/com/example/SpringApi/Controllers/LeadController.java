@@ -186,6 +186,10 @@ public class LeadController {
             logger.error(e);
             return ResponseEntity.badRequest()
                     .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            } catch (UnauthorizedException e) {
+                logger.error(e);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

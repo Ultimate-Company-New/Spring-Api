@@ -151,7 +151,7 @@ public class GetMessagesInBatchesTest extends MessageServiceTestBase {
      */
     @Test
     @DisplayName("getMessagesInBatches - Verify @PreAuthorize annotation")
-    void getMessagesInBatches_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void getMessagesInBatches_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = MessageController.class.getMethod(
                 "getMessagesInBatches",
@@ -169,6 +169,26 @@ public class GetMessagesInBatchesTest extends MessageServiceTestBase {
 
         assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
                 "PreAuthorize annotation should reference VIEW_MESSAGES_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("getMessagesInBatches - Controller permission unauthorized - Success")
+    void getMessagesInBatches_controller_permission_unauthorized() {
+        // Arrange
+        MessageController controller = new MessageController(messageServiceMock);
+        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(messageServiceMock).getMessagesInBatches(any());
+
+        // Act
+        ResponseEntity<?> response = controller.getMessagesInBatches(createValidPaginationRequest());
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
     /**

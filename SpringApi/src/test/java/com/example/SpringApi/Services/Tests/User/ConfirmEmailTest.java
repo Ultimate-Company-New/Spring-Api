@@ -7,7 +7,11 @@ import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.DatabaseModels.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.lang.reflect.Method;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,42 +27,23 @@ class ConfirmEmailTest extends UserServiceTestBase {
     // ========================================
 
     /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
-     * Expected Result: The method should be annotated with permitAll (or specific
-     * permission if changed).
-     * Note: Typically confirmEmail might be public (permitAll). Let's check the
-     * controller logic or assumption.
-     * Assuming it requires no specific permission or is public. Use 'permitAll' or
-     * check for absence if that's the rule.
-     * However, the rule 3 says "Ensuring that the controller has the
-     * correct @PreAuthorize annotation".
-     * If it's public, maybe it has @PreAuthorize("permitAll()") or similar.
-     * Let's assume standard behavior: probably public, so maybe PreAuthorize is NOT
-     * there or is permitAll.
-     * Wait, usually confirm email is public.
-     * Let's check if there is a permission constant for it.
-     * If not sure, I can check the file, but I cannot read Controller here easily
-     * without tool.
-     * I will assume it is public/permitAll checks are not enforced via specific
-     * permission constant.
-     * UNLESS there is one.
-     * Let's check Authorizations class if possible? No.
-     * I will write the test to check if annotation exists. If it's supposed to be
-     * public, maybe checking existence is enough.
-     * Actually, better to check it delegates to service first.
-     * Updated strategy: Check for PreAuthorize annotation. If expected to be
-     * public/anonymous, it might mean NO annotation or permitAll.
-     * Use reflection to see what's there.
-     * But for now, I'll add the delegation test.
-     * 
-     * Update: Most confirm email endpoints are public. I'll add the test but maybe
-     * verify it is PermitAll if standard.
-     * Or if I skip this check, I might violate Rule 3 *if* it is protected.
-     * I'll add a generic check that it exists, similar to others, or skip if I
-     * suspect it's public.
-     * However, Rule 3 implies *if* it is protected.
-     * I will add the delegation test which is always required.
+     * Purpose: Verify controller has @PreAuthorize annotation.
+     * Expected Result: Annotation is present and permitAll().
+     * Assertions: assertNotNull, assertEquals("permitAll()", annotation.value()).
      */
+    @Test
+    @DisplayName("confirmEmail - Verify @PreAuthorize Annotation")
+    void confirmEmail_verifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        // Arrange
+        Method method = UserController.class.getMethod("confirmEmail", Long.class, String.class);
+
+        // Act
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
+        assertNotNull(annotation, "confirmEmail method should have @PreAuthorize annotation");
+        assertEquals("permitAll()", annotation.value());
+    }
 
     @Test
     @DisplayName("confirmEmail - Controller delegates to service")
@@ -73,10 +58,11 @@ class ConfirmEmailTest extends UserServiceTestBase {
         doNothing().when(mockUserService).confirmEmail(userId, token);
 
         // Act
-        localController.confirmEmail(userId, token);
+        ResponseEntity<?> response = localController.confirmEmail(userId, token);
 
         // Assert
         verify(mockUserService, times(1)).confirmEmail(userId, token);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     // ========================================

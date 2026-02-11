@@ -5,6 +5,8 @@ import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.Authorizations;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -21,13 +23,34 @@ import static org.mockito.Mockito.verify;
 @DisplayName("CancelReturnShipment Tests")
 class CancelReturnShipmentTest extends ShippingServiceTestBase {
 
-    // Total Tests: 7
+    // Total Tests: 8
 
     /*
      **********************************************************************************************
      * SUCCESS TESTS
      **********************************************************************************************
      */
+
+    /**
+     * Purpose: Verify return shipment save is called on success.
+     * Expected Result: Return shipment saved.
+     * Assertions: verify save called.
+     */
+    @Test
+    @DisplayName("cancelReturnShipment - Saves Return Shipment - Success")
+    void cancelReturnShipment_SavesReturnShipment_Success() {
+        // Arrange
+        stubReturnShipmentRepositoryFindByReturnShipmentIdAndClientId(testReturnShipment);
+        stubClientServiceGetClientById(testClientResponse);
+        stubShipRocketHelperCancelOrders();
+        stubReturnShipmentRepositorySave(testReturnShipment);
+
+        // Act
+        shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID);
+
+        // Assert
+        verify(returnShipmentRepository).save(any(ReturnShipment.class));
+    }
 
     /**
      * Purpose: Verify cancel return succeeds with valid data.
@@ -51,53 +74,11 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
                 testReturnShipment.getShipRocketReturnStatus());
     }
 
-    /**
-     * Purpose: Verify return shipment save is called on success.
-     * Expected Result: Return shipment saved.
-     * Assertions: verify save called.
-     */
-    @Test
-    @DisplayName("cancelReturnShipment - Saves Return Shipment - Success")
-    void cancelReturnShipment_SavesReturnShipment_Success() {
-        // Arrange
-        stubReturnShipmentRepositoryFindByReturnShipmentIdAndClientId(testReturnShipment);
-        stubClientServiceGetClientById(testClientResponse);
-        stubShipRocketHelperCancelOrders();
-        stubReturnShipmentRepositorySave(testReturnShipment);
-
-        // Act
-        shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID);
-
-        // Assert
-        verify(returnShipmentRepository).save(any(ReturnShipment.class));
-    }
-
     /*
      **********************************************************************************************
      * FAILURE TESTS
      **********************************************************************************************
      */
-
-    /**
-     * Purpose: Verify return shipment not found throws NotFoundException.
-     * Expected Result: NotFoundException with NotFound message.
-     * Assertions: Exception type and message.
-     */
-    @Test
-    @DisplayName("cancelReturnShipment - Not Found - Throws NotFoundException")
-    void cancelReturnShipment_NotFound_ThrowsNotFoundException() {
-        // Arrange
-        stubReturnShipmentRepositoryFindByReturnShipmentIdAndClientId(null);
-
-        // Act
-        com.example.SpringApi.Exceptions.NotFoundException ex = assertThrows(
-                com.example.SpringApi.Exceptions.NotFoundException.class,
-                () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
-
-        // Assert
-        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.NotFound, TEST_RETURN_SHIPMENT_ID),
-                ex.getMessage());
-    }
 
     /**
      * Purpose: Verify already cancelled return shipment throws BadRequestException.
@@ -118,27 +99,6 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
 
         // Assert
         assertEquals(ErrorMessages.ReturnShipmentErrorMessages.AlreadyCancelled, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Verify missing ShipRocket return order id throws BadRequestException.
-     * Expected Result: BadRequestException with NoShipRocketOrderId message.
-     * Assertions: Exception type and message.
-     */
-    @Test
-    @DisplayName("cancelReturnShipment - Missing Order Id - Throws BadRequestException")
-    void cancelReturnShipment_MissingOrderId_ThrowsBadRequestException() {
-        // Arrange
-        testReturnShipment.setShipRocketReturnOrderId(null);
-        stubReturnShipmentRepositoryFindByReturnShipmentIdAndClientId(testReturnShipment);
-
-        // Act
-        com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
-                com.example.SpringApi.Exceptions.BadRequestException.class,
-                () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
-
-        // Assert
-        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.NoShipRocketOrderId, ex.getMessage());
     }
 
     /**
@@ -164,11 +124,72 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
                 ErrorMessages.OPERATION_FAILED), ex.getMessage());
     }
 
+    /**
+     * Purpose: Verify missing ShipRocket return order id throws BadRequestException.
+     * Expected Result: BadRequestException with NoShipRocketOrderId message.
+     * Assertions: Exception type and message.
+     */
+    @Test
+    @DisplayName("cancelReturnShipment - Missing Order Id - Throws BadRequestException")
+    void cancelReturnShipment_MissingOrderId_ThrowsBadRequestException() {
+        // Arrange
+        testReturnShipment.setShipRocketReturnOrderId(null);
+        stubReturnShipmentRepositoryFindByReturnShipmentIdAndClientId(testReturnShipment);
+
+        // Act
+        com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
+                com.example.SpringApi.Exceptions.BadRequestException.class,
+                () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
+
+        // Assert
+        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.NoShipRocketOrderId, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify return shipment not found throws NotFoundException.
+     * Expected Result: NotFoundException with NotFound message.
+     * Assertions: Exception type and message.
+     */
+    @Test
+    @DisplayName("cancelReturnShipment - Not Found - Throws NotFoundException")
+    void cancelReturnShipment_NotFound_ThrowsNotFoundException() {
+        // Arrange
+        stubReturnShipmentRepositoryFindByReturnShipmentIdAndClientId(null);
+
+        // Act
+        com.example.SpringApi.Exceptions.NotFoundException ex = assertThrows(
+                com.example.SpringApi.Exceptions.NotFoundException.class,
+                () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
+
+        // Assert
+        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.NotFound, TEST_RETURN_SHIPMENT_ID),
+                ex.getMessage());
+    }
+
     /*
      **********************************************************************************************
      * PERMISSION TESTS
      **********************************************************************************************
      */
+
+        /**
+         * Purpose: Verify unauthorized access is blocked at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+    @Test
+    @DisplayName("cancelReturnShipment - Controller Permission - Unauthorized")
+    void cancelReturnShipment_controller_permission_unauthorized() {
+        // Arrange
+        ShippingController controller = new ShippingController(shippingServiceMock);
+        stubShippingServiceMockCancelReturnShipmentUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.cancelReturn(TEST_RETURN_SHIPMENT_ID);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
 
     /**
      * Purpose: Verify controller has @PreAuthorize for cancelReturn.
@@ -177,7 +198,7 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
      */
     @Test
     @DisplayName("cancelReturnShipment - Verify @PreAuthorize Annotation")
-    void cancelReturnShipment_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void cancelReturnShipment_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = ShippingController.class.getMethod("cancelReturn", Long.class);
 

@@ -33,31 +33,17 @@ import static org.mockito.Mockito.*;
  * Consolidated test class for ProductService.getProductInBatches.
  * Fully compliant with Unit Test Verification rules.
  */
-// Total Tests: 25
+// Total Tests: 14
 @DisplayName("ProductService - GetProductsInBatches Tests")
 class GetProductsInBatchesTest extends ProductServiceTestBase {
 
         @BeforeEach
         void setUpFilters() {
                 // Stub ProductFilterQueryBuilder.getColumnType for various categories
-                lenient().when(productFilterQueryBuilder.getColumnType(anyString())).thenAnswer(invocation -> {
-                        String col = invocation.getArgument(0);
-                        if (Arrays.asList("title", "brand", "condition").contains(col))
-                                return "string";
-                        if (Arrays.asList("productId", "price", "categoryId", "pickupLocationId").contains(col))
-                                return "number";
-                        if (Arrays.asList("isDeleted").contains(col))
-                                return "boolean";
-                        if (Arrays.asList("createdAt").contains(col))
-                                return "date";
-                        return null;
-                });
+                stubProductFilterQueryBuilderGetColumnType();
 
                 // Default empty page stub
-                Page<Product> emptyPage = new PageImpl<>(Collections.emptyList());
-                lenient().when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)))
-                                .thenReturn(emptyPage);
+                stubProductFilterQueryBuilderFindPaginatedEntitiesEmptyPage();
         }
 
         // ==========================================
@@ -295,6 +281,24 @@ class GetProductsInBatchesTest extends ProductServiceTestBase {
 
                 // Assert
                 assertEquals(HttpStatus.OK, response.getStatusCode());
+                verify(mockService).getProductInBatches(request);
+        }
+
+        @Test
+        @DisplayName("getProductInBatches - No permission - Unauthorized")
+        void getProductInBatches_NoPermission_Unauthorized() {
+                // Arrange
+                ProductService mockService = mock(ProductService.class);
+                ProductController controller = new ProductController(mockService);
+                PaginationBaseRequestModel request = createValidPaginationRequest();
+                doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                                .when(mockService).getProductInBatches(request);
+
+                // Act
+                ResponseEntity<?> response = controller.getProductInBatches(request);
+
+                // Assert
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
                 verify(mockService).getProductInBatches(request);
         }
 

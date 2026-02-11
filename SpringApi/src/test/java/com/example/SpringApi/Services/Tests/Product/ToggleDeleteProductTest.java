@@ -1,6 +1,7 @@
 package com.example.SpringApi.Services.Tests.Product;
 
 import com.example.SpringApi.Controllers.ProductController;
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.Authorizations;
 import org.junit.jupiter.api.DisplayName;
@@ -136,6 +137,23 @@ class ToggleDeleteProductTest extends ProductServiceTestBase {
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(mockService).toggleDeleteProduct(TEST_PRODUCT_ID);
+    }
+
+    @Test
+    @DisplayName("toggleDeleteProduct - No permission - Unauthorized")
+    void toggleDeleteProduct_NoPermission_Unauthorized() {
+        // Arrange
+        ProductService mockService = mock(ProductService.class);
+        ProductController controller = new ProductController(mockService);
+        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockService).toggleDeleteProduct(TEST_PRODUCT_ID);
+
+        // Act
+        ResponseEntity<?> response = controller.toggleDeleteProduct(TEST_PRODUCT_ID);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(mockService).toggleDeleteProduct(TEST_PRODUCT_ID);
     }
 

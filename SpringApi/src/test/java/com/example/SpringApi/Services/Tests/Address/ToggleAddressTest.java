@@ -267,10 +267,12 @@ class ToggleAddressTest extends AddressServiceTestBase {
     void toggleAddress_controller_permission_forbidden() throws NoSuchMethodException {
         // Arrange
         var method = AddressController.class.getMethod("toggleAddress", Long.class);
+        stubServiceToggleAddressDoNothing(DEFAULT_ADDRESS_ID);
 
         // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
+        ResponseEntity<?> response = addressController.toggleAddress(DEFAULT_ADDRESS_ID);
 
         // Assert
         assertNotNull(preAuthorizeAnnotation, "toggleAddress method should have @PreAuthorize annotation");
@@ -280,6 +282,7 @@ class ToggleAddressTest extends AddressServiceTestBase {
 
         assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
                 "PreAuthorize annotation should reference DELETE_ADDRESS_PERMISSION");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
     }
 
     /**

@@ -1,11 +1,11 @@
 package com.example.SpringApi.Services.Tests.PickupLocation;
 
 import com.example.SpringApi.Controllers.PickupLocationController;
-import com.example.SpringApi.Services.PickupLocationService;
+import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
 import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Exceptions.BadRequestException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -16,18 +16,25 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for PickupLocationService.bulkCreatePickupLocations() method.
- * Covers bulk insertion success, partial success, edge cases, and validation
- * failures.
- * Test Count: 22 tests
+ * Covers bulk insertion success, partial success, edge cases, and validation failures.
  */
 @DisplayName("Bulk Create Pickup Locations Tests")
 class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
+    // Total Tests: 22
 
     /*
      **********************************************************************************************
@@ -43,17 +50,19 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Bulk Create Pickup Locations - All Valid - Success")
     void bulkCreatePickupLocations_AllValid_Success() {
+        // Arrange
         List<PickupLocationRequestModel> requests = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             requests.add(createValidPickupLocationRequest((long) i));
         }
+        stubAddressRepositorySave(testAddress);
+        stubPickupLocationRepositorySave(testPickupLocation);
+        stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
-        when(addressRepository.save(any())).thenReturn(testAddress);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-        lenient().when(shipRocketHelper.addPickupLocation(any())).thenReturn(testShipRocketResponse);
-
+        // Act
         BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
 
+        // Assert
         assertNotNull(result);
         assertEquals(3, result.getTotalRequested());
         assertEquals(3, result.getSuccessCount());
@@ -68,17 +77,19 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Bulk Create Pickup Locations - Large Batch - Success")
     void bulkCreatePickupLocations_LargeBatch_Success() {
+        // Arrange
         List<PickupLocationRequestModel> requests = new ArrayList<>();
         for (int i = 0; i < 50; i++) {
             requests.add(createValidPickupLocationRequest((long) i));
         }
+        stubAddressRepositorySave(testAddress);
+        stubPickupLocationRepositorySave(testPickupLocation);
+        stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
-        when(addressRepository.save(any())).thenReturn(testAddress);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-        lenient().when(shipRocketHelper.addPickupLocation(any())).thenReturn(testShipRocketResponse);
-
+        // Act
         BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
 
+        // Assert
         assertEquals(50, result.getSuccessCount());
     }
 
@@ -90,21 +101,23 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Bulk Create Pickup Locations - Mixed Invalid and Valid - Partial Success")
     void bulkCreatePickupLocations_MixedInvalidAndValid_PartialSuccess() {
+        // Arrange
         List<PickupLocationRequestModel> requests = new ArrayList<>();
-        requests.add(createValidPickupLocationRequest(1L)); // Valid
+        requests.add(createValidPickupLocationRequest(1L));
 
         PickupLocationRequestModel invalidReq = createValidPickupLocationRequest(2L);
-        invalidReq.setAddressNickName(""); // Invalid
+        invalidReq.setAddressNickName("");
         requests.add(invalidReq);
 
-        requests.add(createValidPickupLocationRequest(3L)); // Valid
+        requests.add(createValidPickupLocationRequest(3L));
+        stubAddressRepositorySave(testAddress);
+        stubPickupLocationRepositorySave(testPickupLocation);
+        stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
-        when(addressRepository.save(any())).thenReturn(testAddress);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-        lenient().when(shipRocketHelper.addPickupLocation(any())).thenReturn(testShipRocketResponse);
-
+        // Act
         BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
 
+        // Assert
         assertEquals(3, result.getTotalRequested());
         assertEquals(2, result.getSuccessCount());
         assertEquals(1, result.getFailureCount());
@@ -118,14 +131,16 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Bulk Create Pickup Locations - Single Valid Item - Success")
     void bulkCreatePickupLocations_SingleValidItem_Success() {
+        // Arrange
         List<PickupLocationRequestModel> requests = List.of(createValidPickupLocationRequest(1L));
+        stubAddressRepositorySave(testAddress);
+        stubPickupLocationRepositorySave(testPickupLocation);
+        stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
-        when(addressRepository.save(any())).thenReturn(testAddress);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-        lenient().when(shipRocketHelper.addPickupLocation(any())).thenReturn(testShipRocketResponse);
-
+        // Act
         BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
 
+        // Assert
         assertEquals(1, result.getSuccessCount());
     }
 
@@ -143,17 +158,43 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Bulk Create Pickup Locations - All Invalid Addresses - All Fail")
     void bulkCreatePickupLocations_AllInvalidAddresses_AllFail() {
+        // Arrange
         List<PickupLocationRequestModel> requests = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             PickupLocationRequestModel req = createValidPickupLocationRequest((long) i);
-            req.setAddressNickName(""); // Invalid
+            req.setAddressNickName("");
             requests.add(req);
         }
 
+        // Act
         BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
 
+        // Assert
         assertEquals(5, result.getFailureCount());
         verify(pickupLocationRepository, never()).save(any());
+    }
+
+    /**
+     * Purpose: Test batch size of exactly 100 (potential limit).
+     * Expected Result: All items processed successfully.
+     * Assertions: Success count is 100.
+     */
+    @Test
+    @DisplayName("Bulk Create Pickup Locations - Batch 100 Items - Success")
+    void bulkCreatePickupLocations_Batch100Items_Success() {
+        // Arrange
+        List<PickupLocationRequestModel> requests = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            requests.add(createValidPickupLocationRequest((long) i));
+        }
+        stubAddressRepositorySave(testAddress);
+        stubPickupLocationRepositorySave(testPickupLocation);
+
+        // Act
+        BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
+
+        // Assert
+        assertEquals(100, result.getSuccessCount());
     }
 
     /**
@@ -164,13 +205,38 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Bulk Create Pickup Locations - Database Error - Records Failure")
     void bulkCreatePickupLocations_DatabaseError_RecordsFailure() {
+        // Arrange
         List<PickupLocationRequestModel> requests = List.of(createValidPickupLocationRequest(1L));
-        when(addressRepository.save(any())).thenThrow(new RuntimeException("DB Error"));
+        stubAddressRepositorySaveThrows(new RuntimeException("DB Error"));
 
+        // Act
         BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
 
+        // Assert
         assertEquals(1, result.getFailureCount());
         assertEquals(0, result.getSuccessCount());
+    }
+
+    /**
+     * Purpose: Handle batch with duplicate IDs.
+     * Expected Result: System processes all items, duplicates may result in errors.
+     * Assertions: Result reflects processing.
+     */
+    @Test
+    @DisplayName("Bulk Create Pickup Locations - Duplicate IDs - Success")
+    void bulkCreatePickupLocations_DuplicateIds_Success() {
+        // Arrange
+        List<PickupLocationRequestModel> requests = new ArrayList<>();
+        requests.add(createValidPickupLocationRequest(1L));
+        requests.add(createValidPickupLocationRequest(1L));
+        stubAddressRepositorySave(testAddress);
+        stubPickupLocationRepositorySave(testPickupLocation);
+
+        // Act
+        BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
+
+        // Assert
+        assertNotNull(result);
     }
 
     /**
@@ -181,10 +247,71 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Bulk Create Pickup Locations - Empty List - Throws BadRequestException")
     void bulkCreatePickupLocations_EmptyList_ThrowsBadRequestException() {
+        // Arrange
         List<PickupLocationRequestModel> requests = new ArrayList<>();
+
+        // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> pickupLocationService.bulkCreatePickupLocations(requests));
-        assertTrue(ex.getMessage().contains("list cannot be null or empty"));
+
+        // Assert
+        assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Pickup location"),
+                ex.getMessage());
+    }
+
+    /**
+     * Purpose: Test batch with international addresses.
+     * Expected Result: International addresses are accepted.
+     * Assertions: Success count matches valid items.
+     */
+    @Test
+    @DisplayName("Bulk Create Pickup Locations - International Addresses - Success")
+    void bulkCreatePickupLocations_InternationalAddresses_Success() {
+        // Arrange
+        List<PickupLocationRequestModel> requests = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            PickupLocationRequestModel req = createValidPickupLocationRequest((long) i);
+            req.getAddress().setCity("São Paulo");
+            req.getAddress().setCountry("Brasil");
+            requests.add(req);
+        }
+        stubAddressRepositorySave(testAddress);
+        stubPickupLocationRepositorySave(testPickupLocation);
+
+        // Act
+        BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
+
+        // Assert
+        assertEquals(2, result.getSuccessCount());
+    }
+
+    /**
+     * Purpose: Test with very long address nicknames.
+     * Expected Result: All items processed successfully.
+     * Assertions: Success count matches total.
+     */
+    @Test
+    @DisplayName("Bulk Create Pickup Locations - Long Nicknames - Partial Success")
+    void bulkCreatePickupLocations_LongNicknames_PartialSuccess() {
+        // Arrange
+        List<PickupLocationRequestModel> requests = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            PickupLocationRequestModel req = createValidPickupLocationRequest((long) i);
+            StringBuilder longName = new StringBuilder();
+            for (int j = 0; j < 100; j++) {
+                longName.append("A");
+            }
+            req.setAddressNickName(longName.toString());
+            requests.add(req);
+        }
+        stubAddressRepositorySave(testAddress);
+        stubPickupLocationRepositorySave(testPickupLocation);
+
+        // Act
+        BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
+
+        // Assert
+        assertNotNull(result);
     }
 
     /**
@@ -195,9 +322,14 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Bulk Create Pickup Locations - Missing Address Object - Fails")
     void bulkCreatePickupLocations_MissingAddressObject_Fails() {
+        // Arrange
         PickupLocationRequestModel req = createValidPickupLocationRequest(1L);
         req.setAddress(null);
+
+        // Act
         BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(List.of(req));
+
+        // Assert
         assertEquals(1, result.getFailureCount());
     }
 
@@ -209,9 +341,14 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Bulk Create Pickup Locations - Missing City - Fails")
     void bulkCreatePickupLocations_MissingCity_Fails() {
+        // Arrange
         PickupLocationRequestModel req = createValidPickupLocationRequest(1L);
         req.getAddress().setCity(null);
+
+        // Act
         BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(List.of(req));
+
+        // Assert
         assertEquals(1, result.getFailureCount());
     }
 
@@ -223,23 +360,58 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Bulk Create Pickup Locations - Missing Phone - Fails")
     void bulkCreatePickupLocations_MissingPhone_Fails() {
+        // Arrange
         PickupLocationRequestModel req = createValidPickupLocationRequest(1L);
         req.getAddress().setPhoneOnAddress(null);
+
+        // Act
         BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(List.of(req));
+
+        // Assert
         assertEquals(1, result.getFailureCount());
     }
 
     /**
-     * Purpose: Reject items with null nickname.
+     * Purpose: Handle mixed valid and invalid ShipRocket IDs.
+     * Expected Result: Valid items succeed, invalid items fail.
+     * Assertions: Partial success recorded.
+     */
+    @Test
+    @DisplayName("Bulk Create Pickup Locations - Mixed ShipRocket IDs - Partial Success")
+    void bulkCreatePickupLocations_MixedShipRocketIds_PartialSuccess() {
+        // Arrange
+        List<PickupLocationRequestModel> requests = new ArrayList<>();
+        requests.add(createValidPickupLocationRequest(1L));
+
+        PickupLocationRequestModel invalidReq = createValidPickupLocationRequest(2L);
+        invalidReq.setShipRocketPickupLocationId(-100L);
+        requests.add(invalidReq);
+        stubAddressRepositorySave(testAddress);
+        stubPickupLocationRepositorySave(testPickupLocation);
+
+        // Act
+        BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
+
+        // Assert
+        assertEquals(2, result.getTotalRequested());
+    }
+
+    /**
+     * Purpose: Reject items with negative ShipRocket ID.
      * Expected Result: Item fails validation.
      * Assertions: Failure count is 1.
      */
     @Test
-    @DisplayName("Bulk Create Pickup Locations - Null Nickname - Fails")
-    void bulkCreatePickupLocations_NullNickname_Fails() {
+    @DisplayName("Bulk Create Pickup Locations - Negative ShipRocket ID - Fails")
+    void bulkCreatePickupLocations_NegativeShipRocketId_Fails() {
+        // Arrange
         PickupLocationRequestModel req = createValidPickupLocationRequest(1L);
-        req.setAddressNickName(null);
+        req.setShipRocketPickupLocationId(-1L);
+
+        // Act
         BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(List.of(req));
+
+        // Assert
         assertEquals(1, result.getFailureCount());
     }
 
@@ -251,153 +423,32 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Bulk Create Pickup Locations - Null List - Throws BadRequestException")
     void bulkCreatePickupLocations_NullList_ThrowsBadRequestException() {
+        // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> pickupLocationService.bulkCreatePickupLocations(null));
-        assertTrue(ex.getMessage().contains("list cannot be null or empty"));
+
+        // Assert
+        assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Pickup location"),
+                ex.getMessage());
     }
 
     /**
-     * Purpose: Reject items with negative ShipRocket ID.
+     * Purpose: Reject items with null nickname.
      * Expected Result: Item fails validation.
      * Assertions: Failure count is 1.
      */
     @Test
-    @DisplayName("Bulk Create Pickup Locations - Negative ShipRocket ID - Fails")
-    void bulkCreatePickupLocations_NegativeShipRocketId_Fails() {
+    @DisplayName("Bulk Create Pickup Locations - Null Nickname - Fails")
+    void bulkCreatePickupLocations_NullNickname_Fails() {
+        // Arrange
         PickupLocationRequestModel req = createValidPickupLocationRequest(1L);
-        req.setShipRocketPickupLocationId(-1L);
+        req.setAddressNickName(null);
+
+        // Act
         BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(List.of(req));
+
+        // Assert
         assertEquals(1, result.getFailureCount());
-    }
-
-    /**
-     * Purpose: Handle batch with duplicate IDs.
-     * Expected Result: System processes all items, duplicates may result in errors.
-     * Assertions: Result reflects processing.
-     */
-    @Test
-    @DisplayName("Bulk Create Pickup Locations - Duplicate IDs - Success")
-    void bulkCreatePickupLocations_DuplicateIds_Success() {
-        // ARRANGE
-        List<PickupLocationRequestModel> requests = new ArrayList<>();
-        requests.add(createValidPickupLocationRequest(1L));
-        requests.add(createValidPickupLocationRequest(1L)); // Same ID
-
-        when(addressRepository.save(any())).thenReturn(testAddress);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-
-        // ACT
-        BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
-
-        // ASSERT
-        assertNotNull(result);
-    }
-
-    /**
-     * Purpose: Test with very long address nicknames.
-     * Expected Result: All items processed successfully.
-     * Assertions: Success count matches total.
-     */
-    @Test
-    @DisplayName("Bulk Create Pickup Locations - Long Nicknames - Partial Success")
-    void bulkCreatePickupLocations_LongNicknames_PartialSuccess() {
-        // ARRANGE
-        List<PickupLocationRequestModel> requests = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
-            PickupLocationRequestModel req = createValidPickupLocationRequest((long) i);
-            StringBuilder longName = new StringBuilder();
-            for (int j = 0; j < 100; j++) {
-                longName.append("A");
-            }
-            req.setAddressNickName(longName.toString());
-            requests.add(req);
-        }
-
-        lenient().when(addressRepository.save(any())).thenReturn(testAddress);
-        lenient().when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-
-        // ACT
-        BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
-
-        // ASSERT
-        assertNotNull(result);
-    }
-
-    /**
-     * Purpose: Handle mixed valid and invalid ShipRocket IDs.
-     * Expected Result: Valid items succeed, invalid items fail.
-     * Assertions: Partial success recorded.
-     */
-    @Test
-    @DisplayName("Bulk Create Pickup Locations - Mixed ShipRocket IDs - Partial Success")
-    void bulkCreatePickupLocations_MixedShipRocketIds_PartialSuccess() {
-        // ARRANGE
-        List<PickupLocationRequestModel> requests = new ArrayList<>();
-        requests.add(createValidPickupLocationRequest(1L)); // Valid
-
-        PickupLocationRequestModel invalidReq = createValidPickupLocationRequest(2L);
-        invalidReq.setShipRocketPickupLocationId(-100L); // Invalid
-        requests.add(invalidReq);
-
-        when(addressRepository.save(any())).thenReturn(testAddress);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-
-        // ACT
-        BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
-
-        // ASSERT
-        assertEquals(2, result.getTotalRequested());
-    }
-
-    /**
-     * Purpose: Test batch with international addresses.
-     * Expected Result: International addresses are accepted.
-     * Assertions: Success count matches valid items.
-     */
-    @Test
-    @DisplayName("Bulk Create Pickup Locations - International Addresses - Success")
-    void bulkCreatePickupLocations_InternationalAddresses_Success() {
-        // ARRANGE
-        List<PickupLocationRequestModel> requests = new ArrayList<>();
-        for (int i = 0; i < 2; i++) {
-            PickupLocationRequestModel req = createValidPickupLocationRequest((long) i);
-            req.getAddress().setCity("São Paulo");
-            req.getAddress().setCountry("Brasil");
-            requests.add(req);
-        }
-
-        when(addressRepository.save(any())).thenReturn(testAddress);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-
-        // ACT
-        BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
-
-        // ASSERT
-        assertEquals(2, result.getSuccessCount());
-    }
-
-    /**
-     * Purpose: Test batch size of exactly 100 (potential limit).
-     * Expected Result: All items processed successfully.
-     * Assertions: Success count is 100.
-     */
-    @Test
-    @DisplayName("Bulk Create Pickup Locations - Batch 100 Items - Success")
-    void bulkCreatePickupLocations_Batch100Items_Success() {
-        // ARRANGE
-        List<PickupLocationRequestModel> requests = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            requests.add(createValidPickupLocationRequest((long) i));
-        }
-
-        when(addressRepository.save(any())).thenReturn(testAddress);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-
-        // ACT
-        BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
-
-        // ASSERT
-        assertEquals(100, result.getSuccessCount());
     }
 
     /**
@@ -408,14 +459,14 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Bulk Create Pickup Locations - Repository Returns Null - Graceful Handling")
     void bulkCreatePickupLocations_RepositoryReturnsNull_GracefulHandling() {
-        // ARRANGE
+        // Arrange
         List<PickupLocationRequestModel> requests = List.of(createValidPickupLocationRequest(1L));
-        when(addressRepository.save(any())).thenReturn(null);
+        stubAddressRepositorySaveReturnsNull();
 
-        // ACT
+        // Act
         BulkInsertResponseModel<Long> result = pickupLocationService.bulkCreatePickupLocations(requests);
 
-        // ASSERT
+        // Assert
         assertNotNull(result);
     }
 
@@ -425,31 +476,70 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
      **********************************************************************************************
      */
 
+    /**
+     * Purpose: Verify unauthorized access is blocked at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("bulkCreatePickupLocations - Controller Permission - Unauthorized")
+    void bulkCreatePickupLocations_controller_permission_unauthorized() {
+        // Arrange
+        PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
+        // Setup user context to return normally (so getUserId() doesn't throw)
+        when(pickupLocationServiceMock.getUserId()).thenReturn(TEST_USER_ID);
+        when(pickupLocationServiceMock.getUser()).thenReturn("testuser");
+        when(pickupLocationServiceMock.getClientId()).thenReturn(TEST_CLIENT_ID);
+        // Then make the actual service method throw
+        stubPickupLocationServiceThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.bulkCreatePickupLocations(new ArrayList<>());
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation on bulkCreatePickupLocations endpoint.
+     * Expected Result: Annotation exists and references INSERT_PICKUP_LOCATIONS_PERMISSION.
+     * Assertions: Annotation is present and contains permission.
+     */
     @Test
     @DisplayName("bulkCreatePickupLocations - Verify @PreAuthorize Annotation")
-    void bulkCreatePickupLocations_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void bulkCreatePickupLocations_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        // Arrange
         Method method = PickupLocationController.class.getMethod("bulkCreatePickupLocations", List.class);
+
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
         assertNotNull(annotation, "@PreAuthorize annotation should be present on bulkCreatePickupLocations");
         assertTrue(annotation.value().contains(Authorizations.INSERT_PICKUP_LOCATIONS_PERMISSION),
                 "@PreAuthorize should reference INSERT_PICKUP_LOCATIONS_PERMISSION");
     }
 
+    /**
+     * Purpose: Verify controller delegates to async service call for valid requests.
+     * Expected Result: Service method is invoked and HTTP 200 returned.
+     * Assertions: Service called once and status code is OK.
+     */
     @Test
     @DisplayName("bulkCreatePickupLocations - Controller delegates to service")
     void bulkCreatePickupLocations_WithValidRequests_DelegatesToService() {
-        PickupLocationService mockService = mock(PickupLocationService.class);
-        PickupLocationController controller = new PickupLocationController(mockService);
+        // Arrange
+        PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
         List<PickupLocationRequestModel> requests = List.of(createValidPickupLocationRequest(1L));
+        stubPickupLocationServiceUserContext(1L, "testuser", TEST_CLIENT_ID);
+        stubPickupLocationServiceBulkCreatePickupLocationsAsyncDoNothing();
 
-        when(mockService.getUserId()).thenReturn(1L);
-        when(mockService.getUser()).thenReturn("testuser");
-        when(mockService.getClientId()).thenReturn(TEST_CLIENT_ID);
-        doNothing().when(mockService).bulkCreatePickupLocationsAsync(eq(requests), anyLong(), anyString(), anyLong());
-
+        // Act
         ResponseEntity<?> response = controller.bulkCreatePickupLocations(requests);
 
-        verify(mockService).bulkCreatePickupLocationsAsync(eq(requests), eq(1L), eq("testuser"), eq(TEST_CLIENT_ID));
+        // Assert
+        verify(pickupLocationServiceMock).bulkCreatePickupLocationsAsync(eq(requests), eq(1L), eq("testuser"),
+                eq(TEST_CLIENT_ID));
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

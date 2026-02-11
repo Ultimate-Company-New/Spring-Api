@@ -5,6 +5,8 @@ import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +21,13 @@ import static org.mockito.Mockito.verify;
  */
 @DisplayName("Bulk Create Packages Async Tests")
 class BulkCreatePackagesAsyncTest extends PackageServiceTestBase {
-    // Total Tests: 3
+    // Total Tests: 4
+
+    /*
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
 
     /*
      * Purpose: Verify async bulk creation handles valid packages without throwing.
@@ -84,5 +92,31 @@ class BulkCreatePackagesAsyncTest extends PackageServiceTestBase {
         // Assert
         assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Package"),
                 exception.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * PERMISSION TESTS
+     **********************************************************************************************
+     */
+
+    /*
+     * Purpose: Verify unauthorized access is blocked at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("bulkCreatePackagesAsync - Controller Permission - Unauthorized")
+    void bulkCreatePackagesAsync_controller_permission_unauthorized() {
+        // Arrange
+        com.example.SpringApi.Controllers.PackageController controller =
+                new com.example.SpringApi.Controllers.PackageController(packageServiceMock, concretePackageServiceMock);
+        stubConcretePackageServiceThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.bulkCreatePackages(new ArrayList<>());
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }

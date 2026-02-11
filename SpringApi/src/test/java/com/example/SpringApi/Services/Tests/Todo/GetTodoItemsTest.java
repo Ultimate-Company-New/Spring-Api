@@ -5,7 +5,6 @@ import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Models.DatabaseModels.Todo;
 import com.example.SpringApi.Models.ResponseModels.TodoResponseModel;
-import com.example.SpringApi.Services.Interface.ITodoSubTranslator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -47,18 +46,17 @@ class GetTodoItemsTest extends TodoServiceTestBase {
         List<TodoResponseModel> result = todoService.getTodoItems();
 
         // Assert
-        assertNotNull(result);
         assertTrue(result.isEmpty());
     }
 
     /*
-     * Purpose: Verify fields are mapped correctly.
-     * Expected Result: Response model matches entity fields.
-     * Assertions: field equality.
+     * Purpose: Verify entity fields map into response.
+     * Expected Result: Response contains expected values.
+     * Assertions: todoId and task match.
      */
     @Test
-    @DisplayName("getTodoItems - Fields Correctly Mapped - Success")
-    void getTodoItems_fieldsCorrectlyMapped_success() {
+    @DisplayName("getTodoItems - Maps fields - Success")
+    void getTodoItems_mapsFields_success() {
         // Arrange
         Todo todo = createTestTodo();
         todo.setTodoId(TEST_TODO_ID);
@@ -206,6 +204,22 @@ class GetTodoItemsTest extends TodoServiceTestBase {
         verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
     }
 
+    @Test
+    @DisplayName("getTodoItems - Success - returns todos (basic)")
+    void getTodoItems_success_returnsTodos_basic() {
+        // Arrange
+        List<Todo> todos = List.of(testTodo);
+        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(todos);
+        stubUserLogServiceLogDataReturnsTrue();
+
+        // Act
+        var result = todoService.getTodoItems();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
     /*
      * Purpose: Verify special characters are preserved.
      * Expected Result: Special characters in task preserved.
@@ -296,13 +310,10 @@ class GetTodoItemsTest extends TodoServiceTestBase {
     @DisplayName("getTodoItems - Controller Permission - Unauthorized")
     void getTodoItems_controller_permission_unauthorized() {
         // Arrange
-        ITodoSubTranslator todoServiceMock = mock(ITodoSubTranslator.class);
-        TodoController controller = new TodoController(todoServiceMock);
-        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(todoServiceMock).getTodoItems();
+        stubTodoServiceGetTodoItemsThrowsUnauthorized();
 
         // Act
-        ResponseEntity<?> response = controller.getTodoItems();
+        ResponseEntity<?> response = todoController.getTodoItems();
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());

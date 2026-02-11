@@ -24,7 +24,9 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserGroupService - Create User Group functionality.
  * 
- * Contains tests covering:
+ * Total Tests: 19
+ *
+ * Tests cover:
  * - Successful user group creation with various inputs
  * - Validation of required fields (group name, description, user IDs)
  * - Edge cases (single user, many users, special characters, unicode)

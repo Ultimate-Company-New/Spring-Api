@@ -10,6 +10,8 @@ import com.example.SpringApi.Models.ResponseModels.*;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -18,7 +20,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-// Total Tests: 14
+// Total Tests: 16
 @DisplayName("UserService - CreateUser Tests")
 class CreateUserTest extends UserServiceTestBase {
 
@@ -62,10 +64,11 @@ class CreateUserTest extends UserServiceTestBase {
         doNothing().when(mockUserService).createUser(request);
 
         // Act
-        localController.createUser(request);
+        ResponseEntity<?> response = localController.createUser(request);
 
         // Assert
         verify(mockUserService, times(1)).createUser(request);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     // ========================================

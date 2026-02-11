@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -77,6 +78,9 @@ public abstract class PackageServiceTestBase {
 
     @Mock
     IPackageSubTranslator packageServiceMock;
+
+    @Mock
+    protected PackageService concretePackageServiceMock;
 
     @InjectMocks
     protected PackageService packageService;
@@ -175,10 +179,22 @@ public abstract class PackageServiceTestBase {
         lenient().when(packageRepository.save(any(Package.class))).thenThrow(exception);
     }
 
+    protected void stubPackageFilterQueryBuilderFindPaginatedEntities(
+            org.springframework.data.domain.Page<com.example.SpringApi.Models.DatabaseModels.Package> result) {
+        lenient().when(packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), any(), anyString(), any(), anyBoolean(), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(result);
+    }
+
     protected void stubPackagePickupLocationMappingRepositoryFindByPickupLocationIdAndClientId(Long pickupLocationId,
             Long clientId, List<PackagePickupLocationMapping> result) {
         lenient().when(packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(pickupLocationId, clientId))
                 .thenReturn(result);
+    }
+
+    protected void stubPackagePickupLocationMappingRepositoryFindByPackageId(Long packageId,
+            List<PackagePickupLocationMapping> result) {
+        lenient().when(packagePickupLocationMappingRepository.findByPackageId(packageId)).thenReturn(result);
     }
 
     protected void stubPickupLocationRepositoryCountByPickupLocationIdAndClientId(Long pickupLocationId, Long clientId,
@@ -200,10 +216,33 @@ public abstract class PackageServiceTestBase {
         doNothing().when(packageServiceMock).togglePackage(anyLong());
     }
 
+    protected void stubPackageServiceUpdatePackageDoNothing() {
+        doNothing().when(packageServiceMock).updatePackage(any(PackageRequestModel.class));
+    }
+
+    protected void stubPackageServiceCreatePackageDoNothing() {
+        doNothing().when(packageServiceMock).createPackage(any(PackageRequestModel.class));
+    }
+
+    protected void stubPackageServiceBulkCreatePackagesAsyncDoNothing() {
+        doNothing().when(packageServiceMock).bulkCreatePackagesAsync(anyList(), anyLong(), anyString(), anyLong());
+    }
+
     protected void stubPackageServiceGetPackagesByPickupLocationIdReturns(
             List<com.example.SpringApi.Models.ResponseModels.PackageResponseModel> result) {
         lenient().when(packageServiceMock.getPackagesByPickupLocationId(anyLong())).thenReturn(result);
     }
+
+    protected void stubPackageServiceGetPackageByIdReturns(
+            com.example.SpringApi.Models.ResponseModels.PackageResponseModel result) {
+        lenient().when(packageServiceMock.getPackageById(anyLong())).thenReturn(result);
+    }
+
+        protected void stubPackageServiceGetPackagesInBatchesReturns(
+            com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel<com.example.SpringApi.Models.ResponseModels.PackageResponseModel> result) {
+        lenient().when(packageServiceMock.getPackagesInBatches(any(PaginationBaseRequestModel.class)))
+            .thenReturn(result);
+        }
 
     protected void stubPackageServiceThrowsUnauthorizedException() {
         lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
@@ -212,6 +251,30 @@ public abstract class PackageServiceTestBase {
         lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
                 com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
                 .when(packageServiceMock).getPackagesByPickupLocationId(anyLong());
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+            com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            .when(packageServiceMock).updatePackage(any(PackageRequestModel.class));
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+            com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            .when(packageServiceMock).createPackage(any(PackageRequestModel.class));
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+            com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            .when(packageServiceMock).getPackageById(anyLong());
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+            com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            .when(packageServiceMock).getPackagesInBatches(any(PaginationBaseRequestModel.class));
+    }
+
+    protected void stubConcretePackageServiceUserContext(Long userId, String userName, Long clientId) {
+        lenient().when(concretePackageServiceMock.getUserId()).thenReturn(userId);
+        lenient().when(concretePackageServiceMock.getUser()).thenReturn(userName);
+        lenient().when(concretePackageServiceMock.getClientId()).thenReturn(clientId);
+    }
+
+    protected void stubConcretePackageServiceThrowsUnauthorized() {
+        lenient().when(concretePackageServiceMock.getUserId()).thenThrow(
+                new com.example.SpringApi.Exceptions.UnauthorizedException(
+                        com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED));
     }
 
     // ==================== FACTORY METHODS ====================

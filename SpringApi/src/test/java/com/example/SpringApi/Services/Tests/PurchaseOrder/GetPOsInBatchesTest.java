@@ -1,7 +1,9 @@
 package com.example.SpringApi.Services.Tests.PurchaseOrder;
 
 import com.example.SpringApi.Controllers.PurchaseOrderController;
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.Exceptions.UnauthorizedException;
 import com.example.SpringApi.Models.DTOs.PurchaseOrderWithDetails;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
@@ -29,8 +31,9 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for PurchaseOrderService.getPurchaseOrdersInBatches method.
  *
- * Test count: 1 comprehensive test
- * - Covers invalid pagination, invalid column, invalid operator, and success scenarios
+ * Test count: 4 tests
+ * - Covers invalid pagination, invalid column, invalid operator, success scenarios,
+ *   and controller authorization checks
  */
 @DisplayName("PurchaseOrderService - GetPOsInBatches Tests")
 public class GetPOsInBatchesTest extends PurchaseOrderServiceTestBase {
@@ -44,7 +47,7 @@ public class GetPOsInBatchesTest extends PurchaseOrderServiceTestBase {
         invalidPagination.setEnd(5);
         BadRequestException paginationEx = assertThrows(BadRequestException.class,
                 () -> purchaseOrderService.getPurchaseOrdersInBatches(invalidPagination));
-        assertEquals("Invalid pagination: end must be greater than start", paginationEx.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidPagination, paginationEx.getMessage());
 
         // Invalid column
         PaginationBaseRequestModel invalidColumn = new PaginationBaseRequestModel();
@@ -58,7 +61,8 @@ public class GetPOsInBatchesTest extends PurchaseOrderServiceTestBase {
         invalidColumn.setLogicOperator("AND");
         BadRequestException invalidColumnEx = assertThrows(BadRequestException.class,
                 () -> purchaseOrderService.getPurchaseOrdersInBatches(invalidColumn));
-        assertEquals("Invalid column name: invalidColumn", invalidColumnEx.getMessage());
+        assertEquals(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidColumnName, "invalidColumn"),
+                invalidColumnEx.getMessage());
 
         // Invalid operator
         PaginationBaseRequestModel invalidOperator = new PaginationBaseRequestModel();
@@ -73,7 +77,8 @@ public class GetPOsInBatchesTest extends PurchaseOrderServiceTestBase {
         lenient().when(purchaseOrderFilterQueryBuilder.getColumnType("vendorNumber")).thenReturn("string");
         BadRequestException invalidOpEx = assertThrows(BadRequestException.class,
                 () -> purchaseOrderService.getPurchaseOrdersInBatches(invalidOperator));
-        assertEquals("Invalid operator: invalidOperator", invalidOpEx.getMessage());
+        assertEquals(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidOperator, "invalidOperator"),
+                invalidOpEx.getMessage());
 
         // Success with filters
         PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
@@ -107,6 +112,28 @@ public class GetPOsInBatchesTest extends PurchaseOrderServiceTestBase {
      * CONTROLLER AUTHORIZATION TESTS
      **********************************************************************************************
      */
+
+    /**
+     * Purpose: Verify unauthorized access is blocked at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("getPurchaseOrdersInBatches - Controller Permission - Unauthorized")
+    void getPurchaseOrdersInBatches_controller_permission_unauthorized() {
+        // Arrange
+        com.example.SpringApi.Services.PurchaseOrderService mockService =
+                mock(com.example.SpringApi.Services.PurchaseOrderService.class);
+        PurchaseOrderController controller = new PurchaseOrderController(mockService);
+        when(mockService.getPurchaseOrdersInBatches(any()))
+                .thenThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED));
+
+        // Act
+        ResponseEntity<?> response = controller.getPurchaseOrdersInBatches(new PaginationBaseRequestModel());
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
 
     @Test
     @DisplayName("getPurchaseOrdersInBatches - Verify @PreAuthorize Annotation")

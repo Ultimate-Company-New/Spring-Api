@@ -529,14 +529,14 @@ class InsertProductReviewTest extends ProductReviewServiceTestBase {
 /**
  * Test class for ProductReviewService.insertProductReview method.
  * 
- * Test count: 60 tests
- * - SUCCESS: 35 tests
- * - FAILURE / EXCEPTION: 25 tests
+ * Test count: 62 tests
+ * - SUCCESS: 4 tests
+ * - FAILURE / EXCEPTION: 58 tests
  */
 @DisplayName("ProductReviewService - InsertProductReview Tests - Duplicate Block")
 class InsertProductReviewTestDuplicate extends ProductReviewServiceTestBase {
 
-    // Total Tests: 60
+    // Total Tests: 62
 
     // ========================================
     // SUCCESS Tests

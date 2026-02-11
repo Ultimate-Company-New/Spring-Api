@@ -6,6 +6,8 @@ import com.example.SpringApi.Models.DatabaseModels.Permission;
 import com.example.SpringApi.Models.ResponseModels.PermissionResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -50,10 +52,11 @@ class GetAllPermissionsTest extends UserServiceTestBase {
         when(mockUserService.getAllPermissions()).thenReturn(new ArrayList<>());
 
         // Act
-        localController.getAllPermissions();
+        ResponseEntity<?> response = localController.getAllPermissions();
 
         // Assert
         verify(mockUserService, times(1)).getAllPermissions();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     // ========================================

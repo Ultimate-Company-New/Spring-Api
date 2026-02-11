@@ -27,7 +27,9 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserGroupService - Update User Group functionality.
  * 
- * Contains 13 tests covering:
+ * Total Tests: 15
+ *
+ * Tests cover:
  * - Successful user group updates with various inputs
  * - Validation for non-existent groups, invalid IDs, and duplicate names
  * - Edge cases (special characters, same name updates, max long ID)

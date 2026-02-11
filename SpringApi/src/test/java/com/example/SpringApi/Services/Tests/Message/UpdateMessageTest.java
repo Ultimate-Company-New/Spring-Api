@@ -34,7 +34,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("UpdateMessage Tests")
 public class UpdateMessageTest extends MessageServiceTestBase {
 
-    // Total Tests: 30
+    // Total Tests: 31
 
     /*
      **********************************************************************************************
@@ -651,6 +651,25 @@ public class UpdateMessageTest extends MessageServiceTestBase {
      */
 
     /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("Update Message - Controller permission unauthorized - Success")
+    void updateMessage_controller_permission_unauthorized() {
+        // Arrange
+        MessageController controller = new MessageController(messageServiceMock);
+        stubMessageServiceUpdateMessageThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.updateMessage(validRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
      * Purpose: Verify that the updateMessage controller method is protected by
      * correct @PreAuthorize permission.
      * Expected: Method has @PreAuthorize referencing UPDATE_MESSAGES_PERMISSION.
@@ -688,24 +707,5 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         // Assert
         verify(messageServiceMock).updateMessage(validRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
-
-    /**
-     * Purpose: Verify unauthorized access is handled at the controller level.
-     * Expected Result: Unauthorized status is returned.
-     * Assertions: Response status is 401 UNAUTHORIZED.
-     */
-    @Test
-    @DisplayName("Update Message - Controller permission unauthorized - Success")
-    void updateMessage_controller_permission_unauthorized() {
-        // Arrange
-        MessageController controller = new MessageController(messageServiceMock);
-        stubMessageServiceUpdateMessageThrowsUnauthorized();
-
-        // Act
-        ResponseEntity<?> response = controller.updateMessage(validRequest);
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }

@@ -9,7 +9,11 @@ import com.example.SpringApi.Models.ResponseModels.PaymentVerificationResponseMo
 import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -109,6 +113,45 @@ class ProcessShipmentsAfterPaymentApprovalOnlineTest extends ShippingServiceTest
         // Assert
         verify(shipmentRepository).save(any(Shipment.class));
     }
+
+        /**
+         * Purpose: Verify user log is recorded on success.
+         * Expected Result: User log service is called.
+         * Assertions: Verify logData called.
+         */
+        @Test
+        @DisplayName("processShipmentsAfterPaymentApprovalOnline - Logs User Action - Success")
+        void processShipmentsAfterPaymentApprovalOnline_LogsUserAction_Success() {
+                // Arrange
+                stubPurchaseOrderRepositoryFindById(testPurchaseOrder);
+                stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(testOrderSummary);
+                stubShipmentRepositoryFindByOrderSummaryId(List.of(testShipment));
+                stubShipmentProductRepositoryFindByShipmentId(List.of(testShipmentProduct));
+                stubShipmentPackageRepositoryFindByShipmentId(List.of(testShipmentPackage));
+                ProductPickupLocationMapping productMapping = createProductPickupLocationMapping(TEST_PRODUCT_ID, TEST_PICKUP_LOCATION_ID, 10);
+                stubProductPickupLocationMappingRepositoryFindByProductIdAndPickupLocationId(productMapping);
+                PackagePickupLocationMapping packageMapping = createPackagePickupLocationMapping(TEST_PACKAGE_ID, TEST_PICKUP_LOCATION_ID, 10);
+                stubPackagePickupLocationMappingRepositoryFindByPackageIdAndPickupLocationId(packageMapping);
+                stubPaymentServiceVerifyPayment(PaymentVerificationResponseModel.success("pay", TEST_PURCHASE_ORDER_ID,
+                                PurchaseOrder.Status.APPROVED.getValue()));
+                stubClientRepositoryFindById(testClient);
+                stubPickupLocationRepositoryFindById(testPickupLocation);
+                stubShipmentRepositorySave(testShipment);
+                stubShipRocketHelperCreateCustomOrder(createValidShipRocketOrderResponse());
+                stubShipRocketHelperAssignAwbAsJson(createValidAwbJson());
+                stubShipRocketHelperGeneratePickupAsJson("{}");
+                stubShipRocketHelperGenerateManifest("manifest");
+                stubShipRocketHelperGenerateLabel("label");
+                stubShipRocketHelperGenerateInvoice("invoice");
+                stubShipRocketHelperGetTrackingAsJson("{}");
+                stubShipRocketHelperGetOrderDetailsAsJson("{}");
+
+                // Act
+                shippingService.processShipmentsAfterPaymentApproval(TEST_PURCHASE_ORDER_ID, razorpayRequest);
+
+                // Assert
+                verify(userLogService).logData(anyLong(), anyString(), anyString());
+        }
 
     /*
      **********************************************************************************************
@@ -610,4 +653,98 @@ class ProcessShipmentsAfterPaymentApprovalOnlineTest extends ShippingServiceTest
         assertEquals(String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed,
                 TEST_SHIPMENT_ID, ErrorMessages.ShippingErrorMessages.ShipRocketStatusMissing), ex.getMessage());
     }
+
+    /**
+     * Purpose: Verify invalid status throws BadRequestException.
+     * Expected Result: BadRequestException with ShipRocketOrderCreationFailed message.
+     * Assertions: Exception type and message.
+     */
+    @Test
+    @DisplayName("processShipmentsAfterPaymentApprovalOnline - ShipRocket Invalid Status - Throws BadRequestException")
+    void processShipmentsAfterPaymentApprovalOnline_ShipRocketInvalidStatus_ThrowsBadRequestException() {
+        // Arrange
+        stubPurchaseOrderRepositoryFindById(testPurchaseOrder);
+        stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(testOrderSummary);
+        stubShipmentRepositoryFindByOrderSummaryId(List.of(testShipment));
+        stubShipmentProductRepositoryFindByShipmentId(List.of(testShipmentProduct));
+        stubShipmentPackageRepositoryFindByShipmentId(List.of(testShipmentPackage));
+        ProductPickupLocationMapping productMapping = createProductPickupLocationMapping(TEST_PRODUCT_ID, TEST_PICKUP_LOCATION_ID, 10);
+        stubProductPickupLocationMappingRepositoryFindByProductIdAndPickupLocationId(productMapping);
+        PackagePickupLocationMapping packageMapping = createPackagePickupLocationMapping(TEST_PACKAGE_ID, TEST_PICKUP_LOCATION_ID, 10);
+        stubPackagePickupLocationMappingRepositoryFindByPackageIdAndPickupLocationId(packageMapping);
+        stubPaymentServiceVerifyPayment(PaymentVerificationResponseModel.success("pay", TEST_PURCHASE_ORDER_ID,
+                PurchaseOrder.Status.APPROVED.getValue()));
+        stubClientRepositoryFindById(testClient);
+        stubPickupLocationRepositoryFindById(testPickupLocation);
+        ShipRocketOrderResponseModel response = createValidShipRocketOrderResponse();
+        response.status = "INVALID";
+        stubShipRocketHelperCreateCustomOrder(response);
+
+        // Act
+        com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
+                com.example.SpringApi.Exceptions.BadRequestException.class,
+                () -> shippingService.processShipmentsAfterPaymentApproval(TEST_PURCHASE_ORDER_ID, razorpayRequest));
+
+        // Assert
+        String validStatuses = String.join(", ",
+                java.util.Arrays.stream(Shipment.ShipRocketStatus.values())
+                        .map(Shipment.ShipRocketStatus::getValue)
+                        .toArray(String[]::new));
+        String expectedDetail = String.format(
+                ErrorMessages.ShippingErrorMessages.InvalidShipRocketStatusFormat,
+                "INVALID", validStatuses);
+        assertEquals(String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed,
+                TEST_SHIPMENT_ID, expectedDetail), ex.getMessage());
+    }
+
+        /*
+         **********************************************************************************************
+         * PERMISSION TESTS
+         **********************************************************************************************
+         */
+
+        /**
+         * Purpose: Verify unauthorized access is blocked at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+        @Test
+        @DisplayName("processShipmentsAfterPaymentApprovalOnline - Controller Permission - Unauthorized")
+        void processShipmentsAfterPaymentApprovalOnline_controller_permission_unauthorized() {
+                // Arrange
+                razorpayRequest.setPurchaseOrderId(1L); // Set purchase order ID so stub can match
+                com.example.SpringApi.Models.RequestModels.ProcessPaymentAndShipmentRequestModel request =
+                        new com.example.SpringApi.Models.RequestModels.ProcessPaymentAndShipmentRequestModel();
+                request.setIsCashPayment(false);
+                request.setOnlinePaymentRequest(razorpayRequest);
+                com.example.SpringApi.Controllers.PaymentController controller =
+                        new com.example.SpringApi.Controllers.PaymentController(paymentService, shippingServiceControllerMock);
+                stubShippingServiceProcessShipmentsAfterPaymentApprovalUnauthorizedOnline();
+
+                // Act
+                ResponseEntity<?> response = controller.processPaymentAndShipments(request);
+
+                // Assert
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        }
+
+        /**
+         * Purpose: Verify controller has @PreAuthorize for processPaymentAndShipments.
+         * Expected Result: Annotation exists and includes UPDATE_PURCHASE_ORDERS_PERMISSION.
+         * Assertions: Annotation is present and contains permission.
+         */
+        @Test
+        @DisplayName("processShipmentsAfterPaymentApprovalOnline - Verify @PreAuthorize Annotation")
+        void processShipmentsAfterPaymentApprovalOnline_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+                // Arrange
+                Method method = com.example.SpringApi.Controllers.PaymentController.class
+                        .getMethod("processPaymentAndShipments", com.example.SpringApi.Models.RequestModels.ProcessPaymentAndShipmentRequestModel.class);
+
+                // Act
+                PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+                // Assert
+                assertNotNull(annotation);
+                assertTrue(annotation.value().contains(com.example.SpringApi.Models.Authorizations.UPDATE_PURCHASE_ORDERS_PERMISSION));
+        }
 }

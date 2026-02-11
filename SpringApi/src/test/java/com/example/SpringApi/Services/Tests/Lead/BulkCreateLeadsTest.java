@@ -4,6 +4,7 @@ import com.example.SpringApi.Controllers.LeadController;
 import com.example.SpringApi.Models.DatabaseModels.Lead;
 import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
 import com.example.SpringApi.Models.Authorizations;
+import com.example.SpringApi.Services.LeadService;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
 
@@ -22,10 +23,12 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for LeadService.bulkCreateLeads() method.
  * Tests bulk creation of leads with various validation scenarios.
- * * Test Count: 16 tests
+ * * Test Count: 15 tests
  */
 @DisplayName("Bulk Create Leads Tests")
 class BulkCreateLeadsTest extends LeadServiceTestBase {
+
+     // Total Tests: 15
 
     /*
      **********************************************************************************************
@@ -148,7 +151,7 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Leads - Partial Success")
-    void bulkCreateLeads_PartialSuccess() {
+    void bulkCreateLeads_PartialSuccess_Success() {
         // Arrange
         List<LeadRequestModel> leads = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
@@ -205,7 +208,7 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Leads - Verify Logging Called")
-    void bulkCreateLeads_VerifyLoggingCalled() {
+    void bulkCreateLeads_VerifyLoggingCalled_Success() {
         // Arrange
         List<LeadRequestModel> leads = new ArrayList<>();
         leads.add(createValidLeadRequest(null, TEST_CLIENT_ID));
@@ -226,7 +229,7 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Leads - Verify Message Notification Sent")
-    void bulkCreateLeads_VerifyMessageNotification() {
+    void bulkCreateLeads_VerifyMessageNotification_Success() {
         // Arrange
         List<LeadRequestModel> leads = new ArrayList<>();
         leads.add(createValidLeadRequest(null, TEST_CLIENT_ID));
@@ -277,6 +280,8 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Bulk Create Leads - Empty List - ThrowsBadRequestException")
     void bulkCreateLeads_EmptyList_ThrowsBadRequestException() {
+        // Arrange
+
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> leadService.bulkCreateLeads(new ArrayList<>()));
@@ -334,6 +339,8 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Bulk Create Leads - Null List - ThrowsBadRequestException")
     void bulkCreateLeads_NullList_ThrowsBadRequestException() {
+        // Arrange
+
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> leadService.bulkCreateLeads(null));
@@ -394,14 +401,16 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Leads - Verify @PreAuthorize annotation is configured correctly")
-    void bulkCreateLeads_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        // Use reflection to verify the @PreAuthorize annotation is present
+        void bulkCreateLeads_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        // Arrange
         var method = LeadController.class.getMethod("bulkCreateLeads",
                 java.util.List.class);
 
+        // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
 
+        // Assert
         assertNotNull(preAuthorizeAnnotation,
                 "bulkCreateLeads method should have @PreAuthorize annotation");
 
@@ -410,6 +419,31 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
 
         assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
                 "PreAuthorize annotation should reference INSERT_LEADS_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("Bulk Create Leads - Controller permission unauthorized - Success")
+    void bulkCreateLeads_controller_permission_unauthorized() {
+        // Arrange
+        LeadService service = mock(LeadService.class);
+        LeadController controller = new LeadController(service);
+        List<LeadRequestModel> leads = new ArrayList<>();
+        doReturn(TEST_CLIENT_ID).when(service).getClientId();
+        doReturn(DEFAULT_USER_ID).when(service).getUserId();
+        doReturn(DEFAULT_LOGIN_NAME).when(service).getUser();
+        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(service).bulkCreateLeadsAsync(anyList(), anyLong(), anyString(), anyLong());
+
+        // Act
+        ResponseEntity<?> response = controller.bulkCreateLeads(leads);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
     /**

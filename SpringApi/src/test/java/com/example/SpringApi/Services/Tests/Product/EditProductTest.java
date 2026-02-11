@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
  * Consolidated test class for ProductService.editProduct.
  * Fully compliant with Unit Test Verification rules.
  */
-// Total Tests: 15
+// Total Tests: 11
 @DisplayName("ProductService - EditProduct Tests")
 class EditProductTest extends ProductServiceTestBase {
 
@@ -264,6 +264,23 @@ class EditProductTest extends ProductServiceTestBase {
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(mockService).editProduct(testProductRequest);
+    }
+
+    @Test
+    @DisplayName("editProduct - No permission - Unauthorized")
+    void editProduct_NoPermission_Unauthorized() {
+        // Arrange
+        ProductService mockService = mock(ProductService.class);
+        ProductController controller = new ProductController(mockService);
+        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockService).editProduct(any(ProductRequestModel.class));
+
+        // Act
+        ResponseEntity<?> response = controller.editProduct(testProductRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(mockService).editProduct(testProductRequest);
     }
 }

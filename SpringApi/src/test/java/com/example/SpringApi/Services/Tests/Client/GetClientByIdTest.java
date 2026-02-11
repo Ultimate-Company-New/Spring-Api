@@ -201,41 +201,37 @@ class GetClientByIdTest extends ClientServiceTestBase {
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
     }
 
-        /*
-         **********************************************************************************************
-         * CONTROLLER AUTHORIZATION TESTS
-         **********************************************************************************************
-         */
-
-        /**
-         * Purpose: Verify controller has correct @PreAuthorize permission.
-         * Expected Result: Annotation exists and contains VIEW_CLIENT_PERMISSION.
-         * Assertions: Annotation is present and permission matches.
-         */
-        @Test
-        @DisplayName("Get Client By ID - Controller permission forbidden - Success")
-        void getClientById_controller_permission_forbidden() throws NoSuchMethodException {
-        // Arrange
-        var method = ClientController.class.getMethod("getClientById", Long.class);
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-            org.springframework.security.access.prepost.PreAuthorize.class);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation, "getClientById method should have @PreAuthorize annotation");
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-            Authorizations.VIEW_CLIENT_PERMISSION + "')";
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-            "PreAuthorize annotation should reference VIEW_CLIENT_PERMISSION");
-        verify(mockClientService, never()).getClientById(anyLong());
-        }
-
     /*
      **********************************************************************************************
      * CONTROLLER AUTHORIZATION TESTS
      **********************************************************************************************
      */
+
+    /*
+     * Purpose: Verify controller has correct @PreAuthorize permission.
+     * Expected Result: Annotation exists and contains VIEW_CLIENT_PERMISSION.
+     * Assertions: Annotation is present and permission matches.
+     */
+    @Test
+    @DisplayName("Get Client By ID - Controller permission forbidden - Success")
+    void getClientById_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = ClientController.class.getMethod("getClientById", Long.class);
+        stubServiceGetClientById(new ClientResponseModel());
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+        ResponseEntity<?> response = clientController.getClientById(TEST_CLIENT_ID);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "getClientById method should have @PreAuthorize annotation");
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.VIEW_CLIENT_PERMISSION + "')";
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference VIEW_CLIENT_PERMISSION");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
+    }
 
     /*
      * Purpose: Verify @PreAuthorize annotation is declared on getClientById method.

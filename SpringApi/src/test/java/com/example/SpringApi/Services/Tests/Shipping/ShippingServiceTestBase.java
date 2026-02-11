@@ -1,8 +1,14 @@
 package com.example.SpringApi.Services.Tests.Shipping;
 
+import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.Exceptions.UnauthorizedException;
+import com.example.SpringApi.FilterQueryBuilder.ShipmentFilterQueryBuilder;
 import com.example.SpringApi.Helpers.PackagingHelper;
 import com.example.SpringApi.Helpers.ShipRocketHelper;
 import com.example.SpringApi.Models.DatabaseModels.*;
+import com.example.SpringApi.Models.DatabaseModels.Package;
 import com.example.SpringApi.Models.RequestModels.*;
 import com.example.SpringApi.Models.ResponseModels.*;
 import com.example.SpringApi.Models.ShippingResponseModel.*;
@@ -11,9 +17,7 @@ import com.example.SpringApi.Services.ClientService;
 import com.example.SpringApi.Services.ShippingService;
 import com.example.SpringApi.Services.UserLogService;
 import com.example.SpringApi.Services.Interface.IPaymentSubTranslator;
-import com.example.SpringApi.FilterQueryBuilder.ShipmentFilterQueryBuilder;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.Services.Interface.IShippingSubTranslator;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -112,6 +116,12 @@ public abstract class ShippingServiceTestBase {
 
     @Mock
     protected HttpServletRequest request;
+
+    @Mock
+    protected IShippingSubTranslator shippingServiceMock;
+
+    @Mock
+    protected ShippingService shippingServiceControllerMock;
 
     protected ShippingService shippingService;
 
@@ -294,8 +304,7 @@ public abstract class ShippingServiceTestBase {
         testReturnShipment.setShipRocketReturnStatus(ReturnShipment.ReturnStatus.RETURN_PENDING.getValue());
 
         stubUserLogServiceLogData(true);
-
-        lenient().when(packageRepository.findById(anyLong())).thenReturn(Optional.of(testPackage));
+        stubPackageRepositoryFindById(testPackage);
     }
 
     protected class TestableShippingService extends ShippingService {
@@ -326,6 +335,11 @@ public abstract class ShippingServiceTestBase {
     protected void stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(OrderSummary summary) {
         lenient().when(orderSummaryRepository.findByEntityTypeAndEntityId(anyString(), anyLong()))
                 .thenReturn(summary != null ? Optional.of(summary) : Optional.empty());
+    }
+
+    protected void stubPackageRepositoryFindById(com.example.SpringApi.Models.DatabaseModels.Package pkg) {
+        lenient().when(packageRepository.findById(anyLong()))
+                .thenReturn(pkg != null ? Optional.of(pkg) : Optional.empty());
     }
 
     protected void stubShipmentRepositoryFindByOrderSummaryId(List<Shipment> shipments) {
@@ -488,6 +502,58 @@ public abstract class ShippingServiceTestBase {
 
     protected void stubProductRepositoryFindAllByIdThrows(RuntimeException ex) {
         lenient().when(productRepository.findAllById(anySet())).thenThrow(ex);
+    }
+
+    protected void stubShippingServiceMockCalculateShippingUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+            .when(shippingServiceMock).calculateShipping(any(ShippingCalculationRequestModel.class));
+    }
+
+    protected void stubShippingServiceMockOptimizeOrderUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+            .when(shippingServiceMock).optimizeOrder(any(OrderOptimizationRequestModel.class));
+    }
+
+    protected void stubShippingServiceMockCreateReturnUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+            .when(shippingServiceMock).createReturn(any(CreateReturnRequestModel.class));
+    }
+
+    protected void stubShippingServiceMockCancelShipmentUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+            .when(shippingServiceMock).cancelShipment(anyLong());
+    }
+
+    protected void stubShippingServiceMockCancelReturnShipmentUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+            .when(shippingServiceMock).cancelReturnShipment(anyLong());
+    }
+
+    protected void stubShippingServiceMockGetShipmentByIdUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+            .when(shippingServiceMock).getShipmentById(anyLong());
+    }
+
+    protected void stubShippingServiceMockGetShipmentsInBatchesUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+            .when(shippingServiceMock).getShipmentsInBatches(any(PaginationBaseRequestModel.class));
+    }
+
+    protected void stubShippingServiceMockGetWalletBalanceUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+            .when(shippingServiceMock).getWalletBalance();
+    }
+
+    protected void stubShippingServiceProcessShipmentsAfterPaymentApprovalUnauthorizedCash() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+            .when(shippingServiceControllerMock)
+            .processShipmentsAfterPaymentApproval(anyLong(), any(CashPaymentRequestModel.class));
+    }
+
+    protected void stubShippingServiceProcessShipmentsAfterPaymentApprovalUnauthorizedOnline() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+            .when(shippingServiceControllerMock)
+            .processShipmentsAfterPaymentApproval(anyLong(), any(RazorpayVerifyRequestModel.class));
     }
 
     protected void stubProductPickupLocationMappingRepositoryFindByProductIdWithPickupLocationAndAddress(

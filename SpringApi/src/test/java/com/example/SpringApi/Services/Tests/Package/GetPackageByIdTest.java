@@ -1,28 +1,33 @@
 package com.example.SpringApi.Services.Tests.Package;
 
 import com.example.SpringApi.Controllers.PackageController;
+import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Models.Authorizations;
+import com.example.SpringApi.Models.ResponseModels.PackageResponseModel;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import com.example.SpringApi.Models.ResponseModels.PackageResponseModel;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.ErrorMessages;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
 
 /**
  * Unit tests for PackageService.getPackageById() method.
- * Verifies retrieval of package and associated inventory mappings.
+ *
+ * Test count: 16 tests
+}
+ * - FAILURE / EXCEPTION: 5 tests
+ * - PERMISSION: 3 tests
  */
 @DisplayName("Get Package By ID Tests")
 class GetPackageByIdTest extends PackageServiceTestBase {
-    // Total Tests: 12
+    // Total Tests: 16
 
     /*
      **********************************************************************************************
@@ -38,13 +43,16 @@ class GetPackageByIdTest extends PackageServiceTestBase {
     @Test
     @DisplayName("Get Package By ID - All Fields Populated - Success")
     void getPackageById_AllFieldsPopulated_Success() {
+        // Arrange
         testPackage.setPackageName("Premium Box");
         testPackage.setPackageType("Premium");
         testPackage.setLength(50);
-        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
+        stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, testPackage);
 
+        // Act
         PackageResponseModel result = packageService.getPackageById(TEST_PACKAGE_ID);
 
+        // Assert
         assertNotNull(result);
         assertEquals("Premium Box", result.getPackageName());
         assertEquals("Premium", result.getPackageType());
@@ -58,16 +66,17 @@ class GetPackageByIdTest extends PackageServiceTestBase {
     @Test
     @DisplayName("Get Package By ID - Deleted Package - Success")
     void getPackageById_DeletedPackage_Success() {
+        // Arrange
         testPackage.setIsDeleted(true);
-        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
+        stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, testPackage);
 
+        // Act
         PackageResponseModel result = packageService.getPackageById(TEST_PACKAGE_ID);
 
+        // Assert
         assertNotNull(result);
         assertTrue(result.getIsDeleted());
     }
-
-
 
     /**
      * Purpose: Verify successful retrieval of package by valid ID.
@@ -77,10 +86,13 @@ class GetPackageByIdTest extends PackageServiceTestBase {
     @Test
     @DisplayName("Get Package By ID - Valid ID - Success")
     void getPackageById_Success() {
-        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
+        // Arrange
+        stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, testPackage);
 
+        // Act
         PackageResponseModel result = packageService.getPackageById(TEST_PACKAGE_ID);
 
+        // Assert
         assertNotNull(result);
         assertEquals(TEST_PACKAGE_ID, result.getPackageId());
         assertEquals(DEFAULT_PACKAGE_NAME, result.getPackageName());
@@ -94,13 +106,16 @@ class GetPackageByIdTest extends PackageServiceTestBase {
     @Test
     @DisplayName("Get Package By ID - Max Long Value ID - Success")
     void getPackageById_MaxLongId_Success() {
+        // Arrange
         com.example.SpringApi.Models.DatabaseModels.Package maxIdPackage = createTestPackage();
         maxIdPackage.setPackageId(Long.MAX_VALUE);
         maxIdPackage.setPackageName("Max ID Package");
-        when(packageRepository.findByPackageIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(maxIdPackage);
-        
+        stubPackageRepositoryFindByPackageIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID, maxIdPackage);
+
+        // Act
         PackageResponseModel result = packageService.getPackageById(Long.MAX_VALUE);
-        
+
+        // Assert
         assertNotNull(result);
         assertEquals(Long.MAX_VALUE, result.getPackageId());
         assertEquals("Max ID Package", result.getPackageName());
@@ -114,14 +129,78 @@ class GetPackageByIdTest extends PackageServiceTestBase {
     @Test
     @DisplayName("Get Package By ID - With Many Location Mappings - Success")
     void getPackageById_WithManyMappings_Success() {
+        // Arrange
         testPackage.setPackageName("Multi-Location Package");
-        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
-        
+        stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, testPackage);
+
+        // Act
         PackageResponseModel result = packageService.getPackageById(TEST_PACKAGE_ID);
-        
+
+        // Assert
         assertNotNull(result);
         assertEquals(TEST_PACKAGE_ID, result.getPackageId());
         assertEquals("Multi-Location Package", result.getPackageName());
+    }
+
+    /**
+     * Purpose: Verify package with maximum long ID value is retrieved successfully.
+     * Expected Result: PackageResponseModel is returned with all fields.
+     * Assertions: Result is not null and contains correct data.
+     */
+    @Test
+    @DisplayName("Get Package By ID - Max Long ID Value - Success")
+    void getPackageById_MaxLongValue_Success() {
+        // Arrange
+        testPackage.setPackageName("Max ID Package");
+        stubPackageRepositoryFindByPackageIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID, testPackage);
+
+        // Act
+        PackageResponseModel result = packageService.getPackageById(Long.MAX_VALUE);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("Max ID Package", result.getPackageName());
+    }
+
+    /**
+     * Purpose: Verify package with very specific ID (9999999999) is retrieved correctly.
+     * Expected Result: Correct package is returned.
+     * Assertions: Result contains expected data with specific ID.
+     */
+    @Test
+    @DisplayName("Get Package By ID - High Value ID - Success")
+    void getPackageById_HighValueId_Success() {
+        // Arrange
+        long highId = 9999999999L;
+        testPackage.setPackageName("High ID Package");
+        stubPackageRepositoryFindByPackageIdAndClientId(highId, TEST_CLIENT_ID, testPackage);
+
+        // Act
+        PackageResponseModel result = packageService.getPackageById(highId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("High ID Package", result.getPackageName());
+    }
+
+    /**
+     * Purpose: Verify retrieval of package with special characters in name.
+     * Expected Result: Package with special characters is returned correctly.
+     * Assertions: Package name with special characters is preserved in response.
+     */
+    @Test
+    @DisplayName("Get Package By ID - Special Characters in Name - Success")
+    void getPackageById_SpecialCharactersInName_Success() {
+        // Arrange
+        testPackage.setPackageName("Box-#123!@$%^&*()_+-=[]{}");
+        stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, testPackage);
+
+        // Act
+        PackageResponseModel result = packageService.getPackageById(TEST_PACKAGE_ID);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("Box-#123!@$%^&*()_+-=[]{}", result.getPackageName());
     }
 
     /*
@@ -138,9 +217,12 @@ class GetPackageByIdTest extends PackageServiceTestBase {
     @Test
     @DisplayName("Get Package By ID - Max Long ID - Throws NotFoundException")
     void getPackageById_MaxLongValue_ThrowsNotFoundException() {
-        when(packageRepository.findByPackageIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class, () -> packageService.getPackageById(Long.MAX_VALUE));
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, ex.getMessage());
+        // Arrange
+        stubPackageRepositoryFindByPackageIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID, null);
+
+        // Act & Assert
+        assertThrowsNotFound(ErrorMessages.PackageErrorMessages.InvalidId,
+                () -> packageService.getPackageById(Long.MAX_VALUE));
     }
 
     /**
@@ -151,9 +233,12 @@ class GetPackageByIdTest extends PackageServiceTestBase {
     @Test
     @DisplayName("Get Package By ID - Min Long ID - Throws NotFoundException")
     void getPackageById_MinLongValue_ThrowsNotFoundException() {
-        when(packageRepository.findByPackageIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class, () -> packageService.getPackageById(Long.MIN_VALUE));
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, ex.getMessage());
+        // Arrange
+        stubPackageRepositoryFindByPackageIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID, null);
+
+        // Act & Assert
+        assertThrowsNotFound(ErrorMessages.PackageErrorMessages.InvalidId,
+                () -> packageService.getPackageById(Long.MIN_VALUE));
     }
 
     /**
@@ -164,9 +249,12 @@ class GetPackageByIdTest extends PackageServiceTestBase {
     @Test
     @DisplayName("Get Package By ID - Negative ID - Throws NotFoundException")
     void getPackageById_NegativeId_ThrowsNotFoundException() {
-        when(packageRepository.findByPackageIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class, () -> packageService.getPackageById(-1L));
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, ex.getMessage());
+        // Arrange
+        stubPackageRepositoryFindByPackageIdAndClientId(-1L, TEST_CLIENT_ID, null);
+
+        // Act & Assert
+        assertThrowsNotFound(ErrorMessages.PackageErrorMessages.InvalidId,
+                () -> packageService.getPackageById(-1L));
     }
 
     /**
@@ -177,9 +265,12 @@ class GetPackageByIdTest extends PackageServiceTestBase {
     @Test
     @DisplayName("Get Package By ID - Not Found - Throws NotFoundException")
     void getPackageById_NotFound_ThrowsNotFoundException() {
-        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> packageService.getPackageById(TEST_PACKAGE_ID));
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, exception.getMessage());
+        // Arrange
+        stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, null);
+
+        // Act & Assert
+        assertThrowsNotFound(ErrorMessages.PackageErrorMessages.InvalidId,
+                () -> packageService.getPackageById(TEST_PACKAGE_ID));
     }
 
     /**
@@ -190,61 +281,12 @@ class GetPackageByIdTest extends PackageServiceTestBase {
     @Test
     @DisplayName("Get Package By ID - Zero ID - Throws NotFoundException")
     void getPackageById_ZeroId_ThrowsNotFoundException() {
-        when(packageRepository.findByPackageIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class, () -> packageService.getPackageById(0L));
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, ex.getMessage());
-    }
+        // Arrange
+        stubPackageRepositoryFindByPackageIdAndClientId(0L, TEST_CLIENT_ID, null);
 
-    /**
-     * Purpose: Verify package with maximum long ID value is retrieved successfully.
-     * Expected Result: PackageResponseModel is returned with all fields.
-     * Assertions: Result is not null and contains correct data.
-     */
-    @Test
-    @DisplayName("Get Package By ID - Max Long ID Value - Success")
-    void getPackageById_MaxLongValue_Success() {
-        testPackage.setPackageName("Max ID Package");
-        when(packageRepository.findByPackageIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(testPackage);
-        
-        PackageResponseModel result = packageService.getPackageById(Long.MAX_VALUE);
-        
-        assertNotNull(result);
-        assertEquals("Max ID Package", result.getPackageName());
-    }
-
-    /**
-     * Purpose: Verify package with very specific ID (9999999999) is retrieved correctly.
-     * Expected Result: Correct package is returned.
-     * Assertions: Result contains expected data with specific ID.
-     */
-    @Test
-    @DisplayName("Get Package By ID - High Value ID - Success")
-    void getPackageById_HighValueId_Success() {
-        long highId = 9999999999L;
-        testPackage.setPackageName("High ID Package");
-        when(packageRepository.findByPackageIdAndClientId(highId, TEST_CLIENT_ID)).thenReturn(testPackage);
-        
-        PackageResponseModel result = packageService.getPackageById(highId);
-        
-        assertNotNull(result);
-        assertEquals("High ID Package", result.getPackageName());
-    }
-
-    /**
-     * Purpose: Verify retrieval of package with special characters in name.
-     * Expected Result: Package with special characters is returned correctly.
-     * Assertions: Package name with special characters is preserved in response.
-     */
-    @Test
-    @DisplayName("Get Package By ID - Special Characters in Name - Success")
-    void getPackageById_SpecialCharactersInName_Success() {
-        testPackage.setPackageName("Box-#123!@$%^&*()_+-=[]{}");
-        when(packageRepository.findByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID)).thenReturn(testPackage);
-        
-        PackageResponseModel result = packageService.getPackageById(TEST_PACKAGE_ID);
-        
-        assertNotNull(result);
-        assertEquals("Box-#123!@$%^&*()_+-=[]{}",result.getPackageName());
+        // Act & Assert
+        assertThrowsNotFound(ErrorMessages.PackageErrorMessages.InvalidId,
+                () -> packageService.getPackageById(0L));
     }
 
     /*
@@ -253,24 +295,61 @@ class GetPackageByIdTest extends PackageServiceTestBase {
      **********************************************************************************************
      */
 
+    /**
+     * Purpose: Verify unauthorized access is blocked at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
     @Test
-    @DisplayName("getPackageById - Verify @PreAuthorize Annotation")
-    void getPackageById_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        Method method = PackageController.class.getMethod("getPackageById", long.class);
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-        assertNotNull(annotation, "@PreAuthorize annotation should be present");
-        assertTrue(annotation.value().contains(Authorizations.VIEW_PACKAGES_PERMISSION),
-            "@PreAuthorize should reference VIEW_PACKAGES_PERMISSION");
+    @DisplayName("getPackageById - Controller Permission - Unauthorized")
+    void getPackageById_controller_permission_unauthorized() {
+        // Arrange
+        PackageController controller = new PackageController(packageServiceMock, null);
+        stubPackageServiceThrowsUnauthorizedException();
+
+        // Act
+        ResponseEntity<?> response = controller.getPackageById(TEST_PACKAGE_ID);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
+    /**
+     * Purpose: Verify @PreAuthorize annotation on getPackageById endpoint.
+     * Expected Result: Annotation exists and references VIEW_PACKAGES_PERMISSION.
+     * Assertions: Annotation is present and contains permission.
+     */
+    @Test
+    @DisplayName("getPackageById - Verify @PreAuthorize Annotation")
+    void getPackageById_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        // Arrange
+        Method method = PackageController.class.getMethod("getPackageById", long.class);
+
+        // Act
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
+        assertNotNull(annotation, "@PreAuthorize annotation should be present");
+        assertTrue(annotation.value().contains(Authorizations.VIEW_PACKAGES_PERMISSION),
+                "@PreAuthorize should reference VIEW_PACKAGES_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify controller delegates to service for valid requests.
+     * Expected Result: Service method is invoked and HTTP 200 returned.
+     * Assertions: Service called once and status code is OK.
+     */
     @Test
     @DisplayName("getPackageById - Controller delegates to service")
     void getPackageById_WithValidRequest_DelegatesToService() {
+        // Arrange
         PackageController controller = new PackageController(packageServiceMock, null);
-        when(packageServiceMock.getPackageById(TEST_PACKAGE_ID)).thenReturn(new PackageResponseModel(testPackage));
+        stubPackageServiceGetPackageByIdReturns(new PackageResponseModel(testPackage));
 
+        // Act
         ResponseEntity<?> response = controller.getPackageById(TEST_PACKAGE_ID);
 
+        // Assert
         verify(packageServiceMock).getPackageById(TEST_PACKAGE_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }

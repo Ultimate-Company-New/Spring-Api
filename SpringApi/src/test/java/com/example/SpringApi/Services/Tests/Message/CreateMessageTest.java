@@ -158,34 +158,6 @@ class CreateMessageTest extends MessageServiceTestBase {
     }
 
     /**
-     * Purpose: Verify that a batch ID is generated when a scheduled email is
-     * created.
-     * Scenario: CreateMessage with sendAsEmail=true and a future publishDate.
-     * Expected: EmailHelper used to generate batch ID which is saved to the
-     * message.
-     */
-    @Test
-    @DisplayName("Create Message - SendAsEmail with publishDate - Generates batch ID")
-    void createMessage_SendAsEmailWithPublishDate_GeneratesBatchId() {
-        // Arrange
-        validRequest.setSendAsEmail(true);
-        validRequest.setPublishDate(LocalDateTime.now(ZoneOffset.UTC).plusHours(1));
-
-        stubClientRepositoryFindById(Optional.of(testClient));
-        stubMessageRepositorySave(testMessage);
-
-        // Act & Assert
-        try (MockedConstruction<EmailHelper> emailHelperMock = stubEmailHelperGenerateBatchId("batch-123")) {
-            assertDoesNotThrow(() -> messageService.createMessage(validRequest));
-
-            ArgumentCaptor<com.example.SpringApi.Models.DatabaseModels.Message> messageCaptor = ArgumentCaptor
-                    .forClass(com.example.SpringApi.Models.DatabaseModels.Message.class);
-            verify(messageRepository).save(messageCaptor.capture());
-            assertEquals("batch-123", messageCaptor.getValue().getSendgridEmailBatchId());
-        }
-    }
-
-    /**
      * Purpose: Verify that an email is sent to recipients when sendAsEmail is true
      * and recipients are found.
      * Scenario: CreateMessage with sendAsEmail=true and repository returns a list
@@ -239,6 +211,34 @@ class CreateMessageTest extends MessageServiceTestBase {
                 .forClass(com.example.SpringApi.Models.DatabaseModels.Message.class);
         verify(messageRepository).save(messageCaptor.capture());
         assertNull(messageCaptor.getValue().getSendgridEmailBatchId());
+    }
+
+    /**
+     * Purpose: Verify that a batch ID is generated when a scheduled email is
+     * created.
+     * Scenario: CreateMessage with sendAsEmail=true and a future publishDate.
+     * Expected: EmailHelper used to generate batch ID which is saved to the
+     * message.
+     */
+    @Test
+    @DisplayName("Create Message - SendAsEmail with publishDate - Generates batch ID")
+    void createMessage_SendAsEmailWithPublishDate_GeneratesBatchId() {
+        // Arrange
+        validRequest.setSendAsEmail(true);
+        validRequest.setPublishDate(LocalDateTime.now(ZoneOffset.UTC).plusHours(1));
+
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySave(testMessage);
+
+        // Act & Assert
+        try (MockedConstruction<EmailHelper> emailHelperMock = stubEmailHelperGenerateBatchId("batch-123")) {
+            assertDoesNotThrow(() -> messageService.createMessage(validRequest));
+
+            ArgumentCaptor<com.example.SpringApi.Models.DatabaseModels.Message> messageCaptor = ArgumentCaptor
+                    .forClass(com.example.SpringApi.Models.DatabaseModels.Message.class);
+            verify(messageRepository).save(messageCaptor.capture());
+            assertEquals("batch-123", messageCaptor.getValue().getSendgridEmailBatchId());
+        }
     }
 
     /**
@@ -550,11 +550,11 @@ class CreateMessageTest extends MessageServiceTestBase {
     void createMessage_RepositorySaveFailure_Propagates() {
         // Arrange
         stubClientRepositoryFindById(Optional.of(testClient));
-        stubMessageRepositorySaveThrowsRuntimeException("DB Error");
+        stubMessageRepositorySaveThrowsRuntimeException(ErrorMessages.CommonErrorMessages.DATABASE_ERROR);
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.createMessage(validRequest));
-        assertEquals("DB Error", ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.DATABASE_ERROR, ex.getMessage());
     }
 
     /**
@@ -603,7 +603,7 @@ class CreateMessageTest extends MessageServiceTestBase {
      */
     @Test
     @DisplayName("Create Message - Verify @PreAuthorize annotation is configured correctly")
-    void createMessage_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void createMessage_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         var method = MessageController.class.getMethod("createMessage",
                 com.example.SpringApi.Models.RequestModels.MessageRequestModel.class);
@@ -621,6 +621,26 @@ class CreateMessageTest extends MessageServiceTestBase {
 
         assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
                 "PreAuthorize annotation should reference INSERT_MESSAGES_PERMISSION");
+    }
+
+    /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("Create Message - Controller permission unauthorized - Success")
+    void createMessage_controller_permission_unauthorized() {
+        // Arrange
+        MessageController controller = new MessageController(messageServiceMock);
+        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(messageServiceMock).createMessage(any());
+
+        // Act
+        ResponseEntity<?> response = controller.createMessage(validRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
     /**

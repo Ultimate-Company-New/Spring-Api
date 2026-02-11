@@ -12,6 +12,8 @@ import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -24,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-// Total Tests: 14
+// Total Tests: 16
 @DisplayName("UserService - UpdateUser Tests")
 class UpdateUserTest extends UserServiceTestBase {
 
@@ -71,10 +73,11 @@ class UpdateUserTest extends UserServiceTestBase {
         doNothing().when(mockUserService).updateUser(request);
 
         // Act
-        localController.updateUser(userId, request);
+        ResponseEntity<?> response = localController.updateUser(userId, request);
 
         // Assert
         verify(mockUserService, times(1)).updateUser(request);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     // ========================================

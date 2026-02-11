@@ -131,7 +131,7 @@
                 <p><strong>Purchase Order Receipt:</strong> ${purchaseOrder.purchaseOrderReceipt}</p>
             </#if>
             <p><strong>Status:</strong> ${purchaseOrder.purchaseOrderStatus}</p>
-            <p><strong>Priority:</strong> ${purchaseOrder.priority}</p>
+            <p><strong>Priority:</strong> ${purchaseOrder.priority!""}</p>
             <#if purchaseOrder.approvedByUserId??>
                 <p><strong>Approved:</strong> Yes</p>
             <#else>
@@ -144,10 +144,10 @@
     <div class="section">
         <div class="section-title">Shipping Address</div>
         <div class="section-content address">
-            <p>${shippingAddress.nameOnAddress}</p>
-            <p>${shippingAddress.streetAddress}<#if shippingAddress.streetAddress2?has_content>, ${shippingAddress.streetAddress2}</#if></p>
-            <p>${shippingAddress.city}, ${shippingAddress.state}, ${shippingAddress.postalCode}</p>
-            <p>${shippingAddress.country}</p>
+            <p>${shippingAddress.nameOnAddress!""}</p>
+            <p>${shippingAddress.streetAddress!""}<#if shippingAddress.streetAddress2?has_content>, ${shippingAddress.streetAddress2}</#if></p>
+            <p>${shippingAddress.city!""}, ${shippingAddress.state!""}, ${shippingAddress.postalCode!""}</p>
+            <p>${shippingAddress.country!""}</p>
         </div>
     </div>
 
@@ -155,11 +155,11 @@
     <div class="section">
         <div class="section-title">Lead Information</div>
         <div class="section-content">
-            <p><strong>Company:</strong> ${lead.company}</p>
-            <p><strong>Contact Name:</strong> ${lead.firstName} ${lead.lastName}</p>
-            <p><strong>Email:</strong> ${lead.email}</p>
-            <p><strong>Phone:</strong> ${lead.phone}</p>
-            <p><strong>Title:</strong> ${lead.title}</p>
+            <p><strong>Company:</strong> ${lead.company!""}</p>
+            <p><strong>Contact Name:</strong> ${lead.firstName!""} ${lead.lastName!""}</p>
+            <p><strong>Email:</strong> ${lead.email!""}</p>
+            <p><strong>Phone:</strong> ${lead.phone!""}</p>
+            <p><strong>Title:</strong> ${lead.title!""}</p>
             <#if lead.website?exists && lead.website?has_content>
                 <p><strong>Website:</strong> <a href="${lead.website}">${lead.website}</a></p>
             </#if>
@@ -170,10 +170,10 @@
     <div class="section">
         <div class="section-title">Purchase Order Created By</div>
         <div class="section-content">
-            <p><strong>Name:</strong> ${purchaseOrderCreatedBy.firstName} ${purchaseOrderCreatedBy.lastName}</p>
-            <p><strong>Email:</strong> ${purchaseOrderCreatedBy.loginName}</p>
-            <p><strong>Role:</strong> ${purchaseOrderCreatedBy.role}</p>
-            <p><strong>Phone:</strong> ${purchaseOrderCreatedBy.phone}</p>
+            <p><strong>Name:</strong> ${purchaseOrderCreatedBy.firstName!""} ${purchaseOrderCreatedBy.lastName!""}</p>
+            <p><strong>Email:</strong> ${purchaseOrderCreatedBy.loginName!""}</p>
+            <p><strong>Role:</strong> ${purchaseOrderCreatedBy.role!""}</p>
+            <p><strong>Phone:</strong> ${purchaseOrderCreatedBy.phone!""}</p>
         </div>
     </div>
 

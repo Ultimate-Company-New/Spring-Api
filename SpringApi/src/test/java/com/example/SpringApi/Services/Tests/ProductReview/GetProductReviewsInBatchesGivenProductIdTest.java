@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("ProductReviewService - GetProductReviewsInBatchesGivenProductId Tests")
 class GetProductReviewsInBatchesGivenProductIdTest extends ProductReviewServiceTestBase {
 
-    // Total Tests: 22
+    // Total Tests: 14
 
     /*
      **********************************************************************************************

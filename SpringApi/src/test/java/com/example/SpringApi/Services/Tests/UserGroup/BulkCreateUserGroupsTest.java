@@ -9,6 +9,8 @@ import com.example.SpringApi.Models.RequestModels.UserGroupRequestModel;
 import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -26,7 +28,9 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserGroupService - Bulk Create User Groups functionality.
  * 
- * Contains 9 tests covering:
+ * Total Tests: 11
+ *
+ * Tests cover:
  * - Successful bulk creation with varying numbers of groups
  * - Partial success scenarios (some valid, some invalid)
  * - Complete failure scenarios (all groups invalid)
@@ -53,6 +57,21 @@ class BulkCreateUserGroupsTest extends UserGroupServiceTestBase {
         assertNotNull(annotation, "@PreAuthorize annotation should be present on bulkCreateUserGroups method");
         assertTrue(annotation.value().contains(Authorizations.INSERT_GROUPS_PERMISSION),
                 "@PreAuthorize annotation should check for INSERT_GROUPS_PERMISSION");
+    }
+
+    @Test
+    @DisplayName("bulkCreateUserGroups - Controller delegates to service")
+    void bulkCreateUserGroups_WithValidRequest_DelegatesToService() {
+        // Arrange
+        List<UserGroupRequestModel> request = Collections.singletonList(testUserGroupRequest);
+        doNothing().when(userGroupService).bulkCreateUserGroupsAsync(anyList(), anyLong(), anyString(), anyLong());
+
+        // Act
+        ResponseEntity<?> response = userGroupController.bulkCreateUserGroups(request);
+
+        // Assert
+        verify(userGroupService).bulkCreateUserGroupsAsync(eq(request), anyLong(), anyString(), anyLong());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     // ========================================

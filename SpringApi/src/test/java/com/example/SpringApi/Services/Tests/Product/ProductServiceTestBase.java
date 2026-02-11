@@ -338,4 +338,26 @@ public abstract class ProductServiceTestBase {
         testProduct.setProductPickupLocationMappings(mappings);
     }
 
+    protected void stubProductFilterQueryBuilderGetColumnType() {
+        lenient().when(productFilterQueryBuilder.getColumnType(anyString())).thenAnswer(invocation -> {
+            String col = invocation.getArgument(0);
+            if (java.util.Arrays.asList("title", "brand", "condition").contains(col))
+                return "string";
+            if (java.util.Arrays.asList("productId", "price", "categoryId", "pickupLocationId").contains(col))
+                return "number";
+            if (java.util.Arrays.asList("isDeleted").contains(col))
+                return "boolean";
+            if (java.util.Arrays.asList("createdAt").contains(col))
+                return "date";
+            return null;
+        });
+    }
+
+    protected void stubProductFilterQueryBuilderFindPaginatedEntitiesEmptyPage() {
+        org.springframework.data.domain.Page<Product> emptyPage = new org.springframework.data.domain.PageImpl<>(java.util.Collections.emptyList());
+        lenient().when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), any(), anyString(), any(), anyBoolean(), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(emptyPage);
+    }
+
 }

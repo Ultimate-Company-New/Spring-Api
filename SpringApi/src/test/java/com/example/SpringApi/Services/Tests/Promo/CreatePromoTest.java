@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("PromoService - CreatePromo Tests")
 class CreatePromoTest extends PromoServiceTestBase {
 
-    // Total Tests: 14
+    // Total Tests: 13
 
     /*
      **********************************************************************************************
@@ -279,7 +279,7 @@ class CreatePromoTest extends PromoServiceTestBase {
 @DisplayName("PromoService - CreatePromo Tests - Duplicate Block")
 class CreatePromoTestDuplicate extends PromoServiceTestBase {
 
-    // Total Tests: 41
+    // Total Tests: 39
 
     /*
      **********************************************************************************************

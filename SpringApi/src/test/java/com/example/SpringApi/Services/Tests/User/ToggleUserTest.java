@@ -7,6 +7,8 @@ import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.DatabaseModels.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -15,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-// Total Tests: 9
+// Total Tests: 11
 @DisplayName("UserService - Toggle User Tests")
 class ToggleUserTest extends UserServiceTestBase {
 
@@ -59,10 +61,11 @@ class ToggleUserTest extends UserServiceTestBase {
         doNothing().when(mockUserService).toggleUser(userId);
 
         // Act
-        localController.toggleUser(userId);
+        ResponseEntity<?> response = localController.toggleUser(userId);
 
         // Assert
         verify(mockUserService, times(1)).toggleUser(userId);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     // ========================================

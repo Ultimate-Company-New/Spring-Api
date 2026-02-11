@@ -1,12 +1,15 @@
 package com.example.SpringApi.Services.Tests.Shipping;
 
 import com.example.SpringApi.Controllers.ShippingController;
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.RequestModels.ShippingCalculationRequestModel;
 import com.example.SpringApi.Models.ResponseModels.ShippingCalculationResponseModel;
 import com.example.SpringApi.Models.ShippingResponseModel.ShippingOptionsResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -22,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("CalculateShipping Tests")
 class CalculateShippingTest extends ShippingServiceTestBase {
 
-    // Total Tests: 12
+    // Total Tests: 14
 
     /*
      **********************************************************************************************
@@ -267,9 +270,46 @@ class CalculateShippingTest extends ShippingServiceTestBase {
 
     /*
      **********************************************************************************************
+     * FAILURE TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify null request throws exception.
+     * Expected Result: Exception is thrown.
+     * Assertions: Exception is thrown.
+     */
+    @Test
+    @DisplayName("calculateShipping - Null Request - Throws Exception")
+    void calculateShipping_NullRequest_ThrowsException() {
+        // Act & Assert
+        assertThrows(NullPointerException.class, () -> shippingService.calculateShipping(null));
+    }
+
+    /*
+     **********************************************************************************************
      * PERMISSION TESTS
      **********************************************************************************************
      */
+
+    /**
+     * Purpose: Verify unauthorized access is blocked at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("calculateShipping - Controller Permission - Unauthorized")
+    void calculateShipping_controller_permission_unauthorized() {
+        // Arrange
+        ShippingController controller = new ShippingController(shippingServiceMock);
+        stubShippingServiceMockCalculateShippingUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.calculateShipping(shippingRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
 
     /**
      * Purpose: Verify controller has @PreAuthorize for calculateShipping.
@@ -278,7 +318,7 @@ class CalculateShippingTest extends ShippingServiceTestBase {
      */
     @Test
     @DisplayName("calculateShipping - Verify @PreAuthorize Annotation")
-    void calculateShipping_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void calculateShipping_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = ShippingController.class.getMethod("calculateShipping", ShippingCalculationRequestModel.class);
 

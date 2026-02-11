@@ -1,6 +1,8 @@
 package com.example.SpringApi.Services.Tests.PurchaseOrder;
 
 import com.example.SpringApi.Controllers.PurchaseOrderController;
+import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Exceptions.UnauthorizedException;
 import com.example.SpringApi.Models.ResponseModels.PurchaseOrderResponseModel;
 import com.example.SpringApi.Models.Authorizations;
 import org.junit.jupiter.api.DisplayName;
@@ -24,9 +26,10 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for PurchaseOrderService.getPurchaseOrderDetailsById method.
  * 
- * Test count: 6 tests
+ * Test count: 9 tests
  * - SUCCESS: 1 test
  * - FAILURE / EXCEPTION: 5 tests (1 test + 4 dynamic tests)
+ * - CONTROLLER: 3 tests (permission, annotation, delegation)
  */
 @DisplayName("PurchaseOrderService - GetPODetailsById Tests")
 public class GetPODetailsByIdTest extends PurchaseOrderServiceTestBase {
@@ -91,6 +94,28 @@ public class GetPODetailsByIdTest extends PurchaseOrderServiceTestBase {
      * CONTROLLER AUTHORIZATION TESTS
      **********************************************************************************************
      */
+
+        /**
+         * Purpose: Verify unauthorized access is blocked at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+        @Test
+        @DisplayName("getPurchaseOrderDetailsById - Controller Permission - Unauthorized")
+        void getPurchaseOrderDetailsById_controller_permission_unauthorized() {
+        // Arrange
+        com.example.SpringApi.Services.PurchaseOrderService mockService =
+            mock(com.example.SpringApi.Services.PurchaseOrderService.class);
+        PurchaseOrderController controller = new PurchaseOrderController(mockService);
+        when(mockService.getPurchaseOrderDetailsById(TEST_PO_ID))
+            .thenThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED));
+
+        // Act
+        ResponseEntity<?> response = controller.getPurchaseOrderDetailsById(TEST_PO_ID);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        }
 
     @Test
     @DisplayName("getPurchaseOrderDetailsById - Verify @PreAuthorize Annotation")

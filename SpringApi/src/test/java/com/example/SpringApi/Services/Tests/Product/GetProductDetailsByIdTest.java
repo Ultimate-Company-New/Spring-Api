@@ -1,6 +1,7 @@
 package com.example.SpringApi.Services.Tests.Product;
 
 import com.example.SpringApi.Controllers.ProductController;
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.ResponseModels.ProductResponseModel;
@@ -20,7 +21,7 @@ import static org.mockito.Mockito.*;
  * Consolidated test class for ProductService.getProductDetailsById.
  * Fully compliant with Unit Test Verification rules.
  */
-// Total Tests: 8
+// Total Tests: 7
 @DisplayName("ProductService - GetProductDetailsById Tests")
 class GetProductDetailsByIdTest extends ProductServiceTestBase {
 
@@ -119,14 +120,19 @@ class GetProductDetailsByIdTest extends ProductServiceTestBase {
     }
 
     @Test
-    @DisplayName("getProductDetailsById - No permission - Forbidden simulated")
-    void getProductDetailsById_NoPermission_Forbidden() {
+    @DisplayName("getProductDetailsById - No permission - Unauthorized")
+    void getProductDetailsById_NoPermission_Unauthorized() {
         // Arrange
         ProductService mockService = mock(ProductService.class);
         ProductController controller = new ProductController(mockService);
+        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockService).getProductDetailsById(TEST_PRODUCT_ID);
 
-        // Act & Assert
-        assertDoesNotThrow(() -> controller.getProductDetailsById(TEST_PRODUCT_ID));
+        // Act
+        ResponseEntity<?> response = controller.getProductDetailsById(TEST_PRODUCT_ID);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(mockService).getProductDetailsById(TEST_PRODUCT_ID);
     }
 }

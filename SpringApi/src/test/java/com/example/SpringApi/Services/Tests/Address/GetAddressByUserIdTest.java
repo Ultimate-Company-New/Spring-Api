@@ -229,10 +229,12 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
     void getAddressByUserId_controller_permission_forbidden() throws NoSuchMethodException {
         // Arrange
         var method = AddressController.class.getMethod("getAddressesByUserId", Long.class);
+        stubServiceGetAddressByUserId(DEFAULT_USER_ID, new ArrayList<>());
 
         // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
+        ResponseEntity<?> response = addressController.getAddressesByUserId(DEFAULT_USER_ID);
 
         // Assert
         assertNotNull(preAuthorizeAnnotation, "getAddressesByUserId method should have @PreAuthorize annotation");
@@ -242,6 +244,7 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
 
         assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
                 "PreAuthorize annotation should reference VIEW_ADDRESS_PERMISSION");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
     }
 
     /**
@@ -252,7 +255,7 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
      */
     @Test
     @DisplayName("Get Address By User ID - Verify @PreAuthorize annotation is configured correctly")
-    void getAddressesByUserId_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void getAddressByUserId_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         var method = AddressController.class.getMethod("getAddressesByUserId", Long.class);
 
@@ -284,7 +287,7 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
      */
     @Test
     @DisplayName("Get Address By User ID - Controller delegates to service correctly")
-    void getAddressesByUserId_WithValidRequest_DelegatesToService() {
+    void getAddressByUserId_WithValidRequest_DelegatesToService() {
         // Arrange
         stubServiceGetAddressByUserId(DEFAULT_USER_ID, new ArrayList<>());
 

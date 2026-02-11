@@ -12,6 +12,8 @@ import com.example.SpringApi.Models.ResponseModels.PaymentVerificationResponseMo
 import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -754,6 +756,28 @@ class ProcessShipmentsAfterPaymentApprovalCashTest extends ShippingServiceTestBa
      * PERMISSION TESTS
      **********************************************************************************************
      */
+
+        /**
+         * Purpose: Verify unauthorized access is blocked at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+        @Test
+        @DisplayName("processShipmentsAfterPaymentApprovalCash - Controller Permission - Unauthorized")
+        void processShipmentsAfterPaymentApprovalCash_controller_permission_unauthorized() {
+                // Arrange
+                ProcessPaymentAndShipmentRequestModel request = new ProcessPaymentAndShipmentRequestModel();
+                request.setIsCashPayment(true);
+                request.setCashPaymentRequest(cashPaymentRequest);
+                PaymentController controller = new PaymentController(paymentService, shippingServiceControllerMock);
+                stubShippingServiceProcessShipmentsAfterPaymentApprovalUnauthorizedCash();
+
+                // Act
+                ResponseEntity<?> response = controller.processPaymentAndShipments(request);
+
+                // Assert
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        }
 
     /**
      * Purpose: Verify controller has @PreAuthorize for processPaymentAndShipments.

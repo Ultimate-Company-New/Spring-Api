@@ -412,10 +412,10 @@ class TogglePromoTestDuplicate extends PromoServiceTestBase {
         Promo p2 = new Promo();
         p2.setPromoId(999L);
         p2.setIsDeleted(false);
-        lenient().when(promoRepository.findByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testPromo));
-        lenient().when(promoRepository.findByPromoIdAndClientId(999L, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(p2));
+        stubPromoRepositoryFindByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID,
+                Optional.of(testPromo));
+        stubPromoRepositoryFindByPromoIdAndClientId(999L, TEST_CLIENT_ID,
+                Optional.of(p2));
 
         // Act
         promoService.togglePromo(TEST_PROMO_ID);

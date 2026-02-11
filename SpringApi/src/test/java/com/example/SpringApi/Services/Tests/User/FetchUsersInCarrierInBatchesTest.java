@@ -9,6 +9,8 @@ import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -17,7 +19,7 @@ import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-// Total Tests: 3 (Controller Authorization + Delegation + Comprehensive)
+// Total Tests: 21
 @DisplayName("UserService - FetchUsersInCarrierInBatches Tests")
 class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
 
@@ -76,10 +78,11 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
                 UserController localController = new UserController(mockService);
 
                 // Act
-                localController.fetchUsersInCarrierInBatches(request);
+                ResponseEntity<?> response = localController.fetchUsersInCarrierInBatches(request);
 
                 // Assert
                 verify(mockService, times(1)).fetchUsersInCarrierInBatches(request);
+                assertEquals(HttpStatus.OK, response.getStatusCode());
         }
 
         // ========================================

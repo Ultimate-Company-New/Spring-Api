@@ -23,9 +23,9 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for PickupLocationService.createPickupLocation() method.
  * Extensive validation of all fields, edge cases, and error handling.
- * Test Count: 39 tests
+ * Test Count: 40 tests
  */
-// Total Tests: 39
+// Total Tests: 40
 
 @DisplayName("Create Pickup Location Tests")
 class CreatePickupLocationTest extends PickupLocationServiceTestBase {
@@ -309,11 +309,7 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @DisplayName("Create Pickup Location - Very Long Nickname - Success")
     void createPickupLocation_VeryLongNickname_Success() {
         // ARRANGE
-        StringBuilder longNickname = new StringBuilder();
-        for (int i = 0; i < 36; i++) {
-            longNickname.append("A");
-        }
-        testPickupLocationRequest.setAddressNickName(longNickname.toString());
+        testPickupLocationRequest.setAddressNickName("A".repeat(36));
         stubSuccessfulPickupLocationCreation();
 
         // ACT & ASSERT
@@ -464,6 +460,25 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
      * CONTROLLER AUTHORIZATION TESTS
      **********************************************************************************************
      */
+
+    /**
+     * Purpose: Verify unauthorized access is blocked at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("createPickupLocation - Controller Permission - Unauthorized")
+    void createPickupLocation_controller_permission_unauthorized() throws Exception {
+        // ARRANGE
+        PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
+        stubPickupLocationServiceThrowsUnauthorizedOnCreate();
+
+        // ACT
+        ResponseEntity<?> response = controller.createPickupLocation(testPickupLocationRequest);
+
+        // ASSERT
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
 
     @Test
     @DisplayName("createPickupLocation - Verify @PreAuthorize Annotation")

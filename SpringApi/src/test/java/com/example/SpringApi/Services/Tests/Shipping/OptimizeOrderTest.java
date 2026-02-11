@@ -8,6 +8,8 @@ import com.example.SpringApi.Models.RequestModels.OrderOptimizationRequestModel;
 import com.example.SpringApi.Models.ResponseModels.OrderOptimizationResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -265,6 +267,25 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
      * PERMISSION TESTS
      **********************************************************************************************
      */
+
+    /**
+     * Purpose: Verify unauthorized access is blocked at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("optimizeOrder - Controller Permission - Unauthorized")
+    void optimizeOrder_controller_permission_unauthorized() {
+        // Arrange
+        ShippingController controller = new ShippingController(shippingServiceMock);
+        stubShippingServiceMockOptimizeOrderUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.optimizeOrder(optimizationRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
 
     /**
      * Purpose: Verify controller has @PreAuthorize for optimizeOrder.

@@ -1,6 +1,7 @@
 package com.example.SpringApi.Services.Tests.PurchaseOrder;
 
 import com.example.SpringApi.FilterQueryBuilder.PurchaseOrderFilterQueryBuilder;
+import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
@@ -9,6 +10,10 @@ import com.example.SpringApi.Repositories.*;
 import com.example.SpringApi.Services.PurchaseOrderService;
 import com.example.SpringApi.Services.MessageService;
 import com.example.SpringApi.Services.UserLogService;
+import com.itextpdf.text.DocumentException;
+
+import freemarker.template.TemplateException;
+
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +25,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -84,6 +90,9 @@ public abstract class PurchaseOrderServiceTestBase {
     @Mock
     protected Environment environment;
 
+    @Mock
+    protected PurchaseOrderService purchaseOrderServiceMock;
+
     protected PurchaseOrderService purchaseOrderService;
 
     protected PurchaseOrder testPurchaseOrder;
@@ -110,35 +119,21 @@ public abstract class PurchaseOrderServiceTestBase {
     void setUp() {
         initializeTestData();
 
-        // Setup common mocks
-        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
-        lenient().when(environment.getProperty("imageLocation")).thenReturn("imgbb");
-        lenient().when(environment.getActiveProfiles()).thenReturn(new String[] { "test" });
-        lenient().when(clientRepository.findById(anyLong())).thenReturn(Optional.of(testClient));
-        lenient().when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(),
-            any(), any(), any(), any(), any(), any(), any())).thenReturn(Optional.empty());
-        lenient().when(addressRepository.save(any(Address.class))).thenReturn(testAddress);
-        lenient().when(orderSummaryRepository.findByEntityTypeAndEntityId(anyString(), anyLong()))
-            .thenReturn(Optional.empty());
-        lenient().when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
-        lenient().when(shipmentRepository.findByOrderSummaryId(anyLong())).thenReturn(Collections.emptyList());
-        lenient().when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> {
-            Shipment shipment = invocation.getArgument(0);
-            if (shipment.getShipmentId() == null) {
-                shipment.setShipmentId(1L);
-            }
-            return shipment;
-        });
-        lenient().when(shipmentPackageRepository.findByShipmentId(anyLong())).thenReturn(Collections.emptyList());
-        lenient().when(shipmentPackageRepository.save(any(ShipmentPackage.class))).thenAnswer(invocation -> {
-            ShipmentPackage shipmentPackage = invocation.getArgument(0);
-            if (shipmentPackage.getShipmentPackageId() == null) {
-                shipmentPackage.setShipmentPackageId(1L);
-            }
-            return shipmentPackage;
-        });
-        lenient().when(shipmentProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
-        lenient().when(shipmentPackageProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+        // Setup common stubs
+        stubUserLogServiceLogData(true);
+        stubEnvironmentGetProperty("imageLocation", "imgbb");
+        stubEnvironmentGetActiveProfiles(new String[] { "test" });
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubAddressRepositoryFindExactDuplicate(Optional.empty());
+        stubAddressRepositorySave(testAddress);
+        stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(Optional.empty());
+        stubOrderSummaryRepositorySave(testOrderSummary);
+        stubShipmentRepositoryFindByOrderSummaryId(Collections.emptyList());
+        stubShipmentRepositorySaveAssigningId(1L);
+        stubShipmentPackageRepositoryFindByShipmentId(Collections.emptyList());
+        stubShipmentPackageRepositorySaveAssigningId(1L);
+        stubShipmentProductRepositorySaveAll();
+        stubShipmentPackageProductRepositorySaveAll();
 
         // Set up RequestContextHolder so BaseService.getClientId() works
         MockHttpServletRequest mockRequest = new MockHttpServletRequest();
@@ -308,6 +303,270 @@ public abstract class PurchaseOrderServiceTestBase {
         testPurchaseOrder.setCreatedUser(CREATED_USER);
         testPurchaseOrder.setModifiedUser(CREATED_USER);
     }
+
+    // ==========================================
+    // COMMON STUB SETUP HELPERS
+    // ==========================================
+
+    protected void stubUserLogServiceLogData(boolean result) {
+        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(result);
+    }
+
+    protected void stubUserLogServiceLogDataWithContext(boolean result) {
+        lenient().when(userLogService.logDataWithContext(anyLong(), anyString(), anyLong(), anyString(), anyString()))
+                .thenReturn(result);
+    }
+
+    protected void stubEnvironmentGetProperty(String key, String value) {
+        lenient().when(environment.getProperty(key)).thenReturn(value);
+    }
+
+    protected void stubEnvironmentGetActiveProfiles(String[] profiles) {
+        lenient().when(environment.getActiveProfiles()).thenReturn(profiles);
+    }
+
+    protected void stubClientRepositoryFindById(Optional<Client> client) {
+        lenient().when(clientRepository.findById(anyLong())).thenReturn(client);
+    }
+
+    protected void stubAddressRepositoryFindExactDuplicate(Optional<Address> address) {
+        lenient().when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(),
+                any(), any(), any(), any(), any(), any(), any())).thenReturn(address);
+    }
+
+    protected void stubAddressRepositorySave(Address address) {
+        lenient().when(addressRepository.save(any(Address.class))).thenReturn(address);
+    }
+
+    protected void stubAddressRepositoryFindById(Optional<Address> address) {
+        lenient().when(addressRepository.findById(anyLong())).thenReturn(address);
+    }
+
+    protected void stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(Optional<OrderSummary> orderSummary) {
+        lenient().when(orderSummaryRepository.findByEntityTypeAndEntityId(anyString(), anyLong()))
+                .thenReturn(orderSummary);
+    }
+
+    protected void stubOrderSummaryRepositorySave(OrderSummary orderSummary) {
+        lenient().when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(orderSummary);
+    }
+
+    protected void stubShipmentRepositoryFindByOrderSummaryId(List<Shipment> shipments) {
+        lenient().when(shipmentRepository.findByOrderSummaryId(anyLong())).thenReturn(shipments);
+    }
+
+    protected void stubShipmentProductRepositoryFindByShipmentId(List<ShipmentProduct> shipmentProducts) {
+        lenient().when(shipmentProductRepository.findByShipmentId(anyLong())).thenReturn(shipmentProducts);
+    }
+
+    protected void stubShipmentRepositorySaveAssigningId(Long shipmentId) {
+        lenient().when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> {
+            Shipment shipment = invocation.getArgument(0);
+            if (shipment.getShipmentId() == null) {
+                shipment.setShipmentId(shipmentId);
+            }
+            return shipment;
+        });
+    }
+
+    protected void stubShipmentPackageRepositoryFindByShipmentId(List<ShipmentPackage> shipmentPackages) {
+        lenient().when(shipmentPackageRepository.findByShipmentId(anyLong())).thenReturn(shipmentPackages);
+    }
+
+    protected void stubShipmentPackageRepositorySaveAssigningId(Long shipmentPackageId) {
+        lenient().when(shipmentPackageRepository.save(any(ShipmentPackage.class))).thenAnswer(invocation -> {
+            ShipmentPackage shipmentPackage = invocation.getArgument(0);
+            if (shipmentPackage.getShipmentPackageId() == null) {
+                shipmentPackage.setShipmentPackageId(shipmentPackageId);
+            }
+            return shipmentPackage;
+        });
+    }
+
+    protected void stubShipmentProductRepositorySaveAll() {
+        lenient().when(shipmentProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+    }
+
+    protected void stubShipmentProductRepositorySaveAllCapture(
+            org.mockito.ArgumentCaptor<java.util.List<com.example.SpringApi.Models.DatabaseModels.ShipmentProduct>> captor) {
+        lenient().when(shipmentProductRepository.saveAll(captor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
+    }
+
+    protected void stubShipmentPackageProductRepositorySaveAll() {
+        lenient().when(shipmentPackageProductRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+    }
+
+    protected void stubPurchaseOrderRepositorySave(PurchaseOrder purchaseOrder) {
+        lenient().when(purchaseOrderRepository.save(any(PurchaseOrder.class))).thenReturn(purchaseOrder);
+    }
+
+    protected void stubPurchaseOrderRepositoryFindById(Optional<PurchaseOrder> purchaseOrder) {
+        lenient().when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(anyLong(), anyLong()))
+                .thenReturn(purchaseOrder);
+    }
+
+    protected void stubPurchaseOrderRepositoryFindByIdWithRelations(Optional<PurchaseOrder> purchaseOrder) {
+        lenient().when(purchaseOrderRepository.findByPurchaseOrderIdAndClientIdWithAllRelations(anyLong(), anyLong()))
+                .thenReturn(purchaseOrder);
+    }
+
+    protected void stubPurchaseOrderFilterQueryBuilderGetColumnType(String column, String type) {
+        lenient().when(purchaseOrderFilterQueryBuilder.getColumnType(column)).thenReturn(type);
+    }
+
+    protected void stubPurchaseOrderFilterQueryBuilderFindPaginatedWithDetails(
+            org.springframework.data.domain.Page<com.example.SpringApi.Models.DTOs.PurchaseOrderWithDetails> page) {
+        lenient().when(purchaseOrderFilterQueryBuilder.findPaginatedWithDetails(
+                anyLong(), any(), any(), anyString(), any(), anyBoolean(), any()))
+                .thenReturn(page);
+    }
+
+    protected void stubResourcesRepositorySave(Resources resources) {
+        lenient().when(resourcesRepository.save(any(Resources.class))).thenReturn(resources);
+    }
+
+    protected void stubResourcesRepositoryFindByEntityIdAndEntityType(List<Resources> resources) {
+        lenient().when(resourcesRepository.findByEntityIdAndEntityType(anyLong(), anyString()))
+                .thenReturn(resources);
+    }
+
+    protected void stubLeadRepositoryFindLeadWithDetails(Lead lead) {
+        lenient().when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(anyLong(), anyLong()))
+                .thenReturn(lead);
+    }
+
+    protected void stubUserRepositoryFindByUserIdAndClientId(Optional<User> user) {
+        lenient().when(userRepository.findByUserIdAndClientId(anyLong(), anyLong())).thenReturn(user);
+    }
+
+    protected void stubPurchaseOrderServiceGetPurchaseOrdersInBatches(
+            com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel<com.example.SpringApi.Models.ResponseModels.PurchaseOrderResponseModel> response) {
+        lenient().when(purchaseOrderServiceMock.getPurchaseOrdersInBatches(any()))
+                .thenReturn(response);
+    }
+
+    protected void stubPurchaseOrderServiceGetPurchaseOrderDetailsById(
+            com.example.SpringApi.Models.ResponseModels.PurchaseOrderResponseModel response) {
+        lenient().when(purchaseOrderServiceMock.getPurchaseOrderDetailsById(anyLong())).thenReturn(response);
+    }
+
+    protected void stubPurchaseOrderServiceCreateDoNothing() {
+        lenient().doNothing().when(purchaseOrderServiceMock).createPurchaseOrder(any());
+    }
+
+    protected void stubPurchaseOrderServiceUpdateDoNothing() {
+        lenient().doNothing().when(purchaseOrderServiceMock).updatePurchaseOrder(any());
+    }
+
+    protected void stubPurchaseOrderServiceToggleDoNothing() {
+        lenient().doNothing().when(purchaseOrderServiceMock).togglePurchaseOrder(anyLong());
+    }
+
+    protected void stubPurchaseOrderServiceApproveDoNothing() {
+        lenient().doNothing().when(purchaseOrderServiceMock).approvedByPurchaseOrder(anyLong());
+    }
+
+    protected void stubPurchaseOrderServiceRejectDoNothing() {
+        lenient().doNothing().when(purchaseOrderServiceMock).rejectedByPurchaseOrder(anyLong());
+    }
+
+    protected void stubPurchaseOrderServiceBulkCreateDoNothing() {
+        lenient().doNothing().when(purchaseOrderServiceMock).bulkCreatePurchaseOrdersAsync(anyList(), anyLong(), anyString(), anyLong());
+    }
+
+    protected void stubPurchaseOrderServiceUserContext(Long userId, String userName, Long clientId) {
+        lenient().when(purchaseOrderServiceMock.getUserId()).thenReturn(userId);
+        lenient().when(purchaseOrderServiceMock.getUser()).thenReturn(userName);
+        lenient().when(purchaseOrderServiceMock.getClientId()).thenReturn(clientId);
+    }
+
+    protected void stubPurchaseOrderServiceGetPurchaseOrderPdf(byte[] pdfBytes) throws TemplateException, IOException, DocumentException {
+        lenient().when(purchaseOrderServiceMock.getPurchaseOrderPDF(anyLong())).thenReturn(pdfBytes);
+    }
+
+    protected void stubPurchaseOrderServiceThrowsUnauthorizedOnCreate() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(purchaseOrderServiceMock).createPurchaseOrder(any());
+    }
+
+    protected void stubPurchaseOrderServiceThrowsUnauthorizedOnUpdate() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(purchaseOrderServiceMock).updatePurchaseOrder(any());
+    }
+
+    protected void stubPurchaseOrderServiceThrowsUnauthorizedOnGetBatches() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(purchaseOrderServiceMock).getPurchaseOrdersInBatches(any());
+    }
+
+    protected void stubPurchaseOrderServiceThrowsUnauthorizedOnGetById() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(purchaseOrderServiceMock).getPurchaseOrderDetailsById(anyLong());
+    }
+
+    protected void stubPurchaseOrderServiceThrowsUnauthorizedOnToggle() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(purchaseOrderServiceMock).togglePurchaseOrder(anyLong());
+    }
+
+    protected void stubPurchaseOrderServiceThrowsUnauthorizedOnApprove() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(purchaseOrderServiceMock).approvedByPurchaseOrder(anyLong());
+    }
+
+    protected void stubPurchaseOrderServiceThrowsUnauthorizedOnReject() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(purchaseOrderServiceMock).rejectedByPurchaseOrder(anyLong());
+    }
+
+    protected void stubPurchaseOrderServiceThrowsUnauthorizedOnGetPdf() throws TemplateException, IOException, DocumentException {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(purchaseOrderServiceMock).getPurchaseOrderPDF(anyLong());
+    }
+
+    protected void stubPurchaseOrderServiceThrowsUnauthorizedOnBulkCreate() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(purchaseOrderServiceMock).bulkCreatePurchaseOrdersAsync(anyList(), anyLong(), anyString(), anyLong());
+    }
+
+    protected org.mockito.MockedConstruction<com.example.SpringApi.Helpers.ImgbbHelper>
+    stubImgbbHelperUploadResults(List<ImgbbHelper.AttachmentUploadResult> results) {
+        return org.mockito.Mockito.mockConstruction(com.example.SpringApi.Helpers.ImgbbHelper.class,
+                (mock, context) -> {
+                    lenient().when(mock.uploadPurchaseOrderAttachments(anyList(), anyString(), anyString(), anyLong()))
+                            .thenReturn(results);
+                    if (null != null) {
+                        lenient().when(mock.deleteMultipleImages(anyList())).thenReturn(null);
+                    }
+                });
+    }
+
+        protected org.mockito.MockedStatic<com.example.SpringApi.Helpers.PDFHelper>
+        stubPdfHelperConvertPurchaseOrderHtmlToPdf(byte[] pdfBytes) {
+        org.mockito.MockedStatic<com.example.SpringApi.Helpers.PDFHelper> mocked =
+            org.mockito.Mockito.mockStatic(com.example.SpringApi.Helpers.PDFHelper.class);
+        mocked.when(() -> com.example.SpringApi.Helpers.PDFHelper.convertPurchaseOrderHtmlToPdf(
+            any(), anyString(), anyString())).thenReturn(pdfBytes);
+        return mocked;
+        }
+
+        protected org.mockito.MockedStatic<com.example.SpringApi.Helpers.HTMLHelper>
+        stubHtmlHelperReplaceBrTags(String htmlResult) {
+        org.mockito.MockedStatic<com.example.SpringApi.Helpers.HTMLHelper> mocked =
+            org.mockito.Mockito.mockStatic(com.example.SpringApi.Helpers.HTMLHelper.class);
+        mocked.when(() -> com.example.SpringApi.Helpers.HTMLHelper.replaceBrTags(anyString()))
+            .thenReturn(htmlResult);
+        return mocked;
+        }
 
     // ==================== ASSERTION HELPERS ====================
 

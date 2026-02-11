@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for PickupLocationService.getPickupLocationsInBatches() method.
  * Tests pagination validation, edge cases, and multiple result scenarios.
- * Test Count: 15 tests
+ * Test Count: 16 tests
  */
 @DisplayName("Get Pickup Locations In Batches Tests")
 class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
@@ -310,6 +310,25 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
          * CONTROLLER AUTHORIZATION TESTS
          **********************************************************************************************
          */
+
+        /**
+         * Purpose: Verify unauthorized access is blocked at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+        @Test
+        @DisplayName("getPickupLocationsInBatches - Controller Permission - Unauthorized")
+        void getPickupLocationsInBatches_controller_permission_unauthorized() {
+                // ARRANGE
+                PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
+                stubPickupLocationServiceThrowsUnauthorizedOnGetBatches();
+
+                // ACT
+                ResponseEntity<?> response = controller.getPickupLocationsInBatches(testPaginationRequest);
+
+                // ASSERT
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        }
 
         @Test
         @DisplayName("getPickupLocationsInBatches - Verify @PreAuthorize Annotation")

@@ -10,6 +10,8 @@ import com.example.SpringApi.Models.RequestModels.CreateReturnRequestModel;
 import com.example.SpringApi.Models.ResponseModels.ReturnShipmentResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -24,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("CreateReturn Tests")
 class CreateReturnTest extends ShippingServiceTestBase {
 
-        // Total Tests: 31
+        // Total Tests: 30
 
     /*
      **********************************************************************************************
@@ -131,6 +133,49 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 testShipment.setShipRocketStatus("DELIVERED");
                 testShipment.setDeliveredDate(null);
                 testShipment.setShipmentProducts(List.of(testShipmentProduct));
+                stubShipmentRepositoryFindByShipmentIdAndClientId(testShipment);
+                stubClientServiceGetClientById(testClientResponse);
+                stubProductRepositoryFindById(testProduct);
+                stubReturnShipmentRepositorySave(testReturnShipment);
+                stubReturnShipmentRepositoryFindByReturnShipmentIdAndClientId(testReturnShipment);
+                stubReturnShipmentProductRepositorySave(new ReturnShipmentProduct());
+                stubShipRocketHelperCreateReturnOrderAsJson("{\"order_id\":1,\"shipment_id\":2}");
+                stubShipRocketHelperAssignReturnAwbAsJson(createValidAwbJson());
+
+                // Act
+                ReturnShipmentResponseModel result = shippingService.createReturn(createReturnRequest);
+
+                // Assert
+                assertNotNull(result);
+        }
+
+        /**
+         * Purpose: Verify multiple valid items return succeeds.
+         * Expected Result: ReturnShipmentResponseModel returned.
+         * Assertions: Response is not null.
+         */
+        @Test
+        @DisplayName("createReturn - Multiple Items - Success")
+        void createReturn_MultipleItems_Success() {
+                // Arrange
+                Product secondProduct = new Product();
+                secondProduct.setProductId(999L);
+                secondProduct.setTitle("Second Product");
+                secondProduct.setPrice(new java.math.BigDecimal("50"));
+                secondProduct.setDiscount(java.math.BigDecimal.ZERO);
+                secondProduct.setReturnWindowDays(7);
+                ShipmentProduct secondShipmentProduct = new ShipmentProduct();
+                secondShipmentProduct.setShipmentId(TEST_SHIPMENT_ID);
+                secondShipmentProduct.setProductId(999L);
+                secondShipmentProduct.setAllocatedQuantity(1);
+                CreateReturnRequestModel.ReturnProductItem item2 = new CreateReturnRequestModel.ReturnProductItem();
+                item2.setProductId(999L);
+                item2.setQuantity(1);
+                item2.setReason("Damaged");
+                createReturnRequest.setProducts(List.of(createReturnRequest.getProducts().get(0), item2));
+                testShipment.setShipRocketStatus("DELIVERED");
+                testShipment.setDeliveredDate(LocalDateTime.now().minusDays(1));
+                testShipment.setShipmentProducts(List.of(testShipmentProduct, secondShipmentProduct));
                 stubShipmentRepositoryFindByShipmentIdAndClientId(testShipment);
                 stubClientServiceGetClientById(testClientResponse);
                 stubProductRepositoryFindById(testProduct);
@@ -501,8 +546,8 @@ class CreateReturnTest extends ShippingServiceTestBase {
 
                 // Act
                 com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
-                                com.example.SpringApi.Exceptions.BadRequestException.class,
-                                () -> shippingService.createReturn(createReturnRequest));
+                        com.example.SpringApi.Exceptions.BadRequestException.class,
+                        () -> shippingService.createReturn(createReturnRequest));
 
                 // Assert
                 assertEquals(ErrorMessages.ReturnShipmentErrorMessages.ReturnReasonRequired, ex.getMessage());
@@ -530,8 +575,8 @@ class CreateReturnTest extends ShippingServiceTestBase {
 
                 // Act
                 com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
-                                com.example.SpringApi.Exceptions.BadRequestException.class,
-                                () -> shippingService.createReturn(createReturnRequest));
+                        com.example.SpringApi.Exceptions.BadRequestException.class,
+                        () -> shippingService.createReturn(createReturnRequest));
 
                 // Assert
                 assertEquals(ErrorMessages.ReturnShipmentErrorMessages.ValidQuantityRequired, ex.getMessage());
@@ -559,54 +604,11 @@ class CreateReturnTest extends ShippingServiceTestBase {
 
                 // Act
                 com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
-                                com.example.SpringApi.Exceptions.BadRequestException.class,
-                                () -> shippingService.createReturn(createReturnRequest));
+                        com.example.SpringApi.Exceptions.BadRequestException.class,
+                        () -> shippingService.createReturn(createReturnRequest));
 
                 // Assert
                 assertEquals(ErrorMessages.ReturnShipmentErrorMessages.ProductIdRequired, ex.getMessage());
-        }
-
-        /**
-         * Purpose: Verify multiple valid items return succeeds.
-         * Expected Result: ReturnShipmentResponseModel returned.
-         * Assertions: Response is not null.
-         */
-        @Test
-        @DisplayName("createReturn - Multiple Items - Success")
-        void createReturn_MultipleItems_Success() {
-                // Arrange
-                Product secondProduct = new Product();
-                secondProduct.setProductId(999L);
-                secondProduct.setTitle("Second Product");
-                secondProduct.setPrice(new java.math.BigDecimal("50"));
-                secondProduct.setDiscount(java.math.BigDecimal.ZERO);
-                secondProduct.setReturnWindowDays(7);
-                ShipmentProduct secondShipmentProduct = new ShipmentProduct();
-                secondShipmentProduct.setShipmentId(TEST_SHIPMENT_ID);
-                secondShipmentProduct.setProductId(999L);
-                secondShipmentProduct.setAllocatedQuantity(1);
-                CreateReturnRequestModel.ReturnProductItem item2 = new CreateReturnRequestModel.ReturnProductItem();
-                item2.setProductId(999L);
-                item2.setQuantity(1);
-                item2.setReason("Damaged");
-                createReturnRequest.setProducts(List.of(createReturnRequest.getProducts().get(0), item2));
-                testShipment.setShipRocketStatus("DELIVERED");
-                testShipment.setDeliveredDate(LocalDateTime.now().minusDays(1));
-                testShipment.setShipmentProducts(List.of(testShipmentProduct, secondShipmentProduct));
-                stubShipmentRepositoryFindByShipmentIdAndClientId(testShipment);
-                stubClientServiceGetClientById(testClientResponse);
-                stubProductRepositoryFindById(testProduct);
-                stubReturnShipmentRepositorySave(testReturnShipment);
-                stubReturnShipmentRepositoryFindByReturnShipmentIdAndClientId(testReturnShipment);
-                stubReturnShipmentProductRepositorySave(new ReturnShipmentProduct());
-                stubShipRocketHelperCreateReturnOrderAsJson("{\"order_id\":1,\"shipment_id\":2}");
-                stubShipRocketHelperAssignReturnAwbAsJson(createValidAwbJson());
-
-                // Act
-                ReturnShipmentResponseModel result = shippingService.createReturn(createReturnRequest);
-
-                // Assert
-                assertNotNull(result);
         }
 
     /**
@@ -771,6 +773,25 @@ class CreateReturnTest extends ShippingServiceTestBase {
      * PERMISSION TESTS
      **********************************************************************************************
      */
+
+        /**
+         * Purpose: Verify unauthorized access is blocked at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+        @Test
+        @DisplayName("createReturn - Controller Permission - Unauthorized")
+        void createReturn_controller_permission_unauthorized() {
+                // Arrange
+                ShippingController controller = new ShippingController(shippingServiceMock);
+                stubShippingServiceMockCreateReturnUnauthorized();
+
+                // Act
+                ResponseEntity<?> response = controller.createReturn(createReturnRequest);
+
+                // Assert
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        }
 
     /**
      * Purpose: Verify controller has @PreAuthorize for createReturn.

@@ -3,6 +3,7 @@ package com.example.SpringApi.Services.Tests.Product;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.DatabaseModels.ProductCategory;
 import com.example.SpringApi.Controllers.ProductController;
+import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,7 @@ import static org.mockito.Mockito.*;
  * Consolidated test class for ProductService.getCategoryPathsByIds.
  * Fully compliant with Unit Test Verification rules.
  */
-// Total Tests: 8
+// Total Tests: 7
 @DisplayName("ProductService - GetCategoryPathsByIds Tests")
 class GetCategoryPathsByIdsTest extends ProductServiceTestBase {
 
@@ -126,6 +127,23 @@ class GetCategoryPathsByIdsTest extends ProductServiceTestBase {
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(mockService).getCategoryPathsByIds(any());
+    }
+
+    @Test
+    @DisplayName("getCategoryPathsByIds - No permission - Unauthorized")
+    void getCategoryPathsByIds_NoPermission_Unauthorized() {
+        // Arrange
+        ProductService mockService = mock(ProductService.class);
+        ProductController controller = new ProductController(mockService);
+        when(mockService.getCategoryPathsByIds(any()))
+                .thenThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED));
+
+        // Act
+        ResponseEntity<?> response = controller.getCategoryPathsByIds(Collections.singletonList(1L));
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(mockService).getCategoryPathsByIds(any());
     }
 

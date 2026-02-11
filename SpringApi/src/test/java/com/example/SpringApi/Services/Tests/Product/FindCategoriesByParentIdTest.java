@@ -4,6 +4,7 @@ import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.DatabaseModels.ProductCategory;
 import com.example.SpringApi.Models.ResponseModels.ProductCategoryWithPathResponseModel;
 import com.example.SpringApi.Controllers.ProductController;
+import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -101,6 +102,23 @@ class FindCategoriesByParentIdTest extends ProductServiceTestBase {
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(mockService).findCategoriesByParentId(null);
+    }
+
+    @Test
+    @DisplayName("findCategoriesByParentId - No permission - Unauthorized")
+    void findCategoriesByParentId_NoPermission_Unauthorized() {
+        // Arrange
+        ProductService mockService = mock(ProductService.class);
+        ProductController controller = new ProductController(mockService);
+        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockService).findCategoriesByParentId(any());
+
+        // Act
+        ResponseEntity<?> response = controller.findCategoriesByParentId(null);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(mockService).findCategoriesByParentId(null);
     }
 

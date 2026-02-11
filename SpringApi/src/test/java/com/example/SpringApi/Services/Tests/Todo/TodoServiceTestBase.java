@@ -5,6 +5,8 @@ import com.example.SpringApi.Models.RequestModels.TodoRequestModel;
 import com.example.SpringApi.Repositories.TodoRepository;
 import com.example.SpringApi.Services.TodoService;
 import com.example.SpringApi.Services.UserLogService;
+import com.example.SpringApi.Services.Interface.ITodoSubTranslator;
+import com.example.SpringApi.Controllers.TodoController;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -49,11 +51,16 @@ public abstract class TodoServiceTestBase {
     @Mock
     protected HttpServletRequest request;
 
+    @Mock
+    protected ITodoSubTranslator todoServiceMock;
+
     @InjectMocks
     protected TodoService todoService;
 
     protected Todo testTodo;
     protected TodoRequestModel validRequest;
+
+    protected TodoController todoController;
 
     protected static final Long TEST_TODO_ID = DEFAULT_TODO_ID;
     protected static final Long TEST_USER_ID = DEFAULT_USER_ID;
@@ -73,6 +80,8 @@ public abstract class TodoServiceTestBase {
         testTodo.setUserId(TEST_USER_ID);
         testTodo.setCreatedAt(LocalDateTime.now());
         testTodo.setUpdatedAt(LocalDateTime.now());
+
+        todoController = new TodoController(todoServiceMock);
     }
 
     // ==========================================
@@ -109,6 +118,31 @@ public abstract class TodoServiceTestBase {
 
     protected void stubUserLogServiceLogDataReturnsTrue() {
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+    }
+
+    protected void stubTodoServiceAddTodoThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(todoServiceMock).addTodo(any(TodoRequestModel.class));
+    }
+
+    protected void stubTodoServiceUpdateTodoThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(todoServiceMock).updateTodo(any(TodoRequestModel.class));
+    }
+
+    protected void stubTodoServiceGetTodoItemsThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(todoServiceMock).getTodoItems();
+    }
+
+    protected void stubTodoServiceDeleteTodoThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(todoServiceMock).deleteTodo(anyLong());
+    }
+
+    protected void stubTodoServiceToggleTodoThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(todoServiceMock).toggleTodo(anyLong());
     }
 
     // ==================== FACTORY METHODS ====================

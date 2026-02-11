@@ -6,7 +6,6 @@ import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.DatabaseModels.Todo;
 import com.example.SpringApi.Models.RequestModels.TodoRequestModel;
-import com.example.SpringApi.Services.Interface.ITodoSubTranslator;
 import com.example.SpringApi.SuccessMessages;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -462,13 +461,10 @@ public class AddTodoTest extends TodoServiceTestBase {
     @DisplayName("addTodo - Controller Permission - Unauthorized")
     void addTodo_controller_permission_unauthorized() {
         // Arrange
-        ITodoSubTranslator todoServiceMock = mock(ITodoSubTranslator.class);
-        TodoController controller = new TodoController(todoServiceMock);
-        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(todoServiceMock).addTodo(any(TodoRequestModel.class));
+        stubTodoServiceAddTodoThrowsUnauthorized();
 
         // Act
-        ResponseEntity<?> response = controller.addItem(createValidTodoRequest());
+        ResponseEntity<?> response = todoController.addItem(createValidTodoRequest());
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());

@@ -625,10 +625,13 @@ class UpdateAddressTest extends AddressServiceTestBase {
         // Arrange
         var method = AddressController.class.getMethod("updateAddress",
                 Long.class, com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
+        testAddressRequest.setId(DEFAULT_ADDRESS_ID);
+        stubServiceUpdateAddressDoNothing();
 
         // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
+        ResponseEntity<?> response = addressController.updateAddress(DEFAULT_ADDRESS_ID, testAddressRequest);
 
         // Assert
         assertNotNull(preAuthorizeAnnotation, "updateAddress method should have @PreAuthorize annotation");
@@ -638,6 +641,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
 
         assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
                 "PreAuthorize annotation should reference UPDATE_ADDRESS_PERMISSION");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
     }
 
     /**

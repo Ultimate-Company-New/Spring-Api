@@ -20,15 +20,15 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for ProductReviewService.setProductReviewScore method.
  * 
- * Test count: 26 tests
- * - SUCCESS: 12 tests
- * - FAILURE / EXCEPTION: 12 tests
+ * Test count: 50 tests
+ * - SUCCESS: 19 tests
+ * - FAILURE / EXCEPTION: 29 tests
  * - PERMISSION: 2 tests
  */
 @DisplayName("ProductReviewService - SetProductReviewScore Tests")
 class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
-    // Total Tests: 26
+    // Total Tests: 50
 
     /*
      **********************************************************************************************

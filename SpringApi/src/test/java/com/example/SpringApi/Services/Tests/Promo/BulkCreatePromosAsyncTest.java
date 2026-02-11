@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("PromoService - BulkCreatePromosAsync Tests")
 class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
 
-        // Total Tests: 22
+        // Total Tests: 21
         private static final AtomicLong idCounter = new AtomicLong(100);
 
         /*
@@ -56,9 +56,10 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
                 }
 
                 Map<String, Promo> savedPromos = new HashMap<>();
-                lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))
-                                .thenReturn(Collections.emptyList());
-                lenient().when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID)))
+                stubPromoRepositoryFindOverlappingPromos(Collections.emptyList());
+                stubPromoRepositoryFindByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID),
+                                Optional.empty());
+                when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID)))
                                 .thenAnswer(invocation -> {
                                         String code = invocation.getArgument(0);
                                         return Optional.ofNullable(
@@ -116,8 +117,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
                         promos.add(promoReq);
                 }
 
-                lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))
-                                .thenReturn(Collections.emptyList());
+                stubPromoRepositoryFindOverlappingPromos(Collections.emptyList());
                 when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
 
                 // Act
@@ -150,8 +150,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
                         promos.add(promoReq);
                 }
 
-                lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))
-                                .thenReturn(Collections.emptyList());
+                stubPromoRepositoryFindOverlappingPromos(Collections.emptyList());
                 when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
 
                 // Act
@@ -171,8 +170,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
         void bulkCreatePromosAsync_Single_Success() {
                 // Arrange
                 List<PromoRequestModel> promos = List.of(testPromoRequest);
-                lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))
-                                .thenReturn(Collections.emptyList());
+                stubPromoRepositoryFindOverlappingPromos(Collections.emptyList());
 
                 // Act
                 assertDoesNotThrow(
@@ -223,10 +221,11 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
         void bulkCreatePromosAsync_DatabaseError_CapturesFailure() {
                 // Arrange
                 List<PromoRequestModel> promos = List.of(testPromoRequest);
-                lenient().when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID)))
-                                .thenReturn(Optional.empty());
+                stubPromoRepositoryFindByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID),
+                                Optional.empty());
                 // Service should attempt to save even if it fails later
-                lenient().when(promoRepository.save(any(Promo.class)))
+                stubPromoRepositorySave(testPromo);
+                when(promoRepository.save(any(Promo.class)))
                                 .thenThrow(new RuntimeException("Database error"));
 
                 // Act & Assert
@@ -340,8 +339,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
 
                 List<PromoRequestModel> promos = List.of(valid, invalid);
 
-                lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))
-                                .thenReturn(Collections.emptyList());
+                stubPromoRepositoryFindOverlappingPromos(Collections.emptyList());
 
                 // Act
                 assertDoesNotThrow(
@@ -369,8 +367,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
                 invalid.setExpiryDate(java.time.LocalDate.now().plusDays(1));
 
                 List<PromoRequestModel> promos = List.of(valid, invalid);
-                lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))
-                                .thenReturn(Collections.emptyList());
+                stubPromoRepositoryFindOverlappingPromos(Collections.emptyList());
 
                 // Act
                 assertDoesNotThrow(
@@ -437,8 +434,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
                         p.setExpiryDate(java.time.LocalDate.now().plusDays(1));
                         promos.add(p);
                 }
-                lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))
-                                .thenReturn(Collections.emptyList());
+                stubPromoRepositoryFindOverlappingPromos(Collections.emptyList());
 
                 // Act
                 assertDoesNotThrow(

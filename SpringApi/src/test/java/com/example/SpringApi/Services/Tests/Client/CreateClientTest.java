@@ -588,37 +588,6 @@ class CreateClientTest extends ClientServiceTestBase {
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidRequest, ex.getMessage());
     }
 
-        /*
-         **********************************************************************************************
-         * CONTROLLER AUTHORIZATION TESTS
-         **********************************************************************************************
-         */
-
-        /**
-         * Purpose: Verify controller has correct @PreAuthorize permission.
-         * Expected Result: Annotation exists and contains INSERT_CLIENT_PERMISSION.
-         * Assertions: Annotation is present and permission matches.
-         */
-        @Test
-        @DisplayName("Create Client - Controller permission forbidden - Success")
-        void createClient_controller_permission_forbidden() throws NoSuchMethodException {
-        // Arrange
-        var method = ClientController.class.getMethod("createClient",
-            com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-            org.springframework.security.access.prepost.PreAuthorize.class);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation, "createClient method should have @PreAuthorize annotation");
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-            Authorizations.INSERT_CLIENT_PERMISSION + "')";
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-            "PreAuthorize annotation should reference INSERT_CLIENT_PERMISSION");
-        verify(mockClientService, never()).createClient(any());
-        }
-
     /*
      * Purpose: Reject null support email values.
      * Expected Result: BadRequestException is thrown.
@@ -744,6 +713,34 @@ class CreateClientTest extends ClientServiceTestBase {
      * CONTROLLER AUTHORIZATION TESTS
      **********************************************************************************************
      */
+
+        /*
+         * Purpose: Verify controller has correct @PreAuthorize permission.
+         * Expected Result: Annotation exists and contains INSERT_CLIENT_PERMISSION.
+         * Assertions: Annotation is present and permission matches.
+         */
+        @Test
+        @DisplayName("Create Client - Controller permission forbidden - Success")
+        void createClient_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = ClientController.class.getMethod("createClient",
+            com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
+        stubServiceCreateClientDoNothing();
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+            org.springframework.security.access.prepost.PreAuthorize.class);
+        ResponseEntity<?> response = clientController.createClient(testClientRequest);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "createClient method should have @PreAuthorize annotation");
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+            Authorizations.INSERT_CLIENT_PERMISSION + "')";
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+            "PreAuthorize annotation should reference INSERT_CLIENT_PERMISSION");
+        assertEquals(HttpStatus.CREATED, response.getStatusCode(),
+            "Should return HTTP 201 Created");
+        }
 
     /*
      * Purpose: Verify @PreAuthorize annotation is declared on createClient method.

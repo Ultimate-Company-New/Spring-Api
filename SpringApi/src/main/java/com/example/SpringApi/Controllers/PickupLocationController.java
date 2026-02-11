@@ -209,6 +209,10 @@ public class PickupLocationController {
             
             // Return 200 OK - processing will continue in background
             return ResponseEntity.ok().build();
+        } catch (UnauthorizedException ue) {
+            logger.error(ue);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, ue.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (BadRequestException e) {
             logger.error(e);
             return ResponseEntity.badRequest()

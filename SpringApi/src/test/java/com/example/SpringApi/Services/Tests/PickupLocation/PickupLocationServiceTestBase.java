@@ -77,6 +77,9 @@ public abstract class PickupLocationServiceTestBase {
     @InjectMocks
     protected PickupLocationService pickupLocationService;
 
+    @Mock
+    protected PickupLocationService pickupLocationServiceMock;
+
     protected PickupLocation testPickupLocation;
     protected Address testAddress;
     protected PickupLocationRequestModel testPickupLocationRequest;
@@ -86,6 +89,7 @@ public abstract class PickupLocationServiceTestBase {
     protected static final Long TEST_PICKUP_LOCATION_ID = DEFAULT_PICKUP_LOCATION_ID;
     protected static final Long TEST_ADDRESS_ID = DEFAULT_ADDRESS_ID;
     protected static final Long TEST_CLIENT_ID = 1L;
+    protected static final Long TEST_USER_ID = 1L;
     protected static final Long TEST_SHIPROCKET_ID = 300L;
     protected static final String TEST_ADDRESS_NICKNAME = "Home Warehouse";
     protected static final String TEST_STREET_ADDRESS = "123 Main St";
@@ -118,8 +122,7 @@ public abstract class PickupLocationServiceTestBase {
 
         testAddress = new Address(addressRequest, CREATED_USER);
         testAddress.setAddressId(TEST_ADDRESS_ID);
-        lenient().when(addressRepository.findById(TEST_ADDRESS_ID))
-            .thenReturn(java.util.Optional.of(testAddress));
+        stubAddressRepositoryFindById(TEST_ADDRESS_ID, testAddress);
 
         testPickupLocation = new PickupLocation(testPickupLocationRequest, CREATED_USER, TEST_CLIENT_ID);
         testPickupLocation.setPickupLocationId(TEST_PICKUP_LOCATION_ID);
@@ -145,8 +148,7 @@ public abstract class PickupLocationServiceTestBase {
                 pickupLocationService, "shipRocketHelper", shipRocketHelper);
 
         // Default ShipRocket helper stub to avoid null responses in tests
-        lenient().when(shipRocketHelper.addPickupLocation(any(PickupLocation.class)))
-            .thenReturn(testShipRocketResponse);
+        stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
     }
 
     // ==========================================
@@ -177,7 +179,7 @@ public abstract class PickupLocationServiceTestBase {
      */
     protected void stubPickupLocationRepositoryFindByIdAndClientId(Long pickupLocationId, Long clientId,
             PickupLocation pickupLocation) {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(pickupLocationId, clientId))
+        lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(pickupLocationId, clientId))
                 .thenReturn(pickupLocation);
     }
 
@@ -186,7 +188,7 @@ public abstract class PickupLocationServiceTestBase {
      * null
      */
     protected void stubPickupLocationRepositoryFindByIdAndClientIdNotFound(Long pickupLocationId, Long clientId) {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(pickupLocationId, clientId))
+        lenient().when(pickupLocationRepository.findPickupLocationByIdAndClientId(pickupLocationId, clientId))
                 .thenReturn(null);
     }
 
@@ -194,28 +196,40 @@ public abstract class PickupLocationServiceTestBase {
      * Stub for pickupLocationRepository.save
      */
     protected void stubPickupLocationRepositorySave(PickupLocation pickupLocation) {
-        when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(pickupLocation);
+        lenient().when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(pickupLocation);
+    }
+
+    protected void stubPickupLocationRepositorySaveReturnsNull() {
+        lenient().when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(null);
     }
 
     /**
      * Stub for addressRepository.save
      */
     protected void stubAddressRepositorySave(Address address) {
-        when(addressRepository.save(any(Address.class))).thenReturn(address);
+        lenient().when(addressRepository.save(any(Address.class))).thenReturn(address);
+    }
+
+    protected void stubAddressRepositorySaveThrows(RuntimeException exception) {
+        when(addressRepository.save(any(Address.class))).thenThrow(exception);
+    }
+
+    protected void stubAddressRepositorySaveReturnsNull() {
+        when(addressRepository.save(any(Address.class))).thenReturn(null);
     }
 
     /**
      * Stub for addressRepository.findById
      */
     protected void stubAddressRepositoryFindById(Long addressId, Address address) {
-        when(addressRepository.findById(addressId)).thenReturn(java.util.Optional.of(address));
+        lenient().when(addressRepository.findById(addressId)).thenReturn(java.util.Optional.of(address));
     }
 
     /**
      * Stub for addressRepository.findById returning empty
      */
     protected void stubAddressRepositoryFindByIdNotFound(Long addressId) {
-        when(addressRepository.findById(addressId)).thenReturn(java.util.Optional.empty());
+        lenient().when(addressRepository.findById(addressId)).thenReturn(java.util.Optional.empty());
     }
 
     /**
@@ -241,6 +255,58 @@ public abstract class PickupLocationServiceTestBase {
         when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
                 anyLong(), any(), anyString(), any(), anyBoolean(), any()))
                 .thenReturn(page);
+    }
+
+    protected void stubPickupLocationServiceUserContext(Long userId, String userName, Long clientId) {
+        lenient().when(pickupLocationServiceMock.getUserId()).thenReturn(userId);
+        lenient().when(pickupLocationServiceMock.getUser()).thenReturn(userName);
+        lenient().when(pickupLocationServiceMock.getClientId()).thenReturn(clientId);
+    }
+
+    protected void stubPickupLocationServiceBulkCreatePickupLocationsAsyncDoNothing() {
+        lenient().doNothing().when(pickupLocationServiceMock)
+                .bulkCreatePickupLocationsAsync(anyList(), anyLong(), anyString(), anyLong());
+    }
+
+    protected void stubPickupLocationServiceThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(pickupLocationServiceMock).bulkCreatePickupLocationsAsync(anyList(), anyLong(), anyString(), anyLong());
+    }
+
+    protected void stubPickupLocationServiceGetPickupLocationByIdReturns(
+            com.example.SpringApi.Models.ResponseModels.PickupLocationResponseModel result) {
+        lenient().when(pickupLocationServiceMock.getPickupLocationById(anyLong())).thenReturn(result);
+    }
+
+    protected void stubPickupLocationServiceThrowsUnauthorizedOnGetById() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(pickupLocationServiceMock).getPickupLocationById(anyLong());
+    }
+
+    protected void stubPickupLocationServiceThrowsUnauthorizedOnCreate() throws Exception {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(pickupLocationServiceMock).createPickupLocation(any());
+    }
+
+    protected void stubPickupLocationServiceThrowsUnauthorizedOnUpdate() throws Exception {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(pickupLocationServiceMock).updatePickupLocation(any());
+    }
+
+    protected void stubPickupLocationServiceThrowsUnauthorizedOnToggle() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(pickupLocationServiceMock).togglePickupLocation(anyLong());
+    }
+
+    protected void stubPickupLocationServiceThrowsUnauthorizedOnGetBatches() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(pickupLocationServiceMock).getPickupLocationsInBatches(any());
     }
 
     /**

@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for PickupLocationService.togglePickupLocation() method.
  * Tests state transitions, edge cases, and client isolation.
- * Test Count: 14 tests
+ * Test Count: 15 tests
  */
 @DisplayName("Toggle Pickup Location Tests")
 class TogglePickupLocationTest extends PickupLocationServiceTestBase {
@@ -258,6 +258,25 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
      * CONTROLLER AUTHORIZATION TESTS
      **********************************************************************************************
      */
+
+        /**
+         * Purpose: Verify unauthorized access is blocked at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+        @Test
+        @DisplayName("togglePickupLocation - Controller Permission - Unauthorized")
+        void togglePickupLocation_controller_permission_unauthorized() {
+                // ARRANGE
+                PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
+                stubPickupLocationServiceThrowsUnauthorizedOnToggle();
+
+                // ACT
+                ResponseEntity<?> response = controller.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+
+                // ASSERT
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        }
 
     @Test
     @DisplayName("togglePickupLocation - Verify @PreAuthorize Annotation")

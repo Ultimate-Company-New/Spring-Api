@@ -9,6 +9,8 @@ import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -25,7 +27,7 @@ import static org.mockito.Mockito.*;
  * Consolidated test class for ProductService.bulkAddProducts.
  * Fully compliant with Unit Test Verification rules.
  */
-// Total Tests: 8
+// Total Tests: 7
 @DisplayName("ProductService - BulkAddProducts Tests")
 class BulkAddProductsTest extends ProductServiceTestBase {
 
@@ -144,15 +146,20 @@ class BulkAddProductsTest extends ProductServiceTestBase {
     }
 
     @Test
-    @DisplayName("bulkAddProducts - No permission - Forbidden simulated")
-    void bulkAddProducts_NoPermission_Forbidden() {
+    @DisplayName("bulkAddProducts - No permission - Unauthorized")
+    void bulkAddProducts_NoPermission_Unauthorized() {
         // Arrange
         ProductService mockService = mock(ProductService.class);
         ProductController controller = new ProductController(mockService);
         List<ProductRequestModel> requests = Collections.singletonList(testProductRequest);
+        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(mockService).bulkAddProducts(requests);
 
-        // Act & Assert
-        assertDoesNotThrow(() -> controller.bulkAddProducts(requests));
+        // Act
+        ResponseEntity<?> response = controller.bulkAddProducts(requests);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(mockService).bulkAddProducts(requests);
     }
 }

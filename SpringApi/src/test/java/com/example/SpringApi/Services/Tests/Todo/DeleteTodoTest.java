@@ -2,10 +2,9 @@ package com.example.SpringApi.Services.Tests.Todo;
 
 import com.example.SpringApi.Controllers.TodoController;
 import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Services.Interface.ITodoSubTranslator;
 import com.example.SpringApi.SuccessMessages;
+import com.example.SpringApi.Exceptions.NotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -253,13 +252,10 @@ class DeleteTodoTest extends TodoServiceTestBase {
     @DisplayName("deleteTodo - Controller Permission - Unauthorized")
     void deleteTodo_controller_permission_unauthorized() {
         // Arrange
-        ITodoSubTranslator todoServiceMock = mock(ITodoSubTranslator.class);
-        TodoController controller = new TodoController(todoServiceMock);
-        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(todoServiceMock).deleteTodo(anyLong());
+        stubTodoServiceDeleteTodoThrowsUnauthorized();
 
         // Act
-        ResponseEntity<?> response = controller.deleteItem(TEST_TODO_ID);
+        ResponseEntity<?> response = todoController.deleteItem(TEST_TODO_ID);
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());

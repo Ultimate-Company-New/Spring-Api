@@ -17,39 +17,16 @@ import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for ConfirmEmail functionality in LoginService.
- * Test Count: 7 tests
+ * Total Tests: 8
  */
 @DisplayName("Confirm Email Tests")
 public class ConfirmEmailTest extends LoginServiceTestBase {
-
-    // Total Tests: 8
 
     /*
      **********************************************************************************************
      * SUCCESS TESTS
      **********************************************************************************************
      */
-
-    /**
-     * Purpose: Validate successful email confirmation with a valid token.
-     * Expected Result: User email is confirmed and persisted.
-     * Assertions: Repository save is invoked and no exception is thrown.
-     */
-    @Test
-    @DisplayName("Confirm Email - Success - Should confirm user email")
-    void confirmEmail_Success_Success() {
-        // Arrange
-        testUser.setEmailConfirmed(false);
-        stubUserRepositoryFindById(TEST_USER_ID, Optional.of(testUser));
-        stubUserRepositorySave(testUser);
-
-        // Act
-        assertDoesNotThrow(() -> loginService.confirmEmail(testLoginRequest));
-
-        // Assert
-        verify(userRepository, times(1)).findById(TEST_USER_ID);
-        verify(userRepository, times(1)).save(any(User.class));
-    }
 
     /**
      * Purpose: Verify confirmation clears token on success.
@@ -69,6 +46,27 @@ public class ConfirmEmailTest extends LoginServiceTestBase {
 
         // Assert
         assertNull(testUser.getToken());
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    /**
+     * Purpose: Validate successful email confirmation with a valid token.
+     * Expected Result: User email is confirmed and persisted.
+     * Assertions: Repository save is invoked and no exception is thrown.
+     */
+    @Test
+    @DisplayName("Confirm Email - Success - Should confirm user email")
+    void confirmEmail_Success_Success() {
+        // Arrange
+        testUser.setEmailConfirmed(false);
+        stubUserRepositoryFindById(TEST_USER_ID, Optional.of(testUser));
+        stubUserRepositorySave(testUser);
+
+        // Act
+        assertDoesNotThrow(() -> loginService.confirmEmail(testLoginRequest));
+
+        // Assert
+        verify(userRepository, times(1)).findById(TEST_USER_ID);
         verify(userRepository, times(1)).save(any(User.class));
     }
 

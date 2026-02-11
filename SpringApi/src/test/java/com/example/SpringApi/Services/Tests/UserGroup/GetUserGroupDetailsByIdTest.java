@@ -24,6 +24,8 @@ import static org.mockito.Mockito.*;
  * - Successful retrieval of user group details
  * - Verification of repository interaction
  * - Failure cases (group not found, invalid IDs)
+ *
+ * Total Tests: 11
  */
 @DisplayName("UserGroupService - GetUserGroupDetailsById Tests")
 public class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {

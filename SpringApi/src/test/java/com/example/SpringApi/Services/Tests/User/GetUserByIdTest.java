@@ -7,6 +7,8 @@ import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.ResponseModels.UserResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -16,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
-// Total Tests: 8
+// Total Tests: 10
 @DisplayName("UserService - Get User By ID Tests")
 class GetUserByIdTest extends UserServiceTestBase {
 
@@ -60,10 +62,11 @@ class GetUserByIdTest extends UserServiceTestBase {
         doReturn(new UserResponseModel()).when(mockUserService).getUserById(userId);
 
         // Act
-        localController.getUserById(userId);
+        ResponseEntity<?> response = localController.getUserById(userId);
 
         // Assert
         verify(mockUserService, times(1)).getUserById(userId);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     // ========================================

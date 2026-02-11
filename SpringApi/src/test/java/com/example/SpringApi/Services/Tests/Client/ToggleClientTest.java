@@ -204,41 +204,37 @@ class ToggleClientTest extends ClientServiceTestBase {
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
     }
 
-        /*
-         **********************************************************************************************
-         * CONTROLLER AUTHORIZATION TESTS
-         **********************************************************************************************
-         */
-
-        /**
-         * Purpose: Verify controller has correct @PreAuthorize permission.
-         * Expected Result: Annotation exists and contains DELETE_CLIENT_PERMISSION.
-         * Assertions: Annotation is present and permission matches.
-         */
-        @Test
-        @DisplayName("Toggle Client - Controller permission forbidden - Success")
-        void toggleClient_controller_permission_forbidden() throws NoSuchMethodException {
-        // Arrange
-        var method = ClientController.class.getMethod("toggleClient", Long.class);
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-            org.springframework.security.access.prepost.PreAuthorize.class);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation, "toggleClient method should have @PreAuthorize annotation");
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-            Authorizations.DELETE_CLIENT_PERMISSION + "')";
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-            "PreAuthorize annotation should reference DELETE_CLIENT_PERMISSION");
-        verify(mockClientService, never()).toggleClient(anyLong());
-        }
-
     /*
      **********************************************************************************************
      * CONTROLLER AUTHORIZATION TESTS
      **********************************************************************************************
      */
+
+    /*
+     * Purpose: Verify controller has correct @PreAuthorize permission.
+     * Expected Result: Annotation exists and contains DELETE_CLIENT_PERMISSION.
+     * Assertions: Annotation is present and permission matches.
+     */
+    @Test
+    @DisplayName("Toggle Client - Controller permission forbidden - Success")
+    void toggleClient_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = ClientController.class.getMethod("toggleClient", Long.class);
+        stubServiceToggleClientDoNothing();
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+        ResponseEntity<?> response = clientController.toggleClient(TEST_CLIENT_ID);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "toggleClient method should have @PreAuthorize annotation");
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.DELETE_CLIENT_PERMISSION + "')";
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference DELETE_CLIENT_PERMISSION");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
+    }
 
     /*
      * Purpose: Verify controller calls service when authorization passes

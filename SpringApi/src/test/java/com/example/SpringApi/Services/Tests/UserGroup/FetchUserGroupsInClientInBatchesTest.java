@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
  * Unit tests for UserGroupService - Fetch User Groups In Batches functionality.
  *
  * Refactored to use Parameterized Tests for high granularity and coverage.
- * Total Tests: 40+
+ * Total Tests: 10
  */
 @DisplayName("UserGroupService - FetchUserGroupsInBatches Tests")
 class FetchUserGroupsInClientInBatchesTest extends UserGroupServiceTestBase {
@@ -211,7 +211,8 @@ class FetchUserGroupsInClientInBatchesTest extends UserGroupServiceTestBase {
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.fetchUserGroupsInClientInBatches(request));
-        assertTrue(ex.getMessage().contains("Invalid column name"));
+        assertTrue(ex.getMessage().startsWith(
+            String.format(ErrorMessages.CommonErrorMessages.InvalidColumnName, invalidColumn)));
     }
 
     @ParameterizedTest

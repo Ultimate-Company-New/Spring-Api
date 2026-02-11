@@ -153,28 +153,6 @@ public class SignInTest extends LoginServiceTestBase {
     }
 
     /**
-     * Purpose: Verify successful sign-in returns accessible clients.
-     * Expected Result: Sign-in succeeds and clients are returned.
-     * Assertions: Response list size is 1 and fields match.
-     */
-    @Test
-    @DisplayName("Sign In - Success - Should return list of clients")
-    void signIn_Success_Success() {
-        // Arrange
-        stubUserRepositoryFindByLoginName(TEST_LOGIN_NAME, testUser);
-        stubUserClientMappingRepositoryFindByUserId(TEST_USER_ID, List.of(testUserClientMapping));
-        stubClientRepositoryFindById(TEST_CLIENT_ID, Optional.of(testClient));
-
-        // Act & Assert
-        try (MockedStatic<PasswordHelper> mockedPasswordHelper = stubPasswordHelperCheckPassword(true)) {
-            List<ClientResponseModel> result = loginService.signIn(testLoginRequest);
-
-            assertNotNull(result);
-            assertEquals(1, result.size());
-        }
-    }
-
-    /**
      * Purpose: Verify successful sign-in resets login attempts and saves user.
      * Expected Result: User attempts are reset to default and saved.
      * Assertions: userRepository.save is called once.
@@ -213,6 +191,28 @@ public class SignInTest extends LoginServiceTestBase {
             loginService.signIn(testLoginRequest);
 
             assertNotNull(testUser.getLastLoginAt());
+        }
+    }
+
+    /**
+     * Purpose: Verify successful sign-in returns accessible clients.
+     * Expected Result: Sign-in succeeds and clients are returned.
+     * Assertions: Response list size is 1 and fields match.
+     */
+    @Test
+    @DisplayName("Sign In - Success - Should return list of clients")
+    void signIn_Success_Success() {
+        // Arrange
+        stubUserRepositoryFindByLoginName(TEST_LOGIN_NAME, testUser);
+        stubUserClientMappingRepositoryFindByUserId(TEST_USER_ID, List.of(testUserClientMapping));
+        stubClientRepositoryFindById(TEST_CLIENT_ID, Optional.of(testClient));
+
+        // Act & Assert
+        try (MockedStatic<PasswordHelper> mockedPasswordHelper = stubPasswordHelperCheckPassword(true)) {
+            List<ClientResponseModel> result = loginService.signIn(testLoginRequest);
+
+            assertNotNull(result);
+            assertEquals(1, result.size());
         }
     }
 

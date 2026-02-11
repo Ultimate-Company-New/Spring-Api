@@ -8,6 +8,8 @@ import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -21,34 +23,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("GetShipmentsInBatches Tests")
 class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
 
-    // Total Tests: 14
+    // Total Tests: 15
 
     /*
      **********************************************************************************************
      * SUCCESS TESTS
      **********************************************************************************************
      */
-
-    /**
-     * Purpose: Verify basic pagination success with a single shipment.
-     * Expected Result: Response contains one shipment and total count.
-     * Assertions: Response data size and total count.
-     */
-    @Test
-    @DisplayName("getShipmentsInBatches - Valid Request - Success")
-    void getShipmentsInBatches_ValidRequest_Success() {
-        // Arrange
-        PaginationBaseRequestModel request = createValidPaginationRequest();
-        stubShipmentFilterQueryBuilderFindPaginatedEntitiesWithMultipleFilters(createShipmentPage(List.of(testShipment)));
-
-        // Act
-        PaginationBaseResponseModel<?> result = shippingService.getShipmentsInBatches(request);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-        assertEquals(1, result.getTotalDataCount());
-    }
 
     /**
      * Purpose: Verify success with an empty result set.
@@ -68,50 +49,6 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
         // Assert
         assertNotNull(result);
         assertEquals(0, result.getData().size());
-    }
-
-    /**
-     * Purpose: Verify success with a valid filter condition.
-     * Expected Result: Response is returned without exception.
-     * Assertions: Response data is not null.
-     */
-    @Test
-    @DisplayName("getShipmentsInBatches - Valid Filters - Success")
-    void getShipmentsInBatches_ValidFilters_Success() {
-        // Arrange
-        PaginationBaseRequestModel request = createValidPaginationRequest();
-        PaginationBaseRequestModel.FilterCondition filter = createFilterCondition("shipmentId", "equals", "1");
-        request.setFilters(List.of(filter));
-        stubShipmentFilterQueryBuilderGetColumnType("shipmentId", "number");
-        stubShipmentFilterQueryBuilderFindPaginatedEntitiesWithMultipleFilters(createShipmentPage(List.of(testShipment)));
-
-        // Act
-        PaginationBaseResponseModel<?> result = shippingService.getShipmentsInBatches(request);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
-    }
-
-    /**
-     * Purpose: Verify success when selectedIds is provided.
-     * Expected Result: Response returns without error.
-     * Assertions: Response is not null.
-     */
-    @Test
-    @DisplayName("getShipmentsInBatches - Selected Ids - Success")
-    void getShipmentsInBatches_SelectedIds_Success() {
-        // Arrange
-        PaginationBaseRequestModel request = createValidPaginationRequest();
-        request.setSelectedIds(List.of(1L, 2L));
-        stubShipmentFilterQueryBuilderFindPaginatedEntitiesWithMultipleFilters(createShipmentPage(List.of(testShipment)));
-
-        // Act
-        PaginationBaseResponseModel<?> result = shippingService.getShipmentsInBatches(request);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getData().size());
     }
 
     /**
@@ -156,11 +93,98 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
         assertEquals(2, result.getData().size());
     }
 
+    /**
+     * Purpose: Verify success when selectedIds is provided.
+     * Expected Result: Response returns without error.
+     * Assertions: Response is not null.
+     */
+    @Test
+    @DisplayName("getShipmentsInBatches - Selected Ids - Success")
+    void getShipmentsInBatches_SelectedIds_Success() {
+        // Arrange
+        PaginationBaseRequestModel request = createValidPaginationRequest();
+        request.setSelectedIds(List.of(1L, 2L));
+        stubShipmentFilterQueryBuilderFindPaginatedEntitiesWithMultipleFilters(createShipmentPage(List.of(testShipment)));
+
+        // Act
+        PaginationBaseResponseModel<?> result = shippingService.getShipmentsInBatches(request);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+    }
+
+    /**
+     * Purpose: Verify success with a valid filter condition.
+     * Expected Result: Response is returned without exception.
+     * Assertions: Response data is not null.
+     */
+    @Test
+    @DisplayName("getShipmentsInBatches - Valid Filters - Success")
+    void getShipmentsInBatches_ValidFilters_Success() {
+        // Arrange
+        PaginationBaseRequestModel request = createValidPaginationRequest();
+        PaginationBaseRequestModel.FilterCondition filter = createFilterCondition("shipmentId", "equals", "1");
+        request.setFilters(List.of(filter));
+        stubShipmentFilterQueryBuilderGetColumnType("shipmentId", "number");
+        stubShipmentFilterQueryBuilderFindPaginatedEntitiesWithMultipleFilters(createShipmentPage(List.of(testShipment)));
+
+        // Act
+        PaginationBaseResponseModel<?> result = shippingService.getShipmentsInBatches(request);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+    }
+
+    /**
+     * Purpose: Verify basic pagination success with a single shipment.
+     * Expected Result: Response contains one shipment and total count.
+     * Assertions: Response data size and total count.
+     */
+    @Test
+    @DisplayName("getShipmentsInBatches - Valid Request - Success")
+    void getShipmentsInBatches_ValidRequest_Success() {
+        // Arrange
+        PaginationBaseRequestModel request = createValidPaginationRequest();
+        stubShipmentFilterQueryBuilderFindPaginatedEntitiesWithMultipleFilters(createShipmentPage(List.of(testShipment)));
+
+        // Act
+        PaginationBaseResponseModel<?> result = shippingService.getShipmentsInBatches(request);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getData().size());
+        assertEquals(1, result.getTotalDataCount());
+    }
+
     /*
      **********************************************************************************************
      * FAILURE TESTS
      **********************************************************************************************
      */
+
+    /**
+     * Purpose: Verify end less than start throws BadRequestException.
+     * Expected Result: BadRequestException with InvalidPagination message.
+     * Assertions: Exception type and message.
+     */
+    @Test
+    @DisplayName("getShipmentsInBatches - End Less Than Start - Throws BadRequestException")
+    void getShipmentsInBatches_EndLessThanStart_ThrowsBadRequestException() {
+        // Arrange
+        PaginationBaseRequestModel request = createValidPaginationRequest();
+        request.setStart(50);
+        request.setEnd(25);
+
+        // Act
+        com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
+            com.example.SpringApi.Exceptions.BadRequestException.class,
+            () -> shippingService.getShipmentsInBatches(request));
+
+        // Assert
+        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+    }
 
     /**
      * Purpose: Verify invalid column throws BadRequestException.
@@ -177,12 +201,12 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
 
         // Act
         com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
-                com.example.SpringApi.Exceptions.BadRequestException.class,
-                () -> shippingService.getShipmentsInBatches(request));
+            com.example.SpringApi.Exceptions.BadRequestException.class,
+            () -> shippingService.getShipmentsInBatches(request));
 
         // Assert
         assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.InvalidColumnNameFormat, "invalidColumn"),
-                ex.getMessage());
+            ex.getMessage());
     }
 
     /**
@@ -200,12 +224,34 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
 
         // Act
         com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
-                com.example.SpringApi.Exceptions.BadRequestException.class,
-                () -> shippingService.getShipmentsInBatches(request));
+            com.example.SpringApi.Exceptions.BadRequestException.class,
+            () -> shippingService.getShipmentsInBatches(request));
 
         // Assert
         assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.InvalidOperatorFormat, "badOperator"),
-                ex.getMessage());
+            ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify negative page size throws BadRequestException.
+     * Expected Result: BadRequestException with InvalidPagination message.
+     * Assertions: Exception type and message.
+     */
+    @Test
+    @DisplayName("getShipmentsInBatches - Negative Page Size - Throws BadRequestException")
+    void getShipmentsInBatches_NegativePageSize_ThrowsBadRequestException() {
+        // Arrange
+        PaginationBaseRequestModel request = createValidPaginationRequest();
+        request.setStart(100);
+        request.setEnd(99);
+
+        // Act
+        com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
+            com.example.SpringApi.Exceptions.BadRequestException.class,
+            () -> shippingService.getShipmentsInBatches(request));
+
+        // Assert
+        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
     }
 
     /**
@@ -223,8 +269,8 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
 
         // Act
         com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
-                com.example.SpringApi.Exceptions.BadRequestException.class,
-                () -> shippingService.getShipmentsInBatches(request));
+            com.example.SpringApi.Exceptions.BadRequestException.class,
+            () -> shippingService.getShipmentsInBatches(request));
 
         // Assert
         assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
@@ -245,8 +291,8 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
 
         // Act
         com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
-                com.example.SpringApi.Exceptions.BadRequestException.class,
-                () -> shippingService.getShipmentsInBatches(request));
+            com.example.SpringApi.Exceptions.BadRequestException.class,
+            () -> shippingService.getShipmentsInBatches(request));
 
         // Assert
         assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
@@ -267,52 +313,8 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
 
         // Act
         com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
-                com.example.SpringApi.Exceptions.BadRequestException.class,
-                () -> shippingService.getShipmentsInBatches(request));
-
-        // Assert
-        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Verify negative page size throws BadRequestException.
-     * Expected Result: BadRequestException with InvalidPagination message.
-     * Assertions: Exception type and message.
-     */
-    @Test
-    @DisplayName("getShipmentsInBatches - Negative Page Size - Throws BadRequestException")
-    void getShipmentsInBatches_NegativePageSize_ThrowsBadRequestException() {
-        // Arrange
-        PaginationBaseRequestModel request = createValidPaginationRequest();
-        request.setStart(100);
-        request.setEnd(99);
-
-        // Act
-        com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
-                com.example.SpringApi.Exceptions.BadRequestException.class,
-                () -> shippingService.getShipmentsInBatches(request));
-
-        // Assert
-        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Verify end less than start throws BadRequestException.
-     * Expected Result: BadRequestException with InvalidPagination message.
-     * Assertions: Exception type and message.
-     */
-    @Test
-    @DisplayName("getShipmentsInBatches - End Less Than Start - Throws BadRequestException")
-    void getShipmentsInBatches_EndLessThanStart_ThrowsBadRequestException() {
-        // Arrange
-        PaginationBaseRequestModel request = createValidPaginationRequest();
-        request.setStart(50);
-        request.setEnd(25);
-
-        // Act
-        com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
-                com.example.SpringApi.Exceptions.BadRequestException.class,
-                () -> shippingService.getShipmentsInBatches(request));
+            com.example.SpringApi.Exceptions.BadRequestException.class,
+            () -> shippingService.getShipmentsInBatches(request));
 
         // Assert
         assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
@@ -323,6 +325,26 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
      * PERMISSION TESTS
      **********************************************************************************************
      */
+
+    /**
+     * Purpose: Verify unauthorized access is blocked at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("getShipmentsInBatches - Controller Permission - Unauthorized")
+    void getShipmentsInBatches_controller_permission_unauthorized() {
+        // Arrange
+        PaginationBaseRequestModel request = createValidPaginationRequest();
+        ShippingController controller = new ShippingController(shippingServiceMock);
+        stubShippingServiceMockGetShipmentsInBatchesUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.getShipmentsInBatches(request);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
 
     /**
      * Purpose: Verify controller has @PreAuthorize for getShipmentsInBatches.

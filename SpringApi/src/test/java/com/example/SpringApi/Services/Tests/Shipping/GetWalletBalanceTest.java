@@ -5,6 +5,8 @@ import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.Authorizations;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -17,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("GetWalletBalance Tests")
 class GetWalletBalanceTest extends ShippingServiceTestBase {
 
-    // Total Tests: 3
+    // Total Tests: 4
 
     /*
      **********************************************************************************************
@@ -32,7 +34,7 @@ class GetWalletBalanceTest extends ShippingServiceTestBase {
      */
     @Test
     @DisplayName("getWalletBalance - Success")
-    void getWalletBalance_Success() {
+    void getWalletBalance_Success_Success() {
         // Arrange
         stubClientServiceGetClientById(testClientResponse);
         stubShipRocketHelperGetWalletBalance(123.45);
@@ -77,6 +79,25 @@ class GetWalletBalanceTest extends ShippingServiceTestBase {
      **********************************************************************************************
      */
 
+        /**
+         * Purpose: Verify unauthorized access is blocked at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+    @Test
+    @DisplayName("getWalletBalance - Controller Permission - Unauthorized")
+    void getWalletBalance_controller_permission_unauthorized() {
+        // Arrange
+        ShippingController controller = new ShippingController(shippingServiceMock);
+        stubShippingServiceMockGetWalletBalanceUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.getWalletBalance();
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
     /**
      * Purpose: Verify controller has @PreAuthorize for getWalletBalance.
      * Expected Result: Annotation exists and includes VIEW_SHIPMENTS_PERMISSION.
@@ -84,7 +105,7 @@ class GetWalletBalanceTest extends ShippingServiceTestBase {
      */
     @Test
     @DisplayName("getWalletBalance - Verify @PreAuthorize Annotation")
-    void getWalletBalance_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void getWalletBalance_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = ShippingController.class.getMethod("getWalletBalance");
 

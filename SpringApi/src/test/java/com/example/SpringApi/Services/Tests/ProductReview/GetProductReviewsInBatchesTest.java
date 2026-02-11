@@ -22,14 +22,12 @@ import static org.mockito.Mockito.when;
  * Test class for ProductReviewService.getProductReviewsInBatchesGivenProductId
  * method.
  * 
- * Test count: 25 tests
- * - SUCCESS: 16 tests
- * - FAILURE / EXCEPTION: 9 tests
+ * Test count: 22 tests
  */
 @DisplayName("ProductReviewService - GetProductReviewsInBatches Tests")
 class GetProductReviewsInBatchesTest extends ProductReviewServiceTestBase {
 
-        // Total Tests: 25
+        // Total Tests: 22
 
         @Test
         @DisplayName("Get Product Reviews In Batches - Success")

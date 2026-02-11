@@ -150,26 +150,6 @@ public class ResetPasswordTest extends LoginServiceTestBase {
     }
 
     /**
-     * Purpose: Reject missing SendGrid API key configuration.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches SendGridApiKeyNotConfigured.
-     */
-    @Test
-    @DisplayName("Reset Password - Missing SendGrid API key - Throws BadRequestException")
-    void resetPassword_MissingSendGridApiKey_ThrowsBadRequestException() {
-        // Arrange
-        stubUserRepositoryFindByLoginName(TEST_LOGIN_NAME, testUser);
-        stubClientRepositoryFindFirstByOrderByClientIdAsc(testClient);
-        stubEnvironmentSendGridProperties("test@example.com", "Sender", "");
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-            () -> loginService.resetPassword(testLoginRequest));
-
-        assertEquals(ErrorMessages.ConfigurationErrorMessages.SendGridApiKeyNotConfigured, exception.getMessage());
-    }
-
-    /**
      * Purpose: Reject missing sender email configuration in environment.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches SendGridEmailNotConfigured.
@@ -207,6 +187,26 @@ public class ResetPasswordTest extends LoginServiceTestBase {
             () -> loginService.resetPassword(testLoginRequest));
 
         assertEquals(ErrorMessages.ConfigurationErrorMessages.SendGridNameNotConfigured, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Reject missing SendGrid API key configuration.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Error message matches SendGridApiKeyNotConfigured.
+     */
+    @Test
+    @DisplayName("Reset Password - Missing SendGrid API key - Throws BadRequestException")
+    void resetPassword_MissingSendGridApiKey_ThrowsBadRequestException() {
+        // Arrange
+        stubUserRepositoryFindByLoginName(TEST_LOGIN_NAME, testUser);
+        stubClientRepositoryFindFirstByOrderByClientIdAsc(testClient);
+        stubEnvironmentSendGridProperties("test@example.com", "Sender", "");
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class,
+            () -> loginService.resetPassword(testLoginRequest));
+
+        assertEquals(ErrorMessages.ConfigurationErrorMessages.SendGridApiKeyNotConfigured, exception.getMessage());
     }
 
     /**

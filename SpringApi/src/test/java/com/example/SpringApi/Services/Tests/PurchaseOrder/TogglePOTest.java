@@ -1,6 +1,8 @@
 package com.example.SpringApi.Services.Tests.PurchaseOrder;
 
 import com.example.SpringApi.Controllers.PurchaseOrderController;
+import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Exceptions.UnauthorizedException;
 import com.example.SpringApi.Models.Authorizations;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
@@ -21,9 +23,10 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for PurchaseOrderService.togglePurchaseOrder method.
  *
- * Test count: 8 tests
+ * Test count: 11 tests
  * - SUCCESS: 2 tests
  * - FAILURE / EXCEPTION: 6 tests (1 test + 5 dynamic tests)
+ * - CONTROLLER: 3 tests (permission, annotation, delegation)
  */
 @DisplayName("PurchaseOrderService - TogglePO Tests")
 public class TogglePOTest extends PurchaseOrderServiceTestBase {
@@ -108,6 +111,28 @@ public class TogglePOTest extends PurchaseOrderServiceTestBase {
      * CONTROLLER AUTHORIZATION TESTS
      **********************************************************************************************
      */
+
+        /**
+         * Purpose: Verify unauthorized access is blocked at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+        @Test
+        @DisplayName("togglePurchaseOrder - Controller Permission - Unauthorized")
+        void togglePurchaseOrder_controller_permission_unauthorized() {
+        // Arrange
+        com.example.SpringApi.Services.PurchaseOrderService mockService =
+            mock(com.example.SpringApi.Services.PurchaseOrderService.class);
+        PurchaseOrderController controller = new PurchaseOrderController(mockService);
+        doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+            .when(mockService).togglePurchaseOrder(TEST_PO_ID);
+
+        // Act
+        ResponseEntity<?> response = controller.togglePurchaseOrder(TEST_PO_ID);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        }
 
     @Test
     @DisplayName("togglePurchaseOrder - Verify @PreAuthorize Annotation")

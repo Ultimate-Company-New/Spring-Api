@@ -164,7 +164,10 @@ class CreateLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Create Lead - Empty Email - ThrowsBadRequestException")
     void createLead_EmptyEmail_ThrowsBadRequestException() {
+        // Arrange
         testLeadRequest.setEmail("");
+
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class, () -> leadService.createLead(testLeadRequest));
         assertEquals(ErrorMessages.LeadsErrorMessages.ER001, ex.getMessage());
     }
@@ -177,7 +180,10 @@ class CreateLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Create Lead - Empty First Name - ThrowsBadRequestException")
     void createLead_EmptyFirstName_ThrowsBadRequestException() {
+        // Arrange
         testLeadRequest.setFirstName("");
+
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class, () -> leadService.createLead(testLeadRequest));
         assertEquals(ErrorMessages.LeadsErrorMessages.ER002, ex.getMessage());
     }
@@ -190,7 +196,10 @@ class CreateLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Create Lead - Empty Last Name - ThrowsBadRequestException")
     void createLead_EmptyLastName_ThrowsBadRequestException() {
+        // Arrange
         testLeadRequest.setLastName("");
+
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class, () -> leadService.createLead(testLeadRequest));
         assertEquals(ErrorMessages.LeadsErrorMessages.ER003, ex.getMessage());
     }
@@ -203,7 +212,10 @@ class CreateLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Create Lead - Empty Phone - ThrowsBadRequestException")
     void createLead_EmptyPhone_ThrowsBadRequestException() {
+        // Arrange
         testLeadRequest.setPhone("");
+
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class, () -> leadService.createLead(testLeadRequest));
         assertEquals(ErrorMessages.LeadsErrorMessages.ER004, ex.getMessage());
     }
@@ -216,7 +228,10 @@ class CreateLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Create Lead - Empty Status - ThrowsBadRequestException")
     void createLead_EmptyStatus_ThrowsBadRequestException() {
+        // Arrange
         testLeadRequest.setLeadStatus("");
+
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class, () -> leadService.createLead(testLeadRequest));
         assertEquals(ErrorMessages.LeadsErrorMessages.ER008, ex.getMessage());
     }
@@ -229,7 +244,10 @@ class CreateLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Create Lead - Invalid Email Format - ThrowsBadRequestException")
     void createLead_InvalidEmailFormat_ThrowsBadRequestException() {
+        // Arrange
         testLeadRequest.setEmail("invalid-email");
+
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class, () -> leadService.createLead(testLeadRequest));
         assertEquals(ErrorMessages.LeadsErrorMessages.ER010, ex.getMessage());
     }
@@ -242,7 +260,10 @@ class CreateLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Create Lead - Invalid Phone Format - ThrowsBadRequestException")
     void createLead_InvalidPhoneFormat_ThrowsBadRequestException() {
+        // Arrange
         testLeadRequest.setPhone("invalid-phone");
+
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class, () -> leadService.createLead(testLeadRequest));
         assertEquals(ErrorMessages.LeadsErrorMessages.ER011, ex.getMessage());
     }
@@ -255,7 +276,10 @@ class CreateLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Create Lead - Invalid Status (Unknown) - ThrowsBadRequestException")
     void createLead_InvalidStatusUnknown_ThrowsBadRequestException() {
+        // Arrange
         testLeadRequest.setLeadStatus("UnknownStatus");
+
+        // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class, () -> leadService.createLead(testLeadRequest));
         assertTrue(ex.getMessage().contains(ErrorMessages.LeadsErrorMessages.ER007));
     }
@@ -476,7 +500,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
         @Test
         @DisplayName("Create Lead - Verify @PreAuthorize annotation is configured correctly")
-        void createLead_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        void createLead_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         var method = LeadController.class.getMethod("createLead",
             com.example.SpringApi.Models.RequestModels.LeadRequestModel.class);
@@ -494,6 +518,26 @@ class CreateLeadTest extends LeadServiceTestBase {
 
         assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
             "PreAuthorize annotation should reference INSERT_LEADS_PERMISSION");
+        }
+
+        /**
+         * Purpose: Verify unauthorized access is handled at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+        @Test
+        @DisplayName("Create Lead - Controller permission unauthorized - Success")
+        void createLead_controller_permission_unauthorized() {
+        // Arrange
+        LeadController controller = new LeadController(leadServiceMock);
+        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+            .when(leadServiceMock).createLead(any());
+
+        // Act
+        ResponseEntity<?> response = controller.createLead(testLeadRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         }
 
         /**

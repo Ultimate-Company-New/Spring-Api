@@ -5,6 +5,8 @@ import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
 import com.example.SpringApi.Models.Authorizations;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -18,7 +20,7 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for PickupLocationService.bulkCreatePickupLocationsAsync() method.
  * Tests async batch processing, validation, error handling, and logging.
- * Test Count: 12 tests
+ * Test Count: 13 tests
  */
 @DisplayName("Bulk Create Pickup Locations Async Tests")
 class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
@@ -45,7 +47,7 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
 
                 when(addressRepository.save(any())).thenReturn(testAddress);
                 when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-                lenient().when(shipRocketHelper.addPickupLocation(any())).thenReturn(testShipRocketResponse);
+                stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
                 // ACT & ASSERT
                 assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocationsAsync(
@@ -75,7 +77,7 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
 
                 when(addressRepository.save(any())).thenReturn(testAddress);
                 when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-                lenient().when(shipRocketHelper.addPickupLocation(any())).thenReturn(testShipRocketResponse);
+                stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
                 // ACT & ASSERT
                 assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocationsAsync(
@@ -102,7 +104,7 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
 
                 when(addressRepository.save(any())).thenReturn(testAddress);
                 when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-                lenient().when(shipRocketHelper.addPickupLocation(any())).thenReturn(testShipRocketResponse);
+                stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
                 // ACT & ASSERT
                 assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocationsAsync(
@@ -133,7 +135,7 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
 
                 when(addressRepository.save(any())).thenReturn(testAddress);
                 when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-                lenient().when(shipRocketHelper.addPickupLocation(any())).thenReturn(testShipRocketResponse);
+                stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
                 // ACT & ASSERT
                 assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocationsAsync(
@@ -148,8 +150,8 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
 
         /**
          * Purpose: Reject async processing with null list.
-         * Expected Result: BadRequestException thrown.
-         * Assertions: Exception message indicates list cannot be null.
+         * Expected Result: Error is handled and logged without throwing.
+         * Assertions: No exception is thrown.
          */
         @Test
         @DisplayName("Bulk Create Pickup Locations Async - Null List - Handles Error Gracefully")
@@ -161,8 +163,8 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
 
         /**
          * Purpose: Reject async processing with empty list.
-         * Expected Result: BadRequestException thrown.
-         * Assertions: Exception message indicates list cannot be empty.
+         * Expected Result: Error is handled and logged without throwing.
+         * Assertions: No exception is thrown.
          */
         @Test
         @DisplayName("Bulk Create Pickup Locations Async - Empty List - Handles Error Gracefully")
@@ -190,7 +192,7 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
 
                 when(addressRepository.save(any())).thenReturn(testAddress);
                 when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-                lenient().when(shipRocketHelper.addPickupLocation(any())).thenReturn(testShipRocketResponse);
+                stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
                 // ACT
                 pickupLocationService.bulkCreatePickupLocationsAsync(
@@ -216,7 +218,7 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
 
                 when(addressRepository.save(any())).thenReturn(testAddress);
                 when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-                lenient().when(shipRocketHelper.addPickupLocation(any())).thenReturn(testShipRocketResponse);
+                stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
                 // ACT
                 pickupLocationService.bulkCreatePickupLocationsAsync(
@@ -242,7 +244,7 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
 
                 when(addressRepository.save(any())).thenReturn(testAddress);
                 when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-                lenient().when(shipRocketHelper.addPickupLocation(any())).thenReturn(testShipRocketResponse);
+                stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
                 // ACT
                 pickupLocationService.bulkCreatePickupLocationsAsync(
@@ -267,7 +269,7 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
                 requests.add(createValidPickupLocationRequest(1L));
 
                 when(addressRepository.save(any())).thenThrow(new RuntimeException("DB Connection Error"));
-                lenient().when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+                stubPickupLocationRepositorySave(testPickupLocation);
 
                 // ACT & ASSERT
                 assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocationsAsync(
@@ -283,6 +285,30 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
          * CONTROLLER AUTHORIZATION TESTS
          **********************************************************************************************
          */
+
+        /**
+         * Purpose: Verify unauthorized access is blocked at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+        @Test
+        @DisplayName("bulkCreatePickupLocationsAsync - Controller Permission - Unauthorized")
+        void bulkCreatePickupLocationsAsync_controller_permission_unauthorized() {
+                // ARRANGE
+                PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
+                // Setup user context to return normally (so getUserId() doesn't throw)
+                when(pickupLocationServiceMock.getUserId()).thenReturn(TEST_USER_ID);
+                when(pickupLocationServiceMock.getUser()).thenReturn("testuser");
+                when(pickupLocationServiceMock.getClientId()).thenReturn(TEST_CLIENT_ID);
+                // Then make the actual service method throw
+                stubPickupLocationServiceThrowsUnauthorized();
+
+                // ACT
+                ResponseEntity<?> response = controller.bulkCreatePickupLocations(new ArrayList<>());
+
+                // ASSERT
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        }
 
         @Test
         @DisplayName("bulkCreatePickupLocationsAsync - Verify @PreAuthorize Annotation")

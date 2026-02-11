@@ -695,37 +695,6 @@ class UpdateClientTest extends ClientServiceTestBase {
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidRequest, ex.getMessage());
     }
 
-        /*
-         **********************************************************************************************
-         * CONTROLLER AUTHORIZATION TESTS
-         **********************************************************************************************
-         */
-
-        /**
-         * Purpose: Verify controller has correct @PreAuthorize permission.
-         * Expected Result: Annotation exists and contains UPDATE_CLIENT_PERMISSION.
-         * Assertions: Annotation is present and permission matches.
-         */
-        @Test
-        @DisplayName("Update Client - Controller permission forbidden - Success")
-        void updateClient_controller_permission_forbidden() throws NoSuchMethodException {
-        // Arrange
-        var method = ClientController.class.getMethod("updateClient", Long.class,
-            com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-            org.springframework.security.access.prepost.PreAuthorize.class);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation, "updateClient method should have @PreAuthorize annotation");
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-            Authorizations.UPDATE_CLIENT_PERMISSION + "')";
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-            "PreAuthorize annotation should reference UPDATE_CLIENT_PERMISSION");
-        verify(mockClientService, never()).updateClient(any());
-        }
-
     /*
      * Purpose: Reject invalid support email (Null).
      * Expected Result: BadRequestException is thrown.
@@ -891,6 +860,34 @@ class UpdateClientTest extends ClientServiceTestBase {
      * CONTROLLER AUTHORIZATION TESTS
      **********************************************************************************************
      */
+
+        /*
+         * Purpose: Verify controller has correct @PreAuthorize permission.
+         * Expected Result: Annotation exists and contains UPDATE_CLIENT_PERMISSION.
+         * Assertions: Annotation is present and permission matches.
+         */
+        @Test
+        @DisplayName("Update Client - Controller permission forbidden - Success")
+        void updateClient_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = ClientController.class.getMethod("updateClient", Long.class,
+            com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
+        testClientRequest.setClientId(TEST_CLIENT_ID);
+        stubServiceUpdateClientDoNothing();
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+            org.springframework.security.access.prepost.PreAuthorize.class);
+        ResponseEntity<?> response = clientController.updateClient(TEST_CLIENT_ID, testClientRequest);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "updateClient method should have @PreAuthorize annotation");
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+            Authorizations.UPDATE_CLIENT_PERMISSION + "')";
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+            "PreAuthorize annotation should reference UPDATE_CLIENT_PERMISSION");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
+        }
 
     /*
      * Purpose: Verify controller calls service when authorization passes
