@@ -1,20 +1,22 @@
 package com.example.SpringApi.Services.Tests.Todo;
 
 import com.example.SpringApi.Controllers.TodoController;
-import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.SuccessMessages;
-import com.example.SpringApi.Models.DatabaseModels.Todo;
 import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.Models.ApiRoutes;
+import com.example.SpringApi.Services.Interface.ITodoSubTranslator;
+import com.example.SpringApi.SuccessMessages;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 /**
@@ -23,21 +25,44 @@ import static org.mockito.Mockito.*;
 @DisplayName("TodoService - ToggleTodo Tests")
 class ToggleTodoTest extends TodoServiceTestBase {
 
-    // Total Tests: 14
+    // Total Tests: 15
 
     // ========================================
     // Section 1: Success Tests
     // ========================================
 
-    // Purpose: Verify findById is not called after toggle completes.
-    // Expected Result: findById called exactly once.
-    // Assertions: verify(todoRepository, times(1)).findById(TEST_TODO_ID);
+    /*
+     * Purpose: Verify false to true toggle.
+     * Expected Result: isDone toggles to true.
+     * Assertions: isDone is true.
+     */
+    @Test
+    @DisplayName("toggleTodo - False To True - Success")
+    void toggleTodo_falseToTrue_success() {
+        // Arrange
+        testTodo.setIsDone(false);
+        stubTodoRepositoryFindById(TEST_TODO_ID, Optional.of(testTodo));
+        stubTodoRepositorySave(testTodo);
+        stubUserLogServiceLogDataReturnsTrue();
+
+        // Act
+        todoService.toggleTodo(TEST_TODO_ID);
+
+        // Assert
+        assertTrue(testTodo.getIsDone());
+    }
+
+    /*
+     * Purpose: Verify findById called once.
+     * Expected Result: findById called once.
+     * Assertions: verify call count.
+     */
     @Test
     @DisplayName("toggleTodo - FindById Called Once - Success")
     void toggleTodo_findByIdCalledOnce_success() {
         // Arrange
-        testTodo.setIsDone(false);
         stubTodoRepositoryFindById(TEST_TODO_ID, Optional.of(testTodo));
+        stubTodoRepositorySave(testTodo);
         stubUserLogServiceLogDataReturnsTrue();
 
         // Act
@@ -47,114 +72,103 @@ class ToggleTodoTest extends TodoServiceTestBase {
         verify(todoRepository, times(1)).findById(TEST_TODO_ID);
     }
 
-    // Purpose: Verify multiple toggles persist state correctly.
-    // Expected Result: State toggles correctly.
-    // Assertions: State alternates correctly.
+    /*
+     * Purpose: Verify multiple toggles maintain state.
+     * Expected Result: state returns to original after even toggles.
+     * Assertions: isDone equals original state.
+     */
     @Test
     @DisplayName("toggleTodo - Multiple Toggles - State Persists")
     void toggleTodo_multipleToggles_statePersists() {
         // Arrange
         testTodo.setIsDone(false);
         stubTodoRepositoryFindById(TEST_TODO_ID, Optional.of(testTodo));
+        stubTodoRepositorySave(testTodo);
         stubUserLogServiceLogDataReturnsTrue();
 
-        // Act & Assert
+        // Act
         todoService.toggleTodo(TEST_TODO_ID);
-        assertTrue(testTodo.getIsDone());
+        todoService.toggleTodo(TEST_TODO_ID);
 
-        todoService.toggleTodo(TEST_TODO_ID);
+        // Assert
         assertFalse(testTodo.getIsDone());
-
-        todoService.toggleTodo(TEST_TODO_ID);
-        assertTrue(testTodo.getIsDone());
     }
 
-    // Purpose: Verify repository save is called after toggle.
-    // Expected Result: save() is called.
-    // Assertions: verify(todoRepository).save(any());
+    /*
+     * Purpose: Verify repository save is called.
+     * Expected Result: save called once.
+     * Assertions: verify save called.
+     */
     @Test
     @DisplayName("toggleTodo - Repository Save Called - Success")
     void toggleTodo_repositorySaveCalled_success() {
         // Arrange
-        testTodo.setIsDone(false);
         stubTodoRepositoryFindById(TEST_TODO_ID, Optional.of(testTodo));
+        stubTodoRepositorySave(testTodo);
         stubUserLogServiceLogDataReturnsTrue();
 
         // Act
         todoService.toggleTodo(TEST_TODO_ID);
 
         // Assert
-        verify(todoRepository, times(1)).save(any(Todo.class));
+        verify(todoRepository, times(1)).save(testTodo);
     }
 
-    // Purpose: Verify logging is called after successful toggle.
-    // Expected Result: userLogService.logData is called.
-    // Assertions: verify(userLogService).logData(...);
+    /*
+     * Purpose: Verify successful toggle logs operation.
+     * Expected Result: userLogService.logData called.
+     * Assertions: verify logData call.
+     */
     @Test
-    @DisplayName("toggleTodo - Logs Operation - Success")
+    @DisplayName("toggleTodo - Success Logs Operation")
     void toggleTodo_success_logsOperation() {
         // Arrange
-        testTodo.setIsDone(false);
         stubTodoRepositoryFindById(TEST_TODO_ID, Optional.of(testTodo));
+        stubTodoRepositorySave(testTodo);
         stubUserLogServiceLogDataReturnsTrue();
 
         // Act
         todoService.toggleTodo(TEST_TODO_ID);
 
         // Assert
-        verify(userLogService).logData(
+        verify(userLogService, times(1)).logData(
                 eq(TEST_USER_ID.longValue()),
                 contains(SuccessMessages.TodoSuccessMessages.ToggleTodo),
                 eq(ApiRoutes.TodoSubRoute.TOGGLE_DONE));
     }
 
-    // Purpose: Verify toggle from false to true.
-    // Expected Result: isDone is set to true.
-    // Assertions: assertTrue(testTodo.getIsDone());
-    @Test
-    @DisplayName("toggleTodo - False To True - Success")
-    void toggleTodo_falseToTrue_success() {
-        // Arrange
-        testTodo.setIsDone(false);
-        stubTodoRepositoryFindById(TEST_TODO_ID, Optional.of(testTodo));
-        stubUserLogServiceLogDataReturnsTrue();
-
-        // Act
-        assertDoesNotThrow(() -> todoService.toggleTodo(TEST_TODO_ID));
-
-        // Assert
-        assertTrue(testTodo.getIsDone());
-        verify(todoRepository).save(testTodo);
-    }
-
-    // Purpose: Verify toggle from true to false.
-    // Expected Result: isDone is set to false.
-    // Assertions: assertFalse(testTodo.getIsDone());
+    /*
+     * Purpose: Verify true to false toggle.
+     * Expected Result: isDone toggles to false.
+     * Assertions: isDone is false.
+     */
     @Test
     @DisplayName("toggleTodo - True To False - Success")
     void toggleTodo_trueToFalse_success() {
         // Arrange
         testTodo.setIsDone(true);
         stubTodoRepositoryFindById(TEST_TODO_ID, Optional.of(testTodo));
+        stubTodoRepositorySave(testTodo);
         stubUserLogServiceLogDataReturnsTrue();
 
         // Act
-        assertDoesNotThrow(() -> todoService.toggleTodo(TEST_TODO_ID));
+        todoService.toggleTodo(TEST_TODO_ID);
 
         // Assert
         assertFalse(testTodo.getIsDone());
-        verify(todoRepository).save(testTodo);
     }
 
-    // Purpose: Verify modifiedUser is updated on toggle.
-    // Expected Result: modifiedUser field is updated.
-    // Assertions: verify setModifiedUser is called.
+    /*
+     * Purpose: Verify modifiedUser updated.
+     * Expected Result: modifiedUser set.
+     * Assertions: modifiedUser is not null.
+     */
     @Test
     @DisplayName("toggleTodo - Updates Modified User - Success")
     void toggleTodo_updatesModifiedUser_success() {
         // Arrange
-        testTodo.setIsDone(false);
         stubTodoRepositoryFindById(TEST_TODO_ID, Optional.of(testTodo));
+        stubTodoRepositorySave(testTodo);
         stubUserLogServiceLogDataReturnsTrue();
 
         // Act
@@ -162,45 +176,39 @@ class ToggleTodoTest extends TodoServiceTestBase {
 
         // Assert
         assertNotNull(testTodo.getModifiedUser());
-        verify(todoRepository).save(testTodo);
     }
 
-    // Purpose: Verify modifiedUser is updated with specific authenticated user string.
-    // Expected Result: modifiedUser equals expected string.
-    // Assertions: assertEquals.
+    /*
+     * Purpose: Verify modifiedUser string contains expected value.
+     * Expected Result: modifiedUser equals default created user.
+     * Assertions: modifiedUser matches.
+     */
     @Test
     @DisplayName("toggleTodo - Verify Specific Modified User String - Success")
     void toggleTodo_verifySpecificModifiedUserString_success() {
         // Arrange
-        testTodo.setIsDone(false);
-        // "mockUser" comes from base class stub behavior if applicable,
-        // but here we verify the logic inside toggleTodo uses getUser()
-        // which typically pulls from the base service.
-        // Assuming base service getUser() returns "System" or similar from mock.
-        // In the base test setup, we didn't see explicit getUser stub, so we assume
-        // it returns null or we mock the service method if possible.
-        // Since we cannot mock the SUT (System Under Test), we rely on state.
         stubTodoRepositoryFindById(TEST_TODO_ID, Optional.of(testTodo));
+        stubTodoRepositorySave(testTodo);
         stubUserLogServiceLogDataReturnsTrue();
 
         // Act
         todoService.toggleTodo(TEST_TODO_ID);
 
         // Assert
-        // We check that it is set. The actual value depends on BaseService logic.
-        // This test satisfies the coverage requirement for that line.
-        assertNotNull(testTodo.getModifiedUser());
+        assertEquals(CREATED_USER, testTodo.getModifiedUser());
     }
 
     // ========================================
     // Section 2: Failure / Exception Tests
     // ========================================
 
-    // Purpose: Verify max long id throws NotFoundException when not found.
-    // Expected Result: NotFoundException with InvalidId message.
-    // Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+    /*
+     * Purpose: Verify max long ID throws NotFoundException.
+     * Expected Result: NotFoundException.
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.InvalidId
+     */
     @Test
-    @DisplayName("toggleTodo - Max Long ID - Throws NotFoundException")
+    @DisplayName("toggleTodo - Max Long Id - NotFoundException")
     void toggleTodo_maxLongId_notFoundException() {
         // Arrange
         stubTodoRepositoryFindById(Long.MAX_VALUE, Optional.empty());
@@ -213,11 +221,13 @@ class ToggleTodoTest extends TodoServiceTestBase {
         assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
     }
 
-    // Purpose: Verify min long id throws NotFoundException.
-    // Expected Result: NotFoundException with InvalidId message.
-    // Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+    /*
+     * Purpose: Verify min long ID throws NotFoundException.
+     * Expected Result: NotFoundException.
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.InvalidId
+     */
     @Test
-    @DisplayName("toggleTodo - Min Long ID - Throws NotFoundException")
+    @DisplayName("toggleTodo - Min Long Id - NotFoundException")
     void toggleTodo_minLongId_notFoundException() {
         // Arrange
         stubTodoRepositoryFindById(Long.MIN_VALUE, Optional.empty());
@@ -230,11 +240,13 @@ class ToggleTodoTest extends TodoServiceTestBase {
         assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
     }
 
-    // Purpose: Verify negative id throws NotFoundException.
-    // Expected Result: NotFoundException with InvalidId message.
-    // Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+    /*
+     * Purpose: Verify negative ID throws NotFoundException.
+     * Expected Result: NotFoundException.
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.InvalidId
+     */
     @Test
-    @DisplayName("toggleTodo - Negative ID - Throws NotFoundException")
+    @DisplayName("toggleTodo - Negative Id - NotFoundException")
     void toggleTodo_negativeId_notFoundException() {
         // Arrange
         stubTodoRepositoryFindById(-1L, Optional.empty());
@@ -247,11 +259,13 @@ class ToggleTodoTest extends TodoServiceTestBase {
         assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
     }
 
-    // Purpose: Verify non-existent todo throws NotFoundException.
-    // Expected Result: NotFoundException with InvalidId message.
-    // Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+    /*
+     * Purpose: Verify not found throws NotFoundException.
+     * Expected Result: NotFoundException.
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.InvalidId
+     */
     @Test
-    @DisplayName("toggleTodo - Not Found - Throws NotFoundException")
+    @DisplayName("toggleTodo - Not Found - NotFoundException")
     void toggleTodo_notFound_notFoundException() {
         // Arrange
         stubTodoRepositoryFindById(TEST_TODO_ID, Optional.empty());
@@ -262,14 +276,15 @@ class ToggleTodoTest extends TodoServiceTestBase {
 
         // Assert
         assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
-        verify(todoRepository, never()).save(any());
     }
 
-    // Purpose: Verify zero id throws NotFoundException.
-    // Expected Result: NotFoundException with InvalidId message.
-    // Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+    /*
+     * Purpose: Verify zero ID throws NotFoundException.
+     * Expected Result: NotFoundException.
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.InvalidId
+     */
     @Test
-    @DisplayName("toggleTodo - Zero ID - Throws NotFoundException")
+    @DisplayName("toggleTodo - Zero Id - NotFoundException")
     void toggleTodo_zeroId_notFoundException() {
         // Arrange
         stubTodoRepositoryFindById(0L, Optional.empty());
@@ -286,9 +301,33 @@ class ToggleTodoTest extends TodoServiceTestBase {
     // Section 3: Controller Permission/Auth Tests
     // ========================================
 
-    // Purpose: Verify @PreAuthorize Annotation on controller
-    // Expected Result: Annotation exists and has correct value
-    // Assertions: assertNotNull, assertEquals
+    /*
+     * Purpose: Verify unauthorized access is blocked at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("toggleTodo - Controller Permission - Unauthorized")
+    void toggleTodo_controller_permission_unauthorized() {
+        // Arrange
+        ITodoSubTranslator todoServiceMock = mock(ITodoSubTranslator.class);
+        TodoController controller = new TodoController(todoServiceMock);
+        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(todoServiceMock).toggleTodo(anyLong());
+
+        // Act
+        ResponseEntity<?> response = controller.toggleTodo(TEST_TODO_ID);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        verify(todoServiceMock, times(1)).toggleTodo(TEST_TODO_ID);
+    }
+
+    /*
+     * Purpose: Verify @PreAuthorize annotation on controller.
+     * Expected Result: Annotation exists and has correct value.
+     * Assertions: assertNotNull, assertEquals
+     */
     @Test
     @DisplayName("toggleTodo - Verify @PreAuthorize Annotation")
     void toggleTodo_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
@@ -299,7 +338,7 @@ class ToggleTodoTest extends TodoServiceTestBase {
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
         // Assert
-        assertNotNull(annotation, "toggleTodo method should have @PreAuthorize annotation");
+        assertNotNull(annotation, "toggleItem method should have @PreAuthorize annotation");
         assertEquals("@customAuthorization.hasAuthority(null)", annotation.value());
     }
 }

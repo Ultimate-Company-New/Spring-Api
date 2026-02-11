@@ -310,11 +310,12 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     @org.springframework.scheduling.annotation.Async
     @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public void bulkCreatePackagesAsync(List<PackageRequestModel> packages, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
+        // Validate input
+        if (packages == null || packages.isEmpty()) {
+            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Package"));
+        }
+
         try {
-            // Validate input
-            if (packages == null || packages.isEmpty()) {
-                throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Package"));
-            }
 
             BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
             response.setTotalRequested(packages.size());

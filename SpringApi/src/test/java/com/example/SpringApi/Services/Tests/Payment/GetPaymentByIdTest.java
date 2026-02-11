@@ -94,6 +94,7 @@ class GetPaymentByIdTest extends PaymentServiceTestBase {
     @Test
     @DisplayName("getPaymentById - Client access denied - Throws BadRequestException")
     void getPaymentById_ClientAccessDenied_ThrowsBadRequestException() {
+        testPayment.setClientId(TEST_CLIENT_ID + 1);
         when(paymentRepository.findById(TEST_PAYMENT_ID)).thenReturn(Optional.of(testPayment));
 
         BadRequestException ex = assertThrows(BadRequestException.class,

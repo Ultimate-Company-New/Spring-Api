@@ -4,10 +4,8 @@ import com.example.SpringApi.Controllers.LeadController;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Services.Interface.ILeadSubTranslator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -22,9 +20,6 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Toggle Lead Tests")
 class ToggleLeadTest extends LeadServiceTestBase {
-
-    @Mock
-    ILeadSubTranslator leadServiceMock;
 
     /*
      **********************************************************************************************
@@ -42,9 +37,8 @@ class ToggleLeadTest extends LeadServiceTestBase {
     void toggleLead_MultipleToggles_Success() {
         // Arrange
         testLead.setIsDeleted(false);
-        when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID))
-                .thenReturn(testLead);
-        when(leadRepository.save(any())).thenReturn(testLead);
+        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+        stubLeadRepositorySave(testLead);
 
         // First toggle: false -> true
         leadService.toggleLead(DEFAULT_LEAD_ID);
@@ -68,9 +62,8 @@ class ToggleLeadTest extends LeadServiceTestBase {
     void toggleLead_Success() {
         // Arrange
         testLead.setIsDeleted(false);
-        when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID))
-                .thenReturn(testLead);
-        when(leadRepository.save(any())).thenReturn(testLead);
+        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(DEFAULT_LEAD_ID, TEST_CLIENT_ID, testLead);
+        stubLeadRepositorySave(testLead);
 
         // Act
         leadService.toggleLead(DEFAULT_LEAD_ID);
@@ -95,7 +88,7 @@ class ToggleLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Toggle Lead - Max Long ID - ThrowsNotFoundException")
     void toggleLead_MaxLongId_ThrowsNotFoundException() {
-        when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(Long.MAX_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(Long.MAX_VALUE, TEST_CLIENT_ID, null);
         NotFoundException ex = assertThrows(NotFoundException.class, () -> leadService.toggleLead(Long.MAX_VALUE));
         assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
     }
@@ -109,7 +102,7 @@ class ToggleLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Toggle Lead - Min Long ID - ThrowsNotFoundException")
     void toggleLead_MinLongId_ThrowsNotFoundException() {
-        when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(Long.MIN_VALUE, TEST_CLIENT_ID)).thenReturn(null);
+        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(Long.MIN_VALUE, TEST_CLIENT_ID, null);
         NotFoundException ex = assertThrows(NotFoundException.class, () -> leadService.toggleLead(Long.MIN_VALUE));
         assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
     }
@@ -122,7 +115,7 @@ class ToggleLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Toggle Lead - Negative ID - ThrowsNotFoundException")
     void toggleLead_NegativeId_ThrowsNotFoundException() {
-        when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(-1L, TEST_CLIENT_ID)).thenReturn(null);
+        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(-1L, TEST_CLIENT_ID, null);
         NotFoundException ex = assertThrows(NotFoundException.class, () -> leadService.toggleLead(-1L));
         assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
     }
@@ -135,7 +128,7 @@ class ToggleLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Toggle Lead - NotFound - ThrowsNotFoundException")
     void toggleLead_NotFound_ThrowsNotFoundException() {
-        when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(anyLong(), anyLong())).thenReturn(null);
+        stubLeadRepositoryFindByIdIncludingDeletedAny(null);
         NotFoundException ex = assertThrows(NotFoundException.class, () -> leadService.toggleLead(DEFAULT_LEAD_ID));
         assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
     }
@@ -148,7 +141,7 @@ class ToggleLeadTest extends LeadServiceTestBase {
     @Test
     @DisplayName("Toggle Lead - Zero ID - ThrowsNotFoundException")
     void toggleLead_ZeroId_ThrowsNotFoundException() {
-        when(leadRepository.findLeadWithDetailsByIdIncludingDeleted(0L, TEST_CLIENT_ID)).thenReturn(null);
+        stubLeadRepositoryFindLeadWithDetailsByIdIncludingDeleted(0L, TEST_CLIENT_ID, null);
         NotFoundException ex = assertThrows(NotFoundException.class, () -> leadService.toggleLead(0L));
         assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
     }
@@ -165,7 +158,7 @@ class ToggleLeadTest extends LeadServiceTestBase {
         // Arrange
         testLead.setIsDeleted(false);
         stubLeadRepositoryFindByIdSuccessActive(DEFAULT_LEAD_ID);
-        when(leadRepository.save(any())).thenReturn(testLead);
+        stubLeadRepositorySave(testLead);
         
         // Act
         leadService.toggleLead(DEFAULT_LEAD_ID);
@@ -185,8 +178,6 @@ class ToggleLeadTest extends LeadServiceTestBase {
     void toggleLead_controller_permission_forbidden() {
         // This test verifies controller-level authorization is configured
         // (Actual Spring Security AOP enforcement tested in integration tests)
-        LeadController controller = new LeadController(leadServiceMock);
-        
         // Verify @PreAuthorize annotation exists on toggleLead
         try {
             var method = LeadController.class.getMethod("toggleLead", Long.class);
@@ -250,7 +241,7 @@ class ToggleLeadTest extends LeadServiceTestBase {
     void toggleLead_WithValidRequest_DelegatesToService() {
         // Arrange
         LeadController controller = new LeadController(leadServiceMock);
-        doNothing().when(leadServiceMock).toggleLead(DEFAULT_LEAD_ID);
+        stubLeadServiceToggleLeadDoNothing(DEFAULT_LEAD_ID);
 
         // Act - Call controller directly (simulating authorization has already passed)
         ResponseEntity<?> response = controller.toggleLead(DEFAULT_LEAD_ID);

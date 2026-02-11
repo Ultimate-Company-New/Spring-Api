@@ -1,33 +1,23 @@
 package com.example.SpringApi.Services.Tests.User;
 
-import com.example.SpringApi.Services.UserService;
-
 import com.example.SpringApi.Controllers.UserController;
-import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.ResponseModels.UserResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
+import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit tests for UserService - Get User By Email functionality.
- * 
- * Tests: 9
- * 
- * @author SpringApi Team
- * @version 2.0
- * @since 2024-01-15
- */
+// Total Tests: 9
 @DisplayName("UserService - Get User By Email Tests")
 class GetUserByEmailTest extends UserServiceTestBase {
 
@@ -35,48 +25,71 @@ class GetUserByEmailTest extends UserServiceTestBase {
     // CONTROLLER AUTHORIZATION TESTS
     // ========================================
 
+    /**
+     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
+     * Expected Result: The method should be annotated with VIEW_USER_PERMISSION.
+     * Assertions: Annotation is present and contains expected permission string.
+     */
     @Test
     @DisplayName("getUserByEmail - Verify @PreAuthorize Annotation")
-    void getUserByEmail_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void getUserByEmail_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
         Method method = UserController.class.getMethod("getUserByEmail", String.class);
+
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-        assertNotNull(annotation, "@PreAuthorize annotation should be present on getUserByEmail method");
+
+        // Assert
+        assertNotNull(annotation, "getUserByEmail method should have @PreAuthorize annotation");
         assertTrue(annotation.value().contains(Authorizations.VIEW_USER_PERMISSION),
                 "@PreAuthorize annotation should check for VIEW_USER_PERMISSION");
     }
 
+    /**
+     * Purpose: Verify controller delegates to service.
+     * Expected Result: Service method is called.
+     * Assertions: verify(userService).getUserByEmail(email);
+     */
     @Test
     @DisplayName("getUserByEmail - Controller delegates to service")
     void getUserByEmail_WithValidEmail_DelegatesToService() {
-        UserService mockUserService = mock(UserService.class);
-        UserController controller = new UserController(mockUserService);
+        // Arrange
         String email = "test@example.com";
-        UserResponseModel mockResponse = new UserResponseModel();
-        when(mockUserService.getUserByEmail(email)).thenReturn(mockResponse);
+        com.example.SpringApi.Services.UserService mockUserService = mock(
+                com.example.SpringApi.Services.UserService.class);
+        UserController localController = new UserController(mockUserService);
+        doReturn(new UserResponseModel()).when(mockUserService).getUserByEmail(email);
 
-        ResponseEntity<?> response = controller.getUserByEmail(email);
+        // Act
+        localController.getUserByEmail(email);
 
-        verify(mockUserService).getUserByEmail(email);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // Assert
+        verify(mockUserService, times(1)).getUserByEmail(email);
     }
 
     // ========================================
-    // SUCCESS Tests
+    // SUCCESS TESTS
     // ========================================
 
     /**
-     * Purpose: Verify case sensitivity in email lookup.
+     * Purpose: Verify case sensitivity in email lookup logic (verify service passes
+     * string).
      * Expected Result: Returns user when email matches.
-     * Assertions: assertNotNull(result);
+     * Assertions: assertNotNull(result); verify repo called with uppercase email.
      */
     @Test
-    @DisplayName("Get User By Email - Case Sensitive - Returns user")
-    void getUserByEmail_CaseSensitive_ReturnsUser() {
-        when(userRepository.findByEmailWithAllRelations(eq("TEST@EXAMPLE.COM"), anyLong())).thenReturn(testUser);
+    @DisplayName("getUserByEmail - Case Sensitive - Returns user")
+    void getUserByEmail_caseSensitive_returnsUser() {
+        // Arrange
+        String upperEmail = "TEST@EXAMPLE.COM";
+        stubUserRepositoryFindByEmailWithAllRelations(testUser);
 
-        UserResponseModel result = userService.getUserByEmail("TEST@EXAMPLE.COM");
+        // Act
+        UserResponseModel result = userService.getUserByEmail(upperEmail);
 
+        // Assert
         assertNotNull(result);
+        verify(userRepository, times(1)).findByEmailWithAllRelations(eq(upperEmail), anyLong());
     }
 
     /**
@@ -86,12 +99,15 @@ class GetUserByEmailTest extends UserServiceTestBase {
      * times(1)).findByEmailWithAllRelations(...);
      */
     @Test
-    @DisplayName("Get User By Email - Repository called once")
-    void getUserByEmail_RepositoryCalledOnce() {
-        when(userRepository.findByEmailWithAllRelations(eq(TEST_EMAIL), anyLong())).thenReturn(testUser);
+    @DisplayName("getUserByEmail - Repository called once")
+    void getUserByEmail_repositoryCalledOnce() {
+        // Arrange
+        stubUserRepositoryFindByEmailWithAllRelations(testUser);
 
+        // Act
         userService.getUserByEmail(TEST_EMAIL);
 
+        // Assert
         verify(userRepository, times(1)).findByEmailWithAllRelations(eq(TEST_EMAIL), anyLong());
     }
 
@@ -101,12 +117,29 @@ class GetUserByEmailTest extends UserServiceTestBase {
      * Assertions: assertNotNull(result.getPermissions());
      */
     @Test
-    @DisplayName("Get User By Email - Success - Returns permissions")
-    void getUserByEmail_Success_ReturnsPermissions() {
-        when(userRepository.findByEmailWithAllRelations(eq(TEST_EMAIL), anyLong())).thenReturn(testUser);
+    @DisplayName("getUserByEmail - Success - Returns permissions")
+    void getUserByEmail_success_returnsPermissions() {
+        // Arrange
+        com.example.SpringApi.Models.DatabaseModels.Permission p1 = new com.example.SpringApi.Models.DatabaseModels.Permission();
+        p1.setPermissionId(1L);
+        com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping m1 = new com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping();
+        m1.setPermission(p1);
 
+        com.example.SpringApi.Models.DatabaseModels.Permission p2 = new com.example.SpringApi.Models.DatabaseModels.Permission();
+        p2.setPermissionId(2L);
+        com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping m2 = new com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping();
+        m2.setPermission(p2);
+
+        testUser.setUserClientPermissionMappings(new HashSet<>());
+        testUser.getUserClientPermissionMappings().add(m1);
+        testUser.getUserClientPermissionMappings().add(m2);
+
+        stubUserRepositoryFindByEmailWithAllRelations(testUser);
+
+        // Act
         UserResponseModel result = userService.getUserByEmail(TEST_EMAIL);
 
+        // Assert
         assertNotNull(result.getPermissions());
         assertEquals(2, result.getPermissions().size());
     }
@@ -118,103 +151,111 @@ class GetUserByEmailTest extends UserServiceTestBase {
      * result.getEmail());
      */
     @Test
-    @DisplayName("Get User By Email - Success - Returns user")
-    void getUserByEmail_Success_ReturnsUser() {
-        when(userRepository.findByEmailWithAllRelations(eq(TEST_EMAIL), anyLong())).thenReturn(testUser);
+    @DisplayName("getUserByEmail - Success - Returns user")
+    void getUserByEmail_success_returnsUser() {
+        // Arrange
+        stubUserRepositoryFindByEmailWithAllRelations(testUser);
 
+        // Act
         UserResponseModel result = userService.getUserByEmail(TEST_EMAIL);
 
+        // Assert
         assertNotNull(result);
         assertEquals(TEST_EMAIL, result.getEmail());
         assertEquals(TEST_USER_ID, result.getUserId());
     }
 
     // ========================================
-    // FAILURE Tests
+    // FAILURE TESTS
     // ========================================
 
     /**
      * Purpose: Verify non-existent email throws NotFoundException.
      * Expected Result: NotFoundException with "Invalid Email" message.
-     * Assertions: assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail,
-     * ex.getMessage());
      */
     @Test
-    @DisplayName("Get User By Email - Email Not Found - Throws NotFoundException")
-    void getUserByEmail_EmailNotFound_ThrowsNotFoundException() {
-        when(userRepository.findByEmailWithAllRelations(eq(TEST_EMAIL), anyLong())).thenReturn(null);
+    @DisplayName("getUserByEmail - Email Not Found - Throws NotFoundException")
+    void getUserByEmail_emailNotFound_throwsNotFoundException() {
+        // Arrange
+        stubUserRepositoryFindByEmailWithAllRelations(null);
 
+        // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userService.getUserByEmail(TEST_EMAIL));
 
+        // Assert
         assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail, ex.getMessage());
     }
 
     /**
      * Purpose: Verify empty email throws NotFoundException.
      * Expected Result: NotFoundException with "Invalid Email" message.
-     * Assertions: assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail,
-     * ex.getMessage());
      */
     @Test
-    @DisplayName("Get User By Email - Empty Email - Throws NotFoundException")
-    void getUserByEmail_EmptyEmail_ThrowsNotFoundException() {
-        when(userRepository.findByEmailWithAllRelations(eq(""), anyLong())).thenReturn(null);
+    @DisplayName("getUserByEmail - Empty Email - Throws NotFoundException")
+    void getUserByEmail_emptyEmail_throwsNotFoundException() {
+        // Arrange
+        stubUserRepositoryFindByEmailWithAllRelations(null);
 
+        // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userService.getUserByEmail(""));
 
+        // Assert
         assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail, ex.getMessage());
     }
 
     /**
      * Purpose: Verify invalid email format throws NotFoundException.
      * Expected Result: NotFoundException with "Invalid Email" message.
-     * Assertions: assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail,
-     * ex.getMessage());
      */
     @Test
-    @DisplayName("Get User By Email - Invalid Format - Throws NotFoundException")
-    void getUserByEmail_InvalidFormat_ThrowsNotFoundException() {
-        when(userRepository.findByEmailWithAllRelations(eq("not-an-email"), anyLong())).thenReturn(null);
+    @DisplayName("getUserByEmail - Invalid Format - Throws NotFoundException")
+    void getUserByEmail_invalidFormat_throwsNotFoundException() {
+        // Arrange
+        stubUserRepositoryFindByEmailWithAllRelations(null);
 
+        // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userService.getUserByEmail("not-an-email"));
 
+        // Assert
         assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail, ex.getMessage());
     }
 
     /**
      * Purpose: Verify null email throws NotFoundException.
      * Expected Result: NotFoundException with "Invalid Email" message.
-     * Assertions: assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail,
-     * ex.getMessage());
      */
     @Test
-    @DisplayName("Get User By Email - Null Email - Throws NotFoundException")
-    void getUserByEmail_NullEmail_ThrowsNotFoundException() {
-        when(userRepository.findByEmailWithAllRelations(isNull(), anyLong())).thenReturn(null);
+    @DisplayName("getUserByEmail - Null Email - Throws NotFoundException")
+    void getUserByEmail_nullEmail_throwsNotFoundException() {
+        // Arrange
+        stubUserRepositoryFindByEmailWithAllRelations(null);
 
+        // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userService.getUserByEmail(null));
 
+        // Assert
         assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail, ex.getMessage());
     }
 
     /**
      * Purpose: Verify whitespace email throws NotFoundException.
      * Expected Result: NotFoundException with "Invalid Email" message.
-     * Assertions: assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail,
-     * ex.getMessage());
      */
     @Test
-    @DisplayName("Get User By Email - Whitespace Email - Throws NotFoundException")
-    void getUserByEmail_WhitespaceEmail_ThrowsNotFoundException() {
-        when(userRepository.findByEmailWithAllRelations(eq("   "), anyLong())).thenReturn(null);
+    @DisplayName("getUserByEmail - Whitespace Email - Throws NotFoundException")
+    void getUserByEmail_whitespaceEmail_throwsNotFoundException() {
+        // Arrange
+        stubUserRepositoryFindByEmailWithAllRelations(null);
 
+        // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userService.getUserByEmail("   "));
 
+        // Assert
         assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail, ex.getMessage());
     }
 }

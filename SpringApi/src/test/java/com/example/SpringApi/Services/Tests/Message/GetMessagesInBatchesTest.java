@@ -14,7 +14,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -22,7 +21,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -57,9 +55,7 @@ public class GetMessagesInBatchesTest extends MessageServiceTestBase {
         List<Message> messages = Arrays.asList(testMessage);
         Page<Message> messagePage = new PageImpl<>(messages);
 
-        when(messageRepository.findPaginatedMessages(anyLong(), isNull(), isNull(), isNull(), anyBoolean(),
-                any(Pageable.class)))
-                .thenReturn(messagePage);
+        stubMessageRepositoryFindPaginatedMessages(messagePage);
 
         // Act
         PaginationBaseResponseModel<MessageResponseModel> result = messageService
@@ -87,9 +83,7 @@ public class GetMessagesInBatchesTest extends MessageServiceTestBase {
 
         for (String validCol : validColumns) {
             paginationRequest.setFilters(List.of(createFilterCondition(validCol, "equals", "test")));
-            when(messageRepository.findPaginatedMessages(anyLong(), any(), any(), any(), anyBoolean(),
-                    any(Pageable.class)))
-                    .thenReturn(new PageImpl<>(Arrays.asList()));
+            stubMessageRepositoryFindPaginatedMessages(new PageImpl<>(Arrays.asList()));
 
             // Act & Assert
             assertDoesNotThrow(() -> messageService.getMessagesInBatches(paginationRequest));
@@ -191,7 +185,7 @@ public class GetMessagesInBatchesTest extends MessageServiceTestBase {
         pRequest.setFilters(null);
 
         PaginationBaseResponseModel<MessageResponseModel> mockResponse = new PaginationBaseResponseModel<>();
-        when(messageServiceMock.getMessagesInBatches(any(PaginationBaseRequestModel.class))).thenReturn(mockResponse);
+        stubMessageServiceGetMessagesInBatches(mockResponse);
 
         // Act
         ResponseEntity<?> response = controller.getMessagesInBatches(pRequest);

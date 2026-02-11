@@ -45,8 +45,7 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
         void getMessageDetailsById_MappingVerification_Success() {
                 // Arrange
                 testMessage.setDescriptionHtml("<b>Test</b>");
-                when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(testMessage));
+                stubMessageRepositoryFindByMessageIdAndClientIdWithTargets(Optional.of(testMessage));
 
                 // Act
                 MessageResponseModel result = messageService.getMessageDetailsById(TEST_MESSAGE_ID);
@@ -65,8 +64,7 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
         @DisplayName("Get Message Details By ID - Success")
         void getMessageDetailsById_Success() {
                 // Arrange
-                when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(testMessage));
+                stubMessageRepositoryFindByMessageIdAndClientIdWithTargets(Optional.of(testMessage));
 
                 // Act
                 MessageResponseModel result = messageService.getMessageDetailsById(TEST_MESSAGE_ID);
@@ -88,8 +86,7 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
         void getMessageDetailsById_VerifySendAsEmail_Success() {
                 // Arrange
                 testMessage.setSendAsEmail(true);
-                when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(testMessage));
+                stubMessageRepositoryFindByMessageIdAndClientIdWithTargets(Optional.of(testMessage));
 
                 // Act
                 MessageResponseModel result = messageService.getMessageDetailsById(TEST_MESSAGE_ID);
@@ -109,8 +106,7 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
         @DisplayName("Get Message Details By ID - With Targets - Success")
         void getMessageDetailsById_WithTargets_Success() {
                 // Arrange
-                when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(testMessage));
+                stubMessageRepositoryFindByMessageIdAndClientIdWithTargets(Optional.of(testMessage));
 
                 // Act & Assert
                 assertDoesNotThrow(() -> messageService.getMessageDetailsById(TEST_MESSAGE_ID));
@@ -131,8 +127,7 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
         @DisplayName("Get Message Details By ID - Message not found - Throws NotFoundException")
         void getMessageDetailsById_MessageNotFound_ThrowsNotFoundException() {
                 // Arrange
-                when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.empty());
+                stubMessageRepositoryFindByMessageIdAndClientIdWithTargets(Optional.empty());
 
                 // Act & Assert
                 assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
@@ -159,8 +154,7 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
         @DisplayName("Get Message Details By ID - Repository Error - Propagates Exception")
         void getMessageDetailsById_RepositoryError_Propagates() {
                 // Arrange
-                when(messageRepository.findByMessageIdAndClientIdWithTargets(anyLong(), anyLong()))
-                                .thenThrow(new RuntimeException("Lookup failed"));
+                stubMessageRepositoryFindByMessageIdAndClientIdWithTargetsThrows("Lookup failed");
 
                 // Act & Assert
                 RuntimeException ex = assertThrows(RuntimeException.class,
@@ -179,8 +173,7 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
         @DisplayName("Get Message Details By ID - Unauthorized Access - Throws UnauthorizedException")
         void getMessageDetailsById_UnauthorizedAccess_ThrowsUnauthorizedException() {
                 // Arrange
-                when(messageRepository.findByMessageIdAndClientIdWithTargets(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(testMessage));
+                stubMessageRepositoryFindByMessageIdAndClientIdWithTargets(Optional.of(testMessage));
 
                 // Act & Assert
                 assertDoesNotThrow(() -> messageService.getMessageDetailsById(TEST_MESSAGE_ID));
@@ -243,8 +236,7 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
                 MessageController controller = new MessageController(messageServiceMock);
                 PaginationBaseRequestModel pRequest = new PaginationBaseRequestModel();
                 pRequest.setId(TEST_MESSAGE_ID);
-                when(messageServiceMock.getMessageDetailsById(TEST_MESSAGE_ID))
-                                .thenReturn(new MessageResponseModel(testMessage));
+                stubMessageServiceGetMessageDetailsById(new MessageResponseModel(testMessage));
 
                 // Act
                 ResponseEntity<?> response = controller.getMessageDetailsById(pRequest);

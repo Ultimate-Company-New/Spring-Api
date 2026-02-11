@@ -62,7 +62,8 @@ public class ApprovedByPOTest extends PurchaseOrderServiceTestBase {
                 eq(TEST_PO_ID), anyLong())).thenReturn(Optional.of(testPurchaseOrder));
 
         // Act & Assert
-        assertThrowsBadRequest("AlreadyApproved", () -> purchaseOrderService.approvedByPurchaseOrder(TEST_PO_ID));
+        assertThrowsBadRequest(com.example.SpringApi.ErrorMessages.PurchaseOrderErrorMessages.AlreadyApproved,
+            () -> purchaseOrderService.approvedByPurchaseOrder(TEST_PO_ID));
         verify(purchaseOrderRepository, never()).save(any());
     }
 
@@ -74,7 +75,8 @@ public class ApprovedByPOTest extends PurchaseOrderServiceTestBase {
                 eq(TEST_PO_ID), anyLong())).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrowsBadRequest("InvalidId", () -> purchaseOrderService.approvedByPurchaseOrder(TEST_PO_ID));
+        assertThrowsNotFound(com.example.SpringApi.ErrorMessages.PurchaseOrderErrorMessages.InvalidId,
+            () -> purchaseOrderService.approvedByPurchaseOrder(TEST_PO_ID));
         verify(purchaseOrderRepository, never()).save(any());
     }
 
@@ -91,7 +93,8 @@ public class ApprovedByPOTest extends PurchaseOrderServiceTestBase {
                     lenient().when(purchaseOrderRepository.findByPurchaseOrderIdAndClientId(
                             eq(id), anyLong())).thenReturn(Optional.empty());
 
-                    assertThrowsBadRequest("InvalidId", () -> purchaseOrderService.approvedByPurchaseOrder(id));
+                assertThrowsNotFound(com.example.SpringApi.ErrorMessages.PurchaseOrderErrorMessages.InvalidId,
+                    () -> purchaseOrderService.approvedByPurchaseOrder(id));
                 }));
     }
 
@@ -114,12 +117,13 @@ public class ApprovedByPOTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("approvedByPurchaseOrder - Controller delegates to service")
     void approvedByPurchaseOrder_WithValidId_DelegatesToService() {
-        PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderService);
-        doNothing().when(purchaseOrderService).approvedByPurchaseOrder(TEST_PO_ID);
+        com.example.SpringApi.Services.PurchaseOrderService mockService = mock(com.example.SpringApi.Services.PurchaseOrderService.class);
+        PurchaseOrderController controller = new PurchaseOrderController(mockService);
+        doNothing().when(mockService).approvedByPurchaseOrder(TEST_PO_ID);
 
         ResponseEntity<?> response = controller.approvedByPurchaseOrder(TEST_PO_ID);
 
-        verify(purchaseOrderService).approvedByPurchaseOrder(TEST_PO_ID);
+        verify(mockService).approvedByPurchaseOrder(TEST_PO_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

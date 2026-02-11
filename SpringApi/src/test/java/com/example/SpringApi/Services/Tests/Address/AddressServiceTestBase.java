@@ -12,7 +12,7 @@ import com.example.SpringApi.Services.AddressService;
 import com.example.SpringApi.Services.UserLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Services.Tests.BaseTest;
+import com.example.SpringApi.Exceptions.BadRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.List;
 
@@ -31,7 +32,28 @@ import static org.mockito.Mockito.*;
  * Centralizes common test data and stubbing logic.
  */
 @ExtendWith(MockitoExtension.class)
-abstract class AddressServiceTestBase extends BaseTest {
+abstract class AddressServiceTestBase {
+
+    // ==================== COMMON TEST CONSTANTS ====================
+
+    protected static final Long DEFAULT_ADDRESS_ID = 1L;
+    protected static final Long DEFAULT_USER_ID = 1L;
+    protected static final Long DEFAULT_CLIENT_ID = 100L;
+    protected static final String DEFAULT_ADDRESS_TYPE = "HOME";
+    protected static final String DEFAULT_STREET_ADDRESS = "123 Main St";
+    protected static final String DEFAULT_CITY = "New York";
+    protected static final String DEFAULT_STATE = "NY";
+    protected static final String DEFAULT_POSTAL_CODE = "10001";
+    protected static final String DEFAULT_COUNTRY = "USA";
+    protected static final String DEFAULT_CREATED_USER = "admin";
+    protected static final String DEFAULT_LOGIN_NAME = "testuser";
+    protected static final String DEFAULT_EMAIL = "test@example.com";
+    protected static final String DEFAULT_FIRST_NAME = "Test";
+    protected static final String DEFAULT_LAST_NAME = "User";
+    protected static final String DEFAULT_CLIENT_NAME = "Test Client";
+    protected static final String DEFAULT_CLIENT_DESCRIPTION = "Test Client Description";
+    protected static final String DEFAULT_SUPPORT_EMAIL = "support@testclient.com";
+    protected static final String DEFAULT_WEBSITE = "https://testclient.com";
 
     @Mock
     protected AddressRepository addressRepository;
@@ -57,6 +79,9 @@ abstract class AddressServiceTestBase extends BaseTest {
     protected Client testClient;
     protected User testUser;
 
+    // Controller under test for permission tests (Rule 3)
+    protected com.example.SpringApi.Controllers.AddressController addressController;
+
     /**
      * Common setup for all address tests.
      * Rule 14: No inline mocks allowed here. Only data initialization.
@@ -67,6 +92,9 @@ abstract class AddressServiceTestBase extends BaseTest {
         testClient = createTestClient();
         testUser = createTestUser();
         testAddress = createTestAddress(testAddressRequest, DEFAULT_CREATED_USER);
+
+        // Initialize controller with spied service for local permission tests
+        addressController = new com.example.SpringApi.Controllers.AddressController(addressService);
     }
 
     /**
@@ -161,14 +189,6 @@ abstract class AddressServiceTestBase extends BaseTest {
     }
 
     /**
-     * Helper to assert a NotFoundException is thrown and the message matches.
-     */
-    protected void assertThrowsNotFound(String expectedMessage, org.junit.jupiter.api.function.Executable executable) {
-        NotFoundException ex = assertThrows(NotFoundException.class, executable);
-        assertEquals(expectedMessage, ex.getMessage());
-    }
-
-    /**
      * Centralized stub for controller delegation tests - getAddressByClientId.
      */
     protected void stubServiceGetAddressByClientId(long clientId, List<AddressResponseModel> result) {
@@ -215,5 +235,109 @@ abstract class AddressServiceTestBase extends BaseTest {
      */
     protected void stubServiceGetUser(String username) {
         lenient().doReturn(username).when(addressService).getUser();
+    }
+
+    protected void assertThrowsBadRequest(String expectedMessage, org.junit.jupiter.api.function.Executable executable) {
+        BadRequestException ex = assertThrows(BadRequestException.class, executable);
+        assertEquals(expectedMessage, ex.getMessage());
+    }
+
+    protected void assertThrowsNotFound(String expectedMessage, org.junit.jupiter.api.function.Executable executable) {
+        NotFoundException ex = assertThrows(NotFoundException.class, executable);
+        assertEquals(expectedMessage, ex.getMessage());
+    }
+
+    // ==================== FACTORY METHODS ====================
+
+    protected User createTestUser() {
+        return createTestUser(DEFAULT_USER_ID);
+    }
+
+    protected User createTestUser(Long userId) {
+        return createTestUser(userId, DEFAULT_LOGIN_NAME, DEFAULT_EMAIL);
+    }
+
+    protected User createTestUser(Long userId, String loginName, String email) {
+        User user = new User();
+        user.setUserId(userId);
+        user.setLoginName(loginName);
+        user.setFirstName(DEFAULT_FIRST_NAME);
+        user.setLastName(DEFAULT_LAST_NAME);
+        user.setEmail(email);
+        user.setIsDeleted(false);
+        user.setCreatedUser(DEFAULT_CREATED_USER);
+        user.setModifiedUser(DEFAULT_CREATED_USER);
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
+        return user;
+    }
+
+    protected Client createTestClient() {
+        return createTestClient(DEFAULT_CLIENT_ID);
+    }
+
+    protected Client createTestClient(Long clientId) {
+        return createTestClient(clientId, DEFAULT_CLIENT_NAME);
+    }
+
+    protected Client createTestClient(Long clientId, String name) {
+        Client client = new Client();
+        client.setClientId(clientId);
+        client.setName(name);
+        client.setDescription(DEFAULT_CLIENT_DESCRIPTION);
+        client.setSupportEmail(DEFAULT_SUPPORT_EMAIL);
+        client.setWebsite(DEFAULT_WEBSITE);
+        client.setIsDeleted(false);
+        client.setCreatedUser(DEFAULT_CREATED_USER);
+        client.setModifiedUser(DEFAULT_CREATED_USER);
+        client.setCreatedAt(LocalDateTime.now());
+        client.setUpdatedAt(LocalDateTime.now());
+        return client;
+    }
+
+    protected AddressRequestModel createValidAddressRequest() {
+        return createValidAddressRequest(DEFAULT_ADDRESS_ID, DEFAULT_USER_ID, DEFAULT_CLIENT_ID);
+    }
+
+    protected AddressRequestModel createValidAddressRequest(Long addressId, Long userId, Long clientId) {
+        AddressRequestModel request = new AddressRequestModel();
+        request.setId(addressId);
+        request.setUserId(userId);
+        request.setClientId(clientId);
+        request.setAddressType(DEFAULT_ADDRESS_TYPE);
+        request.setStreetAddress(DEFAULT_STREET_ADDRESS);
+        request.setCity(DEFAULT_CITY);
+        request.setState(DEFAULT_STATE);
+        request.setPostalCode(DEFAULT_POSTAL_CODE);
+        request.setCountry(DEFAULT_COUNTRY);
+        request.setIsPrimary(true);
+        request.setIsDeleted(false);
+        return request;
+    }
+
+    protected Address createTestAddress(AddressRequestModel request, String createdUser) {
+        Address address = new Address(request, createdUser);
+        address.setAddressId(request.getId());
+        address.setIsDeleted(false);
+        address.setCreatedAt(LocalDateTime.now());
+        address.setUpdatedAt(LocalDateTime.now());
+        return address;
+    }
+
+    protected Address createTestAddress() {
+        return createTestAddress(createValidAddressRequest(), DEFAULT_CREATED_USER);
+    }
+
+    protected Address createTestAddress(Long addressId) {
+        AddressRequestModel request = createValidAddressRequest();
+        request.setId(addressId);
+        return createTestAddress(request, DEFAULT_CREATED_USER);
+    }
+
+    protected Address createTestAddress(Long addressId, String addressType) {
+        AddressRequestModel request = createValidAddressRequest();
+        request.setId(addressId);
+        request.setAddressType(addressType);
+        return createTestAddress(request, DEFAULT_CREATED_USER);
     }
 }

@@ -8,15 +8,20 @@ import com.example.SpringApi.Repositories.*;
 import com.example.SpringApi.Services.ClientService;
 import com.example.SpringApi.Services.MessageService;
 import com.example.SpringApi.Services.ProductService;
-import com.example.SpringApi.Services.Tests.BaseTest;
 import com.example.SpringApi.Services.UserLogService;
 import com.example.SpringApi.Constants.ProductConditionConstants;
+import com.example.SpringApi.Helpers.ImgbbHelper;
+import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.Exceptions.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
+import org.springframework.test.util.ReflectionTestUtils;
+import com.example.SpringApi.Repositories.UserRepository;
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -28,13 +33,24 @@ import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Base test class for ProductService tests.
- * Contains common mocks, dependencies, and setup logic shared across all ProductService test classes.
+ * Contains common mocks, dependencies, and setup logic shared across all
+ * ProductService test classes.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class ProductServiceTestBase extends BaseTest {
+public abstract class ProductServiceTestBase {
+
+    // ==================== COMMON TEST CONSTANTS ====================
+
+    protected static final Long DEFAULT_PRODUCT_ID = 1L;
+    protected static final Long DEFAULT_USER_ID = 1L;
+    protected static final Long DEFAULT_PICKUP_LOCATION_ID = 1L;
+    protected static final Long DEFAULT_GOOGLE_CRED_ID = 100L;
+    protected static final String DEFAULT_CREATED_USER = "admin";
 
     @Mock
     protected ProductRepository productRepository;
@@ -63,6 +79,7 @@ public abstract class ProductServiceTestBase extends BaseTest {
     @Mock
     protected ProductFilterQueryBuilder productFilterQueryBuilder;
 
+    @Mock
     protected MessageService messageService;
 
     @Mock
@@ -71,6 +88,12 @@ public abstract class ProductServiceTestBase extends BaseTest {
     @Mock
     protected HttpServletRequest request;
 
+    @Mock
+    protected UserRepository userRepository;
+
+    @Mock
+    protected JwtTokenProvider jwtTokenProvider;
+
     protected ProductService productService;
 
     protected Product testProduct;
@@ -78,6 +101,7 @@ public abstract class ProductServiceTestBase extends BaseTest {
     protected ProductCategory testCategory;
     protected GoogleCred testGoogleCred;
     protected ClientResponseModel testClientResponse;
+    protected Client testClient;
     protected PickupLocation testPickupLocation;
 
     protected static final Long TEST_PRODUCT_ID = DEFAULT_PRODUCT_ID;
@@ -110,22 +134,17 @@ public abstract class ProductServiceTestBase extends BaseTest {
         googleCredRepository = mock(GoogleCredRepository.class);
         clientRepository = mock(ClientRepository.class);
         clientService = mock(ClientService.class);
+        messageService = mock(MessageService.class);
+        productFilterQueryBuilder = mock(ProductFilterQueryBuilder.class);
         environment = mock(Environment.class);
         request = mock(HttpServletRequest.class);
+        userRepository = mock(UserRepository.class);
+        jwtTokenProvider = mock(JwtTokenProvider.class);
 
-        // Mock HttpServletRequest Authorization header for authentication
-        lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+        // Stub environment
+        lenient().when(environment.getActiveProfiles()).thenReturn(new String[] { "test" });
 
-        // Mock BaseService.getUser() to return a valid user ID
-        lenient().when(request.getAttribute("userId")).thenReturn(1L);
-
-        // Mock BaseService.getClientId() to return a valid client ID
-        lenient().when(request.getAttribute("clientId")).thenReturn(1L);
-
-        // MessageService is not used in tested methods, so pass null
-        messageService = null;
-
-        // Create ProductService instance manually with all dependencies
+        // Initialize ProductService
         productService = new ProductService(
                 productRepository,
                 productPickupLocationMappingRepository,
@@ -138,28 +157,102 @@ public abstract class ProductServiceTestBase extends BaseTest {
                 messageService,
                 environment,
                 request);
+        ReflectionTestUtils.setField(productService, "imageLocation", "imgbb");
+        ReflectionTestUtils.setField(productService, "userRepository", userRepository);
+        ReflectionTestUtils.setField(productService, "jwtTokenProvider", jwtTokenProvider);
+        ReflectionTestUtils.setField(productService, "request", request);
 
         // Initialize test data
         initializeTestData();
 
-        // Setup common mock behaviors
+        // Standard stubs (lenient)
+        lenient().when(clientRepository.findById(anyLong())).thenReturn(Optional.of(testClient));
+        lenient().when(clientService.getClientById(anyLong())).thenReturn(testClientResponse);
+        lenient().when(productCategoryRepository.findById(anyLong())).thenReturn(Optional.of(testCategory));
+        lenient().when(productRepository.save(any(Product.class))).thenAnswer(invocation -> {
+            Product p = invocation.getArgument(0);
+            if (p.getProductId() == null) {
+                p.setProductId(TEST_PRODUCT_ID);
+            }
+            return p;
+        });
+    }
+
+    protected void stubRequestAuthorization() {
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
-        lenient().when(request.getAttribute("userId")).thenReturn(DEFAULT_USER_ID);
-        lenient().when(request.getAttribute("user")).thenReturn(CREATED_USER);
-        lenient().when(environment.getActiveProfiles()).thenReturn(new String[] { "test" });
+    }
 
-        // Mock repository methods
-        lenient().when(productCategoryRepository.findById(TEST_CATEGORY_ID)).thenReturn(Optional.of(testCategory));
-        lenient().when(googleCredRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testGoogleCred));
-        lenient().when(clientService.getClientById(TEST_CLIENT_ID)).thenReturn(testClientResponse);
-        lenient().when(productRepository.save(any(Product.class))).thenReturn(testProduct);
+    protected void stubRequestAttributes(Long userId, Long clientId, String user) {
+        lenient().when(request.getAttribute("userId")).thenReturn(userId);
+        lenient().when(request.getAttribute("clientId")).thenReturn(clientId);
+        lenient().when(request.getAttribute("user")).thenReturn(user);
+    }
 
-        // Mock clientRepository.findById for Client lookup
-        Client testClient = new Client();
-        testClient.setClientId(TEST_CLIENT_ID);
-        testClient.setName(TEST_CLIENT_NAME);
-        testClient.setImgbbApiKey("test-imgbb-api-key");
-        lenient().when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+    protected void stubEnvironment(String[] profiles) {
+        lenient().when(environment.getActiveProfiles()).thenReturn(profiles);
+    }
+
+    protected void stubProductCategoryRepositoryFindById(Long categoryId, ProductCategory category) {
+        lenient().when(productCategoryRepository.findById(categoryId)).thenReturn(Optional.ofNullable(category));
+    }
+
+    protected void stubGoogleCredRepositoryFindById(Long clientId, GoogleCred googleCred) {
+        lenient().when(googleCredRepository.findById(clientId)).thenReturn(Optional.ofNullable(googleCred));
+    }
+
+    protected void stubClientServiceGetClientById(Long clientId, ClientResponseModel clientResponse) {
+        lenient().when(clientService.getClientById(clientId)).thenReturn(clientResponse);
+    }
+
+    protected void stubProductRepositorySave(Product product) {
+        lenient().when(productRepository.save(any(Product.class))).thenReturn(product);
+    }
+
+    protected void stubClientRepositoryFindById(Long clientId, Client client) {
+        lenient().when(clientRepository.findById(clientId)).thenReturn(Optional.ofNullable(client));
+    }
+
+    protected com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel createValidPaginationRequest() {
+        com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel request = new com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel();
+        request.setStart(0);
+        request.setEnd(10);
+        request.setFilters(new java.util.ArrayList<>());
+        return request;
+    }
+
+    protected void assertThrowsBadRequest(String expectedMessage, org.junit.jupiter.api.function.Executable executable) {
+        BadRequestException ex = assertThrows(BadRequestException.class, executable);
+        assertEquals(expectedMessage, ex.getMessage());
+    }
+
+    protected void assertThrowsNotFound(String expectedMessage, org.junit.jupiter.api.function.Executable executable) {
+        NotFoundException ex = assertThrows(NotFoundException.class, executable);
+        assertEquals(expectedMessage, ex.getMessage());
+    }
+
+    protected void stubProductRepositoryFindByIdWithRelatedEntities(Long productId, Long clientId, Product product) {
+        lenient().when(productRepository.findByIdWithRelatedEntities(productId, clientId)).thenReturn(product);
+    }
+
+    protected void stubProductPickupLocationMappingRepositoryDeleteByProductId(Long productId) {
+        lenient().doNothing().when(productPickupLocationMappingRepository).deleteByProductId(productId);
+    }
+
+    protected void stubUserLogServiceLogDataWithContext() {
+        lenient().when(userLogService.logDataWithContext(anyLong(), anyString(), anyLong(), anyString(),
+                anyString())).thenReturn(true);
+    }
+
+    protected void stubImgbbHelperUploadSuccess(ImgbbHelper mock) {
+        ImgbbHelper.ImgbbUploadResponse mockResponse = new ImgbbHelper.ImgbbUploadResponse(
+                "https://i.ibb.co/test/image.png",
+                "test-delete-hash");
+        lenient().when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
+        lenient().when(mock.deleteImage(anyString())).thenReturn(true);
+    }
+
+    protected void stubImgbbHelperUploadFailure(ImgbbHelper mock) {
+        lenient().when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(null);
     }
 
     protected void initializeTestData() {
@@ -184,6 +277,12 @@ public abstract class ProductServiceTestBase extends BaseTest {
         testClientResponse = new ClientResponseModel();
         testClientResponse.setClientId(TEST_CLIENT_ID);
         testClientResponse.setName(TEST_CLIENT_NAME);
+
+        // Initialize test client database model
+        testClient = new Client();
+        testClient.setClientId(TEST_CLIENT_ID);
+        testClient.setName(TEST_CLIENT_NAME);
+        testClient.setImgbbApiKey("test-imgbb-key");
 
         // Initialize test product request
         testProductRequest = new ProductRequestModel();
@@ -238,6 +337,5 @@ public abstract class ProductServiceTestBase extends BaseTest {
         mappings.add(mapping);
         testProduct.setProductPickupLocationMappings(mappings);
     }
-
 
 }

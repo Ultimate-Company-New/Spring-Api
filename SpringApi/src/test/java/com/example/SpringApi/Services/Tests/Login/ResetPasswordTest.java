@@ -5,13 +5,14 @@ import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Helpers.PasswordHelper;
 import com.example.SpringApi.Helpers.EmailTemplates;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.MockedConstruction;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -20,6 +21,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Reset Password Tests")
 public class ResetPasswordTest extends LoginServiceTestBase {
+
+    // Total Tests: 15
 
     /*
      **********************************************************************************************
@@ -34,34 +37,24 @@ public class ResetPasswordTest extends LoginServiceTestBase {
      */
     @Test
     @DisplayName("Reset Password - Success - Should reset password and send email")
-    void resetPassword_Success() {
+    void resetPassword_Success_Success() {
         // Arrange
         testUser.setPassword("oldHashedPassword");
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
+        stubUserRepositoryFindByLoginName(TEST_LOGIN_NAME, testUser);
+        stubClientRepositoryFindFirstByOrderByClientIdAsc(testClient);
+        stubEnvironmentSendGridProperties("test@example.com", "Test Sender", "test-api-key");
 
-        when(environment.getProperty("email.sender.address")).thenReturn("test@example.com");
-        when(environment.getProperty("email.sender.name")).thenReturn("Test Sender");
-        when(environment.getProperty("email.service", "sendgrid")).thenReturn("sendgrid");
-        when(environment.getProperty("sendgrid.api.key")).thenReturn("test-api-key");
+        try (MockedStatic<PasswordHelper> mockedPasswordHelper =
+                     stubPasswordHelperRandomPassword("newPassword123", new String[] { "newSalt", "newHashedPassword" });
+             MockedConstruction<EmailTemplates> mockedEmailTemplates =
+                     stubEmailTemplatesSendResetPasswordEmail(true)) {
 
-        try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class)) {
-            mockedPasswordHelper.when(PasswordHelper::getRandomPassword).thenReturn("newPassword123");
-            mockedPasswordHelper.when(() -> PasswordHelper.getHashedPasswordAndSalt(anyString()))
-                    .thenReturn(new String[] { "newSalt", "newHashedPassword" });
+            // Act
+            Boolean result = loginService.resetPassword(testLoginRequest);
 
-            try (MockedConstruction<EmailTemplates> mockedEmailTemplates = mockConstruction(EmailTemplates.class,
-                    (mock, context) -> {
-                        when(mock.sendResetPasswordEmail(anyString(), anyString())).thenReturn(true);
-                    })) {
-
-                // Act
-                Boolean result = loginService.resetPassword(testLoginRequest);
-
-                // Assert
-                assertTrue(result);
-                verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
-            }
+            // Assert
+            assertTrue(result);
+            verify(userRepository, times(1)).findByLoginName(TEST_LOGIN_NAME);
         }
     }
 
@@ -79,24 +72,21 @@ public class ResetPasswordTest extends LoginServiceTestBase {
     @Test
     @DisplayName("Reset Password - Email send failure - Throws RuntimeException")
     void resetPassword_EmailSendFailure_ThrowsRuntimeException() {
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
-        when(environment.getProperty("email.sender.address")).thenReturn("test@example.com");
-        when(environment.getProperty("email.sender.name")).thenReturn("Sender");
-        when(environment.getProperty("email.service", "sendgrid")).thenReturn("sendgrid");
-        when(environment.getProperty("sendgrid.api.key")).thenReturn("key");
+        // Arrange
+        stubUserRepositoryFindByLoginName(TEST_LOGIN_NAME, testUser);
+        stubClientRepositoryFindFirstByOrderByClientIdAsc(testClient);
+        stubEnvironmentSendGridProperties("test@example.com", "Sender", "key");
 
-        try (MockedStatic<PasswordHelper> mockedPasswordHelper = mockStatic(PasswordHelper.class);
-             MockedConstruction<EmailTemplates> emailTemplatesMock = mockConstruction(EmailTemplates.class,
-                (mock, context) -> when(mock.sendResetPasswordEmail(anyString(), anyString())).thenReturn(false))) {
-            mockedPasswordHelper.when(PasswordHelper::getRandomPassword).thenReturn("newpass");
-            mockedPasswordHelper.when(() -> PasswordHelper.getHashedPasswordAndSalt(anyString()))
-                .thenReturn(new String[] {"salt", "hash"});
+        // Act & Assert
+        try (MockedStatic<PasswordHelper> mockedPasswordHelper =
+                     stubPasswordHelperRandomPassword("newpass", new String[] { "salt", "hash" });
+             MockedConstruction<EmailTemplates> emailTemplatesMock =
+                     stubEmailTemplatesSendResetPasswordEmail(false)) {
 
             RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> loginService.resetPassword(testLoginRequest));
 
-            assertEquals("Failed to send reset password email", exception.getMessage());
+            assertEquals(ErrorMessages.LoginErrorMessages.ResetPasswordEmailFailed, exception.getMessage());
         }
     }
 
@@ -108,9 +98,11 @@ public class ResetPasswordTest extends LoginServiceTestBase {
     @Test
     @DisplayName("Reset Password - Failure - User has empty password")
     void resetPassword_EmptyPasswordSet_ThrowsBadRequestException() {
+        // Arrange
         testUser.setPassword("");
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+        stubUserRepositoryFindByLoginName(TEST_LOGIN_NAME, testUser);
 
+        // Act & Assert
         BadRequestException exception = assertThrows(
                 BadRequestException.class,
                 () -> loginService.resetPassword(testLoginRequest));
@@ -126,13 +118,12 @@ public class ResetPasswordTest extends LoginServiceTestBase {
     @Test
     @DisplayName("Reset Password - Missing Brevo API key - Throws BadRequestException")
     void resetPassword_MissingBrevoApiKey_ThrowsBadRequestException() {
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
-        when(environment.getProperty("email.service", "sendgrid")).thenReturn("brevo");
-        when(environment.getProperty("brevo.sender.address")).thenReturn("test@example.com");
-        when(environment.getProperty("brevo.sender.name")).thenReturn("Sender");
-        when(environment.getProperty("brevo.api.key")).thenReturn("");
+        // Arrange
+        stubUserRepositoryFindByLoginName(TEST_LOGIN_NAME, testUser);
+        stubClientRepositoryFindFirstByOrderByClientIdAsc(testClient);
+        stubEnvironmentBrevoProperties("test@example.com", "Sender", "");
 
+        // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> loginService.resetPassword(testLoginRequest));
 
@@ -147,8 +138,10 @@ public class ResetPasswordTest extends LoginServiceTestBase {
     @Test
     @DisplayName("Reset Password - Failure - Missing login name")
     void resetPassword_MissingLoginName_ThrowsBadRequestException() {
+        // Arrange
         testLoginRequest.setLoginName("");
 
+        // Act & Assert
         BadRequestException exception = assertThrows(
                 BadRequestException.class,
                 () -> loginService.resetPassword(testLoginRequest));
@@ -164,13 +157,12 @@ public class ResetPasswordTest extends LoginServiceTestBase {
     @Test
     @DisplayName("Reset Password - Missing SendGrid API key - Throws BadRequestException")
     void resetPassword_MissingSendGridApiKey_ThrowsBadRequestException() {
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
-        when(environment.getProperty("email.sender.address")).thenReturn("test@example.com");
-        when(environment.getProperty("email.sender.name")).thenReturn("Sender");
-        when(environment.getProperty("email.service", "sendgrid")).thenReturn("sendgrid");
-        when(environment.getProperty("sendgrid.api.key")).thenReturn("");
+        // Arrange
+        stubUserRepositoryFindByLoginName(TEST_LOGIN_NAME, testUser);
+        stubClientRepositoryFindFirstByOrderByClientIdAsc(testClient);
+        stubEnvironmentSendGridProperties("test@example.com", "Sender", "");
 
+        // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> loginService.resetPassword(testLoginRequest));
 
@@ -185,13 +177,12 @@ public class ResetPasswordTest extends LoginServiceTestBase {
     @Test
     @DisplayName("Reset Password - Missing sender email - Throws BadRequestException")
     void resetPassword_MissingSenderEmail_ThrowsBadRequestException() {
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
-        when(environment.getProperty("email.sender.address")).thenReturn(null);
-        when(environment.getProperty("email.sender.name")).thenReturn("Sender");
-        when(environment.getProperty("email.service", "sendgrid")).thenReturn("sendgrid");
-        when(environment.getProperty("sendgrid.api.key")).thenReturn("key");
+        // Arrange
+        stubUserRepositoryFindByLoginName(TEST_LOGIN_NAME, testUser);
+        stubClientRepositoryFindFirstByOrderByClientIdAsc(testClient);
+        stubEnvironmentSendGridProperties(null, "Sender", "key");
 
+        // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> loginService.resetPassword(testLoginRequest));
 
@@ -206,13 +197,12 @@ public class ResetPasswordTest extends LoginServiceTestBase {
     @Test
     @DisplayName("Reset Password - Missing sender name - Throws BadRequestException")
     void resetPassword_MissingSenderName_ThrowsBadRequestException() {
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(testClient);
-        when(environment.getProperty("email.sender.address")).thenReturn("test@example.com");
-        when(environment.getProperty("email.sender.name")).thenReturn(" ");
-        when(environment.getProperty("email.service", "sendgrid")).thenReturn("sendgrid");
-        when(environment.getProperty("sendgrid.api.key")).thenReturn("key");
+        // Arrange
+        stubUserRepositoryFindByLoginName(TEST_LOGIN_NAME, testUser);
+        stubClientRepositoryFindFirstByOrderByClientIdAsc(testClient);
+        stubEnvironmentSendGridProperties("test@example.com", " ", "key");
 
+        // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> loginService.resetPassword(testLoginRequest));
 
@@ -227,9 +217,11 @@ public class ResetPasswordTest extends LoginServiceTestBase {
     @Test
     @DisplayName("Reset Password - Missing client configuration - Throws RuntimeException")
     void resetPassword_NoClientConfiguration_ThrowsRuntimeException() {
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
-        when(clientRepository.findFirstByOrderByClientIdAsc()).thenReturn(null);
+        // Arrange
+        stubUserRepositoryFindByLoginName(TEST_LOGIN_NAME, testUser);
+        stubClientRepositoryFindFirstByOrderByClientIdAsc(null);
 
+        // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class,
             () -> loginService.resetPassword(testLoginRequest));
 
@@ -244,9 +236,11 @@ public class ResetPasswordTest extends LoginServiceTestBase {
     @Test
     @DisplayName("Reset Password - Failure - User has no password set")
     void resetPassword_NoPasswordSet_ThrowsBadRequestException() {
+        // Arrange
         testUser.setPassword(null);
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(testUser);
+        stubUserRepositoryFindByLoginName(TEST_LOGIN_NAME, testUser);
 
+        // Act & Assert
         BadRequestException exception = assertThrows(
                 BadRequestException.class,
                 () -> loginService.resetPassword(testLoginRequest));
@@ -262,8 +256,10 @@ public class ResetPasswordTest extends LoginServiceTestBase {
     @Test
     @DisplayName("Reset Password - Failure - Null login name")
     void resetPassword_NullLoginName_ThrowsBadRequestException() {
+        // Arrange
         testLoginRequest.setLoginName(null);
 
+        // Act & Assert
         BadRequestException exception = assertThrows(
                 BadRequestException.class,
                 () -> loginService.resetPassword(testLoginRequest));
@@ -279,7 +275,12 @@ public class ResetPasswordTest extends LoginServiceTestBase {
     @Test
     @DisplayName("Reset Password - Failure - Null request")
     void resetPassword_NullRequest_ThrowsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> loginService.resetPassword(null));
+        // Arrange
+
+        // Act & Assert
+        NullPointerException exception = assertThrows(NullPointerException.class,
+                () -> loginService.resetPassword(null));
+        assertEquals(ErrorMessages.LoginErrorMessages.NullRequest, exception.getMessage());
     }
 
     /**
@@ -290,8 +291,10 @@ public class ResetPasswordTest extends LoginServiceTestBase {
     @Test
     @DisplayName("Reset Password - Failure - User not found")
     void resetPassword_UserNotFound_ThrowsNotFoundException() {
-        when(userRepository.findByLoginName(TEST_LOGIN_NAME)).thenReturn(null);
+        // Arrange
+        stubUserRepositoryFindByLoginName(TEST_LOGIN_NAME, null);
 
+        // Act & Assert
         NotFoundException exception = assertThrows(
                 NotFoundException.class,
                 () -> loginService.resetPassword(testLoginRequest));
@@ -307,12 +310,38 @@ public class ResetPasswordTest extends LoginServiceTestBase {
     @Test
     @DisplayName("Reset Password - Failure - Whitespace only login name")
     void resetPassword_WhitespaceLoginName_ThrowsBadRequestException() {
+        // Arrange
         testLoginRequest.setLoginName("   ");
 
+        // Act & Assert
         BadRequestException exception = assertThrows(
                 BadRequestException.class,
                 () -> loginService.resetPassword(testLoginRequest));
 
         assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER014, exception.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * PERMISSION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("Reset Password - Controller permission unauthorized - Success")
+    void resetPassword_controller_permission_unauthorized() {
+        // Arrange
+        stubLoginServiceThrowsUnauthorizedOnResetPassword();
+
+        // Act
+        ResponseEntity<?> response = loginController.resetPassword(testLoginRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }

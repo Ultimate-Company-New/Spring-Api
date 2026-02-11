@@ -1,4 +1,3 @@
-// Total Tests: 10
 package com.example.SpringApi.Services.Tests.Client;
 
 import com.example.SpringApi.Controllers.ClientController;
@@ -23,6 +22,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Toggle Client Tests")
 class ToggleClientTest extends ClientServiceTestBase {
+
+    // Total Tests: 11
 
     /*
      **********************************************************************************************
@@ -202,6 +203,36 @@ class ToggleClientTest extends ClientServiceTestBase {
         // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
     }
+
+        /*
+         **********************************************************************************************
+         * CONTROLLER AUTHORIZATION TESTS
+         **********************************************************************************************
+         */
+
+        /**
+         * Purpose: Verify controller has correct @PreAuthorize permission.
+         * Expected Result: Annotation exists and contains DELETE_CLIENT_PERMISSION.
+         * Assertions: Annotation is present and permission matches.
+         */
+        @Test
+        @DisplayName("Toggle Client - Controller permission forbidden - Success")
+        void toggleClient_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = ClientController.class.getMethod("toggleClient", Long.class);
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+            org.springframework.security.access.prepost.PreAuthorize.class);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "toggleClient method should have @PreAuthorize annotation");
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+            Authorizations.DELETE_CLIENT_PERMISSION + "')";
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+            "PreAuthorize annotation should reference DELETE_CLIENT_PERMISSION");
+        verify(mockClientService, never()).toggleClient(anyLong());
+        }
 
     /*
      **********************************************************************************************

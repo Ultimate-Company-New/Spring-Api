@@ -3,7 +3,6 @@ package com.example.SpringApi.Services.Tests.UserLog;
 import com.example.SpringApi.Models.DatabaseModels.UserLog;
 import com.example.SpringApi.Models.RequestModels.UserLogsRequestModel;
 import com.example.SpringApi.Repositories.UserLogRepository;
-import com.example.SpringApi.Services.Tests.BaseTest;
 import com.example.SpringApi.Services.UserLogService;
 import com.example.SpringApi.FilterQueryBuilder.UserLogFilterQueryBuilder;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,7 +28,7 @@ import static org.mockito.Mockito.lenient;
  * Contains common mocks, test data, and setup methods.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class UserLogServiceTestBase extends BaseTest {
+public abstract class UserLogServiceTestBase {
 
     @Mock
     protected UserLogRepository userLogRepository;

@@ -4,12 +4,8 @@ package com.example.SpringApi.Services.Tests.Lead;
 import com.example.SpringApi.Controllers.LeadController;
 import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
 import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.List;

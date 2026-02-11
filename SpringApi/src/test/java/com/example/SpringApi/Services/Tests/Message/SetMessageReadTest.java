@@ -45,11 +45,9 @@ public class SetMessageReadTest extends MessageServiceTestBase {
         // Arrange
         MessageUserReadMap existingRead = new MessageUserReadMap();
 
-        when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testUser));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageUserReadMapRepository.findByMessageIdAndUserId(TEST_MESSAGE_ID, TEST_USER_ID))
-                .thenReturn(existingRead);
+        stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
+        stubMessageUserReadMapRepositoryFindByMessageIdAndUserId(existingRead);
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID));
@@ -67,11 +65,10 @@ public class SetMessageReadTest extends MessageServiceTestBase {
     @DisplayName("Set Message Read - Success")
     void setMessageReadByUserIdAndMessageId_Success() {
         // Arrange
-        when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testUser));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageUserReadMapRepository.findByMessageIdAndUserId(TEST_MESSAGE_ID, TEST_USER_ID)).thenReturn(null);
-        when(messageUserReadMapRepository.save(any(MessageUserReadMap.class))).thenReturn(new MessageUserReadMap());
+        stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
+        stubMessageUserReadMapRepositoryFindByMessageIdAndUserId(null);
+        stubMessageUserReadMapRepositorySave(new MessageUserReadMap());
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID));
@@ -87,10 +84,9 @@ public class SetMessageReadTest extends MessageServiceTestBase {
     @DisplayName("Set Message Read - Verify Log Content - Success")
     void setMessageReadByUserIdAndMessageId_VerifyLogContent_Success() {
         // Arrange
-        when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testUser));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageUserReadMapRepository.findByMessageIdAndUserId(TEST_MESSAGE_ID, TEST_USER_ID)).thenReturn(null);
+        stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
+        stubMessageUserReadMapRepositoryFindByMessageIdAndUserId(null);
 
         // Act
         messageService.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID);
@@ -110,10 +106,9 @@ public class SetMessageReadTest extends MessageServiceTestBase {
     @DisplayName("Set Message Read - Verify Mapping Data - Success")
     void setMessageReadByUserIdAndMessageId_VerifyMappingData_Success() {
         // Arrange
-        when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testUser));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageUserReadMapRepository.findByMessageIdAndUserId(TEST_MESSAGE_ID, TEST_USER_ID)).thenReturn(null);
+        stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
+        stubMessageUserReadMapRepositoryFindByMessageIdAndUserId(null);
 
         // Act
         messageService.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID);
@@ -139,8 +134,8 @@ public class SetMessageReadTest extends MessageServiceTestBase {
     @DisplayName("Set Message Read - Message ID Negative - Throws NotFoundException")
     void setMessageReadByUserIdAndMessageId_MessageIdNegative_ThrowsNotFoundException() {
         // Arrange
-        when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testUser));
-        when(messageRepository.findByMessageIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.empty());
 
         // Act & Assert
         assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
@@ -155,8 +150,8 @@ public class SetMessageReadTest extends MessageServiceTestBase {
     @DisplayName("Set Message Read - Message ID Zero - Throws NotFoundException")
     void setMessageReadByUserIdAndMessageId_MessageIdZero_ThrowsNotFoundException() {
         // Arrange
-        when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testUser));
-        when(messageRepository.findByMessageIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.empty());
 
         // Act & Assert
         assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
@@ -172,9 +167,8 @@ public class SetMessageReadTest extends MessageServiceTestBase {
     @DisplayName("Set Message Read - Message not found - Throws NotFoundException")
     void setMessageReadByUserIdAndMessageId_MessageNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID)).thenReturn(Optional.of(testUser));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.empty());
+        stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.empty());
 
         // Act & Assert
         assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
@@ -189,7 +183,7 @@ public class SetMessageReadTest extends MessageServiceTestBase {
     @DisplayName("Set Message Read - User ID Negative - Throws NotFoundException")
     void setMessageReadByUserIdAndMessageId_UserIdNegative_ThrowsNotFoundException() {
         // Arrange
-        when(userRepository.findByUserIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        stubUserRepositoryFindByUserIdAndClientId(Optional.empty());
 
         // Act & Assert
         assertThrowsNotFound(ErrorMessages.UserErrorMessages.InvalidId,
@@ -204,7 +198,7 @@ public class SetMessageReadTest extends MessageServiceTestBase {
     @DisplayName("Set Message Read - User ID Zero - Throws NotFoundException")
     void setMessageReadByUserIdAndMessageId_UserIdZero_ThrowsNotFoundException() {
         // Arrange
-        when(userRepository.findByUserIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        stubUserRepositoryFindByUserIdAndClientId(Optional.empty());
 
         // Act & Assert
         assertThrowsNotFound(ErrorMessages.UserErrorMessages.InvalidId,
@@ -220,7 +214,7 @@ public class SetMessageReadTest extends MessageServiceTestBase {
     @DisplayName("Set Message Read - User not found - Throws NotFoundException")
     void setMessageReadByUserIdAndMessageId_UserNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        stubUserRepositoryFindByUserIdAndClientId(Optional.empty());
 
         // Act & Assert
         assertThrowsNotFound(ErrorMessages.UserErrorMessages.InvalidId,
@@ -235,7 +229,7 @@ public class SetMessageReadTest extends MessageServiceTestBase {
     @DisplayName("Set Message Read - User Repository Exception - Propagates Exception")
     void setMessageReadByUserIdAndMessageId_UserRepositoryException_Propagates() {
         // Arrange
-        when(userRepository.findByUserIdAndClientId(anyLong(), anyLong())).thenThrow(new RuntimeException("DB Error"));
+        stubUserRepositoryFindByUserIdAndClientIdThrows("DB Error");
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class,
@@ -279,7 +273,7 @@ public class SetMessageReadTest extends MessageServiceTestBase {
     void setMessageReadByUserIdAndMessageId_WithValidRequest_DelegatesToService() {
         // Arrange
         MessageController controller = new MessageController(messageServiceMock);
-        doNothing().when(messageServiceMock).setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID);
+        stubMessageServiceSetMessageReadByUserIdAndMessageIdDoNothing();
 
         // Act
         ResponseEntity<?> response = controller.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID);

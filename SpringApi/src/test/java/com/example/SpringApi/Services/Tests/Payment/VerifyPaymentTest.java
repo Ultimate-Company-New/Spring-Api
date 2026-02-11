@@ -7,6 +7,7 @@ import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.RequestModels.RazorpayVerifyRequestModel;
+import com.example.SpringApi.Services.PaymentService;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -143,12 +144,15 @@ class VerifyPaymentTest extends PaymentServiceTestBase {
     @Test
     @DisplayName("verifyPayment - Controller delegates to service")
     void verifyPayment_WithValidRequest_DelegatesToService() {
-        PaymentController controller = new PaymentController(paymentService, null);
-        doNothing().when(paymentService).verifyPayment(testVerifyRequest);
+        PaymentService paymentServiceMock = mock(PaymentService.class);
+        PaymentController controller = new PaymentController(paymentServiceMock, null);
+        when(paymentServiceMock.verifyPayment(testVerifyRequest))
+            .thenReturn(com.example.SpringApi.Models.ResponseModels.PaymentVerificationResponseModel
+                .success("payment-id", TEST_PO_ID, "APPROVED"));
 
         ResponseEntity<?> response = controller.verifyPayment(testVerifyRequest);
 
-        verify(paymentService).verifyPayment(testVerifyRequest);
+        verify(paymentServiceMock).verifyPayment(testVerifyRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

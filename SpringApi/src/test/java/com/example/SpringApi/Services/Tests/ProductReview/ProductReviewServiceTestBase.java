@@ -5,7 +5,6 @@ import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.ProductReviewRequestModel;
 import com.example.SpringApi.Repositories.ProductReviewRepository;
 import com.example.SpringApi.Services.ProductReviewService;
-import com.example.SpringApi.Services.Tests.BaseTest;
 import com.example.SpringApi.Services.UserLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +17,11 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.math.BigDecimal;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
 /**
@@ -26,7 +30,7 @@ import static org.mockito.Mockito.lenient;
  * test files.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class ProductReviewServiceTestBase extends BaseTest {
+public abstract class ProductReviewServiceTestBase {
 
     @Mock
     protected ProductReviewRepository productReviewRepository;
@@ -105,6 +109,45 @@ public abstract class ProductReviewServiceTestBase extends BaseTest {
 
     protected void stubAuthorizationHeader() {
         lenient().when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
+    }
+
+    // ==========================================
+    // STUBS
+    // ==========================================
+
+    protected void stubProductReviewRepositoryFindByReviewIdAndClientId(Long reviewId, Long clientId,
+            ProductReview result) {
+        lenient().when(productReviewRepository.findByReviewIdAndClientId(reviewId, clientId)).thenReturn(result);
+    }
+
+    protected void stubProductReviewRepositoryFindByReviewIdAndClientIdAny(ProductReview result) {
+        lenient().when(productReviewRepository.findByReviewIdAndClientId(anyLong(), anyLong())).thenReturn(result);
+    }
+
+    protected void stubProductReviewRepositorySave(ProductReview result) {
+        lenient().when(productReviewRepository.save(any(ProductReview.class))).thenReturn(result);
+    }
+
+    protected void stubProductReviewRepositoryMarkAllDescendantsAsDeleted(int updatedCount) {
+        lenient().when(productReviewRepository.markAllDescendantsAsDeleted(eq(TEST_REVIEW_ID), anyString()))
+                .thenReturn(updatedCount);
+    }
+
+    protected void stubProductReviewRepositoryMarkAllDescendantsAsDeleted(Long reviewId, int updatedCount) {
+        lenient().when(productReviewRepository.markAllDescendantsAsDeleted(eq(reviewId), anyString()))
+                .thenReturn(updatedCount);
+    }
+
+    protected void stubUserLogServiceLogDataReturnsTrue() {
+        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+    }
+
+    protected void stubProductReviewFilterQueryBuilderReturn(
+            org.springframework.data.domain.Page<ProductReview> result) {
+        lenient().when(productReviewFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), anyLong(), any(), anyString(), any(), anyBoolean(),
+                any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(result);
     }
 
 }

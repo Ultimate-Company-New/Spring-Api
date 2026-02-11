@@ -61,13 +61,11 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         validRequest.setSendAsEmail(true);
         validRequest.setPublishDate(LocalDateTime.now(java.time.ZoneOffset.UTC).plusHours(25));
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
 
         // Act & Assert
-        try (MockedConstruction<EmailHelper> emailHelperMock = mockConstruction(EmailHelper.class,
-                (mock, context) -> doNothing().when(mock).cancelEmail(anyString()))) {
+        try (MockedConstruction<EmailHelper> emailHelperMock = stubEmailHelperCancelEmail()) {
             assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CannotModifyScheduledPublishDate,
                     () -> messageService.updateMessage(validRequest));
         }
@@ -83,10 +81,9 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     void updateMessage_ChangeNotes_Success() {
         // Arrange
         validRequest.setNotes("Updated Notes");
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
+        stubMessageRepositorySave(testMessage);
 
         // Act
         messageService.updateMessage(validRequest);
@@ -108,10 +105,9 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     void updateMessage_ChangeTitle_Success() {
         // Arrange
         validRequest.setTitle("New Title");
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
+        stubMessageRepositorySave(testMessage);
 
         // Act
         messageService.updateMessage(validRequest);
@@ -131,12 +127,11 @@ public class UpdateMessageTest extends MessageServiceTestBase {
      */
     @Test
     @DisplayName("Update Message - Deletes Old Mappings Before Save")
-    void updateMessage_DeletesOldMappings() {
+    void updateMessage_DeletesOldMappings_Success() {
         // Arrange
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
+        stubMessageRepositorySave(testMessage);
 
         // Act
         messageService.updateMessage(validRequest);
@@ -162,14 +157,12 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         validRequest.setSendAsEmail(true);
         validRequest.setPublishDate(LocalDateTime.now(java.time.ZoneOffset.UTC).plusHours(2));
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
+        stubMessageRepositorySave(testMessage);
 
         // Act & Assert
-        try (MockedConstruction<EmailHelper> emailHelperMock = mockConstruction(EmailHelper.class,
-                (mock, context) -> when(mock.generateBatchId()).thenReturn("BATCH-NEW"))) {
+        try (MockedConstruction<EmailHelper> emailHelperMock = stubEmailHelperGenerateBatchId("BATCH-NEW")) {
             messageService.updateMessage(validRequest);
             ArgumentCaptor<com.example.SpringApi.Models.DatabaseModels.Message> captor = ArgumentCaptor
                     .forClass(com.example.SpringApi.Models.DatabaseModels.Message.class);
@@ -188,10 +181,9 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         // Arrange
         testMessage.setSendAsEmail(false);
         validRequest.setSendAsEmail(false);
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
+        stubMessageRepositorySave(testMessage);
 
         // Act
         messageService.updateMessage(validRequest);
@@ -218,13 +210,11 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         validRequest.setSendAsEmail(true);
         validRequest.setPublishDate(LocalDateTime.now(java.time.ZoneOffset.UTC).plusHours(48));
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
 
         // Act & Assert
-        try (MockedConstruction<EmailHelper> emailHelperMock = mockConstruction(EmailHelper.class,
-                (mock, context) -> doNothing().when(mock).cancelEmail(anyString()))) {
+        try (MockedConstruction<EmailHelper> emailHelperMock = stubEmailHelperCancelEmail()) {
             assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CannotModifyScheduledPublishDate,
                     () -> messageService.updateMessage(validRequest));
         }
@@ -246,16 +236,13 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         validRequest.setSendAsEmail(true);
         validRequest.setPublishDate(now);
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
-        when(userRepository.findAllUserEmailsByClientAndUserIdsAndGroupIds(anyLong(), anyList(), anyList()))
-                .thenReturn(Collections.emptyList());
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
+        stubMessageRepositorySave(testMessage);
+        stubUserRepositoryFindAllUserEmails(Collections.emptyList());
 
         // Act & Assert
-        try (MockedConstruction<EmailHelper> emailHelperMock = mockConstruction(EmailHelper.class,
-                (mock, context) -> when(mock.generateBatchId()).thenReturn("OLD"))) {
+        try (MockedConstruction<EmailHelper> emailHelperMock = stubEmailHelperGenerateBatchId("OLD")) {
             assertDoesNotThrow(() -> messageService.updateMessage(validRequest));
             ArgumentCaptor<com.example.SpringApi.Models.DatabaseModels.Message> captor = ArgumentCaptor
                     .forClass(com.example.SpringApi.Models.DatabaseModels.Message.class);
@@ -279,12 +266,10 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         validRequest.setSendAsEmail(true);
         validRequest.setPublishDate(null);
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        when(userRepository.findAllUserEmailsByClientAndUserIdsAndGroupIds(anyLong(), anyList(), anyList()))
-                .thenReturn(List.of("email@test.com"));
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
+        stubMessageRepositorySaveReturnsArgument();
+        stubUserRepositoryFindAllUserEmails(List.of("email@test.com"));
 
         // Act & Assert
         try (MockedConstruction<EmailTemplates> templatesMock = mockConstruction(EmailTemplates.class)) {
@@ -303,12 +288,11 @@ public class UpdateMessageTest extends MessageServiceTestBase {
      */
     @Test
     @DisplayName("Update Message - Success")
-    void updateMessage_Success() {
+        void updateMessage_Success_Success() {
         // Arrange
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+                stubClientRepositoryFindById(Optional.of(testClient));
+                stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
+                stubMessageRepositorySave(testMessage);
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.updateMessage(validRequest));
@@ -323,14 +307,13 @@ public class UpdateMessageTest extends MessageServiceTestBase {
      */
     @Test
     @DisplayName("Update Message - Updates User Mappings")
-    void updateMessage_UpdatesUserMappings() {
+        void updateMessage_UpdatesUserMappings_Success() {
         // Arrange
         validRequest.setUserIds(List.of(99L));
         validRequest.setUserGroupIds(null);
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+                stubClientRepositoryFindById(Optional.of(testClient));
+                stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
+                stubMessageRepositorySave(testMessage);
 
         // Act
         messageService.updateMessage(validRequest);
@@ -349,10 +332,9 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     void updateMessage_ValidTitleBoundary_Success() {
         // Arrange
         validRequest.setTitle("a".repeat(500));
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
+        stubMessageRepositorySave(testMessage);
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.updateMessage(validRequest));
@@ -366,10 +348,9 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     @DisplayName("Update Message - Verify Log - Success")
     void updateMessage_VerifyLog_Success() {
         // Arrange
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
+        stubMessageRepositorySave(testMessage);
 
         // Act
         messageService.updateMessage(validRequest);
@@ -394,9 +375,8 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     void updateMessage_BlankDescription_ThrowsBadRequest() {
         // Arrange
         validRequest.setDescriptionHtml("   ");
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+                stubClientRepositoryFindById(Optional.of(testClient));
+                stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
 
         // Act & Assert
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.ER007,
@@ -418,9 +398,8 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         validRequest.setSendAsEmail(true);
         validRequest.setPublishDate(LocalDateTime.now().plusHours(5));
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
 
         // Act & Assert
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CannotAddPublishDateAfterSent,
@@ -440,9 +419,8 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         testMessage.setSendAsEmail(true);
         validRequest.setSendAsEmail(false);
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
 
         // Act & Assert
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CannotDisableSendAsEmailOnce,
@@ -461,9 +439,8 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         testMessage.setSendAsEmail(true);
         testMessage.setPublishDate(LocalDateTime.now().minusHours(1));
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
 
         // Act & Assert
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.ER011,
@@ -478,7 +455,7 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     @DisplayName("Update Message - Client Not Found - Throws NotFoundException")
     void updateMessage_ClientNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.empty());
+                stubClientRepositoryFindById(Optional.empty());
 
         // Act & Assert
         assertThrowsNotFound(ErrorMessages.ClientErrorMessages.InvalidId,
@@ -500,13 +477,11 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         testMessage.setPublishDate(LocalDateTime.now(java.time.ZoneOffset.UTC).plusHours(24));
         validRequest.setSendAsEmail(false);
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
 
         // Act & Assert
-        try (MockedConstruction<EmailHelper> emailHelperMock = mockConstruction(EmailHelper.class,
-                (mock, context) -> doNothing().when(mock).cancelEmail(anyString()))) {
+        try (MockedConstruction<EmailHelper> emailHelperMock = stubEmailHelperCancelEmail()) {
             assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CannotDisableSendAsEmailOnce,
                     () -> messageService.updateMessage(validRequest));
         }
@@ -523,12 +498,13 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         // Arrange
         validRequest.setUserIds(Collections.emptyList());
         validRequest.setUserGroupIds(Collections.emptyList());
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
 
         // Act & Assert
-        assertThrows(BadRequestException.class, () -> messageService.updateMessage(validRequest));
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> messageService.updateMessage(validRequest));
+        assertEquals(ErrorMessages.MessagesErrorMessages.ER008, exception.getMessage());
     }
 
     /**
@@ -539,9 +515,8 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     @DisplayName("Update Message - Message Not Found - Throws NotFoundException")
     void updateMessage_MessageNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.empty());
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.empty());
 
         // Act & Assert
         assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
@@ -573,9 +548,8 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         // Arrange
         validRequest.setSendAsEmail(true);
         validRequest.setPublishDate(LocalDateTime.now().minusHours(1));
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
 
         // Act & Assert
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.ER009,
@@ -594,9 +568,8 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         testMessage.setSendAsEmail(false);
         validRequest.setSendAsEmail(true);
         validRequest.setPublishDate(LocalDateTime.now(java.time.ZoneOffset.UTC).plusHours(74));
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
 
         // Act & Assert
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.ER010,
@@ -614,9 +587,8 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         // Arrange
         validRequest.setSendAsEmail(false);
         validRequest.setPublishDate(LocalDateTime.now().plusHours(5));
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
 
         // Act & Assert
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.PublishDateRequiresSendAsEmail,
@@ -631,14 +603,13 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     @DisplayName("Update Message - Repository Update Failure - Propagates Exception")
     void updateMessage_RepositoryFailure_Propagates() {
         // Arrange
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenThrow(new RuntimeException("Update failed"));
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
+        stubMessageRepositorySaveThrowsRuntimeException(ErrorMessages.MessagesErrorMessages.UpdateFailed);
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.updateMessage(validRequest));
-        assertEquals("Update failed", ex.getMessage());
+        assertEquals(ErrorMessages.MessagesErrorMessages.UpdateFailed, ex.getMessage());
     }
 
     /**
@@ -650,9 +621,8 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     void updateMessage_TitleTooLong_ThrowsBadRequest() {
         // Arrange
         validRequest.setTitle("a".repeat(501));
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.findByMessageIdAndClientId(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
 
         // Act & Assert
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.TitleTooLong,
@@ -687,7 +657,7 @@ public class UpdateMessageTest extends MessageServiceTestBase {
      */
     @Test
     @DisplayName("updateMessage - Verify @PreAuthorize Annotation")
-    void updateMessage_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void updateMessage_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = MessageController.class.getMethod("updateMessage", MessageRequestModel.class);
 
@@ -710,7 +680,7 @@ public class UpdateMessageTest extends MessageServiceTestBase {
     void updateMessage_WithValidRequest_DelegatesToService() {
         // Arrange
         MessageController controller = new MessageController(messageServiceMock);
-        doNothing().when(messageServiceMock).updateMessage(validRequest);
+        stubMessageServiceUpdateMessageDoNothing();
 
         // Act
         ResponseEntity<?> response = controller.updateMessage(validRequest);
@@ -718,5 +688,24 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         // Assert
         verify(messageServiceMock).updateMessage(validRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("Update Message - Controller permission unauthorized - Success")
+    void updateMessage_controller_permission_unauthorized() {
+        // Arrange
+        MessageController controller = new MessageController(messageServiceMock);
+        stubMessageServiceUpdateMessageThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.updateMessage(validRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }

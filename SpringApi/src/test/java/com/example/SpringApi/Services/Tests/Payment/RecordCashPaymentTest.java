@@ -7,6 +7,7 @@ import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.RequestModels.CashPaymentRequestModel;
+import com.example.SpringApi.Services.PaymentService;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -170,12 +171,15 @@ class RecordCashPaymentTest extends PaymentServiceTestBase {
     @Test
     @DisplayName("recordCashPayment - Controller delegates to service")
     void recordCashPayment_WithValidRequest_DelegatesToService() {
-        PaymentController controller = new PaymentController(paymentService, null);
-        doNothing().when(paymentService).recordCashPayment(testCashPaymentRequest);
+        PaymentService paymentServiceMock = mock(PaymentService.class);
+        PaymentController controller = new PaymentController(paymentServiceMock, null);
+        when(paymentServiceMock.recordCashPayment(testCashPaymentRequest))
+            .thenReturn(com.example.SpringApi.Models.ResponseModels.PaymentVerificationResponseModel
+                .success("payment-id", TEST_PO_ID, "APPROVED"));
 
         ResponseEntity<?> response = controller.recordCashPayment(testCashPaymentRequest);
 
-        verify(paymentService).recordCashPayment(testCashPaymentRequest);
+        verify(paymentServiceMock).recordCashPayment(testCashPaymentRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

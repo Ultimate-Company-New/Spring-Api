@@ -45,9 +45,8 @@ public class ToggleMessageTest extends MessageServiceTestBase {
         // Arrange
         testMessage.setIsDeleted(false);
 
-        when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(eq(TEST_MESSAGE_ID), eq(TEST_CLIENT_ID)))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubMessageRepositoryFindByMessageIdAndClientIdIncludingDeleted(Optional.of(testMessage));
+        stubMessageRepositorySave(testMessage);
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.toggleMessage(TEST_MESSAGE_ID));
@@ -67,9 +66,8 @@ public class ToggleMessageTest extends MessageServiceTestBase {
         // Arrange
         testMessage.setIsDeleted(true);
 
-        when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(eq(TEST_MESSAGE_ID), eq(TEST_CLIENT_ID)))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubMessageRepositoryFindByMessageIdAndClientIdIncludingDeleted(Optional.of(testMessage));
+        stubMessageRepositorySave(testMessage);
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.toggleMessage(TEST_MESSAGE_ID));
@@ -88,9 +86,8 @@ public class ToggleMessageTest extends MessageServiceTestBase {
     void toggleMessage_MultipleToggles_Successive() {
         // Arrange
         testMessage.setIsDeleted(false);
-        when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(eq(TEST_MESSAGE_ID), eq(TEST_CLIENT_ID)))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubMessageRepositoryFindByMessageIdAndClientIdIncludingDeleted(Optional.of(testMessage));
+        stubMessageRepositorySave(testMessage);
 
         // Act
         messageService.toggleMessage(TEST_MESSAGE_ID); // To true
@@ -113,9 +110,8 @@ public class ToggleMessageTest extends MessageServiceTestBase {
         // Arrange
         testMessage.setIsDeleted(false);
 
-        when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(eq(TEST_MESSAGE_ID), eq(TEST_CLIENT_ID)))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubMessageRepositoryFindByMessageIdAndClientIdIncludingDeleted(Optional.of(testMessage));
+        stubMessageRepositorySave(testMessage);
 
         // Act
         messageService.toggleMessage(TEST_MESSAGE_ID);
@@ -139,8 +135,7 @@ public class ToggleMessageTest extends MessageServiceTestBase {
     @DisplayName("Toggle Message - Message not found - Throws NotFoundException")
     void toggleMessage_MessageNotFound_ThrowsNotFoundException() {
         // Arrange
-        lenient().when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.empty());
+        stubMessageRepositoryFindByMessageIdAndClientIdIncludingDeleted(Optional.empty());
 
         // Act & Assert
         assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
@@ -155,8 +150,7 @@ public class ToggleMessageTest extends MessageServiceTestBase {
     @DisplayName("Toggle Message - Negative ID - Throws NotFoundException")
     void toggleMessage_NegativeId_ThrowsNotFoundException() {
         // Arrange
-        lenient().when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(eq(-1L), eq(TEST_CLIENT_ID)))
-                .thenReturn(Optional.empty());
+        stubMessageRepositoryFindByMessageIdAndClientIdIncludingDeleted(Optional.empty());
 
         // Act & Assert
         assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId, () -> messageService.toggleMessage(-1L));
@@ -171,9 +165,8 @@ public class ToggleMessageTest extends MessageServiceTestBase {
     @DisplayName("Toggle Message - Repository Error on Save - Propagates")
     void toggleMessage_RepositorySaveError_Propagates() {
         // Arrange
-        when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenThrow(new RuntimeException("DB Error"));
+        stubMessageRepositoryFindByMessageIdAndClientIdIncludingDeleted(Optional.of(testMessage));
+        stubMessageRepositorySaveThrowsRuntimeException("DB Error");
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.toggleMessage(TEST_MESSAGE_ID));
@@ -192,9 +185,8 @@ public class ToggleMessageTest extends MessageServiceTestBase {
     @DisplayName("Toggle Message - Unauthorized Access - Throws UnauthorizedException")
     void toggleMessage_UnauthorizedAccess_ThrowsUnauthorizedException() {
         // Arrange
-        when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(TEST_MESSAGE_ID, TEST_CLIENT_ID))
-                .thenReturn(Optional.of(testMessage));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubMessageRepositoryFindByMessageIdAndClientIdIncludingDeleted(Optional.of(testMessage));
+        stubMessageRepositorySave(testMessage);
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.toggleMessage(TEST_MESSAGE_ID));
@@ -208,8 +200,7 @@ public class ToggleMessageTest extends MessageServiceTestBase {
     @DisplayName("Toggle Message - Zero ID - Throws NotFoundException")
     void toggleMessage_ZeroId_ThrowsNotFoundException() {
         // Arrange
-        lenient().when(messageRepository.findByMessageIdAndClientIdIncludingDeleted(eq(0L), eq(TEST_CLIENT_ID)))
-                .thenReturn(Optional.empty());
+        stubMessageRepositoryFindByMessageIdAndClientIdIncludingDeleted(Optional.empty());
 
         // Act & Assert
         assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId, () -> messageService.toggleMessage(0L));
@@ -251,7 +242,7 @@ public class ToggleMessageTest extends MessageServiceTestBase {
     void toggleMessage_WithValidRequest_DelegatesToService() {
         // Arrange
         MessageController controller = new MessageController(messageServiceMock);
-        doNothing().when(messageServiceMock).toggleMessage(TEST_MESSAGE_ID);
+        stubMessageServiceToggleMessageDoNothing();
 
         // Act
         ResponseEntity<?> response = controller.toggleMessage(TEST_MESSAGE_ID);

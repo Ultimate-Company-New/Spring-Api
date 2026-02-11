@@ -93,6 +93,7 @@ class GetPaymentsForPurchaseOrderTest extends PaymentServiceTestBase {
     @Test
     @DisplayName("getPaymentsForPurchaseOrder - Client access denied - Throws BadRequestException")
     void getPaymentsForPurchaseOrder_ClientAccessDenied_ThrowsBadRequestException() {
+        testPurchaseOrder.setClientId(TEST_CLIENT_ID + 1);
         when(purchaseOrderRepository.findById(TEST_PO_ID)).thenReturn(Optional.of(testPurchaseOrder));
 
         BadRequestException ex = assertThrows(BadRequestException.class,

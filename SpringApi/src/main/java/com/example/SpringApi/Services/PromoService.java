@@ -71,6 +71,10 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   @Override
   public PaginationBaseResponseModel<Promo> getPromosInBatches(
       PaginationBaseRequestModel paginationBaseRequestModel) {
+    if (paginationBaseRequestModel == null) {
+      throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
+    }
+
     // Valid columns for filtering
     Set<String> validColumns = new HashSet<>(Arrays.asList("promoId", "promoCode", "description", "discountValue",
         "isPercent", "isDeleted", "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes", "startDate", "expiryDate"));
@@ -80,7 +84,8 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
       for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
         // Validate column name
         if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
-          throw new BadRequestException("Invalid column name: " + filter.getColumn());
+          throw new BadRequestException(
+              String.format(ErrorMessages.CommonErrorMessages.InvalidColumnName, filter.getColumn()));
         }
 
         // Validate operator (FilterCondition.setOperator auto-normalizes symbols to
@@ -101,6 +106,10 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
     // Calculate page size and offset
     int start = paginationBaseRequestModel.getStart();
     int end = paginationBaseRequestModel.getEnd();
+
+    if (start < 0) {
+      throw new BadRequestException(ErrorMessages.CommonErrorMessages.StartIndexCannotBeNegative);
+    }
     int pageSize = end - start;
 
     // Validate page size

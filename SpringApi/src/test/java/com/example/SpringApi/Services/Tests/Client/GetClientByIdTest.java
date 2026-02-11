@@ -1,4 +1,3 @@
-// Total Tests: 10
 package com.example.SpringApi.Services.Tests.Client;
 
 import com.example.SpringApi.Controllers.ClientController;
@@ -21,6 +20,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Get Client By ID Tests")
 class GetClientByIdTest extends ClientServiceTestBase {
+
+    // Total Tests: 11
 
     /*
      **********************************************************************************************
@@ -199,6 +200,36 @@ class GetClientByIdTest extends ClientServiceTestBase {
         // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
     }
+
+        /*
+         **********************************************************************************************
+         * CONTROLLER AUTHORIZATION TESTS
+         **********************************************************************************************
+         */
+
+        /**
+         * Purpose: Verify controller has correct @PreAuthorize permission.
+         * Expected Result: Annotation exists and contains VIEW_CLIENT_PERMISSION.
+         * Assertions: Annotation is present and permission matches.
+         */
+        @Test
+        @DisplayName("Get Client By ID - Controller permission forbidden - Success")
+        void getClientById_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = ClientController.class.getMethod("getClientById", Long.class);
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+            org.springframework.security.access.prepost.PreAuthorize.class);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "getClientById method should have @PreAuthorize annotation");
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+            Authorizations.VIEW_CLIENT_PERMISSION + "')";
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+            "PreAuthorize annotation should reference VIEW_CLIENT_PERMISSION");
+        verify(mockClientService, never()).getClientById(anyLong());
+        }
 
     /*
      **********************************************************************************************

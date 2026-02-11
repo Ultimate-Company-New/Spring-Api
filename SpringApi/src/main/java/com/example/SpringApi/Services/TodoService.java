@@ -66,8 +66,21 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
      */
     @Override
     public void updateTodo(TodoRequestModel todoRequestModel) {
-        if (todoRequestModel == null || todoRequestModel.getTodoId() == null) {
-            throw new BadRequestException(ErrorMessages.TodoErrorMessages.InvalidId);
+        if (todoRequestModel == null) {
+            throw new BadRequestException(ErrorMessages.TodoErrorMessages.InvalidRequest);
+        }
+
+        if (todoRequestModel.getTodoId() == null) {
+            throw new BadRequestException(ErrorMessages.TodoErrorMessages.InvalidRequest);
+        }
+
+        String task = todoRequestModel.getTask();
+        if (task == null || task.trim().isEmpty()) {
+            throw new BadRequestException(ErrorMessages.TodoErrorMessages.InvalidTask);
+        }
+
+        if (task.length() > 500) {
+            throw new BadRequestException(ErrorMessages.TodoErrorMessages.TaskTooLong);
         }
         
         String authenticatedUser = getUser();
@@ -143,6 +156,10 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
     @Override
     public List<TodoResponseModel> getTodoItems() {
         List<Todo> todos = todoRepository.findAllByUserIdOrderByTodoIdDesc(getUserId());
+
+        if (todos == null) {
+            throw new BadRequestException(ErrorMessages.TodoErrorMessages.InvalidRequest);
+        }
         
         // Convert to response models
         List<TodoResponseModel> responseModels = todos.stream()

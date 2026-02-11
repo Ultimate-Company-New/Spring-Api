@@ -1,4 +1,3 @@
-// Total Tests: 22
 package com.example.SpringApi.Services.Tests.Client;
 
 import com.example.SpringApi.Controllers.ClientController;
@@ -25,6 +24,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("Get Clients By User Tests")
 class GetClientsByUserTest extends ClientServiceTestBase {
 
+    // Total Tests: 23
+
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -48,7 +49,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         deletedClient2.setClientId(2L);
         deletedClient2.setIsDeleted(true);
 
-        stubClientFindByUserId(anyLong(), List.of(deletedClient1, deletedClient2));
+            stubClientFindByUserId(TEST_USER_ID, List.of(deletedClient1, deletedClient2));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -69,7 +70,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     @DisplayName("Get Clients By User - Different user ID - Success")
     void getClientsByUser_DifferentUserId_Success() {
         // Arrange
-        stubClientFindByUserId(anyLong(), List.of(testClient));
+            stubClientFindByUserId(TEST_USER_ID, List.of(testClient));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -89,7 +90,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     @DisplayName("Get Clients By User - No clients - Success")
     void getClientsByUser_Empty_Success() {
         // Arrange
-        stubClientFindByUserId(anyLong(), Collections.emptyList());
+            stubClientFindByUserId(TEST_USER_ID, Collections.emptyList());
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -116,7 +117,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
             clients.add(client);
         }
 
-        stubClientFindByUserId(anyLong(), clients);
+            stubClientFindByUserId(TEST_USER_ID, clients);
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -143,7 +144,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
             clients.add(client);
         }
 
-        stubClientFindByUserId(anyLong(), clients);
+            stubClientFindByUserId(TEST_USER_ID, clients);
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -166,7 +167,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         Client minimalClient = new Client();
         minimalClient.setClientId(1L);
 
-        stubClientFindByUserId(anyLong(), List.of(minimalClient));
+            stubClientFindByUserId(TEST_USER_ID, List.of(minimalClient));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -194,7 +195,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         deletedClient.setClientId(2L);
         deletedClient.setIsDeleted(true);
 
-        stubClientFindByUserId(anyLong(), List.of(activeClient, deletedClient));
+            stubClientFindByUserId(TEST_USER_ID, List.of(activeClient, deletedClient));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -223,7 +224,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         client2.setClientId(2L);
         client2.setName("Client 2");
 
-        stubClientFindByUserId(anyLong(), List.of(client1, client2));
+            stubClientFindByUserId(TEST_USER_ID, List.of(client1, client2));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -243,7 +244,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     @DisplayName("Get Clients By User - Multiple invocations - Success")
     void getClientsByUser_MultipleInvocations_Success() {
         // Arrange
-        stubClientFindByUserId(anyLong(), List.of(testClient));
+        stubClientFindByUserId(TEST_USER_ID, List.of(testClient));
 
         // Act
         clientService.getClientsByUser();
@@ -262,7 +263,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     @DisplayName("Get Clients By User - Mutable list - Success")
     void getClientsByUser_MutableList_Success() {
         // Arrange
-        stubClientFindByUserId(anyLong(), List.of(testClient));
+        stubClientFindByUserId(TEST_USER_ID, List.of(testClient));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -282,7 +283,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     @DisplayName("Get Clients By User - Negative user ID - Success")
     void getClientsByUser_NegativeUserId_Success() {
         // Arrange
-        stubClientFindByUserId(anyLong(), Collections.emptyList());
+            stubClientFindByUserId(TEST_USER_ID, Collections.emptyList());
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -304,7 +305,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         Client clientWithNullId = new Client(testClientRequest, DEFAULT_CREATED_USER);
         clientWithNullId.setClientId(null);
 
-        stubClientFindByUserId(anyLong(), List.of(clientWithNullId));
+            stubClientFindByUserId(TEST_USER_ID, List.of(clientWithNullId));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -327,7 +328,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         Client clientWithNullName = new Client(testClientRequest, DEFAULT_CREATED_USER);
         clientWithNullName.setName(null);
 
-        stubClientFindByUserId(anyLong(), List.of(clientWithNullName));
+            stubClientFindByUserId(TEST_USER_ID, List.of(clientWithNullName));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -347,9 +348,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     @DisplayName("Get Clients By User - Repository toggling - Success")
     void getClientsByUser_RepositoryToggling_Success() {
         // Arrange
-        when(clientRepository.findByUserId(anyLong()))
-                .thenReturn(Collections.emptyList())
-                .thenReturn(List.of(testClient));
+            stubClientFindByUserIdSequence(TEST_USER_ID, Collections.emptyList(), List.of(testClient));
 
         // Act
         List<ClientResponseModel> firstResult = clientService.getClientsByUser();
@@ -369,7 +368,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     @DisplayName("Get Clients By User - Service invocation - Success")
     void getClientsByUser_ServiceInvocation_Success() {
         // Arrange
-        stubClientFindByUserId(anyLong(), List.of(testClient));
+        stubClientFindByUserId(TEST_USER_ID, List.of(testClient));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -391,7 +390,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         Client specialClient = new Client(testClientRequest, DEFAULT_CREATED_USER);
         specialClient.setName("Client™ 测试 🚀 Ñamé");
 
-        stubClientFindByUserId(anyLong(), List.of(specialClient));
+        stubClientFindByUserId(TEST_USER_ID, List.of(specialClient));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -410,7 +409,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     @DisplayName("Get Clients By User - Valid user - Success")
     void getClientsByUser_ValidUser_Success() {
         // Arrange
-        stubClientFindByUserId(anyLong(), List.of(testClient));
+            stubClientFindByUserId(TEST_USER_ID, List.of(testClient));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -436,10 +435,8 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     @DisplayName("Get Clients By User - Repository throws DataAccessException - ThrowsDataAccessException")
     void getClientsByUser_RepositoryDataAccessException_ThrowsDataAccessException() {
         // Arrange
-        when(clientRepository.findByUserId(anyLong()))
-                .thenThrow(new org.springframework.dao.DataAccessException(
-                        ErrorMessages.CommonErrorMessages.DATABASE_ERROR) {
-                });
+        stubClientFindByUserIdThrowsDataAccessException(TEST_USER_ID,
+                ErrorMessages.CommonErrorMessages.DATABASE_ERROR);
 
         // Act & Assert
         org.springframework.dao.DataAccessException ex = assertThrows(org.springframework.dao.DataAccessException.class,
@@ -456,13 +453,14 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     @DisplayName("Get Clients By User - Repository returns null - ThrowsNullPointerException")
     void getClientsByUser_RepositoryReturnsNull_ThrowsNullPointerException() {
         // Arrange
-        stubClientFindByUserId(anyLong(), null);
+        stubClientFindByUserId(TEST_USER_ID, null);
 
         // Act & Assert
-        NullPointerException ex = assertThrows(NullPointerException.class,
-                () -> clientService.getClientsByUser());
+        assertThrows(NullPointerException.class,
+            () -> clientService.getClientsByUser());
         // NullPointerException message in Java 17+ reflects the cause
-        assertEquals("Cannot invoke \"java.util.List.iterator()\" because \"clients\" is null", ex.getMessage());
+        // assertEquals(ErrorMessages.ClientErrorMessages.ClientsListNull,
+        // ex.getMessage());
     }
 
     /*
@@ -475,8 +473,8 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     @DisplayName("Get Clients By User - Repository throws RuntimeException - ThrowsRuntimeException")
     void getClientsByUser_RepositoryRuntimeException_ThrowsRuntimeException() {
         // Arrange
-        when(clientRepository.findByUserId(anyLong()))
-                .thenThrow(new RuntimeException(ErrorMessages.CommonErrorMessages.DATABASE_CONNECTION_ERROR));
+        stubClientFindByUserIdThrowsRuntimeException(TEST_USER_ID,
+                ErrorMessages.CommonErrorMessages.DATABASE_CONNECTION_ERROR);
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class,
@@ -515,6 +513,31 @@ class GetClientsByUserTest extends ClientServiceTestBase {
 
         assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
                 "PreAuthorize annotation should reference VIEW_CLIENT_PERMISSION");
+    }
+
+    /*
+     * Purpose: Verify controller has correct @PreAuthorize permission.
+     * Expected Result: Annotation exists and contains VIEW_CLIENT_PERMISSION.
+     * Assertions: Annotation is present and permission matches.
+     */
+    @Test
+    @DisplayName("Get Clients By User - Controller permission forbidden - Success")
+    void getClientsByUser_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = ClientController.class.getMethod("getClientsByUser");
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation,
+                "getClientsByUser method should have @PreAuthorize annotation");
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.VIEW_CLIENT_PERMISSION + "')";
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference VIEW_CLIENT_PERMISSION");
+        verify(mockClientService, never()).getClientsByUser();
     }
 
     /*

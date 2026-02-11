@@ -52,17 +52,9 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
             leads.add(leadReq);
         }
 
-        when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
-            Lead lead = inv.getArgument(0);
-            lead.setLeadId((long) (Math.random() * 1000));
-            return lead;
-        });
-        lenient().when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenAnswer(inv -> {
-            Lead lead = new Lead();
-            lead.setLeadId((long) (Math.random() * 1000));
-            return lead;
-        });
-        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubLeadRepositorySaveAssignsId();
+        stubLeadRepositoryFindLeadWithDetailsByEmailReturnsLead();
+        stubUserLogServiceLogData(true);
 
         // Act
         var result = leadService.bulkCreateLeads(leads);
@@ -94,17 +86,9 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
             leads.add(leadReq);
         }
 
-        when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
-            Lead lead = inv.getArgument(0);
-            lead.setLeadId((long) (Math.random() * 10000));
-            return lead;
-        });
-        lenient().when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenAnswer(inv -> {
-            Lead lead = new Lead();
-            lead.setLeadId((long) (Math.random() * 10000));
-            return lead;
-        });
-        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubLeadRepositorySaveAssignsId();
+        stubLeadRepositoryFindLeadWithDetailsByEmailReturnsLead();
+        stubUserLogServiceLogData(true);
 
         // Act
         var result = leadService.bulkCreateLeads(leads);
@@ -143,17 +127,9 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         invalid2.setPhone("");
         leads.add(invalid2);
 
-        when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
-            Lead lead = inv.getArgument(0);
-            lead.setLeadId((long) (Math.random() * 1000));
-            return lead;
-        });
-        lenient().when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenAnswer(inv -> {
-            Lead lead = new Lead();
-            lead.setLeadId((long) (Math.random() * 1000));
-            return lead;
-        });
-        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubLeadRepositorySaveAssignsId();
+        stubLeadRepositoryFindLeadWithDetailsByEmailReturnsLead();
+        stubUserLogServiceLogData(true);
 
         // Act
         var result = leadService.bulkCreateLeads(leads);
@@ -184,17 +160,9 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         invalidLead1.setEmail("");
         leads.add(invalidLead1);
 
-        when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
-            Lead lead = inv.getArgument(0);
-            lead.setLeadId((long) (Math.random() * 1000));
-            return lead;
-        });
-        lenient().when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenAnswer(inv -> {
-            Lead lead = new Lead();
-            lead.setLeadId((long) (Math.random() * 1000));
-            return lead;
-        });
-        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubLeadRepositorySaveAssignsId();
+        stubLeadRepositoryFindLeadWithDetailsByEmailReturnsLead();
+        stubUserLogServiceLogData(true);
 
         // Act
         var result = leadService.bulkCreateLeads(leads);
@@ -218,9 +186,9 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         LeadRequestModel leadReq = createValidLeadRequest(null, TEST_CLIENT_ID);
         leads.add(leadReq);
 
-        when(leadRepository.save(any(Lead.class))).thenReturn(new Lead());
-        lenient().when(leadRepository.findLeadWithDetailsByEmail(anyString(), anyLong())).thenReturn(new Lead());
-        lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubLeadRepositorySaveAssignsId();
+        stubLeadRepositoryFindLeadWithDetailsByEmailReturnsLead();
+        stubUserLogServiceLogData(true);
 
         // Act
         var result = leadService.bulkCreateLeads(leads);
@@ -241,8 +209,8 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         // Arrange
         List<LeadRequestModel> leads = new ArrayList<>();
         leads.add(createValidLeadRequest(null, TEST_CLIENT_ID));
-        when(leadRepository.save(any(Lead.class))).thenReturn(new Lead());
-        when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+        stubLeadRepositorySaveAssignsId();
+        stubUserLogServiceLogData(true);
 
         // Act
         leadService.bulkCreateLeads(leads);
@@ -262,7 +230,7 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         // Arrange
         List<LeadRequestModel> leads = new ArrayList<>();
         leads.add(createValidLeadRequest(null, TEST_CLIENT_ID));
-        when(leadRepository.save(any(Lead.class))).thenReturn(new Lead());
+        stubLeadRepositorySaveAssignsId();
 
         // Act
         leadService.bulkCreateLeads(leads);
@@ -392,11 +360,7 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         // Make one invalid
         leads.get(2).setEmail(null);
         
-        when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
-            Lead lead = inv.getArgument(0);
-            lead.setLeadId((long) (Math.random() * 1000));
-            return lead;
-        });
+        stubLeadRepositorySaveAssignsId();
         
         // Act
         var result = leadService.bulkCreateLeads(leads);

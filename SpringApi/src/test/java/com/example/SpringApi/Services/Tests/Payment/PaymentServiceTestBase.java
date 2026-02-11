@@ -6,7 +6,6 @@ import com.example.SpringApi.Models.RequestModels.RazorpayOrderRequestModel;
 import com.example.SpringApi.Models.RequestModels.RazorpayVerifyRequestModel;
 import com.example.SpringApi.Repositories.*;
 import com.example.SpringApi.Services.PaymentService;
-import com.example.SpringApi.Services.Tests.BaseTest;
 import com.example.SpringApi.Services.UserLogService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +17,7 @@ import org.springframework.core.env.Environment;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * Base class for PaymentService tests.
@@ -48,7 +48,13 @@ import java.time.LocalDate;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PaymentService Tests")
 @org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
-public class PaymentServiceTestBase extends BaseTest {
+public class PaymentServiceTestBase {
+
+    // ==================== COMMON TEST CONSTANTS ====================
+
+    protected static final Long DEFAULT_CLIENT_ID = 1L;
+    protected static final Long DEFAULT_PURCHASE_ORDER_ID = 1L;
+    protected static final String DEFAULT_CREATED_USER = "admin";
 
     @Mock
     protected ClientRepository clientRepository;
@@ -133,5 +139,37 @@ public class PaymentServiceTestBase extends BaseTest {
         testVerifyRequest.setRazorpayPaymentId("pay_test123");
         testVerifyRequest.setRazorpaySignature("sig_test123");
         testVerifyRequest.setPurchaseOrderId(TEST_PO_ID);
+    }
+
+    // ==================== FACTORY METHODS ====================
+
+    protected Client createTestClient() {
+        Client client = new Client();
+        client.setClientId(DEFAULT_CLIENT_ID);
+        client.setName("Test Client");
+        client.setCreatedUser(DEFAULT_CREATED_USER);
+        client.setModifiedUser(DEFAULT_CREATED_USER);
+        client.setCreatedAt(LocalDateTime.now());
+        client.setUpdatedAt(LocalDateTime.now());
+        return client;
+    }
+
+    protected PurchaseOrder createTestPurchaseOrder() {
+        return createTestPurchaseOrder(DEFAULT_PURCHASE_ORDER_ID);
+    }
+
+    protected PurchaseOrder createTestPurchaseOrder(Long purchaseOrderId) {
+        PurchaseOrder po = new PurchaseOrder();
+        po.setPurchaseOrderId(purchaseOrderId);
+        po.setClientId(DEFAULT_CLIENT_ID);
+        po.setVendorNumber("VENDOR-001");
+        po.setPurchaseOrderStatus("DRAFT");
+        po.setAssignedLeadId(1L);
+        po.setIsDeleted(false);
+        po.setCreatedUser(DEFAULT_CREATED_USER);
+        po.setModifiedUser(DEFAULT_CREATED_USER);
+        po.setCreatedAt(LocalDateTime.now());
+        po.setUpdatedAt(LocalDateTime.now());
+        return po;
     }
 }

@@ -5,6 +5,7 @@ import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.Exceptions.UnauthorizedException;
 import com.example.SpringApi.Logging.ContextualLogger;
 import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PackageResponseModel;
@@ -63,6 +64,10 @@ public class PackageController {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (UnauthorizedException e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -90,6 +95,10 @@ public class PackageController {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (UnauthorizedException e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -117,6 +126,10 @@ public class PackageController {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (UnauthorizedException e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -144,6 +157,10 @@ public class PackageController {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (UnauthorizedException e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -171,6 +188,10 @@ public class PackageController {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (UnauthorizedException e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -198,6 +219,10 @@ public class PackageController {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponseModel(ErrorMessages.ERROR_NOT_FOUND, e.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (UnauthorizedException e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -230,6 +255,10 @@ public class PackageController {
             logger.error(e);
             return ResponseEntity.badRequest()
                     .body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            } catch (UnauthorizedException e) {
+                logger.error(e);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (Exception e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

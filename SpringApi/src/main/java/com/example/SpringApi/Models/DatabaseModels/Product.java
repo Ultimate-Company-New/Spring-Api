@@ -84,7 +84,8 @@ public class Product {
     private Boolean isDiscountPercent;
 
     @Column(name = "returnWindowDays", nullable = false)
-    private Integer returnWindowDays;  // Number of days from delivery within which returns are allowed (0 = no returns)
+    private Integer returnWindowDays; // Number of days from delivery within which returns are allowed (0 = no
+                                      // returns)
 
     @Column(name = "breadth", precision = 8, scale = 2)
     private BigDecimal breadth;
@@ -220,27 +221,29 @@ public class Product {
     /**
      * Default constructor.
      */
-    public Product() {}
+    public Product() {
+    }
 
     /**
      * Constructor for creating a new product.
      * 
-     * @param request The ProductRequestModel containing the product data
+     * @param request     The ProductRequestModel containing the product data
      * @param createdUser The user creating the product
-     * @param clientId The client ID from the security context (not from request)
+     * @param clientId    The client ID from the security context (not from request)
      */
     public Product(ProductRequestModel request, String createdUser, Long clientId) {
         validateRequest(request);
         validateUser(createdUser);
         validateClientId(clientId);
-        
+
         setFieldsFromRequest(request);
         this.clientId = clientId;
         this.createdUser = createdUser;
         this.modifiedUser = createdUser;
-        
+
         // Initialize required image fields with placeholder values
-        // These will be updated when images are uploaded in processAndUploadProductImages
+        // These will be updated when images are uploaded in
+        // processAndUploadProductImages
         this.mainImageUrl = "";
         this.mainImageDeleteHash = "";
         this.topImageUrl = "";
@@ -262,23 +265,26 @@ public class Product {
     /**
      * Constructor for updating an existing product.
      * 
-     * @param request The ProductRequestModel containing the updated product data
-     * @param modifiedUser The user modifying the product
-     * @param existingProduct The existing product entity (clientId is preserved from existing)
+     * @param request         The ProductRequestModel containing the updated product
+     *                        data
+     * @param modifiedUser    The user modifying the product
+     * @param existingProduct The existing product entity (clientId is preserved
+     *                        from existing)
      */
     public Product(ProductRequestModel request, String modifiedUser, Product existingProduct) {
         validateRequest(request);
         validateUser(modifiedUser);
-        
+
         this.productId = existingProduct.getProductId();
         this.createdUser = existingProduct.getCreatedUser();
         this.createdAt = existingProduct.getCreatedAt();
         this.clientId = existingProduct.getClientId(); // Preserve clientId from existing product
-        
+
         setFieldsFromRequest(request);
         this.modifiedUser = modifiedUser;
 
-        // Preserve existing image URLs and delete hashes so update workflows can detect unchanged images
+        // Preserve existing image URLs and delete hashes so update workflows can detect
+        // unchanged images
         this.mainImageUrl = existingProduct.getMainImageUrl();
         this.mainImageDeleteHash = existingProduct.getMainImageDeleteHash();
         this.topImageUrl = existingProduct.getTopImageUrl();
@@ -344,7 +350,20 @@ public class Product {
         if (request.getCategoryId() == null) {
             throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidCategoryId);
         }
-        // Note: clientId is not validated from request - it comes from security context via constructor parameter
+        if (request.getWeightKgs() != null && request.getWeightKgs().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidWeight);
+        }
+        if (request.getLength() != null && request.getLength().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidLength);
+        }
+        if (request.getBreadth() != null && request.getBreadth().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidBreadth);
+        }
+        if (request.getHeight() != null && request.getHeight().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidHeight);
+        }
+        // Note: clientId is not validated from request - it comes from security context
+        // via constructor parameter
         if (request.getPickupLocationQuantities() == null || request.getPickupLocationQuantities().isEmpty()) {
             throw new BadRequestException(ErrorMessages.ProductErrorMessages.AtLeastOnePickupLocationRequired);
         }
@@ -395,7 +414,8 @@ public class Product {
         this.modificationHtml = request.getModificationHtml() != null ? request.getModificationHtml().trim() : null;
         this.price = request.getPrice();
         this.discount = request.getDiscount() != null ? request.getDiscount() : BigDecimal.ZERO;
-        this.isDiscountPercent = request.getIsDiscountPercent() != null ? request.getIsDiscountPercent() : Boolean.FALSE;
+        this.isDiscountPercent = request.getIsDiscountPercent() != null ? request.getIsDiscountPercent()
+                : Boolean.FALSE;
         this.returnWindowDays = request.getReturnWindowDays();
         this.breadth = request.getBreadth();
         this.height = request.getHeight();
@@ -403,11 +423,11 @@ public class Product {
         this.categoryId = request.getCategoryId();
         // Note: clientId is set in constructor from security context, not from request
         this.notes = request.getNotes() != null ? request.getNotes().trim() : null;
-        this.itemAvailableFrom = request.getItemAvailableFrom() != null 
-            ? request.getItemAvailableFrom() 
-            : LocalDateTime.now();
-        this.itemAvailableFromTimezone = request.getItemAvailableFromTimezone() != null 
-            ? request.getItemAvailableFromTimezone().trim() 
-            : "UTC";
+        this.itemAvailableFrom = request.getItemAvailableFrom() != null
+                ? request.getItemAvailableFrom()
+                : LocalDateTime.now();
+        this.itemAvailableFromTimezone = request.getItemAvailableFromTimezone() != null
+                ? request.getItemAvailableFromTimezone().trim()
+                : "UTC";
     }
 }

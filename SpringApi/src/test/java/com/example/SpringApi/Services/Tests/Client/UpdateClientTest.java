@@ -1,4 +1,3 @@
-// Total Tests: 37
 package com.example.SpringApi.Services.Tests.Client;
 
 import com.example.SpringApi.Controllers.ClientController;
@@ -28,6 +27,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Update Client Tests")
 class UpdateClientTest extends ClientServiceTestBase {
+
+    // Total Tests: 38
 
     /*
      **********************************************************************************************
@@ -301,10 +302,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 "newHash");
 
         // Act
-        try (MockedConstruction<ImgbbHelper> imgMock = mockConstruction(ImgbbHelper.class,
-                (mock, context) -> {
-                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
-                })) {
+        try (MockedConstruction<ImgbbHelper> imgMock = stubImgbbUploadResponse(mockResponse)) {
 
             clientService.updateClient(testClientRequest);
 
@@ -516,8 +514,7 @@ class UpdateClientTest extends ClientServiceTestBase {
         stubGoogleCredFindById(DEFAULT_GOOGLE_CRED_ID, Optional.of(testGoogleCred));
 
         // Act & Assert
-        try (MockedConstruction<FirebaseHelper> fbMock = mockConstruction(FirebaseHelper.class,
-                (mock, context) -> when(mock.uploadFileToFirebase(anyString(), anyString())).thenReturn(false))) {
+        try (MockedConstruction<FirebaseHelper> fbMock = stubFirebaseUploadFail()) {
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> clientService.updateClient(testClientRequest));
 
@@ -568,8 +565,7 @@ class UpdateClientTest extends ClientServiceTestBase {
         stubClientSave(testClient);
 
         // Act & Assert
-        try (MockedConstruction<ImgbbHelper> imgMock = mockConstruction(ImgbbHelper.class,
-                (mock, context) -> when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(null))) {
+        try (MockedConstruction<ImgbbHelper> imgMock = stubImgbbUploadResponse(null)) {
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> clientService.updateClient(testClientRequest));
 
@@ -690,12 +686,45 @@ class UpdateClientTest extends ClientServiceTestBase {
     @Test
     @DisplayName("Update Client - Null request - ThrowsBadRequestException")
     void updateClient_NullRequest_ThrowsBadRequestException() {
+        // Arrange
+
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.updateClient(null));
 
         // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidRequest, ex.getMessage());
     }
+
+        /*
+         **********************************************************************************************
+         * CONTROLLER AUTHORIZATION TESTS
+         **********************************************************************************************
+         */
+
+        /**
+         * Purpose: Verify controller has correct @PreAuthorize permission.
+         * Expected Result: Annotation exists and contains UPDATE_CLIENT_PERMISSION.
+         * Assertions: Annotation is present and permission matches.
+         */
+        @Test
+        @DisplayName("Update Client - Controller permission forbidden - Success")
+        void updateClient_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = ClientController.class.getMethod("updateClient", Long.class,
+            com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+            org.springframework.security.access.prepost.PreAuthorize.class);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "updateClient method should have @PreAuthorize annotation");
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+            Authorizations.UPDATE_CLIENT_PERMISSION + "')";
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+            "PreAuthorize annotation should reference UPDATE_CLIENT_PERMISSION");
+        verify(mockClientService, never()).updateClient(any());
+        }
 
     /*
      * Purpose: Reject invalid support email (Null).

@@ -3,9 +3,10 @@ package com.example.SpringApi.Services.Tests.Todo;
 import com.example.SpringApi.Models.DatabaseModels.Todo;
 import com.example.SpringApi.Models.RequestModels.TodoRequestModel;
 import com.example.SpringApi.Repositories.TodoRepository;
-import com.example.SpringApi.Services.Tests.BaseTest;
 import com.example.SpringApi.Services.TodoService;
 import com.example.SpringApi.Services.UserLogService;
+import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.Exceptions.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,13 +22,23 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Base test class for TodoService tests.
  * Provides common mocks, test data, and setup for all Todo service tests.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class TodoServiceTestBase extends BaseTest {
+public abstract class TodoServiceTestBase {
+
+    // ==================== COMMON TEST CONSTANTS ====================
+
+    protected static final Long DEFAULT_TODO_ID = 1L;
+    protected static final String DEFAULT_TODO_TITLE = "Test Todo";
+    protected static final Boolean DEFAULT_TODO_COMPLETED = false;
+    protected static final Long DEFAULT_USER_ID = 1L;
+    protected static final String DEFAULT_CREATED_USER = "admin";
 
     @Mock
     protected TodoRepository todoRepository;
@@ -98,5 +109,44 @@ public abstract class TodoServiceTestBase extends BaseTest {
 
     protected void stubUserLogServiceLogDataReturnsTrue() {
         lenient().when(userLogService.logData(anyLong(), anyString(), anyString())).thenReturn(true);
+    }
+
+    // ==================== FACTORY METHODS ====================
+
+    protected TodoRequestModel createValidTodoRequest() {
+        return createValidTodoRequest(DEFAULT_TODO_ID);
+    }
+
+    protected TodoRequestModel createValidTodoRequest(Long todoId) {
+        TodoRequestModel request = new TodoRequestModel();
+        request.setTodoId(todoId);
+        request.setTask(DEFAULT_TODO_TITLE);
+        request.setIsDone(DEFAULT_TODO_COMPLETED);
+        return request;
+    }
+
+    protected Todo createTestTodo() {
+        return createTestTodo(createValidTodoRequest(), DEFAULT_CREATED_USER);
+    }
+
+    protected Todo createTestTodo(TodoRequestModel request, String createdUser) {
+        Todo todo = new Todo();
+        todo.setTodoId(request.getTodoId());
+        todo.setTask(request.getTask());
+        todo.setIsDone(request.getIsDone());
+        todo.setCreatedUser(createdUser);
+        todo.setCreatedAt(LocalDateTime.now());
+        todo.setUpdatedAt(LocalDateTime.now());
+        return todo;
+    }
+
+    protected void assertThrowsBadRequest(String expectedMessage, org.junit.jupiter.api.function.Executable executable) {
+        BadRequestException ex = assertThrows(BadRequestException.class, executable);
+        assertEquals(expectedMessage, ex.getMessage());
+    }
+
+    protected void assertThrowsNotFound(String expectedMessage, org.junit.jupiter.api.function.Executable executable) {
+        NotFoundException ex = assertThrows(NotFoundException.class, executable);
+        assertEquals(expectedMessage, ex.getMessage());
     }
 }

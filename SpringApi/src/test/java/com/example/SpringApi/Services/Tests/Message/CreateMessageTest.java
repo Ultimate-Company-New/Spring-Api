@@ -49,8 +49,8 @@ class CreateMessageTest extends MessageServiceTestBase {
     void createMessage_BlankNotes_Success() {
         // Arrange
         validRequest.setNotes("   ");
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySave(testMessage);
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.createMessage(validRequest));
@@ -67,8 +67,8 @@ class CreateMessageTest extends MessageServiceTestBase {
         // Arrange
         validRequest.setUserIds(null);
         validRequest.setUserGroupIds(List.of(10L, 20L));
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySave(testMessage);
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.createMessage(validRequest));
@@ -87,8 +87,8 @@ class CreateMessageTest extends MessageServiceTestBase {
         // Arrange
         validRequest.setUserIds(List.of(1L));
         validRequest.setUserGroupIds(List.of(10L));
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySave(testMessage);
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.createMessage(validRequest));
@@ -106,8 +106,8 @@ class CreateMessageTest extends MessageServiceTestBase {
     void createMessage_NullNotes_Success() {
         // Arrange
         validRequest.setNotes(null);
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySave(testMessage);
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.createMessage(validRequest));
@@ -123,8 +123,8 @@ class CreateMessageTest extends MessageServiceTestBase {
     void createMessage_SendAsEmailFalse_NoRecipientLookup() {
         // Arrange
         validRequest.setSendAsEmail(false);
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySave(testMessage);
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.createMessage(validRequest));
@@ -146,13 +146,12 @@ class CreateMessageTest extends MessageServiceTestBase {
         validRequest.setPublishDate(null);
         testMessage.setSendAsEmail(true);
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any())).thenReturn(testMessage);
-        when(userRepository.findAllUserEmailsByClientAndUserIdsAndGroupIds(anyLong(), anyList(), anyList()))
-                .thenReturn(List.of());
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySave(testMessage);
+        stubUserRepositoryFindAllUserEmails(List.of());
 
         // Act & Assert
-        try (MockedConstruction<EmailTemplates> templatesMock = mockConstruction(EmailTemplates.class)) {
+        try (MockedConstruction<EmailTemplates> templatesMock = stubEmailTemplatesSendEmail(true)) {
             assertDoesNotThrow(() -> messageService.createMessage(validRequest));
             assertTrue(templatesMock.constructed().isEmpty());
         }
@@ -172,13 +171,11 @@ class CreateMessageTest extends MessageServiceTestBase {
         validRequest.setSendAsEmail(true);
         validRequest.setPublishDate(LocalDateTime.now(ZoneOffset.UTC).plusHours(1));
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any(com.example.SpringApi.Models.DatabaseModels.Message.class)))
-                .thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySave(testMessage);
 
         // Act & Assert
-        try (MockedConstruction<EmailHelper> emailHelperMock = mockConstruction(EmailHelper.class,
-                (mock, context) -> when(mock.generateBatchId()).thenReturn("batch-123"))) {
+        try (MockedConstruction<EmailHelper> emailHelperMock = stubEmailHelperGenerateBatchId("batch-123")) {
             assertDoesNotThrow(() -> messageService.createMessage(validRequest));
 
             ArgumentCaptor<com.example.SpringApi.Models.DatabaseModels.Message> messageCaptor = ArgumentCaptor
@@ -204,18 +201,13 @@ class CreateMessageTest extends MessageServiceTestBase {
         testMessage.setSendAsEmail(true);
         testMessage.setDescriptionHtml(TEST_DESC_HTML);
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any())).thenReturn(testMessage);
-        when(userRepository.findAllUserEmailsByClientAndUserIdsAndGroupIds(anyLong(), anyList(), anyList()))
-                .thenReturn(List.of(TEST_EMAIL));
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySave(testMessage);
+        stubUserRepositoryFindAllUserEmails(List.of(TEST_EMAIL));
 
         // Act & Assert
-        try (MockedConstruction<EmailHelper> emailHelperMock = mockConstruction(EmailHelper.class,
-                (mock, context) -> when(mock.generateBatchId()).thenReturn("batch-email"));
-                MockedConstruction<EmailTemplates> templatesMock = mockConstruction(EmailTemplates.class,
-                        (mock, context) -> when(
-                                mock.sendMessageEmail(anyList(), anyString(), anyString(), any(), any()))
-                                .thenReturn(true))) {
+        try (MockedConstruction<EmailHelper> emailHelperMock = stubEmailHelperGenerateBatchId("batch-email");
+            MockedConstruction<EmailTemplates> templatesMock = stubEmailTemplatesSendEmail(true)) {
             assertDoesNotThrow(() -> messageService.createMessage(validRequest));
 
             EmailTemplates constructed = templatesMock.constructed().get(0);
@@ -237,9 +229,8 @@ class CreateMessageTest extends MessageServiceTestBase {
         validRequest.setSendAsEmail(true);
         validRequest.setPublishDate(null);
 
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any(com.example.SpringApi.Models.DatabaseModels.Message.class)))
-                .thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySave(testMessage);
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.createMessage(validRequest));
@@ -261,10 +252,10 @@ class CreateMessageTest extends MessageServiceTestBase {
     @DisplayName("Create Message - Success - No email")
     void createMessage_Success_NoEmail() {
         // Arrange
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any())).thenReturn(testMessage);
-        when(messageUserMapRepository.save(any(MessageUserMap.class))).thenReturn(new MessageUserMap());
-        when(messageUserGroupMapRepository.save(any(MessageUserGroupMap.class))).thenReturn(new MessageUserGroupMap());
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySave(testMessage);
+        stubMessageUserMapRepositorySave(new MessageUserMap());
+        stubMessageUserGroupMapRepositorySave(new MessageUserGroupMap());
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.createMessage(validRequest));
@@ -285,8 +276,8 @@ class CreateMessageTest extends MessageServiceTestBase {
     void createMessage_TitleBoundary_Success() {
         // Arrange
         validRequest.setTitle("a".repeat(500));
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySave(testMessage);
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.createMessage(validRequest));
@@ -304,8 +295,8 @@ class CreateMessageTest extends MessageServiceTestBase {
         // Arrange
         validRequest.setTitle("  Trimmed Title  ");
         validRequest.setDescriptionHtml("  <p>Trimmed</p>  ");
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySave(testMessage);
 
         // Act
         messageService.createMessage(validRequest);
@@ -329,8 +320,8 @@ class CreateMessageTest extends MessageServiceTestBase {
         // Arrange
         validRequest.setUserIds(List.of(1L, 2L));
         validRequest.setUserGroupIds(null);
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySave(testMessage);
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.createMessage(validRequest));
@@ -346,8 +337,8 @@ class CreateMessageTest extends MessageServiceTestBase {
     @DisplayName("Create Message - Verify Logging - Success")
     void createMessage_VerifyLogging_Success() {
         // Arrange
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any())).thenReturn(testMessage);
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySave(testMessage);
 
         // Act
         messageService.createMessage(validRequest);
@@ -372,7 +363,7 @@ class CreateMessageTest extends MessageServiceTestBase {
     void createMessage_BlankDescriptionHtml_ThrowsBadRequestException() {
         // Arrange
         validRequest.setDescriptionHtml("   ");
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        stubClientRepositoryFindById(Optional.of(testClient));
 
         // Act & Assert
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.ER007,
@@ -388,7 +379,7 @@ class CreateMessageTest extends MessageServiceTestBase {
     void createMessage_BlankTitle_ThrowsBadRequestException() {
         // Arrange
         validRequest.setTitle("   ");
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        stubClientRepositoryFindById(Optional.of(testClient));
 
         // Act & Assert
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.ER003,
@@ -403,7 +394,7 @@ class CreateMessageTest extends MessageServiceTestBase {
     @DisplayName("Create Message - Client not found - Throws NotFoundException")
     void createMessage_ClientNotFound_ThrowsNotFoundException() {
         // Arrange
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.empty());
+        stubClientRepositoryFindById(Optional.empty());
 
         // Act & Assert
         assertThrowsNotFound(ErrorMessages.ClientErrorMessages.InvalidId,
@@ -422,7 +413,7 @@ class CreateMessageTest extends MessageServiceTestBase {
         // Arrange
         validRequest.setSendAsEmail(true);
         validRequest.setPublishDate(LocalDateTime.now(ZoneOffset.UTC).plusHours(74));
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        stubClientRepositoryFindById(Optional.of(testClient));
 
         // Act & Assert
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.ER010,
@@ -440,7 +431,7 @@ class CreateMessageTest extends MessageServiceTestBase {
         // Arrange
         validRequest.setSendAsEmail(true);
         validRequest.setPublishDate(LocalDateTime.now(ZoneOffset.UTC).minusHours(1));
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        stubClientRepositoryFindById(Optional.of(testClient));
 
         // Act & Assert
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.ER009,
@@ -457,7 +448,7 @@ class CreateMessageTest extends MessageServiceTestBase {
         // Arrange
         validRequest.setUserIds(Arrays.asList());
         validRequest.setUserGroupIds(Arrays.asList());
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        stubClientRepositoryFindById(Optional.of(testClient));
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
@@ -470,12 +461,12 @@ class CreateMessageTest extends MessageServiceTestBase {
      * Expected Result: BadRequestException with ER008 error code.
      */
     @Test
-    @DisplayName("Create Message - No targets - Success without maps")
-    void createMessage_NoTargets_SuccessWithoutMaps() {
+    @DisplayName("Create Message - No targets - Throws BadRequestException")
+    void createMessage_NoTargets_ThrowsBadRequestException() {
         // Arrange
         validRequest.setUserIds(null);
         validRequest.setUserGroupIds(null);
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        stubClientRepositoryFindById(Optional.of(testClient));
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
@@ -492,7 +483,7 @@ class CreateMessageTest extends MessageServiceTestBase {
     void createMessage_NullDescriptionHtml_ThrowsBadRequestException() {
         // Arrange
         validRequest.setDescriptionHtml(null);
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        stubClientRepositoryFindById(Optional.of(testClient));
 
         // Act & Assert
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.ER007,
@@ -508,7 +499,7 @@ class CreateMessageTest extends MessageServiceTestBase {
     @DisplayName("Create Message - Null Request - Throws BadRequestException")
     void createMessage_NullRequest_ThrowsBadRequestException() {
         // Arrange
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        stubClientRepositoryFindById(Optional.of(testClient));
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
@@ -525,7 +516,7 @@ class CreateMessageTest extends MessageServiceTestBase {
     void createMessage_NullTitle_ThrowsBadRequestException() {
         // Arrange
         validRequest.setTitle(null);
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        stubClientRepositoryFindById(Optional.of(testClient));
 
         // Act & Assert
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.ER003,
@@ -543,7 +534,7 @@ class CreateMessageTest extends MessageServiceTestBase {
         // Arrange
         validRequest.setSendAsEmail(false);
         validRequest.setPublishDate(LocalDateTime.now(ZoneOffset.UTC).plusHours(1));
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        stubClientRepositoryFindById(Optional.of(testClient));
 
         // Act & Assert
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.PublishDateRequiresSendAsEmail,
@@ -558,8 +549,8 @@ class CreateMessageTest extends MessageServiceTestBase {
     @DisplayName("Create Message - Repository Save Failure - Propagates Exception")
     void createMessage_RepositorySaveFailure_Propagates() {
         // Arrange
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
-        when(messageRepository.save(any())).thenThrow(new RuntimeException("DB Error"));
+        stubClientRepositoryFindById(Optional.of(testClient));
+        stubMessageRepositorySaveThrowsRuntimeException("DB Error");
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.createMessage(validRequest));
@@ -576,7 +567,7 @@ class CreateMessageTest extends MessageServiceTestBase {
     void createMessage_TitleTooLong_ThrowsBadRequestException() {
         // Arrange
         validRequest.setTitle("A".repeat(501));
-        when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.of(testClient));
+        stubClientRepositoryFindById(Optional.of(testClient));
 
         // Act & Assert
         assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.TitleTooLong,
@@ -642,8 +633,7 @@ class CreateMessageTest extends MessageServiceTestBase {
     void createMessage_WithValidRequest_DelegatesToService() {
         // Arrange
         MessageController controller = new MessageController(messageServiceMock);
-        doNothing().when(messageServiceMock)
-                .createMessage(any(com.example.SpringApi.Models.RequestModels.MessageRequestModel.class));
+        stubMessageServiceCreateMessageDoNothing();
 
         // Act
         ResponseEntity<?> response = controller.createMessage(validRequest);

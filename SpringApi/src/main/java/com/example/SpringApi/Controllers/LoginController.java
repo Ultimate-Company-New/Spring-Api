@@ -111,6 +111,10 @@ public class LoginController {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (UnauthorizedException e) {
+            logger.error(e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponseModel(ErrorMessages.ERROR_INTERNAL_SERVER_ERROR, e.getMessage(), HttpStatus.UNAUTHORIZED.value()));
         } catch (NotFoundException e) {
             logger.error(e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)

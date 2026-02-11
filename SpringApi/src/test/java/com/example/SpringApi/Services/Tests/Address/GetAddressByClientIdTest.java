@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Get Address By Client ID Tests")
 class GetAddressByClientIdTest extends AddressServiceTestBase {
-    // Total Tests: 15
+    // Total Tests: 16
 
     /*
      **********************************************************************************************
@@ -343,6 +343,33 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
      */
 
     /**
+     * Purpose: Verify that the controller has the correct @PreAuthorize annotation
+     * for security.
+     * Expected Result: The method should be annotated with @PreAuthorize checking
+     * for VIEW_ADDRESS_PERMISSION.
+     * Assertions: Annotation is present and contains expected permission string.
+     */
+    @Test
+    @DisplayName("Get Address By Client ID - Controller permission forbidden - Success")
+    void getAddressByClientId_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = AddressController.class.getMethod("getAddressByClientId", Long.class);
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "getAddressByClientId method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.VIEW_ADDRESS_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference VIEW_ADDRESS_PERMISSION");
+    }
+
+    /**
      * Purpose: Verify @PreAuthorize annotation is declared on getAddressByClientId
      * method.
      * Expected Result: Method has @PreAuthorize annotation with correct permission.
@@ -350,7 +377,7 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
      */
     @Test
     @DisplayName("Get Address By Client ID - Verify @PreAuthorize annotation is configured correctly")
-    void getAddressByClientId_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void getAddressByClientId_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         var method = AddressController.class.getMethod("getAddressByClientId", Long.class);
 
@@ -385,10 +412,9 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
     void getAddressByClientId_WithValidRequest_DelegatesToService() {
         // Arrange
         stubServiceGetAddressByClientId(DEFAULT_CLIENT_ID, new ArrayList<>());
-        AddressController controller = new AddressController(addressService);
 
         // Act - Call controller directly (simulating authorization has already passed)
-        ResponseEntity<?> response = controller.getAddressByClientId(DEFAULT_CLIENT_ID);
+        ResponseEntity<?> response = addressController.getAddressByClientId(DEFAULT_CLIENT_ID);
 
         // Assert - Verify service was called and correct response returned
         verify(addressService, times(1)).getAddressByClientId(DEFAULT_CLIENT_ID);

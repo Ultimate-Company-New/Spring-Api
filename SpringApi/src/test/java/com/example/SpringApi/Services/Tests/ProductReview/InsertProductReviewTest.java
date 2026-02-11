@@ -1,17 +1,530 @@
 package com.example.SpringApi.Services.Tests.ProductReview;
 
+import com.example.SpringApi.Controllers.ProductReviewController;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Models.DatabaseModels.ProductReview;
 import com.example.SpringApi.Models.RequestModels.ProductReviewRequestModel;
+import com.example.SpringApi.Services.Interface.IProductReviewSubTranslator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
+
+/**
+ * Test class for ProductReviewService.insertProductReview method.
+ */
+@DisplayName("ProductReviewService - InsertProductReview Tests")
+class InsertProductReviewTest extends ProductReviewServiceTestBase {
+
+    // Total Tests: 24
+
+    /*
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
+
+    /*
+     * Purpose: Verify basic success path.
+     * Expected Result: Review saved.
+     * Assertions: save called.
+     */
+    @Test
+    @DisplayName("insertProductReview - Success - Success")
+    void insertProductReview_Success_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        stubProductReviewRepositorySave(testProductReview);
+        stubUserLogServiceLogDataReturnsTrue();
+
+        // Act
+        productReviewService.insertProductReview(request);
+
+        // Assert
+        verify(productReviewRepository, times(1)).save(any(ProductReview.class));
+    }
+
+    /*
+     * Purpose: Verify rating one is accepted.
+     * Expected Result: Review saved.
+     * Assertions: save called.
+     */
+    @Test
+    @DisplayName("insertProductReview - Rating One - Success")
+    void insertProductReview_RatingOne_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(BigDecimal.ONE);
+        stubProductReviewRepositorySave(testProductReview);
+
+        // Act
+        productReviewService.insertProductReview(request);
+
+        // Assert
+        verify(productReviewRepository, times(1)).save(any(ProductReview.class));
+    }
+
+    /*
+     * Purpose: Verify rating five is accepted.
+     * Expected Result: Review saved.
+     * Assertions: save called.
+     */
+    @Test
+    @DisplayName("insertProductReview - Rating Five - Success")
+    void insertProductReview_RatingFive_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("5.0"));
+        stubProductReviewRepositorySave(testProductReview);
+
+        // Act
+        productReviewService.insertProductReview(request);
+
+        // Assert
+        verify(productReviewRepository, times(1)).save(any(ProductReview.class));
+    }
+
+    /*
+     * Purpose: Verify rating zero is accepted.
+     * Expected Result: Review saved.
+     * Assertions: save called.
+     */
+    @Test
+    @DisplayName("insertProductReview - Rating Zero - Success")
+    void insertProductReview_RatingZero_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(BigDecimal.ZERO);
+        stubProductReviewRepositorySave(testProductReview);
+
+        // Act
+        productReviewService.insertProductReview(request);
+
+        // Assert
+        verify(productReviewRepository, times(1)).save(any(ProductReview.class));
+    }
+
+    /*
+     * Purpose: Verify parentId set is accepted.
+     * Expected Result: Review saved.
+     * Assertions: save called.
+     */
+    @Test
+    @DisplayName("insertProductReview - ParentId Set - Success")
+    void insertProductReview_ParentIdSet_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setParentId(10L);
+        stubProductReviewRepositorySave(testProductReview);
+
+        // Act
+        productReviewService.insertProductReview(request);
+
+        // Assert
+        verify(productReviewRepository, times(1)).save(any(ProductReview.class));
+    }
+
+    /*
+     * Purpose: Verify long review text is accepted.
+     * Expected Result: Review saved.
+     * Assertions: save called.
+     */
+    @Test
+    @DisplayName("insertProductReview - Review Text Long - Success")
+    void insertProductReview_ReviewTextLong_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview("A".repeat(500));
+        stubProductReviewRepositorySave(testProductReview);
+
+        // Act
+        productReviewService.insertProductReview(request);
+
+        // Assert
+        verify(productReviewRepository, times(1)).save(any(ProductReview.class));
+    }
+
+    /*
+     * Purpose: Verify review text with unicode is accepted.
+     * Expected Result: Review saved.
+     * Assertions: save called.
+     */
+    @Test
+    @DisplayName("insertProductReview - Review Text Unicode - Success")
+    void insertProductReview_ReviewTextUnicode_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview("测试 Unicode ✅");
+        stubProductReviewRepositorySave(testProductReview);
+
+        // Act
+        productReviewService.insertProductReview(request);
+
+        // Assert
+        verify(productReviewRepository, times(1)).save(any(ProductReview.class));
+    }
+
+    /*
+     * Purpose: Verify ratings at max boundary accepted.
+     * Expected Result: Review saved.
+     * Assertions: save called.
+     */
+    @Test
+    @DisplayName("insertProductReview - Ratings At Max Boundary - Success")
+    void insertProductReview_RatingsAtMaxBoundary_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("5.0"));
+        stubProductReviewRepositorySave(testProductReview);
+
+        // Act
+        productReviewService.insertProductReview(request);
+
+        // Assert
+        verify(productReviewRepository, times(1)).save(any(ProductReview.class));
+    }
+
+    /*
+     * Purpose: Verify ratings at min boundary accepted.
+     * Expected Result: Review saved.
+     * Assertions: save called.
+     */
+    @Test
+    @DisplayName("insertProductReview - Ratings At Min Boundary - Success")
+    void insertProductReview_RatingsAtMinBoundary_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(BigDecimal.ZERO);
+        stubProductReviewRepositorySave(testProductReview);
+
+        // Act
+        productReviewService.insertProductReview(request);
+
+        // Assert
+        verify(productReviewRepository, times(1)).save(any(ProductReview.class));
+    }
+
+    /*
+     * Purpose: Verify review text with newlines accepted.
+     * Expected Result: Review saved.
+     * Assertions: save called.
+     */
+    @Test
+    @DisplayName("insertProductReview - Review Text With Newlines - Success")
+    void insertProductReview_ReviewTextWithNewlines_Success() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview("Line1\nLine2");
+        stubProductReviewRepositorySave(testProductReview);
+
+        // Act
+        productReviewService.insertProductReview(request);
+
+        // Assert
+        verify(productReviewRepository, times(1)).save(any(ProductReview.class));
+    }
+
+    /*
+     **********************************************************************************************
+     * FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
+     */
+
+    /*
+     * Purpose: Verify empty review text throws BadRequestException.
+     * Expected Result: BadRequestException.
+     * Assertions: message matches.
+     */
+    @Test
+    @DisplayName("insertProductReview - Empty Review Text - Throws BadRequestException")
+    void insertProductReview_EmptyReviewText_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview("");
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+
+        // Assert
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER002, ex.getMessage());
+    }
+
+    /*
+     * Purpose: Verify invalid ratings throw BadRequestException.
+     * Expected Result: BadRequestException.
+     * Assertions: message matches.
+     */
+    @Test
+    @DisplayName("insertProductReview - Invalid Ratings - Throws BadRequestException")
+    void insertProductReview_InvalidRatings_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("-1"));
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+
+        // Assert
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
+    }
+
+    /*
+     * Purpose: Verify negative productId throws BadRequestException.
+     * Expected Result: BadRequestException.
+     * Assertions: message matches.
+     */
+    @Test
+    @DisplayName("insertProductReview - Negative ProductId - Throws BadRequestException")
+    void insertProductReview_NegativeProductId_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setProductId(-1L);
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+
+        // Assert
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, ex.getMessage());
+    }
+
+    /*
+     * Purpose: Verify negative userId throws BadRequestException.
+     * Expected Result: BadRequestException.
+     * Assertions: message matches.
+     */
+    @Test
+    @DisplayName("insertProductReview - Negative UserId - Throws BadRequestException")
+    void insertProductReview_NegativeUserId_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setUserId(-1L);
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+
+        // Assert
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER003, ex.getMessage());
+    }
+
+    /*
+     * Purpose: Verify null productId throws BadRequestException.
+     * Expected Result: BadRequestException.
+     * Assertions: message matches.
+     */
+    @Test
+    @DisplayName("insertProductReview - Null ProductId - Throws BadRequestException")
+    void insertProductReview_NullProductId_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setProductId(null);
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+
+        // Assert
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, ex.getMessage());
+    }
+
+    /*
+     * Purpose: Verify null request throws BadRequestException.
+     * Expected Result: BadRequestException.
+     * Assertions: message matches.
+     */
+    @Test
+    @DisplayName("insertProductReview - Null Request - Throws BadRequestException")
+    void insertProductReview_NullRequest_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = null;
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+
+        // Assert
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /*
+     * Purpose: Verify null review text throws BadRequestException.
+     * Expected Result: BadRequestException.
+     * Assertions: message matches.
+     */
+    @Test
+    @DisplayName("insertProductReview - Null Review Text - Throws BadRequestException")
+    void insertProductReview_NullReviewText_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview(null);
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+
+        // Assert
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER002, ex.getMessage());
+    }
+
+    /*
+     * Purpose: Verify null userId throws BadRequestException.
+     * Expected Result: BadRequestException.
+     * Assertions: message matches.
+     */
+    @Test
+    @DisplayName("insertProductReview - Null UserId - Throws BadRequestException")
+    void insertProductReview_NullUserId_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setUserId(null);
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+
+        // Assert
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER003, ex.getMessage());
+    }
+
+    /*
+     * Purpose: Verify ratings too high throw BadRequestException.
+     * Expected Result: BadRequestException.
+     * Assertions: message matches.
+     */
+    @Test
+    @DisplayName("insertProductReview - Ratings Too High - Throws BadRequestException")
+    void insertProductReview_RatingsTooHigh_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setRatings(new BigDecimal("6.0"));
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+
+        // Assert
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER001, ex.getMessage());
+    }
+
+    /*
+     * Purpose: Verify whitespace review text throws BadRequestException.
+     * Expected Result: BadRequestException.
+     * Assertions: message matches.
+     */
+    @Test
+    @DisplayName("insertProductReview - Whitespace Review Text - Throws BadRequestException")
+    void insertProductReview_WhitespaceReviewText_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setReview("   ");
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+
+        // Assert
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER002, ex.getMessage());
+    }
+
+    /*
+     * Purpose: Verify zero productId throws BadRequestException.
+     * Expected Result: BadRequestException.
+     * Assertions: message matches.
+     */
+    @Test
+    @DisplayName("insertProductReview - Zero ProductId - Throws BadRequestException")
+    void insertProductReview_ZeroProductId_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setProductId(0L);
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+
+        // Assert
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER004, ex.getMessage());
+    }
+
+    /*
+     * Purpose: Verify zero userId throws BadRequestException.
+     * Expected Result: BadRequestException.
+     * Assertions: message matches.
+     */
+    @Test
+    @DisplayName("insertProductReview - Zero UserId - Throws BadRequestException")
+    void insertProductReview_ZeroUserId_ThrowsBadRequestException() {
+        // Arrange
+        ProductReviewRequestModel request = buildValidProductReviewRequest();
+        request.setUserId(0L);
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> productReviewService.insertProductReview(request));
+
+        // Assert
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.ER003, ex.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * PERMISSION TESTS
+     **********************************************************************************************
+     */
+
+    /*
+     * Purpose: Verify unauthorized access is handled at controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401.
+     */
+    @Test
+    @DisplayName("insertProductReview - Controller Permission - Unauthorized")
+    void insertProductReview_controller_permission_unauthorized() {
+        // Arrange
+        IProductReviewSubTranslator serviceMock = mock(IProductReviewSubTranslator.class);
+        ProductReviewController controller = new ProductReviewController(serviceMock);
+        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(serviceMock).insertProductReview(any(ProductReviewRequestModel.class));
+
+        // Act
+        ResponseEntity<?> response = controller.insertProductReview(buildValidProductReviewRequest());
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /*
+     * Purpose: Verify @PreAuthorize annotation is present.
+     * Expected Result: Annotation exists.
+     * Assertions: Annotation is not null.
+     */
+    @Test
+    @DisplayName("insertProductReview - Verify @PreAuthorize Annotation")
+    void insertProductReview_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
+        // Arrange
+        Method method = ProductReviewController.class.getMethod("insertProductReview",
+                ProductReviewRequestModel.class);
+
+        // Act
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
+        assertNotNull(annotation, "insertProductReview should have @PreAuthorize annotation");
+    }
+}
 
 /**
  * Test class for ProductReviewService.insertProductReview method.
@@ -20,8 +533,8 @@ import static org.mockito.Mockito.*;
  * - SUCCESS: 35 tests
  * - FAILURE / EXCEPTION: 25 tests
  */
-@DisplayName("ProductReviewService - InsertProductReview Tests")
-class InsertProductReviewTest extends ProductReviewServiceTestBase {
+@DisplayName("ProductReviewService - InsertProductReview Tests - Duplicate Block")
+class InsertProductReviewTestDuplicate extends ProductReviewServiceTestBase {
 
     // Total Tests: 60
 

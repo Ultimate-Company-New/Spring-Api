@@ -1,4 +1,3 @@
-// Total Tests: 10
 package com.example.SpringApi.Services.Tests.Lead;
 
 import com.example.SpringApi.Controllers.LeadController;
@@ -20,6 +19,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Get Lead Details By ID Tests")
 class GetLeadDetailsByIdTest extends LeadServiceTestBase {
+
+    // Total Tests: 10
 
     /*
      **********************************************************************************************
@@ -178,6 +179,27 @@ class GetLeadDetailsByIdTest extends LeadServiceTestBase {
      */
 
     /*
+     * Purpose: Verify controller calls service when authorization passes.
+     * Given: Valid Lead ID.
+     * When: Controller getLeadDetailsById is called.
+     * Then: Service is invoked once and HTTP 200 returned.
+     */
+    @Test
+    @DisplayName("getLeadDetailsById_controller_basic_success")
+    void getLeadDetailsById_controller_basic_success() {
+        // Arrange
+        LeadController controller = new LeadController(leadServiceMock);
+        stubLeadServiceGetLeadDetailsById(DEFAULT_LEAD_ID, new LeadResponseModel(testLead));
+
+        // Act
+        ResponseEntity<?> response = controller.getLeadDetailsById(DEFAULT_LEAD_ID);
+
+        // Assert
+        verify(leadServiceMock, times(1)).getLeadDetailsById(DEFAULT_LEAD_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    /*
      * Purpose: Verify @PreAuthorize annotation is declared correctly on the
      * controller.
      * Given: LeadController class.
@@ -189,36 +211,19 @@ class GetLeadDetailsByIdTest extends LeadServiceTestBase {
     void getLeadDetailsById_controller_permission_configured() throws NoSuchMethodException {
         // Arrange
         var method = LeadController.class.getMethod("getLeadDetailsById", Long.class);
+        LeadController controller = new LeadController(leadServiceMock);
+        stubLeadServiceGetLeadDetailsById(DEFAULT_LEAD_ID, new LeadResponseModel(testLead));
 
         // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
+        ResponseEntity<?> response = controller.getLeadDetailsById(DEFAULT_LEAD_ID);
 
         // Assert
         assertNotNull(preAuthorizeAnnotation);
         String expectedPermission = "@customAuthorization.hasAuthority('" +
                 Authorizations.VIEW_LEADS_PERMISSION + "')";
         assertEquals(expectedPermission, preAuthorizeAnnotation.value());
-    }
-
-    /*
-     * Purpose: Verify controller calls service when authorization passes.
-     * Given: Valid Lead ID.
-     * When: Controller getLeadDetailsById is called.
-     * Then: Service is invoked once and HTTP 200 returned.
-     */
-    @Test
-    @DisplayName("getLeadDetailsById_controller_basic_success")
-    void getLeadDetailsById_controller_basic_success() {
-        // Arrange
-        LeadController controller = new LeadController(leadServiceMock);
-        when(leadServiceMock.getLeadDetailsById(DEFAULT_LEAD_ID)).thenReturn(new LeadResponseModel(testLead));
-
-        // Act
-        ResponseEntity<?> response = controller.getLeadDetailsById(DEFAULT_LEAD_ID);
-
-        // Assert
-        verify(leadServiceMock, times(1)).getLeadDetailsById(DEFAULT_LEAD_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 

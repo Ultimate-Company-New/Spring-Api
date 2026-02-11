@@ -188,8 +188,13 @@ public class TestRun {
         result.setTestRun(this);
         this.results.add(result);
         this.totalTests++;
-        
-        switch (result.getStatus()) {
+
+        String status = result.getStatus();
+        if (status == null) {
+            return;
+        }
+
+        switch (status) {
             case "PASSED":
                 this.passedCount++;
                 break;

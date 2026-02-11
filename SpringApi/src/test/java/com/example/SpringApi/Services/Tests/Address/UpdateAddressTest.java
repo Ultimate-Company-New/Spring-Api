@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Update Address Tests")
 class UpdateAddressTest extends AddressServiceTestBase {
-    // Total Tests: 30
+    // Total Tests: 31
 
     /*
      **********************************************************************************************
@@ -81,7 +81,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
      */
     @Test
     @DisplayName("Update Address - Logs success message and route")
-    void updateAddress_LogsSuccessMessageAndRoute() {
+    void updateAddress_LogsSuccessMessageAndRoute_Success() {
         // Arrange
         stubDefaultRepositoryResponses();
         stubAddressRepositorySave(testAddress);
@@ -495,10 +495,13 @@ class UpdateAddressTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Update Address - Null request - ThrowsBadRequestException")
     void updateAddress_NullRequest_ThrowsBadRequestException() {
+        // Arrange
+        com.example.SpringApi.Models.RequestModels.AddressRequestModel nullRequest = null;
+
         // Act & Assert
         BadRequestException exception = assertThrows(
                 BadRequestException.class,
-                () -> addressService.updateAddress(null));
+                () -> addressService.updateAddress(nullRequest));
 
         assertEquals(ErrorMessages.AddressErrorMessages.ER001, exception.getMessage());
     }
@@ -610,13 +613,41 @@ class UpdateAddressTest extends AddressServiceTestBase {
      */
 
     /**
+     * Purpose: Verify that the controller has the correct @PreAuthorize annotation
+     * for security.
+     * Expected Result: The method should be annotated with @PreAuthorize checking
+     * for UPDATE_ADDRESS_PERMISSION.
+     * Assertions: Annotation is present and contains expected permission string.
+     */
+    @Test
+    @DisplayName("Update Address - Controller permission forbidden - Success")
+    void updateAddress_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = AddressController.class.getMethod("updateAddress",
+                Long.class, com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "updateAddress method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.UPDATE_ADDRESS_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference UPDATE_ADDRESS_PERMISSION");
+    }
+
+    /**
      * Purpose: Verify @PreAuthorize annotation is declared on updateAddress method.
      * Expected Result: Method has @PreAuthorize annotation with correct permission.
      * Assertions: Annotation exists and references UPDATE_ADDRESS_PERMISSION.
      */
     @Test
     @DisplayName("Update Address - Verify @PreAuthorize annotation is configured correctly")
-    void updateAddress_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void updateAddress_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         var method = AddressController.class.getMethod("updateAddress",
                 Long.class, com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
@@ -651,12 +682,11 @@ class UpdateAddressTest extends AddressServiceTestBase {
     @DisplayName("Update Address - Controller delegates to service correctly")
     void updateAddress_WithValidRequest_DelegatesToService() {
         // Arrange
-        AddressController controller = new AddressController(addressService);
         testAddressRequest.setId(DEFAULT_ADDRESS_ID);
         stubServiceUpdateAddressDoNothing();
 
         // Act - Call controller directly (simulating authorization has already passed)
-        ResponseEntity<?> response = controller.updateAddress(DEFAULT_ADDRESS_ID, testAddressRequest);
+        ResponseEntity<?> response = addressController.updateAddress(DEFAULT_ADDRESS_ID, testAddressRequest);
 
         // Assert - Verify service was called and correct response returned
         verify(addressService, times(1)).updateAddress(testAddressRequest);

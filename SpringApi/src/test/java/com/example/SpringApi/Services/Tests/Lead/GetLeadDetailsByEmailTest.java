@@ -1,4 +1,3 @@
-// Total Tests: 5
 package com.example.SpringApi.Services.Tests.Lead;
 
 import com.example.SpringApi.Controllers.LeadController;
@@ -20,6 +19,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Get Lead Details By Email Tests")
 class GetLeadDetailsByEmailTest extends LeadServiceTestBase {
+
+    // Total Tests: 5
 
     /*
      **********************************************************************************************
@@ -95,6 +96,27 @@ class GetLeadDetailsByEmailTest extends LeadServiceTestBase {
      */
 
     /*
+     * Purpose: Verify controller calls service when authorization passes.
+     * Given: Valid email address.
+     * When: Controller getLeadDetailsByEmail is called.
+     * Then: Service is invoked once and HTTP 200 returned.
+     */
+    @Test
+    @DisplayName("getLeadDetailsByEmail_controller_basic_success")
+    void getLeadDetailsByEmail_controller_basic_success() {
+        // Arrange
+        LeadController controller = new LeadController(leadServiceMock);
+        stubLeadServiceGetLeadDetailsByEmail(DEFAULT_EMAIL, new LeadResponseModel(testLead));
+
+        // Act
+        ResponseEntity<?> response = controller.getLeadDetailsByEmail(DEFAULT_EMAIL);
+
+        // Assert
+        verify(leadServiceMock, times(1)).getLeadDetailsByEmail(DEFAULT_EMAIL);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    /*
      * Purpose: Verify @PreAuthorize annotation is declared correctly on the
      * controller.
      * Given: LeadController class.
@@ -106,36 +128,19 @@ class GetLeadDetailsByEmailTest extends LeadServiceTestBase {
     void getLeadDetailsByEmail_controller_permission_configured() throws NoSuchMethodException {
         // Arrange
         var method = LeadController.class.getMethod("getLeadDetailsByEmail", String.class);
+        LeadController controller = new LeadController(leadServiceMock);
+        stubLeadServiceGetLeadDetailsByEmail(DEFAULT_EMAIL, new LeadResponseModel(testLead));
 
         // Act
         var preAuthorizeAnnotation = method.getAnnotation(
                 org.springframework.security.access.prepost.PreAuthorize.class);
+        ResponseEntity<?> response = controller.getLeadDetailsByEmail(DEFAULT_EMAIL);
 
         // Assert
         assertNotNull(preAuthorizeAnnotation);
         String expectedPermission = "@customAuthorization.hasAuthority('" +
                 Authorizations.VIEW_LEADS_PERMISSION + "')";
         assertEquals(expectedPermission, preAuthorizeAnnotation.value());
-    }
-
-    /*
-     * Purpose: Verify controller calls service when authorization passes.
-     * Given: Valid email address.
-     * When: Controller getLeadDetailsByEmail is called.
-     * Then: Service is invoked once and HTTP 200 returned.
-     */
-    @Test
-    @DisplayName("getLeadDetailsByEmail_controller_basic_success")
-    void getLeadDetailsByEmail_controller_basic_success() {
-        // Arrange
-        LeadController controller = new LeadController(leadServiceMock);
-        when(leadServiceMock.getLeadDetailsByEmail(DEFAULT_EMAIL)).thenReturn(new LeadResponseModel(testLead));
-
-        // Act
-        ResponseEntity<?> response = controller.getLeadDetailsByEmail(DEFAULT_EMAIL);
-
-        // Assert
-        verify(leadServiceMock, times(1)).getLeadDetailsByEmail(DEFAULT_EMAIL);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

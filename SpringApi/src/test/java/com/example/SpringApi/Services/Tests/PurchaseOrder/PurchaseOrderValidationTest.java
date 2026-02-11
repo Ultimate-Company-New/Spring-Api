@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services.Tests.PurchaseOrder;
 
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Models.DatabaseModels.*;
 import org.junit.jupiter.api.DisplayName;
@@ -33,14 +34,16 @@ public class PurchaseOrderValidationTest extends PurchaseOrderServiceTestBase {
         @Test
         @DisplayName("Create PO - Null Request - Throws BadRequestException")
         void createPurchaseOrder_NullRequest_ThrowsBadRequestException() {
-            assertThrowsBadRequest("InvalidRequest", () -> purchaseOrderService.createPurchaseOrder(null));
+            assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.InvalidRequest,
+                    () -> purchaseOrderService.createPurchaseOrder(null));
         }
 
         @Test
         @DisplayName("Create PO - Null Order Summary - Throws BadRequestException")
         void createPurchaseOrder_NullOrderSummary_ThrowsBadRequestException() {
             testPurchaseOrderRequest.setOrderSummary(null);
-            assertThrowsBadRequest("InvalidRequest", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertThrowsBadRequest(ErrorMessages.OrderSummaryErrorMessages.InvalidRequest,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
         }
 
         @Test
@@ -52,28 +55,32 @@ public class PurchaseOrderValidationTest extends PurchaseOrderServiceTestBase {
             }
             testPurchaseOrderRequest.setAttachments(attachments);
 
-            assertThrowsBadRequest("MaxAttachmentsExceeded", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+                assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.MaxAttachmentsExceeded,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
         }
 
         @Test
         @DisplayName("Create PO - Null Products List - Throws BadRequestException")
         void createPurchaseOrder_NullProducts_ThrowsBadRequestException() {
             testPurchaseOrderRequest.setProducts(null);
-            assertThrowsBadRequest("ER004", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.ER004,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
         }
 
         @Test
         @DisplayName("Create PO - Empty Products List - Throws BadRequestException")
         void createPurchaseOrder_EmptyProducts_ThrowsBadRequestException() {
             testPurchaseOrderRequest.setProducts(new ArrayList<>());
-            assertThrowsBadRequest("ER004", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.ER004,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
         }
 
         @Test
         @DisplayName("Create PO - Invalid Product ID - Throws BadRequestException")
         void createPurchaseOrder_InvalidProductId_ThrowsBadRequestException() {
             testPurchaseOrderRequest.getProducts().get(0).setProductId(0L);
-            assertThrowsBadRequest("InvalidId", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidId,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
         }
 
         @Test
@@ -107,28 +114,32 @@ public class PurchaseOrderValidationTest extends PurchaseOrderServiceTestBase {
         @DisplayName("Create PO - Null Order Status - Throws BadRequestException")
         void createPurchaseOrder_NullOrderStatus_ThrowsBadRequestException() {
             testPurchaseOrderRequest.setPurchaseOrderStatus(null);
-            assertThrowsBadRequest("InvalidOrderStatus", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.InvalidOrderStatus,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
         }
 
         @Test
         @DisplayName("Create PO - Empty Order Status - Throws BadRequestException")
         void createPurchaseOrder_EmptyOrderStatus_ThrowsBadRequestException() {
             testPurchaseOrderRequest.setPurchaseOrderStatus("");
-            assertThrowsBadRequest("InvalidOrderStatus", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.InvalidOrderStatus,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
         }
 
         @Test
         @DisplayName("Create PO - Invalid Order Status Value - Throws BadRequestException")
         void createPurchaseOrder_InvalidOrderStatusValue_ThrowsBadRequestException() {
             testPurchaseOrderRequest.setPurchaseOrderStatus("INVALID_STATUS");
-            assertThrowsBadRequest("InvalidOrderStatusValue", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.InvalidOrderStatusValue,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
         }
 
         @Test
         @DisplayName("Create PO - Null Assigned Lead ID - Throws BadRequestException")
         void createPurchaseOrder_NullAssignedLeadId_ThrowsBadRequestException() {
             testPurchaseOrderRequest.setAssignedLeadId(null);
-            assertThrowsBadRequest("InvalidAssignedLeadId", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+            assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.InvalidAssignedLeadId,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
         }
 
         @Test
@@ -142,7 +153,8 @@ public class PurchaseOrderValidationTest extends PurchaseOrderServiceTestBase {
             lenient().when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
 
             testPurchaseOrderRequest.setShipments(null);
-            assertThrowsBadRequest("AtLeastOneShipmentRequired", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+                assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.AtLeastOneShipmentRequired,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
         }
 
         @Test
@@ -156,7 +168,8 @@ public class PurchaseOrderValidationTest extends PurchaseOrderServiceTestBase {
             lenient().when(orderSummaryRepository.save(any(OrderSummary.class))).thenReturn(testOrderSummary);
 
             testPurchaseOrderRequest.getShipments().get(0).setSelectedCourier(null);
-            assertThrowsBadRequest("CourierSelectionRequired", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+                assertThrowsBadRequest(ErrorMessages.ShipmentErrorMessages.CourierSelectionRequired,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
         }
 
         @Test
@@ -173,7 +186,8 @@ public class PurchaseOrderValidationTest extends PurchaseOrderServiceTestBase {
             lenient().when(shipmentRepository.save(any(Shipment.class))).thenReturn(savedShipment);
 
             testPurchaseOrderRequest.getShipments().get(0).setPackages(null);
-            assertThrowsBadRequest("AtLeastOnePackageRequired", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+                assertThrowsBadRequest(ErrorMessages.ShipmentPackageErrorMessages.AtLeastOnePackageRequired,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
         }
 
         @Test
@@ -192,7 +206,8 @@ public class PurchaseOrderValidationTest extends PurchaseOrderServiceTestBase {
                     .thenReturn(new ShipmentPackage());
 
             testPurchaseOrderRequest.getShipments().get(0).getPackages().get(0).setProducts(null);
-            assertThrowsBadRequest("AtLeastOneProductRequired", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+                assertThrowsBadRequest(ErrorMessages.ShipmentPackageProductErrorMessages.AtLeastOneProductRequired,
+                    () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
         }
 
         /**
@@ -236,7 +251,8 @@ public class PurchaseOrderValidationTest extends PurchaseOrderServiceTestBase {
                     DynamicTest.dynamicTest("Negative product ID", () -> {
                         initializeTestData();
                         testPurchaseOrderRequest.getProducts().get(0).setProductId(-1L);
-                        assertThrowsBadRequest("InvalidId", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+                        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidId,
+                                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
                     }),
                     DynamicTest.dynamicTest("Negative quantity", () -> {
                         initializeTestData();
@@ -255,7 +271,8 @@ public class PurchaseOrderValidationTest extends PurchaseOrderServiceTestBase {
                     DynamicTest.dynamicTest("Order status whitespace", () -> {
                         initializeTestData();
                         testPurchaseOrderRequest.setPurchaseOrderStatus(" ");
-                        assertThrowsBadRequest("InvalidOrderStatus", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+                        assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.InvalidOrderStatus,
+                                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
                     }),
                     DynamicTest.dynamicTest("Assigned lead ID zero", () -> {
                         initializeTestData();
@@ -265,18 +282,21 @@ public class PurchaseOrderValidationTest extends PurchaseOrderServiceTestBase {
                     DynamicTest.dynamicTest("Shipments empty list", () -> {
                         initializeTestData();
                         testPurchaseOrderRequest.setShipments(new ArrayList<>());
-                        assertThrowsBadRequest("AtLeastOneShipmentRequired", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+                        assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.AtLeastOneShipmentRequired,
+                                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
                     }),
                     DynamicTest.dynamicTest("Shipment packages empty list", () -> {
                         initializeTestData();
                         testPurchaseOrderRequest.getShipments().get(0).setPackages(new ArrayList<>());
-                        assertThrowsBadRequest("AtLeastOnePackageRequired", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+                        assertThrowsBadRequest(ErrorMessages.ShipmentPackageErrorMessages.AtLeastOnePackageRequired,
+                                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
                     }),
                     DynamicTest.dynamicTest("Package products empty list", () -> {
                         initializeTestData();
                         testPurchaseOrderRequest.getShipments().get(0).getPackages().get(0)
                                 .setProducts(new ArrayList<>());
-                        assertThrowsBadRequest("AtLeastOneProductRequired", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+                        assertThrowsBadRequest(ErrorMessages.ShipmentPackageProductErrorMessages.AtLeastOneProductRequired,
+                            () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
                     }),
                     DynamicTest.dynamicTest("Max attachments exceeded (100)", () -> {
                         initializeTestData();
@@ -285,7 +305,8 @@ public class PurchaseOrderValidationTest extends PurchaseOrderServiceTestBase {
                             attachments.put("file" + i + ".txt", "data");
                         }
                         testPurchaseOrderRequest.setAttachments(attachments);
-                        assertThrowsBadRequest("MaxAttachmentsExceeded", () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+                        assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.MaxAttachmentsExceeded,
+                                () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
                     })
             );
         }

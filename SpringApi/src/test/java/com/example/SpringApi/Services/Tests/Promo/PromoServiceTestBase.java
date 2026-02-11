@@ -8,7 +8,6 @@ import com.example.SpringApi.Models.RequestModels.PromoRequestModel;
 import com.example.SpringApi.Repositories.PromoRepository;
 import com.example.SpringApi.Services.MessageService;
 import com.example.SpringApi.Services.PromoService;
-import com.example.SpringApi.Services.Tests.BaseTest;
 import com.example.SpringApi.Services.UserLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +22,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 
 /**
@@ -31,7 +33,7 @@ import static org.mockito.Mockito.lenient;
  * PromoService test classes.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class PromoServiceTestBase extends BaseTest {
+public abstract class PromoServiceTestBase {
 
         @Mock
         protected PromoRepository promoRepository;
@@ -174,5 +176,127 @@ public abstract class PromoServiceTestBase extends BaseTest {
                                 .doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
                                                 com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
                                 .when(promoService).bulkCreatePromosAsync(any(), anyLong(), anyString(), anyLong());
+        }
+
+        // ==========================================
+        // ADDITIONAL STUBS
+        // ==========================================
+
+        protected void stubPromoRepositoryFindOverlappingPromos(List<Promo> result) {
+                lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))
+                                .thenReturn(result);
+        }
+
+        protected void stubPromoRepositorySave(Promo result) {
+                lenient().when(promoRepository.save(any(Promo.class))).thenReturn(result);
+        }
+
+        protected void stubPromoRepositoryFindByPromoIdAndClientId(java.util.Optional<Promo> result) {
+                lenient().when(promoRepository.findByPromoIdAndClientId(anyLong(), anyLong())).thenReturn(result);
+        }
+
+        protected void stubPromoRepositoryFindByPromoIdAndClientId(Long promoId, Long clientId,
+                        java.util.Optional<Promo> result) {
+                lenient().when(promoRepository.findByPromoIdAndClientId(promoId, clientId)).thenReturn(result);
+        }
+
+        protected void stubPromoRepositoryFindByPromoCodeAndClientId(String code, Long clientId,
+                        java.util.Optional<Promo> result) {
+                lenient().when(promoRepository.findByPromoCodeAndClientId(code, clientId)).thenReturn(result);
+        }
+
+        protected void stubPromoFilterQueryBuilderFindPaginatedEntities(
+                        org.springframework.data.domain.Page<Promo> result) {
+                lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                                anyLong(), any(), anyString(), any(), anyBoolean(),
+                                any(org.springframework.data.domain.Pageable.class)))
+                                .thenReturn(result);
+        }
+
+        protected void stubServiceCreatePromoDoNothing() {
+                doNothing().when(promoService).createPromo(any(PromoRequestModel.class));
+        }
+
+        protected void stubServiceTogglePromoDoNothing() {
+                doNothing().when(promoService).togglePromo(anyLong());
+        }
+
+        protected void stubServiceGetPromoDetailsByIdReturns(
+                        com.example.SpringApi.Models.ResponseModels.PromoResponseModel result) {
+                doReturn(result).when(promoService).getPromoDetailsById(anyLong());
+        }
+
+        protected void stubServiceGetPromoDetailsByNameReturns(
+                        com.example.SpringApi.Models.ResponseModels.PromoResponseModel result) {
+                doReturn(result).when(promoService).getPromoDetailsByName(anyString());
+        }
+
+        protected void stubServiceGetPromosInBatchesReturns(
+                        com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel<?> result) {
+                doReturn(result).when(promoService).getPromosInBatches(any(PaginationBaseRequestModel.class));
+        }
+
+        protected void stubServiceCreatePromoThrowsBadRequest(String message) {
+                doThrow(new com.example.SpringApi.Exceptions.BadRequestException(message))
+                                .when(promoService).createPromo(any(PromoRequestModel.class));
+        }
+
+        protected void stubServiceCreatePromoThrowsRuntime(String message) {
+                doThrow(new RuntimeException(message))
+                                .when(promoService).createPromo(any(PromoRequestModel.class));
+        }
+
+        protected void stubServiceTogglePromoThrowsNotFound(String message) {
+                doThrow(new com.example.SpringApi.Exceptions.NotFoundException(message))
+                                .when(promoService).togglePromo(anyLong());
+        }
+
+        protected void stubServiceTogglePromoThrowsRuntime(String message) {
+                doThrow(new RuntimeException(message)).when(promoService).togglePromo(anyLong());
+        }
+
+        protected void stubServiceGetPromoDetailsByIdThrowsNotFound(String message) {
+                doThrow(new com.example.SpringApi.Exceptions.NotFoundException(message))
+                                .when(promoService).getPromoDetailsById(anyLong());
+        }
+
+        protected void stubServiceGetPromoDetailsByIdThrowsBadRequest(String message) {
+                doThrow(new com.example.SpringApi.Exceptions.BadRequestException(message))
+                                .when(promoService).getPromoDetailsById(anyLong());
+        }
+
+        protected void stubServiceGetPromoDetailsByIdThrowsRuntime(String message) {
+                doThrow(new RuntimeException(message))
+                                .when(promoService).getPromoDetailsById(anyLong());
+        }
+
+        protected void stubServiceGetPromoDetailsByNameThrowsNotFound(String message) {
+                doThrow(new com.example.SpringApi.Exceptions.NotFoundException(message))
+                                .when(promoService).getPromoDetailsByName(anyString());
+        }
+
+        protected void stubServiceGetPromoDetailsByNameThrowsBadRequest(String message) {
+                doThrow(new com.example.SpringApi.Exceptions.BadRequestException(message))
+                                .when(promoService).getPromoDetailsByName(anyString());
+        }
+
+        protected void stubServiceGetPromoDetailsByNameThrowsUnauthorized(String message) {
+                doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(message))
+                                .when(promoService).getClientId();
+        }
+
+        protected void stubServiceGetPromoDetailsByNameThrowsRuntime(String message) {
+                doThrow(new RuntimeException(message))
+                                .when(promoService).getPromoDetailsByName(anyString());
+        }
+
+        protected void stubServiceGetPromosInBatchesThrowsBadRequest(String message) {
+                doThrow(new com.example.SpringApi.Exceptions.BadRequestException(message))
+                                .when(promoService).getPromosInBatches(any(PaginationBaseRequestModel.class));
+        }
+
+        protected void stubServiceGetPromosInBatchesThrowsRuntime(String message) {
+                doThrow(new RuntimeException(message))
+                                .when(promoService).getPromosInBatches(any(PaginationBaseRequestModel.class));
         }
 }

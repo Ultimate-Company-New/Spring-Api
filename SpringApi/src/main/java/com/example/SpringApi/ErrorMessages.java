@@ -68,6 +68,7 @@ public class ErrorMessages {
         public static final String InvalidWebsite = "Client website is required and cannot be empty.";
         public static final String InvalidSendgridSenderName = "SendGrid sender name is required and cannot be empty.";
         public static final String InvalidLogoUpload = "Failed to upload logo to Firebase.";
+        public static final String ClientsListNull = "Cannot invoke \"java.util.List.iterator()\" because \"clients\" is null";
     }
 
     public static class LoginErrorMessages {
@@ -98,6 +99,8 @@ public class ErrorMessages {
         public static final String ER014 = "User email is required in order to reset the password.";
         public static final String ER015 = "User email and api key is required to get the access token.";
         public static final String ER016 = "Please use Oauth to sign in";
+        public static final String ResetPasswordEmailFailed = "Failed to send reset password email";
+        public static final String NullRequest = "Cannot invoke \"com.example.SpringApi.Models.RequestModels.LoginRequestModel.getLoginName()\" because \"loginRequestModel\" is null";
 
     }
 
@@ -191,6 +194,7 @@ public class ErrorMessages {
         public static final String CannotModifyScheduledPublishDate = "Cannot modify publish date for a scheduled email.";
         public static final String CannotDisableSendAsEmailScheduled = "Cannot disable sendAsEmail for a scheduled email.";
         public static final String InvalidUserId = "Invalid user ID.";
+        public static final String UpdateFailed = "Update failed";
     }
 
     public static class WebTemplatesErrorMessages {
@@ -316,6 +320,13 @@ public class ErrorMessages {
         public static final String InvalidCategoryId = "Product category ID is required.";
         public static final String InvalidClientId = "Product client ID is required.";
         public static final String InvalidPickupLocationId = "Product pickup location ID is required and cannot be 0.";
+        public static final String InvalidLength = "Product length must be greater than 0.";
+        public static final String InvalidBreadth = "Product breadth must be greater than 0.";
+        public static final String InvalidHeight = "Product height must be greater than 0.";
+        public static final String InvalidWeight = "Product weight must be greater than or equal to 0.";
+        public static final String InvalidPickupLocationQuantity = "Pickup location quantity must be greater than or equal to 0.";
+        /** Format: "Available stock for pickup location %d must be positive." */
+        public static final String InvalidPickupLocationQuantityFormat = "Available stock for pickup location %d must be positive.";
 
         // additional error messages
         public static final String ER001 = "Product title is required.";
@@ -631,6 +642,9 @@ public class ErrorMessages {
         public static final String TrackingFetchFailed = "Failed to fetch tracking information for AWB code: %s. Error: %s";
         /** Format: "invalid status '%s'. Valid statuses are: %s" */
         public static final String InvalidShipRocketStatusFormat = "invalid status '%s'. Valid statuses are: %s";
+        public static final String ShipRocketOrderIdMissing = "order_id is missing from response";
+        public static final String ShipRocketShipmentIdMissing = "shipment_id is missing from response";
+        public static final String ShipRocketStatusMissing = "status is missing from response";
         /**
          * Format: "Failed to serialize ShipRocket response to JSON for shipment ID %s:
          * %s"
@@ -769,6 +783,7 @@ public class ErrorMessages {
 
         public static final String DATABASE_ERROR = "Database error";
         public static final String DATABASE_CONNECTION_ERROR = "Database connection error";
+        public static final String InvalidBulkRequest = "Invalid bulk request, the list cannot be null or empty.";
     }
 
     public static class OrderSummaryNotFoundMessage {

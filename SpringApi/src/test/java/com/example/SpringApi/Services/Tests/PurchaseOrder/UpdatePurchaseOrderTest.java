@@ -5,6 +5,7 @@ import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
 import com.example.SpringApi.Models.Authorizations;
+import com.example.SpringApi.Services.PurchaseOrderService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -140,7 +141,7 @@ public class UpdatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
         lenient().when(clientRepository.findById(TEST_CLIENT_ID)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrowsBadRequest("Invalid Client Id.", () -> purchaseOrderService.updatePurchaseOrder(testPurchaseOrderRequest));
+        assertThrowsNotFound("Invalid Client Id.", () -> purchaseOrderService.updatePurchaseOrder(testPurchaseOrderRequest));
     }
 
     /**
@@ -180,12 +181,13 @@ public class UpdatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("updatePurchaseOrder - Controller delegates to service")
     void updatePurchaseOrder_WithValidRequest_DelegatesToService() {
-        PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderService);
-        doNothing().when(purchaseOrderService).updatePurchaseOrder(testPurchaseOrderRequest);
+        PurchaseOrderService mockService = mock(PurchaseOrderService.class);
+        PurchaseOrderController controller = new PurchaseOrderController(mockService);
+        doNothing().when(mockService).updatePurchaseOrder(testPurchaseOrderRequest);
 
         ResponseEntity<?> response = controller.updatePurchaseOrder(testPurchaseOrderRequest);
 
-        verify(purchaseOrderService).updatePurchaseOrder(testPurchaseOrderRequest);
+        verify(mockService).updatePurchaseOrder(testPurchaseOrderRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

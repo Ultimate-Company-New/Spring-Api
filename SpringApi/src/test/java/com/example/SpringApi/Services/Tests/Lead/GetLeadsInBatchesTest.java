@@ -15,13 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -60,8 +57,7 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
         testLeadRequest.setEnd(10);
         testLeadRequest.setFilters(null);
         Page<Lead> leadPage = new PageImpl<>(Collections.singletonList(testLead), PageRequest.of(0, 10), 1);
-        when(leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(anyLong(), anyString(), any(),
-                anyBoolean(), any(Pageable.class))).thenReturn(leadPage);
+        stubLeadFilterQueryBuilderFindPaginatedEntities(leadPage);
         PaginationBaseResponseModel<LeadResponseModel> result = leadService.getLeadsInBatches(testLeadRequest);
         assertNotNull(result);
 
@@ -71,17 +67,11 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
         String[] booleanColumns = LEAD_BOOLEAN_COLUMNS;
         String[] dateColumns = LEAD_DATE_COLUMNS;
 
-        lenient().when(leadFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(stringColumns).contains(arg))))
-                .thenReturn("string");
-        lenient().when(leadFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(numberColumns).contains(arg))))
-                .thenReturn("number");
-        lenient()
-                .when(leadFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(booleanColumns).contains(arg))))
-                .thenReturn("boolean");
-        lenient().when(leadFilterQueryBuilder.getColumnType(argThat(arg -> Arrays.asList(dateColumns).contains(arg))))
-                .thenReturn("date");
-        lenient().when(leadFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(anyLong(), any(), any(),
-                anyBoolean(), any())).thenReturn(new PageImpl<>(Collections.emptyList()));
+        stubLeadFilterQueryBuilderGetColumnType(stringColumns, "string");
+        stubLeadFilterQueryBuilderGetColumnType(numberColumns, "number");
+        stubLeadFilterQueryBuilderGetColumnType(booleanColumns, "boolean");
+        stubLeadFilterQueryBuilderGetColumnType(dateColumns, "date");
+        stubLeadFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Collections.emptyList()));
 
         // Loop execution is handled in the method logic.
     }
@@ -141,8 +131,7 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
         LeadController controller = new LeadController(leadServiceMock);
         testLeadRequest.setStart(0);
         testLeadRequest.setEnd(10);
-        when(leadServiceMock.getLeadsInBatches(any(LeadRequestModel.class)))
-                .thenReturn(new PaginationBaseResponseModel<>());
+        stubLeadServiceGetLeadsInBatches(new PaginationBaseResponseModel<>());
 
         // Act - Call controller directly (simulating authorization has already passed)
         ResponseEntity<?> response = controller.getLeadsInBatches(testLeadRequest);

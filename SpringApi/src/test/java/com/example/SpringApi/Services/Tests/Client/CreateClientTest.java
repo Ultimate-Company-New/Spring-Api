@@ -1,4 +1,3 @@
-// Total Tests: 33
 package com.example.SpringApi.Services.Tests.Client;
 
 import com.example.SpringApi.Controllers.ClientController;
@@ -27,6 +26,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Create Client Tests")
 class CreateClientTest extends ClientServiceTestBase {
+
+    // Total Tests: 34
 
     /*
      **********************************************************************************************
@@ -254,10 +255,7 @@ class CreateClientTest extends ClientServiceTestBase {
         stubGoogleCredFindById(DEFAULT_GOOGLE_CRED_ID, Optional.of(testGoogleCred));
 
         // Act
-        try (MockedConstruction<FirebaseHelper> fbMock = mockConstruction(FirebaseHelper.class,
-                (mock, context) -> {
-                    when(mock.uploadFileToFirebase(anyString(), anyString())).thenReturn(true);
-                })) {
+        try (MockedConstruction<FirebaseHelper> fbMock = stubFirebaseUploadSuccess()) {
 
             clientService.createClient(testClientRequest);
 
@@ -292,10 +290,7 @@ class CreateClientTest extends ClientServiceTestBase {
                 "deleteHash123");
 
         // Act
-        try (MockedConstruction<ImgbbHelper> imgMock = mockConstruction(ImgbbHelper.class,
-                (mock, context) -> {
-                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(mockResponse);
-                })) {
+        try (MockedConstruction<ImgbbHelper> imgMock = stubImgbbUploadResponse(mockResponse)) {
 
             clientService.createClient(testClientRequest);
 
@@ -452,10 +447,7 @@ class CreateClientTest extends ClientServiceTestBase {
         stubGoogleCredFindById(DEFAULT_GOOGLE_CRED_ID, Optional.of(testGoogleCred));
 
         // Act & Assert
-        try (MockedConstruction<FirebaseHelper> fbMock = mockConstruction(FirebaseHelper.class,
-                (mock, context) -> {
-                    when(mock.uploadFileToFirebase(anyString(), anyString())).thenReturn(false);
-                })) {
+        try (MockedConstruction<FirebaseHelper> fbMock = stubFirebaseUploadFail()) {
 
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> clientService.createClient(testClientRequest));
@@ -506,10 +498,7 @@ class CreateClientTest extends ClientServiceTestBase {
         stubClientSave(testClient);
 
         // Act & Assert
-        try (MockedConstruction<ImgbbHelper> imgMock = mockConstruction(ImgbbHelper.class,
-                (mock, context) -> {
-                    when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(null);
-                })) {
+        try (MockedConstruction<ImgbbHelper> imgMock = stubImgbbUploadResponse(null)) {
 
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> clientService.createClient(testClientRequest));
@@ -590,12 +579,45 @@ class CreateClientTest extends ClientServiceTestBase {
     @Test
     @DisplayName("Create Client - Null request - ThrowsBadRequestException")
     void createClient_NullRequest_ThrowsBadRequestException() {
+        // Arrange
+
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.createClient(null));
 
         // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidRequest, ex.getMessage());
     }
+
+        /*
+         **********************************************************************************************
+         * CONTROLLER AUTHORIZATION TESTS
+         **********************************************************************************************
+         */
+
+        /**
+         * Purpose: Verify controller has correct @PreAuthorize permission.
+         * Expected Result: Annotation exists and contains INSERT_CLIENT_PERMISSION.
+         * Assertions: Annotation is present and permission matches.
+         */
+        @Test
+        @DisplayName("Create Client - Controller permission forbidden - Success")
+        void createClient_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = ClientController.class.getMethod("createClient",
+            com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+            org.springframework.security.access.prepost.PreAuthorize.class);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "createClient method should have @PreAuthorize annotation");
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+            Authorizations.INSERT_CLIENT_PERMISSION + "')";
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+            "PreAuthorize annotation should reference INSERT_CLIENT_PERMISSION");
+        verify(mockClientService, never()).createClient(any());
+        }
 
     /*
      * Purpose: Reject null support email values.

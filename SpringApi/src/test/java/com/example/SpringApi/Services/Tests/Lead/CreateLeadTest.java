@@ -4,10 +4,8 @@ import com.example.SpringApi.Controllers.LeadController;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Services.Interface.ILeadSubTranslator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -18,13 +16,12 @@ import static org.mockito.Mockito.*;
 /**
  * Test class for LeadService.createLead() method.
  * Tests lead creation with various validation scenarios.
- * * Test Count: 34 tests
+ * * Test Count: 32 tests
  */
 @DisplayName("Create Lead Tests")
 class CreateLeadTest extends LeadServiceTestBase {
 
-    @Mock
-    ILeadSubTranslator leadServiceMock;
+    // Total Tests: 32
 
     /*
      **********************************************************************************************
@@ -43,7 +40,7 @@ class CreateLeadTest extends LeadServiceTestBase {
     void createLead_MaxCompanySize_Success() {
         // Arrange
         testLeadRequest.setCompanySize(Integer.MAX_VALUE);
-        when(leadRepository.save(any())).thenReturn(testLead);
+        stubLeadRepositorySave(testLead);
 
         // Act & Assert
         assertDoesNotThrow(() -> leadService.createLead(testLeadRequest));
@@ -62,7 +59,7 @@ class CreateLeadTest extends LeadServiceTestBase {
         // Arrange
         testLeadRequest.setFirstName("José");
         testLeadRequest.setLastName("García-López");
-        when(leadRepository.save(any())).thenReturn(testLead);
+        stubLeadRepositorySave(testLead);
 
         // Act & Assert
         assertDoesNotThrow(() -> leadService.createLead(testLeadRequest));
@@ -75,9 +72,9 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Success")
-    void createLead_Success() {
+    void createLead_Success_Success() {
         // Arrange
-        when(leadRepository.save(any())).thenReturn(testLead);
+        stubLeadRepositorySave(testLead);
 
         // Act
         assertDoesNotThrow(() -> leadService.createLead(testLeadRequest));
@@ -98,7 +95,7 @@ class CreateLeadTest extends LeadServiceTestBase {
         // Arrange
         testLeadRequest.setFirstName("李");
         testLeadRequest.setLastName("王");
-        when(leadRepository.save(any())).thenReturn(testLead);
+        stubLeadRepositorySave(testLead);
 
         // Act & Assert
         assertDoesNotThrow(() -> leadService.createLead(testLeadRequest));
@@ -114,7 +111,7 @@ class CreateLeadTest extends LeadServiceTestBase {
     void createLead_ValidCompany_Success() {
         // Arrange
         testLeadRequest.setCompany("Valid Tech Company");
-        when(leadRepository.save(any())).thenReturn(testLead);
+        stubLeadRepositorySave(testLead);
 
         // Act & Assert
         assertDoesNotThrow(() -> leadService.createLead(testLeadRequest));
@@ -130,7 +127,7 @@ class CreateLeadTest extends LeadServiceTestBase {
     void createLead_ValidTitle_Success() {
         // Arrange
         testLeadRequest.setTitle("Senior Manager");
-        when(leadRepository.save(any())).thenReturn(testLead);
+        stubLeadRepositorySave(testLead);
 
         // Act & Assert
         assertDoesNotThrow(() -> leadService.createLead(testLeadRequest));
@@ -147,7 +144,7 @@ class CreateLeadTest extends LeadServiceTestBase {
     void createLead_VeryLongEmail_Success() {
         // Arrange
         testLeadRequest.setEmail("verylongemailaddress.withmanydots.test@verylongdomainname.co.uk");
-        when(leadRepository.save(any())).thenReturn(testLead);
+        stubLeadRepositorySave(testLead);
 
         // Act & Assert
         assertDoesNotThrow(() -> leadService.createLead(testLeadRequest));
@@ -477,4 +474,44 @@ class CreateLeadTest extends LeadServiceTestBase {
      * Expected Result: Method has @PreAuthorize annotation with correct permission.
      * Assertions: Annotation exists and references INSERT_LEADS_PERMISSION.
      */
+        @Test
+        @DisplayName("Create Lead - Verify @PreAuthorize annotation is configured correctly")
+        void createLead_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        // Arrange
+        var method = LeadController.class.getMethod("createLead",
+            com.example.SpringApi.Models.RequestModels.LeadRequestModel.class);
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+            org.springframework.security.access.prepost.PreAuthorize.class);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation,
+            "createLead method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+            Authorizations.INSERT_LEADS_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+            "PreAuthorize annotation should reference INSERT_LEADS_PERMISSION");
+        }
+
+        /**
+         * Purpose: Verify controller delegates createLead calls to service.
+         * Expected Result: Service method called and HTTP 200 returned.
+         */
+        @Test
+        @DisplayName("Create Lead - Controller delegates to service correctly")
+        void createLead_WithValidRequest_DelegatesToService() {
+        // Arrange
+        LeadController controller = new LeadController(leadServiceMock);
+        stubLeadServiceCreateLeadDoNothing();
+
+        // Act
+        ResponseEntity<?> response = controller.createLead(testLeadRequest);
+
+        // Assert
+        verify(leadServiceMock, times(1)).createLead(testLeadRequest);
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
+        }
 }

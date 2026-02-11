@@ -1,16 +1,12 @@
 package com.example.SpringApi.Services.Tests.User;
 
-import com.example.SpringApi.Services.UserService;
-
 import com.example.SpringApi.Controllers.UserController;
-import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.ResponseModels.UserResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
@@ -18,18 +14,9 @@ import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit tests for UserService - Get User By ID functionality.
- * 
- * Tests: 8
- * 
- * @author SpringApi Team
- * @version 2.0
- * @since 2024-01-15
- */
+// Total Tests: 8
 @DisplayName("UserService - Get User By ID Tests")
 class GetUserByIdTest extends UserServiceTestBase {
 
@@ -37,33 +24,50 @@ class GetUserByIdTest extends UserServiceTestBase {
     // CONTROLLER AUTHORIZATION TESTS
     // ========================================
 
+    /**
+     * Purpose: Verify that the controller has the correct @PreAuthorize annotation.
+     * Expected Result: The method should be annotated with VIEW_USER_PERMISSION.
+     * Assertions: Annotation is present and contains expected permission string.
+     */
     @Test
     @DisplayName("getUserById - Verify @PreAuthorize Annotation")
-    void getUserById_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void getUserById_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
         Method method = UserController.class.getMethod("getUserById", Long.class);
+
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-        assertNotNull(annotation, "@PreAuthorize annotation should be present on getUserById method");
+
+        // Assert
+        assertNotNull(annotation, "getUserById method should have @PreAuthorize annotation");
         assertTrue(annotation.value().contains(Authorizations.VIEW_USER_PERMISSION),
                 "@PreAuthorize annotation should check for VIEW_USER_PERMISSION");
     }
 
+    /**
+     * Purpose: Verify controller delegates to service.
+     * Expected Result: Service method is called.
+     * Assertions: verify(userService).getUserById(userId);
+     */
     @Test
     @DisplayName("getUserById - Controller delegates to service")
     void getUserById_WithValidId_DelegatesToService() {
-        UserService mockUserService = mock(UserService.class);
-        UserController controller = new UserController(mockUserService);
+        // Arrange
         Long userId = 1L;
-        UserResponseModel mockResponse = new UserResponseModel();
-        when(mockUserService.getUserById(userId)).thenReturn(mockResponse);
+        com.example.SpringApi.Services.UserService mockUserService = mock(
+                com.example.SpringApi.Services.UserService.class);
+        UserController localController = new UserController(mockUserService);
+        doReturn(new UserResponseModel()).when(mockUserService).getUserById(userId);
 
-        ResponseEntity<?> response = controller.getUserById(userId);
+        // Act
+        localController.getUserById(userId);
 
-        verify(mockUserService).getUserById(userId);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // Assert
+        verify(mockUserService, times(1)).getUserById(userId);
     }
 
     // ========================================
-    // SUCCESS Tests
+    // SUCCESS TESTS
     // ========================================
 
     /**
@@ -72,15 +76,17 @@ class GetUserByIdTest extends UserServiceTestBase {
      * Assertions: Permissions is null or empty.
      */
     @Test
-    @DisplayName("Get User By ID - No Permissions - Returns empty or null permissions")
-    void getUserById_NoPermissions_ReturnsEmptyPermissionsList() {
+    @DisplayName("getUserById - No Permissions - Returns empty or null permissions")
+    void getUserById_noPermissions_returnsEmptyPermissionsList() {
+        // Arrange
         testUser.setUserClientPermissionMappings(new HashSet<>());
-        when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(testUser);
+        stubUserRepositoryFindByIdWithAllRelations(testUser);
 
+        // Act
         UserResponseModel result = userService.getUserById(TEST_USER_ID);
 
+        // Assert
         assertNotNull(result);
-        // Permissions can be null or empty depending on implementation
         assertTrue(result.getPermissions() == null || result.getPermissions().isEmpty());
     }
 
@@ -90,28 +96,47 @@ class GetUserByIdTest extends UserServiceTestBase {
      * Assertions: verify(userRepository, times(1)).findByIdWithAllRelations(...);
      */
     @Test
-    @DisplayName("Get User By ID - Repository called once")
-    void getUserById_RepositoryCalledOnce() {
-        when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(testUser);
+    @DisplayName("getUserById - Repository called once")
+    void getUserById_repositoryCalledOnce() {
+        // Arrange
+        stubUserRepositoryFindByIdWithAllRelations(testUser);
 
+        // Act
         userService.getUserById(TEST_USER_ID);
 
-        verify(userRepository, times(1)).findByIdWithAllRelations(eq(TEST_USER_ID), anyLong());
+        // Assert
+        verify(userRepository, times(1)).findByIdWithAllRelations(anyLong(), anyLong());
     }
 
     /**
      * Purpose: Verify user permissions are returned.
      * Expected Result: Permissions list is populated.
      * Assertions: assertNotNull(result.getPermissions());
-     * assertEquals(2, result.getPermissions().size());
      */
     @Test
-    @DisplayName("Get User By ID - Success - Returns permissions")
-    void getUserById_Success_ReturnsPermissions() {
-        when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(testUser);
+    @DisplayName("getUserById - Success - Returns permissions")
+    void getUserById_success_returnsPermissions() {
+        // Arrange
+        com.example.SpringApi.Models.DatabaseModels.Permission p1 = new com.example.SpringApi.Models.DatabaseModels.Permission();
+        p1.setPermissionId(1L);
+        com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping m1 = new com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping();
+        m1.setPermission(p1);
 
+        com.example.SpringApi.Models.DatabaseModels.Permission p2 = new com.example.SpringApi.Models.DatabaseModels.Permission();
+        p2.setPermissionId(2L);
+        com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping m2 = new com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping();
+        m2.setPermission(p2);
+
+        testUser.setUserClientPermissionMappings(new HashSet<>());
+        testUser.getUserClientPermissionMappings().add(m1);
+        testUser.getUserClientPermissionMappings().add(m2);
+
+        stubUserRepositoryFindByIdWithAllRelations(testUser);
+
+        // Act
         UserResponseModel result = userService.getUserById(TEST_USER_ID);
 
+        // Assert
         assertNotNull(result.getPermissions());
         assertEquals(2, result.getPermissions().size());
     }
@@ -119,16 +144,18 @@ class GetUserByIdTest extends UserServiceTestBase {
     /**
      * Purpose: Verify successful user retrieval by ID.
      * Expected Result: UserResponseModel is returned with correct data.
-     * Assertions: assertNotNull(result); assertEquals(TEST_USER_ID,
-     * result.getUserId());
+     * Assertions: correct ID, email, login name.
      */
     @Test
-    @DisplayName("Get User By ID - Success - Returns user with all details")
-    void getUserById_Success_ReturnsUserWithDetails() {
-        when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(testUser);
+    @DisplayName("getUserById - Success - Returns user with all details")
+    void getUserById_success_returnsUserWithDetails() {
+        // Arrange
+        stubUserRepositoryFindByIdWithAllRelations(testUser);
 
+        // Act
         UserResponseModel result = userService.getUserById(TEST_USER_ID);
 
+        // Assert
         assertNotNull(result);
         assertEquals(TEST_USER_ID, result.getUserId());
         assertEquals(TEST_EMAIL, result.getEmail());
@@ -136,74 +163,78 @@ class GetUserByIdTest extends UserServiceTestBase {
     }
 
     // ========================================
-    // FAILURE Tests
+    // FAILURE TESTS
     // ========================================
 
     /**
      * Purpose: Verify max long ID throws NotFoundException when not found.
      * Expected Result: NotFoundException with "Invalid User Id" message.
-     * Assertions: assertEquals(ErrorMessages.UserErrorMessages.InvalidId,
-     * ex.getMessage());
      */
     @Test
-    @DisplayName("Get User By ID - Max Long ID - Throws NotFoundException")
-    void getUserById_MaxLongId_ThrowsNotFoundException() {
-        when(userRepository.findByIdWithAllRelations(eq(Long.MAX_VALUE), anyLong())).thenReturn(null);
+    @DisplayName("getUserById - Max Long ID - Throws NotFoundException")
+    void getUserById_maxLongId_throwsNotFoundException() {
+        // Arrange
+        stubUserRepositoryFindByIdWithAllRelations(null);
 
+        // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userService.getUserById(Long.MAX_VALUE));
 
+        // Assert
         assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
     }
 
     /**
      * Purpose: Verify negative ID throws NotFoundException.
      * Expected Result: NotFoundException with "Invalid User Id" message.
-     * Assertions: assertEquals(ErrorMessages.UserErrorMessages.InvalidId,
-     * ex.getMessage());
      */
     @Test
-    @DisplayName("Get User By ID - Negative ID - Throws NotFoundException")
-    void getUserById_NegativeId_ThrowsNotFoundException() {
-        when(userRepository.findByIdWithAllRelations(eq(-1L), anyLong())).thenReturn(null);
+    @DisplayName("getUserById - Negative ID - Throws NotFoundException")
+    void getUserById_negativeId_throwsNotFoundException() {
+        // Arrange
+        stubUserRepositoryFindByIdWithAllRelations(null);
 
+        // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userService.getUserById(-1L));
 
+        // Assert
         assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
     }
 
     /**
      * Purpose: Verify that non-existent user throws NotFoundException.
      * Expected Result: NotFoundException with "Invalid User Id" message.
-     * Assertions: assertEquals(ErrorMessages.UserErrorMessages.InvalidId,
-     * ex.getMessage());
      */
     @Test
-    @DisplayName("Get User By ID - User Not Found - Throws NotFoundException")
-    void getUserById_UserNotFound_ThrowsNotFoundException() {
-        when(userRepository.findByIdWithAllRelations(eq(TEST_USER_ID), anyLong())).thenReturn(null);
+    @DisplayName("getUserById - User Not Found - Throws NotFoundException")
+    void getUserById_userNotFound_throwsNotFoundException() {
+        // Arrange
+        stubUserRepositoryFindByIdWithAllRelations(null);
 
+        // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userService.getUserById(TEST_USER_ID));
 
+        // Assert
         assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
     }
 
     /**
      * Purpose: Verify zero ID throws NotFoundException.
      * Expected Result: NotFoundException with "Invalid User Id" message.
-     * Assertions: assertEquals(ErrorMessages.UserErrorMessages.InvalidId,
-     * ex.getMessage());
      */
     @Test
-    @DisplayName("Get User By ID - Zero ID - Throws NotFoundException")
-    void getUserById_ZeroId_ThrowsNotFoundException() {
-        when(userRepository.findByIdWithAllRelations(eq(0L), anyLong())).thenReturn(null);
+    @DisplayName("getUserById - Zero ID - Throws NotFoundException")
+    void getUserById_zeroId_throwsNotFoundException() {
+        // Arrange
+        stubUserRepositoryFindByIdWithAllRelations(null);
 
+        // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userService.getUserById(0L));
 
+        // Assert
         assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
     }
 }

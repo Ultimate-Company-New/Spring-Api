@@ -5,6 +5,7 @@ import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
 import com.example.SpringApi.Models.Authorizations;
+import com.example.SpringApi.Services.PurchaseOrderService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -238,12 +239,13 @@ public class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("createPurchaseOrder - Controller delegates to service")
     void createPurchaseOrder_WithValidRequest_DelegatesToService() {
-        PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderService);
-        doNothing().when(purchaseOrderService).createPurchaseOrder(testPurchaseOrderRequest);
+        PurchaseOrderService mockService = mock(PurchaseOrderService.class);
+        PurchaseOrderController controller = new PurchaseOrderController(mockService);
+        doNothing().when(mockService).createPurchaseOrder(testPurchaseOrderRequest);
 
         ResponseEntity<?> response = controller.createPurchaseOrder(testPurchaseOrderRequest);
 
-        verify(purchaseOrderService).createPurchaseOrder(testPurchaseOrderRequest);
+        verify(mockService).createPurchaseOrder(testPurchaseOrderRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

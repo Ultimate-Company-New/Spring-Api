@@ -64,7 +64,8 @@ public class GetPODetailsByIdTest extends PurchaseOrderServiceTestBase {
                 eq(TEST_PO_ID), anyLong())).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrowsBadRequest("InvalidId", () -> purchaseOrderService.getPurchaseOrderDetailsById(TEST_PO_ID));
+        assertThrowsNotFound(com.example.SpringApi.ErrorMessages.PurchaseOrderErrorMessages.InvalidId,
+            () -> purchaseOrderService.getPurchaseOrderDetailsById(TEST_PO_ID));
     }
 
     /**
@@ -80,7 +81,8 @@ public class GetPODetailsByIdTest extends PurchaseOrderServiceTestBase {
                     lenient().when(purchaseOrderRepository.findByPurchaseOrderIdAndClientIdWithAllRelations(
                             eq(id), anyLong())).thenReturn(Optional.empty());
 
-                    assertThrowsBadRequest("InvalidId", () -> purchaseOrderService.getPurchaseOrderDetailsById(id));
+                assertThrowsNotFound(com.example.SpringApi.ErrorMessages.PurchaseOrderErrorMessages.InvalidId,
+                    () -> purchaseOrderService.getPurchaseOrderDetailsById(id));
                 }));
     }
 
@@ -103,13 +105,14 @@ public class GetPODetailsByIdTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("getPurchaseOrderDetailsById - Controller delegates to service")
     void getPurchaseOrderDetailsById_WithValidId_DelegatesToService() {
-        PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderService);
-        when(purchaseOrderService.getPurchaseOrderDetailsById(TEST_PO_ID))
-                .thenReturn(mock(PurchaseOrderResponseModel.class));
+        com.example.SpringApi.Services.PurchaseOrderService mockService = mock(com.example.SpringApi.Services.PurchaseOrderService.class);
+        PurchaseOrderController controller = new PurchaseOrderController(mockService);
+        when(mockService.getPurchaseOrderDetailsById(TEST_PO_ID))
+            .thenReturn(mock(PurchaseOrderResponseModel.class));
 
         ResponseEntity<?> response = controller.getPurchaseOrderDetailsById(TEST_PO_ID);
 
-        verify(purchaseOrderService).getPurchaseOrderDetailsById(TEST_PO_ID);
+        verify(mockService).getPurchaseOrderDetailsById(TEST_PO_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

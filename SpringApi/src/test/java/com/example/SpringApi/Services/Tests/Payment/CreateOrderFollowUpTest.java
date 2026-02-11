@@ -8,6 +8,7 @@ import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.RequestModels.RazorpayOrderRequestModel;
 import com.example.SpringApi.Models.ResponseModels.RazorpayOrderResponseModel;
+import com.example.SpringApi.Services.PaymentService;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -145,13 +146,14 @@ class CreateOrderFollowUpTest extends PaymentServiceTestBase {
     @Test
     @DisplayName("createOrderFollowUp - Controller delegates to service")
     void createOrderFollowUp_WithValidRequest_DelegatesToService() {
-        PaymentController controller = new PaymentController(paymentService, null);
+        PaymentService paymentServiceMock = mock(PaymentService.class);
+        PaymentController controller = new PaymentController(paymentServiceMock, null);
         RazorpayOrderResponseModel mockResponse = new RazorpayOrderResponseModel();
-        when(paymentService.createOrderFollowUp(testOrderRequest)).thenReturn(mockResponse);
+        when(paymentServiceMock.createOrderFollowUp(testOrderRequest)).thenReturn(mockResponse);
 
         ResponseEntity<?> response = controller.createOrderFollowUp(testOrderRequest);
 
-        verify(paymentService).createOrderFollowUp(testOrderRequest);
+        verify(paymentServiceMock).createOrderFollowUp(testOrderRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

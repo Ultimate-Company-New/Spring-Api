@@ -37,7 +37,7 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
     @DisplayName("Get Unread Message Count - Large count - Success")
     void getUnreadMessageCount_LargeCount_Success() {
         // Arrange
-        when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID)).thenReturn(1000L);
+        stubMessageRepositoryCountUnreadMessagesByUserId(1000L);
 
         // Act
         int result = messageService.getUnreadMessageCount();
@@ -57,8 +57,7 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
     @DisplayName("Get Unread Message Count - Max Integer Boundary - Success")
     void getUnreadMessageCount_MaxIntegerBoundary_Success() {
         // Arrange
-        when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
-                .thenReturn((long) Integer.MAX_VALUE);
+        stubMessageRepositoryCountUnreadMessagesByUserId((long) Integer.MAX_VALUE);
 
         // Act
         int result = messageService.getUnreadMessageCount();
@@ -77,7 +76,7 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
     @DisplayName("Get Unread Message Count - No unread messages - Returns zero")
     void getUnreadMessageCount_NoUnreadMessages_ReturnsZero() {
         // Arrange
-        when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID)).thenReturn(0L);
+        stubMessageRepositoryCountUnreadMessagesByUserId(0L);
 
         // Act
         int result = messageService.getUnreadMessageCount();
@@ -98,7 +97,7 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
     @DisplayName("Get Unread Message Count - Success")
     void getUnreadMessageCount_Success() {
         // Arrange
-        when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID)).thenReturn(5L);
+        stubMessageRepositoryCountUnreadMessagesByUserId(5L);
 
         // Act
         int result = messageService.getUnreadMessageCount();
@@ -126,7 +125,7 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
     @DisplayName("Get Unread Message Count - Authorization denied - ThrowsUnauthorizedException")
     void getUnreadMessageCount_AuthorizationDenied_ThrowsUnauthorizedException() {
         // Arrange
-        when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID)).thenReturn(5L);
+        stubMessageRepositoryCountUnreadMessagesByUserId(5L);
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.getUnreadMessageCount());
@@ -140,8 +139,7 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
     @DisplayName("Get Unread Message Count - Client Lookup Error - Propagates")
     void getUnreadMessageCount_ClientLookupError_Propagates() {
         // Arrange
-        when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
-                .thenThrow(new RuntimeException("Context error"));
+        stubMessageRepositoryCountUnreadMessagesByUserIdThrows("Context error");
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.getUnreadMessageCount());
@@ -157,8 +155,7 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
     @DisplayName("Get Unread Message Count - Repository exception - Throws Exception")
     void getUnreadMessageCount_RepositoryException_ThrowsException() {
         // Arrange
-        when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID))
-                .thenThrow(new RuntimeException("Database connection failed"));
+        stubMessageRepositoryCountUnreadMessagesByUserIdThrows("Database connection failed");
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class,
@@ -180,7 +177,7 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
     @DisplayName("Get Unread Message Count - Unauthorized Context - Should handle gracefully")
     void getUnreadMessageCount_UnauthorizedContext_SuccessWithEmptyResult() {
         // Arrange
-        when(messageRepository.countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID)).thenReturn(0L);
+        stubMessageRepositoryCountUnreadMessagesByUserId(0L);
 
         // Act & Assert
         assertDoesNotThrow(() -> messageService.getUnreadMessageCount());
@@ -195,8 +192,7 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
     @DisplayName("Get Unread Message Count - User ID Lookup Failure - Propagates")
     void getUnreadMessageCount_UserIdLookupFailure_Propagates() {
         // Arrange
-        doThrow(new RuntimeException("User lookup failed")).when(messageRepository)
-                .countUnreadMessagesByUserId(anyLong(), anyLong());
+        stubMessageRepositoryCountUnreadMessagesByUserIdThrows("User lookup failed");
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.getUnreadMessageCount());
@@ -239,7 +235,7 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
     void getUnreadMessageCount_WithValidRequest_DelegatesToService() {
         // Arrange
         MessageController controller = new MessageController(messageServiceMock);
-        when(messageServiceMock.getUnreadMessageCount()).thenReturn(5);
+        stubMessageServiceGetUnreadMessageCount(5);
 
         // Act
         ResponseEntity<?> response = controller.getUnreadMessageCount();

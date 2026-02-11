@@ -3,6 +3,7 @@ package com.example.SpringApi.Services.Tests.Address;
 import com.example.SpringApi.Controllers.AddressController;
 import com.example.SpringApi.Models.DatabaseModels.Address;
 import com.example.SpringApi.Models.Authorizations;
+import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.Test;
@@ -233,7 +234,7 @@ class InsertAddressTest extends AddressServiceTestBase {
      */
     @Test
     @DisplayName("Insert Address - Logs success message and route")
-    void insertAddress_LogsSuccessMessageAndRoute() {
+    void insertAddress_LogsSuccessMessageAndRoute_Success() {
         // Arrange
         stubBaseServiceBehaviors();
         stubAddressRepositorySave(testAddress);
@@ -1044,10 +1045,13 @@ class InsertAddressTest extends AddressServiceTestBase {
     @Test
     @DisplayName("Insert Address - Null request - ThrowsBadRequestException")
     void insertAddress_NullRequest_ThrowsBadRequestException() {
+        // Arrange
+        AddressRequestModel nullRequest = null;
+
         // Act & Assert
         BadRequestException exception = assertThrows(
                 BadRequestException.class,
-                () -> addressService.insertAddress(null));
+                () -> addressService.insertAddress(nullRequest));
 
         assertEquals(ErrorMessages.AddressErrorMessages.ER001, exception.getMessage());
         verify(addressRepository, never()).save(any(Address.class));
@@ -1235,13 +1239,41 @@ class InsertAddressTest extends AddressServiceTestBase {
      */
 
     /**
+     * Purpose: Verify that the controller has the correct @PreAuthorize annotation
+     * for security.
+     * Expected Result: The method should be annotated with @PreAuthorize checking
+     * for INSERT_ADDRESS_PERMISSION.
+     * Assertions: Annotation is present and contains expected permission string.
+     */
+    @Test
+    @DisplayName("Insert Address - Controller permission forbidden - Success")
+    void insertAddress_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = AddressController.class.getMethod("createAddress",
+                com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "createAddress method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.INSERT_ADDRESS_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference INSERT_ADDRESS_PERMISSION");
+    }
+
+    /**
      * Purpose: Verify @PreAuthorize annotation is declared on createAddress method.
      * Expected Result: Method has @PreAuthorize annotation with correct permission.
      * Assertions: Annotation exists and references INSERT_ADDRESS_PERMISSION.
      */
     @Test
     @DisplayName("Insert Address - Verify @PreAuthorize annotation is configured correctly")
-    void insertAddress_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void insertAddress_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         var method = AddressController.class.getMethod("createAddress",
                 com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
@@ -1275,7 +1307,6 @@ class InsertAddressTest extends AddressServiceTestBase {
     @DisplayName("Insert Address - Controller delegates to service correctly")
     void insertAddress_WithValidRequest_DelegatesToService() {
         // Arrange
-        AddressController addressController = new AddressController(addressService);
         stubServiceInsertAddressDoNothing();
 
         // Act - Call controller directly (simulating authorization has already passed)

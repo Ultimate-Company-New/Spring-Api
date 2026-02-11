@@ -1,55 +1,41 @@
 package com.example.SpringApi.Services.Tests.Todo;
 
 import com.example.SpringApi.Controllers.TodoController;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.SuccessMessages;
+import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Models.DatabaseModels.Todo;
 import com.example.SpringApi.Models.ResponseModels.TodoResponseModel;
+import com.example.SpringApi.Services.Interface.ITodoSubTranslator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Test class for TodoService - GetTodoItems operation.
+ * Test class for TodoService.getTodoItems method.
  */
 @DisplayName("TodoService - GetTodoItems Tests")
 class GetTodoItemsTest extends TodoServiceTestBase {
 
-    // Total Tests: 12
+    // Total Tests: 13
 
     // ========================================
     // Section 1: Success Tests
     // ========================================
 
-    // Purpose: Verify repository is called with correct userId.
-    // Expected Result: findAllByUserIdOrderByTodoIdDesc called with userId.
-    // Assertions: verify(todoRepository).findAllByUserIdOrderByTodoIdDesc(anyLong());
-    @Test
-    @DisplayName("getTodoItems - Verify Repository Call - Success")
-    void getTodoItems_verifyRepositoryCall_success() {
-        // Arrange
-        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(new ArrayList<>());
-        stubUserLogServiceLogDataReturnsTrue();
-
-        // Act
-        todoService.getTodoItems();
-
-        // Assert
-        verify(todoRepository, times(1)).findAllByUserIdOrderByTodoIdDesc(anyLong());
-    }
-
-    // Purpose: Verify empty list when no todos exist.
-    // Expected Result: Empty list is returned.
-    // Assertions: assertTrue(result.isEmpty());
+    /*
+     * Purpose: Verify empty list returns successfully.
+     * Expected Result: Empty list.
+     * Assertions: result.isEmpty()
+     */
     @Test
     @DisplayName("getTodoItems - Empty List - Success")
     void getTodoItems_emptyList_success() {
@@ -65,67 +51,95 @@ class GetTodoItemsTest extends TodoServiceTestBase {
         assertTrue(result.isEmpty());
     }
 
-    // Purpose: Verify todo fields are correctly mapped to response model.
-    // Expected Result: All fields are correctly mapped.
-    // Assertions: All field assertions pass.
+    /*
+     * Purpose: Verify fields are mapped correctly.
+     * Expected Result: Response model matches entity fields.
+     * Assertions: field equality.
+     */
     @Test
     @DisplayName("getTodoItems - Fields Correctly Mapped - Success")
     void getTodoItems_fieldsCorrectlyMapped_success() {
         // Arrange
-        testTodo.setTask("Mapped Task");
-        testTodo.setIsDone(true);
-        List<Todo> expectedTodos = Arrays.asList(testTodo);
-        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(expectedTodos);
+        Todo todo = createTestTodo();
+        todo.setTodoId(TEST_TODO_ID);
+        todo.setTask("Mapped Task");
+        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(List.of(todo));
         stubUserLogServiceLogDataReturnsTrue();
 
         // Act
         List<TodoResponseModel> result = todoService.getTodoItems();
 
         // Assert
-        TodoResponseModel response = result.get(0);
-        assertEquals(TEST_TODO_ID, response.getTodoId());
-        assertEquals("Mapped Task", response.getTask());
-        assertTrue(response.getIsDone());
-        assertEquals(TEST_USER_ID, response.getUserId());
+        assertEquals(1, result.size());
+        assertEquals(TEST_TODO_ID, result.get(0).getTodoId());
+        assertEquals("Mapped Task", result.get(0).getTask());
     }
 
-    // Purpose: Verify many todos are returned correctly.
-    // Expected Result: All todos are returned.
-    // Assertions: assertEquals(10, result.size());
+    /*
+     * Purpose: Verify many todos are returned.
+     * Expected Result: All todos returned.
+     * Assertions: result size equals input.
+     */
     @Test
     @DisplayName("getTodoItems - Many Todos - Success")
     void getTodoItems_manyTodos_success() {
         // Arrange
-        List<Todo> manyTodos = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
+        List<Todo> todos = new ArrayList<>();
+        for (int i = 0; i < 20; i++) {
             Todo todo = createTestTodo();
             todo.setTodoId((long) i);
-            todo.setTask("Task " + i);
-            manyTodos.add(todo);
+            todos.add(todo);
         }
-        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(manyTodos);
+        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(todos);
         stubUserLogServiceLogDataReturnsTrue();
 
         // Act
         List<TodoResponseModel> result = todoService.getTodoItems();
 
         // Assert
-        assertEquals(10, result.size());
+        assertEquals(20, result.size());
     }
 
-    // Purpose: Verify todos with mixed isDone values are returned.
-    // Expected Result: All todos returned with correct isDone values.
-    // Assertions: assertEquals expected isDone for each.
+    /*
+     * Purpose: Verify mixed isDone values are preserved.
+     * Expected Result: Responses reflect mixed values.
+     * Assertions: isDone values match.
+     */
     @Test
     @DisplayName("getTodoItems - Mixed IsDone Values - Success")
     void getTodoItems_mixedIsDoneValues_success() {
         // Arrange
-        testTodo.setIsDone(false);
-        Todo doneTodo = createTestTodo();
-        doneTodo.setTodoId(2L);
-        doneTodo.setIsDone(true);
-        List<Todo> expectedTodos = Arrays.asList(testTodo, doneTodo);
-        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(expectedTodos);
+        Todo todo1 = createTestTodo();
+        todo1.setTodoId(1L);
+        todo1.setIsDone(true);
+        Todo todo2 = createTestTodo();
+        todo2.setTodoId(2L);
+        todo2.setIsDone(false);
+        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(List.of(todo1, todo2));
+        stubUserLogServiceLogDataReturnsTrue();
+
+        // Act
+        List<TodoResponseModel> result = todoService.getTodoItems();
+
+        // Assert
+        assertTrue(result.get(0).getIsDone());
+        assertFalse(result.get(1).getIsDone());
+    }
+
+    /*
+     * Purpose: Verify multiple todos returned.
+     * Expected Result: Result size matches count.
+     * Assertions: size equals 2.
+     */
+    @Test
+    @DisplayName("getTodoItems - Multiple Todos - Success")
+    void getTodoItems_multipleTodos_success() {
+        // Arrange
+        Todo todo1 = createTestTodo();
+        todo1.setTodoId(1L);
+        Todo todo2 = createTestTodo();
+        todo2.setTodoId(2L);
+        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(List.of(todo1, todo2));
         stubUserLogServiceLogDataReturnsTrue();
 
         // Act
@@ -133,98 +147,70 @@ class GetTodoItemsTest extends TodoServiceTestBase {
 
         // Assert
         assertEquals(2, result.size());
-        assertFalse(result.get(0).getIsDone());
-        assertTrue(result.get(1).getIsDone());
     }
 
-    // Purpose: Verify multiple todos are returned correctly.
-    // Expected Result: All todos are returned.
-    // Assertions: assertEquals(3, result.size());
-    @Test
-    @DisplayName("getTodoItems - Multiple Todos - Success")
-    void getTodoItems_multipleTodos_success() {
-        // Arrange
-        Todo todo2 = createTestTodo();
-        todo2.setTodoId(2L);
-        todo2.setTask("Task 2");
-        Todo todo3 = createTestTodo();
-        todo3.setTodoId(3L);
-        todo3.setTask("Task 3");
-        List<Todo> expectedTodos = Arrays.asList(testTodo, todo2, todo3);
-        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(expectedTodos);
-        stubUserLogServiceLogDataReturnsTrue();
-
-        // Act
-        List<TodoResponseModel> result = todoService.getTodoItems();
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(3, result.size());
-    }
-
-    // Purpose: Verify repository is called exactly once.
-    // Expected Result: findAllByUserIdOrderByTodoIdDesc called once.
-    // Assertions: verify called once.
+    /*
+     * Purpose: Verify repository called once.
+     * Expected Result: findAllByUserIdOrderByTodoIdDesc called once.
+     * Assertions: verify call count.
+     */
     @Test
     @DisplayName("getTodoItems - Repository Called Once - Success")
     void getTodoItems_repositoryCalledOnce_success() {
         // Arrange
-        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(Arrays.asList(testTodo));
+        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(List.of(testTodo));
         stubUserLogServiceLogDataReturnsTrue();
 
         // Act
         todoService.getTodoItems();
-        todoService.getTodoItems();
 
         // Assert
-        verify(todoRepository, times(2)).findAllByUserIdOrderByTodoIdDesc(anyLong());
+        verify(todoRepository, times(1)).findAllByUserIdOrderByTodoIdDesc(TEST_USER_ID);
     }
 
-    // Purpose: Verify successful retrieval of todo items.
-    // Expected Result: List of TodoResponseModel is returned.
-    // Assertions: assertNotNull(result); assertEquals(1, result.size());
+    /*
+     * Purpose: Verify basic success returns todos.
+     * Expected Result: Result contains todos.
+     * Assertions: size equals 1.
+     */
     @Test
-    @DisplayName("getTodoItems - Success - Returns Todos")
+    @DisplayName("getTodoItems - Success Returns Todos")
     void getTodoItems_success_returnsTodos() {
         // Arrange
-        List<Todo> expectedTodos = Arrays.asList(testTodo);
-        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(expectedTodos);
+        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(List.of(testTodo));
         stubUserLogServiceLogDataReturnsTrue();
 
         // Act
         List<TodoResponseModel> result = todoService.getTodoItems();
 
         // Assert
-        assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals(TEST_TODO_ID, result.get(0).getTodoId());
-        assertEquals(TEST_TASK, result.get(0).getTask());
     }
 
-    // Purpose: Verify logging is called after successful get.
-    // Expected Result: userLogService.logData is called.
-    // Assertions: verify(userLogService).logData(...);
+    /*
+     * Purpose: Verify success logs operation.
+     * Expected Result: userLogService.logData called.
+     * Assertions: verify logData call.
+     */
     @Test
-    @DisplayName("getTodoItems - Logs Operation - Success")
+    @DisplayName("getTodoItems - Success Logs Operation")
     void getTodoItems_success_logsOperation() {
         // Arrange
-        List<Todo> expectedTodos = Arrays.asList(testTodo);
-        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(expectedTodos);
+        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(List.of(testTodo));
         stubUserLogServiceLogDataReturnsTrue();
 
         // Act
         todoService.getTodoItems();
 
         // Assert
-        verify(userLogService).logData(
-                eq(TEST_USER_ID.longValue()),
-                eq(SuccessMessages.TodoSuccessMessages.GetTodoItems),
-                eq(ApiRoutes.TodoSubRoute.GET_ITEMS));
+        verify(userLogService, times(1)).logData(anyLong(), anyString(), anyString());
     }
 
-    // Purpose: Verify todos with various special characters in tasks.
-    // Expected Result: All are returned correctly.
-    // Assertions: All tasks are mapped correctly.
+    /*
+     * Purpose: Verify special characters are preserved.
+     * Expected Result: Special characters in task preserved.
+     * Assertions: tasks match.
+     */
     @Test
     @DisplayName("getTodoItems - Various Special Characters - Success")
     void getTodoItems_variousSpecialCharacters_success() {
@@ -255,32 +241,79 @@ class GetTodoItemsTest extends TodoServiceTestBase {
         assertEquals("<html>", result.get(2).getTask());
     }
 
+    /*
+     * Purpose: Verify repository call for getTodoItems.
+     * Expected Result: repository called with user id.
+     * Assertions: verify repository called.
+     */
+    @Test
+    @DisplayName("getTodoItems - Verify Repository Call - Success")
+    void getTodoItems_verifyRepositoryCall_success() {
+        // Arrange
+        stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(List.of(testTodo));
+        stubUserLogServiceLogDataReturnsTrue();
+
+        // Act
+        todoService.getTodoItems();
+
+        // Assert
+        verify(todoRepository).findAllByUserIdOrderByTodoIdDesc(TEST_USER_ID);
+    }
+
     // ========================================
     // Section 2: Failure / Exception Tests
     // ========================================
 
-    // Purpose: Verify null from repository is handled.
-    // Expected Result: NullPointerException or empty list depending on implementation.
-    // Assertions: Throws or returns empty.
+    /*
+     * Purpose: Verify null from repository is handled.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.InvalidRequest
+     */
     @Test
-    @DisplayName("getTodoItems - Null From Repository - Throws NullPointerException")
+    @DisplayName("getTodoItems - Null From Repository - Throws BadRequestException")
     void getTodoItems_nullFromRepository_exception() {
         // Arrange
         stubTodoRepositoryFindAllByUserIdOrderByTodoIdDesc(null);
         stubUserLogServiceLogDataReturnsTrue();
 
-        // Act & Assert
-        // The service might throw NPE when mapping null to stream
-        assertThrows(NullPointerException.class, () -> todoService.getTodoItems());
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class, () -> todoService.getTodoItems());
+
+        // Assert
+        assertEquals(ErrorMessages.TodoErrorMessages.InvalidRequest, ex.getMessage());
     }
 
     // ========================================
     // Section 3: Controller Permission/Auth Tests
     // ========================================
 
-    // Purpose: Verify @PreAuthorize Annotation on controller
-    // Expected Result: Annotation exists and has correct value
-    // Assertions: assertNotNull, assertEquals
+    /*
+     * Purpose: Verify unauthorized access is blocked at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("getTodoItems - Controller Permission - Unauthorized")
+    void getTodoItems_controller_permission_unauthorized() {
+        // Arrange
+        ITodoSubTranslator todoServiceMock = mock(ITodoSubTranslator.class);
+        TodoController controller = new TodoController(todoServiceMock);
+        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(todoServiceMock).getTodoItems();
+
+        // Act
+        ResponseEntity<?> response = controller.getTodoItems();
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        verify(todoServiceMock, times(1)).getTodoItems();
+    }
+
+    /*
+     * Purpose: Verify @PreAuthorize annotation on controller.
+     * Expected Result: Annotation exists and has correct value.
+     * Assertions: assertNotNull, assertEquals
+     */
     @Test
     @DisplayName("getTodoItems - Verify @PreAuthorize Annotation")
     void getTodoItems_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {

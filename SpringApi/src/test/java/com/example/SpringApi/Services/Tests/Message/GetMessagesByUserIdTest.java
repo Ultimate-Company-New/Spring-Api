@@ -58,11 +58,8 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 Page<com.example.SpringApi.Models.DatabaseModels.Message> messagePage = new PageImpl<>(
                                 Arrays.asList(testMessage));
 
-                when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(testUser));
-                when(messageRepository.findMessagesByUserIdPaginated(eq(TEST_CLIENT_ID), eq(TEST_USER_ID),
-                                any(Pageable.class)))
-                                .thenReturn(messagePage);
+                stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
+                stubMessageRepositoryFindMessagesByUserIdPaginated(messagePage);
 
                 // Act
                 PaginationBaseResponseModel<MessageResponseModel> result = messageService
@@ -99,15 +96,12 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 Page<com.example.SpringApi.Models.DatabaseModels.Message> messagePage = new PageImpl<>(
                                 Arrays.asList(m1, m2));
 
-                when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(testUser));
-                when(messageRepository.findMessagesByUserIdPaginated(anyLong(), anyLong(), any()))
-                                .thenReturn(messagePage);
+                stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
+                stubMessageRepositoryFindMessagesByUserIdPaginated(messagePage);
 
                 // m1 read, m2 unread
-                when(messageUserReadMapRepository.findByMessageIdAndUserId(1L, TEST_USER_ID))
-                                .thenReturn(new MessageUserReadMap());
-                when(messageUserReadMapRepository.findByMessageIdAndUserId(2L, TEST_USER_ID)).thenReturn(null);
+                stubMessageUserReadMapRepositoryFindByMessageIdAndUserId(1L, TEST_USER_ID, new MessageUserReadMap());
+                stubMessageUserReadMapRepositoryFindByMessageIdAndUserId(2L, TEST_USER_ID, null);
 
                 // Act
                 PaginationBaseResponseModel<MessageResponseModel> result = messageService
@@ -134,13 +128,9 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 Page<com.example.SpringApi.Models.DatabaseModels.Message> messagePage = new PageImpl<>(
                                 Arrays.asList(testMessage));
 
-                when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(testUser));
-                when(messageRepository.findMessagesByUserIdPaginated(eq(TEST_CLIENT_ID), eq(TEST_USER_ID),
-                                any(Pageable.class)))
-                                .thenReturn(messagePage);
-                when(messageUserReadMapRepository.findByMessageIdAndUserId(TEST_MESSAGE_ID, TEST_USER_ID))
-                                .thenReturn(new MessageUserReadMap());
+                stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
+                stubMessageRepositoryFindMessagesByUserIdPaginated(messagePage);
+                stubMessageUserReadMapRepositoryFindByMessageIdAndUserId(new MessageUserReadMap());
 
                 // Act
                 PaginationBaseResponseModel<MessageResponseModel> result = messageService
@@ -166,13 +156,9 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 Page<com.example.SpringApi.Models.DatabaseModels.Message> messagePage = new PageImpl<>(
                                 Arrays.asList(testMessage));
 
-                when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(testUser));
-                when(messageRepository.findMessagesByUserIdPaginated(eq(TEST_CLIENT_ID), eq(TEST_USER_ID),
-                                any(Pageable.class)))
-                                .thenReturn(messagePage);
-                when(messageUserReadMapRepository.findByMessageIdAndUserId(TEST_MESSAGE_ID, TEST_USER_ID))
-                                .thenReturn(null);
+                stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
+                stubMessageRepositoryFindMessagesByUserIdPaginated(messagePage);
+                stubMessageUserReadMapRepositoryFindByMessageIdAndUserId(null);
 
                 // Act
                 PaginationBaseResponseModel<MessageResponseModel> result = messageService
@@ -201,10 +187,8 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 paginationRequest.setStart(50);
                 paginationRequest.setEnd(60);
 
-                when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(testUser));
-                when(messageRepository.findMessagesByUserIdPaginated(anyLong(), anyLong(), any()))
-                                .thenReturn(new PageImpl<>(Arrays.asList()));
+                stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
+                stubMessageRepositoryFindMessagesByUserIdPaginated(new PageImpl<>(Arrays.asList()));
 
                 // Act
                 messageService.getMessagesByUserId(paginationRequest);
@@ -230,10 +214,8 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 paginationRequest.setStart(10);
                 paginationRequest.setEnd(10);
 
-                when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(testUser));
-                when(messageRepository.findMessagesByUserIdPaginated(anyLong(), anyLong(), any()))
-                                .thenReturn(new PageImpl<>(Arrays.asList()));
+                stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
+                stubMessageRepositoryFindMessagesByUserIdPaginated(new PageImpl<>(Arrays.asList()));
 
                 // Act & Assert
                 assertDoesNotThrow(() -> messageService.getMessagesByUserId(paginationRequest));
@@ -284,10 +266,8 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 // Arrange
                 PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
                 paginationRequest.setId(TEST_USER_ID);
-                when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(testUser));
-                when(messageRepository.findMessagesByUserIdPaginated(anyLong(), anyLong(), any()))
-                                .thenThrow(new RuntimeException("Page error"));
+                stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
+                stubMessageRepositoryFindMessagesByUserIdPaginatedThrows("Page error");
 
                 // Act & Assert
                 RuntimeException ex = assertThrows(RuntimeException.class,
@@ -309,10 +289,8 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 // Arrange
                 PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
                 paginationRequest.setId(TEST_USER_ID);
-                when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID))
-                                .thenReturn(Optional.of(testUser));
-                when(messageRepository.findMessagesByUserIdPaginated(anyLong(), anyLong(), any()))
-                                .thenReturn(new PageImpl<>(Arrays.asList()));
+                stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
+                stubMessageRepositoryFindMessagesByUserIdPaginated(new PageImpl<>(Arrays.asList()));
 
                 // Act & Assert
                 assertDoesNotThrow(() -> messageService.getMessagesByUserId(paginationRequest));
@@ -329,7 +307,7 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
                 paginationRequest.setId(TEST_USER_ID);
 
-                when(userRepository.findByUserIdAndClientId(TEST_USER_ID, TEST_CLIENT_ID)).thenReturn(Optional.empty());
+                stubUserRepositoryFindByUserIdAndClientId(Optional.empty());
 
                 // Act & Assert
                 assertThrowsNotFound(ErrorMessages.UserErrorMessages.InvalidId,
@@ -346,8 +324,7 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 // Arrange
                 PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
                 paginationRequest.setId(TEST_USER_ID);
-                when(userRepository.findByUserIdAndClientId(anyLong(), anyLong()))
-                                .thenThrow(new RuntimeException("User DB Error"));
+                stubUserRepositoryFindByUserIdAndClientIdThrows("User DB Error");
 
                 // Act & Assert
                 RuntimeException ex = assertThrows(RuntimeException.class,
@@ -417,7 +394,7 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 PaginationBaseResponseModel<MessageResponseModel> mockResponse = new PaginationBaseResponseModel<>();
                 PaginationBaseRequestModel pRequest = createValidPaginationRequest();
                 pRequest.setId(TEST_USER_ID);
-                when(messageServiceMock.getMessagesByUserId(pRequest)).thenReturn(mockResponse);
+                stubMessageServiceGetMessagesByUserId(mockResponse);
 
                 // Act
                 ResponseEntity<?> response = controller.getMessagesByUserId(pRequest);
