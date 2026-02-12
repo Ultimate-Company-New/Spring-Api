@@ -1,10 +1,9 @@
 package com.example.SpringApi.Services.Tests.Product;
 
+import com.example.SpringApi.Controllers.ProductController;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.DatabaseModels.ProductCategory;
 import com.example.SpringApi.Models.ResponseModels.ProductCategoryWithPathResponseModel;
-import com.example.SpringApi.Controllers.ProductController;
-import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -14,34 +13,36 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import com.example.SpringApi.Services.ProductService;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 
 /**
  * Consolidated test class for ProductService.findCategoriesByParentId.
  * Fully compliant with Unit Test Verification rules.
  */
-// Total Tests: 6
 @DisplayName("ProductService - FindCategoriesByParentId Tests")
 class FindCategoriesByParentIdTest extends ProductServiceTestBase {
-
-    // ==========================================
-    // SECTION 1: SUCCESS TESTS
-    // ==========================================
+    // Total Tests: 7
 
     /*
-     * Purpose: Verify root level categories retrieval
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify root level categories retrieval.
+     * Expected Result: Root categories returned.
+     * Assertions: Results contain expected category.
      */
     @Test
     @DisplayName("findCategoriesByParentId - Parent null - Success")
     void findCategoriesByParentId_Root_Success() {
         // Arrange
         testCategory.setParentId(null);
-        when(productCategoryRepository.findAll())
-                .thenReturn(Collections.singletonList(testCategory));
+        stubProductCategoryRepositoryFindAll(Collections.singletonList(testCategory));
 
         // Act
         List<ProductCategoryWithPathResponseModel> results = productService.findCategoriesByParentId(null);
@@ -51,8 +52,10 @@ class FindCategoriesByParentIdTest extends ProductServiceTestBase {
         assertEquals("Test Category", results.get(0).getName());
     }
 
-    /*
-     * Purpose: Verify child categories retrieval
+    /**
+     * Purpose: Verify child categories retrieval.
+     * Expected Result: Child categories returned for parent.
+     * Assertions: Results contain child category.
      */
     @Test
     @DisplayName("findCategoriesByParentId - Valid parent ID - Success")
@@ -63,10 +66,8 @@ class FindCategoriesByParentIdTest extends ProductServiceTestBase {
         child.setName("Child Category");
         child.setParentId(10L);
         child.setIsEnd(true);
-        when(productCategoryRepository.findAll())
-                .thenReturn(Collections.singletonList(child));
-        // Mocking buildFullPath internal calls
-        when(productCategoryRepository.findById(10L)).thenReturn(Optional.empty()); // Stop path traversal
+        stubProductCategoryRepositoryFindAll(Collections.singletonList(child));
+        stubProductCategoryRepositoryFindById(10L, null); // Stop path traversal
 
         // Act
         List<ProductCategoryWithPathResponseModel> results = productService.findCategoriesByParentId(10L);
@@ -76,71 +77,110 @@ class FindCategoriesByParentIdTest extends ProductServiceTestBase {
         assertEquals("Child Category", results.get(0).getName());
     }
 
-    // ==========================================
-    // SECTION 2: PERMISSION / DELEGATION
-    // ==========================================
+    /*
+     **********************************************************************************************
+     * FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
+     */
 
+    /**
+     * Purpose: Verify empty results when no categories exist.
+     * Expected Result: Empty list returned.
+     * Assertions: Result list is empty.
+     */
     @Test
-    @DisplayName("findCategoriesByParentId - Verify @PreAuthorize annotation")
-    void findCategoriesByParentId_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        Method method = ProductController.class.getMethod("findCategoriesByParentId", Long.class);
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.VIEW_PRODUCTS_PERMISSION));
-    }
-
-    @Test
-    @DisplayName("findCategoriesByParentId - Controller delegation check")
-    void findCategoriesByParentId_ControllerDelegation_Success() {
+    @DisplayName("findCategoriesByParentId - Empty results - Success")
+    void findCategoriesByParentId_EmptyResults_Success() {
         // Arrange
-        ProductService mockService = mock(ProductService.class);
-        ProductController controller = new ProductController(mockService);
-        when(mockService.findCategoriesByParentId(any())).thenReturn(Collections.emptyList());
+        stubProductCategoryRepositoryFindAll(Collections.emptyList());
 
         // Act
-        ResponseEntity<?> response = controller.findCategoriesByParentId(null);
+        List<ProductCategoryWithPathResponseModel> results = productService.findCategoriesByParentId(null);
 
         // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(mockService).findCategoriesByParentId(null);
+        assertTrue(results.isEmpty());
     }
 
+    /**
+     * Purpose: Verify invalid parent ID returns empty results.
+     * Expected Result: Empty list returned.
+     * Assertions: Result list is empty.
+     */
     @Test
-    @DisplayName("findCategoriesByParentId - No permission - Unauthorized")
-    void findCategoriesByParentId_NoPermission_Unauthorized() {
+    @DisplayName("findCategoriesByParentId - Invalid parent ID (not in DB) - Success (Empty)")
+    void findCategoriesByParentId_InvalidParentId_Success() {
         // Arrange
-        ProductService mockService = mock(ProductService.class);
-        ProductController controller = new ProductController(mockService);
-        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(mockService).findCategoriesByParentId(any());
+        stubProductCategoryRepositoryFindAll(Collections.emptyList());
+
+        // Act
+        List<ProductCategoryWithPathResponseModel> results = productService.findCategoriesByParentId(999L);
+
+        // Assert
+        assertTrue(results.isEmpty());
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify unauthorized access is blocked at controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("findCategoriesByParentId - Controller permission unauthorized - Success")
+    void findCategoriesByParentId_controller_permission_unauthorized() {
+        // Arrange
+        ProductController controller = new ProductController(productServiceMock);
+        stubProductServiceFindCategoriesByParentIdThrowsUnauthorized();
 
         // Act
         ResponseEntity<?> response = controller.findCategoriesByParentId(null);
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verify(mockService).findCategoriesByParentId(null);
+        verify(productServiceMock).findCategoriesByParentId(any());
     }
 
+    /**
+     * Purpose: Verify @PreAuthorize annotation exists.
+     * Expected Result: Annotation includes required permission.
+     * Assertions: Annotation is present and contains VIEW_PRODUCTS_PERMISSION.
+     */
     @Test
-    @DisplayName("findCategoriesByParentId - Empty results - Success")
-    void findCategoriesByParentId_EmptyResults_Success() {
+    @DisplayName("findCategoriesByParentId - Verify @PreAuthorize annotation - Success")
+    void findCategoriesByParentId_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
-        when(productCategoryRepository.findAll()).thenReturn(Collections.emptyList());
+        Method method = ProductController.class.getMethod("findCategoriesByParentId", Long.class);
+
         // Act
-        List<ProductCategoryWithPathResponseModel> results = productService.findCategoriesByParentId(null);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
         // Assert
-        assertTrue(results.isEmpty());
+        assertNotNull(annotation);
+        assertTrue(annotation.value().contains(Authorizations.VIEW_PRODUCTS_PERMISSION));
     }
 
+    /**
+     * Purpose: Verify controller delegation to service.
+     * Expected Result: OK status returned.
+     * Assertions: Service method invoked and response is OK.
+     */
     @Test
-    @DisplayName("findCategoriesByParentId - Invalid parent ID (not in DB) - Success (Empty)")
-    void findCategoriesByParentId_InvalidParentId_Success() {
+    @DisplayName("findCategoriesByParentId - Controller delegation check - Success")
+    void findCategoriesByParentId_ControllerDelegation_Success() {
         // Arrange
-        when(productCategoryRepository.findAll()).thenReturn(Collections.emptyList());
+        ProductController controller = new ProductController(productServiceMock);
+        stubProductServiceFindCategoriesByParentIdReturns(Collections.emptyList());
+
         // Act
-        List<ProductCategoryWithPathResponseModel> results = productService.findCategoriesByParentId(999L);
+        ResponseEntity<?> response = controller.findCategoriesByParentId(null);
+
         // Assert
-        assertTrue(results.isEmpty());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(productServiceMock).findCategoriesByParentId(any());
     }
 }

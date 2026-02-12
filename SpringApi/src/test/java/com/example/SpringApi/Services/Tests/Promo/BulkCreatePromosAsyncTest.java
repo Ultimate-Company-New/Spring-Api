@@ -57,20 +57,8 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
 
                 Map<String, Promo> savedPromos = new HashMap<>();
                 stubPromoRepositoryFindOverlappingPromos(Collections.emptyList());
-                stubPromoRepositoryFindByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID),
-                                Optional.empty());
-                when(promoRepository.findByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID)))
-                                .thenAnswer(invocation -> {
-                                        String code = invocation.getArgument(0);
-                                        return Optional.ofNullable(
-                                                        savedPromos.get(code != null ? code.toUpperCase() : null));
-                                });
-                when(promoRepository.save(any(Promo.class))).thenAnswer(invocation -> {
-                        Promo promo = invocation.getArgument(0);
-                        promo.setPromoId(idCounter.incrementAndGet());
-                        savedPromos.put(promo.getPromoCode(), promo);
-                        return promo;
-                });
+                stubPromoRepositoryFindByPromoCodeAndClientIdFromMap(savedPromos);
+                stubPromoRepositorySaveAssigningId(idCounter, savedPromos);
 
                 // Act
                 assertDoesNotThrow(
@@ -118,7 +106,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
                 }
 
                 stubPromoRepositoryFindOverlappingPromos(Collections.emptyList());
-                when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
+                stubPromoRepositorySave(testPromo);
 
                 // Act
                 assertDoesNotThrow(
@@ -151,7 +139,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
                 }
 
                 stubPromoRepositoryFindOverlappingPromos(Collections.emptyList());
-                when(promoRepository.save(any(Promo.class))).thenReturn(testPromo);
+                stubPromoRepositorySave(testPromo);
 
                 // Act
                 assertDoesNotThrow(
@@ -221,12 +209,10 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
         void bulkCreatePromosAsync_DatabaseError_CapturesFailure() {
                 // Arrange
                 List<PromoRequestModel> promos = List.of(testPromoRequest);
-                stubPromoRepositoryFindByPromoCodeAndClientId(anyString(), eq(TEST_CLIENT_ID),
-                                Optional.empty());
+                stubPromoRepositoryFindByPromoCodeAndClientIdAny(Optional.empty());
                 // Service should attempt to save even if it fails later
-                stubPromoRepositorySave(testPromo);
-                when(promoRepository.save(any(Promo.class)))
-                                .thenThrow(new RuntimeException("Database error"));
+                stubPromoRepositorySaveThrows(new RuntimeException(
+                                com.example.SpringApi.ErrorMessages.CommonErrorMessages.DATABASE_ERROR));
 
                 // Act & Assert
                 assertDoesNotThrow(
@@ -261,10 +247,8 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
 
                 List<PromoRequestModel> promos = List.of(p1, p2);
 
-                when(promoRepository.findOverlappingPromos(eq("P11"), anyLong(), any(), any()))
-                                .thenReturn(Collections.emptyList());
-                when(promoRepository.findOverlappingPromos(eq("P22"), anyLong(), any(), any()))
-                                .thenReturn(List.of(testPromo));
+                stubPromoRepositoryFindOverlappingPromosForCode("P11", Collections.emptyList());
+                stubPromoRepositoryFindOverlappingPromosForCode("P22", List.of(testPromo));
 
                 // Act
                 assertDoesNotThrow(
@@ -285,9 +269,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
                 // Arrange
                 List<PromoRequestModel> promos = List.of(testPromoRequest, testPromoRequest);
 
-                when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))
-                                .thenReturn(Collections.emptyList())
-                                .thenReturn(List.of(testPromo));
+                stubPromoRepositoryFindOverlappingPromosSequence(Collections.emptyList(), List.of(testPromo));
 
                 // Act
                 assertDoesNotThrow(
@@ -304,6 +286,8 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
         @Test
         @DisplayName("Bulk Create Promos - Failure - Null list")
         void bulkCreatePromosAsync_NullList_CapturesFailure() {
+                // Arrange
+
                 // Act
                 assertDoesNotThrow(
                                 () -> promoService.bulkCreatePromosAsync(null, TEST_USER_ID, TEST_LOGIN_NAME,
@@ -397,13 +381,11 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
 
                 List<PromoRequestModel> promos = List.of(p1, p2);
 
-                when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))
-                                .thenReturn(Collections.emptyList());
-                when(promoRepository.save(any(Promo.class))).thenAnswer(invocation -> invocation.getArgument(0));
+                stubPromoRepositoryFindOverlappingPromos(Collections.emptyList());
+                stubPromoRepositorySaveReturnsArgument();
 
                 // Stub findByPromoCode for the success one
-                when(promoRepository.findByPromoCodeAndClientId(eq("SUCCESS"), eq(TEST_CLIENT_ID)))
-                                .thenReturn(Optional.of(testPromo));
+                stubPromoRepositoryFindByPromoCodeAndClientId("SUCCESS", TEST_CLIENT_ID, Optional.of(testPromo));
 
                 // Act
                 promoService.bulkCreatePromosAsync(promos, TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID);
@@ -421,7 +403,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("Bulk Create Promos - Failure - Mixed validity")
-        void bulkCreatePromosAsync_MixedValidity() {
+        void bulkCreatePromosAsync_MixedValidity_Success() {
                 // Arrange
                 List<PromoRequestModel> promos = new ArrayList<>();
                 for (int i = 0; i < 10; i++) {
@@ -462,7 +444,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
                 List<PromoRequestModel> promos = List.of(testPromoRequest);
                 // Using doNothing because service is a spy and we want to avoid real method
                 // execution
-                doNothing().when(promoService).bulkCreatePromosAsync(anyList(), anyLong(), anyString(), anyLong());
+                stubServiceBulkCreatePromosAsyncDoNothing();
 
                 // Act
                 ResponseEntity<?> response = promoController.bulkCreatePromos(promos);
@@ -494,11 +476,11 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("bulkCreatePromos - Controller handles BadRequestException")
-        void bulkCreatePromosAsync_ControllerHandlesBadRequest() {
+        void bulkCreatePromosAsync_ControllerHandlesBadRequest_Success() {
                 // Arrange
                 List<PromoRequestModel> promos = List.of(testPromoRequest);
-                doThrow(new com.example.SpringApi.Exceptions.BadRequestException("Empty list"))
-                                .when(promoService).bulkCreatePromosAsync(any(), anyLong(), anyString(), anyLong());
+                stubServiceBulkCreatePromosAsyncThrowsBadRequest(
+                                com.example.SpringApi.ErrorMessages.CommonErrorMessages.EmptyList);
 
                 // Act
                 ResponseEntity<?> response = promoController.bulkCreatePromos(promos);
@@ -512,11 +494,11 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("bulkCreatePromos - Controller handles internal error")
-        void bulkCreatePromosAsync_ControllerHandlesInternalError() {
+        void bulkCreatePromosAsync_ControllerHandlesInternalError_Failure() {
                 // Arrange
                 List<PromoRequestModel> promos = List.of(testPromoRequest);
-                doThrow(new RuntimeException("Critical failure"))
-                                .when(promoService).bulkCreatePromosAsync(any(), anyLong(), anyString(), anyLong());
+                stubServiceBulkCreatePromosAsyncThrowsRuntime(
+                                com.example.SpringApi.ErrorMessages.CommonErrorMessages.CriticalFailure);
 
                 // Act
                 ResponseEntity<?> response = promoController.bulkCreatePromos(promos);
@@ -530,10 +512,10 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("bulkCreatePromos - Failure - Context retrieval error")
-        void bulkCreatePromosAsync_ContextRetrievalError() {
+        void bulkCreatePromosAsync_ContextRetrievalError_Failure() {
                 // Arrange
-                doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException("Context missing"))
-                                .when(promoService).getUserId();
+                stubServiceGetUserIdThrowsUnauthorized(
+                                com.example.SpringApi.ErrorMessages.CommonErrorMessages.ContextMissing);
 
                 // Act
                 ResponseEntity<?> response = promoController.bulkCreatePromos(List.of(testPromoRequest));
@@ -548,10 +530,10 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("bulkCreatePromos - Controller with empty list")
-        void bulkCreatePromosAsync_ControllerWithEmptyList() {
+        void bulkCreatePromosAsync_ControllerWithEmptyList_Success() {
                 // Arrange
                 List<PromoRequestModel> emptyList = Collections.emptyList();
-                doNothing().when(promoService).bulkCreatePromosAsync(any(), anyLong(), anyString(), anyLong());
+                stubServiceBulkCreatePromosAsyncDoNothing();
 
                 // Act
                 ResponseEntity<?> response = promoController.bulkCreatePromos(emptyList);
@@ -565,10 +547,10 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("bulkCreatePromos - Controller with null list")
-        void bulkCreatePromosAsync_ControllerWithNullList() {
+        void bulkCreatePromosAsync_ControllerWithNullList_Success() {
                 // Arrange
-                doThrow(new com.example.SpringApi.Exceptions.BadRequestException("Null list"))
-                                .when(promoService).bulkCreatePromosAsync(isNull(), anyLong(), anyString(), anyLong());
+                stubServiceBulkCreatePromosAsyncThrowsBadRequest(
+                                com.example.SpringApi.ErrorMessages.CommonErrorMessages.NullList);
 
                 // Act
                 ResponseEntity<?> response = promoController.bulkCreatePromos(null);

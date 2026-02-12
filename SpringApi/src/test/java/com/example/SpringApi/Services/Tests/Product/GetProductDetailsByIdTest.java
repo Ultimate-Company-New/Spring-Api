@@ -2,7 +2,6 @@ package com.example.SpringApi.Services.Tests.Product;
 
 import com.example.SpringApi.Controllers.ProductController;
 import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.ResponseModels.ProductResponseModel;
 import org.junit.jupiter.api.DisplayName;
@@ -11,26 +10,30 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import com.example.SpringApi.Services.ProductService;
 import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 
 /**
  * Consolidated test class for ProductService.getProductDetailsById.
  * Fully compliant with Unit Test Verification rules.
  */
-// Total Tests: 7
 @DisplayName("ProductService - GetProductDetailsById Tests")
 class GetProductDetailsByIdTest extends ProductServiceTestBase {
-
-    // ==========================================
-    // SECTION 1: SUCCESS TESTS
-    // ==========================================
+    // Total Tests: 7
 
     /*
-     * Purpose: Verify success when product is found
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify success when product is found.
+     * Expected Result: Product response is returned.
+     * Assertions: Response contains product ID.
      */
     @Test
     @DisplayName("getProductDetailsById - Product found - Success")
@@ -47,12 +50,16 @@ class GetProductDetailsByIdTest extends ProductServiceTestBase {
         verify(productRepository).findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID);
     }
 
-    // ==========================================
-    // SECTION 2: FAILURE TESTS
-    // ==========================================
-
     /*
-     * Purpose: Verify failure when product is not found
+     **********************************************************************************************
+     * FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify failure when product is not found.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message matches ErrorMessages constant.
      */
     @Test
     @DisplayName("getProductDetailsById - Product not found - Throws NotFound")
@@ -61,78 +68,106 @@ class GetProductDetailsByIdTest extends ProductServiceTestBase {
         stubProductRepositoryFindByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID, null);
 
         // Act & Assert
-        assertThrows(NotFoundException.class, () -> productService.getProductDetailsById(TEST_PRODUCT_ID));
+        assertThrowsNotFound(String.format(ErrorMessages.ProductErrorMessages.ER013, TEST_PRODUCT_ID),
+                () -> productService.getProductDetailsById(TEST_PRODUCT_ID));
     }
 
-    /*
-     * Purpose: Verify failure with ID zero
+    /**
+     * Purpose: Verify failure with ID zero.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message matches ErrorMessages constant.
      */
     @Test
     @DisplayName("getProductDetailsById - ID zero - Throws NotFound")
     void getProductDetailsById_IdZero_ThrowsNotFound() {
         // Arrange
-        stubProductRepositoryFindByIdWithRelatedEntities(0L, TEST_CLIENT_ID, null);
+        long id = 0L;
+        stubProductRepositoryFindByIdWithRelatedEntities(id, TEST_CLIENT_ID, null);
 
         // Act & Assert
-        assertThrows(NotFoundException.class, () -> productService.getProductDetailsById(0L));
+        assertThrowsNotFound(String.format(ErrorMessages.ProductErrorMessages.ER013, id),
+                () -> productService.getProductDetailsById(id));
     }
 
-    /*
-     * Purpose: Verify failure with negative ID
+    /**
+     * Purpose: Verify failure with negative ID.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message matches ErrorMessages constant.
      */
     @Test
     @DisplayName("getProductDetailsById - ID negative - Throws NotFound")
     void getProductDetailsById_IdNegative_ThrowsNotFound() {
         // Arrange
-        stubProductRepositoryFindByIdWithRelatedEntities(-1L, TEST_CLIENT_ID, null);
+        long id = -1L;
+        stubProductRepositoryFindByIdWithRelatedEntities(id, TEST_CLIENT_ID, null);
 
         // Act & Assert
-        assertThrows(NotFoundException.class, () -> productService.getProductDetailsById(-1L));
+        assertThrowsNotFound(String.format(ErrorMessages.ProductErrorMessages.ER013, id),
+                () -> productService.getProductDetailsById(id));
     }
 
-    // ==========================================
-    // SECTION 3: PERMISSION / DELEGATION
-    // ==========================================
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
 
+    /**
+     * Purpose: Verify unauthorized access is blocked at controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
     @Test
-    @DisplayName("getProductDetailsById - Verify @PreAuthorize annotation")
-    void getProductDetailsById_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        Method method = ProductController.class.getMethod("getProductDetailsById", long.class);
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.VIEW_PRODUCTS_PERMISSION));
-    }
-
-    @Test
-    @DisplayName("getProductDetailsById - Controller delegation check")
-    void getProductDetailsById_ControllerDelegation_Success() {
+    @DisplayName("getProductDetailsById - Controller permission unauthorized - Success")
+    void getProductDetailsById_controller_permission_unauthorized() {
         // Arrange
-        ProductService mockService = mock(ProductService.class);
-        ProductController controller = new ProductController(mockService);
-        when(mockService.getProductDetailsById(TEST_PRODUCT_ID)).thenReturn(new ProductResponseModel(testProduct));
-
-        // Act
-        ResponseEntity<?> response = controller.getProductDetailsById(TEST_PRODUCT_ID);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(mockService).getProductDetailsById(TEST_PRODUCT_ID);
-    }
-
-    @Test
-    @DisplayName("getProductDetailsById - No permission - Unauthorized")
-    void getProductDetailsById_NoPermission_Unauthorized() {
-        // Arrange
-        ProductService mockService = mock(ProductService.class);
-        ProductController controller = new ProductController(mockService);
-        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(mockService).getProductDetailsById(TEST_PRODUCT_ID);
+        ProductController controller = new ProductController(productServiceMock);
+        stubProductServiceGetProductDetailsByIdThrowsUnauthorized();
 
         // Act
         ResponseEntity<?> response = controller.getProductDetailsById(TEST_PRODUCT_ID);
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verify(mockService).getProductDetailsById(TEST_PRODUCT_ID);
+        verify(productServiceMock).getProductDetailsById(anyLong());
+    }
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation exists.
+     * Expected Result: Annotation includes required permission.
+     * Assertions: Annotation is present and contains VIEW_PRODUCTS_PERMISSION.
+     */
+    @Test
+    @DisplayName("getProductDetailsById - Verify @PreAuthorize annotation - Success")
+    void getProductDetailsById_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        // Arrange
+        Method method = ProductController.class.getMethod("getProductDetailsById", long.class);
+
+        // Act
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
+        assertNotNull(annotation);
+        assertTrue(annotation.value().contains(Authorizations.VIEW_PRODUCTS_PERMISSION));
+    }
+
+    /**
+     * Purpose: Verify controller delegation to service.
+     * Expected Result: OK status returned.
+     * Assertions: Service method invoked and response is OK.
+     */
+    @Test
+    @DisplayName("getProductDetailsById - Controller delegation check - Success")
+    void getProductDetailsById_ControllerDelegation_Success() {
+        // Arrange
+        ProductController controller = new ProductController(productServiceMock);
+        stubProductServiceGetProductDetailsByIdReturns(new ProductResponseModel(testProduct));
+
+        // Act
+        ResponseEntity<?> response = controller.getProductDetailsById(TEST_PRODUCT_ID);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(productServiceMock).getProductDetailsById(anyLong());
     }
 }

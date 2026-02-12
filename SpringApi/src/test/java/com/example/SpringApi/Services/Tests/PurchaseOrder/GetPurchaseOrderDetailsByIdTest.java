@@ -41,14 +41,14 @@ public class GetPurchaseOrderDetailsByIdTest extends PurchaseOrderServiceTestBas
     @Test
     @DisplayName("Get Purchase Order Details By Id - Success")
     void getPurchaseOrderDetailsById_Success_Success() {
-        // ARRANGE
+        // Arrange
         stubPurchaseOrderRepositoryFindByIdWithRelations(Optional.of(testPurchaseOrder));
 
-        // ACT
+        // Act
         PurchaseOrderResponseModel result = assertDoesNotThrow(
                 () -> purchaseOrderService.getPurchaseOrderDetailsById(TEST_PO_ID));
 
-        // ASSERT
+        // Assert
         assertNotNull(result);
         assertEquals(TEST_PO_ID, result.getPurchaseOrderId());
         assertEquals(TEST_VENDOR_NUMBER, result.getVendorNumber());
@@ -68,10 +68,10 @@ public class GetPurchaseOrderDetailsByIdTest extends PurchaseOrderServiceTestBas
     @Test
     @DisplayName("Get Purchase Order Details By Id - Not Found")
     void getPurchaseOrderDetailsById_NotFound_Failure() {
-        // ARRANGE
+        // Arrange
         stubPurchaseOrderRepositoryFindByIdWithRelations(Optional.empty());
 
-        // ACT & ASSERT
+        // Act & Assert
         assertThrowsNotFound(ErrorMessages.PurchaseOrderErrorMessages.InvalidId,
                 () -> purchaseOrderService.getPurchaseOrderDetailsById(TEST_PO_ID));
     }
@@ -90,27 +90,32 @@ public class GetPurchaseOrderDetailsByIdTest extends PurchaseOrderServiceTestBas
     @Test
     @DisplayName("getPurchaseOrderDetailsById - Controller Permission - Unauthorized")
     void getPurchaseOrderDetailsById_controller_permission_unauthorized() {
-        // ARRANGE
+        // Arrange
         PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderServiceMock);
         stubPurchaseOrderServiceThrowsUnauthorizedOnGetById();
 
-        // ACT
+        // Act
         ResponseEntity<?> response = controller.getPurchaseOrderDetailsById(TEST_PO_ID);
 
-        // ASSERT
+        // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
+    /**
+     * Purpose: Verify controller has @PreAuthorize for getPurchaseOrderDetailsById.
+     * Expected Result: Annotation exists and includes VIEW_PURCHASE_ORDERS_PERMISSION.
+     * Assertions: Annotation is present and contains permission.
+     */
     @Test
     @DisplayName("getPurchaseOrderDetailsById - Verify @PreAuthorize Annotation")
     void getPurchaseOrderDetailsById_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // ARRANGE
+        // Arrange
         Method method = PurchaseOrderController.class.getMethod("getPurchaseOrderDetailsById", long.class);
 
-        // ACT
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
-        // ASSERT
+        // Assert
         assertNotNull(annotation, "@PreAuthorize annotation should be present on getPurchaseOrderDetailsById");
         assertTrue(annotation.value().contains(Authorizations.VIEW_PURCHASE_ORDERS_PERMISSION),
                 "@PreAuthorize should reference VIEW_PURCHASE_ORDERS_PERMISSION");
@@ -122,16 +127,16 @@ public class GetPurchaseOrderDetailsByIdTest extends PurchaseOrderServiceTestBas
      * Assertions: Delegation and response status are correct.
      */
     @Test
-    @DisplayName("getPODetailsById - Controller delegates to service")
-    void getPODetailsById_WithValidId_DelegatesToService() {
-        // ARRANGE
+    @DisplayName("getPurchaseOrderDetailsById - Controller delegates to service")
+    void getPurchaseOrderDetailsById_WithValidId_DelegatesToService() {
+        // Arrange
         PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderServiceMock);
         stubPurchaseOrderServiceGetPurchaseOrderDetailsById(new PurchaseOrderResponseModel(testPurchaseOrder));
 
-        // ACT
+        // Act
         ResponseEntity<?> response = controller.getPurchaseOrderDetailsById(TEST_PO_ID);
 
-        // ASSERT
+        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

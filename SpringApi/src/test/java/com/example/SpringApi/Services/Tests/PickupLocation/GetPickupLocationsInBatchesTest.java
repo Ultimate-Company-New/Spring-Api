@@ -1,7 +1,6 @@
 package com.example.SpringApi.Services.Tests.PickupLocation;
 
 import com.example.SpringApi.Controllers.PickupLocationController;
-import com.example.SpringApi.Services.PickupLocationService;
 import com.example.SpringApi.Models.ResponseModels.PickupLocationResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
@@ -31,6 +30,7 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Get Pickup Locations In Batches Tests")
 class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
+        // Total Tests: 14
 
         /*
          **********************************************************************************************
@@ -44,32 +44,60 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
          * Expected Result: PaginationBaseResponseModel with correct data is returned.
          * Assertions: Result is not null, data size and total count are correct.
          */
-        @Test
-        @DisplayName("Get Pickup Locations In Batches - Comprehensive Validation - Success")
-        void getPickupLocationsInBatches_Comprehensive_Success() {
-                testPaginationRequest.setStart(0);
-                testPaginationRequest.setEnd(10);
-                testPaginationRequest.setFilters(null);
+    @Test
+    @DisplayName("Get Pickup Locations In Batches - Comprehensive Validation - Success")
+    void getPickupLocationsInBatches_Comprehensive_Success() {
+            // Arrange
+            testPaginationRequest.setStart(0);
+            testPaginationRequest.setEnd(10);
+            testPaginationRequest.setFilters(null);
 
-                Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult = new PageImpl<>(
-                                Collections.singletonList(testPickupLocation));
+            Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult = new PageImpl<>(
+                            Collections.singletonList(testPickupLocation));
 
-                when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)))
-                                .thenReturn(pageResult);
+            stubPickupLocationFilterQueryBuilderFindPaginatedEntities(pageResult);
 
-                PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService
-                                .getPickupLocationsInBatches(testPaginationRequest);
+            // Act
+            PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService
+                            .getPickupLocationsInBatches(testPaginationRequest);
 
-                assertNotNull(result);
-                assertEquals(1, result.getData().size());
-        }
+            // Assert
+            assertNotNull(result);
+            assertEquals(1, result.getData().size());
+    }
 
         /*
          **********************************************************************************************
          * FAILURE / EXCEPTION TESTS
          **********************************************************************************************
          */
+
+        /**
+        /**
+         * Purpose: Test empty result set with valid pagination.
+         * Expected Result: Empty list returned successfully.
+         * Assertions: Result data size is zero.
+         */
+        @Test
+        @DisplayName("Get Pickup Locations In Batches - Empty Results - Success")
+        void getPickupLocationsInBatches_EmptyResults_Success() {
+                // Arrange
+                testPaginationRequest.setStart(0);
+                testPaginationRequest.setEnd(10);
+
+                Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult = new PageImpl<>(
+                                Collections.emptyList());
+
+                stubPickupLocationFilterQueryBuilderFindPaginatedEntities(pageResult);
+
+                // Act
+                PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService
+                                .getPickupLocationsInBatches(testPaginationRequest);
+
+                // Assert
+                assertNotNull(result);
+                assertEquals(0, result.getData().size());
+        }
 
         /**
          * Purpose: Reject pagination when end index is zero.
@@ -79,50 +107,42 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Get Pickup Locations In Batches - End Index Zero - Throws BadRequestException")
         void getPickupLocationsInBatches_EndIndexZero_ThrowsBadRequestException() {
-                // ARRANGE
+                // Arrange
                 testPaginationRequest.setStart(0);
                 testPaginationRequest.setEnd(0);
 
-                // ACT & ASSERT
+                // Act & Assert
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.getPickupLocationsInBatches(testPaginationRequest));
                 assertEquals(ErrorMessages.CommonErrorMessages.EndIndexMustBeGreaterThanZero, ex.getMessage());
         }
 
         /**
-         * Purpose: Reject pagination when start index is negative.
-         * Expected Result: BadRequestException is thrown.
-         * Assertions: Error message matches StartIndexCannotBeNegative.
+         * Purpose: Test with includeDeleted flag set to true.
+         * Expected Result: Both deleted and active locations are retrieved.
+         * Assertions: Result is not null, includeDeleted is respected.
          */
         @Test
-        @DisplayName("Get Pickup Locations In Batches - Negative Start - Throws BadRequestException")
-        void getPickupLocationsInBatches_NegativeStart_ThrowsBadRequestException() {
-                // ARRANGE
-                testPaginationRequest.setStart(-1);
+        @DisplayName("Get Pickup Locations In Batches - Include Deleted - Success")
+        void getPickupLocationsInBatches_IncludeDeleted_Success() {
+                // Arrange
+                testPaginationRequest.setStart(0);
+                testPaginationRequest.setEnd(10);
+                testPaginationRequest.setIncludeDeleted(true);
 
-                // ACT & ASSERT
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                                () -> pickupLocationService.getPickupLocationsInBatches(testPaginationRequest));
-                assertEquals(ErrorMessages.CommonErrorMessages.StartIndexCannotBeNegative, ex.getMessage());
-        }
+                Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult = new PageImpl<>(
+                                Collections.singletonList(testPickupLocation));
 
-        /**
-         * Purpose: Reject pagination when start index is greater than or equal to end
-         * index.
-         * Expected Result: BadRequestException is thrown.
-         * Assertions: Error message matches StartIndexMustBeLessThanEnd.
-         */
-        @Test
-        @DisplayName("Get Pickup Locations In Batches - Start Greater Than End - Throws BadRequestException")
-        void getPickupLocationsInBatches_StartGreaterEqualEnd_ThrowsBadRequestException() {
-                // ARRANGE
-                testPaginationRequest.setStart(10);
-                testPaginationRequest.setEnd(5);
+                stubPickupLocationFilterQueryBuilderFindPaginatedEntities(pageResult);
 
-                // ACT & ASSERT
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                                () -> pickupLocationService.getPickupLocationsInBatches(testPaginationRequest));
-                assertEquals(ErrorMessages.CommonErrorMessages.StartIndexMustBeLessThanEnd, ex.getMessage());
+                // Act
+                PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService
+                                .getPickupLocationsInBatches(testPaginationRequest);
+
+                // Assert
+                assertNotNull(result);
+                verify(pickupLocationFilterQueryBuilder).findPaginatedEntitiesWithMultipleFilters(
+                                anyLong(), any(), anyString(), any(), eq(true), any(Pageable.class));
         }
 
         /**
@@ -133,22 +153,20 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Get Pickup Locations In Batches - Large Batch Size - Success")
         void getPickupLocationsInBatches_LargeBatchSize_Success() {
-                // ARRANGE
+                // Arrange
                 testPaginationRequest.setStart(0);
                 testPaginationRequest.setEnd(1000);
 
                 Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult = new PageImpl<>(
                                 Collections.singletonList(testPickupLocation));
 
-                when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)))
-                                .thenReturn(pageResult);
+                stubPickupLocationFilterQueryBuilderFindPaginatedEntities(pageResult);
 
-                // ACT
+                // Act
                 PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService
                                 .getPickupLocationsInBatches(testPaginationRequest);
 
-                // ASSERT
+                // Assert
                 assertNotNull(result);
         }
 
@@ -160,116 +178,20 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Get Pickup Locations In Batches - Minimal Range - Success")
         void getPickupLocationsInBatches_MinimalRange_Success() {
-                // ARRANGE
+                // Arrange
                 testPaginationRequest.setStart(0);
                 testPaginationRequest.setEnd(1);
 
                 Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult = new PageImpl<>(
                                 Collections.emptyList());
 
-                when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)))
-                                .thenReturn(pageResult);
+                stubPickupLocationFilterQueryBuilderFindPaginatedEntities(pageResult);
 
-                // ACT
+                // Act
                 PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService
                                 .getPickupLocationsInBatches(testPaginationRequest);
 
-                // ASSERT
-                assertNotNull(result);
-                assertEquals(0, result.getData().size());
-        }
-
-        /**
-         * Purpose: Test with includeDeleted flag set to true.
-         * Expected Result: Both deleted and active locations are retrieved.
-         * Assertions: Result is not null, includeDeleted is respected.
-         */
-        @Test
-        @DisplayName("Get Pickup Locations In Batches - Include Deleted - Success")
-        void getPickupLocationsInBatches_IncludeDeleted_Success() {
-                // ARRANGE
-                testPaginationRequest.setStart(0);
-                testPaginationRequest.setEnd(10);
-                testPaginationRequest.setIncludeDeleted(true);
-
-                Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult = new PageImpl<>(
-                                Collections.singletonList(testPickupLocation));
-
-                when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                                anyLong(), any(), anyString(), any(), eq(true), any(Pageable.class)))
-                                .thenReturn(pageResult);
-
-                // ACT
-                PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService
-                                .getPickupLocationsInBatches(testPaginationRequest);
-
-                // ASSERT
-                assertNotNull(result);
-                verify(pickupLocationFilterQueryBuilder).findPaginatedEntitiesWithMultipleFilters(
-                                anyLong(), any(), anyString(), any(), eq(true), any(Pageable.class));
-        }
-
-        /**
-         * Purpose: Test with negative end index.
-         * Expected Result: BadRequestException is thrown.
-         * Assertions: Error message indicates invalid pagination.
-         */
-        @Test
-        @DisplayName("Get Pickup Locations In Batches - Negative End Index - Throws BadRequestException")
-        void getPickupLocationsInBatches_NegativeEndIndex_ThrowsBadRequestException() {
-                // ARRANGE
-                testPaginationRequest.setStart(0);
-                testPaginationRequest.setEnd(-1);
-
-                // ACT & ASSERT
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                                () -> pickupLocationService.getPickupLocationsInBatches(testPaginationRequest));
-                assertNotNull(ex.getMessage());
-        }
-
-        /**
-         * Purpose: Test with equal start and end indices.
-         * Expected Result: BadRequestException is thrown.
-         * Assertions: Error message indicates start must be less than end.
-         */
-        @Test
-        @DisplayName("Get Pickup Locations In Batches - Start Equals End - Throws BadRequestException")
-        void getPickupLocationsInBatches_StartEqualsEnd_ThrowsBadRequestException() {
-                // ARRANGE
-                testPaginationRequest.setStart(5);
-                testPaginationRequest.setEnd(5);
-
-                // ACT & ASSERT
-                BadRequestException ex = assertThrows(BadRequestException.class,
-                                () -> pickupLocationService.getPickupLocationsInBatches(testPaginationRequest));
-                assertEquals(ErrorMessages.CommonErrorMessages.StartIndexMustBeLessThanEnd, ex.getMessage());
-        }
-
-        /**
-         * Purpose: Test empty result set with valid pagination.
-         * Expected Result: Empty list returned successfully.
-         * Assertions: Result data size is zero.
-         */
-        @Test
-        @DisplayName("Get Pickup Locations In Batches - Empty Results - Success")
-        void getPickupLocationsInBatches_EmptyResults_Success() {
-                // ARRANGE
-                testPaginationRequest.setStart(0);
-                testPaginationRequest.setEnd(10);
-
-                Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult = new PageImpl<>(
-                                Collections.emptyList());
-
-                when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)))
-                                .thenReturn(pageResult);
-
-                // ACT
-                PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService
-                                .getPickupLocationsInBatches(testPaginationRequest);
-
-                // ASSERT
+                // Assert
                 assertNotNull(result);
                 assertEquals(0, result.getData().size());
         }
@@ -282,7 +204,7 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Get Pickup Locations In Batches - Multiple Results - Success")
         void getPickupLocationsInBatches_MultipleResults_Success() {
-                // ARRANGE
+                // Arrange
                 testPaginationRequest.setStart(0);
                 testPaginationRequest.setEnd(10);
 
@@ -292,17 +214,87 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
                 Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult = new PageImpl<>(
                                 java.util.Arrays.asList(testPickupLocation, location2));
 
-                when(pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-                                anyLong(), any(), anyString(), any(), anyBoolean(), any(Pageable.class)))
-                                .thenReturn(pageResult);
+                stubPickupLocationFilterQueryBuilderFindPaginatedEntities(pageResult);
 
-                // ACT
+                // Act
                 PaginationBaseResponseModel<PickupLocationResponseModel> result = pickupLocationService
                                 .getPickupLocationsInBatches(testPaginationRequest);
 
-                // ASSERT
+                // Assert
                 assertNotNull(result);
                 assertEquals(2, result.getData().size());
+        }
+
+        /**
+         * Purpose: Test with negative end index.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message indicates invalid pagination.
+         */
+        @Test
+        @DisplayName("Get Pickup Locations In Batches - Negative End Index - Throws BadRequestException")
+        void getPickupLocationsInBatches_NegativeEndIndex_ThrowsBadRequestException() {
+                // Arrange
+                testPaginationRequest.setStart(0);
+                testPaginationRequest.setEnd(-1);
+
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> pickupLocationService.getPickupLocationsInBatches(testPaginationRequest));
+                assertNotNull(ex.getMessage());
+        }
+
+        /**
+         * Purpose: Reject pagination when start index is negative.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches StartIndexCannotBeNegative.
+         */
+        @Test
+        @DisplayName("Get Pickup Locations In Batches - Negative Start - Throws BadRequestException")
+        void getPickupLocationsInBatches_NegativeStart_ThrowsBadRequestException() {
+                // Arrange
+                testPaginationRequest.setStart(-1);
+
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> pickupLocationService.getPickupLocationsInBatches(testPaginationRequest));
+                assertEquals(ErrorMessages.CommonErrorMessages.StartIndexCannotBeNegative, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Test with equal start and end indices.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message indicates start must be less than end.
+         */
+        @Test
+        @DisplayName("Get Pickup Locations In Batches - Start Equals End - Throws BadRequestException")
+        void getPickupLocationsInBatches_StartEqualsEnd_ThrowsBadRequestException() {
+                // Arrange
+                testPaginationRequest.setStart(5);
+                testPaginationRequest.setEnd(5);
+
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> pickupLocationService.getPickupLocationsInBatches(testPaginationRequest));
+                assertEquals(ErrorMessages.CommonErrorMessages.StartIndexMustBeLessThanEnd, ex.getMessage());
+        }
+
+        /**
+         * Purpose: Reject pagination when start index is greater than or equal to end
+         * index.
+         * Expected Result: BadRequestException is thrown.
+         * Assertions: Error message matches StartIndexMustBeLessThanEnd.
+         */
+        @Test
+        @DisplayName("Get Pickup Locations In Batches - Start Greater Than End - Throws BadRequestException")
+        void getPickupLocationsInBatches_StartGreaterEqualEnd_ThrowsBadRequestException() {
+                // Arrange
+                testPaginationRequest.setStart(10);
+                testPaginationRequest.setEnd(5);
+
+                // Act & Assert
+                BadRequestException ex = assertThrows(BadRequestException.class,
+                                () -> pickupLocationService.getPickupLocationsInBatches(testPaginationRequest));
+                assertEquals(ErrorMessages.CommonErrorMessages.StartIndexMustBeLessThanEnd, ex.getMessage());
         }
 
         /*
@@ -319,40 +311,56 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("getPickupLocationsInBatches - Controller Permission - Unauthorized")
         void getPickupLocationsInBatches_controller_permission_unauthorized() {
-                // ARRANGE
+                // Arrange
                 PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
                 stubPickupLocationServiceThrowsUnauthorizedOnGetBatches();
 
-                // ACT
+                // Act
                 ResponseEntity<?> response = controller.getPickupLocationsInBatches(testPaginationRequest);
 
-                // ASSERT
+                // Assert
                 assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         }
 
+        /**
+         * Purpose: Verify @PreAuthorize annotation on getPickupLocationsInBatches endpoint.
+         * Expected Result: Annotation exists and references VIEW_PICKUP_LOCATIONS_PERMISSION.
+         * Assertions: Annotation is present and contains permission.
+         */
         @Test
         @DisplayName("getPickupLocationsInBatches - Verify @PreAuthorize Annotation")
-        void getPickupLocationsInBatches_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+        void getPickupLocationsInBatches_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+                // Arrange
                 Method method = PickupLocationController.class.getMethod("getPickupLocationsInBatches",
                                 PaginationBaseRequestModel.class);
+
+                // Act
                 PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+                // Assert
                 assertNotNull(annotation, "@PreAuthorize annotation should be present on getPickupLocationsInBatches");
                 assertTrue(annotation.value().contains(Authorizations.VIEW_PICKUP_LOCATIONS_PERMISSION),
                                 "@PreAuthorize should reference VIEW_PICKUP_LOCATIONS_PERMISSION");
         }
 
+        /**
+         * Purpose: Verify controller delegates getPickupLocationsInBatches to service.
+         * Expected Result: Service method called and HTTP 200 returned.
+         * Assertions: Delegation occurs and response is OK.
+         */
         @Test
         @DisplayName("getPickupLocationsInBatches - Controller delegates to service")
         void getPickupLocationsInBatches_WithValidRequest_DelegatesToService() {
-                PickupLocationService mockService = mock(PickupLocationService.class);
-                PickupLocationController controller = new PickupLocationController(mockService);
+                // Arrange
+                PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
                 PaginationBaseResponseModel<PickupLocationResponseModel> mockResponse = new PaginationBaseResponseModel<>();
-                when(mockService.getPickupLocationsInBatches(testPaginationRequest))
-                                .thenReturn(mockResponse);
+                stubPickupLocationServiceGetPickupLocationsInBatchesReturns(mockResponse);
 
+                // Act
                 ResponseEntity<?> response = controller.getPickupLocationsInBatches(testPaginationRequest);
 
-                verify(mockService).getPickupLocationsInBatches(testPaginationRequest);
+                // Assert
+                verify(pickupLocationServiceMock).getPickupLocationsInBatches(testPaginationRequest);
                 assertEquals(HttpStatus.OK, response.getStatusCode());
         }
 }

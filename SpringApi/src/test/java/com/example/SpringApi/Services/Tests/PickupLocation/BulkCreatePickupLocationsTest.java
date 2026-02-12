@@ -423,6 +423,8 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Bulk Create Pickup Locations - Null List - Throws BadRequestException")
     void bulkCreatePickupLocations_NullList_ThrowsBadRequestException() {
+        // Arrange
+
         // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> pickupLocationService.bulkCreatePickupLocations(null));
@@ -487,9 +489,7 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
         // Arrange
         PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
         // Setup user context to return normally (so getUserId() doesn't throw)
-        when(pickupLocationServiceMock.getUserId()).thenReturn(TEST_USER_ID);
-        when(pickupLocationServiceMock.getUser()).thenReturn("testuser");
-        when(pickupLocationServiceMock.getClientId()).thenReturn(TEST_CLIENT_ID);
+        stubPickupLocationServiceUserContext(TEST_USER_ID, "testuser", TEST_CLIENT_ID);
         // Then make the actual service method throw
         stubPickupLocationServiceThrowsUnauthorized();
 

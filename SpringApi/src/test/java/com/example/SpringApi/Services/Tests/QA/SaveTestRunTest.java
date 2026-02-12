@@ -1,22 +1,25 @@
 package com.example.SpringApi.Services.Tests.QA;
 
+import com.example.SpringApi.Controllers.QAController;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Models.DatabaseModels.TestRun;
 import com.example.SpringApi.Models.RequestModels.TestRunRequestModel;
 import com.example.SpringApi.Models.ResponseModels.TestRunResponseModel;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * Unit tests for QAService.saveTestRun() method.
  * 
- * Total Tests: 25
+ * Total Tests: 26
  * 
  * Test Coverage:
  * - Success scenarios (6 tests)
@@ -24,12 +27,22 @@ import static org.junit.jupiter.api.Assertions.*;
  * - Edge cases (7 tests)
  */
 @ExtendWith(MockitoExtension.class)
-class SaveTestRunTest extends QAServiceBaseTest {
+class SaveTestRunTest extends QAServiceTestBase {
+    // Total Tests: 26
 
-    // ==================== SUCCESS TESTS ====================
+    /*
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void saveTestRun_validRequest_savesSuccessfully() {
+    void saveTestRun_ValidRequest_Success() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         TestRun savedTestRun = createTestRun();
@@ -42,6 +55,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertNotNull(result);
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_multipleResults_savesAllResults() {
         // Arrange
@@ -57,6 +75,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertEquals(5, request.getResults().size());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_withEnvironment_savesEnvironment() {
         // Arrange
@@ -73,6 +96,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertEquals("production", request.getEnvironment());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_withRunType_savesRunType() {
         // Arrange
@@ -89,6 +117,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertEquals("automated", request.getRunType());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_updatesLatestTestResults_correctly() {
         // Arrange
@@ -104,6 +137,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertNotNull(result);
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_marksTestRunComplete_afterSave() {
         // Arrange
@@ -118,17 +156,34 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertNotNull(result);
     }
 
-    // ==================== VALIDATION FAILURES ====================
+    /*
+     **********************************************************************************************
+     * FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
+     */
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_nullRequest_throwsBadRequestException() {
+        // Arrange
+        TestRunRequestModel request = null;
+
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            qaService.saveTestRun(null);
+            qaService.saveTestRun(request);
         });
         assertEquals(ErrorMessages.QAErrorMessages.TestRunRequestCannotBeNull, exception.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_nullServiceName_throwsBadRequestException() {
         // Arrange
@@ -142,6 +197,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertEquals(ErrorMessages.QAErrorMessages.ServiceNameRequired, exception.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_emptyServiceName_throwsBadRequestException() {
         // Arrange
@@ -155,6 +215,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertEquals(ErrorMessages.QAErrorMessages.ServiceNameRequired, exception.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_whitespaceServiceName_throwsBadRequestException() {
         // Arrange
@@ -168,6 +233,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertEquals(ErrorMessages.QAErrorMessages.ServiceNameRequired, exception.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_nullResults_throwsBadRequestException() {
         // Arrange
@@ -181,6 +251,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertEquals(ErrorMessages.QAErrorMessages.AtLeastOneTestResultRequired, exception.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_emptyResults_throwsBadRequestException() {
         // Arrange
@@ -194,6 +269,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertEquals(ErrorMessages.QAErrorMessages.AtLeastOneTestResultRequired, exception.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_resultWithNullTestMethodName_handlesGracefully() {
         // Arrange
@@ -209,6 +289,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertNotNull(result);
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_resultWithNullMethodName_handlesGracefully() {
         // Arrange
@@ -224,6 +309,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertNotNull(result);
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_resultWithNullStatus_handlesGracefully() {
         // Arrange
@@ -239,6 +329,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertNotNull(result);
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_resultWithNullDuration_defaultsToZero() {
         // Arrange
@@ -254,6 +349,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertNotNull(result);
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_resultWithNegativeDuration_handlesGracefully() {
         // Arrange
@@ -269,6 +369,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertNotNull(result);
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_exceptionMessages_useErrorConstants() {
         // Arrange - null request
@@ -281,8 +386,17 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertTrue(exception.getMessage().equals(ErrorMessages.QAErrorMessages.TestRunRequestCannotBeNull));
     }
 
-    // ==================== EDGE CASES ====================
+    /*
+     **********************************************************************************************
+     * EDGE CASES
+     **********************************************************************************************
+     */
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_singleResult_savesSingleResult() {
         // Arrange
@@ -298,6 +412,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertEquals(1, request.getResults().size());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_largeNumberOfResults_savesAll() {
         // Arrange
@@ -313,6 +432,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertEquals(100, request.getResults().size());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_resultWithErrorMessage_savesErrorMessage() {
         // Arrange
@@ -329,6 +453,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertEquals("Test failed with error", request.getResults().get(0).getErrorMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_resultWithStackTrace_savesStackTrace() {
         // Arrange
@@ -345,6 +474,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertEquals("at line 1\nat line 2", request.getResults().get(0).getStackTrace());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_resultWithDisplayName_savesDisplayName() {
         // Arrange
@@ -361,6 +495,11 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertEquals("Custom Display Name", request.getResults().get(0).getDisplayName());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_unknownServiceName_stillSaves() {
         // Arrange
@@ -375,17 +514,44 @@ class SaveTestRunTest extends QAServiceBaseTest {
         assertNotNull(result);
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void saveTestRun_repositorySaveFailure_propagatesException() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
-        // Stub repository to throw exception
-        org.mockito.Mockito.doThrow(new RuntimeException("Database error"))
-                .when(testRunRepository).save(org.mockito.ArgumentMatchers.any(TestRun.class));
+        stubTestRunRepositorySaveThrows(new RuntimeException(ErrorMessages.CommonErrorMessages.DATABASE_ERROR));
 
         // Act & Assert
-        assertThrows(RuntimeException.class, () -> {
-            qaService.saveTestRun(request);
-        });
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> qaService.saveTestRun(request));
+        assertEquals(ErrorMessages.CommonErrorMessages.DATABASE_ERROR, ex.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * PERMISSION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("Save Test Run - Controller permission unauthorized - Success")
+    void saveTestRun_controller_permission_unauthorized() {
+        // Arrange
+        QAController controller = new QAController(qaSubTranslator);
+        stubQaTranslatorSaveTestRunThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.saveTestRun(createValidTestRunRequest());
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }

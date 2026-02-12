@@ -3,7 +3,6 @@ package com.example.SpringApi.Services.Tests.Product;
 import com.example.SpringApi.Controllers.ProductController;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.DatabaseModels.Product;
@@ -15,36 +14,37 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import com.example.SpringApi.Services.ProductService;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
  * Consolidated test class for ProductService.editProduct.
  * Fully compliant with Unit Test Verification rules.
  */
-// Total Tests: 11
 @DisplayName("ProductService - EditProduct Tests")
 class EditProductTest extends ProductServiceTestBase {
-
-    // ==========================================
-    // SECTION 1: SUCCESS TESTS
-    // ==========================================
+    // Total Tests: 12
 
     /*
-     * Purpose: Verify editProduct succeeds with a completely valid request
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify editProduct succeeds when optional images are null.
+     * Expected Result: Update completes without error.
+     * Assertions: No exception thrown.
      */
     @Test
-    @DisplayName("editProduct - Valid request - Success")
-    void editProduct_ValidRequest_Success() {
+    @DisplayName("editProduct - Optional images null - Success")
+    void editProduct_OptionalImagesNull_Success() {
         // Arrange
+        testProductRequest.setAdditionalImage1(null);
         stubProductRepositoryFindByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID, testProduct);
         stubProductRepositorySave(testProduct);
         stubProductPickupLocationMappingRepositoryDeleteByProductId(TEST_PRODUCT_ID);
@@ -55,16 +55,13 @@ class EditProductTest extends ProductServiceTestBase {
         try (MockedConstruction<ImgbbHelper> imgbbMock = mockConstruction(ImgbbHelper.class,
                 (mock, context) -> stubImgbbHelperUploadSuccess(mock))) {
             assertDoesNotThrow(() -> productService.editProduct(testProductRequest));
-
-            verify(productRepository, times(1)).findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID);
-            verify(productRepository, atLeastOnce()).save(any(Product.class));
-            verify(userLogService, times(1)).logData(anyLong(), anyString(), eq("editProduct"));
         }
     }
 
-    /*
-     * Purpose: Verify image upload is skipped if image is already a URL (Update
-     * Mode)
+    /**
+     * Purpose: Verify image upload is skipped if image is already a URL.
+     * Expected Result: ImgbbHelper not invoked for unchanged URLs.
+     * Assertions: Upload method not called.
      */
     @Test
     @DisplayName("editProduct - Skip upload for URL images - Success")
@@ -117,14 +114,15 @@ class EditProductTest extends ProductServiceTestBase {
         }
     }
 
-    /*
-     * Purpose: Verify editProduct succeeds when optional images are null
+    /**
+     * Purpose: Verify editProduct succeeds with a completely valid request.
+     * Expected Result: Product updated and logged.
+     * Assertions: Repository save and logging called.
      */
     @Test
-    @DisplayName("editProduct - Optional images null - Success")
-    void editProduct_OptionalImagesNull_Success() {
+    @DisplayName("editProduct - Valid request - Success")
+    void editProduct_ValidRequest_Success() {
         // Arrange
-        testProductRequest.setAdditionalImage1(null);
         stubProductRepositoryFindByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID, testProduct);
         stubProductRepositorySave(testProduct);
         stubProductPickupLocationMappingRepositoryDeleteByProductId(TEST_PRODUCT_ID);
@@ -135,44 +133,23 @@ class EditProductTest extends ProductServiceTestBase {
         try (MockedConstruction<ImgbbHelper> imgbbMock = mockConstruction(ImgbbHelper.class,
                 (mock, context) -> stubImgbbHelperUploadSuccess(mock))) {
             assertDoesNotThrow(() -> productService.editProduct(testProductRequest));
+
+            verify(productRepository, times(1)).findByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID);
+            verify(productRepository, atLeastOnce()).save(any(Product.class));
+            verify(userLogService, times(1)).logData(anyLong(), anyString(), eq("editProduct"));
         }
     }
 
-    // ==========================================
-    // SECTION 2: FAILURE TESTS
-    // ==========================================
-
     /*
-     * Purpose: Verify failure when product ID is null
+     **********************************************************************************************
+     * FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
      */
-    @Test
-    @DisplayName("editProduct - Null product ID - Throws BadRequest")
-    void editProduct_NullId_ThrowsBadRequest() {
-        // Arrange
-        testProductRequest.setProductId(null);
 
-        // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidId,
-                () -> productService.editProduct(testProductRequest));
-    }
-
-    /*
-     * Purpose: Verify failure when product is not found
-     */
-    @Test
-    @DisplayName("editProduct - Product not found - Throws NotFound")
-    void editProduct_NotFound_ThrowsNotFound() {
-        // Arrange
-        stubProductRepositoryFindByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID, null);
-
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> productService.editProduct(testProductRequest));
-        assertTrue(exception.getMessage().contains(String.valueOf(TEST_PRODUCT_ID)));
-    }
-
-    /*
-     * Purpose: Verify failure on invalid brand during edit
+    /**
+     * Purpose: Verify failure on invalid brand during edit.
+     * Expected Result: BadRequestException thrown.
+     * Assertions: Exception message matches ErrorMessages constant.
      */
     @Test
     @DisplayName("editProduct - Brand invalid - Throws BadRequest")
@@ -186,8 +163,30 @@ class EditProductTest extends ProductServiceTestBase {
                 () -> productService.editProduct(testProductRequest));
     }
 
-    /*
-     * Purpose: Verify failure when price is negative during edit
+    /**
+     * Purpose: Verify failure when malformed Base64 image provided.
+     * Expected Result: BadRequestException thrown.
+     * Assertions: Exception message matches ErrorMessages constant.
+     */
+    @Test
+    @DisplayName("editProduct - Malformed image Base64 - Throws BadRequest")
+    void editProduct_MalformedBase64_ThrowsBadRequest() {
+        // Arrange
+        testProductRequest.setMainImage("not-a-base64-string");
+        stubProductRepositoryFindByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID, testProduct);
+        stubClientServiceGetClientById(TEST_CLIENT_ID, testClientResponse);
+        stubClientRepositoryFindById(TEST_CLIENT_ID, testClient);
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> productService.editProduct(testProductRequest));
+        assertEquals(String.format(ErrorMessages.ProductErrorMessages.ER010, "main"), exception.getMessage());
+    }
+
+    /**
+     * Purpose: Verify failure when price is negative during edit.
+     * Expected Result: BadRequestException thrown.
+     * Assertions: Exception message matches ErrorMessages constant.
      */
     @Test
     @DisplayName("editProduct - Negative price - Throws BadRequest")
@@ -201,8 +200,10 @@ class EditProductTest extends ProductServiceTestBase {
                 () -> productService.editProduct(testProductRequest));
     }
 
-    /*
-     * Purpose: Verify failure when weight is negative during edit
+    /**
+     * Purpose: Verify failure when weight is negative during edit.
+     * Expected Result: BadRequestException thrown.
+     * Assertions: Exception message matches ErrorMessages constant.
      */
     @Test
     @DisplayName("editProduct - Negative weight - Throws BadRequest")
@@ -216,71 +217,100 @@ class EditProductTest extends ProductServiceTestBase {
                 () -> productService.editProduct(testProductRequest));
     }
 
-    /*
-     * Purpose: Verify failure when malformed Base64 image provided
+    /**
+     * Purpose: Verify failure when product is not found.
+     * Expected Result: NotFoundException thrown.
+     * Assertions: Exception message matches ErrorMessages constant.
      */
     @Test
-    @DisplayName("editProduct - Malformed image Base64 - Throws BadRequest")
-    void editProduct_MalformedBase64_ThrowsBadRequest() {
+    @DisplayName("editProduct - Product not found - Throws NotFound")
+    void editProduct_NotFound_ThrowsNotFound() {
         // Arrange
-        testProductRequest.setMainImage("not-a-base64-string");
-        stubProductRepositoryFindByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID, testProduct);
-        stubClientServiceGetClientById(TEST_CLIENT_ID, testClientResponse);
-        stubClientRepositoryFindById(TEST_CLIENT_ID, testClient);
+        stubProductRepositoryFindByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID, null);
 
         // Act & Assert
-        // The service specifically checks for data:image/ or http. If neither, it might
-        // try to convert or fail.
-        // If it fails to identify as URL or Base64 with prefix, it might throw ER012 or
-        // similar.
-        BadRequestException exception = assertThrows(BadRequestException.class,
+        assertThrowsNotFound(String.format(ErrorMessages.ProductErrorMessages.ER013, TEST_PRODUCT_ID),
                 () -> productService.editProduct(testProductRequest));
-        assertTrue(exception.getMessage().contains("image"));
     }
 
-    // ==========================================
-    // SECTION 3: PERMISSION / DELEGATION
-    // ==========================================
-
+    /**
+     * Purpose: Verify failure when product ID is null.
+     * Expected Result: BadRequestException thrown.
+     * Assertions: Exception message matches ErrorMessages constant.
+     */
     @Test
-    @DisplayName("editProduct - Verify @PreAuthorize annotation")
-    void editProduct_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        Method method = ProductController.class.getMethod("editProduct", ProductRequestModel.class);
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.UPDATE_PRODUCTS_PERMISSION));
-    }
-
-    @Test
-    @DisplayName("editProduct - Controller delegation check")
-    void editProduct_ControllerDelegation_Success() {
+    @DisplayName("editProduct - Null product ID - Throws BadRequest")
+    void editProduct_NullId_ThrowsBadRequest() {
         // Arrange
-        ProductService mockService = mock(ProductService.class);
-        ProductController controller = new ProductController(mockService);
-        doNothing().when(mockService).editProduct(testProductRequest);
+        testProductRequest.setProductId(null);
 
-        // Act
-        ResponseEntity<?> response = controller.editProduct(testProductRequest);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(mockService).editProduct(testProductRequest);
+        // Act & Assert
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidId,
+                () -> productService.editProduct(testProductRequest));
     }
 
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify unauthorized access is blocked at controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
     @Test
-    @DisplayName("editProduct - No permission - Unauthorized")
-    void editProduct_NoPermission_Unauthorized() {
+    @DisplayName("editProduct - Controller permission unauthorized - Success")
+    void editProduct_controller_permission_unauthorized() {
         // Arrange
-        ProductService mockService = mock(ProductService.class);
-        ProductController controller = new ProductController(mockService);
-        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(mockService).editProduct(any(ProductRequestModel.class));
+        ProductController controller = new ProductController(productServiceMock);
+        stubProductServiceEditProductThrowsUnauthorized();
 
         // Act
         ResponseEntity<?> response = controller.editProduct(testProductRequest);
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verify(mockService).editProduct(testProductRequest);
+        verify(productServiceMock).editProduct(any(ProductRequestModel.class));
+    }
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation exists.
+     * Expected Result: Annotation includes required permission.
+     * Assertions: Annotation is present and contains UPDATE_PRODUCTS_PERMISSION.
+     */
+    @Test
+    @DisplayName("editProduct - Verify @PreAuthorize annotation - Success")
+    void editProduct_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        // Arrange
+        Method method = ProductController.class.getMethod("editProduct", ProductRequestModel.class);
+
+        // Act
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
+        assertNotNull(annotation);
+        assertTrue(annotation.value().contains(Authorizations.UPDATE_PRODUCTS_PERMISSION));
+    }
+
+    /**
+     * Purpose: Verify controller delegation to service.
+     * Expected Result: OK status returned.
+     * Assertions: Service method invoked and response is OK.
+     */
+    @Test
+    @DisplayName("editProduct - Controller delegation check - Success")
+    void editProduct_ControllerDelegation_Success() {
+        // Arrange
+        ProductController controller = new ProductController(productServiceMock);
+        stubProductServiceEditProductDoNothing();
+
+        // Act
+        ResponseEntity<?> response = controller.editProduct(testProductRequest);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(productServiceMock).editProduct(testProductRequest);
     }
 }

@@ -46,8 +46,8 @@ public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
      */
     @Test
     @DisplayName("Get Purchase Order PDF - Success")
-    void getPurchaseOrderPDF_Success() throws Exception {
-        // ARRANGE
+    void getPurchaseOrderPDF_Success_Success() throws Exception {
+        // Arrange
         stubPurchaseOrderRepositoryFindByIdWithRelations(Optional.of(testPurchaseOrder));
         stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(Optional.of(testOrderSummary));
         stubAddressRepositoryFindById(Optional.of(testAddress));
@@ -78,10 +78,10 @@ public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
                      stubHtmlHelperReplaceBrTags("<html>ok</html>");
              org.mockito.MockedStatic<com.example.SpringApi.Helpers.PDFHelper> pdfMock =
                      stubPdfHelperConvertPurchaseOrderHtmlToPdf(pdfBytes)) {
-            // ACT
+            // Act
             byte[] result = purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID);
 
-            // ASSERT
+            // Assert
             assertNotNull(result);
             assertTrue(result.length > 0);
         }
@@ -92,43 +92,7 @@ public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
      * FAILURE / EXCEPTION TESTS
      **********************************************************************************************
      */
-
-    /**
-     * Purpose: Reject missing purchase order.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Message matches InvalidId.
-     */
-    @Test
-    @DisplayName("Get Purchase Order PDF - Purchase Order Not Found - Throws NotFoundException")
-    void getPurchaseOrderPDF_PurchaseOrderNotFound_ThrowsNotFoundException() {
-        // ARRANGE
-        stubPurchaseOrderRepositoryFindByIdWithRelations(Optional.empty());
-
-        // ACT & ASSERT
-        assertThrowsNotFound(ErrorMessages.PurchaseOrderErrorMessages.InvalidId,
-                () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
-    }
-
-    /**
-     * Purpose: Reject when OrderSummary is missing.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Message contains OrderSummary not found.
-     */
-    @Test
-    @DisplayName("Get Purchase Order PDF - OrderSummary Missing - Throws NotFoundException")
-    void getPurchaseOrderPDF_OrderSummaryMissing_ThrowsNotFoundException() {
-        // ARRANGE
-        stubPurchaseOrderRepositoryFindByIdWithRelations(Optional.of(testPurchaseOrder));
-        stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(Optional.empty());
-
-        // ACT & ASSERT
-        com.example.SpringApi.Exceptions.NotFoundException ex = assertThrows(
-                com.example.SpringApi.Exceptions.NotFoundException.class,
-                () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
-        assertTrue(ex.getMessage().contains("OrderSummary not found"));
-    }
-
-    /**
+/**
      * Purpose: Reject when shipping address is missing.
      * Expected Result: NotFoundException is thrown.
      * Assertions: Message matches InvalidId for address.
@@ -136,36 +100,16 @@ public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("Get Purchase Order PDF - Address Missing - Throws NotFoundException")
     void getPurchaseOrderPDF_AddressMissing_ThrowsNotFoundException() {
-        // ARRANGE
+        // Arrange
         stubPurchaseOrderRepositoryFindByIdWithRelations(Optional.of(testPurchaseOrder));
         stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(Optional.of(testOrderSummary));
         stubAddressRepositoryFindById(Optional.empty());
 
-        // ACT & ASSERT
+        // Act & Assert
         assertThrowsNotFound(ErrorMessages.AddressErrorMessages.InvalidId,
                 () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
     }
-
-    /**
-     * Purpose: Reject when created-by user is missing.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Message matches InvalidId for user.
-     */
-    @Test
-    @DisplayName("Get Purchase Order PDF - Created By User Missing - Throws NotFoundException")
-    void getPurchaseOrderPDF_CreatedByMissing_ThrowsNotFoundException() {
-        // ARRANGE
-        stubPurchaseOrderRepositoryFindByIdWithRelations(Optional.of(testPurchaseOrder));
-        stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(Optional.of(testOrderSummary));
-        stubAddressRepositoryFindById(Optional.of(testAddress));
-        stubUserRepositoryFindByUserIdAndClientId(Optional.empty());
-
-        // ACT & ASSERT
-        assertThrowsNotFound(ErrorMessages.UserErrorMessages.InvalidId,
-                () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
-    }
-
-    /**
+/**
      * Purpose: Reject when approved-by user is missing.
      * Expected Result: NotFoundException is thrown.
      * Assertions: Message matches InvalidId for user.
@@ -173,39 +117,18 @@ public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("Get Purchase Order PDF - Approved By User Missing - Throws NotFoundException")
     void getPurchaseOrderPDF_ApprovedByMissing_ThrowsNotFoundException() {
-        // ARRANGE
+        // Arrange
         testPurchaseOrder.setApprovedByUserId(99L);
         stubPurchaseOrderRepositoryFindByIdWithRelations(Optional.of(testPurchaseOrder));
         stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(Optional.of(testOrderSummary));
         stubAddressRepositoryFindById(Optional.of(testAddress));
         stubUserRepositoryFindByUserIdAndClientId(Optional.empty());
 
-        // ACT & ASSERT
+        // Act & Assert
         assertThrowsNotFound(ErrorMessages.UserErrorMessages.InvalidId,
                 () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
     }
-
-    /**
-     * Purpose: Reject when lead is missing.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Message matches InvalidId for lead.
-     */
-    @Test
-    @DisplayName("Get Purchase Order PDF - Lead Missing - Throws NotFoundException")
-    void getPurchaseOrderPDF_LeadMissing_ThrowsNotFoundException() {
-        // ARRANGE
-        stubPurchaseOrderRepositoryFindByIdWithRelations(Optional.of(testPurchaseOrder));
-        stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(Optional.of(testOrderSummary));
-        stubAddressRepositoryFindById(Optional.of(testAddress));
-        stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
-        stubLeadRepositoryFindLeadWithDetails(null);
-
-        // ACT & ASSERT
-        assertThrowsNotFound(ErrorMessages.LeadsErrorMessages.InvalidId,
-                () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
-    }
-
-    /**
+/**
      * Purpose: Reject when client is missing.
      * Expected Result: NotFoundException is thrown.
      * Assertions: Message matches InvalidId for client.
@@ -213,7 +136,7 @@ public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("Get Purchase Order PDF - Client Missing - Throws NotFoundException")
     void getPurchaseOrderPDF_ClientMissing_ThrowsNotFoundException() {
-        // ARRANGE
+        // Arrange
         stubPurchaseOrderRepositoryFindByIdWithRelations(Optional.of(testPurchaseOrder));
         stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(Optional.of(testOrderSummary));
         stubAddressRepositoryFindById(Optional.of(testAddress));
@@ -221,12 +144,81 @@ public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
         stubLeadRepositoryFindLeadWithDetails(testLead);
         stubClientRepositoryFindById(Optional.empty());
 
-        // ACT & ASSERT
+        // Act & Assert
         assertThrowsNotFound(ErrorMessages.ClientErrorMessages.InvalidId,
                 () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
     }
+/**
+     * Purpose: Reject when created-by user is missing.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Message matches InvalidId for user.
+     */
+    @Test
+    @DisplayName("Get Purchase Order PDF - Created By User Missing - Throws NotFoundException")
+    void getPurchaseOrderPDF_CreatedByMissing_ThrowsNotFoundException() {
+        // Arrange
+        stubPurchaseOrderRepositoryFindByIdWithRelations(Optional.of(testPurchaseOrder));
+        stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(Optional.of(testOrderSummary));
+        stubAddressRepositoryFindById(Optional.of(testAddress));
+        stubUserRepositoryFindByUserIdAndClientId(Optional.empty());
 
-    /*
+        // Act & Assert
+        assertThrowsNotFound(ErrorMessages.UserErrorMessages.InvalidId,
+                () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
+    }
+/**
+     * Purpose: Reject when lead is missing.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Message matches InvalidId for lead.
+     */
+    @Test
+    @DisplayName("Get Purchase Order PDF - Lead Missing - Throws NotFoundException")
+    void getPurchaseOrderPDF_LeadMissing_ThrowsNotFoundException() {
+        // Arrange
+        stubPurchaseOrderRepositoryFindByIdWithRelations(Optional.of(testPurchaseOrder));
+        stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(Optional.of(testOrderSummary));
+        stubAddressRepositoryFindById(Optional.of(testAddress));
+        stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
+        stubLeadRepositoryFindLeadWithDetails(null);
+
+        // Act & Assert
+        assertThrowsNotFound(ErrorMessages.LeadsErrorMessages.InvalidId,
+                () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
+    }
+/**
+     * Purpose: Reject when OrderSummary is missing.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Message contains OrderSummary not found.
+     */
+    @Test
+    @DisplayName("Get Purchase Order PDF - OrderSummary Missing - Throws NotFoundException")
+    void getPurchaseOrderPDF_OrderSummaryMissing_ThrowsNotFoundException() {
+        // Arrange
+        stubPurchaseOrderRepositoryFindByIdWithRelations(Optional.of(testPurchaseOrder));
+        stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(Optional.empty());
+
+        // Act & Assert
+        com.example.SpringApi.Exceptions.NotFoundException ex = assertThrows(
+                com.example.SpringApi.Exceptions.NotFoundException.class,
+                () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
+        assertEquals(ErrorMessages.OrderSummaryNotFoundMessage.PurchaseOrderNotFound, ex.getMessage());
+    }
+/**
+     * Purpose: Reject missing purchase order.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Message matches InvalidId.
+     */
+    @Test
+    @DisplayName("Get Purchase Order PDF - Purchase Order Not Found - Throws NotFoundException")
+    void getPurchaseOrderPDF_PurchaseOrderNotFound_ThrowsNotFoundException() {
+        // Arrange
+        stubPurchaseOrderRepositoryFindByIdWithRelations(Optional.empty());
+
+        // Act & Assert
+        assertThrowsNotFound(ErrorMessages.PurchaseOrderErrorMessages.InvalidId,
+                () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
+    }
+/*
      **********************************************************************************************
      * CONTROLLER AUTHORIZATION TESTS
      **********************************************************************************************
@@ -240,27 +232,32 @@ public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("getPurchaseOrderPDF - Controller Permission - Unauthorized")
     void getPurchaseOrderPDF_controller_permission_unauthorized() throws Exception {
-        // ARRANGE
+        // Arrange
         PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderServiceMock);
         stubPurchaseOrderServiceThrowsUnauthorizedOnGetPdf();
 
-        // ACT
+        // Act
         ResponseEntity<?> response = controller.getPurchaseOrderPDF(TEST_PO_ID);
 
-        // ASSERT
+        // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
+    /**
+     * Purpose: Verify controller has @PreAuthorize for getPurchaseOrderPDF.
+     * Expected Result: Annotation exists and includes VIEW_PURCHASE_ORDERS_PERMISSION.
+     * Assertions: Annotation is present and contains permission.
+     */
     @Test
     @DisplayName("getPurchaseOrderPDF - Verify @PreAuthorize Annotation")
     void getPurchaseOrderPDF_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // ARRANGE
+        // Arrange
         Method method = PurchaseOrderController.class.getMethod("getPurchaseOrderPDF", long.class);
 
-        // ACT
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
-        // ASSERT
+        // Assert
         assertNotNull(annotation, "@PreAuthorize annotation should be present on getPurchaseOrderPDF");
         assertTrue(annotation.value().contains(Authorizations.VIEW_PURCHASE_ORDERS_PERMISSION),
                 "@PreAuthorize should reference VIEW_PURCHASE_ORDERS_PERMISSION");
@@ -274,14 +271,14 @@ public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("getPurchaseOrderPDF - Controller delegates to service")
     void getPurchaseOrderPDF_WithValidId_DelegatesToService() throws Exception {
-        // ARRANGE
+        // Arrange
         PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderServiceMock);
         stubPurchaseOrderServiceGetPurchaseOrderPdf(new byte[] { 1 });
 
-        // ACT
+        // Act
         ResponseEntity<?> response = controller.getPurchaseOrderPDF(TEST_PO_ID);
 
-        // ASSERT
+        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

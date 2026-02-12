@@ -353,7 +353,7 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
      */
     @Test
     @DisplayName("getShipmentsInBatches - Verify @PreAuthorize Annotation")
-    void getShipmentsInBatches_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void getShipmentsInBatches_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = ShippingController.class.getMethod("getShipmentsInBatches", PaginationBaseRequestModel.class);
 

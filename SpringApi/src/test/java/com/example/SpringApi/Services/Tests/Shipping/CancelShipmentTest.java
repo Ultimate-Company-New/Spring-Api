@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verify;
 @DisplayName("CancelShipment Tests")
 class CancelShipmentTest extends ShippingServiceTestBase {
 
-    // Total Tests: 10
+    // Total Tests: 8
 
     /*
      **********************************************************************************************
@@ -78,6 +78,30 @@ class CancelShipmentTest extends ShippingServiceTestBase {
 
         // Assert
         assertEquals(ErrorMessages.ShipmentErrorMessages.AlreadyCancelled, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify cancel API exception throws BadRequestException.
+     * Expected Result: BadRequestException with InvalidIdWithMessageFormat message.
+     * Assertions: Exception type and message.
+     */
+    @Test
+    @DisplayName("cancelShipment - Cancel API Error - Throws BadRequestException")
+    void cancelShipment_CancelApiError_ThrowsBadRequestException() {
+        // Arrange
+        stubShipmentRepositoryFindByShipmentIdAndClientId(testShipment);
+        stubClientServiceGetClientById(testClientResponse);
+        stubShipRocketHelperCancelOrdersThrows(new RuntimeException(ErrorMessages.OPERATION_FAILED));
+
+        // Act
+        com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
+                com.example.SpringApi.Exceptions.BadRequestException.class,
+                () -> shippingService.cancelShipment(TEST_SHIPMENT_ID));
+
+        // Assert
+        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.InvalidIdWithMessageFormat,
+            ErrorMessages.OPERATION_FAILED),
+                ex.getMessage());
     }
 
     /**
@@ -146,44 +170,20 @@ class CancelShipmentTest extends ShippingServiceTestBase {
                 ex.getMessage());
     }
 
-    /**
-     * Purpose: Verify cancel API exception throws BadRequestException.
-     * Expected Result: BadRequestException with InvalidIdWithMessageFormat message.
-     * Assertions: Exception type and message.
-     */
-    @Test
-    @DisplayName("cancelShipment - Cancel API Error - Throws BadRequestException")
-    void cancelShipment_CancelApiError_ThrowsBadRequestException() {
-        // Arrange
-        stubShipmentRepositoryFindByShipmentIdAndClientId(testShipment);
-        stubClientServiceGetClientById(testClientResponse);
-        stubShipRocketHelperCancelOrdersThrows(new RuntimeException(ErrorMessages.OPERATION_FAILED));
-
-        // Act
-        com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
-                com.example.SpringApi.Exceptions.BadRequestException.class,
-                () -> shippingService.cancelShipment(TEST_SHIPMENT_ID));
-
-        // Assert
-        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.InvalidIdWithMessageFormat,
-            ErrorMessages.OPERATION_FAILED),
-                ex.getMessage());
-    }
-
     /*
      **********************************************************************************************
      * PERMISSION TESTS
      **********************************************************************************************
      */
 
-        /**
-         * Purpose: Verify unauthorized access is blocked at the controller level.
-         * Expected Result: Unauthorized status is returned.
-         * Assertions: Response status is 401 UNAUTHORIZED.
-         */
-        @Test
-        @DisplayName("cancelShipment - Controller Permission - Unauthorized")
-        void cancelShipment_controller_permission_unauthorized() {
+    /**
+     * Purpose: Verify unauthorized access is blocked at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("cancelShipment - Controller Permission - Unauthorized")
+    void cancelShipment_controller_permission_unauthorized() {
         // Arrange
         ShippingController controller = new ShippingController(shippingServiceMock);
         stubShippingServiceMockCancelShipmentUnauthorized();
@@ -193,7 +193,7 @@ class CancelShipmentTest extends ShippingServiceTestBase {
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        }
+    }
 
     /**
      * Purpose: Verify controller has @PreAuthorize for cancelShipment.

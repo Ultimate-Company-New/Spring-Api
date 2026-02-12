@@ -1,19 +1,23 @@
 package com.example.SpringApi.Services.Tests.QA;
 
+import com.example.SpringApi.Controllers.QAController;
+import com.example.SpringApi.ErrorMessages;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * Unit tests for QAService.getAvailableServices() method.
  * 
- * Total Tests: 10
+ * Total Tests: 12
  * 
  * Test Coverage:
  * - Success scenarios (3 tests)
@@ -21,12 +25,23 @@ import static org.junit.jupiter.api.Assertions.*;
  * - Edge cases (3 tests)
  */
 @ExtendWith(MockitoExtension.class)
-class GetAvailableServicesTest extends QAServiceBaseTest {
+class GetAvailableServicesTest extends QAServiceTestBase {
+    // Total Tests: 12
 
-    // ==================== SUCCESS TESTS ====================
+    /*
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getAvailableServices_success_returnsServiceNames() {
+        // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
 
@@ -35,8 +50,14 @@ class GetAvailableServicesTest extends QAServiceBaseTest {
         assertFalse(services.isEmpty());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getAvailableServices_success_allNamesEndWithService() {
+        // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
 
@@ -47,8 +68,14 @@ class GetAvailableServicesTest extends QAServiceBaseTest {
         }
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getAvailableServices_success_containsKnownServices() {
+        // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
 
@@ -57,10 +84,14 @@ class GetAvailableServicesTest extends QAServiceBaseTest {
         assertTrue(services.size() > 0, "Should contain at least one service");
     }
 
-    // ==================== VALIDATION TESTS ====================
-
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getAvailableServices_list_isNotNull() {
+        // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
 
@@ -68,8 +99,14 @@ class GetAvailableServicesTest extends QAServiceBaseTest {
         assertNotNull(services, "Services list should not be null");
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getAvailableServices_list_isNotEmpty() {
+        // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
 
@@ -77,8 +114,14 @@ class GetAvailableServicesTest extends QAServiceBaseTest {
         assertFalse(services.isEmpty(), "Services list should not be empty");
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getAvailableServices_list_containsNoDuplicates() {
+        // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
 
@@ -88,8 +131,14 @@ class GetAvailableServicesTest extends QAServiceBaseTest {
                 "Services list should not contain duplicates");
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getAvailableServices_list_allNamesNonEmpty() {
+        // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
 
@@ -100,10 +149,14 @@ class GetAvailableServicesTest extends QAServiceBaseTest {
         }
     }
 
-    // ==================== EDGE CASES ====================
-
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getAvailableServices_multipleInvocations_returnsSameList() {
+        // Arrange
         // Act
         List<String> services1 = qaService.getAvailableServices();
         List<String> services2 = qaService.getAvailableServices();
@@ -117,8 +170,14 @@ class GetAvailableServicesTest extends QAServiceBaseTest {
                 "Multiple invocations should return same services");
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getAvailableServices_list_isImmutable() {
+        // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
 
@@ -135,8 +194,14 @@ class GetAvailableServicesTest extends QAServiceBaseTest {
         }
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getAvailableServices_count_matchesServiceMappings() {
+        // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
 
@@ -148,5 +213,55 @@ class GetAvailableServicesTest extends QAServiceBaseTest {
             assertTrue(service.matches("[A-Z][a-zA-Z]*Service"),
                     "Service name should follow naming convention: " + service);
         }
+    }
+
+    /*
+     **********************************************************************************************
+     * FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    @DisplayName("Get Available Services - Service Failure - Throws Exception")
+    void getAvailableServices_serviceFailure_ThrowsException() {
+        // Arrange
+        stubQaServiceGetAvailableServicesThrows(
+                new RuntimeException(ErrorMessages.CommonErrorMessages.DATABASE_ERROR));
+
+        // Act
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> qaService.getAvailableServices());
+
+        // Assert
+        assertEquals(ErrorMessages.CommonErrorMessages.DATABASE_ERROR, ex.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * PERMISSION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    @DisplayName("Get Available Services - Controller permission unauthorized - Success")
+    void getAvailableServices_controller_permission_unauthorized() {
+        // Arrange
+        QAController controller = new QAController(qaSubTranslator);
+        stubQaTranslatorGetAvailableServicesThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.getAvailableServices();
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }

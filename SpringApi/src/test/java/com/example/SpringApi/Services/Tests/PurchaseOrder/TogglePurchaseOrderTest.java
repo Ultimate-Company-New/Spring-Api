@@ -39,16 +39,16 @@ public class TogglePurchaseOrderTest extends PurchaseOrderServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Purchase Order - Mark Deleted - Success")
-    void togglePO_Success_MarkAsDeleted() {
-        // ARRANGE
+    void togglePurchaseOrder_Success_MarkAsDeleted() {
+        // Arrange
         testPurchaseOrder.setIsDeleted(false);
         stubPurchaseOrderRepositoryFindById(Optional.of(testPurchaseOrder));
         stubPurchaseOrderRepositorySave(testPurchaseOrder);
 
-        // ACT
+        // Act
         assertDoesNotThrow(() -> purchaseOrderService.togglePurchaseOrder(TEST_PO_ID));
 
-        // ASSERT
+        // Assert
         assertTrue(testPurchaseOrder.getIsDeleted());
     }
 
@@ -59,16 +59,16 @@ public class TogglePurchaseOrderTest extends PurchaseOrderServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Purchase Order - Restore - Success")
-    void togglePO_Success_Restore() {
-        // ARRANGE
+    void togglePurchaseOrder_Success_Restore() {
+        // Arrange
         testPurchaseOrder.setIsDeleted(true);
         stubPurchaseOrderRepositoryFindById(Optional.of(testPurchaseOrder));
         stubPurchaseOrderRepositorySave(testPurchaseOrder);
 
-        // ACT
+        // Act
         assertDoesNotThrow(() -> purchaseOrderService.togglePurchaseOrder(TEST_PO_ID));
 
-        // ASSERT
+        // Assert
         assertFalse(testPurchaseOrder.getIsDeleted());
     }
 
@@ -86,10 +86,10 @@ public class TogglePurchaseOrderTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("Toggle Purchase Order - Not Found - Throws NotFoundException")
     void togglePurchaseOrder_NotFound_Failure() {
-        // ARRANGE
+        // Arrange
         stubPurchaseOrderRepositoryFindById(Optional.empty());
 
-        // ACT & ASSERT
+        // Act & Assert
         assertThrowsNotFound(ErrorMessages.PurchaseOrderErrorMessages.InvalidId,
                 () -> purchaseOrderService.togglePurchaseOrder(TEST_PO_ID));
     }
@@ -108,27 +108,32 @@ public class TogglePurchaseOrderTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("togglePurchaseOrder - Controller Permission - Unauthorized")
     void togglePurchaseOrder_controller_permission_unauthorized() {
-        // ARRANGE
+        // Arrange
         PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderServiceMock);
         stubPurchaseOrderServiceThrowsUnauthorizedOnToggle();
 
-        // ACT
+        // Act
         ResponseEntity<?> response = controller.togglePurchaseOrder(TEST_PO_ID);
 
-        // ASSERT
+        // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
+    /**
+     * Purpose: Verify controller has @PreAuthorize for togglePurchaseOrder.
+     * Expected Result: Annotation exists and includes TOGGLE_PURCHASE_ORDERS_PERMISSION.
+     * Assertions: Annotation is present and contains permission.
+     */
     @Test
     @DisplayName("togglePurchaseOrder - Verify @PreAuthorize Annotation")
     void togglePurchaseOrder_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // ARRANGE
+        // Arrange
         Method method = PurchaseOrderController.class.getMethod("togglePurchaseOrder", long.class);
 
-        // ACT
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
-        // ASSERT
+        // Assert
         assertNotNull(annotation, "@PreAuthorize annotation should be present on togglePurchaseOrder");
         assertTrue(annotation.value().contains(Authorizations.TOGGLE_PURCHASE_ORDERS_PERMISSION),
                 "@PreAuthorize should reference TOGGLE_PURCHASE_ORDERS_PERMISSION");
@@ -141,15 +146,15 @@ public class TogglePurchaseOrderTest extends PurchaseOrderServiceTestBase {
      */
     @Test
     @DisplayName("togglePurchaseOrder - Controller delegates to service")
-    void togglePO_WithValidId_DelegatesToService() {
-        // ARRANGE
+    void togglePurchaseOrder_WithValidId_DelegatesToService() {
+        // Arrange
         PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderServiceMock);
         stubPurchaseOrderServiceToggleDoNothing();
 
-        // ACT
+        // Act
         ResponseEntity<?> response = controller.togglePurchaseOrder(TEST_PO_ID);
 
-        // ASSERT
+        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

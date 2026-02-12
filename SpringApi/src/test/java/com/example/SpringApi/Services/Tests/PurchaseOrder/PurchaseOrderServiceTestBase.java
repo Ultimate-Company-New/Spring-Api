@@ -541,12 +541,18 @@ public abstract class PurchaseOrderServiceTestBase {
     protected org.mockito.MockedConstruction<com.example.SpringApi.Helpers.ImgbbHelper>
     stubImgbbHelperUploadResults(List<ImgbbHelper.AttachmentUploadResult> results) {
         return org.mockito.Mockito.mockConstruction(com.example.SpringApi.Helpers.ImgbbHelper.class,
+                (mock, context) -> lenient()
+                        .when(mock.uploadPurchaseOrderAttachments(anyList(), anyString(), anyString(), anyLong()))
+                        .thenReturn(results));
+    }
+
+    protected org.mockito.MockedConstruction<com.example.SpringApi.Helpers.ImgbbHelper>
+    stubImgbbHelperUploadResultsWithDelete(List<ImgbbHelper.AttachmentUploadResult> results, int deleteResult) {
+        return org.mockito.Mockito.mockConstruction(com.example.SpringApi.Helpers.ImgbbHelper.class,
                 (mock, context) -> {
                     lenient().when(mock.uploadPurchaseOrderAttachments(anyList(), anyString(), anyString(), anyLong()))
                             .thenReturn(results);
-                    if (null != null) {
-                        lenient().when(mock.deleteMultipleImages(anyList())).thenReturn(null);
-                    }
+                    lenient().when(mock.deleteMultipleImages(anyList())).thenReturn(deleteResult);
                 });
     }
 

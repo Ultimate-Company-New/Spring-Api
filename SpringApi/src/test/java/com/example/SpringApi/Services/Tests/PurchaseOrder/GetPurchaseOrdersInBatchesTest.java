@@ -49,7 +49,7 @@ public class GetPurchaseOrdersInBatchesTest extends PurchaseOrderServiceTestBase
     @Test
     @DisplayName("Get Purchase Orders In Batches - Valid Filters - Success")
     void getPurchaseOrdersInBatches_ValidFilters_Success() {
-        // ARRANGE
+        // Arrange
         PaginationBaseRequestModel request = new PaginationBaseRequestModel();
         request.setStart(0);
         request.setEnd(10);
@@ -67,11 +67,11 @@ public class GetPurchaseOrdersInBatchesTest extends PurchaseOrderServiceTestBase
         stubPurchaseOrderFilterQueryBuilderGetColumnType("vendorNumber", "string");
         stubPurchaseOrderFilterQueryBuilderFindPaginatedWithDetails(page);
 
-        // ACT
+        // Act
         PaginationBaseResponseModel<PurchaseOrderResponseModel> result =
                 purchaseOrderService.getPurchaseOrdersInBatches(request);
 
-        // ASSERT
+        // Assert
         assertNotNull(result);
         assertEquals(1, result.getData().size());
         assertEquals(1L, result.getTotalDataCount());
@@ -84,27 +84,6 @@ public class GetPurchaseOrdersInBatchesTest extends PurchaseOrderServiceTestBase
      */
 
     /**
-     * Purpose: Reject invalid pagination when end <= start.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Message matches InvalidPagination.
-     */
-    @Test
-    @DisplayName("Get Purchase Orders In Batches - Invalid Pagination - Throws BadRequestException")
-    void getPurchaseOrdersInBatches_InvalidPagination_ThrowsBadRequestException() {
-        // ARRANGE
-        PaginationBaseRequestModel request = new PaginationBaseRequestModel();
-        request.setStart(10);
-        request.setEnd(5);
-
-        // ACT
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> purchaseOrderService.getPurchaseOrdersInBatches(request));
-
-        // ASSERT
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidPagination, ex.getMessage());
-    }
-
-    /**
      * Purpose: Reject invalid filter column.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Message matches InvalidColumnName format.
@@ -112,7 +91,7 @@ public class GetPurchaseOrdersInBatchesTest extends PurchaseOrderServiceTestBase
     @Test
     @DisplayName("Get Purchase Orders In Batches - Invalid Column - Throws BadRequestException")
     void getPurchaseOrdersInBatches_InvalidColumn_ThrowsBadRequestException() {
-        // ARRANGE
+        // Arrange
         PaginationBaseRequestModel request = new PaginationBaseRequestModel();
         request.setStart(0);
         request.setEnd(10);
@@ -122,11 +101,11 @@ public class GetPurchaseOrdersInBatchesTest extends PurchaseOrderServiceTestBase
         filter.setValue("test");
         request.setFilters(Arrays.asList(filter));
 
-        // ACT
+        // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> purchaseOrderService.getPurchaseOrdersInBatches(request));
 
-        // ASSERT
+        // Assert
         assertEquals(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidColumnName, "invalidColumn"),
                 ex.getMessage());
     }
@@ -139,7 +118,7 @@ public class GetPurchaseOrdersInBatchesTest extends PurchaseOrderServiceTestBase
     @Test
     @DisplayName("Get Purchase Orders In Batches - Invalid Operator - Throws BadRequestException")
     void getPurchaseOrdersInBatches_InvalidOperator_ThrowsBadRequestException() {
-        // ARRANGE
+        // Arrange
         PaginationBaseRequestModel request = new PaginationBaseRequestModel();
         request.setStart(0);
         request.setEnd(10);
@@ -149,13 +128,34 @@ public class GetPurchaseOrdersInBatchesTest extends PurchaseOrderServiceTestBase
         filter.setValue("test");
         request.setFilters(Arrays.asList(filter));
 
-        // ACT
+        // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> purchaseOrderService.getPurchaseOrdersInBatches(request));
 
-        // ASSERT
+        // Assert
         assertEquals(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidOperator, "invalidOperator"),
                 ex.getMessage());
+    }
+
+    /**
+     * Purpose: Reject invalid pagination when end <= start.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Message matches InvalidPagination.
+     */
+    @Test
+    @DisplayName("Get Purchase Orders In Batches - Invalid Pagination - Throws BadRequestException")
+    void getPurchaseOrdersInBatches_InvalidPagination_ThrowsBadRequestException() {
+        // Arrange
+        PaginationBaseRequestModel request = new PaginationBaseRequestModel();
+        request.setStart(10);
+        request.setEnd(5);
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> purchaseOrderService.getPurchaseOrdersInBatches(request));
+
+        // Assert
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidPagination, ex.getMessage());
     }
 
     /*
@@ -172,28 +172,33 @@ public class GetPurchaseOrdersInBatchesTest extends PurchaseOrderServiceTestBase
     @Test
     @DisplayName("getPurchaseOrdersInBatches - Controller Permission - Unauthorized")
     void getPurchaseOrdersInBatches_controller_permission_unauthorized() {
-        // ARRANGE
+        // Arrange
         PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderServiceMock);
         stubPurchaseOrderServiceThrowsUnauthorizedOnGetBatches();
 
-        // ACT
+        // Act
         ResponseEntity<?> response = controller.getPurchaseOrdersInBatches(new PaginationBaseRequestModel());
 
-        // ASSERT
+        // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
+    /**
+     * Purpose: Verify controller has @PreAuthorize for getPurchaseOrdersInBatches.
+     * Expected Result: Annotation exists and includes VIEW_PURCHASE_ORDERS_PERMISSION.
+     * Assertions: Annotation is present and contains permission.
+     */
     @Test
     @DisplayName("getPurchaseOrdersInBatches - Verify @PreAuthorize Annotation")
     void getPurchaseOrdersInBatches_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // ARRANGE
+        // Arrange
         Method method = PurchaseOrderController.class.getMethod("getPurchaseOrdersInBatches",
                 PaginationBaseRequestModel.class);
 
-        // ACT
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
-        // ASSERT
+        // Assert
         assertNotNull(annotation, "@PreAuthorize annotation should be present on getPurchaseOrdersInBatches");
         assertTrue(annotation.value().contains(Authorizations.VIEW_PURCHASE_ORDERS_PERMISSION),
                 "@PreAuthorize should reference VIEW_PURCHASE_ORDERS_PERMISSION");
@@ -205,17 +210,17 @@ public class GetPurchaseOrdersInBatchesTest extends PurchaseOrderServiceTestBase
      * Assertions: Delegation and response status are correct.
      */
     @Test
-    @DisplayName("getPOsInBatches - Controller delegates to service")
-    void getPOsInBatches_WithValidRequest_DelegatesToService() {
-        // ARRANGE
+    @DisplayName("getPurchaseOrdersInBatches - Controller delegates to service")
+    void getPurchaseOrdersInBatches_WithValidRequest_DelegatesToService() {
+        // Arrange
         PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderServiceMock);
         PaginationBaseResponseModel<PurchaseOrderResponseModel> mockResponse = new PaginationBaseResponseModel<>();
         stubPurchaseOrderServiceGetPurchaseOrdersInBatches(mockResponse);
 
-        // ACT
+        // Act
         ResponseEntity<?> response = controller.getPurchaseOrdersInBatches(new PaginationBaseRequestModel());
 
-        // ASSERT
+        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

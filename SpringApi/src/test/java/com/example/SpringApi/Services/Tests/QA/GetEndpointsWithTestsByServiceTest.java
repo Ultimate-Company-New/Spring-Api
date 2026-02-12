@@ -1,16 +1,20 @@
 package com.example.SpringApi.Services.Tests.QA;
 
+import com.example.SpringApi.Controllers.QAController;
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.NotFoundException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * Unit tests for QAService.getEndpointsWithTestsByService() method.
  * 
- * Total Tests: 20
+ * Total Tests: 21
  * 
  * Test Coverage:
  * - Success scenarios (5 tests)
@@ -18,12 +22,22 @@ import static org.junit.jupiter.api.Assertions.*;
  * - Edge cases (7 tests)
  */
 @ExtendWith(MockitoExtension.class)
-class GetEndpointsWithTestsByServiceTest extends QAServiceBaseTest {
+class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
+    // Total Tests: 21
 
-    // ==================== SUCCESS TESTS ====================
+    /*
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void getEndpointsWithTestsByService_validService_returnsServiceInfo() {
+    void getEndpointsWithTestsByService_ValidService_Success() {
         // Arrange
         String serviceName = "QAService";
 
@@ -34,6 +48,11 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceBaseTest {
         assertNotNull(result);
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_serviceWithoutSuffix_normalizesName() {
         // Arrange
@@ -46,6 +65,11 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceBaseTest {
         assertNotNull(result);
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_serviceWithSuffix_returnsCorrectly() {
         // Arrange
@@ -58,6 +82,11 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceBaseTest {
         assertNotNull(result);
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_caseInsensitive_handlesCorrectly() {
         // Arrange
@@ -74,6 +103,11 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceBaseTest {
         }
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_knownService_returnsAllMethods() {
         // Arrange
@@ -86,78 +120,151 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceBaseTest {
         assertNotNull(result);
     }
 
-    // ==================== FAILURE TESTS ====================
+    /*
+     **********************************************************************************************
+     * FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
+     */
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_nullServiceName_throwsNullPointerException() {
+        // Arrange
+        String serviceName = null;
+
         // Act & Assert
-        assertThrows(NullPointerException.class, () -> {
-            qaService.getEndpointsWithTestsByService(null);
-        });
+        NullPointerException ex = assertThrows(NullPointerException.class,
+                () -> qaService.getEndpointsWithTestsByService(serviceName));
+        assertEquals(ErrorMessages.QAErrorMessages.ServiceNameNull, ex.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_emptyServiceName_throwsNotFoundException() {
+        // Arrange
+        String serviceName = "";
+
         // Act & Assert
-        assertThrows(NotFoundException.class, () -> {
-            qaService.getEndpointsWithTestsByService("");
-        });
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> qaService.getEndpointsWithTestsByService(serviceName));
+        assertEquals(expectedServiceNotFoundMessage(serviceName), ex.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_whitespaceServiceName_throwsNotFoundException() {
+        // Arrange
+        String serviceName = "   ";
+
         // Act & Assert
-        assertThrows(NotFoundException.class, () -> {
-            qaService.getEndpointsWithTestsByService("   ");
-        });
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> qaService.getEndpointsWithTestsByService(serviceName));
+        assertEquals(expectedServiceNotFoundMessage(serviceName), ex.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_nonExistentService_throwsNotFoundException() {
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getEndpointsWithTestsByService("NonExistentService");
-        });
+        // Arrange
+        String serviceName = "NonExistentService";
 
-        // Verify error message contains available services
-        assertNotNull(exception.getMessage());
-        assertTrue(exception.getMessage().contains("NonExistentService"));
+        // Act & Assert
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> qaService.getEndpointsWithTestsByService(serviceName));
+        assertEquals(expectedServiceNotFoundMessage(serviceName), ex.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_invalidServiceName_throwsNotFoundException() {
+        // Arrange
+        String serviceName = "Invalid@Service#Name";
+
         // Act & Assert
-        assertThrows(NotFoundException.class, () -> {
-            qaService.getEndpointsWithTestsByService("Invalid@Service#Name");
-        });
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> qaService.getEndpointsWithTestsByService(serviceName));
+        assertEquals(expectedServiceNotFoundMessage(serviceName), ex.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_serviceNotInMapping_throwsNotFoundException() {
+        // Arrange
+        String serviceName = "UnmappedService";
+
         // Act & Assert
-        assertThrows(NotFoundException.class, () -> {
-            qaService.getEndpointsWithTestsByService("UnmappedService");
-        });
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> qaService.getEndpointsWithTestsByService(serviceName));
+        assertEquals(expectedServiceNotFoundMessage(serviceName), ex.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_specialCharacters_throwsNotFoundException() {
+        // Arrange
+        String serviceName = "Service!@#$";
+
         // Act & Assert
-        assertThrows(NotFoundException.class, () -> {
-            qaService.getEndpointsWithTestsByService("Service!@#$");
-        });
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> qaService.getEndpointsWithTestsByService(serviceName));
+        assertEquals(expectedServiceNotFoundMessage(serviceName), ex.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_numericServiceName_throwsNotFoundException() {
+        // Arrange
+        String serviceName = "12345";
+
         // Act & Assert
-        assertThrows(NotFoundException.class, () -> {
-            qaService.getEndpointsWithTestsByService("12345");
-        });
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> qaService.getEndpointsWithTestsByService(serviceName));
+        assertEquals(expectedServiceNotFoundMessage(serviceName), ex.getMessage());
     }
 
-    // ==================== EDGE CASES ====================
+    /*
+     **********************************************************************************************
+     * EDGE CASES
+     **********************************************************************************************
+     */
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_serviceWithNoMethods_returnsEmptyMethodsList() {
         // Arrange
@@ -171,6 +278,11 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceBaseTest {
         // The result should have an empty methods list if no methods exist
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_serviceWithNoTests_returnsZeroCoverage() {
         // Arrange
@@ -183,6 +295,11 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceBaseTest {
         assertNotNull(result);
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_multipleCallsSameService_returnsSameData() {
         // Arrange
@@ -198,6 +315,11 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceBaseTest {
         // Results should be consistent
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_differentServices_returnsDifferentData() {
         // Arrange
@@ -211,6 +333,11 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceBaseTest {
         // Different services should return different data
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_serviceNameWithSpaces_trimsAndNormalizes() {
         // Arrange
@@ -223,28 +350,66 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceBaseTest {
         assertNotNull(result);
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_veryLongServiceName_handlesCorrectly() {
         // Arrange
         String longServiceName = "VeryLongServiceName".repeat(10);
 
         // Act & Assert
-        assertThrows(NotFoundException.class, () -> {
-            qaService.getEndpointsWithTestsByService(longServiceName);
-        });
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> qaService.getEndpointsWithTestsByService(longServiceName));
+        assertEquals(expectedServiceNotFoundMessage(longServiceName), ex.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getEndpointsWithTestsByService_errorMessage_containsAvailableServices() {
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getEndpointsWithTestsByService("InvalidService");
-        });
+        // Arrange
+        String serviceName = "InvalidService";
 
-        // Verify error message contains list of available services
-        String message = exception.getMessage();
-        assertNotNull(message);
-        assertTrue(message.contains("InvalidService"));
-        assertTrue(message.contains("Available services") || message.contains("Service not found"));
+        // Act & Assert
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> qaService.getEndpointsWithTestsByService(serviceName));
+        assertEquals(expectedServiceNotFoundMessage(serviceName), ex.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * PERMISSION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    @DisplayName("Get Endpoints With Tests By Service - Controller permission unauthorized - Success")
+    void getEndpointsWithTestsByService_controller_permission_unauthorized() {
+        // Arrange
+        QAController controller = new QAController(qaSubTranslator);
+        stubQaTranslatorGetEndpointsWithTestsByServiceThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.getEndpointsWithTestsByService("QAService");
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    private String expectedServiceNotFoundMessage(String serviceName) {
+        return String.format(ErrorMessages.QAErrorMessages.ServiceNotFoundFormat,
+                serviceName.trim(),
+                String.join(", ", getServiceMappings().keySet()));
     }
 }

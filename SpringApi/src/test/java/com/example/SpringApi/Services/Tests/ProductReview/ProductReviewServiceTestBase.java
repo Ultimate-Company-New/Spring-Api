@@ -4,6 +4,7 @@ import com.example.SpringApi.Models.DatabaseModels.ProductReview;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.ProductReviewRequestModel;
 import com.example.SpringApi.Repositories.ProductReviewRepository;
+import com.example.SpringApi.Services.Interface.IProductReviewSubTranslator;
 import com.example.SpringApi.Services.ProductReviewService;
 import com.example.SpringApi.Services.UserLogService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,6 +44,9 @@ public abstract class ProductReviewServiceTestBase {
 
     @Mock
     protected HttpServletRequest request;
+
+    @Mock
+    protected IProductReviewSubTranslator productReviewServiceMock;
 
     protected ProductReviewService productReviewService;
 
@@ -148,6 +152,31 @@ public abstract class ProductReviewServiceTestBase {
                 anyLong(), anyLong(), any(), anyString(), any(), anyBoolean(),
                 any(org.springframework.data.domain.Pageable.class)))
                 .thenReturn(result);
+    }
+
+    protected void stubProductReviewServiceInsertProductReviewThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(productReviewServiceMock).insertProductReview(any(ProductReviewRequestModel.class));
+    }
+
+    protected void stubProductReviewServiceGetProductReviewsInBatchesGivenProductIdThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(productReviewServiceMock).getProductReviewsInBatchesGivenProductId(
+                        any(PaginationBaseRequestModel.class), anyLong());
+    }
+
+    protected void stubProductReviewServiceToggleProductReviewThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(productReviewServiceMock).toggleProductReview(anyLong());
+    }
+
+    protected void stubProductReviewServiceSetProductReviewScoreThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(productReviewServiceMock).setProductReviewScore(anyLong(), anyBoolean());
     }
 
 }

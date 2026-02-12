@@ -205,6 +205,48 @@ public abstract class PromoServiceTestBase {
                 lenient().when(promoRepository.findByPromoCodeAndClientId(code, clientId)).thenReturn(result);
         }
 
+        protected void stubPromoRepositoryFindByPromoCodeAndClientIdAny(java.util.Optional<Promo> result) {
+                lenient().when(promoRepository.findByPromoCodeAndClientId(anyString(), anyLong())).thenReturn(result);
+        }
+
+        protected void stubPromoRepositoryFindByPromoCodeAndClientIdFromMap(java.util.Map<String, Promo> savedPromos) {
+                lenient().when(promoRepository.findByPromoCodeAndClientId(anyString(), anyLong()))
+                                .thenAnswer(invocation -> {
+                                        String code = invocation.getArgument(0);
+                                        return java.util.Optional.ofNullable(
+                                                        savedPromos.get(code != null ? code.toUpperCase() : null));
+                                });
+        }
+
+        protected void stubPromoRepositorySaveAssigningId(java.util.concurrent.atomic.AtomicLong counter,
+                        java.util.Map<String, Promo> savedPromos) {
+                lenient().when(promoRepository.save(any(Promo.class))).thenAnswer(invocation -> {
+                        Promo promo = invocation.getArgument(0);
+                        promo.setPromoId(counter.incrementAndGet());
+                        savedPromos.put(promo.getPromoCode(), promo);
+                        return promo;
+                });
+        }
+
+        protected void stubPromoRepositorySaveReturnsArgument() {
+                lenient().when(promoRepository.save(any(Promo.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        }
+
+        protected void stubPromoRepositorySaveThrows(RuntimeException exception) {
+                lenient().when(promoRepository.save(any(Promo.class))).thenThrow(exception);
+        }
+
+        protected void stubPromoRepositoryFindOverlappingPromosForCode(String code, java.util.List<Promo> result) {
+                lenient().when(promoRepository.findOverlappingPromos(eq(code), anyLong(), any(), any()))
+                                .thenReturn(result);
+        }
+
+        protected void stubPromoRepositoryFindOverlappingPromosSequence(java.util.List<Promo> first,
+                        java.util.List<Promo> second) {
+                lenient().when(promoRepository.findOverlappingPromos(anyString(), anyLong(), any(), any()))
+                                .thenReturn(first, second);
+        }
+
         protected void stubPromoFilterQueryBuilderFindPaginatedEntities(
                         org.springframework.data.domain.Page<Promo> result) {
                 lenient().when(promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
@@ -298,5 +340,24 @@ public abstract class PromoServiceTestBase {
         protected void stubServiceGetPromosInBatchesThrowsRuntime(String message) {
                 doThrow(new RuntimeException(message))
                                 .when(promoService).getPromosInBatches(any(PaginationBaseRequestModel.class));
+        }
+
+        protected void stubServiceBulkCreatePromosAsyncDoNothing() {
+                doNothing().when(promoService).bulkCreatePromosAsync(anyList(), anyLong(), anyString(), anyLong());
+        }
+
+        protected void stubServiceBulkCreatePromosAsyncThrowsBadRequest(String message) {
+                doThrow(new com.example.SpringApi.Exceptions.BadRequestException(message))
+                                .when(promoService).bulkCreatePromosAsync(any(), anyLong(), anyString(), anyLong());
+        }
+
+        protected void stubServiceBulkCreatePromosAsyncThrowsRuntime(String message) {
+                doThrow(new RuntimeException(message))
+                                .when(promoService).bulkCreatePromosAsync(any(), anyLong(), anyString(), anyLong());
+        }
+
+        protected void stubServiceGetUserIdThrowsUnauthorized(String message) {
+                doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(message))
+                                .when(promoService).getUserId();
         }
 }

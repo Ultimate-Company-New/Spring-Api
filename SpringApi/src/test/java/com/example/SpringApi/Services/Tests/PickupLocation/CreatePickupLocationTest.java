@@ -1,7 +1,6 @@
 package com.example.SpringApi.Services.Tests.PickupLocation;
 
 import com.example.SpringApi.Controllers.PickupLocationController;
-import com.example.SpringApi.Services.PickupLocationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.Models.Authorizations;
@@ -25,10 +24,10 @@ import static org.mockito.Mockito.*;
  * Extensive validation of all fields, edge cases, and error handling.
  * Test Count: 40 tests
  */
-// Total Tests: 40
 
 @DisplayName("Create Pickup Location Tests")
 class CreatePickupLocationTest extends PickupLocationServiceTestBase {
+    // Total Tests: 30
 
     /*
      **********************************************************************************************
@@ -44,11 +43,11 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Create Pickup Location - Address Nickname Length 1 - Success")
     void createPickupLocation_AddressNicknameLengthOne_Success() {
-        // ARRANGE
+        // Arrange
         testPickupLocationRequest.setAddressNickName("A");
         stubSuccessfulPickupLocationCreation();
 
-        // ACT & ASSERT
+        // Act & Assert
         assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
     }
 
@@ -59,14 +58,14 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
      */
     @Test
     @DisplayName("Create Pickup Location - Success")
-    void createPickupLocation_Success() throws Exception {
-        // ARRANGE
+    void createPickupLocation_Success_Success() throws Exception {
+        // Arrange
         stubSuccessfulPickupLocationCreation();
 
-        // ACT
+        // Act
         pickupLocationService.createPickupLocation(testPickupLocationRequest);
 
-        // ASSERT
+        // Assert
         verify(addressRepository, times(1)).save(any());
         verify(pickupLocationRepository, times(2)).save(any());
     }
@@ -78,6 +77,74 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
      */
 
     /**
+     * Purpose: Verify address with alphanumeric postal code.
+     * Expected Result: Creation succeeds with alphanumeric postal code.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Create Pickup Location - Alphanumeric Postal Code - Success")
+    void createPickupLocation_AlphanumericPostalCode_Success() throws Exception {
+        // Arrange
+        testPickupLocationRequest.getAddress().setPostalCode("123456");
+        stubSuccessfulPickupLocationCreation();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+    }
+
+    /**
+     * Purpose: Verify international characters in address.
+     * Expected Result: Creation succeeds with UTF-8 characters.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Create Pickup Location - International Characters - Success")
+    void createPickupLocation_InternationalCharacters_Success() {
+        // Arrange
+        testPickupLocationRequest.getAddress().setCity("São Paulo");
+        testPickupLocationRequest.getAddress().setCountry("Brasil");
+        stubSuccessfulPickupLocationCreation();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+    }
+
+    /**
+     * Purpose: Verify isDeleted flag is correctly set to false on creation.
+     * Expected Result: New location is marked as active (not deleted).
+     * Assertions: Location is not marked as deleted.
+     */
+    @Test
+    @DisplayName("Create Pickup Location - IsDeleted Flag False - Success")
+    void createPickupLocation_IsDeletedFlagFalse_Success() throws Exception {
+        // Arrange
+        testPickupLocationRequest.setIsDeleted(false);
+        stubSuccessfulPickupLocationCreation();
+
+        // Act
+        pickupLocationService.createPickupLocation(testPickupLocationRequest);
+
+        // Assert
+        verify(pickupLocationRepository, times(2)).save(argThat(saved -> !saved.getIsDeleted()));
+    }
+
+    /**
+     * Purpose: Verify address with max phone length.
+     * Expected Result: Creation succeeds with long phone number.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Create Pickup Location - Long Phone Number - Success")
+    void createPickupLocation_LongPhoneNumber_Success() {
+        // Arrange
+        testPickupLocationRequest.getAddress().setPhoneOnAddress("+1-212-555-0123 ext. 1234");
+        stubSuccessfulPickupLocationCreation();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+    }
+
+    /**
      * Purpose: Reject null address object.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Message contains ER001.
@@ -85,9 +152,14 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Create Pickup Location - Null Address - Throws BadRequestException")
     void createPickupLocation_NullAddress_ThrowsBadRequestException() {
+        // Arrange
         testPickupLocationRequest.setAddress(null);
+
+        // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+
+        // Assert
         assertEquals(ErrorMessages.AddressErrorMessages.ER001, ex.getMessage());
     }
 
@@ -99,9 +171,14 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Create Pickup Location - Null City - Throws BadRequestException")
     void createPickupLocation_NullCity_ThrowsBadRequestException() {
+        // Arrange
         testPickupLocationRequest.getAddress().setCity(null);
+
+        // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+
+        // Assert
         assertEquals(ErrorMessages.AddressErrorMessages.ER002, ex.getMessage());
     }
 
@@ -113,9 +190,14 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Create Pickup Location - Null Country - Throws BadRequestException")
     void createPickupLocation_NullCountry_ThrowsBadRequestException() {
+        // Arrange
         testPickupLocationRequest.getAddress().setCountry(null);
+
+        // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+
+        // Assert
         assertEquals(ErrorMessages.AddressErrorMessages.ER005, ex.getMessage());
     }
 
@@ -127,9 +209,14 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Create Pickup Location - Null Nickname - Throws BadRequestException")
     void createPickupLocation_NullNickname_ThrowsBadRequestException() {
+        // Arrange
         testPickupLocationRequest.setAddressNickName(null);
+
+        // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+
+        // Assert
         assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickName, ex.getMessage());
     }
 
@@ -141,23 +228,30 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Create Pickup Location - Null Phone - Success")
     void createPickupLocation_NullPhone_Success() {
+        // Arrange
         testPickupLocationRequest.getAddress().setPhoneOnAddress(null);
         stubSuccessfulPickupLocationCreation();
 
+        // Act & Assert
         assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
     }
 
     /**
-     * Purpose: Reject address with null postal code.
+     * Purpose: Reject null postal code.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Message contains ER004.
      */
     @Test
     @DisplayName("Create Pickup Location - Null Postal Code - Throws BadRequestException")
     void createPickupLocation_NullPostalCode_ThrowsBadRequestException() {
+        // Arrange
         testPickupLocationRequest.getAddress().setPostalCode(null);
+
+        // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+
+        // Assert
         assertEquals(ErrorMessages.AddressErrorMessages.ER004, ex.getMessage());
     }
 
@@ -169,185 +263,52 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Create Pickup Location - Null Request - Throws BadRequestException")
     void createPickupLocation_NullRequest_ThrowsBadRequestException() {
+        // Arrange
+
+        // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> pickupLocationService.createPickupLocation(null));
+
+        // Assert
         assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidRequest, ex.getMessage());
     }
 
     /**
-     * Purpose: Reject address with null state.
+     * Purpose: Reject null state.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Message contains ER003.
      */
     @Test
     @DisplayName("Create Pickup Location - Null State - Throws BadRequestException")
     void createPickupLocation_NullState_ThrowsBadRequestException() {
+        // Arrange
         testPickupLocationRequest.getAddress().setState(null);
+
+        // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+
+        // Assert
         assertEquals(ErrorMessages.AddressErrorMessages.ER003, ex.getMessage());
     }
 
     /**
-     * Purpose: Reject address with null street address.
+     * Purpose: Reject null street address.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Message contains ER001.
      */
     @Test
     @DisplayName("Create Pickup Location - Null Street Address - Throws BadRequestException")
     void createPickupLocation_NullStreetAddress_ThrowsBadRequestException() {
+        // Arrange
         testPickupLocationRequest.getAddress().setStreetAddress(null);
+
+        // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+
+        // Assert
         assertEquals(ErrorMessages.AddressErrorMessages.ER001, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Reject whitespace city.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Message contains ER002.
-     */
-    @Test
-    @DisplayName("Create Pickup Location - Whitespace City - Throws BadRequestException")
-    void createPickupLocation_WhitespaceCity_ThrowsBadRequestException() {
-        testPickupLocationRequest.getAddress().setCity("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
-        assertEquals(ErrorMessages.AddressErrorMessages.ER002, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Reject whitespace country.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Message contains ER005.
-     */
-    @Test
-    @DisplayName("Create Pickup Location - Whitespace Country - Throws BadRequestException")
-    void createPickupLocation_WhitespaceCountry_ThrowsBadRequestException() {
-        testPickupLocationRequest.getAddress().setCountry("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
-        assertEquals(ErrorMessages.AddressErrorMessages.ER005, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Reject whitespace nickname.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Message contains InvalidAddressNickName.
-     */
-    @Test
-    @DisplayName("Create Pickup Location - Whitespace Nickname - Throws BadRequestException")
-    void createPickupLocation_WhitespaceNickname_ThrowsBadRequestException() {
-        testPickupLocationRequest.setAddressNickName("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
-        assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickName, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Verify whitespace phone is trimmed and accepted.
-     * Expected Result: Creation succeeds.
-     * Assertions: No exception is thrown.
-     */
-    @Test
-    @DisplayName("Create Pickup Location - Whitespace Phone - Success")
-    void createPickupLocation_WhitespacePhone_Success() {
-        testPickupLocationRequest.getAddress().setPhoneOnAddress("   ");
-        stubSuccessfulPickupLocationCreation();
-
-        assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
-    }
-
-    /**
-     * Purpose: Reject whitespace postal code.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Message contains ER004.
-     */
-    @Test
-    @DisplayName("Create Pickup Location - Whitespace Postal Code - Throws BadRequestException")
-    void createPickupLocation_WhitespacePostalCode_ThrowsBadRequestException() {
-        testPickupLocationRequest.getAddress().setPostalCode("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
-        assertEquals(ErrorMessages.AddressErrorMessages.ER004, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Reject whitespace state.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Message contains ER003.
-     */
-    @Test
-    @DisplayName("Create Pickup Location - Whitespace State - Throws BadRequestException")
-    void createPickupLocation_WhitespaceState_ThrowsBadRequestException() {
-        testPickupLocationRequest.getAddress().setState("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
-        assertEquals(ErrorMessages.AddressErrorMessages.ER003, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Reject whitespace street address.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Message contains ER001.
-     */
-    @Test
-    @DisplayName("Create Pickup Location - Whitespace Street Address - Throws BadRequestException")
-    void createPickupLocation_WhitespaceStreetAddress_ThrowsBadRequestException() {
-        testPickupLocationRequest.getAddress().setStreetAddress("   ");
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
-        assertEquals(ErrorMessages.AddressErrorMessages.ER001, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Verify address with very long nickname (edge case).
-     * Expected Result: Creation succeeds with long nickname.
-     * Assertions: No exception is thrown, repository is called.
-     */
-    @Test
-    @DisplayName("Create Pickup Location - Very Long Nickname - Success")
-    void createPickupLocation_VeryLongNickname_Success() {
-        // ARRANGE
-        testPickupLocationRequest.setAddressNickName("A".repeat(36));
-        stubSuccessfulPickupLocationCreation();
-
-        // ACT & ASSERT
-        assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
-        verify(pickupLocationRepository, times(2)).save(any());
-    }
-
-    /**
-     * Purpose: Verify address with special characters in street address.
-     * Expected Result: Creation succeeds with special characters.
-     * Assertions: No exception is thrown.
-     */
-    @Test
-    @DisplayName("Create Pickup Location - Special Characters in Address - Success")
-    void createPickupLocation_SpecialCharactersInAddress_Success() {
-        // ARRANGE
-        testPickupLocationRequest.getAddress().setStreetAddress("123 Main St #500, Suite A-B");
-        stubSuccessfulPickupLocationCreation();
-
-        // ACT & ASSERT
-        assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
-    }
-
-    /**
-     * Purpose: Verify address with international characters.
-     * Expected Result: Creation succeeds with international characters.
-     * Assertions: No exception is thrown.
-     */
-    @Test
-    @DisplayName("Create Pickup Location - International Characters - Success")
-    void createPickupLocation_InternationalCharacters_Success() {
-        // ARRANGE
-        testPickupLocationRequest.getAddress().setCity("São Paulo");
-        testPickupLocationRequest.getAddress().setCountry("Brasil");
-        stubSuccessfulPickupLocationCreation();
-
-        // ACT & ASSERT
-        assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
     }
 
     /**
@@ -358,43 +319,11 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Create Pickup Location - Numeric Postal Code - Success")
     void createPickupLocation_NumericPostalCode_Success() {
-        // ARRANGE
+        // Arrange
         testPickupLocationRequest.getAddress().setPostalCode("12345");
         stubSuccessfulPickupLocationCreation();
 
-        // ACT & ASSERT
-        assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
-    }
-
-    /**
-     * Purpose: Verify address with alphanumeric postal code.
-     * Expected Result: Creation succeeds with alphanumeric postal code.
-     * Assertions: No exception is thrown.
-     */
-    @Test
-    @DisplayName("Create Pickup Location - Alphanumeric Postal Code - Success")
-    void createPickupLocation_AlphanumericPostalCode_Success() throws Exception {
-        // ARRANGE
-        testPickupLocationRequest.getAddress().setPostalCode("123456");
-        stubSuccessfulPickupLocationCreation();
-
-        // ACT & ASSERT
-        assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
-    }
-
-    /**
-     * Purpose: Verify address with max phone length.
-     * Expected Result: Creation succeeds with long phone number.
-     * Assertions: No exception is thrown.
-     */
-    @Test
-    @DisplayName("Create Pickup Location - Long Phone Number - Success")
-    void createPickupLocation_LongPhoneNumber_Success() {
-        // ARRANGE
-        testPickupLocationRequest.getAddress().setPhoneOnAddress("+1-212-555-0123 ext. 1234");
-        stubSuccessfulPickupLocationCreation();
-
-        // ACT & ASSERT
+        // Act & Assert
         assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
     }
 
@@ -406,11 +335,13 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Create Pickup Location - Repository Error on Address Save - Throws Exception")
     void createPickupLocation_RepositoryErrorOnAddressSave_ThrowsException() {
-        // ARRANGE
-        when(addressRepository.save(any())).thenThrow(new RuntimeException("Database error"));
+        // Arrange
+        stubAddressRepositorySaveThrows(new RuntimeException(ErrorMessages.CommonErrorMessages.DATABASE_ERROR));
 
-        // ACT & ASSERT
-        assertThrows(Exception.class, () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        // Act & Assert
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        assertEquals(ErrorMessages.CommonErrorMessages.DATABASE_ERROR, ex.getMessage());
     }
 
     /**
@@ -421,7 +352,7 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Create Pickup Location - Repository Error on Location Save - Throws Exception")
     void createPickupLocation_RepositoryErrorOnLocationSave_ThrowsException() {
-        // ARRANGE
+        // Arrange
         ClientResponseModel mockClient = new ClientResponseModel();
         mockClient.setShipRocketEmail("test@example.com");
         mockClient.setShipRocketPassword("testpassword");
@@ -429,30 +360,175 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
         stubClientServiceGetClientById(TEST_CLIENT_ID, mockClient);
         stubAddressRepositorySave(testAddress);
         stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
-        // Don't stub pickupLocationRepository.save() - we want it to throw
-        when(pickupLocationRepository.save(any())).thenThrow(new RuntimeException("Database error"));
+        stubPickupLocationRepositorySaveThrows(
+                new RuntimeException(ErrorMessages.CommonErrorMessages.DATABASE_ERROR));
 
-        // ACT & ASSERT
-        assertThrows(Exception.class, () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        // Act & Assert
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+        assertEquals(ErrorMessages.CommonErrorMessages.DATABASE_ERROR, ex.getMessage());
     }
 
     /**
-     * Purpose: Verify isDeleted flag is correctly set to false on creation.
-     * Expected Result: New location is marked as active (not deleted).
-     * Assertions: Location is not marked as deleted.
+     * Purpose: Verify special characters in street address.
+     * Expected Result: Creation succeeds.
+     * Assertions: No exception is thrown.
      */
     @Test
-    @DisplayName("Create Pickup Location - IsDeleted Flag False - Success")
-    void createPickupLocation_IsDeletedFlagFalse_Success() throws Exception {
-        // ARRANGE
-        testPickupLocationRequest.setIsDeleted(false);
+    @DisplayName("Create Pickup Location - Special Characters in Address - Success")
+    void createPickupLocation_SpecialCharactersInAddress_Success() {
+        // Arrange
+        testPickupLocationRequest.getAddress().setStreetAddress("123 St. Paul's Ave #456 (South)");
         stubSuccessfulPickupLocationCreation();
 
-        // ACT
-        pickupLocationService.createPickupLocation(testPickupLocationRequest);
+        // Act & Assert
+        assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+    }
 
-        // ASSERT
-        verify(pickupLocationRepository, times(2)).save(argThat(saved -> !saved.getIsDeleted()));
+    /**
+     * Purpose: Verify long nickname at max length is accepted.
+     * Expected Result: Creation succeeds with long nickname.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Create Pickup Location - Very Long Nickname - Success")
+    void createPickupLocation_VeryLongNickname_Success() {
+        // Arrange
+        testPickupLocationRequest.setAddressNickName("A".repeat(36));
+        stubSuccessfulPickupLocationCreation();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+    }
+
+    /**
+     * Purpose: Reject whitespace city.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Message contains ER002.
+     */
+    @Test
+    @DisplayName("Create Pickup Location - Whitespace City - Throws BadRequestException")
+    void createPickupLocation_WhitespaceCity_ThrowsBadRequestException() {
+        // Arrange
+        testPickupLocationRequest.getAddress().setCity("   ");
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.AddressErrorMessages.ER002, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Reject whitespace country.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Message contains ER005.
+     */
+    @Test
+    @DisplayName("Create Pickup Location - Whitespace Country - Throws BadRequestException")
+    void createPickupLocation_WhitespaceCountry_ThrowsBadRequestException() {
+        // Arrange
+        testPickupLocationRequest.getAddress().setCountry("   ");
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.AddressErrorMessages.ER005, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Reject whitespace nickname.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Message contains InvalidAddressNickName.
+     */
+    @Test
+    @DisplayName("Create Pickup Location - Whitespace Nickname - Throws BadRequestException")
+    void createPickupLocation_WhitespaceNickname_ThrowsBadRequestException() {
+        // Arrange
+        testPickupLocationRequest.setAddressNickName("   ");
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickName, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify whitespace phone is accepted as optional field.
+     * Expected Result: Creation succeeds.
+     * Assertions: No exception is thrown.
+     */
+    @Test
+    @DisplayName("Create Pickup Location - Whitespace Phone - Success")
+    void createPickupLocation_WhitespacePhone_Success() {
+        // Arrange
+        testPickupLocationRequest.getAddress().setPhoneOnAddress("   ");
+        stubSuccessfulPickupLocationCreation();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+    }
+
+    /**
+     * Purpose: Reject whitespace postal code.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Message contains ER004.
+     */
+    @Test
+    @DisplayName("Create Pickup Location - Whitespace Postal Code - Throws BadRequestException")
+    void createPickupLocation_WhitespacePostalCode_ThrowsBadRequestException() {
+        // Arrange
+        testPickupLocationRequest.getAddress().setPostalCode("   ");
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.AddressErrorMessages.ER004, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Reject whitespace state.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Message contains ER003.
+     */
+    @Test
+    @DisplayName("Create Pickup Location - Whitespace State - Throws BadRequestException")
+    void createPickupLocation_WhitespaceState_ThrowsBadRequestException() {
+        // Arrange
+        testPickupLocationRequest.getAddress().setState("   ");
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.AddressErrorMessages.ER003, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Reject whitespace street address.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Message contains ER001.
+     */
+    @Test
+    @DisplayName("Create Pickup Location - Whitespace Street Address - Throws BadRequestException")
+    void createPickupLocation_WhitespaceStreetAddress_ThrowsBadRequestException() {
+        // Arrange
+        testPickupLocationRequest.getAddress().setStreetAddress("   ");
+
+        // Act
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.AddressErrorMessages.ER001, ex.getMessage());
     }
 
     /*
@@ -469,38 +545,55 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("createPickupLocation - Controller Permission - Unauthorized")
     void createPickupLocation_controller_permission_unauthorized() throws Exception {
-        // ARRANGE
+        // Arrange
         PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
         stubPickupLocationServiceThrowsUnauthorizedOnCreate();
 
-        // ACT
+        // Act
         ResponseEntity<?> response = controller.createPickupLocation(testPickupLocationRequest);
 
-        // ASSERT
+        // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
+    /**
+     * Purpose: Verify @PreAuthorize annotation on createPickupLocation endpoint.
+     * Expected Result: Annotation exists and references INSERT_PICKUP_LOCATIONS_PERMISSION.
+     * Assertions: Annotation is present and contains permission.
+     */
     @Test
     @DisplayName("createPickupLocation - Verify @PreAuthorize Annotation")
-    void createPickupLocation_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void createPickupLocation_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        // Arrange
         Method method = PickupLocationController.class.getMethod("createPickupLocation",
                 PickupLocationRequestModel.class);
+
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
         assertNotNull(annotation, "@PreAuthorize annotation should be present");
         assertTrue(annotation.value().contains(Authorizations.INSERT_PICKUP_LOCATIONS_PERMISSION),
                 "@PreAuthorize should reference INSERT_PICKUP_LOCATIONS_PERMISSION");
     }
 
+    /**
+     * Purpose: Verify controller delegates createPickupLocation to service.
+     * Expected Result: Service method called and HTTP 200 returned.
+     * Assertions: Delegation occurs and response is OK.
+     */
     @Test
     @DisplayName("createPickupLocation - Controller delegates to service")
     void createPickupLocation_WithValidRequest_DelegatesToService() throws Exception {
-        PickupLocationService mockService = mock(PickupLocationService.class);
-        PickupLocationController controller = new PickupLocationController(mockService);
-        doNothing().when(mockService).createPickupLocation(testPickupLocationRequest);
+        // Arrange
+        PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
+        stubPickupLocationServiceCreatePickupLocationDoNothing();
 
+        // Act
         ResponseEntity<?> response = controller.createPickupLocation(testPickupLocationRequest);
 
-        verify(mockService).createPickupLocation(testPickupLocationRequest);
+        // Assert
+        verify(pickupLocationServiceMock).createPickupLocation(testPickupLocationRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

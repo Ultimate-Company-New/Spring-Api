@@ -6,6 +6,7 @@ import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.DatabaseModels.Resources;
 import com.example.SpringApi.Models.DatabaseModels.ShipmentProduct;
+import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -43,21 +44,28 @@ public class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
      * SUCCESS TESTS
      **********************************************************************************************
      */
-
     /**
-     * Purpose: Verify create succeeds without attachments.
-     * Expected Result: Purchase order is created and logs are written.
-     * Assertions: No exception is thrown.
+     * Purpose: Verify canonical custom price from request.products[] is persisted.
+     * Expected Result: ShipmentProduct allocatedPrice equals product price per unit.
+     * Assertions: Captured shipment products include the canonical price.
      */
     @Test
-    @DisplayName("Create PO - Success Without Attachments")
-    void createPurchaseOrder_Success_WithoutAttachments_Success() {
-        // ARRANGE
-        testPurchaseOrderRequest.setAttachments(null);
+    @DisplayName("Create PO - Persists canonical custom price")
+    void createPurchaseOrder_PersistsCanonicalCustomPrice_Success() {
+        // Arrange
         stubSuccessfulPurchaseOrderCreate();
+        ArgumentCaptor<List<ShipmentProduct>> captor = ArgumentCaptor.forClass((Class) List.class);
+        stubShipmentProductRepositorySaveAllCapture(captor);
 
-        // ACT & ASSERT
+        // Act
         assertDoesNotThrow(() -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+
+        // Assert
+        List<ShipmentProduct> saved = captor.getValue();
+        assertNotNull(saved);
+        assertFalse(saved.isEmpty());
+        assertEquals(testPurchaseOrderRequest.getProducts().get(0).getPricePerUnit(),
+                saved.get(0).getAllocatedPrice());
     }
 
     /**
@@ -68,7 +76,7 @@ public class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("Create PO - Success With Attachments")
     void createPurchaseOrder_Success_WithAttachments_Success() {
-        // ARRANGE
+        // Arrange
         Map<String, String> attachments = new HashMap<>();
         attachments.put("receipt.pdf", "base64-data-here");
         testPurchaseOrderRequest.setAttachments(attachments);
@@ -85,33 +93,25 @@ public class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
 
         try (MockedConstruction<ImgbbHelper> ignored =
                      stubImgbbHelperUploadResults(results)) {
-            // ACT & ASSERT
+            // Act & Assert
             assertDoesNotThrow(() -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
         }
     }
 
     /**
-     * Purpose: Verify canonical custom price from request.products[] is persisted.
-     * Expected Result: ShipmentProduct allocatedPrice equals product price per unit.
-     * Assertions: Captured shipment products include the canonical price.
+     * Purpose: Verify create succeeds without attachments.
+     * Expected Result: Purchase order is created and logs are written.
+     * Assertions: No exception is thrown.
      */
     @Test
-    @DisplayName("Create PO - Persists canonical custom price")
-    void createPurchaseOrder_PersistsCanonicalCustomPrice_Success() {
-        // ARRANGE
+    @DisplayName("Create PO - Success Without Attachments")
+    void createPurchaseOrder_Success_WithoutAttachments_Success() {
+        // Arrange
+        testPurchaseOrderRequest.setAttachments(null);
         stubSuccessfulPurchaseOrderCreate();
-        ArgumentCaptor<List<ShipmentProduct>> captor = ArgumentCaptor.forClass((Class) List.class);
-        stubShipmentProductRepositorySaveAllCapture(captor);
 
-        // ACT
+        // Act & Assert
         assertDoesNotThrow(() -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
-
-        // ASSERT
-        List<ShipmentProduct> saved = captor.getValue();
-        assertNotNull(saved);
-        assertFalse(saved.isEmpty());
-        assertEquals(testPurchaseOrderRequest.getProducts().get(0).getPricePerUnit(),
-                saved.get(0).getAllocatedPrice());
     }
 
     /*
@@ -121,19 +121,6 @@ public class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
      */
 
     /**
-     * Purpose: Verify null request is rejected.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Exception message matches InvalidRequest.
-     */
-    @Test
-    @DisplayName("Create PO - Null Request - Throws BadRequestException")
-    void createPurchaseOrder_NullRequest_ThrowsBadRequestException() {
-        // ACT & ASSERT
-        assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.InvalidRequest,
-                () -> purchaseOrderService.createPurchaseOrder(null));
-    }
-
-    /**
      * Purpose: Verify null order summary is rejected.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Exception message matches OrderSummary InvalidRequest.
@@ -141,12 +128,28 @@ public class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("Create PO - Null Order Summary - Throws BadRequestException")
     void createPurchaseOrder_NullOrderSummary_ThrowsBadRequestException() {
-        // ARRANGE
+        // Arrange
         testPurchaseOrderRequest.setOrderSummary(null);
 
-        // ACT & ASSERT
+        // Act & Assert
         assertThrowsBadRequest(ErrorMessages.OrderSummaryErrorMessages.InvalidRequest,
                 () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
+    }
+
+    /**
+     * Purpose: Verify null request is rejected.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches InvalidRequest.
+     */
+    @Test
+    @DisplayName("Create PO - Null Request - Throws BadRequestException")
+    void createPurchaseOrder_NullRequest_ThrowsBadRequestException() {
+        // Arrange
+        PurchaseOrderRequestModel request = null;
+
+        // Act & Assert
+        assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.InvalidRequest,
+                () -> purchaseOrderService.createPurchaseOrder(request));
     }
 
     /*
@@ -163,28 +166,33 @@ public class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("createPurchaseOrder - Controller Permission - Unauthorized")
     void createPurchaseOrder_controller_permission_unauthorized() {
-        // ARRANGE
+        // Arrange
         PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderServiceMock);
         stubPurchaseOrderServiceThrowsUnauthorizedOnCreate();
 
-        // ACT
+        // Act
         ResponseEntity<?> response = controller.createPurchaseOrder(testPurchaseOrderRequest);
 
-        // ASSERT
+        // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
+    /**
+     * Purpose: Verify controller has @PreAuthorize for createPurchaseOrder.
+     * Expected Result: Annotation exists and includes INSERT_PURCHASE_ORDERS_PERMISSION.
+     * Assertions: Annotation is present and contains permission.
+     */
     @Test
     @DisplayName("createPurchaseOrder - Verify @PreAuthorize Annotation")
-    void createPurchaseOrder_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        // ARRANGE
+    void createPurchaseOrder_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        // Arrange
         Method method = PurchaseOrderController.class.getMethod("createPurchaseOrder",
                 com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel.class);
 
-        // ACT
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
-        // ASSERT
+        // Assert
         assertNotNull(annotation, "@PreAuthorize annotation should be present on createPurchaseOrder");
         assertTrue(annotation.value().contains(Authorizations.INSERT_PURCHASE_ORDERS_PERMISSION),
                 "@PreAuthorize should reference INSERT_PURCHASE_ORDERS_PERMISSION");
@@ -198,14 +206,14 @@ public class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("createPurchaseOrder - Controller delegates to service")
     void createPurchaseOrder_WithValidRequest_DelegatesToService() {
-        // ARRANGE
+        // Arrange
         PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderServiceMock);
         stubPurchaseOrderServiceCreateDoNothing();
 
-        // ACT
+        // Act
         ResponseEntity<?> response = controller.createPurchaseOrder(testPurchaseOrderRequest);
 
-        // ASSERT
+        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 

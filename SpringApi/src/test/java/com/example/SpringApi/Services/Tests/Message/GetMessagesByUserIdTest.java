@@ -32,7 +32,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("GetMessagesByUserId Tests")
 public class GetMessagesByUserIdTest extends MessageServiceTestBase {
 
-        // Total Tests: 15
+        // Total Tests: 16
 
         /*
          **********************************************************************************************

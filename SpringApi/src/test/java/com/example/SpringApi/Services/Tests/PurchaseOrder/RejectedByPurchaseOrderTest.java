@@ -40,12 +40,12 @@ public class RejectedByPurchaseOrderTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("Rejected By Purchase Order - Success")
     void rejectedByPurchaseOrder_Success_Success() {
-        // ARRANGE
+        // Arrange
         testPurchaseOrder.setRejectedByUserId(null);
         stubPurchaseOrderRepositoryFindById(Optional.of(testPurchaseOrder));
         stubPurchaseOrderRepositorySave(testPurchaseOrder);
 
-        // ACT & ASSERT
+        // Act & Assert
         assertDoesNotThrow(() -> purchaseOrderService.rejectedByPurchaseOrder(TEST_PO_ID));
     }
 
@@ -63,11 +63,11 @@ public class RejectedByPurchaseOrderTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("Rejected By Purchase Order - Already Rejected - Throws BadRequestException")
     void rejectedByPurchaseOrder_AlreadyRejected_Failure() {
-        // ARRANGE
+        // Arrange
         testPurchaseOrder.setRejectedByUserId(888L);
         stubPurchaseOrderRepositoryFindById(Optional.of(testPurchaseOrder));
 
-        // ACT & ASSERT
+        // Act & Assert
         assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.AlreadyRejected,
                 () -> purchaseOrderService.rejectedByPurchaseOrder(TEST_PO_ID));
     }
@@ -80,10 +80,10 @@ public class RejectedByPurchaseOrderTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("Rejected By Purchase Order - Not Found - Throws NotFoundException")
     void rejectedByPurchaseOrder_NotFound_Failure() {
-        // ARRANGE
+        // Arrange
         stubPurchaseOrderRepositoryFindById(Optional.empty());
 
-        // ACT & ASSERT
+        // Act & Assert
         assertThrowsNotFound(ErrorMessages.PurchaseOrderErrorMessages.InvalidId,
                 () -> purchaseOrderService.rejectedByPurchaseOrder(TEST_PO_ID));
     }
@@ -102,27 +102,32 @@ public class RejectedByPurchaseOrderTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("rejectedByPurchaseOrder - Controller Permission - Unauthorized")
     void rejectedByPurchaseOrder_controller_permission_unauthorized() {
-        // ARRANGE
+        // Arrange
         PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderServiceMock);
         stubPurchaseOrderServiceThrowsUnauthorizedOnReject();
 
-        // ACT
+        // Act
         ResponseEntity<?> response = controller.rejectedByPurchaseOrder(TEST_PO_ID);
 
-        // ASSERT
+        // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
+    /**
+     * Purpose: Verify controller has @PreAuthorize for rejectedByPurchaseOrder.
+     * Expected Result: Annotation exists and includes UPDATE_PURCHASE_ORDERS_PERMISSION.
+     * Assertions: Annotation is present and contains permission.
+     */
     @Test
     @DisplayName("rejectedByPurchaseOrder - Verify @PreAuthorize Annotation")
     void rejectedByPurchaseOrder_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // ARRANGE
+        // Arrange
         Method method = PurchaseOrderController.class.getMethod("rejectedByPurchaseOrder", long.class);
 
-        // ACT
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
-        // ASSERT
+        // Assert
         assertNotNull(annotation, "@PreAuthorize annotation should be present on rejectedByPurchaseOrder");
         assertTrue(annotation.value().contains(Authorizations.UPDATE_PURCHASE_ORDERS_PERMISSION),
                 "@PreAuthorize should reference UPDATE_PURCHASE_ORDERS_PERMISSION");
@@ -135,15 +140,15 @@ public class RejectedByPurchaseOrderTest extends PurchaseOrderServiceTestBase {
      */
     @Test
     @DisplayName("rejectedByPurchaseOrder - Controller delegates to service")
-    void rejectedByPO_WithValidId_DelegatesToService() {
-        // ARRANGE
+    void rejectedByPurchaseOrder_WithValidId_DelegatesToService() {
+        // Arrange
         PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderServiceMock);
         stubPurchaseOrderServiceRejectDoNothing();
 
-        // ACT
+        // Act
         ResponseEntity<?> response = controller.rejectedByPurchaseOrder(TEST_PO_ID);
 
-        // ASSERT
+        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

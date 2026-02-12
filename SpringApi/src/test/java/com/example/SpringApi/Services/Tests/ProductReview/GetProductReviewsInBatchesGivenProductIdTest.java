@@ -6,7 +6,6 @@ import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Models.DatabaseModels.ProductReview;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.ProductReviewResponseModel;
-import com.example.SpringApi.Services.Interface.IProductReviewSubTranslator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
@@ -20,8 +19,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
 
 /**
  * Test class for ProductReviewService.getProductReviewsInBatchesGivenProductId method.
@@ -38,36 +35,13 @@ class GetProductReviewsInBatchesGivenProductIdTest extends ProductReviewServiceT
      */
 
     /*
-     * Purpose: Verify success response with single review.
-     * Expected Result: One review returned.
-     * Assertions: data size equals 1.
-     */
-    @Test
-    @DisplayName("Get Product Reviews In Batches - Success")
-    void getProductReviewsInBatches_Success_Success() {
-        // Arrange
-        Page<ProductReview> reviewPage = new PageImpl<>(Arrays.asList(testProductReview), PageRequest.of(0, 10), 1);
-        stubProductReviewFilterQueryBuilderReturn(reviewPage);
-
-        // Act
-        PaginationBaseResponseModel<ProductReviewResponseModel> result = productReviewService
-                .getProductReviewsInBatchesGivenProductId(testPaginationRequest, TEST_PRODUCT_ID);
-
-        // Assert
-        assertNotNull(result);
-        assertNotNull(result.getData());
-        assertEquals(1, result.getData().size());
-        assertEquals(1L, result.getTotalDataCount());
-    }
-
-    /*
      * Purpose: Verify empty results are returned properly.
      * Expected Result: Empty list and total count 0.
      * Assertions: size equals 0.
      */
     @Test
     @DisplayName("Get Product Reviews In Batches - Empty Results - Success")
-    void getProductReviewsInBatches_EmptyResults_Success() {
+    void getProductReviewsInBatchesGivenProductId_EmptyResults_Success() {
         // Arrange
         Page<ProductReview> emptyPage = new PageImpl<>(Arrays.asList(), PageRequest.of(0, 10), 0);
         stubProductReviewFilterQueryBuilderReturn(emptyPage);
@@ -83,35 +57,13 @@ class GetProductReviewsInBatchesGivenProductIdTest extends ProductReviewServiceT
     }
 
     /*
-     * Purpose: Verify single item page.
-     * Expected Result: One review.
-     * Assertions: size equals 1.
-     */
-    @Test
-    @DisplayName("Get Product Reviews In Batches - Start 0 End 1 Single Item - Success")
-    void getProductReviewsInBatches_SingleItem_Success() {
-        // Arrange
-        testPaginationRequest.setStart(0);
-        testPaginationRequest.setEnd(1);
-        Page<ProductReview> reviewPage = new PageImpl<>(Arrays.asList(testProductReview), PageRequest.of(0, 1), 1);
-        stubProductReviewFilterQueryBuilderReturn(reviewPage);
-
-        // Act
-        PaginationBaseResponseModel<ProductReviewResponseModel> result = productReviewService
-                .getProductReviewsInBatchesGivenProductId(testPaginationRequest, TEST_PRODUCT_ID);
-
-        // Assert
-        assertEquals(1, result.getData().size());
-    }
-
-    /*
      * Purpose: Verify large page size.
      * Expected Result: Data returned without errors.
      * Assertions: data not null.
      */
     @Test
     @DisplayName("Get Product Reviews In Batches - Start 0 End 100 Large Page - Success")
-    void getProductReviewsInBatches_LargePage_Success() {
+    void getProductReviewsInBatchesGivenProductId_LargePage_Success() {
         // Arrange
         testPaginationRequest.setStart(0);
         testPaginationRequest.setEnd(100);
@@ -133,7 +85,7 @@ class GetProductReviewsInBatchesGivenProductIdTest extends ProductReviewServiceT
      */
     @Test
     @DisplayName("Get Product Reviews In Batches - Start 50 End 60 Middle Page - Success")
-    void getProductReviewsInBatches_MiddlePage_Success() {
+    void getProductReviewsInBatchesGivenProductId_MiddlePage_Success() {
         // Arrange
         testPaginationRequest.setStart(50);
         testPaginationRequest.setEnd(60);
@@ -149,53 +101,13 @@ class GetProductReviewsInBatchesGivenProductIdTest extends ProductReviewServiceT
     }
 
     /*
-     * Purpose: Verify product ID = 1 returns results.
-     * Expected Result: One review.
-     * Assertions: size equals 1.
-     */
-    @Test
-    @DisplayName("Get Product Reviews In Batches - Product ID 1 - Success")
-    void getProductReviewsInBatches_ProductIdOne_Success() {
-        // Arrange
-        Page<ProductReview> reviewPage = new PageImpl<>(Arrays.asList(testProductReview), PageRequest.of(0, 10), 1);
-        stubProductReviewFilterQueryBuilderReturn(reviewPage);
-
-        // Act
-        PaginationBaseResponseModel<ProductReviewResponseModel> result = productReviewService
-                .getProductReviewsInBatchesGivenProductId(testPaginationRequest, 1L);
-
-        // Assert
-        assertEquals(1, result.getData().size());
-    }
-
-    /*
-     * Purpose: Verify large product ID returns results.
-     * Expected Result: Data returned.
-     * Assertions: data not null.
-     */
-    @Test
-    @DisplayName("Get Product Reviews In Batches - Product ID Large Value - Success")
-    void getProductReviewsInBatches_ProductIdLarge_Success() {
-        // Arrange
-        Page<ProductReview> reviewPage = new PageImpl<>(Arrays.asList(testProductReview), PageRequest.of(0, 10), 1);
-        stubProductReviewFilterQueryBuilderReturn(reviewPage);
-
-        // Act
-        PaginationBaseResponseModel<ProductReviewResponseModel> result = productReviewService
-                .getProductReviewsInBatchesGivenProductId(testPaginationRequest, 999999L);
-
-        // Assert
-        assertNotNull(result.getData());
-    }
-
-    /*
      * Purpose: Verify multiple results.
      * Expected Result: Multiple reviews returned.
      * Assertions: size equals 3.
      */
     @Test
     @DisplayName("Get Product Reviews In Batches - Multiple Results - Success")
-    void getProductReviewsInBatches_MultipleResults_Success() {
+    void getProductReviewsInBatchesGivenProductId_MultipleResults_Success() {
         // Arrange
         ProductReview review2 = new ProductReview();
         review2.setReviewId(2L);
@@ -214,21 +126,106 @@ class GetProductReviewsInBatchesGivenProductIdTest extends ProductReviewServiceT
     }
 
     /*
+     * Purpose: Verify large product ID returns results.
+     * Expected Result: Data returned.
+     * Assertions: data not null.
+     */
+    @Test
+    @DisplayName("Get Product Reviews In Batches - Product ID Large Value - Success")
+    void getProductReviewsInBatchesGivenProductId_ProductIdLarge_Success() {
+        // Arrange
+        Page<ProductReview> reviewPage = new PageImpl<>(Arrays.asList(testProductReview), PageRequest.of(0, 10), 1);
+        stubProductReviewFilterQueryBuilderReturn(reviewPage);
+
+        // Act
+        PaginationBaseResponseModel<ProductReviewResponseModel> result = productReviewService
+                .getProductReviewsInBatchesGivenProductId(testPaginationRequest, 999999L);
+
+        // Assert
+        assertNotNull(result.getData());
+    }
+
+    /*
+     * Purpose: Verify product ID = 1 returns results.
+     * Expected Result: One review.
+     * Assertions: size equals 1.
+     */
+    @Test
+    @DisplayName("Get Product Reviews In Batches - Product ID 1 - Success")
+    void getProductReviewsInBatchesGivenProductId_ProductIdOne_Success() {
+        // Arrange
+        Page<ProductReview> reviewPage = new PageImpl<>(Arrays.asList(testProductReview), PageRequest.of(0, 10), 1);
+        stubProductReviewFilterQueryBuilderReturn(reviewPage);
+
+        // Act
+        PaginationBaseResponseModel<ProductReviewResponseModel> result = productReviewService
+                .getProductReviewsInBatchesGivenProductId(testPaginationRequest, 1L);
+
+        // Assert
+        assertEquals(1, result.getData().size());
+    }
+
+    /*
+     * Purpose: Verify single item page.
+     * Expected Result: One review.
+     * Assertions: size equals 1.
+     */
+    @Test
+    @DisplayName("Get Product Reviews In Batches - Start 0 End 1 Single Item - Success")
+    void getProductReviewsInBatchesGivenProductId_SingleItem_Success() {
+        // Arrange
+        testPaginationRequest.setStart(0);
+        testPaginationRequest.setEnd(1);
+        Page<ProductReview> reviewPage = new PageImpl<>(Arrays.asList(testProductReview), PageRequest.of(0, 1), 1);
+        stubProductReviewFilterQueryBuilderReturn(reviewPage);
+
+        // Act
+        PaginationBaseResponseModel<ProductReviewResponseModel> result = productReviewService
+                .getProductReviewsInBatchesGivenProductId(testPaginationRequest, TEST_PRODUCT_ID);
+
+        // Assert
+        assertEquals(1, result.getData().size());
+    }
+
+    /*
+     * Purpose: Verify success response with single review.
+     * Expected Result: One review returned.
+     * Assertions: data size equals 1.
+     */
+    @Test
+    @DisplayName("Get Product Reviews In Batches - Success")
+    void getProductReviewsInBatchesGivenProductId_Success_Success() {
+        // Arrange
+        Page<ProductReview> reviewPage = new PageImpl<>(Arrays.asList(testProductReview), PageRequest.of(0, 10), 1);
+        stubProductReviewFilterQueryBuilderReturn(reviewPage);
+
+        // Act
+        PaginationBaseResponseModel<ProductReviewResponseModel> result = productReviewService
+                .getProductReviewsInBatchesGivenProductId(testPaginationRequest, TEST_PRODUCT_ID);
+
+        // Assert
+        assertNotNull(result);
+        assertNotNull(result.getData());
+        assertEquals(1, result.getData().size());
+        assertEquals(1L, result.getTotalDataCount());
+    }
+
+    /*
      **********************************************************************************************
      * FAILURE / EXCEPTION TESTS
      **********************************************************************************************
      */
 
     /*
-     * Purpose: Verify invalid pagination throws BadRequestException.
+     * Purpose: Verify equal start and end throws BadRequestException.
      * Expected Result: Exception thrown.
      * Assertions: message matches invalid pagination.
      */
     @Test
-    @DisplayName("Get Product Reviews In Batches - Invalid Pagination - Throws BadRequestException")
-    void getProductReviewsInBatches_InvalidPagination_ThrowsBadRequestException() {
+    @DisplayName("Get Product Reviews In Batches - Start 5 End 5 Equal Start End - Throws BadRequestException")
+    void getProductReviewsInBatchesGivenProductId_EqualStartEnd_ThrowsBadRequestException() {
         // Arrange
-        testPaginationRequest.setStart(10);
+        testPaginationRequest.setStart(5);
         testPaginationRequest.setEnd(5);
 
         // Act & Assert
@@ -239,34 +236,15 @@ class GetProductReviewsInBatchesGivenProductIdTest extends ProductReviewServiceT
     }
 
     /*
-     * Purpose: Verify zero page size throws BadRequestException.
+     * Purpose: Verify invalid pagination throws BadRequestException.
      * Expected Result: Exception thrown.
      * Assertions: message matches invalid pagination.
      */
     @Test
-    @DisplayName("Get Product Reviews In Batches - Start 0 End 0 Zero Page Size - Throws BadRequestException")
-    void getProductReviewsInBatches_ZeroPageSize_ThrowsBadRequestException() {
+    @DisplayName("Get Product Reviews In Batches - Invalid Pagination - Throws BadRequestException")
+    void getProductReviewsInBatchesGivenProductId_InvalidPagination_ThrowsBadRequestException() {
         // Arrange
-        testPaginationRequest.setStart(0);
-        testPaginationRequest.setEnd(0);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> productReviewService.getProductReviewsInBatchesGivenProductId(testPaginationRequest,
-                        TEST_PRODUCT_ID));
-        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, exception.getMessage());
-    }
-
-    /*
-     * Purpose: Verify equal start and end throws BadRequestException.
-     * Expected Result: Exception thrown.
-     * Assertions: message matches invalid pagination.
-     */
-    @Test
-    @DisplayName("Get Product Reviews In Batches - Start 5 End 5 Equal Start End - Throws BadRequestException")
-    void getProductReviewsInBatches_EqualStartEnd_ThrowsBadRequestException() {
-        // Arrange
-        testPaginationRequest.setStart(5);
+        testPaginationRequest.setStart(10);
         testPaginationRequest.setEnd(5);
 
         // Act & Assert
@@ -283,10 +261,29 @@ class GetProductReviewsInBatchesGivenProductIdTest extends ProductReviewServiceT
      */
     @Test
     @DisplayName("Get Product Reviews In Batches - Start 100 End 50 Reversed - Throws BadRequestException")
-    void getProductReviewsInBatches_ReversedPagination_ThrowsBadRequestException() {
+    void getProductReviewsInBatchesGivenProductId_ReversedPagination_ThrowsBadRequestException() {
         // Arrange
         testPaginationRequest.setStart(100);
         testPaginationRequest.setEnd(50);
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> productReviewService.getProductReviewsInBatchesGivenProductId(testPaginationRequest,
+                        TEST_PRODUCT_ID));
+        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, exception.getMessage());
+    }
+
+    /*
+     * Purpose: Verify zero page size throws BadRequestException.
+     * Expected Result: Exception thrown.
+     * Assertions: message matches invalid pagination.
+     */
+    @Test
+    @DisplayName("Get Product Reviews In Batches - Start 0 End 0 Zero Page Size - Throws BadRequestException")
+    void getProductReviewsInBatchesGivenProductId_ZeroPageSize_ThrowsBadRequestException() {
+        // Arrange
+        testPaginationRequest.setStart(0);
+        testPaginationRequest.setEnd(0);
 
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
@@ -310,10 +307,8 @@ class GetProductReviewsInBatchesGivenProductIdTest extends ProductReviewServiceT
     @DisplayName("getProductReviewsInBatchesGivenProductId - Controller Permission - Unauthorized")
     void getProductReviewsInBatchesGivenProductId_controller_permission_unauthorized() {
         // Arrange
-        IProductReviewSubTranslator serviceMock = mock(IProductReviewSubTranslator.class);
-        ProductReviewController controller = new ProductReviewController(serviceMock);
-        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(serviceMock).getProductReviewsInBatchesGivenProductId(any(), anyLong());
+        ProductReviewController controller = new ProductReviewController(productReviewServiceMock);
+        stubProductReviewServiceGetProductReviewsInBatchesGivenProductIdThrowsUnauthorized();
 
         // Act
         ResponseEntity<?> response = controller.getProductReviewsGivenProductId(testPaginationRequest, TEST_PRODUCT_ID);

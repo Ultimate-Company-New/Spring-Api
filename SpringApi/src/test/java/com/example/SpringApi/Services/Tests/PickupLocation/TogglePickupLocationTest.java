@@ -1,7 +1,7 @@
 package com.example.SpringApi.Services.Tests.PickupLocation;
 
 import com.example.SpringApi.Controllers.PickupLocationController;
-import com.example.SpringApi.Services.PickupLocationService;
+import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Toggle Pickup Location Tests")
 class TogglePickupLocationTest extends PickupLocationServiceTestBase {
+    // Total Tests: 15
 
     /*
      **********************************************************************************************
@@ -39,16 +40,20 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Toggle Pickup Location - Multiple Toggles - Success")
     void togglePickupLocation_MultipleToggles_Success() {
+        // Arrange
         testPickupLocation.setIsDeleted(false);
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                .thenReturn(testPickupLocation);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+        stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                testPickupLocation);
+        stubPickupLocationRepositorySave(testPickupLocation);
 
+        // Act
         pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
         assertTrue(testPickupLocation.getIsDeleted());
 
         pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
         assertFalse(testPickupLocation.getIsDeleted());
+
+        // Assert
         verify(pickupLocationRepository, times(2)).save(testPickupLocation);
     }
 
@@ -60,13 +65,16 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Toggle Pickup Location - Restore from Deleted - Success")
     void togglePickupLocation_RestoreFromDeleted_Success() {
+        // Arrange
         testPickupLocation.setIsDeleted(true);
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                .thenReturn(testPickupLocation);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+        stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                testPickupLocation);
+        stubPickupLocationRepositorySave(testPickupLocation);
 
+        // Act
         pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
 
+        // Assert
         assertFalse(testPickupLocation.getIsDeleted());
     }
 
@@ -77,13 +85,16 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Pickup Location - Success")
-    void togglePickupLocation_Success() {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                .thenReturn(testPickupLocation);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+    void togglePickupLocation_Success_Success() {
+        // Arrange
+        stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID,
+                testPickupLocation);
+        stubPickupLocationRepositorySave(testPickupLocation);
 
+        // Act
         pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
 
+        // Assert
         assertTrue(testPickupLocation.getIsDeleted());
         verify(pickupLocationRepository, times(1)).save(testPickupLocation);
     }
@@ -95,6 +106,25 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
      */
 
     /**
+     * Purpose: Test toggle respects client isolation.
+     * Expected Result: Only searches for location in client's data.
+     * Assertions: Repository called with correct client ID.
+     */
+    @Test
+    @DisplayName("Toggle Pickup Location - Client Isolation - Success")
+    void togglePickupLocation_ClientIsolation_Success() {
+        // Arrange
+        stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID, testPickupLocation);
+        stubPickupLocationRepositorySave(testPickupLocation);
+
+        // Act
+        pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+
+        // Assert
+        verify(pickupLocationRepository).findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
+    }
+
+    /**
      * Purpose: Reject toggle attempts for the maximum possible long ID if not
      * found.
      * Expected Result: NotFoundException is thrown.
@@ -103,11 +133,14 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Toggle Pickup Location - Max Long ID - Throws NotFoundException")
     void togglePickupLocation_MaxLongId_ThrowsNotFoundException() {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID))
-                .thenReturn(null);
+        // Arrange
+        stubPickupLocationRepositoryFindByIdAndClientIdNotFound(Long.MAX_VALUE, TEST_CLIENT_ID);
+
+        // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> pickupLocationService.togglePickupLocation(Long.MAX_VALUE));
-        assertNotNull(ex.getMessage());
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, Long.MAX_VALUE),
+                ex.getMessage());
     }
 
     /**
@@ -119,11 +152,14 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Toggle Pickup Location - Min Long ID - Throws NotFoundException")
     void togglePickupLocation_MinLongId_ThrowsNotFoundException() {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID))
-                .thenReturn(null);
+        // Arrange
+        stubPickupLocationRepositoryFindByIdAndClientIdNotFound(Long.MIN_VALUE, TEST_CLIENT_ID);
+
+        // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> pickupLocationService.togglePickupLocation(Long.MIN_VALUE));
-        assertNotNull(ex.getMessage());
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, Long.MIN_VALUE),
+                ex.getMessage());
     }
 
     /**
@@ -134,10 +170,14 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Toggle Pickup Location - Negative ID - Throws NotFoundException")
     void togglePickupLocation_NegativeId_ThrowsNotFoundException() {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(-100L, TEST_CLIENT_ID)).thenReturn(null);
+        // Arrange
+        stubPickupLocationRepositoryFindByIdAndClientIdNotFound(-100L, TEST_CLIENT_ID);
+
+        // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> pickupLocationService.togglePickupLocation(-100L));
-        assertNotNull(ex.getMessage());
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, -100L),
+                ex.getMessage());
     }
 
     /**
@@ -148,24 +188,14 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Toggle Pickup Location - Not Found - Throws NotFoundException")
     void togglePickupLocation_NotFound_ThrowsNotFoundException() {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                .thenReturn(null);
-        assertThrows(NotFoundException.class,
-                () -> pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID));
-    }
+        // Arrange
+        stubPickupLocationRepositoryFindByIdAndClientIdNotFound(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
 
-    /**
-     * Purpose: Reject toggle attempts for a zero ID.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Exception message is not null.
-     */
-    @Test
-    @DisplayName("Toggle Pickup Location - Zero ID - Throws NotFoundException")
-    void togglePickupLocation_ZeroId_ThrowsNotFoundException() {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
+        // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> pickupLocationService.togglePickupLocation(0L));
-        assertNotNull(ex.getMessage());
+                () -> pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID));
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, TEST_PICKUP_LOCATION_ID),
+                ex.getMessage());
     }
 
     /**
@@ -176,57 +206,17 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Toggle Pickup Location - Preserves Other Properties - Success")
     void togglePickupLocation_PreservesOtherProperties_Success() {
-        // ARRANGE
+        // Arrange
         testPickupLocation.setIsDeleted(false);
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                .thenReturn(testPickupLocation);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+        stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID, testPickupLocation);
+        stubPickupLocationRepositorySave(testPickupLocation);
 
-        // ACT
+        // Act
         pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
 
-        // ASSERT
-        verify(pickupLocationRepository).save(argThat(saved -> 
-            saved.getShipRocketPickupLocationId().equals(TEST_SHIPROCKET_ID)));
-    }
-
-    /**
-     * Purpose: Test toggle with very large ID.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Exception message is not null.
-     */
-    @Test
-    @DisplayName("Toggle Pickup Location - Very Large ID - Throws NotFoundException")
-    void togglePickupLocation_VeryLargeId_ThrowsNotFoundException() {
-        // ARRANGE
-        Long largeId = 999999999999L;
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(largeId, TEST_CLIENT_ID))
-                .thenReturn(null);
-
-        // ACT & ASSERT
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> pickupLocationService.togglePickupLocation(largeId));
-        assertNotNull(ex.getMessage());
-    }
-
-    /**
-     * Purpose: Test toggle respects client isolation.
-     * Expected Result: Only searches for location in client's data.
-     * Assertions: Repository called with correct client ID.
-     */
-    @Test
-    @DisplayName("Toggle Pickup Location - Client Isolation - Success")
-    void togglePickupLocation_ClientIsolation_Success() {
-        // ARRANGE
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                .thenReturn(testPickupLocation);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-
-        // ACT
-        pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
-
-        // ASSERT
-        verify(pickupLocationRepository).findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
+        // Assert
+        verify(pickupLocationRepository).save(argThat(saved ->
+                saved.getShipRocketPickupLocationId().equals(TEST_SHIPROCKET_ID)));
     }
 
     /**
@@ -237,20 +227,56 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Toggle Pickup Location - Three Consecutive Toggles - Success")
     void togglePickupLocation_ThreeConsecutiveToggles_Success() {
-        // ARRANGE
+        // Arrange
         testPickupLocation.setIsDeleted(false);
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                .thenReturn(testPickupLocation);
-        when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+        stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID, testPickupLocation);
+        stubPickupLocationRepositorySave(testPickupLocation);
 
-        // ACT - Toggle 3 times: false -> true -> false -> true
+        // Act - Toggle 3 times: false -> true -> false -> true
         pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
         pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
         pickupLocationService.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
 
-        // ASSERT
+        // Assert
         verify(pickupLocationRepository, times(3)).save(testPickupLocation);
         assertTrue(testPickupLocation.getIsDeleted());
+    }
+
+    /**
+     * Purpose: Test toggle with very large ID.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message is not null.
+     */
+    @Test
+    @DisplayName("Toggle Pickup Location - Very Large ID - Throws NotFoundException")
+    void togglePickupLocation_VeryLargeId_ThrowsNotFoundException() {
+        // Arrange
+        Long largeId = 999999999999L;
+        stubPickupLocationRepositoryFindByIdAndClientIdNotFound(largeId, TEST_CLIENT_ID);
+
+        // Act & Assert
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> pickupLocationService.togglePickupLocation(largeId));
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, largeId),
+                ex.getMessage());
+    }
+
+    /**
+     * Purpose: Reject toggle attempts for a zero ID.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message is not null.
+     */
+    @Test
+    @DisplayName("Toggle Pickup Location - Zero ID - Throws NotFoundException")
+    void togglePickupLocation_ZeroId_ThrowsNotFoundException() {
+        // Arrange
+        stubPickupLocationRepositoryFindByIdAndClientIdNotFound(0L, TEST_CLIENT_ID);
+
+        // Act & Assert
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> pickupLocationService.togglePickupLocation(0L));
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, 0L),
+                ex.getMessage());
     }
 
     /*
@@ -259,45 +285,62 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
      **********************************************************************************************
      */
 
-        /**
-         * Purpose: Verify unauthorized access is blocked at the controller level.
-         * Expected Result: Unauthorized status is returned.
-         * Assertions: Response status is 401 UNAUTHORIZED.
-         */
-        @Test
-        @DisplayName("togglePickupLocation - Controller Permission - Unauthorized")
-        void togglePickupLocation_controller_permission_unauthorized() {
-                // ARRANGE
-                PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
-                stubPickupLocationServiceThrowsUnauthorizedOnToggle();
+    /**
+     * Purpose: Verify unauthorized access is blocked at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("togglePickupLocation - Controller Permission - Unauthorized")
+    void togglePickupLocation_controller_permission_unauthorized() {
+        // Arrange
+        PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
+        stubPickupLocationServiceThrowsUnauthorizedOnToggle();
 
-                // ACT
-                ResponseEntity<?> response = controller.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+        // Act
+        ResponseEntity<?> response = controller.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
 
-                // ASSERT
-                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        }
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
 
+    /**
+     * Purpose: Verify @PreAuthorize annotation on togglePickupLocation endpoint.
+     * Expected Result: Annotation exists and references DELETE_PICKUP_LOCATIONS_PERMISSION.
+     * Assertions: Annotation is present and contains permission.
+     */
     @Test
     @DisplayName("togglePickupLocation - Verify @PreAuthorize Annotation")
-    void togglePickupLocation_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void togglePickupLocation_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        // Arrange
         Method method = PickupLocationController.class.getMethod("togglePickupLocation", Long.class);
+
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
         assertNotNull(annotation, "@PreAuthorize annotation should be present on togglePickupLocation");
         assertTrue(annotation.value().contains(Authorizations.DELETE_PICKUP_LOCATIONS_PERMISSION),
                 "@PreAuthorize should reference DELETE_PICKUP_LOCATIONS_PERMISSION");
     }
 
+    /**
+     * Purpose: Verify controller delegates togglePickupLocation to service.
+     * Expected Result: Service method called and HTTP 200 returned.
+     * Assertions: Delegation occurs and response is OK.
+     */
     @Test
     @DisplayName("togglePickupLocation - Controller delegates to service")
     void togglePickupLocation_WithValidId_DelegatesToService() {
-        PickupLocationService mockService = mock(PickupLocationService.class);
-        PickupLocationController controller = new PickupLocationController(mockService);
-        doNothing().when(mockService).togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+        // Arrange
+        PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
+        stubPickupLocationServiceTogglePickupLocationDoNothing();
 
+        // Act
         ResponseEntity<?> response = controller.togglePickupLocation(TEST_PICKUP_LOCATION_ID);
 
-        verify(mockService).togglePickupLocation(TEST_PICKUP_LOCATION_ID);
+        // Assert
+        verify(pickupLocationServiceMock).togglePickupLocation(TEST_PICKUP_LOCATION_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

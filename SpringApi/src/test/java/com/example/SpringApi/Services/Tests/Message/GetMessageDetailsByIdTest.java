@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("GetMessageDetailsById Tests")
 public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
 
-        // Total Tests: 11
+        // Total Tests: 12
 
         /*
          **********************************************************************************************

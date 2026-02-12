@@ -2,7 +2,6 @@ package com.example.SpringApi.Services.Tests.Product;
 
 import com.example.SpringApi.Controllers.ProductController;
 import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.Authorizations;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,27 +9,30 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import com.example.SpringApi.Services.ProductService;
 import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 
 /**
  * Consolidated test class for ProductService.toggleReturnProduct.
  * Fully compliant with Unit Test Verification rules.
  */
-// Total Tests: 8
 @DisplayName("ProductService - ToggleReturnProduct Tests")
 class ToggleReturnProductTest extends ProductServiceTestBase {
-
-    // ==========================================
-    // SECTION 1: SUCCESS TESTS
-    // ==========================================
+    // Total Tests: 8
 
     /*
-     * Purpose: Verify toggle from 30 to 0 (disable returns)
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify toggle from 30 to 0 (disable returns).
+     * Expected Result: Return window set to 0.
+     * Assertions: returnWindowDays is 0 and repository save called.
      */
     @Test
     @DisplayName("toggleReturnProduct - From 30 to 0 - Success")
@@ -49,8 +51,30 @@ class ToggleReturnProductTest extends ProductServiceTestBase {
         verify(userLogService).logData(eq(1L), anyString(), anyString());
     }
 
-    /*
-     * Purpose: Verify toggle from 0 to 30 (enable returns)
+    /**
+     * Purpose: Verify toggle from null to 30.
+     * Expected Result: Return window set to 30.
+     * Assertions: returnWindowDays is 30.
+     */
+    @Test
+    @DisplayName("toggleReturnProduct - From null to 30 - Success")
+    void toggleReturnProduct_EnableFromNull_Success() {
+        // Arrange
+        testProduct.setReturnWindowDays(null);
+        stubProductRepositoryFindByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID, testProduct);
+        stubProductRepositorySave(testProduct);
+
+        // Act
+        assertDoesNotThrow(() -> productService.toggleReturnProduct(TEST_PRODUCT_ID));
+
+        // Assert
+        assertEquals(30, testProduct.getReturnWindowDays());
+    }
+
+    /**
+     * Purpose: Verify toggle from 0 to 30 (enable returns).
+     * Expected Result: Return window set to 30.
+     * Assertions: returnWindowDays is 30 and repository save called.
      */
     @Test
     @DisplayName("toggleReturnProduct - From 0 to 30 - Success")
@@ -69,29 +93,32 @@ class ToggleReturnProductTest extends ProductServiceTestBase {
     }
 
     /*
-     * Purpose: Verify toggle from null to 30
+     **********************************************************************************************
+     * FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify failure with ID zero.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message matches ErrorMessages constant.
      */
     @Test
-    @DisplayName("toggleReturnProduct - From null to 30 - Success")
-    void toggleReturnProduct_EnableFromNull_Success() {
+    @DisplayName("toggleReturnProduct - ID zero - Throws NotFound")
+    void toggleReturnProduct_IdZero_ThrowsNotFound() {
         // Arrange
-        testProduct.setReturnWindowDays(null);
-        stubProductRepositoryFindByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID, testProduct);
-        stubProductRepositorySave(testProduct);
+        long id = 0L;
+        stubProductRepositoryFindByIdWithRelatedEntities(id, TEST_CLIENT_ID, null);
 
-        // Act
-        assertDoesNotThrow(() -> productService.toggleReturnProduct(TEST_PRODUCT_ID));
-
-        // Assert
-        assertEquals(30, testProduct.getReturnWindowDays());
+        // Act & Assert
+        assertThrowsNotFound(String.format(ErrorMessages.ProductErrorMessages.ER013, id),
+                () -> productService.toggleReturnProduct(id));
     }
 
-    // ==========================================
-    // SECTION 2: FAILURE TESTS
-    // ==========================================
-
-    /*
-     * Purpose: Verify failure when product not found
+    /**
+     * Purpose: Verify failure when product not found.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Exception message matches ErrorMessages constant.
      */
     @Test
     @DisplayName("toggleReturnProduct - Product not found - Throws NotFound")
@@ -100,65 +127,72 @@ class ToggleReturnProductTest extends ProductServiceTestBase {
         stubProductRepositoryFindByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID, null);
 
         // Act & Assert
-        assertThrows(NotFoundException.class, () -> productService.toggleReturnProduct(TEST_PRODUCT_ID));
+        assertThrowsNotFound(String.format(ErrorMessages.ProductErrorMessages.ER013, TEST_PRODUCT_ID),
+                () -> productService.toggleReturnProduct(TEST_PRODUCT_ID));
     }
 
     /*
-     * Purpose: Verify failure with invalid ID 0
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify unauthorized access is blocked at controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
      */
     @Test
-    @DisplayName("toggleReturnProduct - ID zero - Throws NotFound")
-    void toggleReturnProduct_IdZero_ThrowsNotFound() {
+    @DisplayName("toggleReturnProduct - Controller permission unauthorized - Success")
+    void toggleReturnProduct_controller_permission_unauthorized() {
         // Arrange
-        stubProductRepositoryFindByIdWithRelatedEntities(0L, TEST_CLIENT_ID, null);
-
-        // Act & Assert
-        assertThrows(NotFoundException.class, () -> productService.toggleReturnProduct(0L));
-    }
-
-    // ==========================================
-    // SECTION 3: PERMISSION / DELEGATION
-    // ==========================================
-
-    @Test
-    @DisplayName("toggleReturnProduct - Verify @PreAuthorize annotation")
-    void toggleReturnProduct_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        Method method = ProductController.class.getMethod("toggleReturnProduct", long.class);
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.TOGGLE_PRODUCT_RETURNS_PERMISSION));
-    }
-
-    @Test
-    @DisplayName("toggleReturnProduct - Controller delegation check")
-    void toggleReturnProduct_ControllerDelegation_Success() {
-        // Arrange
-        ProductService mockService = mock(ProductService.class);
-        ProductController controller = new ProductController(mockService);
-        doNothing().when(mockService).toggleReturnProduct(TEST_PRODUCT_ID);
-
-        // Act
-        ResponseEntity<?> response = controller.toggleReturnProduct(TEST_PRODUCT_ID);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(mockService).toggleReturnProduct(TEST_PRODUCT_ID);
-    }
-
-    @Test
-    @DisplayName("toggleReturnProduct - No permission - Unauthorized")
-    void toggleReturnProduct_NoPermission_Unauthorized() {
-        // Arrange
-        ProductService mockService = mock(ProductService.class);
-        ProductController controller = new ProductController(mockService);
-        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(mockService).toggleReturnProduct(TEST_PRODUCT_ID);
+        ProductController controller = new ProductController(productServiceMock);
+        stubProductServiceToggleReturnProductThrowsUnauthorized();
 
         // Act
         ResponseEntity<?> response = controller.toggleReturnProduct(TEST_PRODUCT_ID);
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verify(mockService).toggleReturnProduct(TEST_PRODUCT_ID);
+        verify(productServiceMock).toggleReturnProduct(anyLong());
+    }
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation exists.
+     * Expected Result: Annotation includes required permission.
+     * Assertions: Annotation is present and contains TOGGLE_PRODUCT_RETURNS_PERMISSION.
+     */
+    @Test
+    @DisplayName("toggleReturnProduct - Verify @PreAuthorize annotation - Success")
+    void toggleReturnProduct_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        // Arrange
+        Method method = ProductController.class.getMethod("toggleReturnProduct", long.class);
+
+        // Act
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
+        assertNotNull(annotation);
+        assertTrue(annotation.value().contains(Authorizations.TOGGLE_PRODUCT_RETURNS_PERMISSION));
+    }
+
+    /**
+     * Purpose: Verify controller delegation to service.
+     * Expected Result: OK status returned.
+     * Assertions: Service method invoked and response is OK.
+     */
+    @Test
+    @DisplayName("toggleReturnProduct - Controller delegation check - Success")
+    void toggleReturnProduct_ControllerDelegation_Success() {
+        // Arrange
+        ProductController controller = new ProductController(productServiceMock);
+        stubProductServiceToggleReturnProductDoNothing();
+
+        // Act
+        ResponseEntity<?> response = controller.toggleReturnProduct(TEST_PRODUCT_ID);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(productServiceMock).toggleReturnProduct(TEST_PRODUCT_ID);
     }
 }

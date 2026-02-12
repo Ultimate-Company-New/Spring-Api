@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for QAService.getTestExecutionStatus() method.
  * 
- * Total Tests: 15
+ * Total Tests: 16
  * 
  * Test Coverage:
  * - Success scenarios (5 tests)
@@ -21,39 +21,19 @@ import static org.junit.jupiter.api.Assertions.*;
  * - Edge cases (5 tests)
  */
 @ExtendWith(MockitoExtension.class)
-class GetTestExecutionStatusTest extends QAServiceBaseTest {
+class GetTestExecutionStatusTest extends QAServiceTestBase {
+    // Total Tests: 16
 
-    // ==================== SUCCESS TESTS ====================
-
-    @Test
-    @DisplayName("Valid execution ID returns status")
-    void getTestExecutionStatus_validId_returnsStatus() {
-        // Note: This test requires the execution to be started first
-        // For now, we'll test the error case since we can't easily mock the internal
-        // status map
-        // In a real scenario, you'd start an execution first, then get its status
-
-        // Arrange - using a non-existent ID to test the not found case
-        String validExecutionId = UUID.randomUUID().toString();
-
-        // Act & Assert
-        assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(validExecutionId);
-        });
-    }
-
-    @Test
-    void getTestExecutionStatus_runningStatus_returnsProgressSnapshot() {
-        // Arrange - This would require starting an execution first
-        // For testing purposes, we'll verify the structure
-        String executionId = java.util.UUID.randomUUID().toString();
-
-        // Act & Assert
-        assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(executionId);
-        });
-    }
-
+    /*
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     @DisplayName("Completed execution returns completed status")
     void getTestExecutionStatus_completedExecution_returnsCompletedStatus() {
@@ -66,6 +46,11 @@ class GetTestExecutionStatusTest extends QAServiceBaseTest {
         });
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getTestExecutionStatus_failedStatus_returnsFailedStatus() {
         // Arrange
@@ -77,83 +62,11 @@ class GetTestExecutionStatusTest extends QAServiceBaseTest {
         });
     }
 
-    @Test
-    void getTestExecutionStatus_statusWithResults_includesResults() {
-        // Arrange
-        String executionId = java.util.UUID.randomUUID().toString();
-
-        // Act & Assert
-        assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(executionId);
-        });
-    }
-
-    // ==================== FAILURE TESTS ====================
-
-    @Test
-    void getTestExecutionStatus_nullId_throwsNotFoundException() {
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(null);
-        });
-
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, "null");
-        assertEquals(expectedMessage, exception.getMessage());
-    }
-
-    @Test
-    void getTestExecutionStatus_emptyId_throwsNotFoundException() {
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus("");
-        });
-
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, "");
-        assertEquals(expectedMessage, exception.getMessage());
-    }
-
-    @Test
-    void getTestExecutionStatus_whitespaceId_throwsNotFoundException() {
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus("   ");
-        });
-
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, "   ");
-        assertEquals(expectedMessage, exception.getMessage());
-    }
-
-    @Test
-    void getTestExecutionStatus_nonExistentId_throwsNotFoundException() {
-        // Arrange
-        String nonExistentId = java.util.UUID.randomUUID().toString();
-
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(nonExistentId);
-        });
-
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat,
-                nonExistentId);
-        assertEquals(expectedMessage, exception.getMessage());
-    }
-
-    @Test
-    void getTestExecutionStatus_exceptionMessage_usesErrorConstant() {
-        // Arrange
-        String executionId = "test-id";
-
-        // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(executionId);
-        });
-
-        // Verify the exception message uses the format from ErrorMessages
-        assertTrue(exception.getMessage().contains(executionId));
-    }
-
-    // ==================== EDGE CASES ====================
-
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getTestExecutionStatus_multipleInvocations_returnsSameStatus() {
         // Arrange
@@ -171,34 +84,87 @@ class GetTestExecutionStatusTest extends QAServiceBaseTest {
         assertEquals(exception1.getMessage(), exception2.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void getTestExecutionStatus_statusNotFound_throwsNotFoundException() {
-        // Arrange
-        String executionId = "unknown-execution-id";
+    void getTestExecutionStatus_runningStatus_returnsProgressSnapshot() {
+        // Arrange - This would require starting an execution first
+        // For testing purposes, we'll verify the structure
+        String executionId = java.util.UUID.randomUUID().toString();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+        assertThrows(NotFoundException.class, () -> {
             qaService.getTestExecutionStatus(executionId);
         });
-
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, executionId);
-        assertEquals(expectedMessage, exception.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void getTestExecutionStatus_invalidUuidFormat_throwsNotFoundException() {
+    void getTestExecutionStatus_specialCharactersInId_handlesCorrectly() {
         // Arrange
-        String invalidId = "not-a-valid-uuid";
+        String specialId = "exec-id-!@#$%^&*()";
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(invalidId);
+            qaService.getTestExecutionStatus(specialId);
         });
 
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, invalidId);
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, specialId);
         assertEquals(expectedMessage, exception.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void getTestExecutionStatus_statusWithResults_includesResults() {
+        // Arrange
+        String executionId = java.util.UUID.randomUUID().toString();
+
+        // Act & Assert
+        assertThrows(NotFoundException.class, () -> {
+            qaService.getTestExecutionStatus(executionId);
+        });
+    }
+
+    // ==================== FAILURE TESTS ====================
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    @DisplayName("Valid execution ID returns status")
+    void getTestExecutionStatus_validId_returnsStatus() {
+        // Note: This test requires the execution to be started first
+        // For now, we'll test the error case since we can't easily mock the internal
+        // status map
+        // In a real scenario, you'd start an execution first, then get its status
+
+        // Arrange - using a non-existent ID to test the not found case
+        String validExecutionId = UUID.randomUUID().toString();
+
+        // Act & Assert
+        assertThrows(NotFoundException.class, () -> {
+            qaService.getTestExecutionStatus(validExecutionId);
+        });
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void getTestExecutionStatus_veryLongId_handlesCorrectly() {
         // Arrange
@@ -213,17 +179,164 @@ class GetTestExecutionStatusTest extends QAServiceBaseTest {
         assertTrue(exception.getMessage().contains(longId));
     }
 
+    /*
+     **********************************************************************************************
+     * FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
+     */
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void getTestExecutionStatus_specialCharactersInId_handlesCorrectly() {
+    void getTestExecutionStatus_emptyId_throwsNotFoundException() {
         // Arrange
-        String specialId = "exec-id-!@#$%^&*()";
 
         // Act & Assert
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(specialId);
+            qaService.getTestExecutionStatus("");
         });
 
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, specialId);
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, "");
         assertEquals(expectedMessage, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void getTestExecutionStatus_exceptionMessage_usesErrorConstant() {
+        // Arrange
+        String executionId = "test-id";
+
+        // Act & Assert
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            qaService.getTestExecutionStatus(executionId);
+        });
+
+        // Verify the exception message uses the format from ErrorMessages
+        assertTrue(exception.getMessage().contains(executionId));
+    }
+
+    // ==================== EDGE CASES ====================
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void getTestExecutionStatus_invalidUuidFormat_throwsNotFoundException() {
+        // Arrange
+        String invalidId = "not-a-valid-uuid";
+
+        // Act & Assert
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            qaService.getTestExecutionStatus(invalidId);
+        });
+
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, invalidId);
+        assertEquals(expectedMessage, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void getTestExecutionStatus_nonExistentId_throwsNotFoundException() {
+        // Arrange
+        String nonExistentId = java.util.UUID.randomUUID().toString();
+
+        // Act & Assert
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            qaService.getTestExecutionStatus(nonExistentId);
+        });
+
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat,
+                nonExistentId);
+        assertEquals(expectedMessage, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void getTestExecutionStatus_nullId_throwsNotFoundException() {
+        // Arrange
+
+        // Act & Assert
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            qaService.getTestExecutionStatus(null);
+        });
+
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, "null");
+        assertEquals(expectedMessage, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void getTestExecutionStatus_statusNotFound_throwsNotFoundException() {
+        // Arrange
+        String executionId = "unknown-execution-id";
+
+        // Act & Assert
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            qaService.getTestExecutionStatus(executionId);
+        });
+
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, executionId);
+        assertEquals(expectedMessage, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void getTestExecutionStatus_whitespaceId_throwsNotFoundException() {
+        // Arrange
+
+        // Act & Assert
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            qaService.getTestExecutionStatus("   ");
+        });
+
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, "   ");
+        assertEquals(expectedMessage, exception.getMessage());
+    }
+
+    /*
+     **********************************************************************************************
+     * PERMISSION TESTS
+     **********************************************************************************************
+     */
+    /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    void getTestExecutionStatus_controller_permission_unauthorized() {
+        // Arrange
+        com.example.SpringApi.Controllers.QAController controller = new com.example.SpringApi.Controllers.QAController(qaSubTranslator);
+        stubQaTranslatorGetTestExecutionStatusThrowsUnauthorized();
+
+        // Act
+        org.springframework.http.ResponseEntity<?> response = controller.getTestExecutionStatus("execution-id");
+
+        // Assert
+        org.junit.jupiter.api.Assertions.assertEquals(org.springframework.http.HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }

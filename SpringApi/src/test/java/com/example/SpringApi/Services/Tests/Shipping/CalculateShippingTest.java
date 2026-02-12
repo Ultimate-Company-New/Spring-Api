@@ -34,22 +34,47 @@ class CalculateShippingTest extends ShippingServiceTestBase {
      */
 
     /**
-     * Purpose: Verify null pickup locations returns empty response.
-     * Expected Result: Response contains empty location options.
-     * Assertions: locationOptions is empty.
+     * Purpose: Verify COD flag true still returns response.
+     * Expected Result: Response returned without error.
+     * Assertions: locationOptions size is 1.
      */
     @Test
-    @DisplayName("calculateShipping - Null Pickup Locations - Returns Empty Response")
-    void calculateShipping_NullPickupLocations_ReturnsEmptyResponse() {
+    @DisplayName("calculateShipping - COD True - Success")
+    void calculateShipping_CodTrue_Success() {
         // Arrange
-        shippingRequest.setPickupLocations(null);
+        shippingRequest.setIsCod(true);
+        stubClientServiceGetClientById(testClientResponse);
+        stubShipRocketHelperGetAvailableShippingOptions(createShippingOptions(25.0));
 
         // Act
         ShippingCalculationResponseModel result = shippingService.calculateShipping(shippingRequest);
 
         // Assert
         assertNotNull(result);
-        assertTrue(result.getLocationOptions().isEmpty());
+        assertEquals(1, result.getLocationOptions().size());
+    }
+
+    /**
+     * Purpose: Verify empty couriers list results in no selected courier.
+     * Expected Result: Selected courier is null.
+     * Assertions: selected courier is null.
+     */
+    @Test
+    @DisplayName("calculateShipping - Empty Couriers - No Selection")
+    void calculateShipping_EmptyCouriers_NoSelection() {
+        // Arrange
+        stubClientServiceGetClientById(testClientResponse);
+        ShippingOptionsResponseModel response = new ShippingOptionsResponseModel();
+        response.data = new ShippingOptionsResponseModel.Data();
+        response.data.available_courier_companies = new ArrayList<>();
+        stubShipRocketHelperGetAvailableShippingOptions(response);
+
+        // Act
+        ShippingCalculationResponseModel result = shippingService.calculateShipping(shippingRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertNull(result.getLocationOptions().get(0).getSelectedCourier());
     }
 
     /**
@@ -69,6 +94,138 @@ class CalculateShippingTest extends ShippingServiceTestBase {
         // Assert
         assertNotNull(result);
         assertTrue(result.getLocationOptions().isEmpty());
+    }
+
+    /**
+     * Purpose: Verify helper exception does not break processing.
+     * Expected Result: Response still contains location options.
+     * Assertions: locationOptions size is 1.
+     */
+    @Test
+    @DisplayName("calculateShipping - Helper Throws - Continues")
+    void calculateShipping_HelperThrows_Continues() {
+        // Arrange
+        stubClientServiceGetClientById(testClientResponse);
+        stubShipRocketHelperGetAvailableShippingOptionsThrows(
+                new RuntimeException(ErrorMessages.CommonErrorMessages.CriticalFailure));
+
+        // Act
+        ShippingCalculationResponseModel result = shippingService.calculateShipping(shippingRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getLocationOptions().size());
+    }
+
+    /**
+     * Purpose: Verify totalShippingCost sums selected couriers for multiple locations.
+     * Expected Result: Total cost equals sum of selected courier rates.
+     * Assertions: Total cost matches expected.
+     */
+    @Test
+    @DisplayName("calculateShipping - Multiple Locations - Total Cost Sum")
+    void calculateShipping_MultipleLocations_TotalCostSum() {
+        // Arrange
+        ShippingCalculationRequestModel.PickupLocationShipment second = new ShippingCalculationRequestModel.PickupLocationShipment();
+        second.setPickupLocationId(999L);
+        second.setPickupPostcode("400003");
+        second.setTotalWeightKgs(new BigDecimal("2.0"));
+        second.setTotalQuantity(1);
+        second.setLocationName("WH2");
+        second.setProductIds(List.of(TEST_PRODUCT_ID));
+        shippingRequest.setPickupLocations(List.of(shippingRequest.getPickupLocations().get(0), second));
+        stubClientServiceGetClientById(testClientResponse);
+        stubShipRocketHelperGetAvailableShippingOptions(createShippingOptions(10.0));
+
+        // Act
+        ShippingCalculationResponseModel result = shippingService.calculateShipping(shippingRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(new BigDecimal("20.0"), result.getTotalShippingCost());
+    }
+
+    /**
+     * Purpose: Verify null couriers list results in no selected courier.
+     * Expected Result: Selected courier is null.
+     * Assertions: selected courier is null.
+     */
+    @Test
+    @DisplayName("calculateShipping - Null Couriers - No Selection")
+    void calculateShipping_NullCouriers_NoSelection() {
+        // Arrange
+        stubClientServiceGetClientById(testClientResponse);
+        ShippingOptionsResponseModel response = new ShippingOptionsResponseModel();
+        response.data = new ShippingOptionsResponseModel.Data();
+        response.data.available_courier_companies = null;
+        stubShipRocketHelperGetAvailableShippingOptions(response);
+
+        // Act
+        ShippingCalculationResponseModel result = shippingService.calculateShipping(shippingRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertNull(result.getLocationOptions().get(0).getSelectedCourier());
+    }
+
+    /**
+     * Purpose: Verify null delivery postcode still returns response.
+     * Expected Result: Response returned without error.
+     * Assertions: locationOptions size is 1.
+     */
+    @Test
+    @DisplayName("calculateShipping - Null Delivery Postcode - Success")
+    void calculateShipping_NullDeliveryPostcode_Success() {
+        // Arrange
+        shippingRequest.setDeliveryPostcode(null);
+        stubClientServiceGetClientById(testClientResponse);
+        stubShipRocketHelperGetAvailableShippingOptions(createShippingOptions(30.0));
+
+        // Act
+        ShippingCalculationResponseModel result = shippingService.calculateShipping(shippingRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getLocationOptions().size());
+    }
+
+    /**
+     * Purpose: Verify null pickup locations returns empty response.
+     * Expected Result: Response contains empty location options.
+     * Assertions: locationOptions is empty.
+     */
+    @Test
+    @DisplayName("calculateShipping - Null Pickup Locations - Returns Empty Response")
+    void calculateShipping_NullPickupLocations_ReturnsEmptyResponse() {
+        // Arrange
+        shippingRequest.setPickupLocations(null);
+
+        // Act
+        ShippingCalculationResponseModel result = shippingService.calculateShipping(shippingRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.getLocationOptions().isEmpty());
+    }
+
+    /**
+     * Purpose: Verify selected courier is set to cheapest option.
+     * Expected Result: Selected courier rate equals lowest rate.
+     * Assertions: Selected courier rate is lowest.
+     */
+    @Test
+    @DisplayName("calculateShipping - Select Cheapest Courier - Success")
+    void calculateShipping_SelectCheapestCourier_Success() {
+        // Arrange
+        stubClientServiceGetClientById(testClientResponse);
+        stubShipRocketHelperGetAvailableShippingOptions(createShippingOptions(80.0, 20.0, 50.0));
+
+        // Act
+        ShippingCalculationResponseModel result = shippingService.calculateShipping(shippingRequest);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(new BigDecimal("20.0"), result.getLocationOptions().get(0).getSelectedCourier().getRate());
     }
 
     /**
@@ -112,162 +269,6 @@ class CalculateShippingTest extends ShippingServiceTestBase {
         assertEquals(1, result.getLocationOptions().size());
     }
 
-    /**
-     * Purpose: Verify selected courier is set to cheapest option.
-     * Expected Result: Selected courier rate equals lowest rate.
-     * Assertions: Selected courier rate is lowest.
-     */
-    @Test
-    @DisplayName("calculateShipping - Select Cheapest Courier - Success")
-    void calculateShipping_SelectCheapestCourier_Success() {
-        // Arrange
-        stubClientServiceGetClientById(testClientResponse);
-        stubShipRocketHelperGetAvailableShippingOptions(createShippingOptions(80.0, 20.0, 50.0));
-
-        // Act
-        ShippingCalculationResponseModel result = shippingService.calculateShipping(shippingRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(new BigDecimal("20.0"), result.getLocationOptions().get(0).getSelectedCourier().getRate());
-    }
-
-    /**
-     * Purpose: Verify totalShippingCost sums selected couriers for multiple locations.
-     * Expected Result: Total cost equals sum of selected courier rates.
-     * Assertions: Total cost matches expected.
-     */
-    @Test
-    @DisplayName("calculateShipping - Multiple Locations - Total Cost Sum")
-    void calculateShipping_MultipleLocations_TotalCostSum() {
-        // Arrange
-        ShippingCalculationRequestModel.PickupLocationShipment second = new ShippingCalculationRequestModel.PickupLocationShipment();
-        second.setPickupLocationId(999L);
-        second.setPickupPostcode("400003");
-        second.setTotalWeightKgs(new BigDecimal("2.0"));
-        second.setTotalQuantity(1);
-        second.setLocationName("WH2");
-        second.setProductIds(List.of(TEST_PRODUCT_ID));
-        shippingRequest.setPickupLocations(List.of(shippingRequest.getPickupLocations().get(0), second));
-        stubClientServiceGetClientById(testClientResponse);
-        stubShipRocketHelperGetAvailableShippingOptions(createShippingOptions(10.0));
-
-        // Act
-        ShippingCalculationResponseModel result = shippingService.calculateShipping(shippingRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(new BigDecimal("20.0"), result.getTotalShippingCost());
-    }
-
-    /**
-     * Purpose: Verify helper exception does not break processing.
-     * Expected Result: Response still contains location options.
-     * Assertions: locationOptions size is 1.
-     */
-    @Test
-    @DisplayName("calculateShipping - Helper Throws - Continues")
-    void calculateShipping_HelperThrows_Continues() {
-        // Arrange
-        stubClientServiceGetClientById(testClientResponse);
-        stubShipRocketHelperGetAvailableShippingOptionsThrows(new RuntimeException("boom"));
-
-        // Act
-        ShippingCalculationResponseModel result = shippingService.calculateShipping(shippingRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getLocationOptions().size());
-    }
-
-    /**
-     * Purpose: Verify null couriers list results in no selected courier.
-     * Expected Result: Selected courier is null.
-     * Assertions: selected courier is null.
-     */
-    @Test
-    @DisplayName("calculateShipping - Null Couriers - No Selection")
-    void calculateShipping_NullCouriers_NoSelection() {
-        // Arrange
-        stubClientServiceGetClientById(testClientResponse);
-        ShippingOptionsResponseModel response = new ShippingOptionsResponseModel();
-        response.data = new ShippingOptionsResponseModel.Data();
-        response.data.available_courier_companies = null;
-        stubShipRocketHelperGetAvailableShippingOptions(response);
-
-        // Act
-        ShippingCalculationResponseModel result = shippingService.calculateShipping(shippingRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertNull(result.getLocationOptions().get(0).getSelectedCourier());
-    }
-
-    /**
-     * Purpose: Verify empty couriers list results in no selected courier.
-     * Expected Result: Selected courier is null.
-     * Assertions: selected courier is null.
-     */
-    @Test
-    @DisplayName("calculateShipping - Empty Couriers - No Selection")
-    void calculateShipping_EmptyCouriers_NoSelection() {
-        // Arrange
-        stubClientServiceGetClientById(testClientResponse);
-        ShippingOptionsResponseModel response = new ShippingOptionsResponseModel();
-        response.data = new ShippingOptionsResponseModel.Data();
-        response.data.available_courier_companies = new ArrayList<>();
-        stubShipRocketHelperGetAvailableShippingOptions(response);
-
-        // Act
-        ShippingCalculationResponseModel result = shippingService.calculateShipping(shippingRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertNull(result.getLocationOptions().get(0).getSelectedCourier());
-    }
-
-    /**
-     * Purpose: Verify COD flag true still returns response.
-     * Expected Result: Response returned without error.
-     * Assertions: locationOptions size is 1.
-     */
-    @Test
-    @DisplayName("calculateShipping - COD True - Success")
-    void calculateShipping_CodTrue_Success() {
-        // Arrange
-        shippingRequest.setIsCod(true);
-        stubClientServiceGetClientById(testClientResponse);
-        stubShipRocketHelperGetAvailableShippingOptions(createShippingOptions(25.0));
-
-        // Act
-        ShippingCalculationResponseModel result = shippingService.calculateShipping(shippingRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getLocationOptions().size());
-    }
-
-    /**
-     * Purpose: Verify null delivery postcode still returns response.
-     * Expected Result: Response returned without error.
-     * Assertions: locationOptions size is 1.
-     */
-    @Test
-    @DisplayName("calculateShipping - Null Delivery Postcode - Success")
-    void calculateShipping_NullDeliveryPostcode_Success() {
-        // Arrange
-        shippingRequest.setDeliveryPostcode(null);
-        stubClientServiceGetClientById(testClientResponse);
-        stubShipRocketHelperGetAvailableShippingOptions(createShippingOptions(30.0));
-
-        // Act
-        ShippingCalculationResponseModel result = shippingService.calculateShipping(shippingRequest);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getLocationOptions().size());
-    }
-
     /*
      **********************************************************************************************
      * FAILURE TESTS
@@ -282,8 +283,15 @@ class CalculateShippingTest extends ShippingServiceTestBase {
     @Test
     @DisplayName("calculateShipping - Null Request - Throws Exception")
     void calculateShipping_NullRequest_ThrowsException() {
-        // Act & Assert
-        assertThrows(NullPointerException.class, () -> shippingService.calculateShipping(null));
+        // Arrange
+        ShippingCalculationRequestModel request = null;
+
+        // Act
+        NullPointerException ex = assertThrows(NullPointerException.class,
+                () -> shippingService.calculateShipping(request));
+
+        // Assert
+        assertEquals(ErrorMessages.ShippingErrorMessages.NullShippingCalculationRequest, ex.getMessage());
     }
 
     /*

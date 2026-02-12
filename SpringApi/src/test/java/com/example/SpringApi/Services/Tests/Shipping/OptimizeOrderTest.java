@@ -32,34 +32,7 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
      * SUCCESS TESTS
      **********************************************************************************************
      */
-
-    /**
-     * Purpose: Verify optimization succeeds with valid request.
-     * Expected Result: Response success is true.
-     * Assertions: success flag true.
-     */
-    @Test
-    @DisplayName("optimizeOrder - Valid Request - Success")
-    void optimizeOrder_ValidRequest_Success() {
-        // Arrange
-        stubClientServiceGetClientById(testClientResponse);
-        stubProductRepositoryFindAllById(List.of(testProduct));
-        ProductPickupLocationMapping mapping = createProductPickupLocationMapping(TEST_PRODUCT_ID, TEST_PICKUP_LOCATION_ID, 10);
-        stubProductPickupLocationMappingRepositoryFindByProductIdWithPickupLocationAndAddress(List.of(mapping));
-        stubPackagePickupLocationMappingRepositoryFindByPickupLocationIdsWithPackages(
-                List.of(createPackagePickupLocationMapping(TEST_PACKAGE_ID, TEST_PICKUP_LOCATION_ID, 10)));
-        stubPackagingHelperCalculatePackaging(createPackagingEstimateResult(2, 2));
-        stubPackagingHelperCalculatePackagingForMultipleProducts(createMultiProductPackagingResult());
-        stubShipRocketHelperGetAvailableShippingOptions(createShippingOptions(10.0));
-
-        // Act
-        OrderOptimizationResponseModel result = shippingService.optimizeOrder(optimizationRequest);
-
-        // Assert
-        assertTrue(result.getSuccess());
-    }
-
-    /**
+/**
      * Purpose: Verify optimization succeeds with custom allocations.
      * Expected Result: Response success is true.
      * Assertions: success flag true.
@@ -87,71 +60,37 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
         // Assert
         assertTrue(result.getSuccess());
     }
+/**
+     * Purpose: Verify optimization succeeds with valid request.
+     * Expected Result: Response success is true.
+     * Assertions: success flag true.
+     */
+    @Test
+    @DisplayName("optimizeOrder - Valid Request - Success")
+    void optimizeOrder_ValidRequest_Success() {
+        // Arrange
+        stubClientServiceGetClientById(testClientResponse);
+        stubProductRepositoryFindAllById(List.of(testProduct));
+        ProductPickupLocationMapping mapping = createProductPickupLocationMapping(TEST_PRODUCT_ID, TEST_PICKUP_LOCATION_ID, 10);
+        stubProductPickupLocationMappingRepositoryFindByProductIdWithPickupLocationAndAddress(List.of(mapping));
+        stubPackagePickupLocationMappingRepositoryFindByPickupLocationIdsWithPackages(
+                List.of(createPackagePickupLocationMapping(TEST_PACKAGE_ID, TEST_PICKUP_LOCATION_ID, 10)));
+        stubPackagingHelperCalculatePackaging(createPackagingEstimateResult(2, 2));
+        stubPackagingHelperCalculatePackagingForMultipleProducts(createMultiProductPackagingResult());
+        stubShipRocketHelperGetAvailableShippingOptions(createShippingOptions(10.0));
 
-    /*
+        // Act
+        OrderOptimizationResponseModel result = shippingService.optimizeOrder(optimizationRequest);
+
+        // Assert
+        assertTrue(result.getSuccess());
+    }
+/*
      **********************************************************************************************
      * FAILURE TESTS
      **********************************************************************************************
      */
-
-    /**
-     * Purpose: Verify null product quantities returns error.
-     * Expected Result: Response success is false.
-     * Assertions: Error message is NoProductsSpecified.
-     */
-    @Test
-    @DisplayName("optimizeOrder - Null Product Quantities - Error")
-    void optimizeOrder_NullProductQuantities_Error() {
-        // Arrange
-        optimizationRequest.setProductQuantities(null);
-
-        // Act
-        OrderOptimizationResponseModel result = shippingService.optimizeOrder(optimizationRequest);
-
-        // Assert
-        assertFalse(result.getSuccess());
-        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.NoProductsSpecified, result.getErrorMessage());
-    }
-
-    /**
-     * Purpose: Verify empty product quantities returns error.
-     * Expected Result: Response success is false.
-     * Assertions: Error message is NoProductsSpecified.
-     */
-    @Test
-    @DisplayName("optimizeOrder - Empty Product Quantities - Error")
-    void optimizeOrder_EmptyProductQuantities_Error() {
-        // Arrange
-        optimizationRequest.setProductQuantities(new HashMap<>());
-
-        // Act
-        OrderOptimizationResponseModel result = shippingService.optimizeOrder(optimizationRequest);
-
-        // Assert
-        assertFalse(result.getSuccess());
-        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.NoProductsSpecified, result.getErrorMessage());
-    }
-
-    /**
-     * Purpose: Verify null delivery postcode returns error.
-     * Expected Result: Response success is false.
-     * Assertions: Error message is DeliveryPostcodeRequired.
-     */
-    @Test
-    @DisplayName("optimizeOrder - Null Delivery Postcode - Error")
-    void optimizeOrder_NullDeliveryPostcode_Error() {
-        // Arrange
-        optimizationRequest.setDeliveryPostcode(null);
-
-        // Act
-        OrderOptimizationResponseModel result = shippingService.optimizeOrder(optimizationRequest);
-
-        // Assert
-        assertFalse(result.getSuccess());
-        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.DeliveryPostcodeRequired, result.getErrorMessage());
-    }
-
-    /**
+/**
      * Purpose: Verify empty delivery postcode returns error.
      * Expected Result: Response success is false.
      * Assertions: Error message is DeliveryPostcodeRequired.
@@ -169,27 +108,44 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
         assertFalse(result.getSuccess());
         assertEquals(ErrorMessages.OrderOptimizationErrorMessages.DeliveryPostcodeRequired, result.getErrorMessage());
     }
-
-    /**
-     * Purpose: Verify no valid products found returns error.
+/**
+     * Purpose: Verify empty product quantities returns error.
      * Expected Result: Response success is false.
-     * Assertions: Error message is NoValidProductsFound.
+     * Assertions: Error message is NoProductsSpecified.
      */
     @Test
-    @DisplayName("optimizeOrder - No Valid Products - Error")
-    void optimizeOrder_NoValidProducts_Error() {
+    @DisplayName("optimizeOrder - Empty Product Quantities - Error")
+    void optimizeOrder_EmptyProductQuantities_Error() {
         // Arrange
-        stubProductRepositoryFindAllById(List.of());
+        optimizationRequest.setProductQuantities(new HashMap<>());
 
         // Act
         OrderOptimizationResponseModel result = shippingService.optimizeOrder(optimizationRequest);
 
         // Assert
         assertFalse(result.getSuccess());
-        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.NoValidProductsFound, result.getErrorMessage());
+        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.NoProductsSpecified, result.getErrorMessage());
     }
+/**
+     * Purpose: Verify exception path returns OptimizationFailedFormat.
+     * Expected Result: Response success is false.
+     * Assertions: Error message matches OptimizationFailedFormat.
+     */
+    @Test
+    @DisplayName("optimizeOrder - Exception - Error")
+    void optimizeOrder_Exception_Error() {
+        // Arrange
+        stubProductRepositoryFindAllByIdThrows(new RuntimeException(ErrorMessages.OPERATION_FAILED));
 
-    /**
+        // Act
+        OrderOptimizationResponseModel result = shippingService.optimizeOrder(optimizationRequest);
+
+        // Assert
+        assertFalse(result.getSuccess());
+        assertEquals(String.format(ErrorMessages.OrderOptimizationErrorMessages.OptimizationFailedFormat,
+            ErrorMessages.OPERATION_FAILED), result.getErrorMessage());
+    }
+/**
      * Purpose: Verify missing product in repository triggers ProductNotFound error.
      * Expected Result: Response success is false.
      * Assertions: Error message matches ProductNotFoundFormat.
@@ -217,8 +173,7 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
         assertEquals(String.format(ErrorMessages.OrderOptimizationErrorMessages.ProductNotFoundFormat, 999L),
                 result.getErrorMessage());
     }
-
-    /**
+/**
      * Purpose: Verify no packages configured returns error.
      * Expected Result: Response success is false.
      * Assertions: Error message is NoPackagesConfiguredFormat.
@@ -241,28 +196,61 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
         assertEquals(String.format(ErrorMessages.OrderOptimizationErrorMessages.NoPackagesConfiguredFormat,
                 testProduct.getTitle(), 10, 2), result.getErrorMessage());
     }
-
-    /**
-     * Purpose: Verify exception path returns OptimizationFailedFormat.
+/**
+     * Purpose: Verify no valid products found returns error.
      * Expected Result: Response success is false.
-     * Assertions: Error message matches OptimizationFailedFormat.
+     * Assertions: Error message is NoValidProductsFound.
      */
     @Test
-    @DisplayName("optimizeOrder - Exception - Error")
-    void optimizeOrder_Exception_Error() {
+    @DisplayName("optimizeOrder - No Valid Products - Error")
+    void optimizeOrder_NoValidProducts_Error() {
         // Arrange
-        stubProductRepositoryFindAllByIdThrows(new RuntimeException(ErrorMessages.OPERATION_FAILED));
+        stubProductRepositoryFindAllById(List.of());
 
         // Act
         OrderOptimizationResponseModel result = shippingService.optimizeOrder(optimizationRequest);
 
         // Assert
         assertFalse(result.getSuccess());
-        assertEquals(String.format(ErrorMessages.OrderOptimizationErrorMessages.OptimizationFailedFormat,
-            ErrorMessages.OPERATION_FAILED), result.getErrorMessage());
+        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.NoValidProductsFound, result.getErrorMessage());
     }
+/**
+     * Purpose: Verify null delivery postcode returns error.
+     * Expected Result: Response success is false.
+     * Assertions: Error message is DeliveryPostcodeRequired.
+     */
+    @Test
+    @DisplayName("optimizeOrder - Null Delivery Postcode - Error")
+    void optimizeOrder_NullDeliveryPostcode_Error() {
+        // Arrange
+        optimizationRequest.setDeliveryPostcode(null);
 
-    /*
+        // Act
+        OrderOptimizationResponseModel result = shippingService.optimizeOrder(optimizationRequest);
+
+        // Assert
+        assertFalse(result.getSuccess());
+        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.DeliveryPostcodeRequired, result.getErrorMessage());
+    }
+/**
+     * Purpose: Verify null product quantities returns error.
+     * Expected Result: Response success is false.
+     * Assertions: Error message is NoProductsSpecified.
+     */
+    @Test
+    @DisplayName("optimizeOrder - Null Product Quantities - Error")
+    void optimizeOrder_NullProductQuantities_Error() {
+        // Arrange
+        optimizationRequest.setProductQuantities(null);
+
+        // Act
+        OrderOptimizationResponseModel result = shippingService.optimizeOrder(optimizationRequest);
+
+        // Assert
+        assertFalse(result.getSuccess());
+        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.NoProductsSpecified, result.getErrorMessage());
+    }
+/*
      **********************************************************************************************
      * PERMISSION TESTS
      **********************************************************************************************
@@ -294,7 +282,7 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
      */
     @Test
     @DisplayName("optimizeOrder - Verify @PreAuthorize Annotation")
-    void optimizeOrder_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void optimizeOrder_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = ShippingController.class.getMethod("optimizeOrder", OrderOptimizationRequestModel.class);
 

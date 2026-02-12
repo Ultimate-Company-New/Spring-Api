@@ -17,7 +17,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import com.example.SpringApi.Services.ProductService;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -27,16 +26,20 @@ import static org.mockito.Mockito.*;
  * Consolidated test class for ProductService.bulkAddProducts.
  * Fully compliant with Unit Test Verification rules.
  */
-// Total Tests: 7
 @DisplayName("ProductService - BulkAddProducts Tests")
 class BulkAddProductsTest extends ProductServiceTestBase {
-
-    // ==========================================
-    // SECTION 1: SUCCESS TESTS
-    // ==========================================
+    // Total Tests: 7
 
     /*
-     * Purpose: Verify success when all products are valid
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify success when all products are valid.
+     * Expected Result: All products inserted.
+     * Assertions: Success count is 1 and failure count is 0.
      */
     @Test
     @DisplayName("bulkAddProducts - All products valid - Success")
@@ -59,8 +62,10 @@ class BulkAddProductsTest extends ProductServiceTestBase {
         }
     }
 
-    /*
-     * Purpose: Verify partial success when one product is invalid
+    /**
+     * Purpose: Verify partial success when one product is invalid.
+     * Expected Result: One success and one failure recorded.
+     * Assertions: Total requested equals 2 with 1 success and 1 failure.
      */
     @Test
     @DisplayName("bulkAddProducts - Partial success - One failure")
@@ -89,32 +94,16 @@ class BulkAddProductsTest extends ProductServiceTestBase {
         }
     }
 
-    // ==========================================
-    // SECTION 2: FAILURE TESTS
-    // ==========================================
-
     /*
-     * Purpose: Verify failure when list is empty
+     **********************************************************************************************
+     * FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
      */
-    @Test
-    @DisplayName("bulkAddProducts - Empty list - Throws BadRequest")
-    void bulkAddProducts_EmptyList_ThrowsBadRequest() {
-        assertThrowsBadRequest(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Product"),
-                () -> productService.bulkAddProducts(new ArrayList<>()));
-    }
 
-    /*
-     * Purpose: Verify failure when list is null
-     */
-    @Test
-    @DisplayName("bulkAddProducts - Null list - Throws BadRequest")
-    void bulkAddProducts_NullList_ThrowsBadRequest() {
-        assertThrowsBadRequest(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Product"),
-                () -> productService.bulkAddProducts(null));
-    }
-
-    /*
-     * Purpose: Verify failure on database error
+    /**
+     * Purpose: Verify failure on database error.
+     * Expected Result: Failure recorded.
+     * Assertions: Success count is 0 and failure count is 1.
      */
     @Test
     @DisplayName("bulkAddProducts - Database error - Failure recorded")
@@ -122,7 +111,8 @@ class BulkAddProductsTest extends ProductServiceTestBase {
         // Arrange
         List<ProductRequestModel> requests = Collections.singletonList(testProductRequest);
         stubProductCategoryRepositoryFindById(TEST_CATEGORY_ID, testCategory);
-        when(productRepository.save(any())).thenThrow(new RuntimeException("DB Error"));
+        stubProductRepositorySaveThrows(
+                new RuntimeException(ErrorMessages.CommonErrorMessages.DATABASE_ERROR));
 
         // Act
         BulkInsertResponseModel<Long> result = productService.bulkAddProducts(requests);
@@ -132,34 +122,79 @@ class BulkAddProductsTest extends ProductServiceTestBase {
         assertEquals(1, result.getFailureCount());
     }
 
-    // ==========================================
-    // SECTION 3: PERMISSION / DELEGATION
-    // ==========================================
-
+    /**
+     * Purpose: Verify failure when list is empty.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches ErrorMessages constant.
+     */
     @Test
-    @DisplayName("bulkAddProducts - Verify @PreAuthorize annotation")
-    void bulkAddProducts_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        Method method = ProductController.class.getMethod("bulkAddProducts", java.util.List.class);
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.INSERT_PRODUCTS_PERMISSION));
+    @DisplayName("bulkAddProducts - Empty list - Throws BadRequest")
+    void bulkAddProducts_EmptyList_ThrowsBadRequest() {
+        // Arrange
+
+        // Act & Assert
+        assertThrowsBadRequest(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Product"),
+                () -> productService.bulkAddProducts(new ArrayList<>()));
     }
 
+    /**
+     * Purpose: Verify failure when list is null.
+     * Expected Result: BadRequestException is thrown.
+     * Assertions: Exception message matches ErrorMessages constant.
+     */
     @Test
-    @DisplayName("bulkAddProducts - No permission - Unauthorized")
-    void bulkAddProducts_NoPermission_Unauthorized() {
+    @DisplayName("bulkAddProducts - Null list - Throws BadRequest")
+    void bulkAddProducts_NullList_ThrowsBadRequest() {
         // Arrange
-        ProductService mockService = mock(ProductService.class);
-        ProductController controller = new ProductController(mockService);
+
+        // Act & Assert
+        assertThrowsBadRequest(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Product"),
+                () -> productService.bulkAddProducts(null));
+    }
+
+    /*
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify unauthorized access is blocked at controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("bulkAddProducts - Controller permission unauthorized - Success")
+    void bulkAddProducts_controller_permission_unauthorized() {
+        // Arrange
+        ProductController controller = new ProductController(productServiceMock);
         List<ProductRequestModel> requests = Collections.singletonList(testProductRequest);
-        doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(mockService).bulkAddProducts(requests);
+        stubProductServiceBulkAddProductsThrowsUnauthorized();
 
         // Act
         ResponseEntity<?> response = controller.bulkAddProducts(requests);
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verify(mockService).bulkAddProducts(requests);
+        verify(productServiceMock).bulkAddProducts(anyList());
+    }
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation exists.
+     * Expected Result: Annotation includes required permission.
+     * Assertions: Annotation is present and contains INSERT_PRODUCTS_PERMISSION.
+     */
+    @Test
+    @DisplayName("bulkAddProducts - Verify @PreAuthorize annotation - Success")
+    void bulkAddProducts_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        // Arrange
+        Method method = ProductController.class.getMethod("bulkAddProducts", java.util.List.class);
+
+        // Act
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
+        assertNotNull(annotation);
+        assertTrue(annotation.value().contains(Authorizations.INSERT_PRODUCTS_PERMISSION));
     }
 }

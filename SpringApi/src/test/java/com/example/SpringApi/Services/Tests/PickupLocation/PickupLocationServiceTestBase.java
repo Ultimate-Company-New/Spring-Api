@@ -199,6 +199,10 @@ public abstract class PickupLocationServiceTestBase {
         lenient().when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(pickupLocation);
     }
 
+    protected void stubPickupLocationRepositorySaveThrows(RuntimeException exception) {
+        lenient().when(pickupLocationRepository.save(any(PickupLocation.class))).thenThrow(exception);
+    }
+
     protected void stubPickupLocationRepositorySaveReturnsNull() {
         lenient().when(pickupLocationRepository.save(any(PickupLocation.class))).thenReturn(null);
     }
@@ -291,10 +295,18 @@ public abstract class PickupLocationServiceTestBase {
                 .when(pickupLocationServiceMock).createPickupLocation(any());
     }
 
+    protected void stubPickupLocationServiceCreatePickupLocationDoNothing() throws Exception {
+        lenient().doNothing().when(pickupLocationServiceMock).createPickupLocation(any());
+    }
+
     protected void stubPickupLocationServiceThrowsUnauthorizedOnUpdate() throws Exception {
         lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
                 com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
                 .when(pickupLocationServiceMock).updatePickupLocation(any());
+    }
+
+    protected void stubPickupLocationServiceUpdatePickupLocationDoNothing() throws Exception {
+        lenient().doNothing().when(pickupLocationServiceMock).updatePickupLocation(any());
     }
 
     protected void stubPickupLocationServiceThrowsUnauthorizedOnToggle() {
@@ -303,10 +315,21 @@ public abstract class PickupLocationServiceTestBase {
                 .when(pickupLocationServiceMock).togglePickupLocation(anyLong());
     }
 
+    protected void stubPickupLocationServiceTogglePickupLocationDoNothing() {
+        lenient().doNothing().when(pickupLocationServiceMock).togglePickupLocation(anyLong());
+    }
+
     protected void stubPickupLocationServiceThrowsUnauthorizedOnGetBatches() {
         lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
                 com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
                 .when(pickupLocationServiceMock).getPickupLocationsInBatches(any());
+    }
+
+    protected void stubPickupLocationServiceGetPickupLocationsInBatchesReturns(
+            com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel<
+                    com.example.SpringApi.Models.ResponseModels.PickupLocationResponseModel> result) {
+        lenient().when(pickupLocationServiceMock.getPickupLocationsInBatches(any()))
+                .thenReturn(result);
     }
 
     /**

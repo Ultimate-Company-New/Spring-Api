@@ -1,5 +1,7 @@
 package com.example.SpringApi.Services.Tests.QA;
 
+import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Exceptions.UnauthorizedException;
 import com.example.SpringApi.Models.DatabaseModels.LatestTestResult;
 import com.example.SpringApi.Models.DatabaseModels.TestRun;
 import com.example.SpringApi.Models.DatabaseModels.TestRunResult;
@@ -7,7 +9,9 @@ import com.example.SpringApi.Models.RequestModels.TestExecutionRequestModel;
 import com.example.SpringApi.Models.RequestModels.TestRunRequestModel;
 import com.example.SpringApi.Repositories.LatestTestResultRepository;
 import com.example.SpringApi.Repositories.TestRunRepository;
+import com.example.SpringApi.Services.Interface.IQASubTranslator;
 import com.example.SpringApi.Services.QAService;
+import com.example.SpringApi.Models.DatabaseModels.TestRun;
 
 import org.mockito.Mock;
 
@@ -18,10 +22,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.lang.reflect.Field;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.doThrow;
 
 /**
  * Base test class for QA Service tests providing common helper methods and stub
@@ -32,7 +39,7 @@ import static org.mockito.Mockito.lenient;
  * test data and
  * follow the no-inline-mocks rule.
  */
-public abstract class QAServiceBaseTest {
+public abstract class QAServiceTestBase {
 
     // ==================== COMMON TEST CONSTANTS ====================
 
@@ -45,6 +52,9 @@ public abstract class QAServiceBaseTest {
     @Mock
     protected LatestTestResultRepository latestTestResultRepository;
 
+    @Mock
+    protected IQASubTranslator qaSubTranslator;
+
     protected QAService qaService;
 
     @BeforeEach
@@ -52,13 +62,55 @@ public abstract class QAServiceBaseTest {
         // Create a subclass that overrides the async execution method to prevent
         // actual Maven process execution during unit tests.
         QAService realService = new QAService(testRunRepository, latestTestResultRepository) {
-            @Override
             protected void executeTestsAsync(String executionId, String testClassName, String testMethodFilter,
                     String serviceName) {
                 // Do nothing during unit tests
             }
         };
         qaService = Mockito.spy(realService);
+    }
+
+    /**
+     * Stub testRunRepository.save to throw the provided exception.
+     */
+    protected void stubTestRunRepositorySaveThrows(RuntimeException exception) {
+        doThrow(exception).when(testRunRepository).save(any(TestRun.class));
+    }
+
+    /**
+     * Stub QA service getAvailableServices to throw the provided exception.
+     */
+    protected void stubQaServiceGetAvailableServicesThrows(RuntimeException exception) {
+        doThrow(exception).when(qaService).getAvailableServices();
+    }
+
+    /**
+     * Stub QA service getAllEndpointsWithTests to throw the provided exception.
+     */
+    protected void stubQaServiceGetAllEndpointsWithTestsThrows(RuntimeException exception) {
+        doThrow(exception).when(qaService).getAllEndpointsWithTests();
+    }
+
+    /**
+     * Stub latestTestResultRepository findByClientId to throw the provided exception.
+     */
+    protected void stubLatestTestResultRepositoryFindByClientIdThrows(RuntimeException exception) {
+        doThrow(exception).when(latestTestResultRepository)
+                .findByClientIdOrderByServiceNameAscTestMethodNameAsc(anyLong());
+    }
+
+    /**
+     * Access the QAService SERVICE_MAPPINGS map via reflection for test manipulation.
+     */
+    @SuppressWarnings("unchecked")
+    protected Map<String, Object> getServiceMappings() {
+        try {
+            Field field = QAService.class.getDeclaredField("SERVICE_MAPPINGS");
+            field.setAccessible(true);
+            return (Map<String, Object>) field.get(null);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // ==================== TEST DATA FACTORY METHODS ====================
@@ -285,5 +337,77 @@ public abstract class QAServiceBaseTest {
             lenient().doReturn(Optional.empty()).when(latestTestResultRepository)
                 .findByClientIdAndServiceNameAndTestClassNameAndTestMethodName(
                         anyLong(), eq(serviceName), eq(testClassName), eq(testMethodName));
+    }
+
+    /**
+     * Stub QA translator getDashboardData to throw UnauthorizedException.
+     */
+    protected void stubQaTranslatorGetDashboardDataThrowsUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(qaSubTranslator).getDashboardData();
+    }
+
+    /**
+     * Stub QA translator getAllEndpointsWithTests to throw UnauthorizedException.
+     */
+    protected void stubQaTranslatorGetAllEndpointsWithTestsThrowsUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(qaSubTranslator).getAllEndpointsWithTests();
+    }
+
+    /**
+     * Stub QA translator getEndpointsWithTestsByService to throw UnauthorizedException.
+     */
+    protected void stubQaTranslatorGetEndpointsWithTestsByServiceThrowsUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(qaSubTranslator).getEndpointsWithTestsByService(anyString());
+    }
+
+    /**
+     * Stub QA translator getCoverageSummary to throw UnauthorizedException.
+     */
+    protected void stubQaTranslatorGetCoverageSummaryThrowsUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(qaSubTranslator).getCoverageSummary();
+    }
+
+    /**
+     * Stub QA translator getAvailableServices to throw UnauthorizedException.
+     */
+    protected void stubQaTranslatorGetAvailableServicesThrowsUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(qaSubTranslator).getAvailableServices();
+    }
+
+    /**
+     * Stub QA translator saveTestRun to throw UnauthorizedException.
+     */
+    protected void stubQaTranslatorSaveTestRunThrowsUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(qaSubTranslator).saveTestRun(any(TestRunRequestModel.class));
+    }
+
+    /**
+     * Stub QA translator getLatestTestResults to throw UnauthorizedException.
+     */
+    protected void stubQaTranslatorGetLatestTestResultsThrowsUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(qaSubTranslator).getLatestTestResults(any());
+    }
+
+    /**
+     * Stub QA translator startTestExecution to throw UnauthorizedException.
+     */
+    protected void stubQaTranslatorStartTestExecutionThrowsUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(qaSubTranslator).startTestExecution(any(TestExecutionRequestModel.class));
+    }
+
+    /**
+     * Stub QA translator getTestExecutionStatus to throw UnauthorizedException.
+     */
+    protected void stubQaTranslatorGetTestExecutionStatusThrowsUnauthorized() {
+        lenient().doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(qaSubTranslator).getTestExecutionStatus(anyString());
     }
 }

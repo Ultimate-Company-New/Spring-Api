@@ -1,10 +1,10 @@
 package com.example.SpringApi.Services.Tests.PickupLocation;
 
 import com.example.SpringApi.Controllers.PickupLocationController;
-import com.example.SpringApi.Services.PickupLocationService;
 import com.example.SpringApi.Models.ResponseModels.PickupLocationResponseModel;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -19,10 +19,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for PickupLocationService.getPickupLocationById() method.
  * Tests successful retrieval, not found scenarios, and authorization.
- * Test Count: 13 tests
+ * Test Count: 12 tests
  */
 @DisplayName("Get Pickup Location By ID Tests")
 class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
+    // Total Tests: 12
 
     /*
      **********************************************************************************************
@@ -37,12 +38,14 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
      */
     @Test
     @DisplayName("Get Pickup Location By ID - Success")
-    void getPickupLocationById_Success() {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                .thenReturn(testPickupLocation);
+    void getPickupLocationById_Success_Success() {
+        // Arrange
+        stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID, testPickupLocation);
 
+        // Act
         PickupLocationResponseModel result = pickupLocationService.getPickupLocationById(TEST_PICKUP_LOCATION_ID);
 
+        // Assert
         assertNotNull(result);
         assertEquals(TEST_PICKUP_LOCATION_ID, result.getPickupLocationId());
         assertEquals(TEST_ADDRESS_NICKNAME, result.getAddressNickName());
@@ -55,6 +58,26 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
      */
 
     /**
+     * Purpose: Verify successful retrieval with deleted location marked as active.
+     * Expected Result: Active location is returned successfully.
+     * Assertions: Result is not null, isDeleted is false.
+     */
+    @Test
+    @DisplayName("Get Pickup Location By ID - Active Location - Success")
+    void getPickupLocationById_ActiveLocation_Success() {
+        // Arrange
+        testPickupLocation.setIsDeleted(false);
+        stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID, testPickupLocation);
+
+        // Act
+        PickupLocationResponseModel result = pickupLocationService.getPickupLocationById(TEST_PICKUP_LOCATION_ID);
+
+        // Assert
+        assertNotNull(result);
+        assertFalse(testPickupLocation.getIsDeleted());
+    }
+
+    /**
      * Purpose: Reject retrieval attempts using the maximum possible long ID if not
      * found.
      * Expected Result: NotFoundException is thrown.
@@ -63,11 +86,14 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Get Pickup Location By ID - Max Long ID - Throws NotFoundException")
     void getPickupLocationById_MaxLongId_ThrowsNotFoundException() {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID))
-                .thenReturn(null);
+        // Arrange
+        stubPickupLocationRepositoryFindByIdAndClientIdNotFound(Long.MAX_VALUE, TEST_CLIENT_ID);
+
+        // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> pickupLocationService.getPickupLocationById(Long.MAX_VALUE));
-        assertTrue(ex.getMessage().contains("Pickup location not found"));
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, Long.MAX_VALUE),
+                ex.getMessage());
     }
 
     /**
@@ -79,11 +105,14 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Get Pickup Location By ID - Min Long ID - Throws NotFoundException")
     void getPickupLocationById_MinLongId_ThrowsNotFoundException() {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID))
-                .thenReturn(null);
+        // Arrange
+        stubPickupLocationRepositoryFindByIdAndClientIdNotFound(Long.MIN_VALUE, TEST_CLIENT_ID);
+
+        // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> pickupLocationService.getPickupLocationById(Long.MIN_VALUE));
-        assertTrue(ex.getMessage().contains("Pickup location not found"));
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, Long.MIN_VALUE),
+                ex.getMessage());
     }
 
     /**
@@ -94,10 +123,14 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Get Pickup Location By ID - Negative ID - Throws NotFoundException")
     void getPickupLocationById_NegativeId_ThrowsNotFoundException() {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(-1L, TEST_CLIENT_ID)).thenReturn(null);
+        // Arrange
+        stubPickupLocationRepositoryFindByIdAndClientIdNotFound(-1L, TEST_CLIENT_ID);
+
+        // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> pickupLocationService.getPickupLocationById(-1L));
-        assertTrue(ex.getMessage().contains("Pickup location not found"));
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, -1L),
+                ex.getMessage());
     }
 
     /**
@@ -109,64 +142,14 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Get Pickup Location By ID - Not Found - Throws NotFoundException")
     void getPickupLocationById_NotFound_ThrowsNotFoundException() {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                .thenReturn(null);
-        assertThrows(NotFoundException.class,
+        // Arrange
+        stubPickupLocationRepositoryFindByIdAndClientIdNotFound(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
+
+        // Act & Assert
+        NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> pickupLocationService.getPickupLocationById(TEST_PICKUP_LOCATION_ID));
-    }
-
-    /**
-     * Purpose: Reject retrieval attempts for a zero ID.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Error message indicates not found.
-     */
-    @Test
-    @DisplayName("Get Pickup Location By ID - Zero ID - Throws NotFoundException")
-    void getPickupLocationById_ZeroId_ThrowsNotFoundException() {
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(0L, TEST_CLIENT_ID)).thenReturn(null);
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> pickupLocationService.getPickupLocationById(0L));
-        assertTrue(ex.getMessage().contains("Pickup location not found"));
-    }
-
-    /**
-     * Purpose: Verify successful retrieval with deleted location marked as active.
-     * Expected Result: Active location is returned successfully.
-     * Assertions: Result is not null, isDeleted is false.
-     */
-    @Test
-    @DisplayName("Get Pickup Location By ID - Active Location - Success")
-    void getPickupLocationById_ActiveLocation_Success() {
-        // ARRANGE
-        testPickupLocation.setIsDeleted(false);
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                .thenReturn(testPickupLocation);
-
-        // ACT
-        PickupLocationResponseModel result = pickupLocationService.getPickupLocationById(TEST_PICKUP_LOCATION_ID);
-
-        // ASSERT
-        assertNotNull(result);
-        assertFalse(testPickupLocation.getIsDeleted());
-    }
-
-    /**
-     * Purpose: Verify retrieval with large ID value.
-     * Expected Result: NotFoundException is thrown for non-existent large ID.
-     * Assertions: Error indicates not found.
-     */
-    @Test
-    @DisplayName("Get Pickup Location By ID - Very Large ID - Throws NotFoundException")
-    void getPickupLocationById_VeryLargeId_ThrowsNotFoundException() {
-        // ARRANGE
-        Long largeId = 999999999999L;
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(largeId, TEST_CLIENT_ID))
-                .thenReturn(null);
-
-        // ACT & ASSERT
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> pickupLocationService.getPickupLocationById(largeId));
-        assertTrue(ex.getMessage().contains("Pickup location not found"));
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, TEST_PICKUP_LOCATION_ID),
+                ex.getMessage());
     }
 
     /**
@@ -177,15 +160,51 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
     @Test
     @DisplayName("Get Pickup Location By ID - Verify Repository Call - Success")
     void getPickupLocationById_VerifyRepositoryCall_Success() {
-        // ARRANGE
-        when(pickupLocationRepository.findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID))
-                .thenReturn(testPickupLocation);
+        // Arrange
+        stubPickupLocationRepositoryFindByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID, testPickupLocation);
 
-        // ACT
+        // Act
         pickupLocationService.getPickupLocationById(TEST_PICKUP_LOCATION_ID);
 
-        // ASSERT
+        // Assert
         verify(pickupLocationRepository).findPickupLocationByIdAndClientId(TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID);
+    }
+
+    /**
+     * Purpose: Verify retrieval with large ID value.
+     * Expected Result: NotFoundException is thrown for non-existent large ID.
+     * Assertions: Error indicates not found.
+     */
+    @Test
+    @DisplayName("Get Pickup Location By ID - Very Large ID - Throws NotFoundException")
+    void getPickupLocationById_VeryLargeId_ThrowsNotFoundException() {
+        // Arrange
+        Long largeId = 999999999999L;
+        stubPickupLocationRepositoryFindByIdAndClientIdNotFound(largeId, TEST_CLIENT_ID);
+
+        // Act & Assert
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> pickupLocationService.getPickupLocationById(largeId));
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, largeId),
+                ex.getMessage());
+    }
+
+    /**
+     * Purpose: Reject retrieval attempts for a zero ID.
+     * Expected Result: NotFoundException is thrown.
+     * Assertions: Error message indicates not found.
+     */
+    @Test
+    @DisplayName("Get Pickup Location By ID - Zero ID - Throws NotFoundException")
+    void getPickupLocationById_ZeroId_ThrowsNotFoundException() {
+        // Arrange
+        stubPickupLocationRepositoryFindByIdAndClientIdNotFound(0L, TEST_CLIENT_ID);
+
+        // Act & Assert
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> pickupLocationService.getPickupLocationById(0L));
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, 0L),
+                ex.getMessage());
     }
 
     /*
@@ -194,27 +213,63 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
      **********************************************************************************************
      */
 
+    /**
+     * Purpose: Verify unauthorized access is blocked at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("getPickupLocationById - Controller Permission - Unauthorized")
+    void getPickupLocationById_controller_permission_unauthorized() {
+        // Arrange
+        PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
+        stubPickupLocationServiceThrowsUnauthorizedOnGetById();
+
+        // Act
+        ResponseEntity<?> response = controller.getPickupLocationById(TEST_PICKUP_LOCATION_ID);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify @PreAuthorize annotation on getPickupLocationById endpoint.
+     * Expected Result: Annotation exists and references VIEW_PICKUP_LOCATIONS_PERMISSION.
+     * Assertions: Annotation is present and contains permission.
+     */
     @Test
     @DisplayName("getPickupLocationById - Verify @PreAuthorize Annotation")
-    void getPickupLocationById_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    void getPickupLocationById_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        // Arrange
         Method method = PickupLocationController.class.getMethod("getPickupLocationById", Long.class);
+
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
         assertNotNull(annotation, "@PreAuthorize annotation should be present on getPickupLocationById");
         assertTrue(annotation.value().contains(Authorizations.VIEW_PICKUP_LOCATIONS_PERMISSION),
                 "@PreAuthorize should reference VIEW_PICKUP_LOCATIONS_PERMISSION");
     }
 
+    /**
+     * Purpose: Verify controller delegates getPickupLocationById to service.
+     * Expected Result: Service method called and HTTP 200 returned.
+     * Assertions: Delegation occurs and response is OK.
+     */
     @Test
     @DisplayName("getPickupLocationById - Controller delegates to service")
     void getPickupLocationById_WithValidId_DelegatesToService() {
-        PickupLocationService mockService = mock(PickupLocationService.class);
-        PickupLocationController controller = new PickupLocationController(mockService);
+        // Arrange
+        PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
         PickupLocationResponseModel mockResponse = mock(PickupLocationResponseModel.class);
-        when(mockService.getPickupLocationById(TEST_PICKUP_LOCATION_ID)).thenReturn(mockResponse);
+        stubPickupLocationServiceGetPickupLocationByIdReturns(mockResponse);
 
+        // Act
         ResponseEntity<?> response = controller.getPickupLocationById(TEST_PICKUP_LOCATION_ID);
 
-        verify(mockService).getPickupLocationById(TEST_PICKUP_LOCATION_ID);
+        // Assert
+        verify(pickupLocationServiceMock).getPickupLocationById(TEST_PICKUP_LOCATION_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

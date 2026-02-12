@@ -25,26 +25,42 @@ import static org.junit.jupiter.api.Assertions.*;
  * - Edge cases (10 tests)
  */
 @ExtendWith(MockitoExtension.class)
-class StartTestExecutionTest extends QAServiceBaseTest {
+class StartTestExecutionTest extends QAServiceTestBase {
+    // Total Tests: 30
 
-    // ==================== SUCCESS TESTS ====================
-
+    /*
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void startTestExecution_runAllTrue_startsAllTests() {
+    void startTestExecution_asyncExecution_returnsImmediately() {
         // Arrange
         TestExecutionRequestModel request = createValidTestExecutionRequest();
-        request.setRunAll(true);
 
         // Act
+        long startTime = System.currentTimeMillis();
         TestExecutionStatusModel status = qaService.startTestExecution(request);
+        long endTime = System.currentTimeMillis();
 
         // Assert
         assertNotNull(status);
-        assertNotNull(status.getExecutionId());
+        // Should return quickly (within 5 seconds)
+        assertTrue((endTime - startTime) < 5000, "Should return immediately without waiting for tests to complete");
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void startTestExecution_specificTestNames_startsSpecificTests() {
+    void startTestExecution_calculatesExpectedCount_correctly() {
         // Arrange
         List<String> testNames = Arrays.asList("testMethod1", "testMethod2");
         TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
@@ -55,9 +71,51 @@ class StartTestExecutionTest extends QAServiceBaseTest {
 
         // Assert
         assertNotNull(status);
-        assertNotNull(status.getExecutionId());
+        // Expected count should be set
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void startTestExecution_duplicateTestNames_deduplicates() {
+        // Arrange
+        List<String> testNames = Arrays.asList("testMethod1", "testMethod1", "testMethod2");
+        TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
+                "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
+
+        // Act
+        TestExecutionStatusModel status = qaService.startTestExecution(request);
+
+        // Assert
+        assertNotNull(status);
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void startTestExecution_generatesExecutionId_successfully() {
+        // Arrange
+        TestExecutionRequestModel request = createValidTestExecutionRequest();
+
+        // Act
+        TestExecutionStatusModel status = qaService.startTestExecution(request);
+
+        // Assert
+        assertNotNull(status.getExecutionId());
+        assertFalse(status.getExecutionId().trim().isEmpty());
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void startTestExecution_methodName_startsMethodTests() {
         // Arrange
@@ -73,10 +131,15 @@ class StartTestExecutionTest extends QAServiceBaseTest {
         assertNotNull(status.getExecutionId());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void startTestExecution_withTestClassName_usesTestClass() {
+    void startTestExecution_multipleTestNames_joinsWithPlus() {
         // Arrange
-        List<String> testNames = Arrays.asList("testMethod1");
+        List<String> testNames = Arrays.asList("testMethod1", "testMethod2", "testMethod3");
         TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
                 "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
 
@@ -88,32 +151,50 @@ class StartTestExecutionTest extends QAServiceBaseTest {
         assertNotNull(status.getExecutionId());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void startTestExecution_generatesExecutionId_successfully() {
+    void startTestExecution_nestedTestClass_resolvesCorrectly() {
         // Arrange
-        TestExecutionRequestModel request = createValidTestExecutionRequest();
-
-        // Act
-        TestExecutionStatusModel status = qaService.startTestExecution(request);
-
-        // Assert
-        assertNotNull(status.getExecutionId());
-        assertFalse(status.getExecutionId().trim().isEmpty());
-    }
-
-    @Test
-    void startTestExecution_storesInitialStatus_correctly() {
-        // Arrange
-        TestExecutionRequestModel request = createValidTestExecutionRequest();
+        List<String> testNames = Arrays.asList("testMethod1");
+        TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
+                "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
 
         // Act
         TestExecutionStatusModel status = qaService.startTestExecution(request);
 
         // Assert
         assertNotNull(status);
-        assertNotNull(status.getStatus());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void startTestExecution_parameterizedTest_stripsParameterSuffix() {
+        // Arrange
+        List<String> testNames = Arrays.asList("testMethod1[1]");
+        TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
+                "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
+
+        // Act
+        TestExecutionStatusModel status = qaService.startTestExecution(request);
+
+        // Assert
+        assertNotNull(status);
+        assertNotNull(status.getExecutionId());
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void startTestExecution_returnsStatusModel_withExecutionId() {
         // Arrange
@@ -130,115 +211,16 @@ class StartTestExecutionTest extends QAServiceBaseTest {
 
     // ==================== VALIDATION FAILURES ====================
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void startTestExecution_nullRequest_throwsBadRequestException() {
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            qaService.startTestExecution(null);
-        });
-        assertEquals(ErrorMessages.QAErrorMessages.TestExecutionRequestCannotBeNull, exception.getMessage());
-    }
-
-    @Test
-    void startTestExecution_runAllFalse_noTestNames_noMethod_throwsBadRequestException() {
+    void startTestExecution_runAllTrue_startsAllTests() {
         // Arrange
-        TestExecutionRequestModel request = new TestExecutionRequestModel();
-        request.setRunAll(false);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            qaService.startTestExecution(request);
-        });
-        assertEquals(ErrorMessages.QAErrorMessages.MustSpecifyRunAllOrTestNamesOrMethod, exception.getMessage());
-    }
-
-    @Test
-    void startTestExecution_testNamesWithoutClassName_throwsBadRequestException() {
-        // Arrange
-        TestExecutionRequestModel request = new TestExecutionRequestModel();
-        request.setRunAll(false);
-        request.setTestNames(Arrays.asList("testMethod1"));
-        request.setTestClassName(null);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            qaService.startTestExecution(request);
-        });
-        assertEquals(ErrorMessages.QAErrorMessages.TestClassNameRequired, exception.getMessage());
-    }
-
-    @Test
-    void startTestExecution_methodNameWithoutServiceOrClass_throwsBadRequestException() {
-        // Arrange
-        TestExecutionRequestModel request = new TestExecutionRequestModel();
-        request.setRunAll(false);
-        request.setMethodName("someMethod");
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            qaService.startTestExecution(request);
-        });
-        assertEquals(ErrorMessages.QAErrorMessages.MustSpecifyServiceNameOrTestClassName, exception.getMessage());
-    }
-
-    @Test
-    void startTestExecution_emptyTestNames_throwsBadRequestException() {
-        // Arrange
-        TestExecutionRequestModel request = new TestExecutionRequestModel();
-        request.setRunAll(false);
-        request.setTestNames(new ArrayList<>());
-        request.setTestClassName("SomeTest");
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            qaService.startTestExecution(request);
-        });
-        assertEquals(ErrorMessages.QAErrorMessages.MustSpecifyRunAllOrTestNamesOrMethod, exception.getMessage());
-    }
-
-    @Test
-    void startTestExecution_nullTestClassName_withTestNames_throwsBadRequestException() {
-        // Arrange
-        TestExecutionRequestModel request = new TestExecutionRequestModel();
-        request.setRunAll(false);
-        request.setTestNames(Arrays.asList("testMethod1"));
-        request.setTestClassName(null);
-
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            qaService.startTestExecution(request);
-        });
-        assertEquals(ErrorMessages.QAErrorMessages.TestClassNameRequired, exception.getMessage());
-    }
-
-    @Test
-    void startTestExecution_invalidServiceName_throwsBadRequestException() {
-        // Arrange
-        TestExecutionRequestModel request = createTestExecutionRequestWithMethodName("InvalidService", "someMethod");
-
-        // Act & Assert
-        assertThrows(Exception.class, () -> {
-            qaService.startTestExecution(request);
-        });
-    }
-
-    @Test
-    void startTestExecution_methodWithNoTests_throwsBadRequestException() {
-        // Arrange
-        TestExecutionRequestModel request = createTestExecutionRequestWithMethodName("QAService", "nonExistentMethod");
-
-        // Act & Assert
-        assertThrows(Exception.class, () -> {
-            qaService.startTestExecution(request);
-        });
-    }
-
-    @Test
-    void startTestExecution_nonExistentTestClass_throwsBadRequestException() {
-        // Arrange
-        List<String> testNames = Arrays.asList("testMethod1");
-        TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
-                "com.example.NonExistentTest", testNames);
+        TestExecutionRequestModel request = createValidTestExecutionRequest();
+        request.setRunAll(true);
 
         // Act
         TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -248,33 +230,150 @@ class StartTestExecutionTest extends QAServiceBaseTest {
         assertNotNull(status.getExecutionId());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void startTestExecution_exceptionMessages_useErrorConstants() {
-        // Arrange - null request
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            qaService.startTestExecution(null);
-        });
-
-        // Verify the exception message comes from ErrorMessages constants
-        assertTrue(exception.getMessage().equals(ErrorMessages.QAErrorMessages.TestExecutionRequestCannotBeNull));
-    }
-
-    @Test
-    void startTestExecution_nullMethodName_withoutRunAll_throwsBadRequestException() {
+    void startTestExecution_singleTestName_noPlus() {
         // Arrange
-        TestExecutionRequestModel request = new TestExecutionRequestModel();
-        request.setRunAll(false);
-        request.setMethodName(null);
-        request.setServiceName("TestService");
+        List<String> testNames = Arrays.asList("testMethod1");
+        TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
+                "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
 
-        // Act & Assert
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            qaService.startTestExecution(request);
-        });
-        assertEquals(ErrorMessages.QAErrorMessages.MustSpecifyRunAllOrTestNamesOrMethod, exception.getMessage());
+        // Act
+        TestExecutionStatusModel status = qaService.startTestExecution(request);
+
+        // Assert
+        assertNotNull(status);
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void startTestExecution_specificTestNames_startsSpecificTests() {
+        // Arrange
+        List<String> testNames = Arrays.asList("testMethod1", "testMethod2");
+        TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
+                "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
+
+        // Act
+        TestExecutionStatusModel status = qaService.startTestExecution(request);
+
+        // Assert
+        assertNotNull(status);
+        assertNotNull(status.getExecutionId());
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void startTestExecution_statusInitiallyPending_beforeExecution() {
+        // Arrange
+        TestExecutionRequestModel request = createValidTestExecutionRequest();
+
+        // Act
+        TestExecutionStatusModel status = qaService.startTestExecution(request);
+
+        // Assert
+        assertNotNull(status);
+        assertNotNull(status.getStatus());
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void startTestExecution_storesInitialStatus_correctly() {
+        // Arrange
+        TestExecutionRequestModel request = createValidTestExecutionRequest();
+
+        // Act
+        TestExecutionStatusModel status = qaService.startTestExecution(request);
+
+        // Assert
+        assertNotNull(status);
+        assertNotNull(status.getStatus());
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void startTestExecution_testNamesWithSpaces_trimsCorrectly() {
+        // Arrange
+        List<String> testNames = Arrays.asList(" testMethod1 ", "testMethod2");
+        TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
+                "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
+
+        // Act
+        TestExecutionStatusModel status = qaService.startTestExecution(request);
+
+        // Assert
+        assertNotNull(status);
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void startTestExecution_veryLongTestName_handlesCorrectly() {
+        // Arrange
+        String longTestName = "testMethod" + "VeryLongName".repeat(20);
+        List<String> testNames = Arrays.asList(longTestName);
+        TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
+                "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
+
+        // Act
+        TestExecutionStatusModel status = qaService.startTestExecution(request);
+
+        // Assert
+        assertNotNull(status);
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void startTestExecution_withTestClassName_usesTestClass() {
+        // Arrange
+        List<String> testNames = Arrays.asList("testMethod1");
+        TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
+                "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
+
+        // Act
+        TestExecutionStatusModel status = qaService.startTestExecution(request);
+
+        // Assert
+        assertNotNull(status);
+        assertNotNull(status.getExecutionId());
+    }
+
+    /*
+     **********************************************************************************************
+     * FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
+     */
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
     void startTestExecution_emptyMethodName_throwsBadRequestException() {
         // Arrange
@@ -292,12 +391,105 @@ class StartTestExecutionTest extends QAServiceBaseTest {
 
     // ==================== EDGE CASES ====================
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void startTestExecution_parameterizedTest_stripsParameterSuffix() {
+    void startTestExecution_emptyTestNames_throwsBadRequestException() {
         // Arrange
-        List<String> testNames = Arrays.asList("testMethod1[1]");
+        TestExecutionRequestModel request = new TestExecutionRequestModel();
+        request.setRunAll(false);
+        request.setTestNames(new ArrayList<>());
+        request.setTestClassName("SomeTest");
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            qaService.startTestExecution(request);
+        });
+        assertEquals(ErrorMessages.QAErrorMessages.MustSpecifyRunAllOrTestNamesOrMethod, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void startTestExecution_exceptionMessages_useErrorConstants() {
+        // Arrange - null request
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            qaService.startTestExecution(null);
+        });
+
+        // Verify the exception message comes from ErrorMessages constants
+        assertTrue(exception.getMessage().equals(ErrorMessages.QAErrorMessages.TestExecutionRequestCannotBeNull));
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void startTestExecution_invalidServiceName_throwsBadRequestException() {
+        // Arrange
+        TestExecutionRequestModel request = createTestExecutionRequestWithMethodName("InvalidService", "someMethod");
+
+        // Act & Assert
+        assertThrows(Exception.class, () -> {
+            qaService.startTestExecution(request);
+        });
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void startTestExecution_methodNameWithoutServiceOrClass_throwsBadRequestException() {
+        // Arrange
+        TestExecutionRequestModel request = new TestExecutionRequestModel();
+        request.setRunAll(false);
+        request.setMethodName("someMethod");
+
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            qaService.startTestExecution(request);
+        });
+        assertEquals(ErrorMessages.QAErrorMessages.MustSpecifyServiceNameOrTestClassName, exception.getMessage());
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void startTestExecution_methodWithNoTests_throwsBadRequestException() {
+        // Arrange
+        TestExecutionRequestModel request = createTestExecutionRequestWithMethodName("QAService", "nonExistentMethod");
+
+        // Act & Assert
+        assertThrows(Exception.class, () -> {
+            qaService.startTestExecution(request);
+        });
+    }
+
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
+    @Test
+    void startTestExecution_nonExistentTestClass_throwsBadRequestException() {
+        // Arrange
+        List<String> testNames = Arrays.asList("testMethod1");
         TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
-                "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
+                "com.example.NonExistentTest", testNames);
 
         // Act
         TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -307,133 +499,120 @@ class StartTestExecutionTest extends QAServiceBaseTest {
         assertNotNull(status.getExecutionId());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void startTestExecution_nestedTestClass_resolvesCorrectly() {
+    void startTestExecution_nullMethodName_withoutRunAll_throwsBadRequestException() {
         // Arrange
-        List<String> testNames = Arrays.asList("testMethod1");
-        TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
-                "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
+        TestExecutionRequestModel request = new TestExecutionRequestModel();
+        request.setRunAll(false);
+        request.setMethodName(null);
+        request.setServiceName("TestService");
 
-        // Act
-        TestExecutionStatusModel status = qaService.startTestExecution(request);
-
-        // Assert
-        assertNotNull(status);
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            qaService.startTestExecution(request);
+        });
+        assertEquals(ErrorMessages.QAErrorMessages.MustSpecifyRunAllOrTestNamesOrMethod, exception.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void startTestExecution_multipleTestNames_joinsWithPlus() {
+    void startTestExecution_nullRequest_throwsBadRequestException() {
         // Arrange
-        List<String> testNames = Arrays.asList("testMethod1", "testMethod2", "testMethod3");
-        TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
-                "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
 
-        // Act
-        TestExecutionStatusModel status = qaService.startTestExecution(request);
-
-        // Assert
-        assertNotNull(status);
-        assertNotNull(status.getExecutionId());
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            qaService.startTestExecution(null);
+        });
+        assertEquals(ErrorMessages.QAErrorMessages.TestExecutionRequestCannotBeNull, exception.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void startTestExecution_singleTestName_noPlus() {
+    void startTestExecution_nullTestClassName_withTestNames_throwsBadRequestException() {
         // Arrange
-        List<String> testNames = Arrays.asList("testMethod1");
-        TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
-                "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
+        TestExecutionRequestModel request = new TestExecutionRequestModel();
+        request.setRunAll(false);
+        request.setTestNames(Arrays.asList("testMethod1"));
+        request.setTestClassName(null);
 
-        // Act
-        TestExecutionStatusModel status = qaService.startTestExecution(request);
-
-        // Assert
-        assertNotNull(status);
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            qaService.startTestExecution(request);
+        });
+        assertEquals(ErrorMessages.QAErrorMessages.TestClassNameRequired, exception.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void startTestExecution_calculatesExpectedCount_correctly() {
+    void startTestExecution_runAllFalse_noTestNames_noMethod_throwsBadRequestException() {
         // Arrange
-        List<String> testNames = Arrays.asList("testMethod1", "testMethod2");
-        TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
-                "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
+        TestExecutionRequestModel request = new TestExecutionRequestModel();
+        request.setRunAll(false);
 
-        // Act
-        TestExecutionStatusModel status = qaService.startTestExecution(request);
-
-        // Assert
-        assertNotNull(status);
-        // Expected count should be set
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            qaService.startTestExecution(request);
+        });
+        assertEquals(ErrorMessages.QAErrorMessages.MustSpecifyRunAllOrTestNamesOrMethod, exception.getMessage());
     }
 
+    /**
+     * Purpose: Verify expected behavior.
+     * Expected Result: Operation completes as expected.
+     * Assertions: See assertions in test body.
+     */
     @Test
-    void startTestExecution_asyncExecution_returnsImmediately() {
+    void startTestExecution_testNamesWithoutClassName_throwsBadRequestException() {
         // Arrange
-        TestExecutionRequestModel request = createValidTestExecutionRequest();
+        TestExecutionRequestModel request = new TestExecutionRequestModel();
+        request.setRunAll(false);
+        request.setTestNames(Arrays.asList("testMethod1"));
+        request.setTestClassName(null);
 
-        // Act
-        long startTime = System.currentTimeMillis();
-        TestExecutionStatusModel status = qaService.startTestExecution(request);
-        long endTime = System.currentTimeMillis();
-
-        // Assert
-        assertNotNull(status);
-        // Should return quickly (within 5 seconds)
-        assertTrue((endTime - startTime) < 5000, "Should return immediately without waiting for tests to complete");
+        // Act & Assert
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            qaService.startTestExecution(request);
+        });
+        assertEquals(ErrorMessages.QAErrorMessages.TestClassNameRequired, exception.getMessage());
     }
 
+    /*
+     **********************************************************************************************
+     * PERMISSION TESTS
+     **********************************************************************************************
+     */
+    /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
     @Test
-    void startTestExecution_statusInitiallyPending_beforeExecution() {
+    void startTestExecution_controller_permission_unauthorized() {
         // Arrange
-        TestExecutionRequestModel request = createValidTestExecutionRequest();
+        com.example.SpringApi.Controllers.QAController controller = new com.example.SpringApi.Controllers.QAController(qaSubTranslator);
+        stubQaTranslatorStartTestExecutionThrowsUnauthorized();
 
         // Act
-        TestExecutionStatusModel status = qaService.startTestExecution(request);
+        org.springframework.http.ResponseEntity<?> response = controller.runTests(createValidTestExecutionRequest());
 
         // Assert
-        assertNotNull(status);
-        assertNotNull(status.getStatus());
-    }
-
-    @Test
-    void startTestExecution_duplicateTestNames_deduplicates() {
-        // Arrange
-        List<String> testNames = Arrays.asList("testMethod1", "testMethod1", "testMethod2");
-        TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
-                "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
-
-        // Act
-        TestExecutionStatusModel status = qaService.startTestExecution(request);
-
-        // Assert
-        assertNotNull(status);
-    }
-
-    @Test
-    void startTestExecution_testNamesWithSpaces_trimsCorrectly() {
-        // Arrange
-        List<String> testNames = Arrays.asList(" testMethod1 ", "testMethod2");
-        TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
-                "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
-
-        // Act
-        TestExecutionStatusModel status = qaService.startTestExecution(request);
-
-        // Assert
-        assertNotNull(status);
-    }
-
-    @Test
-    void startTestExecution_veryLongTestName_handlesCorrectly() {
-        // Arrange
-        String longTestName = "testMethod" + "VeryLongName".repeat(20);
-        List<String> testNames = Arrays.asList(longTestName);
-        TestExecutionRequestModel request = createTestExecutionRequestWithTestNames(
-                "com.example.SpringApi.Services.Tests.QA.GetAvailableServicesTest", testNames);
-
-        // Act
-        TestExecutionStatusModel status = qaService.startTestExecution(request);
-
-        // Assert
-        assertNotNull(status);
+        org.junit.jupiter.api.Assertions.assertEquals(org.springframework.http.HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }

@@ -1,9 +1,8 @@
 package com.example.SpringApi.Services.Tests.Product;
 
+import com.example.SpringApi.Controllers.ProductController;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.DatabaseModels.ProductCategory;
-import com.example.SpringApi.Controllers.ProductController;
-import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -14,26 +13,47 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import com.example.SpringApi.Services.ProductService;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 
 /**
  * Consolidated test class for ProductService.getCategoryPathsByIds.
  * Fully compliant with Unit Test Verification rules.
  */
-// Total Tests: 7
 @DisplayName("ProductService - GetCategoryPathsByIds Tests")
 class GetCategoryPathsByIdsTest extends ProductServiceTestBase {
-
-    // ==========================================
-    // SECTION 1: SUCCESS TESTS
-    // ==========================================
+    // Total Tests: 8
 
     /*
-     * Purpose: Verify path building for multiple levels
+     **********************************************************************************************
+     * SUCCESS TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify empty input behavior.
+     * Expected Result: Empty result map is returned.
+     * Assertions: Result map is empty.
+     */
+    @Test
+    @DisplayName("getCategoryPathsByIds - Empty input - Success")
+    void getCategoryPathsByIds_EmptyInput_Success() {
+        // Arrange
+
+        // Act
+        Map<Long, String> result = productService
+                .getCategoryPathsByIds(Collections.emptyList());
+
+        // Assert
+        assertTrue(result.isEmpty());
+    }
+
+    /**
+     * Purpose: Verify path building for multiple levels.
+     * Expected Result: Full parent-child path is returned.
+     * Assertions: Result map contains expected full path.
      */
     @Test
     @DisplayName("getCategoryPathsByIds - Multiple levels - Success")
@@ -43,8 +63,8 @@ class GetCategoryPathsByIdsTest extends ProductServiceTestBase {
         parent.setName("Electronics");
         testCategory.setParent(parent);
         testCategory.setParentId(1L); // Assume parent has ID 1
-        when(productCategoryRepository.findById(TEST_CATEGORY_ID)).thenReturn(Optional.of(testCategory));
-        when(productCategoryRepository.findById(1L)).thenReturn(Optional.of(parent));
+        stubProductCategoryRepositoryFindById(TEST_CATEGORY_ID, testCategory);
+        stubProductCategoryRepositoryFindById(1L, parent);
 
         // Act
         Map<Long, String> results = productService
@@ -55,8 +75,27 @@ class GetCategoryPathsByIdsTest extends ProductServiceTestBase {
         assertEquals("Electronics > Test Category", results.get(TEST_CATEGORY_ID));
     }
 
-    /*
-     * Purpose: Verify path building for root level
+    /**
+     * Purpose: Verify null list input behavior.
+     * Expected Result: Empty result map is returned.
+     * Assertions: Result map is empty.
+     */
+    @Test
+    @DisplayName("getCategoryPathsByIds - Null list - Success")
+    void getCategoryPathsByIds_NullList_Success() {
+        // Arrange
+
+        // Act
+        Map<Long, String> result = productService.getCategoryPathsByIds(null);
+
+        // Assert
+        assertTrue(result.isEmpty());
+    }
+
+    /**
+     * Purpose: Verify path building for root level.
+     * Expected Result: Category name is returned without parent path.
+     * Assertions: Result map contains category name.
      */
     @Test
     @DisplayName("getCategoryPathsByIds - Root level - Success")
@@ -64,7 +103,7 @@ class GetCategoryPathsByIdsTest extends ProductServiceTestBase {
         // Arrange
         testCategory.setParent(null);
         testCategory.setParentId(null);
-        when(productCategoryRepository.findById(TEST_CATEGORY_ID)).thenReturn(Optional.of(testCategory));
+        stubProductCategoryRepositoryFindById(TEST_CATEGORY_ID, testCategory);
 
         // Act
         Map<Long, String> results = productService
@@ -75,88 +114,92 @@ class GetCategoryPathsByIdsTest extends ProductServiceTestBase {
     }
 
     /*
-     * Purpose: Verify empty input behavior
+     **********************************************************************************************
+     * FAILURE / EXCEPTION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify invalid ID is skipped.
+     * Expected Result: Empty result map returned.
+     * Assertions: Result map is empty.
      */
     @Test
-    @DisplayName("getCategoryPathsByIds - Empty input - Success")
-    void getCategoryPathsByIds_EmptyInput_Success() {
+    @DisplayName("getCategoryPathsByIds - Invalid ID in list - Skips")
+    void getCategoryPathsByIds_InvalidId_Skips() {
+        // Arrange
+        stubProductCategoryRepositoryFindById(999L, null);
+
         // Act
         Map<Long, String> result = productService
-                .getCategoryPathsByIds(Collections.emptyList());
+                .getCategoryPathsByIds(Collections.singletonList(999L));
 
         // Assert
         assertTrue(result.isEmpty());
     }
 
     /*
-     * Purpose: Verify null list input behavior
+     **********************************************************************************************
+     * CONTROLLER AUTHORIZATION TESTS
+     **********************************************************************************************
+     */
+
+    /**
+     * Purpose: Verify unauthorized access is blocked at controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
      */
     @Test
-    @DisplayName("getCategoryPathsByIds - Null list - Success")
-    void getCategoryPathsByIds_NullList_Success() {
-        // Act
-        Map<Long, String> result = productService.getCategoryPathsByIds(null);
-
-        // Assert
-        assertTrue(result.isEmpty());
-    }
-
-    // ==========================================
-    // SECTION 2: PERMISSION / DELEGATION
-    // ==========================================
-
-    @Test
-    @DisplayName("getCategoryPathsByIds - Verify @PreAuthorize annotation")
-    void getCategoryPathsByIds_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-        Method method = ProductController.class.getMethod("getCategoryPathsByIds", List.class);
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.VIEW_PRODUCTS_PERMISSION));
-    }
-
-    @Test
-    @DisplayName("getCategoryPathsByIds - Controller delegation check")
-    void getCategoryPathsByIds_ControllerDelegation_Success() {
+    @DisplayName("getCategoryPathsByIds - Controller permission unauthorized - Success")
+    void getCategoryPathsByIds_controller_permission_unauthorized() {
         // Arrange
-        ProductService mockService = mock(ProductService.class);
-        ProductController controller = new ProductController(mockService);
-        when(mockService.getCategoryPathsByIds(any())).thenReturn(Collections.emptyMap());
-
-        // Act
-        ResponseEntity<?> response = controller.getCategoryPathsByIds(Collections.singletonList(1L));
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(mockService).getCategoryPathsByIds(any());
-    }
-
-    @Test
-    @DisplayName("getCategoryPathsByIds - No permission - Unauthorized")
-    void getCategoryPathsByIds_NoPermission_Unauthorized() {
-        // Arrange
-        ProductService mockService = mock(ProductService.class);
-        ProductController controller = new ProductController(mockService);
-        when(mockService.getCategoryPathsByIds(any()))
-                .thenThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED));
+        ProductController controller = new ProductController(productServiceMock);
+        stubProductServiceGetCategoryPathsByIdsThrowsUnauthorized();
 
         // Act
         ResponseEntity<?> response = controller.getCategoryPathsByIds(Collections.singletonList(1L));
 
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verify(mockService).getCategoryPathsByIds(any());
+        verify(productServiceMock).getCategoryPathsByIds(any());
     }
 
+    /**
+     * Purpose: Verify @PreAuthorize annotation exists.
+     * Expected Result: Annotation includes required permission.
+     * Assertions: Annotation is present and contains VIEW_PRODUCTS_PERMISSION.
+     */
     @Test
-    @DisplayName("getCategoryPathsByIds - Invalid ID in list - Skips")
-    void getCategoryPathsByIds_InvalidId_Skips() {
+    @DisplayName("getCategoryPathsByIds - Verify @PreAuthorize annotation - Success")
+    void getCategoryPathsByIds_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
-        when(productCategoryRepository.findById(999L)).thenReturn(Optional.empty());
+        Method method = ProductController.class.getMethod("getCategoryPathsByIds", List.class);
+
         // Act
-        Map<Long, String> result = productService
-                .getCategoryPathsByIds(Collections.singletonList(999L));
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
         // Assert
-        assertTrue(result.isEmpty());
+        assertNotNull(annotation);
+        assertTrue(annotation.value().contains(Authorizations.VIEW_PRODUCTS_PERMISSION));
     }
 
+    /**
+     * Purpose: Verify controller delegates to service.
+     * Expected Result: Response status is OK.
+     * Assertions: Service method invoked and HTTP 200 returned.
+     */
+    @Test
+    @DisplayName("getCategoryPathsByIds - Controller delegation check - Success")
+    void getCategoryPathsByIds_ControllerDelegation_Success() {
+        // Arrange
+        ProductController controller = new ProductController(productServiceMock);
+        stubProductServiceGetCategoryPathsByIdsReturns(Collections.emptyMap());
+
+        // Act
+        ResponseEntity<?> response = controller.getCategoryPathsByIds(Collections.singletonList(1L));
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(productServiceMock).getCategoryPathsByIds(any());
+    }
 }

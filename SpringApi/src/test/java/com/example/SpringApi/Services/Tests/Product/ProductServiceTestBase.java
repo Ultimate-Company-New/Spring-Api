@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -95,6 +95,7 @@ public abstract class ProductServiceTestBase {
     protected JwtTokenProvider jwtTokenProvider;
 
     protected ProductService productService;
+    protected ProductService productServiceMock;
 
     protected Product testProduct;
     protected ProductRequestModel testProductRequest;
@@ -140,9 +141,10 @@ public abstract class ProductServiceTestBase {
         request = mock(HttpServletRequest.class);
         userRepository = mock(UserRepository.class);
         jwtTokenProvider = mock(JwtTokenProvider.class);
+        productServiceMock = mock(ProductService.class);
 
         // Stub environment
-        lenient().when(environment.getActiveProfiles()).thenReturn(new String[] { "test" });
+        stubEnvironment(new String[] { "test" });
 
         // Initialize ProductService
         productService = new ProductService(
@@ -166,16 +168,10 @@ public abstract class ProductServiceTestBase {
         initializeTestData();
 
         // Standard stubs (lenient)
-        lenient().when(clientRepository.findById(anyLong())).thenReturn(Optional.of(testClient));
-        lenient().when(clientService.getClientById(anyLong())).thenReturn(testClientResponse);
-        lenient().when(productCategoryRepository.findById(anyLong())).thenReturn(Optional.of(testCategory));
-        lenient().when(productRepository.save(any(Product.class))).thenAnswer(invocation -> {
-            Product p = invocation.getArgument(0);
-            if (p.getProductId() == null) {
-                p.setProductId(TEST_PRODUCT_ID);
-            }
-            return p;
-        });
+        stubClientRepositoryFindById(TEST_CLIENT_ID, testClient);
+        stubClientServiceGetClientById(TEST_CLIENT_ID, testClientResponse);
+        stubProductCategoryRepositoryFindById(TEST_CATEGORY_ID, testCategory);
+        stubProductRepositorySaveAssignId();
     }
 
     protected void stubRequestAuthorization() {
@@ -196,6 +192,11 @@ public abstract class ProductServiceTestBase {
         lenient().when(productCategoryRepository.findById(categoryId)).thenReturn(Optional.ofNullable(category));
     }
 
+    protected void stubProductCategoryRepositoryFindAll(
+            java.util.List<com.example.SpringApi.Models.DatabaseModels.ProductCategory> categories) {
+        lenient().when(productCategoryRepository.findAll()).thenReturn(categories);
+    }
+
     protected void stubGoogleCredRepositoryFindById(Long clientId, GoogleCred googleCred) {
         lenient().when(googleCredRepository.findById(clientId)).thenReturn(Optional.ofNullable(googleCred));
     }
@@ -206,6 +207,20 @@ public abstract class ProductServiceTestBase {
 
     protected void stubProductRepositorySave(Product product) {
         lenient().when(productRepository.save(any(Product.class))).thenReturn(product);
+    }
+
+    protected void stubProductRepositorySaveThrows(RuntimeException exception) {
+        lenient().when(productRepository.save(any(Product.class))).thenThrow(exception);
+    }
+
+    protected void stubProductRepositorySaveAssignId() {
+        lenient().when(productRepository.save(any(Product.class))).thenAnswer(invocation -> {
+            Product p = invocation.getArgument(0);
+            if (p.getProductId() == null) {
+                p.setProductId(TEST_PRODUCT_ID);
+            }
+            return p;
+        });
     }
 
     protected void stubClientRepositoryFindById(Long clientId, Client client) {
@@ -232,6 +247,161 @@ public abstract class ProductServiceTestBase {
 
     protected void stubProductRepositoryFindByIdWithRelatedEntities(Long productId, Long clientId, Product product) {
         lenient().when(productRepository.findByIdWithRelatedEntities(productId, clientId)).thenReturn(product);
+    }
+
+    protected void stubProductRepositoryFindById(Long productId, Product product) {
+        lenient().when(productRepository.findById(productId)).thenReturn(Optional.ofNullable(product));
+    }
+
+    protected void stubProductPickupLocationMappingRepositoryFindByProductIdWithPickupLocationAndAddress(
+            Long productId, java.util.List<ProductPickupLocationMapping> mappings) {
+        lenient().when(productPickupLocationMappingRepository.findByProductIdWithPickupLocationAndAddress(productId))
+                .thenReturn(mappings);
+    }
+
+    protected void stubProductPickupLocationMappingRepositoryFindByProductIdWithPickupLocationAndAddressThrows(
+            RuntimeException exception) {
+        lenient().when(productPickupLocationMappingRepository.findByProductIdWithPickupLocationAndAddress(anyLong()))
+                .thenThrow(exception);
+    }
+
+    protected void stubPackagePickupLocationMappingRepositoryFindByPickupLocationIdsWithPackages(
+            java.util.List<Long> pickupLocationIds,
+            java.util.List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping> mappings) {
+        lenient().when(packagePickupLocationMappingRepository.findByPickupLocationIdsWithPackages(pickupLocationIds))
+                .thenReturn(mappings);
+    }
+
+    protected void stubProductFilterQueryBuilderFindPaginatedEntities(
+            org.springframework.data.domain.Page<Product> page) {
+        lenient().when(productFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+                anyLong(), any(), anyString(), any(), anyBoolean(), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(page);
+    }
+
+    protected void stubProductServiceAddProductDoNothing() {
+        lenient().doNothing().when(productServiceMock).addProduct(any(ProductRequestModel.class));
+    }
+
+    protected void stubProductServiceAddProductThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(productServiceMock).addProduct(any(ProductRequestModel.class));
+    }
+
+    protected void stubProductServiceEditProductDoNothing() {
+        lenient().doNothing().when(productServiceMock).editProduct(any(ProductRequestModel.class));
+    }
+
+    protected void stubProductServiceEditProductThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(productServiceMock).editProduct(any(ProductRequestModel.class));
+    }
+
+    protected void stubProductServiceToggleDeleteProductDoNothing() {
+        lenient().doNothing().when(productServiceMock).toggleDeleteProduct(anyLong());
+    }
+
+    protected void stubProductServiceToggleDeleteProductThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(productServiceMock).toggleDeleteProduct(anyLong());
+    }
+
+    protected void stubProductServiceToggleReturnProductDoNothing() {
+        lenient().doNothing().when(productServiceMock).toggleReturnProduct(anyLong());
+    }
+
+    protected void stubProductServiceToggleReturnProductThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(productServiceMock).toggleReturnProduct(anyLong());
+    }
+
+    protected void stubProductServiceBulkAddProductsDoNothing() {
+        lenient().doNothing().when(productServiceMock).bulkAddProducts(anyList());
+    }
+
+    protected void stubProductServiceBulkAddProductsThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(productServiceMock).bulkAddProducts(anyList());
+    }
+
+    protected void stubProductServiceBulkAddProductsAsyncDoNothing() {
+        lenient().doNothing().when(productServiceMock).bulkAddProductsAsync(anyList(), anyLong(), anyString(),
+                anyLong());
+    }
+
+    protected void stubProductServiceBulkAddProductsAsyncThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(productServiceMock).bulkAddProductsAsync(anyList(), anyLong(), anyString(), anyLong());
+    }
+
+    protected void stubProductServiceGetProductDetailsByIdReturns(
+            com.example.SpringApi.Models.ResponseModels.ProductResponseModel response) {
+        lenient().when(productServiceMock.getProductDetailsById(anyLong())).thenReturn(response);
+    }
+
+    protected void stubProductServiceGetProductDetailsByIdThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(productServiceMock).getProductDetailsById(anyLong());
+    }
+
+    protected void stubProductServiceGetProductInBatchesReturns(
+            com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel<com.example.SpringApi.Models.ResponseModels.ProductResponseModel> response) {
+        lenient().when(productServiceMock.getProductInBatches(any(
+                com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.class)))
+                .thenReturn(response);
+    }
+
+    protected void stubProductServiceGetProductInBatchesThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(productServiceMock).getProductInBatches(any(
+                        com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.class));
+    }
+
+    protected void stubProductServiceGetProductStockAtLocationsByProductIdReturns(
+            java.util.List<com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel> response) {
+        lenient().when(productServiceMock.getProductStockAtLocationsByProductId(anyLong(), any(), any(), any()))
+                .thenReturn(response);
+    }
+
+    protected void stubProductServiceGetProductStockAtLocationsByProductIdThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(productServiceMock).getProductStockAtLocationsByProductId(anyLong(), any(), any(), any());
+    }
+
+    protected void stubProductServiceGetCategoryPathsByIdsReturns(java.util.Map<Long, String> paths) {
+        lenient().when(productServiceMock.getCategoryPathsByIds(any())).thenReturn(paths);
+    }
+
+    protected void stubProductServiceGetCategoryPathsByIdsThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(productServiceMock).getCategoryPathsByIds(any());
+    }
+
+    protected void stubProductServiceFindCategoriesByParentIdReturns(
+            java.util.List<com.example.SpringApi.Models.ResponseModels.ProductCategoryWithPathResponseModel> categories) {
+        lenient().when(productServiceMock.findCategoriesByParentId(any())).thenReturn(categories);
+    }
+
+    protected void stubProductServiceFindCategoriesByParentIdThrowsUnauthorized() {
+        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
+                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+                .when(productServiceMock).findCategoriesByParentId(any());
+    }
+
+    protected void stubProductServiceUserContext(Long userId, String userName, Long clientId) {
+        lenient().when(productServiceMock.getUserId()).thenReturn(userId);
+        lenient().when(productServiceMock.getUser()).thenReturn(userName);
+        lenient().when(productServiceMock.getClientId()).thenReturn(clientId);
     }
 
     protected void stubProductPickupLocationMappingRepositoryDeleteByProductId(Long productId) {

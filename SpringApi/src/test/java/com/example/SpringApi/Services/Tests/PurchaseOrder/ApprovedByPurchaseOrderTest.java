@@ -40,12 +40,12 @@ public class ApprovedByPurchaseOrderTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("Approved By Purchase Order - Success")
     void approvedByPurchaseOrder_Success_Success() {
-        // ARRANGE
+        // Arrange
         testPurchaseOrder.setApprovedByUserId(null);
         stubPurchaseOrderRepositoryFindById(Optional.of(testPurchaseOrder));
         stubPurchaseOrderRepositorySave(testPurchaseOrder);
 
-        // ACT & ASSERT
+        // Act & Assert
         assertDoesNotThrow(() -> purchaseOrderService.approvedByPurchaseOrder(TEST_PO_ID));
     }
 
@@ -63,11 +63,11 @@ public class ApprovedByPurchaseOrderTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("Approved By Purchase Order - Already Approved - Throws BadRequestException")
     void approvedByPurchaseOrder_AlreadyApproved_Failure() {
-        // ARRANGE
+        // Arrange
         testPurchaseOrder.setApprovedByUserId(999L);
         stubPurchaseOrderRepositoryFindById(Optional.of(testPurchaseOrder));
 
-        // ACT & ASSERT
+        // Act & Assert
         assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.AlreadyApproved,
                 () -> purchaseOrderService.approvedByPurchaseOrder(TEST_PO_ID));
     }
@@ -80,10 +80,10 @@ public class ApprovedByPurchaseOrderTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("Approved By Purchase Order - Not Found - Throws NotFoundException")
     void approvedByPurchaseOrder_NotFound_Failure() {
-        // ARRANGE
+        // Arrange
         stubPurchaseOrderRepositoryFindById(Optional.empty());
 
-        // ACT & ASSERT
+        // Act & Assert
         assertThrowsNotFound(ErrorMessages.PurchaseOrderErrorMessages.InvalidId,
                 () -> purchaseOrderService.approvedByPurchaseOrder(TEST_PO_ID));
     }
@@ -102,27 +102,32 @@ public class ApprovedByPurchaseOrderTest extends PurchaseOrderServiceTestBase {
     @Test
     @DisplayName("approvedByPurchaseOrder - Controller Permission - Unauthorized")
     void approvedByPurchaseOrder_controller_permission_unauthorized() {
-        // ARRANGE
+        // Arrange
         PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderServiceMock);
         stubPurchaseOrderServiceThrowsUnauthorizedOnApprove();
 
-        // ACT
+        // Act
         ResponseEntity<?> response = controller.approvedByPurchaseOrder(TEST_PO_ID);
 
-        // ASSERT
+        // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
+    /**
+     * Purpose: Verify controller has @PreAuthorize for approvedByPurchaseOrder.
+     * Expected Result: Annotation exists and includes UPDATE_PURCHASE_ORDERS_PERMISSION.
+     * Assertions: Annotation is present and contains permission.
+     */
     @Test
     @DisplayName("approvedByPurchaseOrder - Verify @PreAuthorize Annotation")
     void approvedByPurchaseOrder_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // ARRANGE
+        // Arrange
         Method method = PurchaseOrderController.class.getMethod("approvedByPurchaseOrder", long.class);
 
-        // ACT
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
-        // ASSERT
+        // Assert
         assertNotNull(annotation, "@PreAuthorize annotation should be present on approvedByPurchaseOrder");
         assertTrue(annotation.value().contains(Authorizations.UPDATE_PURCHASE_ORDERS_PERMISSION),
                 "@PreAuthorize should reference UPDATE_PURCHASE_ORDERS_PERMISSION");
@@ -135,15 +140,15 @@ public class ApprovedByPurchaseOrderTest extends PurchaseOrderServiceTestBase {
      */
     @Test
     @DisplayName("approvedByPurchaseOrder - Controller delegates to service")
-    void approvedByPO_WithValidId_DelegatesToService() {
-        // ARRANGE
+    void approvedByPurchaseOrder_WithValidId_DelegatesToService() {
+        // Arrange
         PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderServiceMock);
         stubPurchaseOrderServiceApproveDoNothing();
 
-        // ACT
+        // Act
         ResponseEntity<?> response = controller.approvedByPurchaseOrder(TEST_PO_ID);
 
-        // ASSERT
+        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

@@ -24,6 +24,7 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Bulk Create Pickup Locations Async Tests")
 class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
+        // Total Tests: 13
 
         /*
          **********************************************************************************************
@@ -39,79 +40,20 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Bulk Create Pickup Locations Async - All Valid - Success")
         void bulkCreatePickupLocationsAsync_AllValid_Success() {
-                // ARRANGE
+                // Arrange
                 List<PickupLocationRequestModel> requests = new ArrayList<>();
                 for (int i = 0; i < 3; i++) {
                         requests.add(createValidPickupLocationRequest((long) i));
                 }
-
-                when(addressRepository.save(any())).thenReturn(testAddress);
-                when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+                stubAddressRepositorySave(testAddress);
+                stubPickupLocationRepositorySave(testPickupLocation);
                 stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
-                // ACT & ASSERT
+                // Act & Assert
                 assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocationsAsync(
                                 requests, 1L, "testuser", TEST_CLIENT_ID));
-
                 verify(userLogService).logDataWithContext(
                                 anyLong(), anyString(), anyLong(), contains("Bulk: 3 succeeded"), anyString());
-        }
-
-        /**
-         * Purpose: Verify async processing with partial success (some items fail).
-         * Expected Result: Valid items processed, failures logged with error messages.
-         * Assertions: No exception thrown, logging captures partial results.
-         */
-        @Test
-        @DisplayName("Bulk Create Pickup Locations Async - Mixed Valid and Invalid - Partial Success")
-        void bulkCreatePickupLocationsAsync_MixedValidAndInvalid_PartialSuccess() {
-                // ARRANGE
-                List<PickupLocationRequestModel> requests = new ArrayList<>();
-                requests.add(createValidPickupLocationRequest(1L)); // Valid
-
-                PickupLocationRequestModel invalidReq = createValidPickupLocationRequest(2L);
-                invalidReq.setAddressNickName(""); // Invalid - empty nickname
-                requests.add(invalidReq);
-
-                requests.add(createValidPickupLocationRequest(3L)); // Valid
-
-                when(addressRepository.save(any())).thenReturn(testAddress);
-                when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-                stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
-
-                // ACT & ASSERT
-                assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocationsAsync(
-                                requests, 1L, "testuser", TEST_CLIENT_ID));
-
-                // Verify logging captured partial results
-                verify(userLogService).logDataWithContext(
-                                anyLong(), anyString(), anyLong(), contains("succeeded"), anyString());
-        }
-
-        /**
-         * Purpose: Test async with very large batch size (boundary test).
-         * Expected Result: All items processed asynchronously.
-         * Assertions: No exception thrown, batch processed completely.
-         */
-        @Test
-        @DisplayName("Bulk Create Pickup Locations Async - Large Batch 100 Items - Success")
-        void bulkCreatePickupLocationsAsync_LargeBatch100Items_Success() {
-                // ARRANGE
-                List<PickupLocationRequestModel> requests = new ArrayList<>();
-                for (int i = 0; i < 100; i++) {
-                        requests.add(createValidPickupLocationRequest((long) i));
-                }
-
-                when(addressRepository.save(any())).thenReturn(testAddress);
-                when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-                stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
-
-                // ACT & ASSERT
-                assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocationsAsync(
-                                requests, 1L, "testuser", TEST_CLIENT_ID));
-
-                verify(userLogService).logDataWithContext(
-                                anyLong(), anyString(), anyLong(), contains("Bulk: 100 succeeded"), anyString());
         }
 
         /**
@@ -122,7 +64,7 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Bulk Create Pickup Locations Async - International Characters - Success")
         void bulkCreatePickupLocationsAsync_InternationalCharacters_Success() {
-                // ARRANGE
+                // Arrange
                 List<PickupLocationRequestModel> requests = new ArrayList<>();
 
                 PickupLocationRequestModel req1 = createValidPickupLocationRequest(1L);
@@ -132,14 +74,66 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
                 PickupLocationRequestModel req2 = createValidPickupLocationRequest(2L);
                 req2.setAddressNickName("北京中心"); // Beijing in Chinese
                 requests.add(req2);
-
-                when(addressRepository.save(any())).thenReturn(testAddress);
-                when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+                stubAddressRepositorySave(testAddress);
+                stubPickupLocationRepositorySave(testPickupLocation);
                 stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
-                // ACT & ASSERT
+                // Act & Assert
                 assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocationsAsync(
                                 requests, 1L, "testuser", TEST_CLIENT_ID));
+        }
+
+        /**
+         * Purpose: Test async with very large batch size (boundary test).
+         * Expected Result: All items processed asynchronously.
+         * Assertions: No exception thrown, batch processed completely.
+         */
+        @Test
+        @DisplayName("Bulk Create Pickup Locations Async - Large Batch 100 Items - Success")
+        void bulkCreatePickupLocationsAsync_LargeBatch100Items_Success() {
+                // Arrange
+                List<PickupLocationRequestModel> requests = new ArrayList<>();
+                for (int i = 0; i < 100; i++) {
+                        requests.add(createValidPickupLocationRequest((long) i));
+                }
+                stubAddressRepositorySave(testAddress);
+                stubPickupLocationRepositorySave(testPickupLocation);
+                stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
+
+                // Act & Assert
+                assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocationsAsync(
+                                requests, 1L, "testuser", TEST_CLIENT_ID));
+                verify(userLogService).logDataWithContext(
+                                anyLong(), anyString(), anyLong(), contains("Bulk: 100 succeeded"), anyString());
+        }
+
+        /**
+         * Purpose: Verify async processing with partial success (some items fail).
+         * Expected Result: Valid items processed, failures logged with error messages.
+         * Assertions: No exception thrown, logging captures partial results.
+         */
+        @Test
+        @DisplayName("Bulk Create Pickup Locations Async - Mixed Valid and Invalid - Partial Success")
+        void bulkCreatePickupLocationsAsync_MixedValidAndInvalid_PartialSuccess() {
+                // Arrange
+                List<PickupLocationRequestModel> requests = new ArrayList<>();
+                requests.add(createValidPickupLocationRequest(1L)); // Valid
+
+                PickupLocationRequestModel invalidReq = createValidPickupLocationRequest(2L);
+                invalidReq.setAddressNickName(""); // Invalid - empty nickname
+                requests.add(invalidReq);
+
+                requests.add(createValidPickupLocationRequest(3L)); // Valid
+                stubAddressRepositorySave(testAddress);
+                stubPickupLocationRepositorySave(testPickupLocation);
+                stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
+
+                // Act & Assert
+                assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocationsAsync(
+                                requests, 1L, "testuser", TEST_CLIENT_ID));
+                // Verify logging captured partial results
+                verify(userLogService).logDataWithContext(
+                                anyLong(), anyString(), anyLong(), contains("succeeded"), anyString());
         }
 
         /*
@@ -149,16 +143,28 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
          */
 
         /**
-         * Purpose: Reject async processing with null list.
-         * Expected Result: Error is handled and logged without throwing.
-         * Assertions: No exception is thrown.
+         * Purpose: Verify client ID isolation in async processing.
+         * Expected Result: All locations associated with correct client.
+         * Assertions: Repository called with correct client ID.
          */
         @Test
-        @DisplayName("Bulk Create Pickup Locations Async - Null List - Handles Error Gracefully")
-        void bulkCreatePickupLocationsAsync_NullList_HandlesErrorGracefully() {
-                // ARRANGE & ACT & ASSERT
-                assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocationsAsync(
-                                null, 1L, "testuser", TEST_CLIENT_ID));
+        @DisplayName("Bulk Create Pickup Locations Async - Client ID Isolation - Success")
+        void bulkCreatePickupLocationsAsync_ClientIdIsolation_Success() {
+                // Arrange
+                Long differentClientId = 999L;
+                List<PickupLocationRequestModel> requests = new ArrayList<>();
+                requests.add(createValidPickupLocationRequest(1L));
+                stubAddressRepositorySave(testAddress);
+                stubPickupLocationRepositorySave(testPickupLocation);
+                stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
+
+                // Act
+                pickupLocationService.bulkCreatePickupLocationsAsync(
+                                requests, 1L, "testuser", differentClientId);
+
+                // Assert
+                verify(userLogService).logDataWithContext(
+                                anyLong(), anyString(), eq(differentClientId), anyString(), anyString());
         }
 
         /**
@@ -169,12 +175,51 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Bulk Create Pickup Locations Async - Empty List - Handles Error Gracefully")
         void bulkCreatePickupLocationsAsync_EmptyList_HandlesErrorGracefully() {
-                // ARRANGE
+                // Arrange
                 List<PickupLocationRequestModel> emptyList = new ArrayList<>();
 
-                // ACT & ASSERT
+                // Act & Assert
                 assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocationsAsync(
                                 emptyList, 1L, "testuser", TEST_CLIENT_ID));
+        }
+
+        /**
+         * Purpose: Reject async processing with null list.
+         * Expected Result: Error is handled and logged without throwing.
+         * Assertions: No exception is thrown.
+         */
+        @Test
+        @DisplayName("Bulk Create Pickup Locations Async - Null List - Handles Error Gracefully")
+        void bulkCreatePickupLocationsAsync_NullList_HandlesErrorGracefully() {
+                // Arrange
+
+                // Act & Assert
+                assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocationsAsync(
+                                null, 1L, "testuser", TEST_CLIENT_ID));
+        }
+
+        /**
+         * Purpose: Verify async error handling when repository throws exception.
+         * Expected Result: Exception caught and logged, processing continues for other items.
+         * Assertions: Failure count incremented, logging captures error.
+         */
+        @Test
+        @DisplayName("Bulk Create Pickup Locations Async - Repository Error - Failure Logged")
+        void bulkCreatePickupLocationsAsync_RepositoryError_FailureLogged() {
+                // Arrange
+                List<PickupLocationRequestModel> requests = new ArrayList<>();
+                requests.add(createValidPickupLocationRequest(1L));
+
+                stubAddressRepositorySaveThrows(new RuntimeException("DB Connection Error"));
+                stubPickupLocationRepositorySave(testPickupLocation);
+
+                // Act & Assert
+                assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocationsAsync(
+                                requests, 1L, "testuser", TEST_CLIENT_ID));
+
+                // Verify error was logged
+                verify(userLogService).logDataWithContext(
+                                anyLong(), anyString(), anyLong(), anyString(), anyString());
         }
 
         /**
@@ -185,20 +230,19 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Bulk Create Pickup Locations Async - Requesting User ID Captured - Success")
         void bulkCreatePickupLocationsAsync_RequestingUserIdCaptured_Success() {
-                // ARRANGE
+                // Arrange
                 Long requestingUserId = 42L;
                 List<PickupLocationRequestModel> requests = new ArrayList<>();
                 requests.add(createValidPickupLocationRequest(1L));
-
-                when(addressRepository.save(any())).thenReturn(testAddress);
-                when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+                stubAddressRepositorySave(testAddress);
+                stubPickupLocationRepositorySave(testPickupLocation);
                 stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
-                // ACT
+                // Act
                 pickupLocationService.bulkCreatePickupLocationsAsync(
                                 requests, requestingUserId, "testuser", TEST_CLIENT_ID);
 
-                // ASSERT
+                // Assert
                 verify(userLogService).logDataWithContext(
                                 eq(requestingUserId), anyString(), anyLong(), anyString(), anyString());
         }
@@ -211,73 +255,21 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("Bulk Create Pickup Locations Async - Requesting User Name Captured - Success")
         void bulkCreatePickupLocationsAsync_RequestingUserNameCaptured_Success() {
-                // ARRANGE
+                // Arrange
                 String requestingUserName = "alice_manager";
                 List<PickupLocationRequestModel> requests = new ArrayList<>();
                 requests.add(createValidPickupLocationRequest(1L));
-
-                when(addressRepository.save(any())).thenReturn(testAddress);
-                when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
+                stubAddressRepositorySave(testAddress);
+                stubPickupLocationRepositorySave(testPickupLocation);
                 stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
 
-                // ACT
+                // Act
                 pickupLocationService.bulkCreatePickupLocationsAsync(
                                 requests, 1L, requestingUserName, TEST_CLIENT_ID);
 
-                // ASSERT
+                // Assert
                 verify(userLogService).logDataWithContext(
                                 anyLong(), eq(requestingUserName), anyLong(), anyString(), anyString());
-        }
-
-        /**
-         * Purpose: Verify client ID isolation in async processing.
-         * Expected Result: All locations associated with correct client.
-         * Assertions: Repository called with correct client ID.
-         */
-        @Test
-        @DisplayName("Bulk Create Pickup Locations Async - Client ID Isolation - Success")
-        void bulkCreatePickupLocationsAsync_ClientIdIsolation_Success() {
-                // ARRANGE
-                Long differentClientId = 999L;
-                List<PickupLocationRequestModel> requests = new ArrayList<>();
-                requests.add(createValidPickupLocationRequest(1L));
-
-                when(addressRepository.save(any())).thenReturn(testAddress);
-                when(pickupLocationRepository.save(any())).thenReturn(testPickupLocation);
-                stubShipRocketHelperAddPickupLocation(testShipRocketResponse);
-
-                // ACT
-                pickupLocationService.bulkCreatePickupLocationsAsync(
-                                requests, 1L, "testuser", differentClientId);
-
-                // ASSERT
-                verify(userLogService).logDataWithContext(
-                                anyLong(), anyString(), eq(differentClientId), anyString(), anyString());
-        }
-
-        /**
-         * Purpose: Verify async error handling when repository throws exception.
-         * Expected Result: Exception caught and logged, processing continues for other
-         * items.
-         * Assertions: Failure count incremented, logging captures error.
-         */
-        @Test
-        @DisplayName("Bulk Create Pickup Locations Async - Repository Error - Failure Logged")
-        void bulkCreatePickupLocationsAsync_RepositoryError_FailureLogged() {
-                // ARRANGE
-                List<PickupLocationRequestModel> requests = new ArrayList<>();
-                requests.add(createValidPickupLocationRequest(1L));
-
-                when(addressRepository.save(any())).thenThrow(new RuntimeException("DB Connection Error"));
-                stubPickupLocationRepositorySave(testPickupLocation);
-
-                // ACT & ASSERT
-                assertDoesNotThrow(() -> pickupLocationService.bulkCreatePickupLocationsAsync(
-                                requests, 1L, "testuser", TEST_CLIENT_ID));
-
-                // Verify error was logged
-                verify(userLogService).logDataWithContext(
-                                anyLong(), anyString(), anyLong(), anyString(), anyString());
         }
 
         /*
@@ -294,47 +286,60 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
         @Test
         @DisplayName("bulkCreatePickupLocationsAsync - Controller Permission - Unauthorized")
         void bulkCreatePickupLocationsAsync_controller_permission_unauthorized() {
-                // ARRANGE
+                // Arrange
                 PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
                 // Setup user context to return normally (so getUserId() doesn't throw)
-                when(pickupLocationServiceMock.getUserId()).thenReturn(TEST_USER_ID);
-                when(pickupLocationServiceMock.getUser()).thenReturn("testuser");
-                when(pickupLocationServiceMock.getClientId()).thenReturn(TEST_CLIENT_ID);
+                stubPickupLocationServiceUserContext(TEST_USER_ID, "testuser", TEST_CLIENT_ID);
                 // Then make the actual service method throw
                 stubPickupLocationServiceThrowsUnauthorized();
 
-                // ACT
+                // Act
                 ResponseEntity<?> response = controller.bulkCreatePickupLocations(new ArrayList<>());
 
-                // ASSERT
+                // Assert
                 assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         }
 
+        /**
+         * Purpose: Verify controller method returns ResponseEntity.
+         * Expected Result: Return type is ResponseEntity.
+         * Assertions: Return type equals ResponseEntity class.
+         */
         @Test
-        @DisplayName("bulkCreatePickupLocationsAsync - Verify @PreAuthorize Annotation")
-        void bulkCreatePickupLocationsAsync_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
-                // ARRANGE & ACT
+        @DisplayName("bulkCreatePickupLocationsAsync - Method Is Not Void Return Type - Success")
+        void bulkCreatePickupLocationsAsync_MethodIsNotNullReturnType_Success() throws NoSuchMethodException {
+                // Arrange
                 Method method = PickupLocationController.class.getMethod("bulkCreatePickupLocations",
                                 List.class);
+
+                // Act
+                Class<?> returnType = method.getReturnType();
+
+                // Assert
+                assertEquals(org.springframework.http.ResponseEntity.class, returnType,
+                                "bulkCreatePickupLocationsAsync should return ResponseEntity");
+        }
+
+        /**
+         * Purpose: Verify @PreAuthorize is present on controller method.
+         * Expected Result: Annotation is present with required permission.
+         * Assertions: Annotation exists and references INSERT_PICKUP_LOCATIONS_PERMISSION.
+         */
+        @Test
+        @DisplayName("bulkCreatePickupLocationsAsync - Verify @PreAuthorize Annotation - Success")
+        void bulkCreatePickupLocationsAsync_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+                // Arrange
+                Method method = PickupLocationController.class.getMethod("bulkCreatePickupLocations",
+                                List.class);
+
+                // Act
                 PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
 
-                // ASSERT
+                // Assert
                 assertNotNull(annotation,
                                 "@PreAuthorize annotation should be present on bulkCreatePickupLocationsAsync");
                 assertTrue(annotation.value().contains(Authorizations.INSERT_PICKUP_LOCATIONS_PERMISSION),
                                 "@PreAuthorize should reference INSERT_PICKUP_LOCATIONS_PERMISSION");
         }
 
-        @Test
-        @DisplayName("bulkCreatePickupLocationsAsync - Method Is Not Void Return Type")
-        void bulkCreatePickupLocationsAsync_MethodIsNotNullReturnType() throws NoSuchMethodException {
-                // ARRANGE & ACT
-                Method method = PickupLocationController.class.getMethod("bulkCreatePickupLocations",
-                                List.class);
-                Class<?> returnType = method.getReturnType();
-
-                // ASSERT
-                assertEquals(org.springframework.http.ResponseEntity.class, returnType,
-                                "bulkCreatePickupLocationsAsync should return ResponseEntity");
-        }
 }
