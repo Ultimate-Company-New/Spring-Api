@@ -653,39 +653,36 @@ public class QAService extends BaseService implements IQASubTranslator {
         String[] params = trimmed.split(",");
         for (String param : params) {
             String p = param.trim();
-            if (p.isEmpty())
-                continue;
-
-            // Remove leading annotations (best-effort)
-            while (p.startsWith("@")) {
-                int space = p.indexOf(' ');
-                if (space == -1) {
-                    p = "";
-                    break;
+            if (!p.isEmpty()) {
+                // Remove leading annotations (best-effort)
+                while (p.startsWith("@")) {
+                    int space = p.indexOf(' ');
+                    if (space == -1) {
+                        p = "";
+                    } else {
+                        p = p.substring(space + 1).trim();
+                    }
                 }
-                p = p.substring(space + 1).trim();
+
+                if (p.startsWith("final ")) {
+                    p = p.substring("final ".length()).trim();
+                }
+
+                if (!p.isEmpty()) {
+                    String[] tokens = p.split("\\s+");
+                    if (tokens.length > 0) {
+                        String typeToken = tokens[0];
+                        // Remove generic args (best-effort)
+                        typeToken = typeToken.replaceAll("<.*>", "");
+                        // Strip package prefix
+                        int dot = typeToken.lastIndexOf('.');
+                        if (dot != -1) {
+                            typeToken = typeToken.substring(dot + 1);
+                        }
+                        types.add(typeToken);
+                    }
+                }
             }
-            if (p.isEmpty())
-                continue;
-
-            if (p.startsWith("final ")) {
-                p = p.substring("final ".length()).trim();
-            }
-
-            String[] tokens = p.split("\\s+");
-            if (tokens.length == 0)
-                continue;
-
-            String typeToken = tokens[0];
-            // Remove generic args (best-effort)
-            typeToken = typeToken.replaceAll("<.*>", "");
-            // Strip package prefix
-            int dot = typeToken.lastIndexOf('.');
-            if (dot != -1) {
-                typeToken = typeToken.substring(dot + 1);
-            }
-
-            types.add(typeToken);
         }
 
         return String.join(",", types);
@@ -1214,7 +1211,7 @@ public class QAService extends BaseService implements IQASubTranslator {
             int totalTests = status.getTotalTests();
             int maxWhileRunning = Math.max(0, totalTests - 1);
             int actualCompletedClamped = Math.min(status.getCompletedTests(), maxWhileRunning);
-            long expectedDurationMs = 2000L + (long) totalTests * 400L;
+            long expectedDurationMs = 2000L + totalTests * 400L;
             double ratio = expectedDurationMs > 0
                     ? Math.min(0.95d, (double) elapsedMs / (double) expectedDurationMs)
                     : 0.0d;
@@ -1375,8 +1372,8 @@ public class QAService extends BaseService implements IQASubTranslator {
             return;
         }
 
-        try {
-            Files.list(surefireDir)
+        try (java.util.stream.Stream<Path> reportFiles = Files.list(surefireDir)) {
+            reportFiles
                     .filter(p -> p.toString().endsWith(".xml"))
                     .filter(p -> testClassName == null || p.getFileName().toString().contains(testClassName))
                     .forEach(xmlFile -> parseXmlReport(xmlFile, status));
@@ -1461,29 +1458,26 @@ public class QAService extends BaseService implements IQASubTranslator {
             entries.sort(Comparator.comparing(p -> p.getFileName().toString()));
 
             for (Path entry : entries) {
-                if (!Files.isDirectory(entry)) {
-                    continue;
-                }
-                String categoryName = entry.getFileName().toString();
-                if (categoryName.startsWith(".")) {
-                    continue;
-                }
-
-                List<QADashboardResponseModel.AutomatedApiTestInfo> tests = new ArrayList<>();
-                try (DirectoryStream<Path> fileStream = Files.newDirectoryStream(entry, "*.java")) {
-                    for (Path file : fileStream) {
-                        String fileName = file.getFileName().toString();
-                        if (fileName.endsWith(".java")) {
-                            String testClass = fileName.substring(0, fileName.length() - 5);
-                            String relativePath = categoryName + "/" + fileName;
-                            tests.add(new QADashboardResponseModel.AutomatedApiTestInfo(testClass, relativePath));
-                            totalTests++;
+                if (Files.isDirectory(entry)) {
+                    String categoryName = entry.getFileName().toString();
+                    if (!categoryName.startsWith(".")) {
+                        List<QADashboardResponseModel.AutomatedApiTestInfo> tests = new ArrayList<>();
+                        try (DirectoryStream<Path> fileStream = Files.newDirectoryStream(entry, "*.java")) {
+                            for (Path file : fileStream) {
+                                String fileName = file.getFileName().toString();
+                                if (fileName.endsWith(".java")) {
+                                    String testClass = fileName.substring(0, fileName.length() - 5);
+                                    String relativePath = Path.of(categoryName, fileName).toString();
+                                    tests.add(new QADashboardResponseModel.AutomatedApiTestInfo(testClass, relativePath));
+                                    totalTests++;
+                                }
+                            }
                         }
+                        tests.sort(Comparator.comparing(QADashboardResponseModel.AutomatedApiTestInfo::getTestClass));
+                        categories.add(new QADashboardResponseModel.AutomatedApiTestCategory(
+                                categoryName, categoryName, tests));
                     }
                 }
-                tests.sort(Comparator.comparing(QADashboardResponseModel.AutomatedApiTestInfo::getTestClass));
-                categories.add(new QADashboardResponseModel.AutomatedApiTestCategory(
-                        categoryName, categoryName, tests));
             }
         } catch (IOException e) {
             logger.error(e);

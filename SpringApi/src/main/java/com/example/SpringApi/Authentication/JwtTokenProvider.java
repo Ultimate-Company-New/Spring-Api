@@ -87,11 +87,10 @@ public class JwtTokenProvider {
             return null;
         }
 
-        if (clientIdObj instanceof Number) {
-            return ((Number) clientIdObj).longValue();
-        } else {
-            return Long.valueOf(clientIdObj.toString());
+        if (clientIdObj instanceof Number number) {
+            return number.longValue();
         }
+        return Long.valueOf(clientIdObj.toString());
     }
 
     /**
@@ -99,7 +98,6 @@ public class JwtTokenProvider {
      * * @param token The JWT token
      * @return Map of clientId to list of permissionIds
      */
-    @SuppressWarnings("unchecked") // FIXED: Suppress warning for Map cast
     public Map<Long, List<Long>> getClientPermissionMapFromToken(String token) {
         Claims claims = parser()
                 .verifyWith(PasswordHelper.getSecretKey(jwtSecret))
@@ -107,22 +105,20 @@ public class JwtTokenProvider {
                 .parseSignedClaims(token)
                 .getPayload();
 
-        // The cast below is what causes the "unchecked" warning
-        Map<String, Object> rawMap = (Map<String, Object>) claims.get("clientPermissionMap");
-        if (rawMap == null || rawMap.isEmpty()) {
+        Object rawMapObj = claims.get("clientPermissionMap");
+        if (!(rawMapObj instanceof Map<?, ?> rawMap) || rawMap.isEmpty()) {
             return Map.of();
         }
 
         Map<Long, List<Long>> result = new java.util.HashMap<>();
-        for (Map.Entry<String, Object> entry : rawMap.entrySet()) {
-            Long clientId = Long.valueOf(entry.getKey());
+        for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
+            Long clientId = Long.valueOf(entry.getKey().toString());
             List<Long> permissionIds = new java.util.ArrayList<>();
 
-            if (entry.getValue() instanceof List<?>) {
-                List<?> rawList = (List<?>) entry.getValue();
+            if (entry.getValue() instanceof List<?> rawList) {
                 for (Object item : rawList) {
-                    if (item instanceof Number) {
-                        permissionIds.add(((Number) item).longValue());
+                    if (item instanceof Number number) {
+                        permissionIds.add(number.longValue());
                     } else {
                         permissionIds.add(Long.valueOf(item.toString()));
                     }
@@ -141,13 +137,12 @@ public class JwtTokenProvider {
                 .getPayload();
 
         Object raw = claims.get("permissionIds");
-        if (raw instanceof List<?>) {
-            List<?> rawList = (List<?>) raw;
+        if (raw instanceof List<?> rawList) {
             try {
                 return rawList.stream()
                         .map(val -> {
-                            if (val instanceof Number) {
-                                return ((Number) val).longValue();
+                            if (val instanceof Number number) {
+                                return number.longValue();
                             } else {
                                 return Long.valueOf(val.toString());
                             }

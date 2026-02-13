@@ -1,6 +1,6 @@
 package com.example.SpringApi.Models.ShippingResponseModel;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,37 +9,50 @@ import lombok.Setter;
 public class AddPickupLocationResponseModel {
     private boolean success;
     private Address address;
-    private long pickup_id;
-    private String company_name;
-    private String full_name;
+    @SerializedName("pickup_id")
+    private long pickupId;
+    @SerializedName("company_name")
+    private String companyName;
+    @SerializedName("full_name")
+    private String fullName;
 
     @Getter
     @Setter
     public static class Address {
-        private int company_id;
-        private String pickup_code;
+        @SerializedName("company_id")
+        private int companyId;
+        @SerializedName("pickup_code")
+        private String pickupCode;
         private String address;
-        private String address_2;
-        private Object address_type;
+        @SerializedName("address_2")
+        private String address2;
+        @SerializedName("address_type")
+        private Object addressType;
         private String city;
         private String state;
         private String country;
         private Object gstin;
-        private String pin_code;
+        @SerializedName("pin_code")
+        private String pinCode;
         private String phone;
         private String email;
         private String name;
-        private Object alternate_phone;
+        @SerializedName("alternate_phone")
+        private Object alternatePhone;
         private Object lat;
-
-        @JsonProperty("long")
-        private Object lng;
+        @SerializedName("long")
+        private Object longitude;
         private int status;
-        private int phone_verified;
-        private long rto_address_id;
-        private String extra_info;
-        private String updated_at;
-        private String created_at;
+        @SerializedName("phone_verified")
+        private int phoneVerified;
+        @SerializedName("rto_address_id")
+        private long rtoAddressId;
+        @SerializedName("extra_info")
+        private String extraInfo;
+        @SerializedName("updated_at")
+        private String updatedAt;
+        @SerializedName("created_at")
+        private String createdAt;
         private long id;
     }
 }

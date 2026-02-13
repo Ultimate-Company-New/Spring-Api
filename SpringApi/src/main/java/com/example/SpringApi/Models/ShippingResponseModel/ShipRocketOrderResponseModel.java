@@ -1,5 +1,6 @@
 package com.example.SpringApi.Models.ShippingResponseModel;
 
+import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,36 +11,49 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ShipRocketOrderResponseModel {
-    public Long order_id;
-    public String channel_order_id;
-    public Long shipment_id;
-    public String status; // "NEW", etc.
-    public Integer status_code; // 1 for success
-    public String message; // Error message if any
-    public String awb_code;
-    public String tracking_id;
-    public String courier_company_id;
-    public String courier_name;
-    public String manifest_url;
-    public String invoice_url;
-    public String label_url;
+    @SerializedName("order_id")
+    private Long orderId;
+    @SerializedName("channel_order_id")
+    private String channelOrderId;
+    @SerializedName("shipment_id")
+    private Long shipmentId;
+    @SerializedName("status")
+    private String status;
+    @SerializedName("status_code")
+    private Integer statusCode;
+    @SerializedName("message")
+    private String message;
+    @SerializedName("awb_code")
+    private String awbCode;
+    @SerializedName("tracking_id")
+    private String trackingId;
+    @SerializedName("courier_company_id")
+    private String courierCompanyId;
+    @SerializedName("courier_name")
+    private String courierName;
+    @SerializedName("manifest_url")
+    private String manifestUrl;
+    @SerializedName("invoice_url")
+    private String invoiceUrl;
+    @SerializedName("label_url")
+    private String labelUrl;
     
     /**
      * Gets order_id as string (for storage in Shipment.shipRocketOrderId).
      */
     public String getOrderIdAsString() {
-        return order_id != null ? order_id.toString() : null;
+        return orderId != null ? orderId.toString() : null;
     }
     
     /**
      * Gets courier_id as Long (parsed from courier_company_id string).
      */
     public Long getCourierId() {
-        if (courier_company_id == null || courier_company_id.trim().isEmpty()) {
+        if (courierCompanyId == null || courierCompanyId.trim().isEmpty()) {
             return null;
         }
         try {
-            return Long.parseLong(courier_company_id.trim());
+            return Long.parseLong(courierCompanyId.trim());
         } catch (NumberFormatException e) {
             return null;
         }

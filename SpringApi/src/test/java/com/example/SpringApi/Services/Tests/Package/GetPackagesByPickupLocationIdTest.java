@@ -394,7 +394,7 @@ class GetPackagesByPickupLocationIdTest extends PackageServiceTestBase {
  * Unit tests for PackageService.getPackagesByPickupLocationId() method.
  */
 @DisplayName("Get Packages By Pickup Location ID Tests - Duplicate Block")
-class GetPackagesByPickupLocationIdTestDuplicate extends PackageServiceTestBase {
+class GetPackagesByPickupLocationIdDuplicateTests extends PackageServiceTestBase {
     /*
      **********************************************************************************************
      * SUCCESS TESTS

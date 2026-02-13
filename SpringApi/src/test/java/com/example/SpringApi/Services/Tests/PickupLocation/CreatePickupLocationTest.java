@@ -83,7 +83,7 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
      */
     @Test
     @DisplayName("Create Pickup Location - Alphanumeric Postal Code - Success")
-    void createPickupLocation_AlphanumericPostalCode_Success() throws Exception {
+    void createPickupLocation_AlphanumericPostalCode_Success() {
         // Arrange
         testPickupLocationRequest.getAddress().setPostalCode("123456");
         stubSuccessfulPickupLocationCreation();

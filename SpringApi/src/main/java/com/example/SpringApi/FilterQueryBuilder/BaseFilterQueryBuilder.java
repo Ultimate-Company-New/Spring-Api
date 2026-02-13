@@ -27,6 +27,12 @@ import java.util.Map;
  * ```
  */
 public abstract class BaseFilterQueryBuilder {
+    private static final String OP_EQUALS = "equals";
+    private static final String OP_IS_EMPTY = "isEmpty";
+    private static final String OP_IS_NOT_EMPTY = "isNotEmpty";
+    private static final String LOWER_PREFIX = "LOWER(";
+    private static final String LIKE_LOWER_PARAM = ") LIKE LOWER(:";
+    private static final String DATE_PREFIX = "DATE(";
 
     /**
      * Maps frontend column names to database field paths.
@@ -101,19 +107,19 @@ public abstract class BaseFilterQueryBuilder {
         switch (operator) {
             case "contains":
                 parameters.put(paramName, "%" + value + "%");
-                return "LOWER(" + fieldPath + ") LIKE LOWER(:" + paramName + ")";
-            case "equals":
+                return LOWER_PREFIX + fieldPath + LIKE_LOWER_PARAM + paramName + ")";
+            case OP_EQUALS:
                 parameters.put(paramName, value);
-                return "LOWER(" + fieldPath + ") = LOWER(:" + paramName + ")";
+                return LOWER_PREFIX + fieldPath + ") = LOWER(:" + paramName + ")";
             case "startsWith":
                 parameters.put(paramName, value + "%");
-                return "LOWER(" + fieldPath + ") LIKE LOWER(:" + paramName + ")";
+                return LOWER_PREFIX + fieldPath + LIKE_LOWER_PARAM + paramName + ")";
             case "endsWith":
                 parameters.put(paramName, "%" + value);
-                return "LOWER(" + fieldPath + ") LIKE LOWER(:" + paramName + ")";
-            case "isEmpty":
+                return LOWER_PREFIX + fieldPath + LIKE_LOWER_PARAM + paramName + ")";
+            case OP_IS_EMPTY:
                 return "(" + fieldPath + " IS NULL OR " + fieldPath + " = '')";
-            case "isNotEmpty":
+            case OP_IS_NOT_EMPTY:
                 return "(" + fieldPath + " IS NOT NULL AND " + fieldPath + " != '')";
             case "isOneOf":
                 return buildIsOneOfCondition(fieldPath, value, paramName, parameters, false);
@@ -155,9 +161,9 @@ public abstract class BaseFilterQueryBuilder {
         parameters.put(paramName, cleanedValues);
         
         if (negate) {
-            return "LOWER(" + fieldPath + ") NOT IN (:" + paramName + ")";
+            return LOWER_PREFIX + fieldPath + ") NOT IN (:" + paramName + ")";
         } else {
-            return "LOWER(" + fieldPath + ") IN (:" + paramName + ")";
+            return LOWER_PREFIX + fieldPath + ") IN (:" + paramName + ")";
         }
     }
     
@@ -187,7 +193,7 @@ public abstract class BaseFilterQueryBuilder {
                 
                 String subParamName = paramName + "_" + index;
                 parameters.put(subParamName, "%" + trimmed + "%");
-                condition.append("LOWER(").append(fieldPath).append(") LIKE LOWER(:").append(subParamName).append(")");
+                condition.append(LOWER_PREFIX).append(fieldPath).append(LIKE_LOWER_PARAM).append(subParamName).append(")");
                 
                 first = false;
                 index++;
@@ -214,33 +220,27 @@ public abstract class BaseFilterQueryBuilder {
         Object numericValue = parseNumericValue(value);
         
         switch (operator) {
-            case "equals":
-            case "=":
+            case OP_EQUALS, "=":
                 parameters.put(paramName, numericValue);
                 return fieldPath + " = :" + paramName;
-            case "notEquals":
-            case "!=":
+            case "notEquals", "!=":
                 parameters.put(paramName, numericValue);
                 return fieldPath + " != :" + paramName;
-            case "greaterThan":
-            case ">":
+            case "greaterThan", ">":
                 parameters.put(paramName, numericValue);
                 return fieldPath + " > :" + paramName;
-            case "greaterThanOrEqual":
-            case ">=":
+            case "greaterThanOrEqual", ">=":
                 parameters.put(paramName, numericValue);
                 return fieldPath + " >= :" + paramName;
-            case "lessThan":
-            case "<":
+            case "lessThan", "<":
                 parameters.put(paramName, numericValue);
                 return fieldPath + " < :" + paramName;
-            case "lessThanOrEqual":
-            case "<=":
+            case "lessThanOrEqual", "<=":
                 parameters.put(paramName, numericValue);
                 return fieldPath + " <= :" + paramName;
-            case "isEmpty":
+            case OP_IS_EMPTY:
                 return fieldPath + " IS NULL";
-            case "isNotEmpty":
+            case OP_IS_NOT_EMPTY:
                 return fieldPath + " IS NOT NULL";
             case "isOneOf":
                 return buildNumberIsOneOfCondition(fieldPath, value, paramName, parameters, false);
@@ -299,11 +299,11 @@ public abstract class BaseFilterQueryBuilder {
         if (value == null) {
             return null;
         }
-        if (value instanceof Number) {
-            return value;
+        if (value instanceof Number number) {
+            return number;
         }
-        if (value instanceof String) {
-            String strValue = ((String) value).trim();
+        if (value instanceof String stringValue) {
+            String strValue = stringValue.trim();
             try {
                 // Try parsing as Long first (for IDs)
                 if (!strValue.contains(".")) {
@@ -325,12 +325,12 @@ public abstract class BaseFilterQueryBuilder {
     private String buildDateCondition(String fieldPath, String operator, Object value, String paramName, Map<String, Object> parameters) {
         // Parse date value
         LocalDate dateValue = null;
-        if (value instanceof String) {
+        if (value instanceof String stringValue) {
             try {
-                dateValue = LocalDate.parse((String) value);
+                dateValue = LocalDate.parse(stringValue);
             } catch (Exception e) {
                 try {
-                    LocalDateTime dateTime = LocalDateTime.parse((String) value);
+                    LocalDateTime dateTime = LocalDateTime.parse(stringValue);
                     dateValue = dateTime.toLocalDate();
                 } catch (Exception ex) {
                     return "1=1"; // Invalid date, return no-op
@@ -339,33 +339,27 @@ public abstract class BaseFilterQueryBuilder {
         }
 
         switch (operator) {
-            case "is":
-            case "equals":
+            case "is", OP_EQUALS:
                 parameters.put(paramName, dateValue);
-                return "DATE(" + fieldPath + ") = :" + paramName;
-            case "isNot":
-            case "notEquals":
+                return DATE_PREFIX + fieldPath + ") = :" + paramName;
+            case "isNot", "notEquals":
                 parameters.put(paramName, dateValue);
-                return "DATE(" + fieldPath + ") != :" + paramName;
-            case "isAfter":
-            case "greaterThan":
+                return DATE_PREFIX + fieldPath + ") != :" + paramName;
+            case "isAfter", "greaterThan":
                 parameters.put(paramName, dateValue);
-                return "DATE(" + fieldPath + ") > :" + paramName;
-            case "isOnOrAfter":
-            case "greaterThanOrEqual":
+                return DATE_PREFIX + fieldPath + ") > :" + paramName;
+            case "isOnOrAfter", "greaterThanOrEqual":
                 parameters.put(paramName, dateValue);
-                return "DATE(" + fieldPath + ") >= :" + paramName;
-            case "isBefore":
-            case "lessThan":
+                return DATE_PREFIX + fieldPath + ") >= :" + paramName;
+            case "isBefore", "lessThan":
                 parameters.put(paramName, dateValue);
-                return "DATE(" + fieldPath + ") < :" + paramName;
-            case "isOnOrBefore":
-            case "lessThanOrEqual":
+                return DATE_PREFIX + fieldPath + ") < :" + paramName;
+            case "isOnOrBefore", "lessThanOrEqual":
                 parameters.put(paramName, dateValue);
-                return "DATE(" + fieldPath + ") <= :" + paramName;
-            case "isEmpty":
+                return DATE_PREFIX + fieldPath + ") <= :" + paramName;
+            case OP_IS_EMPTY:
                 return fieldPath + " IS NULL";
-            case "isNotEmpty":
+            case OP_IS_NOT_EMPTY:
                 return fieldPath + " IS NOT NULL";
             default:
                 return "1=1";
@@ -378,10 +372,10 @@ public abstract class BaseFilterQueryBuilder {
     private String buildBooleanCondition(String fieldPath, String operator, Object value, String paramName, Map<String, Object> parameters) {
         if ("is".equals(operator)) {
             Boolean boolValue = null;
-            if (value instanceof String) {
-                boolValue = Boolean.parseBoolean((String) value);
-            } else if (value instanceof Boolean) {
-                boolValue = (Boolean) value;
+            if (value instanceof String stringValue) {
+                boolValue = Boolean.parseBoolean(stringValue);
+            } else if (value instanceof Boolean booleanValue) {
+                boolValue = booleanValue;
             }
             parameters.put(paramName, boolValue);
             return fieldPath + " = :" + paramName;

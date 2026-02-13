@@ -167,8 +167,8 @@ public class Promo {
      */
     private void setFieldsFromRequest(PromoRequestModel request) {
         this.description = request.getDescription().trim();
-        this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : false;
-        this.isPercent = request.getIsPercent() != null ? request.getIsPercent() : false;
+        this.isDeleted = Boolean.TRUE.equals(request.getIsDeleted());
+        this.isPercent = Boolean.TRUE.equals(request.getIsPercent());
         this.discountValue = request.getDiscountValue();
         this.promoCode = request.getPromoCode().trim().toUpperCase(); // Standardize to uppercase
         this.notes = request.getNotes() != null ? request.getNotes().trim() : "Created Via SpringApi";

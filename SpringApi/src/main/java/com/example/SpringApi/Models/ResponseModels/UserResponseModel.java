@@ -7,7 +7,6 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Response model for User operations.
@@ -93,9 +92,9 @@ public class UserResponseModel {
                 if (user.getAddresses() != null && !user.getAddresses().isEmpty()) {
                     // Map addresses and sort by addressId descending to match AddressRepository ordering
                     this.addresses = user.getAddresses().stream()
-                        .map(address -> new AddressResponseModel(address))
+                        .map(AddressResponseModel::new)
                         .sorted((a1, a2) -> Long.compare(a2.getAddressId(), a1.getAddressId()))
-                        .collect(Collectors.toList());
+                        .toList();
                 }
                 
                 // Auto-populate permissions if available
@@ -103,7 +102,7 @@ public class UserResponseModel {
                     this.permissions = user.getUserClientPermissionMappings().stream()
                         .map(ucpm -> new PermissionResponseModel(ucpm.getPermission()))
                         .sorted((p1, p2) -> Long.compare(p1.getPermissionId(), p2.getPermissionId()))
-                        .collect(Collectors.toList());
+                        .toList();
                 }
                 
                 // Auto-populate userGroups if available (without users to avoid circular reference)
@@ -112,7 +111,7 @@ public class UserResponseModel {
                         .filter(ugm -> !ugm.getUserGroup().getIsDeleted())
                         .map(ugm -> new UserGroupResponseModel(ugm.getUserGroup(), false))
                         .sorted((g1, g2) -> Long.compare(g1.getGroupId(), g2.getGroupId())) // Sort by groupId ascending
-                        .collect(Collectors.toList());
+                        .toList();
                 }
             }
             // If minimal is true, permissions, addresses, and userGroups remain null
@@ -154,9 +153,9 @@ public class UserResponseModel {
             if (user.getAddresses() != null && !user.getAddresses().isEmpty()) {
                 // Map addresses and sort by addressId descending to match AddressRepository ordering
                 this.addresses = user.getAddresses().stream()
-                    .map(address -> new AddressResponseModel(address))
+                    .map(AddressResponseModel::new)
                     .sorted((a1, a2) -> Long.compare(a2.getAddressId(), a1.getAddressId()))
-                    .collect(Collectors.toList());
+                    .toList();
             }
             
             // Auto-populate permissions if available
@@ -164,7 +163,7 @@ public class UserResponseModel {
                 this.permissions = user.getUserClientPermissionMappings().stream()
                     .map(ucpm -> new PermissionResponseModel(ucpm.getPermission()))
                     .sorted((p1, p2) -> Long.compare(p1.getPermissionId(), p2.getPermissionId()))
-                    .collect(Collectors.toList());
+                    .toList();
             }
             
             // Auto-populate userGroups if available (without users to avoid circular reference)
@@ -173,7 +172,7 @@ public class UserResponseModel {
                     .filter(ugm -> !ugm.getUserGroup().getIsDeleted())
                     .map(ugm -> new UserGroupResponseModel(ugm.getUserGroup(), false))
                     .sorted((g1, g2) -> Long.compare(g1.getGroupId(), g2.getGroupId())) // Sort by groupId ascending
-                    .collect(Collectors.toList());
+                    .toList();
             }
         }
     }

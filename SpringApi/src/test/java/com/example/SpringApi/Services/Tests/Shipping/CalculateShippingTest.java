@@ -65,8 +65,8 @@ class CalculateShippingTest extends ShippingServiceTestBase {
         // Arrange
         stubClientServiceGetClientById(testClientResponse);
         ShippingOptionsResponseModel response = new ShippingOptionsResponseModel();
-        response.data = new ShippingOptionsResponseModel.Data();
-        response.data.available_courier_companies = new ArrayList<>();
+        response.setData(new ShippingOptionsResponseModel.Data());
+        response.getData().setAvailableCourierCompanies(new ArrayList<>());
         stubShipRocketHelperGetAvailableShippingOptions(response);
 
         // Act
@@ -156,8 +156,8 @@ class CalculateShippingTest extends ShippingServiceTestBase {
         // Arrange
         stubClientServiceGetClientById(testClientResponse);
         ShippingOptionsResponseModel response = new ShippingOptionsResponseModel();
-        response.data = new ShippingOptionsResponseModel.Data();
-        response.data.available_courier_companies = null;
+        response.setData(new ShippingOptionsResponseModel.Data());
+        response.getData().setAvailableCourierCompanies(null);
         stubShipRocketHelperGetAvailableShippingOptions(response);
 
         // Act

@@ -473,7 +473,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
  * Covers success, partial success, and exhaustive validation failures.
  */
 @DisplayName("Bulk Create Packages Tests - Duplicate Block")
-class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
+class BulkCreatePackagesDuplicateTests extends PackageServiceTestBase {
 
     /*
      **********************************************************************************************

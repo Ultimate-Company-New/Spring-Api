@@ -182,7 +182,7 @@ public class UserLogService extends BaseService implements IUserLogSubTranslator
                 pageable);
 
         PaginationBaseResponseModel<UserLogsResponseModel> paginationBaseResponseModel = new PaginationBaseResponseModel<>();
-        paginationBaseResponseModel.setData(userLogs.map(userLog -> new UserLogsResponseModel(userLog)).getContent());
+        paginationBaseResponseModel.setData(userLogs.map(UserLogsResponseModel::new).getContent());
         paginationBaseResponseModel.setTotalDataCount(userLogs.getTotalElements());
 
         return paginationBaseResponseModel;

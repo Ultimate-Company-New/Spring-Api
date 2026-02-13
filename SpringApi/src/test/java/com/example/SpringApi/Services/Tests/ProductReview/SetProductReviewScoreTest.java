@@ -574,7 +574,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
  * - PERMISSION: 4 tests
  */
 @DisplayName("ProductReviewService - SetProductReviewScore Tests - Duplicate Block")
-class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
+class SetProductReviewScoreDuplicateTests extends ProductReviewServiceTestBase {
 
     /*
      **********************************************************************************************

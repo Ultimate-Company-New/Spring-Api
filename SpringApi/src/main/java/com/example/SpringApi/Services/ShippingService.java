@@ -731,13 +731,13 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                             shipRocketResponse.getMessage()));
         }
 
-        if (shipRocketResponse.getOrder_id() == null) {
+        if (shipRocketResponse.getOrderId() == null) {
             throw new BadRequestException(
                     String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed, shipmentId,
                     ErrorMessages.ShippingErrorMessages.ShipRocketOrderIdMissing));
         }
 
-        if (shipRocketResponse.getShipment_id() == null) {
+        if (shipRocketResponse.getShipmentId() == null) {
             throw new BadRequestException(
                     String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed, shipmentId,
                     ErrorMessages.ShippingErrorMessages.ShipRocketShipmentIdMissing));
@@ -774,7 +774,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         String shipRocketOrderId = shipRocketResponse.getOrderIdAsString();
 
         try {
-            Long shipRocketShipmentId = shipRocketResponse.getShipment_id();
+            Long shipRocketShipmentId = shipRocketResponse.getShipmentId();
             Long courierId = shipment.getSelectedCourierCompanyId();
 
             if (shipRocketShipmentId != null && courierId != null) {
@@ -789,58 +789,58 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 if (awbResponse != null && awbResponse.isSuccess() && awbResponse.getAwbCode() != null) {
                     shipment.setShipRocketAwbCode(awbResponse.getAwbCode());
                 } else {
-                    shipment.setShipRocketAwbCode(shipRocketResponse.getAwb_code());
+                    shipment.setShipRocketAwbCode(shipRocketResponse.getAwbCode());
                 }
             } else {
-                shipment.setShipRocketAwbCode(shipRocketResponse.getAwb_code());
+                shipment.setShipRocketAwbCode(shipRocketResponse.getAwbCode());
             }
         } catch (Exception e) {
             throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.AwbAssignmentFailed,
-                    shipRocketResponse.getShipment_id(), e.getMessage()));
+                    shipRocketResponse.getShipmentId(), e.getMessage()));
         }
 
         try {
-            Long shipRocketShipmentId = shipRocketResponse.getShipment_id();
+            Long shipRocketShipmentId = shipRocketResponse.getShipmentId();
             if (shipRocketShipmentId != null) {
                 String pickupMetadataJson = shipRocketHelper.generatePickupAsJson(shipRocketShipmentId);
                 shipment.setShipRocketPickupMetadata(pickupMetadataJson);
             }
         } catch (Exception e) {
             throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.PickupGenerationFailed,
-                    shipRocketResponse.getShipment_id(), e.getMessage()));
+                    shipRocketResponse.getShipmentId(), e.getMessage()));
         }
 
         try {
-            Long shipRocketShipmentId = shipRocketResponse.getShipment_id();
+            Long shipRocketShipmentId = shipRocketResponse.getShipmentId();
             if (shipRocketShipmentId != null) {
                 String manifestUrl = shipRocketHelper.generateManifest(shipRocketShipmentId);
                 shipment.setShipRocketGeneratedManifestUrl(manifestUrl);
             }
         } catch (Exception e) {
             throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.ManifestGenerationFailed,
-                    shipRocketResponse.getShipment_id(), e.getMessage()));
+                    shipRocketResponse.getShipmentId(), e.getMessage()));
         }
 
         try {
-            Long shipRocketShipmentId = shipRocketResponse.getShipment_id();
+            Long shipRocketShipmentId = shipRocketResponse.getShipmentId();
             if (shipRocketShipmentId != null) {
                 String labelUrl = shipRocketHelper.generateLabel(shipRocketShipmentId);
                 shipment.setShipRocketGeneratedLabelUrl(labelUrl);
             }
         } catch (Exception e) {
             throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.LabelGenerationFailed,
-                    shipRocketResponse.getShipment_id(), e.getMessage()));
+                    shipRocketResponse.getShipmentId(), e.getMessage()));
         }
 
         try {
-            Long shipRocketShipmentId = shipRocketResponse.getShipment_id();
+            Long shipRocketShipmentId = shipRocketResponse.getShipmentId();
             if (shipRocketShipmentId != null) {
                 String invoiceUrl = shipRocketHelper.generateInvoice(shipRocketShipmentId);
                 shipment.setShipRocketGeneratedInvoiceUrl(invoiceUrl);
             }
         } catch (Exception e) {
             throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.InvoiceGenerationFailed,
-                    shipRocketResponse.getShipment_id(), e.getMessage()));
+                    shipRocketResponse.getShipmentId(), e.getMessage()));
         }
 
         try {
@@ -883,7 +883,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         if (phone == null || phone.trim().isEmpty()) {
             return "";
         }
-        String cleaned = phone.replaceAll("[^0-9]", "");
+        String cleaned = phone.replaceAll("\\D", "");
         if (cleaned.length() > 10) {
             cleaned = cleaned.substring(cleaned.length() - 10);
         }
@@ -939,12 +939,12 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                         weight.toString());
 
                 if (shippingOptions != null && shippingOptions.getData() != null
-                        && shippingOptions.getData().available_courier_companies != null) {
+                    && shippingOptions.getData().getAvailableCourierCompanies() != null) {
 
-                    shippingOptions.getData().available_courier_companies.sort(
-                            (a, b) -> Double.compare(a.rate, b.rate));
+                    shippingOptions.getData().getAvailableCourierCompanies().sort(
+                        (a, b) -> Double.compare(a.getRate(), b.getRate()));
 
-                    for (var courier : shippingOptions.getData().available_courier_companies) {
+                    for (var courier : shippingOptions.getData().getAvailableCourierCompanies()) {
                         locationOptions.getAvailableCouriers().add(
                                 ShippingCalculationResponseModel.CourierOption.fromShiprocketCourier(courier));
                     }
@@ -1869,45 +1869,35 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 Long locationId = locEntry.getKey();
                 Integer qty = locEntry.getValue();
 
-                if (qty == null || qty <= 0)
-                    continue;
-
-                LocationInfo locInfo = locationInfoMap.get(locationId);
-                if (locInfo == null) {
-                    errors.add("Product '" + productInfo.productTitle + "': Location ID " + locationId + " not found");
-                    continue;
+                if (qty != null && qty > 0) {
+                    LocationInfo locInfo = locationInfoMap.get(locationId);
+                    if (locInfo == null) {
+                        errors.add("Product '" + productInfo.productTitle + "': Location ID " + locationId + " not found");
+                    } else {
+                        LocationStock stock = productInfo.stockByLocation.get(locationId);
+                        if (stock == null) {
+                            errors.add("Product '" + productInfo.productTitle + "': Not available at location '" +
+                                    locInfo.locationName + "' (no stock mapping exists)");
+                        } else if (stock.availableStock < qty) {
+                            errors.add("Product '" + productInfo.productTitle + "': Insufficient stock at '" +
+                                    locInfo.locationName + "'. Requested: " + qty + ", Available: " + stock.availableStock);
+                        } else if (locInfo.packageDimensions.isEmpty()) {
+                            errors.add("Product '" + productInfo.productTitle + "': No packages available at '" +
+                                    locInfo.locationName + "'");
+                        } else {
+                            int packable = Math.min(stock.availableStock, stock.maxItemsPackable);
+                            if (packable < qty) {
+                                errors.add("Product '" + productInfo.productTitle + "': Cannot package " + qty +
+                                        " units at '" + locInfo.locationName + "'. Max packable: " + packable +
+                                        (stock.packagingErrorMessage != null ? " (" + stock.packagingErrorMessage + ")" : ""));
+                            } else {
+                                candidate.locationProductQuantities
+                                        .computeIfAbsent(locationId, k -> new HashMap<>())
+                                        .put(productId, qty);
+                            }
+                        }
+                    }
                 }
-
-                LocationStock stock = productInfo.stockByLocation.get(locationId);
-                if (stock == null) {
-                    errors.add("Product '" + productInfo.productTitle + "': Not available at location '" +
-                            locInfo.locationName + "' (no stock mapping exists)");
-                    continue;
-                }
-
-                if (stock.availableStock < qty) {
-                    errors.add("Product '" + productInfo.productTitle + "': Insufficient stock at '" +
-                            locInfo.locationName + "'. Requested: " + qty + ", Available: " + stock.availableStock);
-                    continue;
-                }
-
-                if (locInfo.packageDimensions.isEmpty()) {
-                    errors.add("Product '" + productInfo.productTitle + "': No packages available at '" +
-                            locInfo.locationName + "'");
-                    continue;
-                }
-
-                int packable = Math.min(stock.availableStock, stock.maxItemsPackable);
-                if (packable < qty) {
-                    errors.add("Product '" + productInfo.productTitle + "': Cannot package " + qty +
-                            " units at '" + locInfo.locationName + "'. Max packable: " + packable +
-                            (stock.packagingErrorMessage != null ? " (" + stock.packagingErrorMessage + ")" : ""));
-                    continue;
-                }
-
-                candidate.locationProductQuantities
-                        .computeIfAbsent(locationId, k -> new HashMap<>())
-                        .put(productId, qty);
             }
         }
 
@@ -1964,23 +1954,20 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             for (Map.Entry<Long, Integer> entry : remainingQuantities.entrySet()) {
                 Long productId = entry.getKey();
                 int remaining = entry.getValue();
-                if (remaining <= 0)
-                    continue;
+                if (remaining > 0) {
+                    ProductLocationInfo info = productInfoMap.get(productId);
+                    if (info != null) {
+                        LocationStock stock = info.stockByLocation.get(locationId);
+                        if (stock != null) {
+                            int available = Math.min(stock.availableStock, stock.maxItemsPackable);
+                            int toAllocate = Math.min(remaining, available);
 
-                ProductLocationInfo info = productInfoMap.get(productId);
-                if (info == null)
-                    continue;
-
-                LocationStock stock = info.stockByLocation.get(locationId);
-                if (stock == null)
-                    continue;
-
-                int available = Math.min(stock.availableStock, stock.maxItemsPackable);
-                int toAllocate = Math.min(remaining, available);
-
-                if (toAllocate > 0) {
-                    locationAlloc.put(productId, toAllocate);
-                    remainingQuantities.put(productId, remaining - toAllocate);
+                            if (toAllocate > 0) {
+                                locationAlloc.put(productId, toAllocate);
+                                remainingQuantities.put(productId, remaining - toAllocate);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -2147,20 +2134,19 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                         .getOrDefault(productId, 0);
                 int remainingAvailable = totalAvailable - alreadyAllocated;
 
-                if (remainingAvailable <= 0)
-                    continue;
+                if (remainingAvailable > 0) {
+                    int toAllocate = Math.min(qtyToReallocate, remainingAvailable);
 
-                int toAllocate = Math.min(qtyToReallocate, remainingAvailable);
+                    candidate.locationProductQuantities
+                            .computeIfAbsent(locationId, k -> new HashMap<>())
+                            .merge(productId, toAllocate, Integer::sum);
 
-                candidate.locationProductQuantities
-                        .computeIfAbsent(locationId, k -> new HashMap<>())
-                        .merge(productId, toAllocate, Integer::sum);
+                    existingAllocations
+                            .computeIfAbsent(locationId, k -> new HashMap<>())
+                            .merge(productId, toAllocate, Integer::sum);
 
-                existingAllocations
-                        .computeIfAbsent(locationId, k -> new HashMap<>())
-                        .merge(productId, toAllocate, Integer::sum);
-
-                qtyToReallocate -= toAllocate;
+                    qtyToReallocate -= toAllocate;
+                }
             }
 
             if (qtyToReallocate > 0) {
@@ -2221,12 +2207,6 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             CompletableFuture<Void> allMaxWeights = CompletableFuture
                     .allOf(maxWeightFutures.toArray(new CompletableFuture[0]));
             allMaxWeights.get(SHIPPING_API_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            for (String postcode : uniquePickupPostcodes) {
-                if (!routeMaxWeights.containsKey(postcode)) {
-                    routeMaxWeights.put(postcode, MAX_WEIGHT_PER_SHIPMENT);
-                }
-            }
         } catch (Exception e) {
             for (String postcode : uniquePickupPostcodes) {
                 if (!routeMaxWeights.containsKey(postcode)) {
@@ -2272,59 +2252,56 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 Map<Long, Integer> productQtys = locEntry.getValue();
                 LocationInfo locInfo = locationInfoMap.get(locationId);
 
-                if (locInfo == null)
-                    continue;
+                if (locInfo != null) {
+                    String pickupPostcode = locInfo.postalCode;
+                    BigDecimal routeMaxWeight = pickupPostcode != null
+                            ? routeMaxWeights.getOrDefault(pickupPostcode, MAX_WEIGHT_PER_SHIPMENT)
+                            : MAX_WEIGHT_PER_SHIPMENT;
 
-                String pickupPostcode = locInfo.postalCode;
-                BigDecimal routeMaxWeight = pickupPostcode != null
-                        ? routeMaxWeights.getOrDefault(pickupPostcode, MAX_WEIGHT_PER_SHIPMENT)
-                        : MAX_WEIGHT_PER_SHIPMENT;
+                    if (routeMaxWeight.compareTo(BigDecimal.ZERO) == 0) {
+                        hasUnserviceableRoute = true;
+                        String locationName = locInfo.locationName != null ? locInfo.locationName : "Unknown";
+                        if (!routeErrors.isEmpty())
+                            routeErrors.append("; ");
+                        routeErrors.append("No courier options available between pickup location ")
+                                .append(locationName).append(" [").append(pickupPostcode).append("]")
+                                .append(" and delivery postcode [").append(deliveryPostcode).append("]")
+                                .append(" (no alternative locations available)");
+                    } else {
+                        List<OrderOptimizationResponseModel.ProductAllocation> productAllocations = new ArrayList<>();
+                        BigDecimal locationWeight = BigDecimal.ZERO;
+                        int locationQty = 0;
 
-                if (routeMaxWeight.compareTo(BigDecimal.ZERO) == 0) {
-                    hasUnserviceableRoute = true;
-                    String locationName = locInfo.locationName != null ? locInfo.locationName : "Unknown";
-                    if (routeErrors.length() > 0)
-                        routeErrors.append("; ");
-                    routeErrors.append("No courier options available between pickup location ")
-                            .append(locationName).append(" [").append(pickupPostcode).append("]")
-                            .append(" and delivery postcode [").append(deliveryPostcode).append("]")
-                            .append(" (no alternative locations available)");
-                    continue;
-                }
+                        for (Map.Entry<Long, Integer> prodEntry : productQtys.entrySet()) {
+                            Long productId = prodEntry.getKey();
+                            int qty = prodEntry.getValue();
 
-                List<OrderOptimizationResponseModel.ProductAllocation> productAllocations = new ArrayList<>();
-                BigDecimal locationWeight = BigDecimal.ZERO;
-                int locationQty = 0;
+                            ProductLocationInfo productInfo = productInfoMap.get(productId);
+                            if (productInfo != null) {
+                                OrderOptimizationResponseModel.ProductAllocation prodAlloc = new OrderOptimizationResponseModel.ProductAllocation();
 
-                for (Map.Entry<Long, Integer> prodEntry : productQtys.entrySet()) {
-                    Long productId = prodEntry.getKey();
-                    int qty = prodEntry.getValue();
+                                if (productInfo.productEntity != null) {
+                                    prodAlloc.setProduct(new ProductResponseModel(productInfo.productEntity));
+                                }
+                                prodAlloc.setAllocatedQuantity(qty);
+                                prodAlloc.setTotalWeight(productInfo.weightKgs.multiply(BigDecimal.valueOf(qty)));
 
-                    ProductLocationInfo productInfo = productInfoMap.get(productId);
-                    if (productInfo == null)
-                        continue;
+                                productAllocations.add(prodAlloc);
+                                locationWeight = locationWeight.add(prodAlloc.getTotalWeight());
+                                locationQty += qty;
+                            }
+                        }
 
-                    OrderOptimizationResponseModel.ProductAllocation prodAlloc = new OrderOptimizationResponseModel.ProductAllocation();
+                        List<OrderOptimizationResponseModel.PackageUsage> packageUsages = calculatePackagingWithDetails(
+                                productQtys, productInfoMap, locInfo);
 
-                    if (productInfo.productEntity != null) {
-                        prodAlloc.setProduct(new ProductResponseModel(productInfo.productEntity));
+                        List<OrderOptimizationResponseModel.Shipment> locationShipments = splitIntoShipments(locInfo,
+                                productAllocations, packageUsages,
+                                locationWeight, locationQty, productInfoMap, routeMaxWeight);
+
+                        allShipments.addAll(locationShipments);
                     }
-                    prodAlloc.setAllocatedQuantity(qty);
-                    prodAlloc.setTotalWeight(productInfo.weightKgs.multiply(BigDecimal.valueOf(qty)));
-
-                    productAllocations.add(prodAlloc);
-                    locationWeight = locationWeight.add(prodAlloc.getTotalWeight());
-                    locationQty += qty;
                 }
-
-                List<OrderOptimizationResponseModel.PackageUsage> packageUsages = calculatePackagingWithDetails(
-                        productQtys, productInfoMap, locInfo);
-
-                List<OrderOptimizationResponseModel.Shipment> locationShipments = splitIntoShipments(locInfo,
-                        productAllocations, packageUsages,
-                        locationWeight, locationQty, productInfoMap, routeMaxWeight);
-
-                allShipments.addAll(locationShipments);
             }
 
             candidate.shipments = allShipments;
@@ -2339,29 +2316,27 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
         for (AllocationCandidate candidate : candidates) {
             for (OrderOptimizationResponseModel.Shipment shipment : candidate.shipments) {
-                if (shipment.getPickupLocation() == null ||
-                        shipment.getPickupLocation().getAddress() == null)
-                    continue;
+                if (shipment.getPickupLocation() != null &&
+                        shipment.getPickupLocation().getAddress() != null) {
+                    String pickupPostcode = shipment.getPickupLocation().getAddress().getPostalCode();
+                    if (pickupPostcode != null) {
+                        BigDecimal weight = shipment.getTotalWeightKgs().max(BigDecimal.valueOf(0.5));
+                        String cacheKey = pickupPostcode + "-" + deliveryPostcode + "-" +
+                                weight.setScale(2, RoundingMode.HALF_UP).toString();
 
-                String pickupPostcode = shipment.getPickupLocation().getAddress().getPostalCode();
-                if (pickupPostcode == null)
-                    continue;
-
-                BigDecimal weight = shipment.getTotalWeightKgs().max(BigDecimal.valueOf(0.5));
-                String cacheKey = pickupPostcode + "-" + deliveryPostcode + "-" +
-                        weight.setScale(2, RoundingMode.HALF_UP).toString();
-
-                if (!shippingFutures.containsKey(cacheKey)) {
-                    final String finalPickupPostcode = pickupPostcode;
-                    final String finalWeight = weight.toString();
-                    shippingFutures.put(cacheKey, CompletableFuture.supplyAsync(() -> {
-                        try {
-                            return shipRocketHelper.getAvailableShippingOptions(
-                                    finalPickupPostcode, deliveryPostcode, isCod, finalWeight);
-                        } catch (Exception e) {
-                            return null;
+                        if (!shippingFutures.containsKey(cacheKey)) {
+                            final String finalPickupPostcode = pickupPostcode;
+                            final String finalWeight = weight.toString();
+                            shippingFutures.put(cacheKey, CompletableFuture.supplyAsync(() -> {
+                                try {
+                                    return shipRocketHelper.getAvailableShippingOptions(
+                                            finalPickupPostcode, deliveryPostcode, isCod, finalWeight);
+                                } catch (Exception e) {
+                                    return null;
+                                }
+                            }));
                         }
-                    }));
+                    }
                 }
             }
         }
@@ -2370,8 +2345,6 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             CompletableFuture<Void> allShipping = CompletableFuture.allOf(
                     shippingFutures.values().toArray(new CompletableFuture[0]));
             allShipping.get(SHIPPING_API_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            // Continue with available results
         } catch (Exception e) {
             // Continue with available results
         }
@@ -2401,7 +2374,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                     String locationName = shipment.getPickupLocation() != null
                             ? shipment.getPickupLocation().getAddressNickName()
                             : "Unknown";
-                    if (unavailabilityReasons.length() > 0) {
+                    if (!unavailabilityReasons.isEmpty()) {
                         unavailabilityReasons.append("; ");
                     }
                     unavailabilityReasons.append("No packages available at ").append(locationName)
@@ -2422,14 +2395,14 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                             weight.setScale(2, RoundingMode.HALF_UP).toString();
 
                     ShippingOptionsResponseModel shippingOpts = shippingResults.get(cacheKey);
-                    if (shippingOpts != null && shippingOpts.getData() != null &&
-                            shippingOpts.getData().available_courier_companies != null &&
-                            !shippingOpts.getData().available_courier_companies.isEmpty()) {
+                        if (shippingOpts != null && shippingOpts.getData() != null &&
+                            shippingOpts.getData().getAvailableCourierCompanies() != null &&
+                            !shippingOpts.getData().getAvailableCourierCompanies().isEmpty()) {
 
-                        shippingOpts.getData().available_courier_companies.sort(
-                                (a, b) -> Double.compare(a.rate, b.rate));
+                        shippingOpts.getData().getAvailableCourierCompanies().sort(
+                            (a, b) -> Double.compare(a.getRate(), b.getRate()));
 
-                        for (var courier : shippingOpts.getData().available_courier_companies) {
+                        for (var courier : shippingOpts.getData().getAvailableCourierCompanies()) {
                             shipment.getAvailableCouriers()
                                     .add(ShippingCalculationResponseModel.CourierOption.fromShiprocketCourier(courier));
                         }
@@ -2445,7 +2418,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                         String locationName = shipment.getPickupLocation() != null
                                 ? shipment.getPickupLocation().getAddressNickName()
                                 : "Unknown";
-                        if (unavailabilityReasons.length() > 0) {
+                        if (!unavailabilityReasons.isEmpty()) {
                             unavailabilityReasons.append("; ");
                         }
                         unavailabilityReasons.append("No courier options available between pickup location ")
@@ -2456,7 +2429,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 } else {
                     shipment.setTotalCost(shipment.getPackagingCost());
                     allCouriersAvailable = false;
-                    if (unavailabilityReasons.length() > 0) {
+                    if (!unavailabilityReasons.isEmpty()) {
                         unavailabilityReasons.append("; ");
                     }
                     unavailabilityReasons.append("Missing postal code for shipment");
@@ -2470,7 +2443,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
             if (validShipments.isEmpty()) {
                 allCouriersAvailable = false;
-                if (unavailabilityReasons.length() > 0) {
+                if (!unavailabilityReasons.isEmpty()) {
                     unavailabilityReasons.append("; ");
                 }
                 unavailabilityReasons.append("No valid shipments - all locations lack suitable packaging");
@@ -2480,7 +2453,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             candidate.totalShippingCost = totalShippingCost;
             candidate.totalCost = totalPackagingCost.add(totalShippingCost);
             candidate.allCouriersAvailable = allCouriersAvailable;
-            candidate.unavailabilityReason = unavailabilityReasons.length() > 0 ? unavailabilityReasons.toString()
+                candidate.unavailabilityReason = !unavailabilityReasons.isEmpty() ? unavailabilityReasons.toString()
                     : null;
         }
     }
@@ -2505,18 +2478,17 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
         List<ProductAllocationTracker> trackers = new ArrayList<>();
         for (OrderOptimizationResponseModel.ProductAllocation alloc : productAllocations) {
-            if (alloc.getProduct() == null)
-                continue;
-            Long productId = alloc.getProduct().getProductId();
-            ProductLocationInfo productInfo = productInfoMap.get(productId);
-            if (productInfo == null)
-                continue;
-
-            ProductAllocationTracker tracker = new ProductAllocationTracker();
-            tracker.productResponseModel = alloc.getProduct();
-            tracker.remainingQty = alloc.getAllocatedQuantity();
-            tracker.weightPerUnit = productInfo.weightKgs;
-            trackers.add(tracker);
+            if (alloc.getProduct() != null) {
+                Long productId = alloc.getProduct().getProductId();
+                ProductLocationInfo productInfo = productInfoMap.get(productId);
+                if (productInfo != null) {
+                    ProductAllocationTracker tracker = new ProductAllocationTracker();
+                    tracker.productResponseModel = alloc.getProduct();
+                    tracker.remainingQty = alloc.getAllocatedQuantity();
+                    tracker.weightPerUnit = productInfo.weightKgs;
+                    trackers.add(tracker);
+                }
+            }
         }
 
         trackers.sort((a, b) -> b.weightPerUnit.compareTo(a.weightPerUnit));
@@ -2529,35 +2501,33 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             BigDecimal currentShipmentWeight = BigDecimal.ZERO;
 
             for (ProductAllocationTracker tracker : trackers) {
-                if (tracker.remainingQty <= 0)
-                    continue;
+                if (tracker.remainingQty > 0) {
+                    BigDecimal remainingCapacity = maxWeightPerShipment.subtract(currentShipmentWeight);
+                    int unitsCanFit;
 
-                BigDecimal remainingCapacity = maxWeightPerShipment.subtract(currentShipmentWeight);
-                int unitsCanFit;
+                    if (tracker.weightPerUnit.compareTo(BigDecimal.ZERO) > 0) {
+                        unitsCanFit = remainingCapacity.divide(tracker.weightPerUnit, 0, RoundingMode.DOWN).intValue();
+                    } else {
+                        unitsCanFit = tracker.remainingQty;
+                    }
 
-                if (tracker.weightPerUnit.compareTo(BigDecimal.ZERO) > 0) {
-                    unitsCanFit = remainingCapacity.divide(tracker.weightPerUnit, 0, RoundingMode.DOWN).intValue();
-                } else {
-                    unitsCanFit = tracker.remainingQty;
+                    if (unitsCanFit <= 0 && currentShipmentWeight.compareTo(BigDecimal.ZERO) == 0) {
+                        unitsCanFit = 1;
+                    }
+
+                    if (unitsCanFit > 0) {
+                        int toAllocate = Math.min(tracker.remainingQty, unitsCanFit);
+
+                        OrderOptimizationResponseModel.ProductAllocation splitAlloc = new OrderOptimizationResponseModel.ProductAllocation();
+                        splitAlloc.setProduct(tracker.productResponseModel);
+                        splitAlloc.setAllocatedQuantity(toAllocate);
+                        splitAlloc.setTotalWeight(tracker.weightPerUnit.multiply(BigDecimal.valueOf(toAllocate)));
+
+                        currentShipmentProducts.add(splitAlloc);
+                        currentShipmentWeight = currentShipmentWeight.add(splitAlloc.getTotalWeight());
+                        tracker.remainingQty -= toAllocate;
+                    }
                 }
-
-                if (unitsCanFit <= 0 && currentShipmentWeight.compareTo(BigDecimal.ZERO) == 0) {
-                    unitsCanFit = 1;
-                }
-
-                if (unitsCanFit <= 0)
-                    continue;
-
-                int toAllocate = Math.min(tracker.remainingQty, unitsCanFit);
-
-                OrderOptimizationResponseModel.ProductAllocation splitAlloc = new OrderOptimizationResponseModel.ProductAllocation();
-                splitAlloc.setProduct(tracker.productResponseModel);
-                splitAlloc.setAllocatedQuantity(toAllocate);
-                splitAlloc.setTotalWeight(tracker.weightPerUnit.multiply(BigDecimal.valueOf(toAllocate)));
-
-                currentShipmentProducts.add(splitAlloc);
-                currentShipmentWeight = currentShipmentWeight.add(splitAlloc.getTotalWeight());
-                tracker.remainingQty -= toAllocate;
             }
 
             if (!currentShipmentProducts.isEmpty()) {
@@ -2798,8 +2768,8 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                         pickupPostcode, deliveryPostcode, isCod, String.valueOf(weight));
 
                 if (response != null && response.getData() != null &&
-                        response.getData().available_courier_companies != null &&
-                        !response.getData().available_courier_companies.isEmpty()) {
+                    response.getData().getAvailableCourierCompanies() != null &&
+                    !response.getData().getAvailableCourierCompanies().isEmpty()) {
                     return weight;
                 }
             } catch (Exception e) {

@@ -3,7 +3,6 @@ package com.example.SpringApi.Models.RequestModels;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Getter
@@ -96,29 +95,29 @@ public class PaginationBaseRequestModel {
         private Object value;
         
         // Symbol operators that can be sent from frontend (will be normalized)
-        public static final List<String> SYMBOL_OPERATORS = Arrays.asList(
+        private static final List<String> SYMBOL_OPERATORS = List.of(
             OP_SYMBOL_EQUAL, OP_SYMBOL_NOT_EQUAL, OP_SYMBOL_GREATER_THAN, 
             OP_SYMBOL_GREATER_THAN_OR_EQUAL, OP_SYMBOL_LESS_THAN, OP_SYMBOL_LESS_THAN_OR_EQUAL
         );
         
         // Valid operators for different column types (using constants)
-        public static final List<String> STRING_OPERATORS = Arrays.asList(
+        private static final List<String> STRING_OPERATORS = List.of(
             OP_CONTAINS, OP_EQUALS, OP_STARTS_WITH, OP_ENDS_WITH, OP_IS_EMPTY, OP_IS_NOT_EMPTY,
             OP_IS_ONE_OF, OP_IS_NOT_ONE_OF, OP_CONTAINS_ONE_OF
         );
         
-        public static final List<String> NUMBER_OPERATORS = Arrays.asList(
+        private static final List<String> NUMBER_OPERATORS = List.of(
             OP_EQUAL, OP_NOT_EQUAL, OP_GREATER_THAN, OP_GREATER_THAN_OR_EQUAL, 
             OP_LESS_THAN, OP_LESS_THAN_OR_EQUAL, OP_IS_EMPTY, OP_IS_NOT_EMPTY,
             OP_NUMBER_IS_ONE_OF, OP_NUMBER_IS_NOT_ONE_OF
         );
         
-        public static final List<String> DATE_OPERATORS = Arrays.asList(
+        private static final List<String> DATE_OPERATORS = List.of(
             OP_IS, OP_IS_NOT, OP_IS_AFTER, OP_IS_ON_OR_AFTER, 
             OP_IS_BEFORE, OP_IS_ON_OR_BEFORE, OP_IS_EMPTY, OP_IS_NOT_EMPTY
         );
         
-        public static final List<String> BOOLEAN_OPERATORS = Arrays.asList(OP_IS);
+        private static final List<String> BOOLEAN_OPERATORS = List.of(OP_IS);
         
         // Setters with normalization
         public void setColumn(String column) {

@@ -198,7 +198,6 @@ public class PurchaseOrderResponseModel {
             
             // Initialize collections
             // Note: products field is deprecated - products are available in shipments
-            this.products = null; // Deprecated - use shipments instead
             this.attachments = new ArrayList<>();
             
             // Extract Resources (attachments)

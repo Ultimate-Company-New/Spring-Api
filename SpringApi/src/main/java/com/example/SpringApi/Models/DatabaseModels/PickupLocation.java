@@ -170,7 +170,7 @@ public class PickupLocation {
      */
     private void setFieldsFromRequest(PickupLocationRequestModel request) {
         this.addressNickName = request.getAddressNickName().trim();
-        this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : false;
+        this.isDeleted = Boolean.TRUE.equals(request.getIsDeleted());
         this.pickupLocationAddressId = request.getPickupLocationAddressId();
         this.shipRocketPickupLocationId = request.getShipRocketPickupLocationId();
         this.notes = request.getNotes() != null ? request.getNotes().trim() : null;

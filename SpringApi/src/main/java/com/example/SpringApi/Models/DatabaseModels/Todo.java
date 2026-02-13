@@ -146,7 +146,7 @@ public class Todo {
      */
     private void setFieldsFromRequest(TodoRequestModel request, long userId) {
         this.task = request.getTask().trim();
-        this.isDone = request.getIsDone() != null ? request.getIsDone() : false;
+        this.isDone = Boolean.TRUE.equals(request.getIsDone());
         this.userId = userId;
     }
 }

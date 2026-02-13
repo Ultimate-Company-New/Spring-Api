@@ -38,7 +38,7 @@ public class Lead {
     
     // Validation Constants
     public static final String EMAIL_REGEX = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
-    public static final String PHONE_REGEX = "^[+]?[0-9]{10,15}$";
+    public static final String PHONE_REGEX = "^[+]?\\d{10,15}$";
     
     // Valid Lead Statuses Set
     public static final java.util.Set<String> VALID_LEAD_STATUSES = java.util.Set.of(
@@ -298,7 +298,7 @@ public class Lead {
         this.phone = request.getPhone().trim();
         this.title = request.getTitle() != null ? request.getTitle().trim() : null;
         this.website = request.getWebsite() != null ? request.getWebsite().trim() : null;
-        this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : false;
+        this.isDeleted = Boolean.TRUE.equals(request.getIsDeleted());
         this.clientId = request.getClientId();
         this.addressId = request.getAddressId();
         this.createdById = request.getCreatedById();
@@ -323,7 +323,7 @@ public class Lead {
      * @return true if valid, false otherwise
      */
     private boolean isValidPhone(String phone) {
-        return phone.replaceAll("[\\s\\-\\(\\)]", "").matches(PHONE_REGEX);
+        return phone.replaceAll("[\\s()\\-]", "").matches(PHONE_REGEX);
     }
     
     /**
@@ -353,7 +353,7 @@ public class Lead {
      * @return true if valid, false otherwise
      */
     public static boolean isValidPhoneFormat(String phone) {
-        return phone != null && phone.replaceAll("[\\s\\-\\(\\)]", "").matches(PHONE_REGEX);
+        return phone != null && phone.replaceAll("[\\s()\\-]", "").matches(PHONE_REGEX);
     }
     
     /**

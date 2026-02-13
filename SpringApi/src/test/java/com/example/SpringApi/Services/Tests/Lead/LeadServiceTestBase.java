@@ -10,7 +10,6 @@ import com.example.SpringApi.Repositories.LeadRepository;
 import com.example.SpringApi.Services.LeadService;
 import com.example.SpringApi.Services.MessageService;
 import com.example.SpringApi.Services.UserLogService;
-import com.example.SpringApi.Services.Interface.ILeadSubTranslator;
 import com.example.SpringApi.ErrorMessages;
 
 import org.springframework.data.domain.Page;
@@ -22,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.ThreadLocalRandom;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -239,17 +239,13 @@ public abstract class LeadServiceTestBase {
 
     protected void stubBulkSaveThrowsOnItem(int index) {
         // Stub for scenario where bulk save throws on specific item
-        lenient().when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
-            Lead lead = inv.getArgument(0);
-            // Simulate failure on specific index (would need counter logic in actual test)
-            return lead;
-        });
+        lenient().when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> inv.getArgument(0));
     }
 
     protected void stubBulkSaveReturnsPartialResult(List<Lead> results) {
         lenient().when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
             Lead lead = inv.getArgument(0);
-            lead.setLeadId((long) (Math.random() * 1000));
+            lead.setLeadId(ThreadLocalRandom.current().nextLong(1, 1000));
             return lead;
         });
     }
@@ -317,12 +313,12 @@ public abstract class LeadServiceTestBase {
 
     protected void stubLeadServiceToggleLeadThrowsUnauthorized(Long leadId) {
         lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(leadServiceMock).toggleLead(eq(leadId));
+                .when(leadServiceMock).toggleLead(leadId);
     }
 
     protected void stubLeadServiceToggleLeadThrowsForbidden(Long leadId) {
         lenient().doThrow(new com.example.SpringApi.Exceptions.PermissionException("Forbidden"))
-                .when(leadServiceMock).toggleLead(eq(leadId));
+                .when(leadServiceMock).toggleLead(leadId);
     }
 
     protected void stubLeadServiceBulkCreateLeadsAsyncThrowsUnauthorized() {

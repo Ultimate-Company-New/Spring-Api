@@ -20,7 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
-import com.example.SpringApi.Repositories.UserRepository;
 import com.example.SpringApi.Authentication.JwtTokenProvider;
 
 import java.math.BigDecimal;

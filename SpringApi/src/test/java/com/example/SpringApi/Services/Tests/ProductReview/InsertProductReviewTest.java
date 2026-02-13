@@ -552,7 +552,7 @@ class InsertProductReviewTest extends ProductReviewServiceTestBase {
  * - FAILURE / EXCEPTION: 58 tests
  */
 @DisplayName("ProductReviewService - InsertProductReview Tests - Duplicate Block")
-class InsertProductReviewTestDuplicate extends ProductReviewServiceTestBase {
+class InsertProductReviewDuplicateTests extends ProductReviewServiceTestBase {
 
     // ========================================
     // SUCCESS Tests

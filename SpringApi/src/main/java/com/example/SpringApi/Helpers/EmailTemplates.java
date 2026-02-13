@@ -4,7 +4,6 @@ import com.example.SpringApi.Models.DatabaseModels.Client;
 import com.example.SpringApi.Models.RequestModels.SendEmailRequest;
 import org.springframework.core.env.Environment;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +29,7 @@ public class EmailTemplates {
             String importType,
             Map<String, String> errors,
             int totalDataCountToBeImported,
-            String userEmail) throws IOException {
+            String userEmail) {
 
         String status;
         if (errors == null || errors.isEmpty()) {

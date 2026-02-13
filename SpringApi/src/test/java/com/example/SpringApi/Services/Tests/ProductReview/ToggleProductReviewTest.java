@@ -332,7 +332,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
  * - FAILURE / EXCEPTION: 6 tests
  */
 @DisplayName("ProductReviewService - ToggleProductReview Tests - Duplicate Block")
-class ToggleProductReviewTestDuplicate extends ProductReviewServiceTestBase {
+class ToggleProductReviewDuplicateTests extends ProductReviewServiceTestBase {
 
     // ========================================
     // SUCCESS Tests

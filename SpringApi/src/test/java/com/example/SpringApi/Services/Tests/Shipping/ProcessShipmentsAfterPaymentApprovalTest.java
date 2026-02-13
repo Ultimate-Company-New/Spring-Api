@@ -461,7 +461,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
         stubClientRepositoryFindById(testClient);
         stubPickupLocationRepositoryFindById(testPickupLocation);
         ShipRocketOrderResponseModel response = createValidShipRocketOrderResponse();
-        response.status = "INVALID";
+        response.setStatus("INVALID");
         stubShipRocketHelperCreateCustomOrder(response);
 
         // Act
@@ -503,7 +503,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
         stubClientRepositoryFindById(testClient);
         stubPickupLocationRepositoryFindById(testPickupLocation);
         ShipRocketOrderResponseModel response = createValidShipRocketOrderResponse();
-        response.order_id = null;
+        response.setOrderId(null);
         stubShipRocketHelperCreateCustomOrder(response);
 
         // Act
@@ -538,7 +538,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
         stubClientRepositoryFindById(testClient);
         stubPickupLocationRepositoryFindById(testPickupLocation);
         ShipRocketOrderResponseModel response = createValidShipRocketOrderResponse();
-        response.shipment_id = null;
+        response.setShipmentId(null);
         stubShipRocketHelperCreateCustomOrder(response);
 
         // Act
@@ -573,7 +573,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
         stubClientRepositoryFindById(testClient);
         stubPickupLocationRepositoryFindById(testPickupLocation);
         ShipRocketOrderResponseModel response = createValidShipRocketOrderResponse();
-        response.status = "";
+        response.setStatus("");
         stubShipRocketHelperCreateCustomOrder(response);
 
         // Act
@@ -608,7 +608,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
         stubClientRepositoryFindById(testClient);
         stubPickupLocationRepositoryFindById(testPickupLocation);
         ShipRocketOrderResponseModel response = createValidShipRocketOrderResponse();
-        response.message = ErrorMessages.OPERATION_FAILED;
+        response.setMessage(ErrorMessages.OPERATION_FAILED);
         stubShipRocketHelperCreateCustomOrder(response);
 
         // Act

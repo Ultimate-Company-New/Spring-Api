@@ -64,6 +64,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -811,9 +812,11 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         htmlContent = HTMLHelper.replaceBrTags(htmlContent);
 
         // Convert HTML to PDF
-        String logoFilePath = (environment.getActiveProfiles().length > 0
-                ? environment.getActiveProfiles()[0]
-                : "default") + "/" + client.getName() + "/Logo.png";
+        String logoFilePath = Path.of(
+                environment.getActiveProfiles().length > 0 ? environment.getActiveProfiles()[0] : "default",
+                client.getName(),
+                "Logo.png")
+                .toString();
 
         byte[] pdfBytes = PDFHelper.convertPurchaseOrderHtmlToPdf(
                 client.getGoogleCred(),

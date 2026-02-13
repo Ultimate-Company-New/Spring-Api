@@ -538,8 +538,7 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
         ResponseEntity<?> response = controller.bulkCreatePickupLocations(requests);
 
         // Assert
-        verify(pickupLocationServiceMock).bulkCreatePickupLocationsAsync(eq(requests), eq(1L), eq("testuser"),
-                eq(TEST_CLIENT_ID));
+        verify(pickupLocationServiceMock).bulkCreatePickupLocationsAsync(requests, 1L, "testuser", TEST_CLIENT_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

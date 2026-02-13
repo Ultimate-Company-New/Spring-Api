@@ -247,8 +247,8 @@ public class Message {
         this.title = request.getTitle().trim();
         this.publishDate = request.getPublishDate();
         this.descriptionHtml = request.getDescriptionHtml().trim();
-        this.sendAsEmail = request.getSendAsEmail() != null ? request.getSendAsEmail() : false;
-        this.isDeleted = request.getIsDeleted() != null ? request.getIsDeleted() : false;
+        this.sendAsEmail = Boolean.TRUE.equals(request.getSendAsEmail());
+        this.isDeleted = Boolean.TRUE.equals(request.getIsDeleted());
         this.sendgridEmailBatchId = request.getSendgridEmailBatchId() != null ? request.getSendgridEmailBatchId().trim() : null;
         this.notes = request.getNotes() != null ? request.getNotes().trim() : null;
     }

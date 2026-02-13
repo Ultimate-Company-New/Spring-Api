@@ -740,16 +740,16 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
      * @param addPickupLocationResponse The response from adding pickup location
      * @param pickupLocation            The pickup location entity (unused, kept for
      *                                  compatibility)
-     * @return The ShipRocket pickup location ID from pickup_id field
-     * @throws BadRequestException if pickup_id is invalid or missing
+     * @return The ShipRocket pickup location ID from pickupId field
+     * @throws BadRequestException if pickupId is invalid or missing
      */
     private Long extractShipRocketPickupLocationId(
             ShipRocketHelper shipRocketHelper,
             AddPickupLocationResponseModel addPickupLocationResponse,
             PickupLocation pickupLocation) throws Exception {
 
-        // Extract ID from pickup_id field only
-        long pickupId = addPickupLocationResponse.getPickup_id();
+        // Extract ID from pickupId field only
+        long pickupId = addPickupLocationResponse.getPickupId();
 
         // Validate that we have a valid ShipRocket pickup location ID
         if (pickupId <= 0) {

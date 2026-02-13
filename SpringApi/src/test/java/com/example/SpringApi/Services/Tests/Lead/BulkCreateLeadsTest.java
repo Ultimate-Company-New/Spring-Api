@@ -4,7 +4,6 @@ import com.example.SpringApi.Controllers.LeadController;
 import com.example.SpringApi.Models.DatabaseModels.Lead;
 import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
 import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Services.LeadService;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
 

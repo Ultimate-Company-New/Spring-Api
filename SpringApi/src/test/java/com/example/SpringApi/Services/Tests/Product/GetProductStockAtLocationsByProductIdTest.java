@@ -3,7 +3,6 @@ package com.example.SpringApi.Services.Tests.Product;
 import com.example.SpringApi.Controllers.ProductController;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
 import com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping;
 import com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel;
 import org.hibernate.exception.SQLGrammarException;

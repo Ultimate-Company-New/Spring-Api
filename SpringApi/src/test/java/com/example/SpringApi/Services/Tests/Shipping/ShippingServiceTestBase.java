@@ -9,7 +9,6 @@ import com.example.SpringApi.FilterQueryBuilder.ShipmentFilterQueryBuilder;
 import com.example.SpringApi.Helpers.PackagingHelper;
 import com.example.SpringApi.Helpers.ShipRocketHelper;
 import com.example.SpringApi.Models.DatabaseModels.*;
-import com.example.SpringApi.Models.DatabaseModels.Package;
 import com.example.SpringApi.Models.RequestModels.*;
 import com.example.SpringApi.Models.ResponseModels.*;
 import com.example.SpringApi.Models.ShippingResponseModel.*;
@@ -323,6 +322,7 @@ public abstract class ShippingServiceTestBase {
                     org.mockito.Mockito.mock(HttpServletRequest.class));
         }
 
+        @Override
         protected ShipRocketHelper createShipRocketHelper(String email, String password) {
             return shipRocketHelper;
         }
@@ -632,26 +632,26 @@ public abstract class ShippingServiceTestBase {
     protected ShippingOptionsResponseModel createShippingOptions(double... rates) {
         ShippingOptionsResponseModel response = new ShippingOptionsResponseModel();
         ShippingOptionsResponseModel.Data data = new ShippingOptionsResponseModel.Data();
-        data.available_courier_companies = new ArrayList<>();
+        data.setAvailableCourierCompanies(new ArrayList<>());
         for (double rate : rates) {
             ShippingOptionsResponseModel.AvailableCourierCompany courier = new ShippingOptionsResponseModel.AvailableCourierCompany();
-            courier.rate = rate;
-            courier.courier_company_id = 1;
-            courier.courier_name = "Courier";
-            data.available_courier_companies.add(courier);
+            courier.setRate(rate);
+            courier.setCourierCompanyId(1);
+            courier.setCourierName("Courier");
+            data.getAvailableCourierCompanies().add(courier);
         }
-        response.data = data;
+        response.setData(data);
         return response;
     }
 
     protected ShipRocketOrderResponseModel createValidShipRocketOrderResponse() {
         ShipRocketOrderResponseModel response = new ShipRocketOrderResponseModel();
-        response.order_id = 1001L;
-        response.shipment_id = 2001L;
-        response.status = Shipment.ShipRocketStatus.NEW.getValue();
-        response.awb_code = "AWB-1";
-        response.courier_company_id = "123";
-        response.courier_name = "Courier";
+        response.setOrderId(1001L);
+        response.setShipmentId(2001L);
+        response.setStatus(Shipment.ShipRocketStatus.NEW.getValue());
+        response.setAwbCode("AWB-1");
+        response.setCourierCompanyId("123");
+        response.setCourierName("Courier");
         return response;
     }
 
@@ -700,11 +700,11 @@ public abstract class ShippingServiceTestBase {
         }
 
         protected PaginationBaseRequestModel createValidPaginationRequest() {
-            PaginationBaseRequestModel request = new PaginationBaseRequestModel();
-            request.setStart(0);
-            request.setEnd(10);
-            request.setFilters(new ArrayList<>());
-            return request;
+            PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
+            paginationRequest.setStart(0);
+            paginationRequest.setEnd(10);
+            paginationRequest.setFilters(new ArrayList<>());
+            return paginationRequest;
         }
 
         protected PaginationBaseRequestModel.FilterCondition createFilterCondition(String column, String operator, String value) {

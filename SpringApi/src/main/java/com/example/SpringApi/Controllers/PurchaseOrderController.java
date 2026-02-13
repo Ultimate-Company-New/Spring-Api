@@ -336,10 +336,7 @@ public class PurchaseOrderController {
         } catch (UnauthorizedException uae) {
             logger.error(uae);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponseModel(ErrorMessages.ERROR_UNAUTHORIZED, uae.getMessage(), HttpStatus.UNAUTHORIZED.value()));
-        } catch (TemplateException e) {
-            logger.error(e);
-            throw e;
-        } catch (IOException e) {
+        } catch (TemplateException | IOException e) {
             logger.error(e);
             throw e;
         } catch (Exception e) {

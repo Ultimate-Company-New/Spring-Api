@@ -454,11 +454,11 @@ public class Shipment {
         }
         
         this.shipRocketOrderId = response.getOrderIdAsString();
-        this.shipRocketShipmentId = response.getShipment_id();
-        this.shipRocketTrackingId = response.getTracking_id();
+        this.shipRocketShipmentId = response.getShipmentId();
+        this.shipRocketTrackingId = response.getTrackingId();
         this.shipRocketStatus = response.getStatus();
-        this.shipRocketManifestUrl = response.getManifest_url();
-        this.shipRocketInvoiceUrl = response.getInvoice_url();
-        this.shipRocketLabelUrl = response.getLabel_url();
+        this.shipRocketManifestUrl = response.getManifestUrl();
+        this.shipRocketInvoiceUrl = response.getInvoiceUrl();
+        this.shipRocketLabelUrl = response.getLabelUrl();
     }
 }

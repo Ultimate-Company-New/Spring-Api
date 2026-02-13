@@ -129,7 +129,7 @@ public abstract class PickupLocationServiceTestBase {
         testPickupLocation.setShipRocketPickupLocationId(TEST_SHIPROCKET_ID);
 
         testShipRocketResponse = new AddPickupLocationResponseModel();
-        testShipRocketResponse.setPickup_id(TEST_SHIPROCKET_ID);
+        testShipRocketResponse.setPickupId(TEST_SHIPROCKET_ID);
 
         testPaginationRequest = new PaginationBaseRequestModel();
         testPaginationRequest.setStart(0);

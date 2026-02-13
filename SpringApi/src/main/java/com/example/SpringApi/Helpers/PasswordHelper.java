@@ -6,31 +6,38 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 public class PasswordHelper {
+    private static final SecureRandom RANDOM = new SecureRandom();
+    private static final Set<Character> SPECIAL_CHARS = Set.of('!', '@', '#', '$', '%', '^', '&', '*', '?', '_', '~', 'Â', '£', '(', ')', '.', ',');
+
+    private PasswordHelper() {
+    }
+
     public static class PasswordOptions {
-        public final int RequiredLength = 8;
-        public final int RequiredUniqueChars = 6;
-        public final boolean RequireNonAlphanumeric = true;
-        public final boolean RequireLowercase = true;
-        public final boolean RequireUppercase = true;
-        public final boolean RequireDigit = true;
+        public static final int REQUIRED_LENGTH = 8;
+        public static final int REQUIRED_UNIQUE_CHARS = 6;
+        public static final boolean REQUIRE_NON_ALPHANUMERIC = true;
+        public static final boolean REQUIRE_LOWERCASE = true;
+        public static final boolean REQUIRE_UPPERCASE = true;
+        public static final boolean REQUIRE_DIGIT = true;
+
+        private PasswordOptions() {
+        }
     }
     public enum PasswordStrength {
-        Blank,
-        VeryWeak,
-        Weak,
-        Medium,
-        Strong,
-        VeryStrong
+        BLANK,
+        VERY_WEAK,
+        WEAK,
+        MEDIUM,
+        STRONG,
+        VERY_STRONG
     }
     // Generates a random password
     public static String getRandomPassword() {
-        SecureRandom random = new SecureRandom();
-        return BCrypt.gensalt(15, random);
+        return BCrypt.gensalt(15, RANDOM);
     }
 
     // Gets the hashed password and salt for the given plain-text password
@@ -62,7 +69,7 @@ public class PasswordHelper {
         int score = 0;
 
         if (password == null || password.trim().isEmpty()) {
-            return PasswordStrength.Blank;
+            return PasswordStrength.BLANK;
         }
 
         if (hasMinimumLength(password, 5)) {
@@ -93,17 +100,6 @@ public class PasswordHelper {
                 hasUpperCaseLetter(password) &&
                 hasLowerCaseLetter(password) &&
                 (hasDigit(password) || hasSpecialChar(password));
-    }
-
-    public static boolean isValidPassword(String password, PasswordOptions opts) {
-        return isValidPassword(
-                password,
-                opts.RequiredLength,
-                opts.RequiredUniqueChars,
-                opts.RequireNonAlphanumeric,
-                opts.RequireLowercase,
-                opts.RequireUppercase,
-                opts.RequireDigit);
     }
 
     public static boolean isValidPassword(
@@ -157,8 +153,7 @@ public class PasswordHelper {
     }
 
     private static boolean hasSpecialChar(String password) {
-        Set<Character> specialChars = new HashSet<>(Arrays.asList('!', '@', '#', '$', '%', '^', '&', '*', '?', '_', '~', 'Â', '£', '(', ')', '.', ','));
-        return password.chars().anyMatch(ch -> specialChars.contains((char) ch));
+        return password.chars().anyMatch(ch -> SPECIAL_CHARS.contains((char) ch));
     }
 
     private static boolean hasUpperCaseLetter(String password) {

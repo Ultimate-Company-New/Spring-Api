@@ -1,9 +1,10 @@
 package com.example.SpringApi.Models.ShippingResponseModel;
 
+import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Response model for Shiprocket courier serviceability API.
@@ -12,131 +13,233 @@ import java.util.ArrayList;
 @Getter
 @Setter
 public class ShippingOptionsResponseModel {
-    public boolean company_auto_shipment_insurance_setting;
-    public CovidZones covid_zones;
-    public String currency;
-    public Data data;
-    public int dg_courier;
-    public int eligible_for_insurance;
-    public boolean insurace_opted_at_order_creation;
-    public boolean is_allow_templatized_pricing;
-    public int is_latlong;
-    public boolean is_old_zone_opted;
-    public boolean is_zone_from_mongo;
-    public int label_generate_type;
-    public int on_new_zone;
-    public ArrayList<Object> seller_address;
-    public int status;
-    public boolean user_insurance_manadatory;
+    @SerializedName("company_auto_shipment_insurance_setting")
+    private boolean companyAutoShipmentInsuranceSetting;
+    @SerializedName("covid_zones")
+    private CovidZones covidZones;
+    @SerializedName("currency")
+    private String currency;
+    @SerializedName("data")
+    private Data data;
+    @SerializedName("dg_courier")
+    private int dgCourier;
+    @SerializedName("eligible_for_insurance")
+    private int eligibleForInsurance;
+    @SerializedName("insurace_opted_at_order_creation")
+    private boolean insuraceOptedAtOrderCreation;
+    @SerializedName("is_allow_templatized_pricing")
+    private boolean allowTemplatizedPricing;
+    @SerializedName("is_latlong")
+    private int latlong;
+    @SerializedName("is_old_zone_opted")
+    private boolean oldZoneOpted;
+    @SerializedName("is_zone_from_mongo")
+    private boolean zoneFromMongo;
+    @SerializedName("label_generate_type")
+    private int labelGenerateType;
+    @SerializedName("on_new_zone")
+    private int onNewZone;
+    @SerializedName("seller_address")
+    private List<Object> sellerAddress;
+    @SerializedName("status")
+    private int status;
+    @SerializedName("user_insurance_manadatory")
+    private boolean userInsuranceManadatory;
 
     @Getter
     @Setter
     public static class AvailableCourierCompany {
-        public String air_max_weight;
-        public int assured_amount;
-        public Object base_courier_id;
-        public String base_weight;
-        public int blocked;
-        public String call_before_delivery;
-        public double charge_weight;
-        public String city;
-        public int cod;
-        public double cod_charges;
-        public double cod_multiplier;
-        public String cost;
-        public int courier_company_id;
-        public String courier_name;
-        public String courier_type;
-        public int coverage_charges;
-        public String cutoff_time;
-        public String delivery_boy_contact;
-        public double delivery_performance;
-        public String description;
-        public String edd;
-        public int entry_tax;
-        public String estimated_delivery_days;
-        public String etd;
-        public int etd_hours;
-        public double freight_charge;
-        public int id;
-        public int is_custom_rate;
-        public boolean is_hyperlocal;
-        public int is_international;
-        public boolean is_rto_address_available;
-        public boolean is_surface;
-        public int local_region;
-        public int metro;
-        public double min_weight;
-        public int mode;
-        public boolean odablock;
-        public int other_charges;
-        public String others;
-        public String pickup_availability;
-        public double pickup_performance;
-        public String pickup_priority;
-        public int pickup_supress_hours;
-        public String pod_available;
-        public String postcode;
-        public int qc_courier;
-        public String rank;
-        public double rate;
-        public double rating;
-        public String realtime_tracking;
-        public int region;
-        public double rto_charges;
-        public double rto_performance;
-        public int seconds_left_for_pickup;
-        public boolean secure_shipment_disabled;
-        public int ship_type;
-        public String state;
-        public String suppress_date;
-        public String suppress_text;
-        public SuppressionDates suppression_dates;
-        public String surface_max_weight;
-        public double tracking_performance;
-        public int volumetric_max_weight;
-        public double weight_cases;
-        public String zone;
+        @SerializedName("air_max_weight")
+        private String airMaxWeight;
+        @SerializedName("assured_amount")
+        private int assuredAmount;
+        @SerializedName("base_courier_id")
+        private Object baseCourierId;
+        @SerializedName("base_weight")
+        private String baseWeight;
+        @SerializedName("blocked")
+        private int blocked;
+        @SerializedName("call_before_delivery")
+        private String callBeforeDelivery;
+        @SerializedName("charge_weight")
+        private double chargeWeight;
+        @SerializedName("city")
+        private String city;
+        @SerializedName("cod")
+        private int cod;
+        @SerializedName("cod_charges")
+        private double codCharges;
+        @SerializedName("cod_multiplier")
+        private double codMultiplier;
+        @SerializedName("cost")
+        private String cost;
+        @SerializedName("courier_company_id")
+        private int courierCompanyId;
+        @SerializedName("courier_name")
+        private String courierName;
+        @SerializedName("courier_type")
+        private String courierType;
+        @SerializedName("coverage_charges")
+        private int coverageCharges;
+        @SerializedName("cutoff_time")
+        private String cutoffTime;
+        @SerializedName("delivery_boy_contact")
+        private String deliveryBoyContact;
+        @SerializedName("delivery_performance")
+        private double deliveryPerformance;
+        @SerializedName("description")
+        private String description;
+        @SerializedName("edd")
+        private String edd;
+        @SerializedName("entry_tax")
+        private int entryTax;
+        @SerializedName("estimated_delivery_days")
+        private String estimatedDeliveryDays;
+        @SerializedName("etd")
+        private String etd;
+        @SerializedName("etd_hours")
+        private int etdHours;
+        @SerializedName("freight_charge")
+        private double freightCharge;
+        @SerializedName("id")
+        private int id;
+        @SerializedName("is_custom_rate")
+        private int customRate;
+        @SerializedName("is_hyperlocal")
+        private boolean hyperlocal;
+        @SerializedName("is_international")
+        private int international;
+        @SerializedName("is_rto_address_available")
+        private boolean rtoAddressAvailable;
+        @SerializedName("is_surface")
+        private boolean surface;
+        @SerializedName("local_region")
+        private int localRegion;
+        @SerializedName("metro")
+        private int metro;
+        @SerializedName("min_weight")
+        private double minWeight;
+        @SerializedName("mode")
+        private int mode;
+        @SerializedName("odablock")
+        private boolean odablock;
+        @SerializedName("other_charges")
+        private int otherCharges;
+        @SerializedName("others")
+        private String others;
+        @SerializedName("pickup_availability")
+        private String pickupAvailability;
+        @SerializedName("pickup_performance")
+        private double pickupPerformance;
+        @SerializedName("pickup_priority")
+        private String pickupPriority;
+        @SerializedName("pickup_supress_hours")
+        private int pickupSupressHours;
+        @SerializedName("pod_available")
+        private String podAvailable;
+        @SerializedName("postcode")
+        private String postcode;
+        @SerializedName("qc_courier")
+        private int qcCourier;
+        @SerializedName("rank")
+        private String rank;
+        @SerializedName("rate")
+        private double rate;
+        @SerializedName("rating")
+        private double rating;
+        @SerializedName("realtime_tracking")
+        private String realtimeTracking;
+        @SerializedName("region")
+        private int region;
+        @SerializedName("rto_charges")
+        private double rtoCharges;
+        @SerializedName("rto_performance")
+        private double rtoPerformance;
+        @SerializedName("seconds_left_for_pickup")
+        private int secondsLeftForPickup;
+        @SerializedName("secure_shipment_disabled")
+        private boolean secureShipmentDisabled;
+        @SerializedName("ship_type")
+        private int shipType;
+        @SerializedName("state")
+        private String state;
+        @SerializedName("suppress_date")
+        private String suppressDate;
+        @SerializedName("suppress_text")
+        private String suppressText;
+        @SerializedName("suppression_dates")
+        private SuppressionDates suppressionDates;
+        @SerializedName("surface_max_weight")
+        private String surfaceMaxWeight;
+        @SerializedName("tracking_performance")
+        private double trackingPerformance;
+        @SerializedName("volumetric_max_weight")
+        private int volumetricMaxWeight;
+        @SerializedName("weight_cases")
+        private double weightCases;
+        @SerializedName("zone")
+        private String zone;
     }
 
     @Getter
     @Setter
     public static class SuppressionDates {
-        public String action_on;
-        public String delay_remark;
-        public int delivery_delay_by;
-        public String delivery_delay_days;
-        public String delivery_delay_from;
-        public String delivery_delay_to;
-        public int pickup_delay_by;
-        public String pickup_delay_days;
-        public String pickup_delay_from;
-        public String pickup_delay_to;
+        @SerializedName("action_on")
+        private String actionOn;
+        @SerializedName("delay_remark")
+        private String delayRemark;
+        @SerializedName("delivery_delay_by")
+        private int deliveryDelayBy;
+        @SerializedName("delivery_delay_days")
+        private String deliveryDelayDays;
+        @SerializedName("delivery_delay_from")
+        private String deliveryDelayFrom;
+        @SerializedName("delivery_delay_to")
+        private String deliveryDelayTo;
+        @SerializedName("pickup_delay_by")
+        private int pickupDelayBy;
+        @SerializedName("pickup_delay_days")
+        private String pickupDelayDays;
+        @SerializedName("pickup_delay_from")
+        private String pickupDelayFrom;
+        @SerializedName("pickup_delay_to")
+        private String pickupDelayTo;
     }
 
     @Getter
     @Setter
     public static class CovidZones {
-        public Object delivery_zone;
-        public Object pickup_zone;
+        @SerializedName("delivery_zone")
+        private Object deliveryZone;
+        @SerializedName("pickup_zone")
+        private Object pickupZone;
     }
 
     @Getter
     @Setter
     public static class Data {
-        public ArrayList<AvailableCourierCompany> available_courier_companies;
-        public Object child_courier_id;
-        public int is_recommendation_enabled;
-        public int recommendation_advance_rule;
-        public RecommendedBy recommended_by;
-        public int recommended_courier_company_id;
-        public int shiprocket_recommended_courier_id;
+        @SerializedName("available_courier_companies")
+        private List<AvailableCourierCompany> availableCourierCompanies;
+        @SerializedName("child_courier_id")
+        private Object childCourierId;
+        @SerializedName("is_recommendation_enabled")
+        private int recommendationEnabled;
+        @SerializedName("recommendation_advance_rule")
+        private int recommendationAdvanceRule;
+        @SerializedName("recommended_by")
+        private RecommendedBy recommendedBy;
+        @SerializedName("recommended_courier_company_id")
+        private int recommendedCourierCompanyId;
+        @SerializedName("shiprocket_recommended_courier_id")
+        private int shiprocketRecommendedCourierId;
     }
 
     @Getter
     @Setter
     public static class RecommendedBy {
-        public int id;
-        public String title;
+        @SerializedName("id")
+        private int id;
+        @SerializedName("title")
+        private String title;
     }
 }

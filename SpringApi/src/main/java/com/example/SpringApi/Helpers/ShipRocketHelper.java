@@ -31,9 +31,9 @@ import com.example.SpringApi.Adapters.DateAdapter;
 import com.example.SpringApi.Adapters.LocalDateTimeAdapter;
 
 public class ShipRocketHelper {
-    private final String _apiUrl = "https://apiv2.shiprocket.in/v1/external";
-    private final String _email;
-    private final String _password;
+    private static final String API_URL = "https://apiv2.shiprocket.in/v1/external";
+    private final String email;
+    private final String password;
     
     /**
      * Timeout for HTTP requests to Shiprocket API (5 seconds).
@@ -47,7 +47,7 @@ public class ShipRocketHelper {
      */
     private String cachedToken = null;
     private long tokenExpiresAt = 0;
-    private static final long TOKEN_CACHE_DURATION_MS = 55 * 60 * 1000; // 55 minutes (tokens usually valid for 1 hour)
+    private static final long TOKEN_CACHE_DURATION_MS = 55L * 60 * 1000; // 55 minutes (tokens usually valid for 1 hour)
     
     /**
      * Create an HttpClient with timeout configuration.
@@ -59,8 +59,8 @@ public class ShipRocketHelper {
     }
 
     public ShipRocketHelper(String email, String password) {
-        this._email = email;
-        this._password = password;
+        this.email = email;
+        this.password = password;
     }
     
     /**
@@ -113,6 +113,9 @@ public class ShipRocketHelper {
             }
         } catch (BadRequestException e) {
             throw e;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new BadRequestException("Shiprocket API request was interrupted: " + e.getMessage());
         } catch (Exception e) {
             throw new BadRequestException("Exception occurred: " + e.getMessage());
         }
@@ -157,11 +160,11 @@ public class ShipRocketHelper {
         // Token expired or not cached - fetch new one
         try {
             HttpClient client = createHttpClient();
-            URI uri = URI.create(_apiUrl + "/auth/login");
+            URI uri = URI.create(API_URL + "/auth/login");
 
             HashMap<String, Object> jsonBody = new HashMap<>();
-            jsonBody.put("email", _email);
-            jsonBody.put("password", _password);
+            jsonBody.put("email", email);
+            jsonBody.put("password", password);
 
             ObjectMapper mapper = new ObjectMapper();
             String data = mapper.writeValueAsString(jsonBody);
@@ -187,8 +190,12 @@ public class ShipRocketHelper {
             tokenExpiresAt = currentTime + TOKEN_CACHE_DURATION_MS;
             
             return newToken;
-        }
-        catch (Exception e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            cachedToken = null;
+            tokenExpiresAt = 0;
+            throw new BadRequestException("Authentication token request was interrupted: " + e.getMessage());
+        } catch (Exception e) {
             // Clear cached token on error so we retry next time
             cachedToken = null;
             tokenExpiresAt = 0;
@@ -223,7 +230,7 @@ public class ShipRocketHelper {
 
         return httpResponse(
                 token,
-                _apiUrl + "/settings/company/addpickup",
+                API_URL + "/settings/company/addpickup",
                 "POST",
                 new TypeToken<AddPickupLocationResponseModel>(){}.getType(),
                 jsonBody,
@@ -255,7 +262,7 @@ public class ShipRocketHelper {
 
         return httpResponse(
                 token,
-                _apiUrl + "/courier/serviceability/",
+                API_URL + "/courier/serviceability/",
                 "GET",
                 new TypeToken<ShippingOptionsResponseModel>(){}.getType(),
                 jsonBody,
@@ -279,7 +286,7 @@ public class ShipRocketHelper {
         String token = getToken();
         ShipRocketOrderResponseModel response = httpResponse(
                 token,
-                _apiUrl + "/orders/create/adhoc",
+                API_URL + "/orders/create/adhoc",
                 "POST",
                 new TypeToken<ShipRocketOrderResponseModel>(){}.getType(),
                 orderRequest,
@@ -306,7 +313,7 @@ public class ShipRocketHelper {
                 (response.getMessage() != null ? response.getMessage() : "none"));
         }
         
-        if (response.getShipment_id() == null) {
+        if (response.getShipmentId() == null) {
             throw new BadRequestException("ShipRocket create order response missing shipment_id for order: " + orderId);
         }
         
@@ -339,7 +346,7 @@ public class ShipRocketHelper {
         jsonBody.put("courier_id", String.valueOf(courierId));
         
         // Use base HTTP method
-        String responseBody = httpResponseRaw(token, _apiUrl + "/courier/assign/awb", "POST", jsonBody);
+        String responseBody = httpResponseRaw(token, API_URL + "/courier/assign/awb", "POST", jsonBody);
         
         // Validate response content - HTTP 200 doesn't guarantee success
         ShipRocketAwbResponseModel awbResponse = createGson().fromJson(responseBody, ShipRocketAwbResponseModel.class);
@@ -385,7 +392,7 @@ public class ShipRocketHelper {
         jsonBody.put("shipment_id", java.util.List.of(shipmentId));
         
         // Use base HTTP method
-        String responseBody = httpResponseRaw(token, _apiUrl + "/courier/generate/pickup", "POST", jsonBody);
+        String responseBody = httpResponseRaw(token, API_URL + "/courier/generate/pickup", "POST", jsonBody);
         
         // Deserialize into typed response model
         ShipRocketPickupResponseModel response = createGson().fromJson(responseBody, ShipRocketPickupResponseModel.class);
@@ -426,7 +433,7 @@ public class ShipRocketHelper {
         jsonBody.put("shipment_id", java.util.List.of(shipmentId));
         
         // Use base HTTP method
-        String responseBody = httpResponseRaw(token, _apiUrl + "/manifests/generate", "POST", jsonBody);
+        String responseBody = httpResponseRaw(token, API_URL + "/manifests/generate", "POST", jsonBody);
         
         // Deserialize into typed response model
         ShipRocketManifestResponseModel response = createGson().fromJson(responseBody, ShipRocketManifestResponseModel.class);
@@ -467,7 +474,7 @@ public class ShipRocketHelper {
         jsonBody.put("shipment_id", java.util.List.of(String.valueOf(shipmentId)));
         
         // Use base HTTP method
-        String responseBody = httpResponseRaw(token, _apiUrl + "/courier/generate/label", "POST", jsonBody);
+        String responseBody = httpResponseRaw(token, API_URL + "/courier/generate/label", "POST", jsonBody);
         
         // Deserialize into typed response model
         ShipRocketLabelResponseModel response = createGson().fromJson(responseBody, ShipRocketLabelResponseModel.class);
@@ -508,7 +515,7 @@ public class ShipRocketHelper {
         jsonBody.put("ids", java.util.List.of(String.valueOf(shipmentId)));
         
         // Use base HTTP method
-        String responseBody = httpResponseRaw(token, _apiUrl + "/orders/print/invoice", "POST", jsonBody);
+        String responseBody = httpResponseRaw(token, API_URL + "/orders/print/invoice", "POST", jsonBody);
         
         // Deserialize into typed response model
         ShipRocketInvoiceResponseModel response = createGson().fromJson(responseBody, ShipRocketInvoiceResponseModel.class);
@@ -545,7 +552,7 @@ public class ShipRocketHelper {
         String token = getToken();
         
         // Use base HTTP method - GET request with AWB in URL
-        String responseBody = httpResponseRaw(token, _apiUrl + "/courier/track/awb/" + awbCode.trim(), "GET", null);
+        String responseBody = httpResponseRaw(token, API_URL + "/courier/track/awb/" + awbCode.trim(), "GET", null);
         
         // Deserialize into typed response model
         ShipRocketTrackingResponseModel response = createGson().fromJson(responseBody, ShipRocketTrackingResponseModel.class);
@@ -581,7 +588,7 @@ public class ShipRocketHelper {
         String token = getToken();
         
         // Use base HTTP method
-        String responseBody = httpResponseRaw(token, _apiUrl + "/orders/show/" + shipRocketOrderId.trim(), "GET", null);
+        String responseBody = httpResponseRaw(token, API_URL + "/orders/show/" + shipRocketOrderId.trim(), "GET", null);
         
         // Validate response content - HTTP 200 doesn't guarantee success
         com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderDetailsResponseModel orderDetails = 
@@ -617,7 +624,7 @@ public class ShipRocketHelper {
     public ShipRocketReturnOrderResponseModel createReturnOrder(Object returnOrderRequest) {
         String token = getToken();
         
-        String responseBody = httpResponseRaw(token, _apiUrl + "/orders/create/return", "POST", returnOrderRequest);
+        String responseBody = httpResponseRaw(token, API_URL + "/orders/create/return", "POST", returnOrderRequest);
         
         // Deserialize into typed response model
         ShipRocketReturnOrderResponseModel response = createGson().fromJson(responseBody, ShipRocketReturnOrderResponseModel.class);
@@ -652,7 +659,7 @@ public class ShipRocketHelper {
     public String createReturnOrderAsJson(Object returnOrderRequest) {
         String token = getToken();
         
-        String responseBody = httpResponseRaw(token, _apiUrl + "/orders/create/return", "POST", returnOrderRequest);
+        String responseBody = httpResponseRaw(token, API_URL + "/orders/create/return", "POST", returnOrderRequest);
         
         // Validate response
         ShipRocketReturnOrderResponseModel response = createGson().fromJson(responseBody, ShipRocketReturnOrderResponseModel.class);
@@ -686,7 +693,7 @@ public class ShipRocketHelper {
         jsonBody.put("is_return", 1);  // Indicates this is a return shipment
         
         // Use base HTTP method
-        String responseBody = httpResponseRaw(token, _apiUrl + "/courier/assign/awb", "POST", jsonBody);
+        String responseBody = httpResponseRaw(token, API_URL + "/courier/assign/awb", "POST", jsonBody);
         
         // Validate response content
         ShipRocketAwbResponseModel awbResponse = createGson().fromJson(responseBody, ShipRocketAwbResponseModel.class);
@@ -730,7 +737,7 @@ public class ShipRocketHelper {
         jsonBody.put("ids", orderIds);
         
         // Use base HTTP method - this endpoint returns no response body on success
-        httpResponseRaw(token, _apiUrl + "/orders/cancel", "POST", jsonBody);
+        httpResponseRaw(token, API_URL + "/orders/cancel", "POST", jsonBody);
         
         // If we get here without exception, the cancellation was successful
     }
@@ -746,7 +753,7 @@ public class ShipRocketHelper {
     public Double getWalletBalance() {
         String token = getToken();
         
-        String responseBody = httpResponseRaw(token, _apiUrl + "/account/details/wallet-balance", "GET", null);
+        String responseBody = httpResponseRaw(token, API_URL + "/account/details/wallet-balance", "GET", null);
         
         try {
             com.google.gson.JsonObject jsonResponse = com.google.gson.JsonParser.parseString(responseBody).getAsJsonObject();
@@ -763,7 +770,9 @@ public class ShipRocketHelper {
         } catch (NumberFormatException e) {
             throw new BadRequestException("Invalid wallet balance format from ShipRocket: " + e.getMessage());
         } catch (Exception e) {
-            if (e instanceof BadRequestException) throw (BadRequestException) e;
+            if (e instanceof BadRequestException badRequestException) {
+                throw badRequestException;
+            }
             throw new BadRequestException("Failed to parse wallet balance response: " + e.getMessage());
         }
     }

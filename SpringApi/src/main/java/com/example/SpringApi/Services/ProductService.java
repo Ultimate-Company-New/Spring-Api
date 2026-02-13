@@ -942,8 +942,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
             // Strip the data:image/...;base64, prefix
             int commaIndex = imageData.indexOf(',');
             if (commaIndex != -1 && commaIndex < imageData.length() - 1) {
-                String base64Data = imageData.substring(commaIndex + 1);
-                return base64Data;
+                return imageData.substring(commaIndex + 1);
             }
             return imageData; // If no comma found, return as-is
         }
@@ -978,10 +977,8 @@ public class ProductService extends BaseService implements IProductSubTranslator
                 }
 
                 byte[] imageBytes = outputStream.toByteArray();
-                String base64String = Base64.getEncoder().encodeToString(imageBytes);
-
                 // Return just the base64 string (ImgBB doesn't need the data:image prefix)
-                return base64String;
+                return Base64.getEncoder().encodeToString(imageBytes);
             }
         } catch (IOException e) {
             throw new BadRequestException(String.format(ErrorMessages.ProductErrorMessages.ER012, imageData));
