@@ -151,14 +151,13 @@ public abstract class ProductServiceTestBase {
                 productRepository,
                 productPickupLocationMappingRepository,
                 packagePickupLocationMappingRepository,
-                userLogService,
                 productCategoryRepository,
                 clientRepository,
+                userLogService,
                 clientService,
                 productFilterQueryBuilder,
                 messageService,
-                environment,
-                request);
+                environment);
         ReflectionTestUtils.setField(productService, "imageLocation", "imgbb");
         ReflectionTestUtils.setField(productService, "userRepository", userRepository);
         ReflectionTestUtils.setField(productService, "jwtTokenProvider", jwtTokenProvider);

@@ -14,7 +14,6 @@ import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -48,8 +47,7 @@ public class ProductReviewService extends BaseService implements IProductReviewS
     @Autowired
     public ProductReviewService(ProductReviewRepository productReviewRepository,
                                UserLogService userLogService,
-                               ProductReviewFilterQueryBuilder productReviewFilterQueryBuilder,
-                               HttpServletRequest request) {
+                               ProductReviewFilterQueryBuilder productReviewFilterQueryBuilder) {
         super();
         this.productReviewRepository = productReviewRepository;
         this.userLogService = userLogService;
@@ -89,6 +87,7 @@ public class ProductReviewService extends BaseService implements IProductReviewS
      * @return Paginated response containing product review data
      */
     @Override
+    @Transactional(readOnly = true)
     public PaginationBaseResponseModel<ProductReviewResponseModel> getProductReviewsInBatchesGivenProductId(PaginationBaseRequestModel paginationBaseRequestModel, long id) {
         // Valid columns for filtering
         Set<String> validColumns = new HashSet<>(Arrays.asList(

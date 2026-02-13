@@ -22,19 +22,24 @@ import com.example.SpringApi.Helpers.PasswordHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
 
 /**
- * Service class responsible for handling user authentication, registration, and
- * related operations.
- * This includes sign-in, sign-up, password reset, email confirmation, and token
- * generation.
- * Implements ILoginSubTranslator interface for standardized login sub-routes.
+ * Service class for authentication and login-related business operations.
+ * 
+ * This service implements the ILoginSubTranslator interface and provides
+ * authentication workflows including email confirmation, sign-in, password reset,
+ * and token generation.
+ * 
+ * @author SpringApi Team
+ * @version 1.0
+ * @since 2024-01-15
  */
 @Service
-public class LoginService implements ILoginSubTranslator {
+public class LoginService extends BaseService implements ILoginSubTranslator {
     private final UserRepository userRepository;
     private final UserClientMappingRepository userClientMappingRepository;
     private final UserClientPermissionMappingRepository userClientPermissionMappingRepository;
@@ -49,6 +54,7 @@ public class LoginService implements ILoginSubTranslator {
             ClientRepository clientRepository,
             JwtTokenProvider jwtTokenProvider,
             Environment environment) {
+        super();
         this.userRepository = userRepository;
         this.userClientMappingRepository = userClientMappingRepository;
         this.userClientPermissionMappingRepository = userClientPermissionMappingRepository;
@@ -73,8 +79,9 @@ public class LoginService implements ILoginSubTranslator {
      *                               stored token, token is missing, or token has
      *                               been used.
      * @throws NotFoundException     If the user with the specified ID is not found.
-     */
+    */
     @Override
+    @Transactional
     public void confirmEmail(LoginRequestModel loginRequestModel) {
         // Validate that userId is provided
         if (loginRequestModel.getUserId() == null) {
@@ -122,8 +129,9 @@ public class LoginService implements ILoginSubTranslator {
      * @throws UnauthorizedException If email is not confirmed, account is locked,
      *                               password is not set, or credentials are
      *                               invalid.
-     */
+    */
     @Override
+    @Transactional
     public List<com.example.SpringApi.Models.ResponseModels.ClientResponseModel> signIn(
             LoginRequestModel loginRequestModel) {
         User user = userRepository.findByLoginName(loginRequestModel.getLoginName());
@@ -218,8 +226,9 @@ public class LoginService implements ILoginSubTranslator {
      *                             have a password set.
      * @throws NotFoundException   If the user with the specified login name is not
      *                             found.
-     */
+    */
     @Override
+    @Transactional
     public Boolean resetPassword(LoginRequestModel loginRequestModel) {
         if (!StringUtils.hasText(loginRequestModel.getLoginName())) {
             throw new BadRequestException(ErrorMessages.LoginErrorMessages.ER014);
@@ -276,7 +285,7 @@ public class LoginService implements ILoginSubTranslator {
 
             // Verify that the email was sent successfully and contains the password
             if (!emailSent) {
-                throw new RuntimeException("Failed to send reset password email");
+                throw new RuntimeException(ErrorMessages.LoginErrorMessages.ResetPasswordEmailFailed);
             }
 
             // Save the user with updated password, salt, locked status, and login attempts
@@ -307,8 +316,9 @@ public class LoginService implements ILoginSubTranslator {
      * @throws BadRequestException   If login name or API key is missing.
      * @throws UnauthorizedException If the user is not found, API key is invalid,
      *                               or API key doesn't belong to the user.
-     */
+    */
     @Override
+    @Transactional(readOnly = true)
     public String getToken(LoginRequestModel loginRequestModel) {
         if (!StringUtils.hasText(loginRequestModel.getLoginName())
                 || !StringUtils.hasText(loginRequestModel.getApiKey())) {

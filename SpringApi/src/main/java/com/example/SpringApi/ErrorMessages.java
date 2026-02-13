@@ -477,7 +477,6 @@ public class ErrorMessages {
         public static final String ServiceNotFoundFormat = "Service not found: %s. Available services: %s";
         /** Format: "Could not load service class: %s" */
         public static final String CouldNotLoadServiceClassFormat = "Could not load service class: %s";
-        public static final String ServiceNameNull = "Cannot invoke \"String.trim()\" because \"serviceName\" is null";
 
         // Test run validation
         public static final String TestRunRequestCannotBeNull = "Test run request cannot be null";
@@ -618,9 +617,6 @@ public class ErrorMessages {
     }
 
     public static class ShippingErrorMessages {
-        // Null request errors
-        public static final String NullShippingCalculationRequest = "Cannot invoke \"com.example.SpringApi.Models.RequestModels.ShippingCalculationRequestModel.getPickupLocations()\" because \"request\" is null";
-
         // ShipRocket configuration errors
         public static final String ShipRocketCredentialsNotConfigured = "Shiprocket credentials not configured for this client.";
         public static final String DeliveryAddressNotFound = "Delivery address not found in order summary.";
@@ -778,9 +774,6 @@ public class ErrorMessages {
         // Filter errors
         public static final String InvalidColumnName = "Invalid column name: %s";
         public static final String BooleanColumnsOnlySupportEquals = "Boolean columns only support 'equals' and 'notEquals' operators.";
-        /** Format: "Invalid operator '%s' for %s column '%s'. Valid operators: %s" */
-        public static final String InvalidOperatorForColumnWithValidOperatorsFormat =
-                "Invalid operator '%s' for %s column '%s'. Valid operators: %s";
 
         // List errors
         public static final String ListCannotBeNullOrEmpty = "%s list cannot be null or empty.";
@@ -797,15 +790,10 @@ public class ErrorMessages {
         public static final String DATABASE_ERROR = "Database error";
         public static final String DATABASE_CONNECTION_ERROR = "Database connection error";
         public static final String InvalidBulkRequest = "Invalid bulk request, the list cannot be null or empty.";
-        public static final String EmptyList = "Empty list";
-        public static final String NullList = "Null list";
-        public static final String CriticalFailure = "Critical failure";
-        public static final String ContextMissing = "Context missing";
     }
 
     public static class OrderSummaryNotFoundMessage {
         public static final String NotFound = "Order summary not found for purchase order.";
-        public static final String PurchaseOrderNotFound = "OrderSummary not found for purchase order";
     }
 
 }

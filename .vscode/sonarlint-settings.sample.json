@@ -1,0 +1,17 @@
+{
+  // Sample SonarLint connected-mode settings. Do NOT commit your token.
+  // Copy values into your workspace settings (`.vscode/settings.json`) or
+  // add the `sonarlint.connectedMode.servers` entry in your user settings.
+  "sonarlint.connectedMode.servers": [
+    {
+      "serverId": "local-sonar",
+      "serverUrl": "http://localhost:9000",
+      "token": "<INSERT_SONAR_TOKEN_HERE>"
+    }
+  ],
+  "sonarlint.connectedMode.project": {
+    "local-sonar": {
+      "projectKey": "SpringApi"
+    }
+  }
+}

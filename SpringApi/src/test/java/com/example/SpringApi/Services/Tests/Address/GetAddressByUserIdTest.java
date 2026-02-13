@@ -215,61 +215,7 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
      * controller level.
      * These tests check that @PreAuthorize annotations are present and correctly
      * configured.
-     */
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation is declared on getAddressesByUserId
-     * method.
-     * Expected Result: Method has @PreAuthorize annotation with correct permission.
-     * Assertions: Annotation exists and references VIEW_ADDRESS_PERMISSION.
-     */
-    @Test
-    @DisplayName("Get Address By User ID - Verify @PreAuthorize annotation is configured correctly")
-    void getAddressByUserId_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        var method = AddressController.class.getMethod("getAddressesByUserId", Long.class);
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-                org.springframework.security.access.prepost.PreAuthorize.class);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation, "getAddressesByUserId method should have @PreAuthorize annotation");
-
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-                Authorizations.VIEW_ADDRESS_PERMISSION + "')";
-
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                "PreAuthorize annotation should reference VIEW_ADDRESS_PERMISSION");
-    }
-
-    /**
-     * Purpose: Verify controller calls service when authorization passes
-     * (simulated).
-     * Expected Result: Service method is called and correct HTTP status is
-     * returned.
-     * Assertions: Service called once, HTTP status is correct.
-     * 
-     * Note: This test simulates the happy path assuming authorization has already
-     * passed.
-     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
-     * in end-to-end tests.
-     */
-    @Test
-    @DisplayName("Get Address By User ID - Controller delegates to service correctly")
-    void getAddressByUserId_p02_WithValidRequest_DelegatesToService() {
-        // Arrange
-        stubServiceGetAddressByUserId(DEFAULT_USER_ID, new ArrayList<>());
-
-        // Act - Call controller directly (simulating authorization has already passed)
-        ResponseEntity<?> response = addressController.getAddressesByUserId(DEFAULT_USER_ID);
-
-        // Assert - Verify service was called and correct response returned
-        verify(addressService, times(1)).getAddressByUserId(DEFAULT_USER_ID);
-        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
-    }
-
-    /**
+     */    /**
      * Purpose: Verify that the controller has the correct @PreAuthorize annotation
      * for security.
      * Expected Result: The method should be annotated with @PreAuthorize checking

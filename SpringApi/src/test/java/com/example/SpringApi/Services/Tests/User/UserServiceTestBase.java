@@ -2,7 +2,6 @@ package com.example.SpringApi.Services.Tests.User;
 
 import com.example.SpringApi.FilterQueryBuilder.UserFilterQueryBuilder;
 import com.example.SpringApi.Helpers.PasswordHelper;
-import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
@@ -11,9 +10,6 @@ import com.example.SpringApi.Repositories.*;
 import com.example.SpringApi.Services.ClientService;
 import com.example.SpringApi.Services.UserLogService;
 import com.example.SpringApi.Services.UserService;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PermissionResponseModel;
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +34,7 @@ import static org.mockito.Mockito.lenient;
  * Base test class for UserService tests.
  * Contains common mocks, test data, and centralized stubbing methods.
  */
-@ExtendWith({ MockitoExtension.class, UserServiceTestBase.StaticMockCleanupExtension.class })
+@ExtendWith(MockitoExtension.class)
 public abstract class UserServiceTestBase {
 
     @Mock
@@ -104,8 +100,6 @@ public abstract class UserServiceTestBase {
 
     @BeforeEach
     void setUp() {
-        closeStaticMocks();
-
         testUserRequest = new UserRequestModel();
         testUserRequest.setFirstName("John");
         testUserRequest.setLastName("Doe");
@@ -127,22 +121,6 @@ public abstract class UserServiceTestBase {
         stubEnvironmentActiveProfiles(new String[] { "localhost" });
         stubEnvironmentImageLocation("firebase");
         ReflectionTestUtils.setField(userService, "imageLocation", "imgbb");
-
-        stubMockUserServiceGetUserId(TEST_USER_ID);
-        stubMockUserServiceGetUser(TEST_LOGIN_NAME);
-        stubMockUserServiceGetClientId(TEST_CLIENT_ID);
-    }
-
-    protected void stubMockUserServiceGetUserId(Long userId) {
-        lenient().when(mockUserService.getUserId()).thenReturn(userId);
-    }
-
-    protected void stubMockUserServiceGetUser(String username) {
-        lenient().when(mockUserService.getUser()).thenReturn(username);
-    }
-
-    protected void stubMockUserServiceGetClientId(Long clientId) {
-        lenient().when(mockUserService.getClientId()).thenReturn(clientId);
     }
 
     // ==========================================
@@ -326,152 +304,25 @@ public abstract class UserServiceTestBase {
         lenient().doNothing().when(userGroupUserMapRepository).deleteByUserId(anyLong());
     }
 
-    protected void stubMockUserServiceCreateUserThrowsUnauthorized(UserRequestModel request) {
-        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(mockUserService).createUser(any(UserRequestModel.class));
-    }
-
-    protected void stubMockUserServiceCreateUserThrowsForbidden(UserRequestModel request) {
-        lenient().doThrow(new com.example.SpringApi.Exceptions.PermissionException("Forbidden"))
-                .when(mockUserService).createUser(any(UserRequestModel.class));
-    }
-
-    protected void stubMockUserServiceCreateUser(UserRequestModel request) {
-        lenient().doNothing().when(mockUserService).createUser(any(UserRequestModel.class));
-    }
-
-    protected void stubMockUserServiceUpdateUserThrowsUnauthorized(UserRequestModel request) {
-        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(mockUserService).updateUser(any(UserRequestModel.class));
-    }
-
-    protected void stubMockUserServiceUpdateUserThrowsForbidden(UserRequestModel request) {
-        lenient().doThrow(new com.example.SpringApi.Exceptions.PermissionException("Forbidden"))
-                .when(mockUserService).updateUser(any(UserRequestModel.class));
-    }
-
-    protected void stubMockUserServiceUpdateUser(UserRequestModel request) {
-        lenient().doNothing().when(mockUserService).updateUser(any(UserRequestModel.class));
-    }
-
-    protected void stubMockUserServiceToggleUserThrowsUnauthorized(Long id) {
-        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(mockUserService).toggleUser(anyLong());
-    }
-
-    protected void stubMockUserServiceToggleUserThrowsForbidden(Long id) {
-        lenient().doThrow(new com.example.SpringApi.Exceptions.PermissionException("Forbidden"))
-                .when(mockUserService).toggleUser(anyLong());
-    }
-
-    protected void stubMockUserServiceToggleUser(Long id) {
-        lenient().doNothing().when(mockUserService).toggleUser(anyLong());
-    }
-
-    protected void stubMockUserServiceFetchUsersInCarrierInBatchesThrowsUnauthorized(UserRequestModel request) {
-        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(mockUserService).fetchUsersInCarrierInBatches(any(UserRequestModel.class));
-    }
-
-    protected void stubMockUserServiceFetchUsersInCarrierInBatches(UserRequestModel request) {
-        lenient().when(mockUserService.fetchUsersInCarrierInBatches(any(UserRequestModel.class)))
-                .thenReturn(new PaginationBaseResponseModel<>());
-    }
-
-    protected void stubMockUserServiceConfirmEmailThrowsUnauthorized(Long id, String token) {
-        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(mockUserService).confirmEmail(anyLong(), anyString());
-    }
-
-    protected void stubMockUserServiceConfirmEmail(Long id, String token) {
-        lenient().doNothing().when(mockUserService).confirmEmail(anyLong(), anyString());
-    }
-
-    protected void stubMockUserServiceGetAllPermissionsThrowsUnauthorized() {
-        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(mockUserService).getAllPermissions();
-    }
-
-    protected void stubMockUserServiceGetAllPermissions(List<PermissionResponseModel> permissions) {
-        lenient().when(mockUserService.getAllPermissions()).thenReturn(permissions);
-    }
-
-    protected void stubMockUserServiceGetUserByEmailThrowsUnauthorized(String email) {
-        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(mockUserService).getUserByEmail(anyString());
-    }
-
-    protected void stubMockUserServiceGetUserByEmail(String email,
-            com.example.SpringApi.Models.ResponseModels.UserResponseModel response) {
-        lenient().when(mockUserService.getUserByEmail(anyString())).thenReturn(response);
-    }
-
-    protected void stubMockUserServiceGetUserByIdThrowsUnauthorized(Long id) {
-        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(mockUserService).getUserById(anyLong());
-    }
-
-    protected void stubMockUserServiceGetUserById(Long id,
-            com.example.SpringApi.Models.ResponseModels.UserResponseModel response) {
-        lenient().when(mockUserService.getUserById(anyLong())).thenReturn(response);
-    }
-
-    protected void stubMockUserServiceBulkCreateUsersAsyncThrowsUnauthorized(List<UserRequestModel> users) {
-        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(mockUserService).bulkCreateUsersAsync(anyList(), anyLong(), anyString(), anyLong());
-    }
-
-    protected void stubMockUserServiceBulkCreateUsersAsync(List<UserRequestModel> users) {
-        lenient().doNothing().when(mockUserService).bulkCreateUsersAsync(anyList(), anyLong(), anyString(), anyLong());
-    }
-
     // Static and Construction Mocks
-    protected static MockedStatic<PasswordHelper> mockedPasswordHelper;
-    protected static MockedConstruction<com.example.SpringApi.Helpers.EmailTemplates> mockedEmailTemplates;
-    protected static MockedConstruction<com.example.SpringApi.Helpers.FirebaseHelper> mockedFirebaseHelper;
-    protected static MockedConstruction<com.example.SpringApi.Helpers.ImgbbHelper> mockedImgbbHelper;
+    protected MockedStatic<PasswordHelper> mockedPasswordHelper;
+    protected MockedConstruction<com.example.SpringApi.Helpers.EmailTemplates> mockedEmailTemplates;
+    protected MockedConstruction<com.example.SpringApi.Helpers.FirebaseHelper> mockedFirebaseHelper;
+    protected MockedConstruction<com.example.SpringApi.Helpers.ImgbbHelper> mockedImgbbHelper;
 
-    protected void closeStaticMocks() {
+    @org.junit.jupiter.api.AfterEach
+    void tearDown() {
         if (mockedPasswordHelper != null) {
             mockedPasswordHelper.close();
-            mockedPasswordHelper = null;
         }
         if (mockedEmailTemplates != null) {
             mockedEmailTemplates.close();
-            mockedEmailTemplates = null;
         }
         if (mockedFirebaseHelper != null) {
             mockedFirebaseHelper.close();
-            mockedFirebaseHelper = null;
         }
         if (mockedImgbbHelper != null) {
             mockedImgbbHelper.close();
-            mockedImgbbHelper = null;
-        }
-    }
-
-    static class StaticMockCleanupExtension implements org.junit.jupiter.api.extension.AfterEachCallback {
-        public void afterEach(org.junit.jupiter.api.extension.ExtensionContext context) {
-            closeStaticMocksForAllTests();
-        }
-    }
-
-    private static void closeStaticMocksForAllTests() {
-        if (mockedPasswordHelper != null) {
-            mockedPasswordHelper.close();
-            mockedPasswordHelper = null;
-        }
-        if (mockedEmailTemplates != null) {
-            mockedEmailTemplates.close();
-            mockedEmailTemplates = null;
-        }
-        if (mockedFirebaseHelper != null) {
-            mockedFirebaseHelper.close();
-            mockedFirebaseHelper = null;
-        }
-        if (mockedImgbbHelper != null) {
-            mockedImgbbHelper.close();
-            mockedImgbbHelper = null;
         }
     }
 

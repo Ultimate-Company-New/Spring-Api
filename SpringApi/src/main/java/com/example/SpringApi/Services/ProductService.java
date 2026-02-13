@@ -32,15 +32,16 @@ import org.hibernate.exception.SQLGrammarException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.core.env.Environment;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
@@ -70,18 +71,18 @@ import java.util.Map;
 @Service
 public class ProductService extends BaseService implements IProductSubTranslator {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
+    private final Logger logger;
 
     private final ProductRepository productRepository;
     private final ProductPickupLocationMappingRepository productPickupLocationMappingRepository;
     private final com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository packagePickupLocationMappingRepository;
-    private final UserLogService userLogService;
     private final ProductCategoryRepository productCategoryRepository;
     private final ClientRepository clientRepository;
+    private final UserLogService userLogService;
     private final ClientService clientService;
-    private final Environment environment;
     private final ProductFilterQueryBuilder productFilterQueryBuilder;
     private final MessageService messageService;
+    private final Environment environment;
 
     @Value("${imageLocation:firebase}")
     private String imageLocation;
@@ -90,21 +91,21 @@ public class ProductService extends BaseService implements IProductSubTranslator
     public ProductService(ProductRepository productRepository,
             ProductPickupLocationMappingRepository productPickupLocationMappingRepository,
             com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository packagePickupLocationMappingRepository,
-            UserLogService userLogService,
             ProductCategoryRepository productCategoryRepository,
             ClientRepository clientRepository,
+            UserLogService userLogService,
             ClientService clientService,
             ProductFilterQueryBuilder productFilterQueryBuilder,
             MessageService messageService,
-            Environment environment,
-            HttpServletRequest request) {
+            Environment environment) {
         super();
+        this.logger = LoggerFactory.getLogger(ProductService.class);
         this.productRepository = productRepository;
         this.productPickupLocationMappingRepository = productPickupLocationMappingRepository;
         this.packagePickupLocationMappingRepository = packagePickupLocationMappingRepository;
-        this.userLogService = userLogService;
         this.productCategoryRepository = productCategoryRepository;
         this.clientRepository = clientRepository;
+        this.userLogService = userLogService;
         this.clientService = clientService;
         this.productFilterQueryBuilder = productFilterQueryBuilder;
         this.messageService = messageService;
@@ -261,6 +262,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
      * @throws NotFoundException   if the product is not found
      */
     @Override
+    @Transactional(readOnly = true)
     public ProductResponseModel getProductDetailsById(long id) {
         // Find the product with all related entities
         Product product = productRepository.findByIdWithRelatedEntities(id, getClientId());
@@ -290,6 +292,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
      * @throws BadRequestException if validation fails
      */
     @Override
+    @Transactional(readOnly = true)
     public PaginationBaseResponseModel<ProductResponseModel> getProductInBatches(
             PaginationBaseRequestModel paginationBaseRequestModel) {
         // Valid columns for filtering
@@ -391,8 +394,8 @@ public class ProductService extends BaseService implements IProductSubTranslator
      */
 
     @Override
-    @org.springframework.scheduling.annotation.Async
-    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+    @Async
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void bulkAddProductsAsync(java.util.List<ProductRequestModel> products, Long requestingUserId,
             String requestingUserLoginName, Long requestingClientId) {
         try {
@@ -1162,6 +1165,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
      * @return List of ProductStockByLocationResponseModel with stock, location, and
      *         package details
      */
+    @Transactional(readOnly = true)
     public java.util.List<com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel> getProductStockAtLocationsByProductId(
             Long productId,
             Integer requestedQuantity,

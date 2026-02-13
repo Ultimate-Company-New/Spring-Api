@@ -610,62 +610,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
      * controller level.
      * These tests check that @PreAuthorize annotations are present and correctly
      * configured.
-     */
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation is declared on updateAddress method.
-     * Expected Result: Method has @PreAuthorize annotation with correct permission.
-     * Assertions: Annotation exists and references UPDATE_ADDRESS_PERMISSION.
-     */
-    @Test
-    @DisplayName("Update Address - Verify @PreAuthorize annotation is configured correctly")
-    void updateAddress_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        var method = AddressController.class.getMethod("updateAddress",
-                Long.class, com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-                org.springframework.security.access.prepost.PreAuthorize.class);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation, "updateAddress method should have @PreAuthorize annotation");
-
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-                Authorizations.UPDATE_ADDRESS_PERMISSION + "')";
-
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                "PreAuthorize annotation should reference UPDATE_ADDRESS_PERMISSION");
-    }
-
-    /**
-     * Purpose: Verify controller calls service when authorization passes
-     * (simulated).
-     * Expected Result: Service method is called and correct HTTP status is
-     * returned.
-     * Assertions: Service called once, HTTP status is correct.
-     * 
-     * Note: This test simulates the happy path assuming authorization has already
-     * passed.
-     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
-     * in end-to-end tests.
-     */
-    @Test
-    @DisplayName("Update Address - Controller delegates to service correctly")
-    void updateAddress_p02_WithValidRequest_DelegatesToService() {
-        // Arrange
-        testAddressRequest.setId(DEFAULT_ADDRESS_ID);
-        stubServiceUpdateAddressDoNothing();
-
-        // Act - Call controller directly (simulating authorization has already passed)
-        ResponseEntity<?> response = addressController.updateAddress(DEFAULT_ADDRESS_ID, testAddressRequest);
-
-        // Assert - Verify service was called and correct response returned
-        verify(addressService, times(1)).updateAddress(testAddressRequest);
-        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
-    }
-
-    /**
+     */    /**
      * Purpose: Verify that the controller has the correct @PreAuthorize annotation
      * for security.
      * Expected Result: The method should be annotated with @PreAuthorize checking

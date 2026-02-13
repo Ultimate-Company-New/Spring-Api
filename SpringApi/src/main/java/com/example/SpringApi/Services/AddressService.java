@@ -2,8 +2,9 @@ package com.example.SpringApi.Services;
 
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.SuccessMessages;
-import jakarta.servlet.http.HttpServletRequest;
-
+import com.example.SpringApi.Authentication.JwtTokenProvider;
+import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.DatabaseModels.Address;
 import com.example.SpringApi.Models.DatabaseModels.Client;
@@ -14,15 +15,16 @@ import com.example.SpringApi.Repositories.AddressRepository;
 import com.example.SpringApi.Repositories.ClientRepository;
 import com.example.SpringApi.Repositories.UserRepository;
 import com.example.SpringApi.Services.Interface.IAddressSubTranslator;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Exceptions.BadRequestException;
-
-import java.util.Optional;
-import java.util.List;
-import java.util.ArrayList;
 
 /**
  * Service class for managing Address-related business operations.
@@ -44,16 +46,18 @@ public class AddressService extends BaseService implements IAddressSubTranslator
     private final UserLogService userLogService;
 
     @Autowired
-    public AddressService(HttpServletRequest request,
-                        UserLogService userLogService,
-                        AddressRepository addressRepository,
-                        ClientRepository clientRepository,
-                        UserRepository userRepository) {
-        super();
-        this.userLogService = userLogService;
+    public AddressService(
+            AddressRepository addressRepository,
+            ClientRepository clientRepository,
+            UserRepository userRepository,
+            UserLogService userLogService,
+            JwtTokenProvider jwtTokenProvider,
+            HttpServletRequest request) {
+        super(jwtTokenProvider, request);
         this.addressRepository = addressRepository;
         this.clientRepository = clientRepository;
         this.userRepository = userRepository;
+        this.userLogService = userLogService;
     }
 
     /**
@@ -118,6 +122,10 @@ public class AddressService extends BaseService implements IAddressSubTranslator
     @Override
     @Transactional
     public void insertAddress(AddressRequestModel addressRequest) {
+        if (addressRequest == null) {
+            throw new BadRequestException(ErrorMessages.AddressErrorMessages.ER001);
+        }
+
         Address address = new Address(addressRequest, getUser());
         Address savedAddress = addressRepository.save(address);
         userLogService.logData(getUserId(), SuccessMessages.AddressSuccessMessages.InsertAddress + " " + savedAddress.getAddressId(),

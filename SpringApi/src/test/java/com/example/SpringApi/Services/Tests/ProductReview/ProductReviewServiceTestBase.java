@@ -73,7 +73,7 @@ public abstract class ProductReviewServiceTestBase {
 
         // Ensure service has filter query builder injected (constructor injection)
         productReviewService = new ProductReviewService(
-                productReviewRepository, userLogService, productReviewFilterQueryBuilder, request);
+                productReviewRepository, userLogService, productReviewFilterQueryBuilder);
     }
 
     /**

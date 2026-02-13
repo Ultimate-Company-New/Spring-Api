@@ -4,9 +4,7 @@ import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Models.DatabaseModels.User;
-import com.example.SpringApi.Repositories.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -14,24 +12,25 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 public class BaseService {
-    @Autowired
     protected JwtTokenProvider jwtTokenProvider;
-    protected static final String CURRENT_ENVIRONMENT = "Local";    
-    
-    @Autowired
+    protected static final String CURRENT_ENVIRONMENT = "Local";
+    protected static final String AUTHORIZATION_HEADER = "Authorization";
+    protected static final String TEST_TOKEN = "test-token";
+    protected static final String DEFAULT_TEST_USER = "admin";
+    protected static final String BEARER_PREFIX = "Bearer ";
     protected HttpServletRequest request;
-    @Autowired
-    protected UserRepository userRepository;
 
-    public BaseService(){
-        // Default constructor for Spring
+    public BaseService(
+            JwtTokenProvider jwtTokenProvider,
+            HttpServletRequest request) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.request = request;
     }
 
     public String getUser() {
         // Try Spring Security first
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof User) {
-            User user = (User) authentication.getPrincipal();
+        if (authentication != null && authentication.getPrincipal() instanceof User user) {
             String userName = user.getLoginName();
             if (userName == null || userName.trim().isEmpty()) {
                 throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
@@ -41,14 +40,15 @@ public class BaseService {
 
         // Fallback to JWT token parsing for backward compatibility and testing
         try {
-            ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-            HttpServletRequest request = requestAttributes.getRequest();
-            String bearerToken = request.getHeader("Authorization");
-            if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder
+                    .currentRequestAttributes();
+            HttpServletRequest localRequest = requestAttributes.getRequest();
+            String bearerToken = localRequest.getHeader(AUTHORIZATION_HEADER);
+            if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
                 String token = bearerToken.substring(7);
                 // Handle test tokens
-                if ("test-token".equals(token)) {
-                    return "admin"; // Default test user
+                if (TEST_TOKEN.equals(token)) {
+                    return DEFAULT_TEST_USER; // Default test user
                 }
                 String userName = jwtTokenProvider.getUserNameFromToken(token);
                 if (userName == null || userName.trim().isEmpty()) {
@@ -59,29 +59,29 @@ public class BaseService {
         } catch (IllegalStateException e) {
             // No request context available (e.g., in unit tests)
             // Return a default test user for unit tests
-            return "admin";
+            return DEFAULT_TEST_USER;
         }
-        
-        return "admin";
+
+        return DEFAULT_TEST_USER;
     }
 
     public Long getUserId() {
         // Try Spring Security first
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof User) {
-            User user = (User) authentication.getPrincipal();
+        if (authentication != null && authentication.getPrincipal() instanceof User user) {
             return user.getUserId();
         }
 
         // Fallback to JWT token parsing for backward compatibility and testing
         try {
-            ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-            HttpServletRequest request = requestAttributes.getRequest();
-            String bearerToken = request.getHeader("Authorization");
-            if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder
+                    .currentRequestAttributes();
+            HttpServletRequest localRequest = requestAttributes.getRequest();
+            String bearerToken = localRequest.getHeader(AUTHORIZATION_HEADER);
+            if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
                 String token = bearerToken.substring(7);
                 // Handle test tokens
-                if ("test-token".equals(token)) {
+                if (TEST_TOKEN.equals(token)) {
                     return 1L; // Default test user ID
                 }
                 return jwtTokenProvider.getUserIdFromToken(token);
@@ -91,7 +91,7 @@ public class BaseService {
             // Return a default test user ID for unit tests
             return 1L;
         }
-        
+
         return 1L;
     }
 
@@ -104,13 +104,14 @@ public class BaseService {
      */
     public Long getClientId() {
         try {
-            ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-            HttpServletRequest request = requestAttributes.getRequest();
-            String bearerToken = request.getHeader("Authorization");
-            if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder
+                    .currentRequestAttributes();
+            HttpServletRequest localRequest = requestAttributes.getRequest();
+            String bearerToken = localRequest.getHeader(AUTHORIZATION_HEADER);
+            if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
                 String token = bearerToken.substring(7);
                 // Handle test tokens (e.g., in unit tests)
-                if ("test-token".equals(token)) {
+                if (TEST_TOKEN.equals(token)) {
                     return 1L;
                 }
                 return jwtTokenProvider.getClientIdFromToken(token);
@@ -120,7 +121,7 @@ public class BaseService {
             // Return a default test client ID for unit tests
             return 1L;
         }
-        
+
         return 1L;
     }
 }

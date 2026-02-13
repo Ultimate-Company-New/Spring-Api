@@ -50,9 +50,11 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -159,6 +161,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      * @throws BadRequestException if validation fails
      */
     @Override
+    @Transactional(readOnly = true)
     public PaginationBaseResponseModel<PurchaseOrderResponseModel> getPurchaseOrdersInBatches(PaginationBaseRequestModel paginationBaseRequestModel) {
         // Valid columns for filtering - includes PO fields and address field
         Set<String> validColumns = Set.of(
@@ -493,6 +496,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      * @throws NotFoundException if the purchase order is not found or doesn't belong to the current client
      */
     @Override
+    @Transactional(readOnly = true)
     public PurchaseOrderResponseModel getPurchaseOrderDetailsById(long id) {
         // Fetch purchase order with all relationships and validate it belongs to current client
         Optional<PurchaseOrder> purchaseOrderOptional =
@@ -596,6 +600,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      * @throws NotFoundException if the purchase order is not found or doesn't belong to the current client
      */
     @Override
+    @Transactional
     public void togglePurchaseOrder(long id) {
         // Validate purchase order exists and belongs to current client
         Optional<PurchaseOrder> purchaseOrderOptional = purchaseOrderRepository.findByPurchaseOrderIdAndClientId(id, getClientId());
@@ -632,6 +637,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      * @throws BadRequestException if the purchase order is already approved
      */
     @Override
+    @Transactional
     public void approvedByPurchaseOrder(long id) {
         // Validate purchase order exists and belongs to current client
         Optional<PurchaseOrder> purchaseOrderOptional = purchaseOrderRepository.findByPurchaseOrderIdAndClientId(id, getClientId());
@@ -670,6 +676,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      * @throws BadRequestException if the purchase order is already rejected
      */
     @Override
+    @Transactional
     public void rejectedByPurchaseOrder(long id) {
         // Validate purchase order exists and belongs to current client
         Optional<PurchaseOrder> purchaseOrderOptional = purchaseOrderRepository.findByPurchaseOrderIdAndClientId(id, getClientId());
@@ -712,6 +719,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      * @throws DocumentException if PDF document creation fails
      */
     @Override
+    @Transactional
     public byte[] getPurchaseOrderPDF(long id) throws TemplateException, IOException, DocumentException {
         // Fetch purchase order with all relationships
         Optional<PurchaseOrder> purchaseOrderOptional =
@@ -727,7 +735,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         OrderSummary orderSummary = orderSummaryRepository.findByEntityTypeAndEntityId(
                 OrderSummary.EntityType.PURCHASE_ORDER.getValue(),
                 purchaseOrder.getPurchaseOrderId()
-        ).orElseThrow(() -> new NotFoundException("OrderSummary not found for purchase order"));
+        ).orElseThrow(() -> new NotFoundException(ErrorMessages.OrderSummaryNotFoundMessage.PurchaseOrderNotFound));
 
         // Fetch shipping address from OrderSummary
         Optional<Address> shippingAddressOptional =
@@ -1012,10 +1020,10 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      * @param requestingUserId The user ID of the user making the request (captured from security context)
      * @param requestingUserLoginName The login name of the user making the request (captured from security context)
      * @param requestingClientId The client ID of the user making the request (captured from security context)
-     */
+    */
     @Override
-    @org.springframework.scheduling.annotation.Async
-    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+    @Async
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void bulkCreatePurchaseOrdersAsync(java.util.List<PurchaseOrderRequestModel> purchaseOrders, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
         try {
             // Validate input

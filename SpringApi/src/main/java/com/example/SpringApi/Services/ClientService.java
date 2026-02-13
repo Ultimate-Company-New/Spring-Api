@@ -16,6 +16,7 @@ import com.example.SpringApi.Services.Interface.IClientSubTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Helpers.FirebaseHelper;
 import com.example.SpringApi.Helpers.ImgbbHelper;
@@ -39,22 +40,23 @@ import java.util.Optional;
 @Service
 public class ClientService extends BaseService implements IClientSubTranslator {
     private final ClientRepository clientRepository;
-    private final UserLogService userLogService;
     private final GoogleCredRepository googleCredRepository;
+    private final UserLogService userLogService;
     private final Environment environment;
 
     @Value("${imageLocation:firebase}")
     private String imageLocation;
 
     @Autowired
-    public ClientService(UserLogService userLogService,
+    public ClientService(
             ClientRepository clientRepository,
             GoogleCredRepository googleCredRepository,
+            UserLogService userLogService,
             Environment environment) {
         super();
-        this.userLogService = userLogService;
         this.clientRepository = clientRepository;
         this.googleCredRepository = googleCredRepository;
+        this.userLogService = userLogService;
         this.environment = environment;
     }
 
@@ -71,6 +73,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
      * @throws NotFoundException if the client was not found
      */
     @Override
+    @Transactional
     public void toggleClient(long clientId) {
         Optional<Client> client = clientRepository.findById(clientId);
         if (client.isPresent()) {
@@ -97,6 +100,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
      * @throws NotFoundException if no client exists with the given ID
      */
     @Override
+    @Transactional(readOnly = true)
     public ClientResponseModel getClientById(long clientId) {
         Optional<Client> client = clientRepository.findById(clientId);
         if (client.isPresent()) {
@@ -119,6 +123,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
      * @throws BadRequestException if a client with the same name already exists
      */
     @Override
+    @Transactional
     public void createClient(ClientRequestModel clientRequest) {
         if (clientRequest == null) {
             throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidRequest);
@@ -154,6 +159,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
      *                             client
      */
     @Override
+    @Transactional
     public void updateClient(ClientRequestModel clientRequest) {
         if (clientRequest == null) {
             throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidRequest);
@@ -186,6 +192,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
      * @return List of ClientResponseModel objects for the user's mapped clients
      */
     @Override
+    @Transactional(readOnly = true)
     public List<ClientResponseModel> getClientsByUser() {
         List<Client> clients = clientRepository.findByUserId(getUserId());
         List<ClientResponseModel> responseModels = new ArrayList<>();
@@ -196,6 +203,8 @@ public class ClientService extends BaseService implements IClientSubTranslator {
 
         return responseModels;
     }
+
+    // ==================== HELPER METHODS ====================
 
     /**
      * Validates that the client name is unique.

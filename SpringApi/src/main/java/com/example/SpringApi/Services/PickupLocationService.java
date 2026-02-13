@@ -31,11 +31,13 @@ import com.example.SpringApi.SuccessMessages;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -66,8 +68,8 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
     private final PackagePickupLocationMappingRepository packageMappingRepository;
     private final UserLogService userLogService;
     private final ClientService clientService;
-    private final ShipRocketHelper shipRocketHelper;
     private final PickupLocationFilterQueryBuilder pickupLocationFilterQueryBuilder;
+    private final ShipRocketHelper shipRocketHelper;
     private final MessageService messageService;
 
     @Autowired
@@ -106,6 +108,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
      * @throws BadRequestException if pagination parameters are invalid
      */
     @Override
+    @Transactional(readOnly = true)
     public PaginationBaseResponseModel<PickupLocationResponseModel> getPickupLocationsInBatches(
             PaginationBaseRequestModel paginationBaseRequestModel) {
         if (paginationBaseRequestModel == null) {
@@ -235,6 +238,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
      * @throws NotFoundException if the pickup location is not found
      */
     @Override
+    @Transactional(readOnly = true)
     public PickupLocationResponseModel getPickupLocationById(long pickupLocationId) {
         PickupLocation pickupLocation = pickupLocationRepository.findPickupLocationByIdAndClientId(pickupLocationId,
                 getClientId());
@@ -416,6 +420,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
      * @throws NotFoundException if the pickup location is not found
      */
     @Override
+    @Transactional
     public void togglePickupLocation(long pickupLocationId) {
         PickupLocation pickupLocation = pickupLocationRepository.findPickupLocationByIdAndClientId(pickupLocationId,
                 getClientId());
@@ -452,10 +457,10 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
      *                                (captured from security context)
      * @param requestingClientId      The client ID of the user making the request
      *                                (captured from security context)
-     */
+    */
     @Override
-    @org.springframework.scheduling.annotation.Async
-    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+    @Async
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void bulkCreatePickupLocationsAsync(List<PickupLocationRequestModel> pickupLocations, Long requestingUserId,
             String requestingUserLoginName, Long requestingClientId) {
         try {

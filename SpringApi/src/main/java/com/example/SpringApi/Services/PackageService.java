@@ -16,18 +16,18 @@ import com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository
 import com.example.SpringApi.Repositories.PackageRepository;
 import com.example.SpringApi.Services.Interface.IPackageSubTranslator;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.SuccessMessages;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -50,26 +50,25 @@ import java.util.Arrays;
 @Service
 public class PackageService extends BaseService implements IPackageSubTranslator {
     private final PackageRepository packageRepository;
-    private final UserLogService userLogService;
     private final PackagePickupLocationMappingRepository packagePickupLocationMappingRepository;
     private final com.example.SpringApi.Repositories.PickupLocationRepository pickupLocationRepository;
+    private final UserLogService userLogService;
     private final PackageFilterQueryBuilder packageFilterQueryBuilder;
     private final MessageService messageService;
 
     @Autowired
     public PackageService(
         PackageRepository packageRepository,
-        UserLogService userLogService,
         PackagePickupLocationMappingRepository packagePickupLocationMappingRepository,
         com.example.SpringApi.Repositories.PickupLocationRepository pickupLocationRepository,
+        UserLogService userLogService,
         PackageFilterQueryBuilder packageFilterQueryBuilder,
-        MessageService messageService,
-        HttpServletRequest request) {
+        MessageService messageService) {
         super();
         this.packageRepository = packageRepository;
-        this.userLogService = userLogService;
         this.packagePickupLocationMappingRepository = packagePickupLocationMappingRepository;
         this.pickupLocationRepository = pickupLocationRepository;
+        this.userLogService = userLogService;
         this.packageFilterQueryBuilder = packageFilterQueryBuilder;
         this.messageService = messageService;
     }
@@ -80,8 +79,9 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      *
      * @param paginationBaseRequestModel The request model containing pagination and filter parameters
      * @return PaginationBaseResponseModel containing paginated package data
-     */
+    */
     @Override
+    @Transactional(readOnly = true)
     public PaginationBaseResponseModel<PackageResponseModel> getPackagesInBatches(PaginationBaseRequestModel paginationBaseRequestModel) {
         // Validate pagination parameters
         int start = paginationBaseRequestModel.getStart();
@@ -112,12 +112,17 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
                 // Validate column name
                 if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
-                    throw new BadRequestException("Invalid column name: " + filter.getColumn());
+                    throw new BadRequestException(String.format(
+                        ErrorMessages.PackageErrorMessages.InvalidColumnNameFormat,
+                        filter.getColumn()));
                 }
 
                 // Validate operator
                 if (!filter.isValidOperator()) {
-                    throw new BadRequestException("Invalid operator: " + filter.getOperator() + " for column: " + filter.getColumn());
+                    throw new BadRequestException(String.format(
+                        ErrorMessages.PackageErrorMessages.InvalidOperatorForColumnFormat,
+                        filter.getOperator(),
+                        filter.getColumn()));
                 }
 
                 // Validate column type matches operator
@@ -181,8 +186,9 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      *
      * @param packageId The unique identifier of the package
      * @return PackageResponseModel with complete package details including pickup location quantities
-     */
+    */
     @Override
+    @Transactional(readOnly = true)
     public PackageResponseModel getPackageById(Long packageId) {
         Package packageEntity = packageRepository.findByPackageIdAndClientId(packageId, getClientId());
         if (packageEntity == null) {
@@ -205,8 +211,9 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      * Toggles the active status of a package.
      *
      * @param packageId The unique identifier of the package to toggle
-     */
+    */
     @Override
+    @Transactional
     public void togglePackage(Long packageId) {
         Package packageEntity = packageRepository.findByPackageIdAndClientId(packageId, getClientId());
         if (packageEntity == null) {
@@ -280,8 +287,9 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      * @param pickupLocationId The unique identifier of the pickup location
      * @return List of PackageResponseModel entities available at the pickup location
      * @throws NotFoundException if the pickup location is not found
-     */
+    */
     @Override
+    @Transactional(readOnly = true)
     public List<PackageResponseModel> getPackagesByPickupLocationId(Long pickupLocationId) {
         // Validate that the pickup location exists
         if (pickupLocationRepository.countByPickupLocationIdAndClientId(pickupLocationId, getClientId()) == 0) {
@@ -305,10 +313,10 @@ public class PackageService extends BaseService implements IPackageSubTranslator
      * @param requestingUserId The ID of the user making the request (captured from security context)
      * @param requestingUserLoginName The loginName of the user making the request (captured from security context)
      * @param requestingClientId The client ID of the user making the request (captured from security context)
-     */
+    */
     @Override
-    @org.springframework.scheduling.annotation.Async
-    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+    @Async
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void bulkCreatePackagesAsync(List<PackageRequestModel> packages, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
         // Validate input
         if (packages == null || packages.isEmpty()) {
@@ -345,7 +353,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
                     // Unexpected error
                     response.addFailure(
                         packageRequest.getPackageName() != null ? packageRequest.getPackageName() : "unknown", 
-                        "Error: " + e.getMessage()
+                        String.format(ErrorMessages.PackageErrorMessages.BulkItemErrorFormat, e.getMessage())
                     );
                     failureCount++;
                 }
@@ -375,7 +383,9 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             errorResponse.setTotalRequested(packages != null ? packages.size() : 0);
             errorResponse.setSuccessCount(0);
             errorResponse.setFailureCount(packages != null ? packages.size() : 0);
-            errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
+            errorResponse.addFailure(
+                "bulk_import",
+                String.format(ErrorMessages.PackageErrorMessages.BulkCriticalErrorFormat, e.getMessage()));
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
                 errorResponse, "Package", "Packages", "Package Name", "Package ID", 
                 messageService, requestingUserId, requestingUserLoginName, requestingClientId
@@ -425,7 +435,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
                 // Unexpected error
                 response.addFailure(
                     packageRequest.getPackageName() != null ? packageRequest.getPackageName() : "unknown", 
-                    "Error: " + e.getMessage()
+                    String.format(ErrorMessages.PackageErrorMessages.BulkItemErrorFormat, e.getMessage())
                 );
                 failureCount++;
             }

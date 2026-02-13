@@ -15,17 +15,18 @@ import com.example.SpringApi.Models.ResponseModels.PromoResponseModel;
 import com.example.SpringApi.Repositories.PromoRepository;
 import com.example.SpringApi.Services.Interface.IPromoSubTranslator;
 import com.example.SpringApi.SuccessMessages;
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -53,8 +54,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
       PromoRepository promoRepository,
       UserLogService userLogService,
       PromoFilterQueryBuilder promoFilterQueryBuilder,
-      MessageService messageService,
-      HttpServletRequest request) {
+      MessageService messageService) {
     super();
     this.promoRepository = promoRepository;
     this.userLogService = userLogService;
@@ -69,6 +69,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
    * @return Paginated response containing promo data
    */
   @Override
+  @Transactional(readOnly = true)
   public PaginationBaseResponseModel<Promo> getPromosInBatches(
       PaginationBaseRequestModel paginationBaseRequestModel) {
     if (paginationBaseRequestModel == null) {
@@ -91,7 +92,9 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
         // Validate operator (FilterCondition.setOperator auto-normalizes symbols to
         // words)
         if (!filter.isValidOperator()) {
-          throw new BadRequestException("Invalid operator: " + filter.getOperator());
+          throw new BadRequestException(String.format(
+              ErrorMessages.PromoErrorMessages.InvalidOperatorFormat,
+              filter.getOperator()));
         }
 
         // Validate column type matches operator - this throws IllegalArgumentException
@@ -161,6 +164,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
    * @return The promo details as response model
    */
   @Override
+  @Transactional(readOnly = true)
   public PromoResponseModel getPromoDetailsById(long id) {
     Promo promo = promoRepository
         .findByPromoIdAndClientId(id, getClientId())
@@ -205,6 +209,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
    * @throws NotFoundException   if promo code is not found
    */
   @Override
+  @Transactional(readOnly = true)
   public PromoResponseModel getPromoDetailsByName(String promoCode) {
     // Validate promo code is not null or empty
     if (promoCode == null || promoCode.trim().isEmpty()) {
@@ -240,10 +245,10 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
    *                                (captured from security context)
    * @param requestingClientId      The client ID of the user making the request
    *                                (captured from security context)
-   */
+  */
   @Override
-  @org.springframework.scheduling.annotation.Async
-  @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+  @Async
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void bulkCreatePromosAsync(List<PromoRequestModel> promos, Long requestingUserId,
       String requestingUserLoginName, Long requestingClientId) {
     try {

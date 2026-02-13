@@ -1287,61 +1287,7 @@ class InsertAddressTest extends AddressServiceTestBase {
      * controller level.
      * These tests check that @PreAuthorize annotations are present and correctly
      * configured.
-     */
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation is declared on createAddress method.
-     * Expected Result: Method has @PreAuthorize annotation with correct permission.
-     * Assertions: Annotation exists and references INSERT_ADDRESS_PERMISSION.
-     */
-    @Test
-    @DisplayName("Insert Address - Verify @PreAuthorize annotation is configured correctly")
-    void insertAddress_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        var method = AddressController.class.getMethod("createAddress",
-                com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-                org.springframework.security.access.prepost.PreAuthorize.class);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation, "createAddress method should have @PreAuthorize annotation");
-
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-                Authorizations.INSERT_ADDRESS_PERMISSION + "')";
-
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                "PreAuthorize annotation should reference INSERT_ADDRESS_PERMISSION");
-    }
-
-    /**
-     * Purpose: Verify controller calls service when authorization passes
-     * (simulated).
-     * Expected Result: Service method is called and HTTP 201 Created is returned.
-     * Assertions: Service called once, HTTP status is CREATED.
-     * 
-     * Note: This test simulates the happy path assuming authorization has already
-     * passed.
-     * Actual @PreAuthorize enforcement is handled by Spring Security AOP and tested
-     * in end-to-end tests.
-     */
-    @Test
-    @DisplayName("Insert Address - Controller delegates to service correctly")
-    void insertAddress_p02_WithValidRequest_DelegatesToService() {
-        // Arrange
-        stubServiceInsertAddressDoNothing();
-
-        // Act - Call controller directly (simulating authorization has already passed)
-        ResponseEntity<?> response = addressController.createAddress(testAddressRequest);
-
-        // Assert - Verify service was called and correct response returned
-        verify(addressService, times(1)).insertAddress(testAddressRequest);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode(),
-                "Should return HTTP 201 Created on successful insertion");
-    }
-
-    /**
+     */    /**
      * Purpose: Verify that the controller has the correct @PreAuthorize annotation
      * for security.
      * Expected Result: The method should be annotated with @PreAuthorize checking

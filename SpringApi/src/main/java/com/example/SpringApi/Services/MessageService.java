@@ -91,6 +91,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
      *         targeting information
      */
     @Override
+    @Transactional(readOnly = true)
     public PaginationBaseResponseModel<MessageResponseModel> getMessagesInBatches(
             PaginationBaseRequestModel paginationBaseRequestModel) {
         // Valid columns for filtering
@@ -176,6 +177,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
      * @param requestingUserLoginName The loginName of the user creating the message
      * @param requestingClientId      The client ID
      */
+    @Transactional
     public void createMessageWithContext(MessageRequestModel messageRequestModel, Long requestingUserId,
             String requestingUserLoginName, Long requestingClientId) {
         // Fetch client configuration
@@ -413,8 +415,9 @@ public class MessageService extends BaseService implements IMessageSubTranslator
      * @param id The message ID
      * @throws NotFoundException if the message doesn't exist or doesn't belong to
      *                           the current client
-     */
+    */
     @Override
+    @Transactional
     public void toggleMessage(long id) {
         // Validate message exists and belongs to current client (including deleted
         // messages)
@@ -447,8 +450,9 @@ public class MessageService extends BaseService implements IMessageSubTranslator
      * @return MessageResponseModel containing message details with targeting info
      * @throws NotFoundException if the message doesn't exist or doesn't belong to
      *                           the current client
-     */
+    */
     @Override
+    @Transactional(readOnly = true)
     public MessageResponseModel getMessageDetailsById(long id) {
         // Validate message ID
         if (id <= 0) {
@@ -479,8 +483,9 @@ public class MessageService extends BaseService implements IMessageSubTranslator
      *         read status
      * @throws NotFoundException if the user doesn't exist or doesn't belong to the
      *                           current client
-     */
+    */
     @Override
+    @Transactional(readOnly = true)
     public PaginationBaseResponseModel<MessageResponseModel> getMessagesByUserId(
             PaginationBaseRequestModel paginationBaseRequestModel) {
         long userId = paginationBaseRequestModel.getId();
@@ -542,8 +547,9 @@ public class MessageService extends BaseService implements IMessageSubTranslator
      * @param messageId The ID of the message that was read
      * @throws NotFoundException if the user or message doesn't exist or doesn't
      *                           belong to the current client
-     */
+    */
     @Override
+    @Transactional
     public void setMessageReadByUserIdAndMessageId(long userId, long messageId) {
         // 1. Validate user exists and belongs to current client
         Optional<User> userOptional = userRepository.findByUserIdAndClientId(userId, getClientId());
@@ -588,6 +594,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
      * @return The number of unread messages
      */
     @Override
+    @Transactional(readOnly = true)
     public int getUnreadMessageCount() {
         long userId = getUserId();
         long clientId = getClientId();

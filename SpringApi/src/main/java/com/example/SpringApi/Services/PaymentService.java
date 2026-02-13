@@ -49,6 +49,10 @@ import java.util.Map;
  * 
  * Each client has their own Razorpay API credentials stored in the Client table.
  * All payment transactions are tracked in the Payment table.
+ *
+ * @author SpringApi Team
+ * @version 1.0
+ * @since 2024-01-15
  */
 @Service
 public class PaymentService extends BaseService implements IPaymentSubTranslator {
@@ -204,7 +208,9 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             return response;
 
         } catch (RazorpayException e) {
-            throw new BadRequestException("Failed to create Razorpay order: " + e.getMessage());
+            throw new BadRequestException(String.format(
+                    ErrorMessages.PaymentErrorMessages.FailedToCreateRazorpayOrderFormat,
+                    e.getMessage()));
         }
     }
 
@@ -338,7 +344,9 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
 
             return response;
         } catch (RazorpayException e) {
-            throw new BadRequestException("Failed to create Razorpay order: " + e.getMessage());
+            throw new BadRequestException(String.format(
+                    ErrorMessages.PaymentErrorMessages.FailedToCreateRazorpayOrderFormat,
+                    e.getMessage()));
         }
     }
 
@@ -478,8 +486,10 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             
             // Validate new payment doesn't exceed pending amount
             if (request.getAmount().compareTo(pendingAmount) > 0) {
-                throw new BadRequestException("Payment amount (₹" + request.getAmount() + 
-                        ") exceeds pending amount (₹" + pendingAmount + ")");
+                throw new BadRequestException(String.format(
+                        ErrorMessages.PaymentErrorMessages.PaymentAmountExceedsPendingAmountFormat,
+                        request.getAmount(),
+                        pendingAmount));
             }
         }
 
@@ -678,8 +688,10 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             
             // Validate new payment doesn't exceed pending amount
             if (request.getAmount().compareTo(pendingAmount) > 0) {
-                throw new BadRequestException("Payment amount (₹" + request.getAmount() + 
-                        ") exceeds pending amount (₹" + pendingAmount + ")");
+                throw new BadRequestException(String.format(
+                        ErrorMessages.PaymentErrorMessages.PaymentAmountExceedsPendingAmountFormat,
+                        request.getAmount(),
+                        pendingAmount));
             }
         }
 
@@ -812,8 +824,9 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
         }
 
         if (amountInPaise > payment.getRefundableAmountPaise()) {
-            throw new BadRequestException("Refund amount exceeds refundable amount. Maximum: " +
-                    payment.getRefundableAmountPaise() + " paise");
+            throw new BadRequestException(String.format(
+                    ErrorMessages.PaymentErrorMessages.RefundAmountExceedsRefundableAmountFormat,
+                    payment.getRefundableAmountPaise()));
         }
 
         try {
@@ -859,7 +872,9 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             return payment;
 
         } catch (RazorpayException e) {
-            throw new BadRequestException("Failed to process refund: " + e.getMessage());
+            throw new BadRequestException(String.format(
+                    ErrorMessages.PaymentErrorMessages.FailedToProcessRefundFormat,
+                    e.getMessage()));
         }
     }
 
@@ -870,8 +885,9 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
     /**
      * Gets the Razorpay Key ID for the current client.
      * Safe to expose publicly as this is the public key.
-     */
+    */
     @Override
+    @Transactional(readOnly = true)
     public String getRazorpayKeyId() {
         Client client = getClientWithRazorpayCredentials();
         return client.getRazorpayApiKey();
@@ -891,7 +907,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
      * @throws TemplateException if PDF template processing fails
      * @throws IOException if PDF generation fails
      * @throws DocumentException if PDF document creation fails
-     */
+    */
     @Override
     @Transactional
     public byte[] generatePaymentReceiptPDF(Long paymentId) throws TemplateException, IOException, DocumentException {
@@ -1000,8 +1016,10 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
         BigDecimal pendingAmount = orderSummary.getGrandTotal().subtract(totalPaid);
 
         if (pendingAmount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException("Payment amount exceeds grand total. Total paid: ₹" +
-                    totalPaid + ", Grand total: ₹" + orderSummary.getGrandTotal());
+            throw new BadRequestException(String.format(
+                    ErrorMessages.PaymentErrorMessages.PaymentAmountExceedsGrandTotalFormat,
+                    totalPaid,
+                    orderSummary.getGrandTotal()));
         }
 
         orderSummary.setPendingAmount(pendingAmount);

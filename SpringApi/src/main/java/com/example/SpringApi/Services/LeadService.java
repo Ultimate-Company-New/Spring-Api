@@ -23,7 +23,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -81,6 +83,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      *                             provided
      */
     @Override
+    @Transactional(readOnly = true)
     public PaginationBaseResponseModel<LeadResponseModel> getLeadsInBatches(LeadRequestModel leadRequestModel) {
         // Calculate page size and offset
         int start = leadRequestModel.getStart();
@@ -108,15 +111,18 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
             for (FilterCondition filter : leadRequestModel.getFilters()) {
                 // Validate column name
                 if (!validColumns.contains(filter.getColumn())) {
-                    throw new BadRequestException(
-                            "Invalid column name: " + filter.getColumn() +
-                                    ". Valid columns: " + String.join(", ", validColumns));
+                    throw new BadRequestException(String.format(
+                            ErrorMessages.LeadsErrorMessages.InvalidColumnNameWithValidColumnsFormat,
+                            filter.getColumn(),
+                            String.join(", ", validColumns)));
                 }
 
                 // Validate operator
                 if (!filter.isValidOperator()) {
-                    throw new BadRequestException(
-                            "Invalid operator: " + filter.getOperator() + " for column: " + filter.getColumn());
+                    throw new BadRequestException(String.format(
+                            ErrorMessages.LeadsErrorMessages.InvalidOperatorForColumnFormat,
+                            filter.getOperator(),
+                            filter.getColumn()));
                 }
 
                 // Validate operator matches column type
@@ -166,6 +172,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      *         information
      */
     @Override
+    @Transactional(readOnly = true)
     public LeadResponseModel getLeadDetailsById(Long leadId) {
         Lead lead = leadRepository.findLeadWithDetailsById(leadId, getClientId());
         if (lead == null) {
@@ -183,6 +190,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      *         information
      */
     @Override
+    @Transactional(readOnly = true)
     public LeadResponseModel getLeadDetailsByEmail(String email) {
         Lead lead = leadRepository.findLeadWithDetailsByEmail(email, getClientId());
         if (lead == null) {
@@ -203,7 +211,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         if (leadRequestModel == null) {
             throw new BadRequestException(ErrorMessages.LeadsErrorMessages.ER009);
         }
-        createLead(leadRequestModel, getUser(), true);
+        this.createLead(leadRequestModel, getUser(), true, getClientId(), getUserId());
     }
 
     /**
@@ -302,8 +310,8 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      *                                (captured from security context)
      */
     @Override
-    @org.springframework.scheduling.annotation.Async
-    @org.springframework.transaction.annotation.Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
+    @Async
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void bulkCreateLeadsAsync(List<LeadRequestModel> leads, Long requestingUserId,
             String requestingUserLoginName, Long requestingClientId) {
         try {
@@ -324,7 +332,12 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
                 try {
                     // Call createLead with explicit createdUser and shouldLog = false (bulk logs
                     // collectively)
-                    createLead(leadRequest, requestingUserLoginName, false);
+                    createLead(
+                            leadRequest,
+                            requestingUserLoginName,
+                            false,
+                            requestingClientId,
+                            requestingUserId);
 
                     // If we get here, lead was created successfully
                     // Fetch the created lead to get the leadId
@@ -345,7 +358,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
                     // Unexpected error
                     response.addFailure(
                             leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown",
-                            "Error: " + e.getMessage());
+                            String.format(ErrorMessages.LeadsErrorMessages.BulkItemErrorFormat, e.getMessage()));
                     failureCount++;
                 }
             }
@@ -374,7 +387,9 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
             errorResponse.setTotalRequested(leads != null ? leads.size() : 0);
             errorResponse.setSuccessCount(0);
             errorResponse.setFailureCount(leads != null ? leads.size() : 0);
-            errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
+            errorResponse.addFailure(
+                    "bulk_import",
+                    String.format(ErrorMessages.LeadsErrorMessages.BulkCriticalErrorFormat, e.getMessage()));
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
                     errorResponse, "Lead", "Leads", "Email", "Lead ID",
                     messageService, requestingUserId, requestingUserLoginName, requestingClientId);
@@ -410,7 +425,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         for (LeadRequestModel leadRequest : leads) {
             try {
                 // Call createLead with current user and shouldLog = false
-                createLead(leadRequest, getUser(), false);
+                createLead(leadRequest, getUser(), false, getClientId(), getUserId());
 
                 // If we get here, lead was created successfully
                 // Fetch the created lead to get the leadId
@@ -430,7 +445,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
                 // Unexpected error
                 response.addFailure(
                         leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown",
-                        "Error: " + e.getMessage());
+                        String.format(ErrorMessages.LeadsErrorMessages.BulkItemErrorFormat, e.getMessage()));
                 failureCount++;
             }
         }
@@ -460,17 +475,21 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
      *                         async operations)
      * @param shouldLog        Whether to log this individual lead creation (false
      *                         for bulk operations)
+     * @param clientId         The client ID captured from authenticated context
+     * @param userId           The user ID captured from authenticated context
      * @throws BadRequestException if the lead data is invalid or incomplete
      */
     @Transactional
-    private void createLead(LeadRequestModel leadRequestModel, String createdUser, boolean shouldLog) {
-        // Get security context (or use passed values for async)
-        Long currentClientId = getClientId();
-        Long currentUserId = getUserId();
-
-        // Set clientId and createdById from security context (not from frontend)
-        leadRequestModel.setClientId(currentClientId);
-        leadRequestModel.setCreatedById(currentUserId);
+    private void createLead(
+            LeadRequestModel leadRequestModel,
+            String createdUser,
+            boolean shouldLog,
+            Long clientId,
+            Long userId) {
+        // Set clientId and createdById from captured/authenticated context (not from
+        // frontend)
+        leadRequestModel.setClientId(clientId);
+        leadRequestModel.setCreatedById(userId);
 
         // Create address first if provided
         if (leadRequestModel.getAddress() != null) {
@@ -485,7 +504,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         // Log lead creation (skip for bulk operations as they log collectively)
         if (shouldLog) {
             userLogService.logData(
-                    currentUserId,
+                    userId,
                     SuccessMessages.LeadSuccessMessages.InsertLead + savedLead.getLeadId(),
                     ApiRoutes.LeadsSubRoute.CREATE_LEAD);
         }
