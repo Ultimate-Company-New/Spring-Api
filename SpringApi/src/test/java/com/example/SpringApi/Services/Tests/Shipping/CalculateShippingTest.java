@@ -25,8 +25,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("CalculateShipping Tests")
 class CalculateShippingTest extends ShippingServiceTestBase {
 
-    // Total Tests: 14
 
+    // Total Tests: 14
     /*
      **********************************************************************************************
      * SUCCESS TESTS

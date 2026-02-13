@@ -24,12 +24,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserGroupService.createUserGroup method.
  * 
- * Total Tests: 19
  */
 @DisplayName("UserGroupService - CreateUserGroup Tests")
 class CreateUserGroupTest extends UserGroupServiceTestBase {
-    // Total Tests: 19
 
+    // Total Tests: 19
     // ========================================
     // SUCCESS TESTS
     // ========================================
@@ -332,7 +331,9 @@ class CreateUserGroupTest extends UserGroupServiceTestBase {
 
         // Assert
         assertNotNull(ex);
-        assertTrue(ex.getMessage().contains("userGroupRequest"));
+        assertNotNull(ex.getMessage());
+        assertTrue(ex.getMessage().contains(
+                com.example.SpringApi.Models.RequestModels.UserGroupRequestModel.class.getSimpleName()));
     }
 
     /**

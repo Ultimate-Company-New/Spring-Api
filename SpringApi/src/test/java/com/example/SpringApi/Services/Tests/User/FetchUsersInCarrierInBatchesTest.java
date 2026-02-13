@@ -22,12 +22,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserService.fetchUsersInCarrierInBatches method.
  * 
- * Total Tests: 21
  */
 @DisplayName("UserService - FetchUsersInCarrierInBatches Tests")
 class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
-        // Total Tests: 21
 
+        // Total Tests: 21
         // ========================================
         // SUCCESS TESTS
         // ========================================
@@ -258,7 +257,8 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
                                 () -> userService.fetchUsersInCarrierInBatches(request));
 
                 // Assert
-                assertTrue(ex.getMessage().contains("Invalid column"));
+                assertNotNull(ex.getMessage());
+                assertTrue(ex.getMessage().contains(filter.getColumn()));
         }
 
         /**
@@ -316,7 +316,8 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
                                 () -> userService.fetchUsersInCarrierInBatches(request));
 
                 // Assert
-                assertTrue(ex.getMessage().contains("Invalid operator"));
+                assertNotNull(ex.getMessage());
+                assertTrue(ex.getMessage().contains(filter.getOperator()));
         }
 
         /**

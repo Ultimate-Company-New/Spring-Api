@@ -22,8 +22,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("Update Lead Tests")
 class UpdateLeadTest extends LeadServiceTestBase {
 
-        // Total Tests: 33
 
+        // Total Tests: 33
         /*
          **********************************************************************************************
          * SUCCESS TESTS
@@ -564,47 +564,9 @@ class UpdateLeadTest extends LeadServiceTestBase {
 
         /*
          **********************************************************************************************
-         * CONTROLLER AUTHORIZATION TESTS
+         * PERMISSION TESTS
          **********************************************************************************************
          */
-
-        /**
-         * Purpose: Verify forbidden access is handled at the controller level.
-         * Expected Result: Forbidden status is returned.
-         * Assertions: Response status is 403 FORBIDDEN.
-         */
-        @Test
-        @DisplayName("Update Lead - Controller permission forbidden - Success")
-        void updateLead_controller_permission_forbidden() {
-                // Arrange
-                LeadController controller = new LeadController(leadServiceMock);
-                stubLeadServiceUpdateLeadThrowsForbidden(DEFAULT_LEAD_ID);
-
-                // Act
-                ResponseEntity<?> response = controller.updateLead(DEFAULT_LEAD_ID, testLeadRequest);
-
-                // Assert
-                assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-        }
-
-        /**
-         * Purpose: Verify unauthorized access is handled at the controller level.
-         * Expected Result: Unauthorized status is returned.
-         * Assertions: Response status is 401 UNAUTHORIZED.
-         */
-        @Test
-        @DisplayName("Update Lead - Controller permission unauthorized - Success")
-        void updateLead_controller_permission_unauthorized() {
-                // Arrange
-                LeadController controller = new LeadController(leadServiceMock);
-                stubLeadServiceUpdateLeadThrowsUnauthorized(DEFAULT_LEAD_ID);
-
-                // Act
-                ResponseEntity<?> response = controller.updateLead(DEFAULT_LEAD_ID, testLeadRequest);
-
-                // Assert
-                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        }
 
         /**
          * Purpose: Verify @PreAuthorize annotation is declared on updateLead method.
@@ -613,7 +575,7 @@ class UpdateLeadTest extends LeadServiceTestBase {
          */
         @Test
         @DisplayName("Update Lead - Verify @PreAuthorize annotation is configured correctly")
-        void updateLead_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        void updateLead_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
                 // Arrange - Use reflection to verify the @PreAuthorize annotation is present
                 var method = LeadController.class.getMethod("updateLead",
                                 Long.class, com.example.SpringApi.Models.RequestModels.LeadRequestModel.class);
@@ -647,7 +609,7 @@ class UpdateLeadTest extends LeadServiceTestBase {
          */
         @Test
         @DisplayName("Update Lead - Controller delegates to service correctly")
-        void updateLead_WithValidRequest_DelegatesToService() {
+        void updateLead_p02_WithValidRequest_DelegatesToService() {
                 // Arrange
                 LeadController controller = new LeadController(leadServiceMock);
                 stubLeadServiceUpdateLeadDoNothing(DEFAULT_LEAD_ID);
@@ -659,5 +621,43 @@ class UpdateLeadTest extends LeadServiceTestBase {
                 verify(leadServiceMock, times(1)).updateLead(DEFAULT_LEAD_ID, testLeadRequest);
                 assertEquals(HttpStatus.OK, response.getStatusCode(),
                                 "Should return HTTP 200 OK");
+        }
+
+        /**
+         * Purpose: Verify forbidden access is handled at the controller level.
+         * Expected Result: Forbidden status is returned.
+         * Assertions: Response status is 403 FORBIDDEN.
+         */
+        @Test
+        @DisplayName("Update Lead - Controller permission forbidden - Success")
+        void updateLead_p03_controller_permission_forbidden() {
+                // Arrange
+                LeadController controller = new LeadController(leadServiceMock);
+                stubLeadServiceUpdateLeadThrowsForbidden(DEFAULT_LEAD_ID);
+
+                // Act
+                ResponseEntity<?> response = controller.updateLead(DEFAULT_LEAD_ID, testLeadRequest);
+
+                // Assert
+                assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        }
+
+        /**
+         * Purpose: Verify unauthorized access is handled at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+        @Test
+        @DisplayName("Update Lead - Controller permission unauthorized - Success")
+        void updateLead_p04_controller_permission_unauthorized() {
+                // Arrange
+                LeadController controller = new LeadController(leadServiceMock);
+                stubLeadServiceUpdateLeadThrowsUnauthorized(DEFAULT_LEAD_ID);
+
+                // Act
+                ResponseEntity<?> response = controller.updateLead(DEFAULT_LEAD_ID, testLeadRequest);
+
+                // Assert
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         }
 }

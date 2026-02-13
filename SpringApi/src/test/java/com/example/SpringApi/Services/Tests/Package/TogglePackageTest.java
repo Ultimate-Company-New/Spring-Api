@@ -30,8 +30,8 @@ import static org.mockito.Mockito.verify;
  */
 @DisplayName("Toggle Package Tests")
 class TogglePackageTest extends PackageServiceTestBase {
-    // Total Tests: 15
 
+    // Total Tests: 15
     /*
      **********************************************************************************************
      * SUCCESS TESTS

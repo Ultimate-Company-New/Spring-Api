@@ -22,12 +22,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserService.bulkCreateUsersAsync method.
  * 
- * Total Tests: 10
  */
 @DisplayName("UserService - BulkCreateUsersAsync Tests")
 class BulkCreateUsersAsyncTest extends UserServiceTestBase {
-    // Total Tests: 10
 
+    // Total Tests: 10
     // ========================================
     // SUCCESS TESTS
     // ========================================

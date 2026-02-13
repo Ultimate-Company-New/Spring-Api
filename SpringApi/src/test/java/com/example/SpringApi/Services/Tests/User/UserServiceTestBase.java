@@ -38,7 +38,7 @@ import static org.mockito.Mockito.lenient;
  * Base test class for UserService tests.
  * Contains common mocks, test data, and centralized stubbing methods.
  */
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({ MockitoExtension.class, UserServiceTestBase.StaticMockCleanupExtension.class })
 public abstract class UserServiceTestBase {
 
     @Mock
@@ -104,6 +104,8 @@ public abstract class UserServiceTestBase {
 
     @BeforeEach
     void setUp() {
+        closeStaticMocks();
+
         testUserRequest = new UserRequestModel();
         testUserRequest.setFirstName("John");
         testUserRequest.setLastName("Doe");
@@ -126,9 +128,9 @@ public abstract class UserServiceTestBase {
         stubEnvironmentImageLocation("firebase");
         ReflectionTestUtils.setField(userService, "imageLocation", "imgbb");
 
-        lenient().when(mockUserService.getUserId()).thenReturn(TEST_USER_ID);
-        lenient().when(mockUserService.getUser()).thenReturn(TEST_LOGIN_NAME);
-        lenient().when(mockUserService.getClientId()).thenReturn(TEST_CLIENT_ID);
+        stubMockUserServiceGetUserId(TEST_USER_ID);
+        stubMockUserServiceGetUser(TEST_LOGIN_NAME);
+        stubMockUserServiceGetClientId(TEST_CLIENT_ID);
     }
 
     protected void stubMockUserServiceGetUserId(Long userId) {
@@ -424,24 +426,52 @@ public abstract class UserServiceTestBase {
     }
 
     // Static and Construction Mocks
-    protected MockedStatic<PasswordHelper> mockedPasswordHelper;
-    protected MockedConstruction<com.example.SpringApi.Helpers.EmailTemplates> mockedEmailTemplates;
-    protected MockedConstruction<com.example.SpringApi.Helpers.FirebaseHelper> mockedFirebaseHelper;
-    protected MockedConstruction<com.example.SpringApi.Helpers.ImgbbHelper> mockedImgbbHelper;
+    protected static MockedStatic<PasswordHelper> mockedPasswordHelper;
+    protected static MockedConstruction<com.example.SpringApi.Helpers.EmailTemplates> mockedEmailTemplates;
+    protected static MockedConstruction<com.example.SpringApi.Helpers.FirebaseHelper> mockedFirebaseHelper;
+    protected static MockedConstruction<com.example.SpringApi.Helpers.ImgbbHelper> mockedImgbbHelper;
 
-    @org.junit.jupiter.api.AfterEach
-    void tearDown() {
+    protected void closeStaticMocks() {
         if (mockedPasswordHelper != null) {
             mockedPasswordHelper.close();
+            mockedPasswordHelper = null;
         }
         if (mockedEmailTemplates != null) {
             mockedEmailTemplates.close();
+            mockedEmailTemplates = null;
         }
         if (mockedFirebaseHelper != null) {
             mockedFirebaseHelper.close();
+            mockedFirebaseHelper = null;
         }
         if (mockedImgbbHelper != null) {
             mockedImgbbHelper.close();
+            mockedImgbbHelper = null;
+        }
+    }
+
+    static class StaticMockCleanupExtension implements org.junit.jupiter.api.extension.AfterEachCallback {
+        public void afterEach(org.junit.jupiter.api.extension.ExtensionContext context) {
+            closeStaticMocksForAllTests();
+        }
+    }
+
+    private static void closeStaticMocksForAllTests() {
+        if (mockedPasswordHelper != null) {
+            mockedPasswordHelper.close();
+            mockedPasswordHelper = null;
+        }
+        if (mockedEmailTemplates != null) {
+            mockedEmailTemplates.close();
+            mockedEmailTemplates = null;
+        }
+        if (mockedFirebaseHelper != null) {
+            mockedFirebaseHelper.close();
+            mockedFirebaseHelper = null;
+        }
+        if (mockedImgbbHelper != null) {
+            mockedImgbbHelper.close();
+            mockedImgbbHelper = null;
         }
     }
 

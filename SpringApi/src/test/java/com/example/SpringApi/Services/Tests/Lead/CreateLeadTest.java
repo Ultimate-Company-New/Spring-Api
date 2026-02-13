@@ -21,8 +21,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("Create Lead Tests")
 class CreateLeadTest extends LeadServiceTestBase {
 
-    // Total Tests: 33
 
+    // Total Tests: 33
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -163,7 +163,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Empty Email - ThrowsBadRequestException")
-    void createLead_EmptyEmail_ThrowsBadRequestException() {
+    void createLead_f01_EmptyEmail_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setEmail("");
 
@@ -179,7 +179,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Empty First Name - ThrowsBadRequestException")
-    void createLead_EmptyFirstName_ThrowsBadRequestException() {
+    void createLead_f02_EmptyFirstName_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setFirstName("");
 
@@ -195,7 +195,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Empty Last Name - ThrowsBadRequestException")
-    void createLead_EmptyLastName_ThrowsBadRequestException() {
+    void createLead_f03_EmptyLastName_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setLastName("");
 
@@ -211,7 +211,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Empty Phone - ThrowsBadRequestException")
-    void createLead_EmptyPhone_ThrowsBadRequestException() {
+    void createLead_f04_EmptyPhone_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setPhone("");
 
@@ -227,7 +227,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Empty Status - ThrowsBadRequestException")
-    void createLead_EmptyStatus_ThrowsBadRequestException() {
+    void createLead_f05_EmptyStatus_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setLeadStatus("");
 
@@ -243,7 +243,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Invalid Email Format - ThrowsBadRequestException")
-    void createLead_InvalidEmailFormat_ThrowsBadRequestException() {
+    void createLead_f06_InvalidEmailFormat_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setEmail("invalid-email");
 
@@ -259,7 +259,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Invalid Phone Format - ThrowsBadRequestException")
-    void createLead_InvalidPhoneFormat_ThrowsBadRequestException() {
+    void createLead_f07_InvalidPhoneFormat_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setPhone("invalid-phone");
 
@@ -275,7 +275,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Invalid Status (Unknown) - ThrowsBadRequestException")
-    void createLead_InvalidStatusUnknown_ThrowsBadRequestException() {
+    void createLead_f08_InvalidStatusUnknown_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setLeadStatus("UnknownStatus");
 
@@ -291,7 +291,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Missing Address and AddressID - ThrowsBadRequestException")
-    void createLead_MissingAddress_ThrowsBadRequestException() {
+    void createLead_f09_MissingAddress_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setAddress(null);
         testLeadRequest.setAddressId(null);
@@ -308,7 +308,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Negative Company Size - ThrowsBadRequestException")
-    void createLead_NegativeCompanySize_ThrowsBadRequestException() {
+    void createLead_f10_NegativeCompanySize_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setCompanySize(-5);
 
@@ -324,7 +324,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Null Email - ThrowsBadRequestException")
-    void createLead_NullEmail_ThrowsBadRequestException() {
+    void createLead_f11_NullEmail_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setEmail(null);
 
@@ -340,7 +340,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Null First Name - ThrowsBadRequestException")
-    void createLead_NullFirstName_ThrowsBadRequestException() {
+    void createLead_f12_NullFirstName_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setFirstName(null);
 
@@ -356,7 +356,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Null Last Name - ThrowsBadRequestException")
-    void createLead_NullLastName_ThrowsBadRequestException() {
+    void createLead_f13_NullLastName_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setLastName(null);
 
@@ -372,7 +372,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Null Phone - ThrowsBadRequestException")
-    void createLead_NullPhone_ThrowsBadRequestException() {
+    void createLead_f14_NullPhone_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setPhone(null);
 
@@ -388,7 +388,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Null Request - ThrowsBadRequestException")
-    void createLead_NullRequest_ThrowsBadRequestException() {
+    void createLead_f15_NullRequest_ThrowsBadRequestException() {
         // Arrange
 
         // Act & Assert
@@ -403,7 +403,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Null Status - ThrowsBadRequestException")
-    void createLead_NullStatus_ThrowsBadRequestException() {
+    void createLead_f16_NullStatus_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setLeadStatus(null);
 
@@ -413,31 +413,13 @@ class CreateLeadTest extends LeadServiceTestBase {
     }
 
     /**
-     * Purpose: Ensure input validation rejects missing required email field.
-     * Given: LeadDTO without email
-     * When: createLead is called
-     * Then: BadRequestException is thrown with email validation error message
-     */
-    @Test
-    @DisplayName("Create Lead - Validation Missing Email Failure")
-    void createLead_unit_validation_missingEmail() {
-        // Arrange
-        testLeadRequest.setEmail(null);
-
-        // Act & Assert
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.createLead(testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER001, ex.getMessage());
-    }
-
-    /**
      * Purpose: Reject email strings consisting only of whitespace.
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches ER001.
      */
     @Test
     @DisplayName("Create Lead - Whitespace Email - ThrowsBadRequestException")
-    void createLead_WhitespaceEmail_ThrowsBadRequestException() {
+    void createLead_f17_WhitespaceEmail_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setEmail("   ");
 
@@ -453,7 +435,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Whitespace First Name - ThrowsBadRequestException")
-    void createLead_WhitespaceFirstName_ThrowsBadRequestException() {
+    void createLead_f18_WhitespaceFirstName_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setFirstName("   ");
 
@@ -469,7 +451,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Whitespace Last Name - ThrowsBadRequestException")
-    void createLead_WhitespaceLastName_ThrowsBadRequestException() {
+    void createLead_f19_WhitespaceLastName_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setLastName("   ");
 
@@ -485,7 +467,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Whitespace Phone - ThrowsBadRequestException")
-    void createLead_WhitespacePhone_ThrowsBadRequestException() {
+    void createLead_f20_WhitespacePhone_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setPhone("   ");
 
@@ -501,7 +483,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Whitespace Status - ThrowsBadRequestException")
-    void createLead_WhitespaceStatus_ThrowsBadRequestException() {
+    void createLead_f21_WhitespaceStatus_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setLeadStatus("   ");
 
@@ -517,7 +499,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Zero Company Size - ThrowsBadRequestException")
-    void createLead_ZeroCompanySize_ThrowsBadRequestException() {
+    void createLead_f22_ZeroCompanySize_ThrowsBadRequestException() {
         // Arrange
         testLeadRequest.setCompanySize(0);
 
@@ -526,34 +508,29 @@ class CreateLeadTest extends LeadServiceTestBase {
         assertEquals(ErrorMessages.LeadsErrorMessages.ER016, ex.getMessage());
     }
 
-    /*
-     **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
-     **********************************************************************************************
-     * The following tests verify that authorization is properly configured at the
-     * controller level.
-     * These tests check that @PreAuthorize annotations are present and correctly
-     * configured.
-     */
-
     /**
-     * Purpose: Verify unauthorized access is handled at the controller level.
-     * Expected Result: Unauthorized status is returned.
-     * Assertions: Response status is 401 UNAUTHORIZED.
+     * Purpose: Ensure input validation rejects missing required email field.
+     * Given: LeadDTO without email
+     * When: createLead is called
+     * Then: BadRequestException is thrown with email validation error message
      */
     @Test
-    @DisplayName("Create Lead - Controller permission unauthorized - Success")
-    void createLead_controller_permission_unauthorized() {
+    @DisplayName("Create Lead - Validation Missing Email Failure")
+    void createLead_f23_unit_validation_missingEmail() {
         // Arrange
-        LeadController controller = new LeadController(leadServiceMock);
-        stubLeadServiceCreateLeadThrowsUnauthorized();
+        testLeadRequest.setEmail(null);
 
-        // Act
-        ResponseEntity<?> response = controller.createLead(testLeadRequest);
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        // Act & Assert
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> leadService.createLead(testLeadRequest));
+        assertEquals(ErrorMessages.LeadsErrorMessages.ER001, ex.getMessage());
     }
+
+    /*
+     **********************************************************************************************
+     * PERMISSION TESTS
+     **********************************************************************************************
+     */
 
     /**
      * Purpose: Verify @PreAuthorize annotation is declared on createLead method.
@@ -562,7 +539,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Verify @PreAuthorize annotation is configured correctly")
-    void createLead_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void createLead_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         var method = LeadController.class.getMethod("createLead",
                 com.example.SpringApi.Models.RequestModels.LeadRequestModel.class);
@@ -588,7 +565,7 @@ class CreateLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Create Lead - Controller delegates to service correctly")
-    void createLead_WithValidRequest_DelegatesToService() {
+    void createLead_p02_WithValidRequest_DelegatesToService() {
         // Arrange
         LeadController controller = new LeadController(leadServiceMock);
         stubLeadServiceCreateLeadDoNothing();
@@ -599,5 +576,24 @@ class CreateLeadTest extends LeadServiceTestBase {
         // Assert
         verify(leadServiceMock, times(1)).createLead(testLeadRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
+    }
+
+    /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("Create Lead - Controller permission unauthorized - Success")
+    void createLead_p03_controller_permission_unauthorized() {
+        // Arrange
+        LeadController controller = new LeadController(leadServiceMock);
+        stubLeadServiceCreateLeadThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = controller.createLead(testLeadRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }

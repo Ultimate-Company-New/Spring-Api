@@ -25,14 +25,11 @@ import static org.junit.jupiter.api.Assertions.*;
  * Test class for PurchaseOrderService.getPurchaseOrderPDF method.
  *
  * Test count: 11 tests
- * - SUCCESS: 1 test
- * - FAILURE / EXCEPTION: 7 tests
- * - PERMISSION: 3 tests
  */
 @DisplayName("PurchaseOrderService - GetPurchaseOrderPDF Tests")
 public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
-    // Total Tests: 11
 
+    // Total Tests: 11
     /*
      **********************************************************************************************
      * SUCCESS TESTS

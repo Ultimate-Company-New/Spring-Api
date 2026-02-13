@@ -26,12 +26,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserService.createUser method.
  * 
- * Total Tests: 17
  */
 @DisplayName("UserService - CreateUser Tests")
 class CreateUserTest extends UserServiceTestBase {
-    // Total Tests: 17
 
+    // Total Tests: 17
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -336,7 +335,7 @@ class CreateUserTest extends UserServiceTestBase {
      */
     @Test
     @DisplayName("Create User - Controller delegates to service")
-    void createUser_WithValidRequest_DelegatesToService() {
+    void createUser_p01_WithValidRequest_DelegatesToService() {
         // Arrange
         UserRequestModel userRequest = new UserRequestModel();
         stubMockUserServiceCreateUser(userRequest);
@@ -358,7 +357,7 @@ class CreateUserTest extends UserServiceTestBase {
      */
     @Test
     @DisplayName("Create User - Controller permission unauthorized")
-    void createUser_controller_permission_unauthorized() throws NoSuchMethodException {
+    void createUser_p02_controller_permission_unauthorized() throws NoSuchMethodException {
         // Arrange
         stubMockUserServiceCreateUserThrowsUnauthorized(null);
         Method method = UserController.class.getMethod("createUser", UserRequestModel.class);
@@ -381,7 +380,7 @@ class CreateUserTest extends UserServiceTestBase {
      */
     @Test
     @DisplayName("Create User - Controller permission forbidden")
-    void createUser_controller_permission_forbidden() {
+    void createUser_p03_controller_permission_forbidden() {
         // Arrange
         stubMockUserServiceCreateUserThrowsForbidden(null);
 

@@ -17,7 +17,6 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for QAService.startTestExecution() method.
  * 
- * Total Tests: 30
  * 
  * Test Coverage:
  * - Success scenarios (8 tests)
@@ -26,8 +25,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(MockitoExtension.class)
 class StartTestExecutionTest extends QAServiceTestBase {
-    // Total Tests: 30
 
+    // Total Tests: 30
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -438,10 +437,17 @@ class StartTestExecutionTest extends QAServiceTestBase {
         // Arrange
         TestExecutionRequestModel request = createTestExecutionRequestWithMethodName("InvalidService", "someMethod");
 
-        // Act & Assert
-        assertThrows(Exception.class, () -> {
+        // Act
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             qaService.startTestExecution(request);
         });
+
+        // Assert
+        String expectedMessage = String.format(
+                ErrorMessages.QAErrorMessages.NoTestsFoundForMethodFormat,
+                "someMethod",
+                "InvalidServiceTest");
+        assertEquals(expectedMessage, exception.getMessage());
     }
 
     /**
@@ -473,10 +479,17 @@ class StartTestExecutionTest extends QAServiceTestBase {
         // Arrange
         TestExecutionRequestModel request = createTestExecutionRequestWithMethodName("QAService", "nonExistentMethod");
 
-        // Act & Assert
-        assertThrows(Exception.class, () -> {
+        // Act
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             qaService.startTestExecution(request);
         });
+
+        // Assert
+        String expectedMessage = String.format(
+                ErrorMessages.QAErrorMessages.NoTestsFoundForMethodFormat,
+                "nonExistentMethod",
+                "QAServiceTest");
+        assertEquals(expectedMessage, exception.getMessage());
     }
 
     /**

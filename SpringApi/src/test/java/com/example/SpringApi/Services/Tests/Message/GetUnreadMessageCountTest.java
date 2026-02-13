@@ -20,8 +20,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("GetUnreadMessageCount Tests")
 class GetUnreadMessageCountTest extends MessageServiceTestBase {
 
-    // Total Tests: 12
 
+    // Total Tests: 12
     /*
      **********************************************************************************************
      * SUCCESS TESTS

@@ -25,8 +25,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("Get Token Tests")
 public class GetTokenTest extends LoginServiceTestBase {
 
-    // Total Tests: 13
 
+    // Total Tests: 13
     /*
      **********************************************************************************************
      * SUCCESS TESTS

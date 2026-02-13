@@ -19,8 +19,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("CreateMessageWithContext Tests")
 class CreateMessageWithContextTest extends MessageServiceTestBase {
 
-    // Total Tests: 6
 
+    // Total Tests: 6
     /*
      **********************************************************************************************
      * SUCCESS TESTS

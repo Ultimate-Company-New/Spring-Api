@@ -15,7 +15,6 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for QAService.getLatestTestResults() method.
  * 
- * Total Tests: 16
  * 
  * Test Coverage:
  * - Success scenarios (5 tests)
@@ -24,8 +23,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(MockitoExtension.class)
 class GetLatestTestResultsTest extends QAServiceTestBase {
-    // Total Tests: 16
 
+    // Total Tests: 16
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -37,7 +36,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getLatestTestResults_emptyServiceName_returnsAllResults() {
+    void getLatestTestResults_s01_emptyServiceName_success() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));
@@ -57,7 +56,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getLatestTestResults_multipleResultsSameTest_returnsLatestOnly() {
+    void getLatestTestResults_s02_multipleResultsSameTest_returnsLatestOnly() {
         // Arrange
         // The repository should already handle returning only the latest
         List<LatestTestResult> results = new ArrayList<>();
@@ -78,7 +77,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getLatestTestResults_multipleServices_separatesCorrectly() {
+    void getLatestTestResults_s03_multipleServices_separatesCorrectly() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));
@@ -99,7 +98,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getLatestTestResults_noResults_returnsEmptyList() {
+    void getLatestTestResults_s04_noResults_returnsEmptyList() {
         // Arrange
         stubLatestTestResultRepositoryFindByClientId(new ArrayList<>());
 
@@ -117,7 +116,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getLatestTestResults_nonExistentService_returnsEmptyList() {
+    void getLatestTestResults_s05_nonExistentService_returnsEmptyList() {
         // Arrange
         stubLatestTestResultRepositoryFindByClientIdAndServiceName("NonExistentService", new ArrayList<>());
 
@@ -135,7 +134,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getLatestTestResults_nullServiceName_returnsAllResults() {
+    void getLatestTestResults_s06_nullServiceName_returnsAllResults() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));
@@ -156,7 +155,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getLatestTestResults_results_containAllRequiredFields() {
+    void getLatestTestResults_s07_results_containAllRequiredFields() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));
@@ -179,7 +178,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getLatestTestResults_results_filterByClientId() {
+    void getLatestTestResults_s08_results_filterByClientId() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));
@@ -200,7 +199,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getLatestTestResults_results_mappedToResponseModel() {
+    void getLatestTestResults_s09_results_mappedToResponseModel() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         LatestTestResult result = createLatestTestResult(1L, "Service1", "testMethod1");
@@ -225,7 +224,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getLatestTestResults_results_orderedByTestMethodName() {
+    void getLatestTestResults_s10_results_orderedByTestMethodName() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethodB"));
@@ -247,7 +246,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getLatestTestResults_serviceWithoutSuffix_normalizesAndReturns() {
+    void getLatestTestResults_s11_serviceWithoutSuffix_normalizesAndReturns() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "TestService", "testMethod1"));
@@ -268,7 +267,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getLatestTestResults_singleResult_returnsSingleItem() {
+    void getLatestTestResults_s12_singleResult_returnsSingleItem() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));
@@ -288,7 +287,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getLatestTestResults_validServiceName_returnsFilteredResults() {
+    void getLatestTestResults_s13_validServiceName_returnsFilteredResults() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "TestService", "testMethod1"));
@@ -309,7 +308,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getLatestTestResults_whitespaceServiceName_returnsAllResults() {
+    void getLatestTestResults_s14_whitespaceServiceName_returnsAllResults() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));

@@ -30,8 +30,8 @@ import static org.mockito.Mockito.verify;
  */
 @DisplayName("Get Packages In Batches Tests")
 class GetPackagesInBatchesTest extends PackageServiceTestBase {
-    // Total Tests: 10
 
+    // Total Tests: 10
     /*
      **********************************************************************************************
      * SUCCESS TESTS

@@ -1,158 +1,213 @@
 package com.example.SpringApi.Services.Tests.Payment;
 
 import com.example.SpringApi.Controllers.PaymentController;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.RequestModels.RazorpayVerifyRequestModel;
-import com.example.SpringApi.Services.PaymentService;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.DynamicTest;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
-
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
- * Tests for PaymentService.verifyPaymentFollowUp() method.
- * Contains 10 tests covering various scenarios.
+ * Tests for PaymentService.verifyPaymentFollowUp().
  */
 @DisplayName("VerifyPaymentFollowUp Tests")
 class VerifyPaymentFollowUpTest extends PaymentServiceTestBase {
 
-    /**
-     * Purpose: Verify that verifyPaymentFollowUp throws NotFoundException when client not found.
-     * Expected Result: NotFoundException is thrown (getClientWithRazorpayCredentials fails first).
-     * Assertions: Exception message matches Client InvalidId error.
-     */
-    @Test
-    @DisplayName("verifyPaymentFollowUp - Client not found - Throws NotFoundException")
-    void verifyPaymentFollowUp_ClientNotFound_ThrowsNotFoundException() {
-        when(clientRepository.findById(isNull())).thenReturn(Optional.empty());
-        
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> paymentService.verifyPaymentFollowUp(testVerifyRequest));
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
-    }
+    // Total Tests: 9
+    // ========================================
+    // SUCCESS TESTS
+    // ========================================
 
     /**
-     * Purpose: Verify that verifyPaymentFollowUp handles negative PO ID (client check first).
-     * Expected Result: NotFoundException is thrown for client.
-     * Assertions: Exception message matches Client InvalidId error.
+     * Purpose: Verify client repository interaction is performed during follow-up verification.
+     * Expected Result: clientRepository.findById is called once.
+     * Assertions: verify interaction count.
      */
     @Test
-    @DisplayName("verifyPaymentFollowUp - Negative PO ID - Throws NotFoundException for client")
-    void verifyPaymentFollowUp_NegativePurchaseOrderId_ThrowsNotFoundException() {
-        testVerifyRequest.setPurchaseOrderId(-1L);
-        when(clientRepository.findById(isNull())).thenReturn(Optional.empty());
-        
+    @DisplayName("verifyPaymentFollowUp - Verify Client Repository Interaction - Success")
+    void verifyPaymentFollowUp_verifyClientRepositoryInteraction_success() {
+        // Arrange
+        stubClientRepositoryFindByIdNull(Optional.empty());
+
+        // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> paymentService.verifyPaymentFollowUp(testVerifyRequest));
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
-    }
 
-    /**
-     * Purpose: Verify that verifyPaymentFollowUp handles zero PO ID.
-     * Expected Result: NotFoundException is thrown for client.
-     * Assertions: Exception message matches Client InvalidId error.
-     */
-    @Test
-    @DisplayName("verifyPaymentFollowUp - Zero PO ID - Throws NotFoundException for client")
-    void verifyPaymentFollowUp_ZeroPurchaseOrderId_ThrowsNotFoundException() {
-        testVerifyRequest.setPurchaseOrderId(0L);
-        when(clientRepository.findById(isNull())).thenReturn(Optional.empty());
-        
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> paymentService.verifyPaymentFollowUp(testVerifyRequest));
+        // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Verify that verifyPaymentFollowUp handles Long.MAX_VALUE PO ID.
-     * Expected Result: NotFoundException is thrown for client.
-     * Assertions: Exception message matches Client InvalidId error.
-     */
-    @Test
-    @DisplayName("verifyPaymentFollowUp - Long.MAX_VALUE PO ID - Throws NotFoundException for client")
-    void verifyPaymentFollowUp_MaxLongPurchaseOrderId_ThrowsNotFoundException() {
-        testVerifyRequest.setPurchaseOrderId(Long.MAX_VALUE);
-        when(clientRepository.findById(isNull())).thenReturn(Optional.empty());
-        
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> paymentService.verifyPaymentFollowUp(testVerifyRequest));
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Verify client repository interaction for verifyPaymentFollowUp.
-     * Expected Result: Client repository findById is called.
-     * Assertions: Verify repository interaction.
-     */
-    @Test
-    @DisplayName("verifyPaymentFollowUp - Verify client repository interaction")
-    void verifyPaymentFollowUp_VerifyClientRepositoryInteraction() {
-        when(clientRepository.findById(isNull())).thenReturn(Optional.empty());
-        
-        assertThrows(NotFoundException.class, () -> paymentService.verifyPaymentFollowUp(testVerifyRequest));
         verify(clientRepository, times(1)).findById(any());
     }
 
+    // ========================================
+    // FAILURE TESTS
+    // ========================================
+
     /**
-     * Purpose: Additional verifyPaymentFollowUp invalid ID coverage.
-     * Expected Result: NotFoundException is thrown for client.
-     * Assertions: Exception message matches Client InvalidId.
+     * Purpose: Verify follow-up verification fails when client context is unavailable.
+     * Expected Result: NotFoundException with Client InvalidId message.
+     * Assertions: Exception type and exact message.
      */
-    @TestFactory
-    @DisplayName("verifyPaymentFollowUp - Additional invalid PO IDs")
-    Stream<DynamicTest> verifyPaymentFollowUp_AdditionalInvalidPoIds() {
-        when(clientRepository.findById(isNull())).thenReturn(Optional.empty());
-        return Stream.of(2L, 3L, 4L, 5L, 6L)
-                .map(id -> DynamicTest.dynamicTest("Invalid PO ID: " + id, () -> {
-                    testVerifyRequest.setPurchaseOrderId(id);
-                    NotFoundException ex = assertThrows(NotFoundException.class,
-                            () -> paymentService.verifyPaymentFollowUp(testVerifyRequest));
-                    assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
-                }));
+    @Test
+    @DisplayName("verifyPaymentFollowUp - Client Not Found - Failure")
+    void verifyPaymentFollowUp_f01_clientNotFound_failure() {
+        // Arrange
+        stubClientRepositoryFindByIdNull(Optional.empty());
+
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.verifyPaymentFollowUp(testVerifyRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
     }
 
-    /*
-     **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
-     **********************************************************************************************
+    /**
+     * Purpose: Verify negative purchase order id follows same client-not-found path.
+     * Expected Result: NotFoundException with Client InvalidId message.
+     * Assertions: Exception type and exact message.
      */
-
     @Test
-    @DisplayName("verifyPaymentFollowUp - Verify @PreAuthorize Annotation")
-    void verifyPaymentFollowUp_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    @DisplayName("verifyPaymentFollowUp - Negative Purchase Order Id - Failure")
+    void verifyPaymentFollowUp_f02_negativePurchaseOrderId_failure() {
+        // Arrange
+        testVerifyRequest.setPurchaseOrderId(-1L);
+        stubClientRepositoryFindByIdNull(Optional.empty());
+
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.verifyPaymentFollowUp(testVerifyRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify zero purchase order id follows same client-not-found path.
+     * Expected Result: NotFoundException with Client InvalidId message.
+     * Assertions: Exception type and exact message.
+     */
+    @Test
+    @DisplayName("verifyPaymentFollowUp - Zero Purchase Order Id - Failure")
+    void verifyPaymentFollowUp_f03_zeroPurchaseOrderId_failure() {
+        // Arrange
+        testVerifyRequest.setPurchaseOrderId(0L);
+        stubClientRepositoryFindByIdNull(Optional.empty());
+
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.verifyPaymentFollowUp(testVerifyRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify max long purchase order id follows same client-not-found path.
+     * Expected Result: NotFoundException with Client InvalidId message.
+     * Assertions: Exception type and exact message.
+     */
+    @Test
+    @DisplayName("verifyPaymentFollowUp - Max Long Purchase Order Id - Failure")
+    void verifyPaymentFollowUp_f04_maxLongPurchaseOrderId_failure() {
+        // Arrange
+        testVerifyRequest.setPurchaseOrderId(Long.MAX_VALUE);
+        stubClientRepositoryFindByIdNull(Optional.empty());
+
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.verifyPaymentFollowUp(testVerifyRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify additional invalid IDs all follow same client-not-found path.
+     * Expected Result: NotFoundException with Client InvalidId for each id.
+     * Assertions: Exception type and exact message for each id.
+     */
+    @Test
+    @DisplayName("verifyPaymentFollowUp - Additional Invalid Purchase Order Ids - Failure")
+    void verifyPaymentFollowUp_f05_additionalInvalidPurchaseOrderIds_failure() {
+        // Arrange
+        stubClientRepositoryFindByIdNull(Optional.empty());
+        Long[] invalidIds = new Long[] { 2L, 3L, 4L, 5L, 6L };
+
+        // Act
+        for (Long invalidId : invalidIds) {
+            testVerifyRequest.setPurchaseOrderId(invalidId);
+            NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.verifyPaymentFollowUp(testVerifyRequest));
+
+            // Assert
+            assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        }
+    }
+
+    // ========================================
+    // PERMISSION TESTS
+    // ========================================
+
+    /**
+     * Purpose: Verify controller returns unauthorized status when service throws UnauthorizedException.
+     * Expected Result: HTTP 401 UNAUTHORIZED.
+     * Assertions: HTTP status is UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("verifyPaymentFollowUp - Controller Permission Forbidden")
+    void verifyPaymentFollowUp_p01_controller_permission_forbidden() {
+        // Arrange
+        stubPaymentServiceVerifyPaymentFollowUpThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = paymentControllerWithMock.verifyPaymentFollowUp(testVerifyRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify controller method has expected @PreAuthorize permission constant.
+     * Expected Result: Annotation exists and contains UPDATE_PURCHASE_ORDERS_PERMISSION.
+     * Assertions: annotation not null and value contains expected permission.
+     */
+    @Test
+    @DisplayName("verifyPaymentFollowUp - Controller PreAuthorize Annotation - Success")
+    void verifyPaymentFollowUp_p02_controllerPreAuthorizeAnnotation_success() throws NoSuchMethodException {
+        // Arrange
         Method method = PaymentController.class.getMethod("verifyPaymentFollowUp", RazorpayVerifyRequestModel.class);
+
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
         assertNotNull(annotation, "@PreAuthorize annotation should be present");
-        assertTrue(annotation.value().contains(Authorizations.UPDATE_PURCHASE_ORDERS_PERMISSION),
-            "@PreAuthorize should reference UPDATE_PURCHASE_ORDERS_PERMISSION");
+        assertTrue(annotation.value().contains(Authorizations.UPDATE_PURCHASE_ORDERS_PERMISSION));
     }
 
+    /**
+     * Purpose: Verify controller delegates follow-up verification request to service.
+     * Expected Result: HTTP 200 OK with delegated service call.
+     * Assertions: Service interaction and response code.
+     */
     @Test
-    @DisplayName("verifyPaymentFollowUp - Controller delegates to service")
-    void verifyPaymentFollowUp_WithValidRequest_DelegatesToService() {
-        PaymentService paymentServiceMock = mock(PaymentService.class);
-        PaymentController controller = new PaymentController(paymentServiceMock, null);
-        when(paymentServiceMock.verifyPaymentFollowUp(testVerifyRequest))
-            .thenReturn(com.example.SpringApi.Models.ResponseModels.PaymentVerificationResponseModel
-                .success("payment-id", TEST_PO_ID, "APPROVED"));
+    @DisplayName("verifyPaymentFollowUp - Controller Delegates To Service - Success")
+    void verifyPaymentFollowUp_p03_controllerDelegatesToService_success() {
+        // Arrange
+        stubPaymentServiceVerifyPaymentFollowUp(createSuccessPaymentVerificationResponse());
 
-        ResponseEntity<?> response = controller.verifyPaymentFollowUp(testVerifyRequest);
+        // Act
+        ResponseEntity<?> response = paymentControllerWithMock.verifyPaymentFollowUp(testVerifyRequest);
 
-        verify(paymentServiceMock).verifyPaymentFollowUp(testVerifyRequest);
+        // Assert
+        verify(paymentServiceMock, times(1)).verifyPaymentFollowUp(testVerifyRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

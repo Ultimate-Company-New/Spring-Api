@@ -20,8 +20,8 @@ import static org.mockito.Mockito.*;
 
 @DisplayName("UserService - ConfirmEmail Tests")
 class ConfirmEmailTest extends UserServiceTestBase {
-    // Total Tests: 13
 
+    // Total Tests: 13
     // ========================================
     // SUCCESS TESTS
     // ========================================

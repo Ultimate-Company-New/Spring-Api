@@ -22,8 +22,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("Reset Password Tests")
 public class ResetPasswordTest extends LoginServiceTestBase {
 
-    // Total Tests: 15
 
+    // Total Tests: 15
     /*
      **********************************************************************************************
      * SUCCESS TESTS

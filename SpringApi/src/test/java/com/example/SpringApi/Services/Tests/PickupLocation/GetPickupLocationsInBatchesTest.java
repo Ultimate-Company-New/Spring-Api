@@ -30,8 +30,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Get Pickup Locations In Batches Tests")
 class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
-        // Total Tests: 14
 
+        // Total Tests: 14
         /*
          **********************************************************************************************
          * SUCCESS TESTS

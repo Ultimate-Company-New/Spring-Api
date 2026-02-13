@@ -28,8 +28,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("Update Client Tests")
 class UpdateClientTest extends ClientServiceTestBase {
 
-    // Total Tests: 38
 
+    // Total Tests: 38
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -857,37 +857,9 @@ class UpdateClientTest extends ClientServiceTestBase {
 
     /*
      **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
+     * PERMISSION TESTS
      **********************************************************************************************
      */
-
-        /*
-         * Purpose: Verify controller has correct @PreAuthorize permission.
-         * Expected Result: Annotation exists and contains UPDATE_CLIENT_PERMISSION.
-         * Assertions: Annotation is present and permission matches.
-         */
-        @Test
-        @DisplayName("Update Client - Controller permission forbidden - Success")
-        void updateClient_controller_permission_forbidden() throws NoSuchMethodException {
-        // Arrange
-        var method = ClientController.class.getMethod("updateClient", Long.class,
-            com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
-        testClientRequest.setClientId(TEST_CLIENT_ID);
-        stubServiceUpdateClientDoNothing();
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-            org.springframework.security.access.prepost.PreAuthorize.class);
-        ResponseEntity<?> response = clientController.updateClient(TEST_CLIENT_ID, testClientRequest);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation, "updateClient method should have @PreAuthorize annotation");
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-            Authorizations.UPDATE_CLIENT_PERMISSION + "')";
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-            "PreAuthorize annotation should reference UPDATE_CLIENT_PERMISSION");
-        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
-        }
 
     /*
      * Purpose: Verify controller calls service when authorization passes
@@ -898,7 +870,7 @@ class UpdateClientTest extends ClientServiceTestBase {
      */
     @Test
     @DisplayName("Update Client - Controller delegates to service correctly")
-    void updateClient_ControllerDelegation_Success() {
+    void updateClient_p01_ControllerDelegation_Success() {
         // Arrange
         testClientRequest.setClientId(TEST_CLIENT_ID);
         stubServiceUpdateClientDoNothing();
@@ -919,7 +891,7 @@ class UpdateClientTest extends ClientServiceTestBase {
      */
     @Test
     @DisplayName("Update Client - Verify @PreAuthorize annotation is configured correctly")
-    void updateClient_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void updateClient_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         var method = ClientController.class.getMethod("updateClient",
                 Long.class, com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
@@ -937,5 +909,33 @@ class UpdateClientTest extends ClientServiceTestBase {
 
         assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
                 "PreAuthorize annotation should reference UPDATE_CLIENT_PERMISSION");
+    }
+
+    /*
+     * Purpose: Verify controller has correct @PreAuthorize permission.
+     * Expected Result: Annotation exists and contains UPDATE_CLIENT_PERMISSION.
+     * Assertions: Annotation is present and permission matches.
+     */
+    @Test
+    @DisplayName("Update Client - Controller permission forbidden - Success")
+    void updateClient_p03_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = ClientController.class.getMethod("updateClient", Long.class,
+                com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
+        testClientRequest.setClientId(TEST_CLIENT_ID);
+        stubServiceUpdateClientDoNothing();
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+        ResponseEntity<?> response = clientController.updateClient(TEST_CLIENT_ID, testClientRequest);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "updateClient method should have @PreAuthorize annotation");
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.UPDATE_CLIENT_PERMISSION + "')";
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference UPDATE_CLIENT_PERMISSION");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
     }
 }

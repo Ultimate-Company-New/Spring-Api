@@ -18,8 +18,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("GetAllEndpointsWithTests Tests")
 class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
-    // Total Tests: 14
 
+    // Total Tests: 14
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -32,7 +32,7 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
      * Assertions: List is not null or empty.
      */
     @Test
-    void getAllEndpointsWithTests_success_returnsAllServices() {
+    void getAllEndpointsWithTests_s01_success_returnsAllServices() {
         // Arrange
 
         // Act
@@ -49,7 +49,7 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
      * Assertions: All entries are non-null.
      */
     @Test
-    void getAllEndpointsWithTests_allServices_haveRequiredFields() {
+    void getAllEndpointsWithTests_s02_allServices_haveRequiredFields() {
         // Arrange
 
         // Act
@@ -68,7 +68,7 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
      * Assertions: List is not null.
      */
     @Test
-    void getAllEndpointsWithTests_servicesOrdered_byName() {
+    void getAllEndpointsWithTests_s03_servicesOrdered_byName() {
         // Arrange
 
         // Act
@@ -85,7 +85,7 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
      * Assertions: List is not empty.
      */
     @Test
-    void getAllEndpointsWithTests_eachService_hasControllerMapping() {
+    void getAllEndpointsWithTests_s04_eachService_hasControllerMapping() {
         // Arrange
 
         // Act
@@ -102,7 +102,7 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
      * Assertions: List is not empty.
      */
     @Test
-    void getAllEndpointsWithTests_serviceInfo_containsServiceName() {
+    void getAllEndpointsWithTests_s05_serviceInfo_containsServiceName() {
         // Arrange
 
         // Act
@@ -119,7 +119,7 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
      * Assertions: List is not empty.
      */
     @Test
-    void getAllEndpointsWithTests_serviceInfo_containsControllerName() {
+    void getAllEndpointsWithTests_s06_serviceInfo_containsControllerName() {
         // Arrange
 
         // Act
@@ -136,7 +136,7 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
      * Assertions: List is not empty.
      */
     @Test
-    void getAllEndpointsWithTests_serviceInfo_containsBasePath() {
+    void getAllEndpointsWithTests_s07_serviceInfo_containsBasePath() {
         // Arrange
 
         // Act
@@ -153,7 +153,7 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
      * Assertions: List is not empty.
      */
     @Test
-    void getAllEndpointsWithTests_serviceInfo_containsMethodsList() {
+    void getAllEndpointsWithTests_s08_serviceInfo_containsMethodsList() {
         // Arrange
 
         // Act
@@ -170,7 +170,7 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
      * Assertions: List is not null.
      */
     @Test
-    void getAllEndpointsWithTests_emptyMethods_returnsEmptyList() {
+    void getAllEndpointsWithTests_s09_emptyMethods_returnsEmptyList() {
         // Arrange
 
         // Act
@@ -186,7 +186,7 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
      * Assertions: List is not null.
      */
     @Test
-    void getAllEndpointsWithTests_methodsWithoutTests_showZeroCoverage() {
+    void getAllEndpointsWithTests_s10_methodsWithoutTests_showZeroCoverage() {
         // Arrange
 
         // Act
@@ -202,7 +202,7 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
      * Assertions: List is not null.
      */
     @Test
-    void getAllEndpointsWithTests_allMethodsWithTests_showFullCoverage() {
+    void getAllEndpointsWithTests_s11_allMethodsWithTests_showFullCoverage() {
         // Arrange
 
         // Act
@@ -218,7 +218,7 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
      * Assertions: List is not null.
      */
     @Test
-    void getAllEndpointsWithTests_mixedCoverage_calculatesCorrectly() {
+    void getAllEndpointsWithTests_s12_mixedCoverage_calculatesCorrectly() {
         // Arrange
 
         // Act
@@ -250,8 +250,12 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
         mappings.put(existingService, null);
 
         try {
-            // Act & Assert
-            assertThrows(NullPointerException.class, () -> qaService.getAllEndpointsWithTests());
+            // Act
+            NullPointerException exception = assertThrows(NullPointerException.class,
+                    () -> qaService.getAllEndpointsWithTests());
+
+            // Assert
+            assertNotNull(exception.getMessage());
         } finally {
             mappings.put(existingService, originalMapping);
         }

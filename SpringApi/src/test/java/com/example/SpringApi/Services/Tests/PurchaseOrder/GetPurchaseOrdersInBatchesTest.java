@@ -27,14 +27,11 @@ import static org.junit.jupiter.api.Assertions.*;
  * Test class for PurchaseOrderService.getPurchaseOrdersInBatches method.
  *
  * Test count: 7 tests
- * - SUCCESS: 1 test
- * - FAILURE / EXCEPTION: 3 tests
- * - PERMISSION: 3 tests
  */
 @DisplayName("PurchaseOrderService - GetPurchaseOrdersInBatches Tests")
 public class GetPurchaseOrdersInBatchesTest extends PurchaseOrderServiceTestBase {
-    // Total Tests: 7
 
+    // Total Tests: 7
     /*
      **********************************************************************************************
      * SUCCESS TESTS

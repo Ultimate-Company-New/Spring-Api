@@ -27,8 +27,8 @@ import static org.mockito.Mockito.*;
 
 @DisplayName("Create Pickup Location Tests")
 class CreatePickupLocationTest extends PickupLocationServiceTestBase {
-    // Total Tests: 30
 
+    // Total Tests: 30
     /*
      **********************************************************************************************
      * SUCCESS TESTS

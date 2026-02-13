@@ -22,10 +22,10 @@ import static org.mockito.Mockito.*;
 /**
  * Unit cases for UserService.getAllPermissions method.
  */
-@DisplayName("UserService - GetAllPermissions Tests")
+@DisplayName("UserService - GetAllPermissions Suite")
 class GetAllPermissionsTest extends UserServiceTestBase {
-    // Total Tests: 7
 
+    // Total Tests: 7
     // ========================================
     // SUCCESS TESTS
     // ========================================

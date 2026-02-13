@@ -28,8 +28,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("Bulk Create Leads Tests")
 class BulkCreateLeadsTest extends LeadServiceTestBase {
 
-    // Total Tests: 16
 
+    // Total Tests: 16
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -379,33 +379,9 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
 
     /*
      **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
+     * PERMISSION TESTS
      **********************************************************************************************
-     * The following tests verify that authorization is properly configured at the
-     * controller level.
-     * These tests check that @PreAuthorize annotations are present and correctly
-     * configured.
      */
-
-    /**
-     * Purpose: Verify unauthorized access is handled at the controller level.
-     * Expected Result: Unauthorized status is returned.
-     * Assertions: Response status is 401 UNAUTHORIZED.
-     */
-    @Test
-    @DisplayName("Bulk Create Leads - Controller permission unauthorized - Success")
-    void bulkCreateLeads_controller_permission_unauthorized() {
-        // Arrange
-        stubLeadServiceBulkCreateLeadsAsyncThrowsUnauthorized();
-        LeadController controller = new LeadController(leadServiceMock);
-        List<LeadRequestModel> leads = new ArrayList<>();
-
-        // Act
-        ResponseEntity<?> response = controller.bulkCreateLeads(leads);
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
 
     /**
      * Purpose: Verify @PreAuthorize annotation is declared on bulkCreateLeads
@@ -415,7 +391,7 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Leads - Verify @PreAuthorize annotation is configured correctly")
-    void bulkCreateLeads_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void bulkCreateLeads_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         var method = LeadController.class.getMethod("bulkCreateLeads",
                 java.util.List.class);
@@ -449,7 +425,7 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Leads - Controller delegates to service correctly")
-    void bulkCreateLeads_WithValidRequest_DelegatesToService() {
+    void bulkCreateLeads_p02_WithValidRequest_DelegatesToService() {
         // Arrange
         LeadController controller = new LeadController(leadServiceMock);
         List<LeadRequestModel> leads = new ArrayList<>();
@@ -466,5 +442,25 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         // Since we are using a mock, we can verify this call
         // Note: bulkCreateLeads calls bulkCreateLeadsAsync
         verify(leadServiceMock).bulkCreateLeadsAsync(anyList(), anyLong(), anyString(), anyLong());
+    }
+
+    /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("Bulk Create Leads - Controller permission unauthorized - Success")
+    void bulkCreateLeads_p03_controller_permission_unauthorized() {
+        // Arrange
+        stubLeadServiceBulkCreateLeadsAsyncThrowsUnauthorized();
+        LeadController controller = new LeadController(leadServiceMock);
+        List<LeadRequestModel> leads = new ArrayList<>();
+
+        // Act
+        ResponseEntity<?> response = controller.bulkCreateLeads(leads);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }

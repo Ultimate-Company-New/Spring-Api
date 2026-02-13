@@ -1,179 +1,232 @@
 package com.example.SpringApi.Services.Tests.Payment;
 
 import com.example.SpringApi.Controllers.PaymentController;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.RequestModels.RazorpayOrderRequestModel;
 import com.example.SpringApi.Models.ResponseModels.RazorpayOrderResponseModel;
-import com.example.SpringApi.Services.PaymentService;
-
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.DynamicTest;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
-
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
- * Tests for PaymentService.createOrder() method.
- * Contains 12 tests covering various scenarios.
+ * Tests for PaymentService.createOrder().
  */
 @DisplayName("CreateOrder Tests")
 class CreateOrderTest extends PaymentServiceTestBase {
 
+    // Total Tests: 10
+    // ========================================
+    // SUCCESS TESTS
+    // ========================================
+
     /**
-     * Purpose: Verify that createOrder throws NotFoundException when client
-     * credentials not found.
-     * Expected Result: NotFoundException is thrown
-     * (getClientWithRazorpayCredentials fails first).
-     * Assertions: Exception message matches Client InvalidId error.
+     * Purpose: Verify client repository is called for createOrder flow.
+     * Expected Result: clientRepository.findById is called exactly once.
+     * Assertions: verify interaction count.
      */
     @Test
-    @DisplayName("createOrder - Client not found - Throws NotFoundException")
-    void createOrder_ClientNotFound_ThrowsNotFoundException() {
-        when(clientRepository.findById(isNull())).thenReturn(Optional.empty());
+    @DisplayName("createOrder - Verify Client Repository Interaction - Success")
+    void createOrder_verifyClientRepositoryInteraction_success() {
+        // Arrange
+        stubClientRepositoryFindByIdNull(Optional.empty());
 
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> paymentService.createOrder(testOrderRequest));
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.createOrder(testOrderRequest));
+
+        // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Verify that createOrder handles negative PO ID (client check happens
-     * first).
-     * Expected Result: NotFoundException is thrown for client.
-     * Assertions: Exception message matches Client InvalidId error.
-     */
-    @Test
-    @DisplayName("createOrder - Negative PO ID - Throws NotFoundException for client")
-    void createOrder_NegativePurchaseOrderId_ThrowsNotFoundException() {
-        testOrderRequest.setPurchaseOrderId(-1L);
-        when(clientRepository.findById(isNull())).thenReturn(Optional.empty());
-
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> paymentService.createOrder(testOrderRequest));
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Verify that createOrder handles zero PO ID (client check happens
-     * first).
-     * Expected Result: NotFoundException is thrown for client.
-     * Assertions: Exception message matches Client InvalidId error.
-     */
-    @Test
-    @DisplayName("createOrder - Zero PO ID - Throws NotFoundException for client")
-    void createOrder_ZeroPurchaseOrderId_ThrowsNotFoundException() {
-        testOrderRequest.setPurchaseOrderId(0L);
-        when(clientRepository.findById(isNull())).thenReturn(Optional.empty());
-
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> paymentService.createOrder(testOrderRequest));
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Verify that createOrder handles Long.MAX_VALUE PO ID.
-     * Expected Result: NotFoundException is thrown for client.
-     * Assertions: Exception message matches Client InvalidId error.
-     */
-    @Test
-    @DisplayName("createOrder - Long.MAX_VALUE PO ID - Throws NotFoundException for client")
-    void createOrder_MaxLongPurchaseOrderId_ThrowsNotFoundException() {
-        testOrderRequest.setPurchaseOrderId(Long.MAX_VALUE);
-        when(clientRepository.findById(isNull())).thenReturn(Optional.empty());
-
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> paymentService.createOrder(testOrderRequest));
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Verify that createOrder handles Long.MIN_VALUE PO ID.
-     * Expected Result: NotFoundException is thrown for client.
-     * Assertions: Exception message matches Client InvalidId error.
-     */
-    @Test
-    @DisplayName("createOrder - Long.MIN_VALUE PO ID - Throws NotFoundException for client")
-    void createOrder_MinLongPurchaseOrderId_ThrowsNotFoundException() {
-        testOrderRequest.setPurchaseOrderId(Long.MIN_VALUE);
-        when(clientRepository.findById(isNull())).thenReturn(Optional.empty());
-
-        NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> paymentService.createOrder(testOrderRequest));
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Verify that createOrder verifies client repository interaction.
-     * Expected Result: Client repository findById is called.
-     * Assertions: Verify repository interaction.
-     */
-    @Test
-    @DisplayName("createOrder - Verify client repository interaction")
-    void createOrder_VerifyClientRepositoryInteraction() {
-        when(clientRepository.findById(isNull())).thenReturn(Optional.empty());
-
-        assertThrows(NotFoundException.class, () -> paymentService.createOrder(testOrderRequest));
         verify(clientRepository, times(1)).findById(any());
     }
 
+    // ========================================
+    // FAILURE TESTS
+    // ========================================
+
     /**
-     * Purpose: Additional createOrder invalid ID coverage.
-     * Expected Result: NotFoundException is thrown for client.
-     * Assertions: Exception message matches Client InvalidId.
+     * Purpose: Verify createOrder throws NotFoundException when client context is unavailable.
+     * Expected Result: NotFoundException with Client InvalidId message.
+     * Assertions: Exception type and exact message.
      */
-    @TestFactory
-    @DisplayName("createOrder - Additional invalid PO IDs")
-    Stream<DynamicTest> createOrder_AdditionalInvalidPoIds() {
-        when(clientRepository.findById(isNull())).thenReturn(Optional.empty());
-        return Stream.of(2L, 3L, 4L, 5L, 6L, 7L)
-                .map(id -> DynamicTest.dynamicTest("Invalid PO ID: " + id, () -> {
-                    testOrderRequest.setPurchaseOrderId(id);
-                    NotFoundException ex = assertThrows(NotFoundException.class,
-                            () -> paymentService.createOrder(testOrderRequest));
-                    assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
-                }));
+    @Test
+    @DisplayName("createOrder - Client Not Found - Failure")
+    void createOrder_f01_clientNotFound_failure() {
+        // Arrange
+        stubClientRepositoryFindByIdNull(Optional.empty());
+
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.createOrder(testOrderRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
     }
 
-    /*
-     **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
-     **********************************************************************************************
+    /**
+     * Purpose: Verify createOrder handles negative purchase order id while client context is unavailable.
+     * Expected Result: NotFoundException with Client InvalidId message.
+     * Assertions: Exception type and exact message.
      */
-
     @Test
-    @DisplayName("createOrder - Verify @PreAuthorize Annotation")
-    void createOrder_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    @DisplayName("createOrder - Negative Purchase Order Id - Failure")
+    void createOrder_f02_negativePurchaseOrderId_failure() {
+        // Arrange
+        testOrderRequest.setPurchaseOrderId(-1L);
+        stubClientRepositoryFindByIdNull(Optional.empty());
+
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.createOrder(testOrderRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify createOrder handles zero purchase order id while client context is unavailable.
+     * Expected Result: NotFoundException with Client InvalidId message.
+     * Assertions: Exception type and exact message.
+     */
+    @Test
+    @DisplayName("createOrder - Zero Purchase Order Id - Failure")
+    void createOrder_f03_zeroPurchaseOrderId_failure() {
+        // Arrange
+        testOrderRequest.setPurchaseOrderId(0L);
+        stubClientRepositoryFindByIdNull(Optional.empty());
+
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.createOrder(testOrderRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify createOrder handles max long purchase order id while client context is unavailable.
+     * Expected Result: NotFoundException with Client InvalidId message.
+     * Assertions: Exception type and exact message.
+     */
+    @Test
+    @DisplayName("createOrder - Max Long Purchase Order Id - Failure")
+    void createOrder_f04_maxLongPurchaseOrderId_failure() {
+        // Arrange
+        testOrderRequest.setPurchaseOrderId(Long.MAX_VALUE);
+        stubClientRepositoryFindByIdNull(Optional.empty());
+
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.createOrder(testOrderRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify createOrder handles min long purchase order id while client context is unavailable.
+     * Expected Result: NotFoundException with Client InvalidId message.
+     * Assertions: Exception type and exact message.
+     */
+    @Test
+    @DisplayName("createOrder - Min Long Purchase Order Id - Failure")
+    void createOrder_f05_minLongPurchaseOrderId_failure() {
+        // Arrange
+        testOrderRequest.setPurchaseOrderId(Long.MIN_VALUE);
+        stubClientRepositoryFindByIdNull(Optional.empty());
+
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.createOrder(testOrderRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+    }
+
+    /**
+     * Purpose: Verify additional invalid IDs all resolve to the same client-not-found path.
+     * Expected Result: Each id throws NotFoundException with Client InvalidId.
+     * Assertions: Exception type and exact message for each id.
+     */
+    @Test
+    @DisplayName("createOrder - Additional Invalid Purchase Order Ids - Failure")
+    void createOrder_f06_additionalInvalidPurchaseOrderIds_failure() {
+        // Arrange
+        stubClientRepositoryFindByIdNull(Optional.empty());
+        Long[] invalidIds = new Long[] { 2L, 3L, 4L, 5L, 6L, 7L };
+
+        // Act
+        for (Long invalidId : invalidIds) {
+            testOrderRequest.setPurchaseOrderId(invalidId);
+            NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.createOrder(testOrderRequest));
+
+            // Assert
+            assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        }
+    }
+
+    // ========================================
+    // PERMISSION TESTS
+    // ========================================
+
+    /**
+     * Purpose: Verify controller returns unauthorized status when service throws UnauthorizedException.
+     * Expected Result: HTTP 401 UNAUTHORIZED.
+     * Assertions: HTTP status is UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("createOrder - Controller Permission Forbidden")
+    void createOrder_p01_controller_permission_forbidden() {
+        // Arrange
+        stubPaymentServiceCreateOrderThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = paymentControllerWithMock.createOrder(testOrderRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify controller method has expected @PreAuthorize permission constant.
+     * Expected Result: Annotation exists and contains UPDATE_PURCHASE_ORDERS_PERMISSION.
+     * Assertions: annotation not null and value contains expected permission.
+     */
+    @Test
+    @DisplayName("createOrder - Controller PreAuthorize Annotation - Success")
+    void createOrder_p02_controllerPreAuthorizeAnnotation_success() throws NoSuchMethodException {
+        // Arrange
         Method method = PaymentController.class.getMethod("createOrder", RazorpayOrderRequestModel.class);
+
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
         assertNotNull(annotation, "@PreAuthorize annotation should be present");
-        assertTrue(annotation.value().contains(Authorizations.UPDATE_PURCHASE_ORDERS_PERMISSION),
-                "@PreAuthorize should reference UPDATE_PURCHASE_ORDERS_PERMISSION");
+        assertTrue(annotation.value().contains(Authorizations.UPDATE_PURCHASE_ORDERS_PERMISSION));
     }
 
+    /**
+     * Purpose: Verify controller delegates createOrder request to service.
+     * Expected Result: HTTP 200 OK with delegated service call.
+     * Assertions: Service interaction and response code.
+     */
     @Test
-    @DisplayName("createOrder - Controller delegates to service")
-    void createOrder_WithValidRequest_DelegatesToService() {
-        PaymentService paymentServiceMock = mock(PaymentService.class);
-        PaymentController controller = new PaymentController(paymentServiceMock, null);
-        RazorpayOrderResponseModel mockResponse = new RazorpayOrderResponseModel();
-        when(paymentServiceMock.createOrder(testOrderRequest)).thenReturn(mockResponse);
+    @DisplayName("createOrder - Controller Delegates To Service - Success")
+    void createOrder_p03_controllerDelegatesToService_success() {
+        // Arrange
+        stubPaymentServiceCreateOrder(new RazorpayOrderResponseModel());
 
-        ResponseEntity<?> response = controller.createOrder(testOrderRequest);
+        // Act
+        ResponseEntity<?> response = paymentControllerWithMock.createOrder(testOrderRequest);
 
-        verify(paymentServiceMock).createOrder(testOrderRequest);
+        // Assert
+        verify(paymentServiceMock, times(1)).createOrder(testOrderRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

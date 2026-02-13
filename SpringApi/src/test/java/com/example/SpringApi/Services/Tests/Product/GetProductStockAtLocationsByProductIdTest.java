@@ -30,8 +30,8 @@ import static org.mockito.Mockito.verify;
  */
 @DisplayName("ProductService - GetProductStockAtLocationsByProductId Tests")
 class GetProductStockAtLocationsByProductIdTest extends ProductServiceTestBase {
-    // Total Tests: 6
 
+    // Total Tests: 6
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -79,7 +79,7 @@ class GetProductStockAtLocationsByProductIdTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("getProductStockAtLocationsByProductId - Invalid data access - Returns empty")
-    void getProductStockAtLocationsByProductId_InvalidDataAccess_ReturnsEmpty() {
+    void getProductStockAtLocationsByProductId_f01_InvalidDataAccess_ReturnsEmpty() {
         // Arrange
         stubProductRepositoryFindById(TEST_PRODUCT_ID, testProduct);
         stubProductPickupLocationMappingRepositoryFindByProductIdWithPickupLocationAndAddressThrows(
@@ -101,7 +101,7 @@ class GetProductStockAtLocationsByProductIdTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("getProductStockAtLocationsByProductId - SQL grammar error - Returns empty")
-    void getProductStockAtLocationsByProductId_SqlGrammar_ReturnsEmpty() {
+    void getProductStockAtLocationsByProductId_f02_SqlGrammar_ReturnsEmpty() {
         // Arrange
         stubProductRepositoryFindById(TEST_PRODUCT_ID, testProduct);
         stubProductPickupLocationMappingRepositoryFindByProductIdWithPickupLocationAndAddressThrows(
@@ -124,7 +124,7 @@ class GetProductStockAtLocationsByProductIdTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("getProductStockAtLocationsByProductId - Generic exception - Returns empty")
-    void getProductStockAtLocationsByProductId_GenericException_ReturnsEmpty() {
+    void getProductStockAtLocationsByProductId_f03_GenericException_ReturnsEmpty() {
         // Arrange
         stubProductRepositoryFindById(TEST_PRODUCT_ID, testProduct);
         stubProductPickupLocationMappingRepositoryFindByProductIdWithPickupLocationAndAddressThrows(

@@ -14,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for QAService.getEndpointsWithTestsByService() method.
  * 
- * Total Tests: 21
  * 
  * Test Coverage:
  * - Success scenarios (5 tests)
@@ -23,8 +22,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(MockitoExtension.class)
 class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
-    // Total Tests: 21
 
+    // Total Tests: 21
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -37,7 +36,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_ValidService_Success() {
+    void getEndpointsWithTestsByService_s01_ValidService_Success() {
         // Arrange
         String serviceName = "QAService";
 
@@ -54,7 +53,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_serviceWithoutSuffix_normalizesName() {
+    void getEndpointsWithTestsByService_s02_serviceWithoutSuffix_normalizesName() {
         // Arrange
         String serviceName = "QA";
 
@@ -71,7 +70,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_serviceWithSuffix_returnsCorrectly() {
+    void getEndpointsWithTestsByService_s03_serviceWithSuffix_returnsCorrectly() {
         // Arrange
         String serviceName = "QAService";
 
@@ -88,7 +87,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_caseInsensitive_handlesCorrectly() {
+    void getEndpointsWithTestsByService_s04_caseInsensitive_handlesCorrectly() {
         // Arrange
         String serviceName = "qaservice";
 
@@ -109,7 +108,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_knownService_returnsAllMethods() {
+    void getEndpointsWithTestsByService_s05_knownService_returnsAllMethods() {
         // Arrange
         String serviceName = "QAService";
 
@@ -132,7 +131,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_nullServiceName_throwsNullPointerException() {
+    void getEndpointsWithTestsByService_f01_nullServiceName_throwsNullPointerException() {
         // Arrange
         String serviceName = null;
 
@@ -148,7 +147,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_emptyServiceName_throwsNotFoundException() {
+    void getEndpointsWithTestsByService_f02_emptyServiceName_throwsNotFoundException() {
         // Arrange
         String serviceName = "";
 
@@ -164,7 +163,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_whitespaceServiceName_throwsNotFoundException() {
+    void getEndpointsWithTestsByService_f03_whitespaceServiceName_throwsNotFoundException() {
         // Arrange
         String serviceName = "   ";
 
@@ -180,7 +179,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_nonExistentService_throwsNotFoundException() {
+    void getEndpointsWithTestsByService_f04_nonExistentService_throwsNotFoundException() {
         // Arrange
         String serviceName = "NonExistentService";
 
@@ -196,7 +195,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_invalidServiceName_throwsNotFoundException() {
+    void getEndpointsWithTestsByService_f05_invalidServiceName_throwsNotFoundException() {
         // Arrange
         String serviceName = "Invalid@Service#Name";
 
@@ -212,7 +211,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_serviceNotInMapping_throwsNotFoundException() {
+    void getEndpointsWithTestsByService_f06_serviceNotInMapping_throwsNotFoundException() {
         // Arrange
         String serviceName = "UnmappedService";
 
@@ -228,7 +227,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_specialCharacters_throwsNotFoundException() {
+    void getEndpointsWithTestsByService_f07_specialCharacters_throwsNotFoundException() {
         // Arrange
         String serviceName = "Service!@#$";
 
@@ -244,7 +243,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_numericServiceName_throwsNotFoundException() {
+    void getEndpointsWithTestsByService_f08_numericServiceName_throwsNotFoundException() {
         // Arrange
         String serviceName = "12345";
 
@@ -266,7 +265,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_serviceWithNoMethods_returnsEmptyMethodsList() {
+    void getEndpointsWithTestsByService_f09_serviceWithNoMethods_returnsEmptyMethodsList() {
         // Arrange
         String serviceName = "QAService";
 
@@ -284,7 +283,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_serviceWithNoTests_returnsZeroCoverage() {
+    void getEndpointsWithTestsByService_f10_serviceWithNoTests_returnsZeroCoverage() {
         // Arrange
         String serviceName = "QAService";
 
@@ -301,7 +300,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_multipleCallsSameService_returnsSameData() {
+    void getEndpointsWithTestsByService_f11_multipleCallsSameService_returnsSameData() {
         // Arrange
         String serviceName = "QAService";
 
@@ -321,7 +320,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_differentServices_returnsDifferentData() {
+    void getEndpointsWithTestsByService_f12_differentServices_returnsDifferentData() {
         // Arrange
         String service1 = "QAService";
 
@@ -339,7 +338,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_serviceNameWithSpaces_trimsAndNormalizes() {
+    void getEndpointsWithTestsByService_f13_serviceNameWithSpaces_trimsAndNormalizes() {
         // Arrange
         String serviceName = "  QAService  ";
 
@@ -356,7 +355,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_veryLongServiceName_handlesCorrectly() {
+    void getEndpointsWithTestsByService_f14_veryLongServiceName_handlesCorrectly() {
         // Arrange
         String longServiceName = "VeryLongServiceName".repeat(10);
 
@@ -372,7 +371,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getEndpointsWithTestsByService_errorMessage_containsAvailableServices() {
+    void getEndpointsWithTestsByService_f15_errorMessage_containsAvailableServices() {
         // Arrange
         String serviceName = "InvalidService";
 

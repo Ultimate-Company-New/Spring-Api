@@ -36,14 +36,11 @@ import static org.mockito.Mockito.verify;
  * Test class for PurchaseOrderService.updatePurchaseOrder method.
  *
  * Test count: 6 tests
- * - SUCCESS: 1 test
- * - FAILURE / EXCEPTION: 2 tests
- * - PERMISSION: 3 tests
  */
 @DisplayName("PurchaseOrderService - UpdatePurchaseOrder Tests")
 public class UpdatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
-    // Total Tests: 6
 
+    // Total Tests: 6
     /*
      **********************************************************************************************
      * SUCCESS TESTS

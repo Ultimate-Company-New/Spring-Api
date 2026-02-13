@@ -15,8 +15,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("UserLogService - LogDataWithContext Tests")
 class LogDataWithContextTest extends UserLogServiceTestBase {
 
-    // Total Tests: 25
 
+    // Total Tests: 25
     // ========================================
     // Section 1: Success Tests
     // ========================================

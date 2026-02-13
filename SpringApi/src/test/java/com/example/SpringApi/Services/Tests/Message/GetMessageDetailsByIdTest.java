@@ -24,8 +24,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("GetMessageDetailsById Tests")
 public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
 
-        // Total Tests: 12
 
+        // Total Tests: 12
         /*
          **********************************************************************************************
          * SUCCESS TESTS
@@ -141,7 +141,9 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
         @Test
         @DisplayName("Get Message Details By ID - Negative message ID - Throws BadRequestException")
         void getMessageDetailsById_NegativeMessageId_ThrowsBadRequestException() {
-                // Arrange & Act & Assert
+                // Arrange
+
+                // Act & Assert
                 assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.InvalidId,
                                 () -> messageService.getMessageDetailsById(-1L));
         }
@@ -187,7 +189,9 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
         @Test
         @DisplayName("Get Message Details By ID - Zero message ID - ThrowsBadRequestException")
         void getMessageDetailsById_ZeroMessageId_ThrowsBadRequestException() {
-                // Arrange & Act & Assert
+                // Arrange
+
+                // Act & Assert
                 assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.InvalidId,
                                 () -> messageService.getMessageDetailsById(0L));
         }

@@ -32,8 +32,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("GetMessagesByUserId Tests")
 public class GetMessagesByUserIdTest extends MessageServiceTestBase {
 
-        // Total Tests: 16
 
+        // Total Tests: 16
         /*
          **********************************************************************************************
          * SUCCESS TESTS
@@ -251,6 +251,8 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
         @Test
         @DisplayName("Get Messages By User ID - Null pagination request - ThrowsNullPointerException")
         void getMessagesByUserId_NullPaginationRequest_ThrowsNullPointerException() {
+                // Arrange
+
                 // Act & Assert
                 NullPointerException ex = assertThrows(NullPointerException.class,
                                 () -> messageService.getMessagesByUserId(null));

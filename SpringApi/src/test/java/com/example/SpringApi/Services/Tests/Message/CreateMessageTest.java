@@ -31,8 +31,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("CreateMessage Tests")
 class CreateMessageTest extends MessageServiceTestBase {
 
-    // Total Tests: 31
 
+    // Total Tests: 31
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -581,7 +581,9 @@ class CreateMessageTest extends MessageServiceTestBase {
     @Test
     @DisplayName("Create Message - Zero ClientId - Throws NotFoundException")
     void createMessage_ZeroClientId_ThrowsNotFoundException() {
-        // Arrange & Act & Assert
+        // Arrange
+
+        // Act & Assert
         assertThrowsNotFound(ErrorMessages.ClientErrorMessages.InvalidId,
                 () -> messageService.createMessage(validRequest));
     }

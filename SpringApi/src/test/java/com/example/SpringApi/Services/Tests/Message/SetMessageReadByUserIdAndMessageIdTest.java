@@ -25,8 +25,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("SetMessageReadByUserIdAndMessageId Tests")
 public class SetMessageReadByUserIdAndMessageIdTest extends MessageServiceTestBase {
 
-    // Total Tests: 14
 
+    // Total Tests: 14
     /*
      **********************************************************************************************
      * SUCCESS TESTS

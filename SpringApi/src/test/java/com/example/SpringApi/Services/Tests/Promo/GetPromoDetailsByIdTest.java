@@ -20,8 +20,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("PromoService - GetPromoDetailsById Tests")
 class GetPromoDetailsByIdTest extends PromoServiceTestBase {
 
-    // Total Tests: 9
 
+    // Total Tests: 9
     /*
      **********************************************************************************************
      * SUCCESS TESTS

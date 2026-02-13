@@ -20,8 +20,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("Get Lead Details By ID Tests")
 class GetLeadDetailsByIdTest extends LeadServiceTestBase {
 
-    // Total Tests: 9
 
+    // Total Tests: 9
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -174,7 +174,7 @@ class GetLeadDetailsByIdTest extends LeadServiceTestBase {
 
     /*
      **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
+     * PERMISSION TESTS
      **********************************************************************************************
      */
 

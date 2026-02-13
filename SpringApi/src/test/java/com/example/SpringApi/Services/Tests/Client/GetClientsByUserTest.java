@@ -24,8 +24,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("Get Clients By User Tests")
 class GetClientsByUserTest extends ClientServiceTestBase {
 
-    // Total Tests: 23
 
+    // Total Tests: 23
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -49,7 +49,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         deletedClient2.setClientId(2L);
         deletedClient2.setIsDeleted(true);
 
-            stubClientFindByUserId(TEST_USER_ID, List.of(deletedClient1, deletedClient2));
+        stubClientFindByUserId(TEST_USER_ID, List.of(deletedClient1, deletedClient2));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -70,7 +70,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     @DisplayName("Get Clients By User - Different user ID - Success")
     void getClientsByUser_DifferentUserId_Success() {
         // Arrange
-            stubClientFindByUserId(TEST_USER_ID, List.of(testClient));
+        stubClientFindByUserId(TEST_USER_ID, List.of(testClient));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -90,7 +90,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     @DisplayName("Get Clients By User - No clients - Success")
     void getClientsByUser_Empty_Success() {
         // Arrange
-            stubClientFindByUserId(TEST_USER_ID, Collections.emptyList());
+        stubClientFindByUserId(TEST_USER_ID, Collections.emptyList());
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -117,7 +117,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
             clients.add(client);
         }
 
-            stubClientFindByUserId(TEST_USER_ID, clients);
+        stubClientFindByUserId(TEST_USER_ID, clients);
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -144,7 +144,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
             clients.add(client);
         }
 
-            stubClientFindByUserId(TEST_USER_ID, clients);
+        stubClientFindByUserId(TEST_USER_ID, clients);
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -167,7 +167,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         Client minimalClient = new Client();
         minimalClient.setClientId(1L);
 
-            stubClientFindByUserId(TEST_USER_ID, List.of(minimalClient));
+        stubClientFindByUserId(TEST_USER_ID, List.of(minimalClient));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -195,7 +195,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         deletedClient.setClientId(2L);
         deletedClient.setIsDeleted(true);
 
-            stubClientFindByUserId(TEST_USER_ID, List.of(activeClient, deletedClient));
+        stubClientFindByUserId(TEST_USER_ID, List.of(activeClient, deletedClient));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -224,7 +224,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         client2.setClientId(2L);
         client2.setName("Client 2");
 
-            stubClientFindByUserId(TEST_USER_ID, List.of(client1, client2));
+        stubClientFindByUserId(TEST_USER_ID, List.of(client1, client2));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -283,7 +283,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     @DisplayName("Get Clients By User - Negative user ID - Success")
     void getClientsByUser_NegativeUserId_Success() {
         // Arrange
-            stubClientFindByUserId(TEST_USER_ID, Collections.emptyList());
+        stubClientFindByUserId(TEST_USER_ID, Collections.emptyList());
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -305,7 +305,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         Client clientWithNullId = new Client(testClientRequest, DEFAULT_CREATED_USER);
         clientWithNullId.setClientId(null);
 
-            stubClientFindByUserId(TEST_USER_ID, List.of(clientWithNullId));
+        stubClientFindByUserId(TEST_USER_ID, List.of(clientWithNullId));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -328,7 +328,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         Client clientWithNullName = new Client(testClientRequest, DEFAULT_CREATED_USER);
         clientWithNullName.setName(null);
 
-            stubClientFindByUserId(TEST_USER_ID, List.of(clientWithNullName));
+        stubClientFindByUserId(TEST_USER_ID, List.of(clientWithNullName));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -348,7 +348,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     @DisplayName("Get Clients By User - Repository toggling - Success")
     void getClientsByUser_RepositoryToggling_Success() {
         // Arrange
-            stubClientFindByUserIdSequence(TEST_USER_ID, Collections.emptyList(), List.of(testClient));
+        stubClientFindByUserIdSequence(TEST_USER_ID, Collections.emptyList(), List.of(testClient));
 
         // Act
         List<ClientResponseModel> firstResult = clientService.getClientsByUser();
@@ -409,7 +409,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
     @DisplayName("Get Clients By User - Valid user - Success")
     void getClientsByUser_ValidUser_Success() {
         // Arrange
-            stubClientFindByUserId(TEST_USER_ID, List.of(testClient));
+        stubClientFindByUserId(TEST_USER_ID, List.of(testClient));
 
         // Act
         List<ClientResponseModel> results = clientService.getClientsByUser();
@@ -457,7 +457,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
 
         // Act & Assert
         assertThrows(NullPointerException.class,
-            () -> clientService.getClientsByUser());
+                () -> clientService.getClientsByUser());
         // NullPointerException message in Java 17+ reflects the cause
         // assertEquals(ErrorMessages.ClientErrorMessages.ClientsListNull,
         // ex.getMessage());
@@ -484,9 +484,58 @@ class GetClientsByUserTest extends ClientServiceTestBase {
 
     /*
      **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
+     * PERMISSION TESTS
      **********************************************************************************************
      */
+
+    /*
+     * Purpose: Verify @PreAuthorize annotation is declared on getClientsByUser
+     * method.
+     * Expected Result: Method has @PreAuthorize annotation with correct permission.
+     * Assertions: Annotation exists and references VIEW_CLIENT_PERMISSION.
+     */
+    @Test
+    @DisplayName("Get Clients By User - Verify @PreAuthorize annotation is configured correctly")
+    void getClientsByUser_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        // Arrange
+        var method = ClientController.class.getMethod("getClientsByUser");
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation,
+                "getClientsByUser method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.VIEW_CLIENT_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference VIEW_CLIENT_PERMISSION");
+    }
+
+    /*
+     * Purpose: Verify controller calls service when authorization passes
+     * (simulated).
+     * Expected Result: Service method is called and correct HTTP status is
+     * returned.
+     * Assertions: Service called once, HTTP status is correct.
+     */
+    @Test
+    @DisplayName("Get Clients By User - Controller delegates to service correctly")
+    void getClientsByUser_p02_WithValidRequest_DelegatesToService_Success() {
+        // Arrange
+        stubServiceGetClientsByUser(Collections.emptyList());
+
+        // Act
+        ResponseEntity<?> response = clientController.getClientsByUser();
+
+        // Assert
+        verify(mockClientService, times(1)).getClientsByUser();
+        assertEquals(HttpStatus.OK, response.getStatusCode(),
+                "Should return HTTP 200 OK");
+    }
 
     /*
      * Purpose: Verify controller has correct @PreAuthorize permission.
@@ -495,7 +544,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
      */
     @Test
     @DisplayName("Get Clients By User - Controller permission forbidden - Success")
-    void getClientsByUser_controller_permission_forbidden() throws NoSuchMethodException {
+    void getClientsByUser_p03_controller_permission_forbidden() throws NoSuchMethodException {
         // Arrange
         var method = ClientController.class.getMethod("getClientsByUser");
         stubServiceGetClientsByUser(Collections.emptyList());
@@ -513,54 +562,5 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
                 "PreAuthorize annotation should reference VIEW_CLIENT_PERMISSION");
         assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
-    }
-
-        /*
-         * Purpose: Verify @PreAuthorize annotation is declared on getClientsByUser
-         * method.
-         * Expected Result: Method has @PreAuthorize annotation with correct permission.
-         * Assertions: Annotation exists and references VIEW_CLIENT_PERMISSION.
-         */
-        @Test
-        @DisplayName("Get Clients By User - Verify @PreAuthorize annotation is configured correctly")
-        void getClientsByUser_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        var method = ClientController.class.getMethod("getClientsByUser");
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-            org.springframework.security.access.prepost.PreAuthorize.class);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation,
-            "getClientsByUser method should have @PreAuthorize annotation");
-
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-            Authorizations.VIEW_CLIENT_PERMISSION + "')";
-
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-            "PreAuthorize annotation should reference VIEW_CLIENT_PERMISSION");
-        }
-
-    /*
-     * Purpose: Verify controller calls service when authorization passes
-     * (simulated).
-     * Expected Result: Service method is called and correct HTTP status is
-     * returned.
-     * Assertions: Service called once, HTTP status is correct.
-     */
-    @Test
-    @DisplayName("Get Clients By User - Controller delegates to service correctly")
-    void getClientsByUser_WithValidRequest_DelegatesToService_Success() {
-        // Arrange
-        stubServiceGetClientsByUser(Collections.emptyList());
-
-        // Act
-        ResponseEntity<?> response = clientController.getClientsByUser();
-
-        // Assert
-        verify(mockClientService, times(1)).getClientsByUser();
-        assertEquals(HttpStatus.OK, response.getStatusCode(),
-                "Should return HTTP 200 OK");
     }
 }

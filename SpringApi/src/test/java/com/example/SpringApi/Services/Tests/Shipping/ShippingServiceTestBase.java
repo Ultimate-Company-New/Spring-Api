@@ -317,7 +317,6 @@ public abstract class ShippingServiceTestBase {
                     clientRepository, userLogService, shipmentFilterQueryBuilder);
         }
 
-        @Override
         protected ShipRocketHelper createShipRocketHelper(String email, String password) {
             return shipRocketHelper;
         }

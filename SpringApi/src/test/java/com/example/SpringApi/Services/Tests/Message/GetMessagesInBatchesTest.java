@@ -29,8 +29,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("GetMessagesInBatches Tests")
 public class GetMessagesInBatchesTest extends MessageServiceTestBase {
 
-    // Total Tests: 7
 
+    // Total Tests: 7
     /*
      **********************************************************************************************
      * SUCCESS TESTS

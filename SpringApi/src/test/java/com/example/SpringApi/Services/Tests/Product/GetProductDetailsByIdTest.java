@@ -22,8 +22,8 @@ import static org.mockito.Mockito.verify;
  */
 @DisplayName("ProductService - GetProductDetailsById Tests")
 class GetProductDetailsByIdTest extends ProductServiceTestBase {
-    // Total Tests: 7
 
+    // Total Tests: 7
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -63,7 +63,7 @@ class GetProductDetailsByIdTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("getProductDetailsById - Product not found - Throws NotFound")
-    void getProductDetailsById_NotFound_ThrowsNotFound() {
+    void getProductDetailsById_f01_NotFound_ThrowsNotFound() {
         // Arrange
         stubProductRepositoryFindByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID, null);
 
@@ -79,7 +79,7 @@ class GetProductDetailsByIdTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("getProductDetailsById - ID zero - Throws NotFound")
-    void getProductDetailsById_IdZero_ThrowsNotFound() {
+    void getProductDetailsById_f02_IdZero_ThrowsNotFound() {
         // Arrange
         long id = 0L;
         stubProductRepositoryFindByIdWithRelatedEntities(id, TEST_CLIENT_ID, null);
@@ -96,7 +96,7 @@ class GetProductDetailsByIdTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("getProductDetailsById - ID negative - Throws NotFound")
-    void getProductDetailsById_IdNegative_ThrowsNotFound() {
+    void getProductDetailsById_f03_IdNegative_ThrowsNotFound() {
         // Arrange
         long id = -1L;
         stubProductRepositoryFindByIdWithRelatedEntities(id, TEST_CLIENT_ID, null);
@@ -119,7 +119,7 @@ class GetProductDetailsByIdTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("getProductDetailsById - Controller permission unauthorized - Success")
-    void getProductDetailsById_controller_permission_unauthorized() {
+    void getProductDetailsById_p01_controller_permission_unauthorized() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
         stubProductServiceGetProductDetailsByIdThrowsUnauthorized();
@@ -139,7 +139,7 @@ class GetProductDetailsByIdTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("getProductDetailsById - Verify @PreAuthorize annotation - Success")
-    void getProductDetailsById_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void getProductDetailsById_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = ProductController.class.getMethod("getProductDetailsById", long.class);
 
@@ -158,7 +158,7 @@ class GetProductDetailsByIdTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("getProductDetailsById - Controller delegation check - Success")
-    void getProductDetailsById_ControllerDelegation_Success() {
+    void getProductDetailsById_p03_ControllerDelegation_Success() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
         stubProductServiceGetProductDetailsByIdReturns(new ProductResponseModel(testProduct));

@@ -27,8 +27,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("ProductService - EditProduct Tests")
 class EditProductTest extends ProductServiceTestBase {
-    // Total Tests: 12
 
+    // Total Tests: 12
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -262,7 +262,7 @@ class EditProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("editProduct - Controller permission unauthorized - Success")
-    void editProduct_controller_permission_unauthorized() {
+    void editProduct_p01_controller_permission_unauthorized() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
         stubProductServiceEditProductThrowsUnauthorized();
@@ -282,7 +282,7 @@ class EditProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("editProduct - Verify @PreAuthorize annotation - Success")
-    void editProduct_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void editProduct_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = ProductController.class.getMethod("editProduct", ProductRequestModel.class);
 
@@ -301,7 +301,7 @@ class EditProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("editProduct - Controller delegation check - Success")
-    void editProduct_ControllerDelegation_Success() {
+    void editProduct_p03_ControllerDelegation_Success() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
         stubProductServiceEditProductDoNothing();

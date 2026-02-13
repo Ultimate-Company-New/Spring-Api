@@ -21,8 +21,8 @@ import static org.mockito.Mockito.verify;
  */
 @DisplayName("ProductService - ToggleDeleteProduct Tests")
 class ToggleDeleteProductTest extends ProductServiceTestBase {
-    // Total Tests: 9
 
+    // Total Tests: 9
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -141,7 +141,7 @@ class ToggleDeleteProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("toggleDeleteProduct - Controller permission unauthorized - Success")
-    void toggleDeleteProduct_controller_permission_unauthorized() {
+    void toggleDeleteProduct_p01_controller_permission_unauthorized() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
         stubProductServiceToggleDeleteProductThrowsUnauthorized();
@@ -161,7 +161,7 @@ class ToggleDeleteProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("toggleDeleteProduct - Verify @PreAuthorize annotation - Success")
-    void toggleDeleteProduct_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void toggleDeleteProduct_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = ProductController.class.getMethod("toggleDeleteProduct", long.class);
 
@@ -180,7 +180,7 @@ class ToggleDeleteProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("toggleDeleteProduct - Controller delegation check - Success")
-    void toggleDeleteProduct_ControllerDelegation_Success() {
+    void toggleDeleteProduct_p03_ControllerDelegation_Success() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
         stubProductServiceToggleDeleteProductDoNothing();
@@ -200,7 +200,7 @@ class ToggleDeleteProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("toggleDeleteProduct - No permission - Forbidden simulated")
-    void toggleDeleteProduct_NoPermission_Forbidden() {
+    void toggleDeleteProduct_p04_NoPermission_Forbidden() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
 

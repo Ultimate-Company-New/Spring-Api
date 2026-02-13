@@ -19,8 +19,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("GetWalletBalance Tests")
 class GetWalletBalanceTest extends ShippingServiceTestBase {
 
-    // Total Tests: 4
 
+    // Total Tests: 4
     /*
      **********************************************************************************************
      * SUCCESS TESTS

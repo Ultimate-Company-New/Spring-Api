@@ -21,8 +21,8 @@ import static org.mockito.Mockito.verify;
  */
 @DisplayName("ProductService - ToggleReturnProduct Tests")
 class ToggleReturnProductTest extends ProductServiceTestBase {
-    // Total Tests: 8
 
+    // Total Tests: 8
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -144,7 +144,7 @@ class ToggleReturnProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("toggleReturnProduct - Controller permission unauthorized - Success")
-    void toggleReturnProduct_controller_permission_unauthorized() {
+    void toggleReturnProduct_p01_controller_permission_unauthorized() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
         stubProductServiceToggleReturnProductThrowsUnauthorized();
@@ -164,7 +164,7 @@ class ToggleReturnProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("toggleReturnProduct - Verify @PreAuthorize annotation - Success")
-    void toggleReturnProduct_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void toggleReturnProduct_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = ProductController.class.getMethod("toggleReturnProduct", long.class);
 
@@ -183,7 +183,7 @@ class ToggleReturnProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("toggleReturnProduct - Controller delegation check - Success")
-    void toggleReturnProduct_ControllerDelegation_Success() {
+    void toggleReturnProduct_p03_ControllerDelegation_Success() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
         stubProductServiceToggleReturnProductDoNothing();

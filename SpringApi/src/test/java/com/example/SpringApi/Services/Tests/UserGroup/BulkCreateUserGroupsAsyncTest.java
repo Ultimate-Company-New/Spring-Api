@@ -21,12 +21,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserGroupService.bulkCreateUserGroupsAsync method.
  * 
- * Total Tests: 8
  */
 @DisplayName("UserGroupService - BulkCreateUserGroupsAsync Tests")
 class BulkCreateUserGroupsAsyncTest extends UserGroupServiceTestBase {
-    // Total Tests: 8
 
+    // Total Tests: 8
     // ========================================
     // SUCCESS TESTS
     // ========================================

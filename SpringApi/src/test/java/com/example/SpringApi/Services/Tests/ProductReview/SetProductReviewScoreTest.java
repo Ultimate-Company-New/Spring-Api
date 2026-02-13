@@ -27,8 +27,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("ProductReviewService - SetProductReviewScore Tests")
 class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
-    // Total Tests: 50
 
+    // Total Tests: 50
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -42,7 +42,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Decrease From 1 To 0 - Success")
-    void setProductReviewScore_DecreaseFrom1To0_Success() {
+    void setProductReviewScore_s01_DecreaseFrom1To0_Success() {
         // Arrange
         testProductReview.setScore(1);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -63,7 +63,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Decrease From 100 To 99 Large Score - Success")
-    void setProductReviewScore_DecreaseFromLargeScore_Success() {
+    void setProductReviewScore_s02_DecreaseFromLargeScore_Success() {
         // Arrange
         testProductReview.setScore(100);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -84,7 +84,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Decrease From 2 To 1 Near Zero - Success")
-    void setProductReviewScore_DecreaseNearZero_Success() {
+    void setProductReviewScore_s03_DecreaseNearZero_Success() {
         // Arrange
         testProductReview.setScore(2);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -105,7 +105,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Decrease When Already Zero - Stays Zero")
-    void setProductReviewScore_DecreaseWhenAlreadyZero_StaysZero() {
+    void setProductReviewScore_s04_DecreaseWhenAlreadyZero_StaysZero() {
         // Arrange
         testProductReview.setScore(0);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -126,7 +126,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Decrease When Null Score - Stays 0")
-    void setProductReviewScore_DecreaseWhenNullScore_Stays0() {
+    void setProductReviewScore_s05_DecreaseWhenNullScore_Stays0() {
         // Arrange
         testProductReview.setScore(null);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -147,7 +147,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Increase From 0 To 1 - Success")
-    void setProductReviewScore_IncreaseFrom0To1_Success() {
+    void setProductReviewScore_s06_IncreaseFrom0To1_Success() {
         // Arrange
         testProductReview.setScore(0);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -168,7 +168,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Increase From 10 To 11 - Success")
-    void setProductReviewScore_IncreaseFrom10To11_Success() {
+    void setProductReviewScore_s07_IncreaseFrom10To11_Success() {
         // Arrange
         testProductReview.setScore(10);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -189,7 +189,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Increase From 100 To 101 Large Score - Success")
-    void setProductReviewScore_IncreaseFromLargeScore_Success() {
+    void setProductReviewScore_s08_IncreaseFromLargeScore_Success() {
         // Arrange
         testProductReview.setScore(100);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -210,7 +210,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Increase From 5 To 6 Mid Range - Success")
-    void setProductReviewScore_IncreaseFromMidRange_Success() {
+    void setProductReviewScore_s09_IncreaseFromMidRange_Success() {
         // Arrange
         testProductReview.setScore(5);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -231,7 +231,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Increase From 999 To 1000 Very Large - Success")
-    void setProductReviewScore_IncreaseFromVeryLargeScore_Success() {
+    void setProductReviewScore_s10_IncreaseFromVeryLargeScore_Success() {
         // Arrange
         testProductReview.setScore(999);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -252,7 +252,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Increase When Null Score - Sets To 1")
-    void setProductReviewScore_IncreaseWhenNullScore_SetsToOne() {
+    void setProductReviewScore_s11_IncreaseWhenNullScore_SetsToOne() {
         // Arrange
         testProductReview.setScore(null);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -273,7 +273,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Decrease Score")
-    void setProductReviewScore_Success_DecreaseScore() {
+    void setProductReviewScore_s12_Success_DecreaseScore() {
         // Arrange
         testProductReview.setScore(3);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -295,7 +295,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Decrease to Zero Minimum")
-    void setProductReviewScore_Success_DecreaseToZero() {
+    void setProductReviewScore_s13_Success_DecreaseToZero() {
         // Arrange
         testProductReview.setScore(0);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -316,7 +316,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Increase Score")
-    void setProductReviewScore_Success_IncreaseScore() {
+    void setProductReviewScore_s14_Success_IncreaseScore() {
         // Arrange
         testProductReview.setScore(3);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -337,7 +337,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Null Score Treated as Zero")
-    void setProductReviewScore_Success_NullScore() {
+    void setProductReviewScore_s15_Success_NullScore() {
         // Arrange
         testProductReview.setScore(null);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -363,7 +363,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - ID 2 - Throws NotFoundException")
-    void setProductReviewScore_Id2_ThrowsNotFoundException() {
+    void setProductReviewScore_f01_Id2_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(2L, TEST_CLIENT_ID, null);
 
@@ -381,7 +381,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - ID 99 - Throws NotFoundException")
-    void setProductReviewScore_Id99_ThrowsNotFoundException() {
+    void setProductReviewScore_f02_Id99_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(99L, TEST_CLIENT_ID, null);
 
@@ -399,7 +399,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - ID Max Long - Throws NotFoundException")
-    void setProductReviewScore_IdMaxLong_ThrowsNotFoundException() {
+    void setProductReviewScore_f03_IdMaxLong_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID, null);
 
@@ -417,7 +417,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - ID Min Long - Throws NotFoundException")
-    void setProductReviewScore_IdMinLong_ThrowsNotFoundException() {
+    void setProductReviewScore_f04_IdMinLong_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID, null);
 
@@ -435,7 +435,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - ID Negative 5 - Throws NotFoundException")
-    void setProductReviewScore_IdNegative5_ThrowsNotFoundException() {
+    void setProductReviewScore_f05_IdNegative5_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(-5L, TEST_CLIENT_ID, null);
 
@@ -453,7 +453,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Max Long ID - Not Found")
-    void setProductReviewScore_MaxLongId_ThrowsNotFoundException() {
+    void setProductReviewScore_f06_MaxLongId_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID, null);
 
@@ -471,7 +471,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Negative ID - Not Found")
-    void setProductReviewScore_NegativeId_ThrowsNotFoundException() {
+    void setProductReviewScore_f07_NegativeId_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(-1L, TEST_CLIENT_ID, null);
 
@@ -489,7 +489,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Review Not Found")
-    void setProductReviewScore_ReviewNotFound_ThrowsNotFoundException() {
+    void setProductReviewScore_f08_ReviewNotFound_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, null);
 
@@ -510,7 +510,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Zero ID - Not Found")
-    void setProductReviewScore_ZeroId_ThrowsNotFoundException() {
+    void setProductReviewScore_f09_ZeroId_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(0L, TEST_CLIENT_ID, null);
 
@@ -589,7 +589,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Decrease Score")
-    void setProductReviewScore_Success_DecreaseScore() {
+    void setProductReviewScore_s16_Success_DecreaseScore() {
         // Arrange
         testProductReview.setScore(3);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -612,7 +612,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Decrease to Zero Minimum")
-    void setProductReviewScore_Success_DecreaseToZero() {
+    void setProductReviewScore_s17_Success_DecreaseToZero() {
         // Arrange
         testProductReview.setScore(0);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -635,7 +635,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Increase Score")
-    void setProductReviewScore_Success_IncreaseScore() {
+    void setProductReviewScore_s18_Success_IncreaseScore() {
         // Arrange
         testProductReview.setScore(3);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -658,7 +658,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Null Score Treated as Zero")
-    void setProductReviewScore_Success_NullScore() {
+    void setProductReviewScore_s19_Success_NullScore() {
         // Arrange
         testProductReview.setScore(null);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -684,7 +684,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Decrease From 1 To 0 - Success")
-    void setProductReviewScore_DecreaseFrom1To0_Success() {
+    void setProductReviewScore_f10_DecreaseFrom1To0_Success() {
         // Arrange
         testProductReview.setScore(1);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -705,7 +705,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Decrease From 100 To 99 Large Score - Success")
-    void setProductReviewScore_DecreaseFromLargeScore_Success() {
+    void setProductReviewScore_f11_DecreaseFromLargeScore_Success() {
         // Arrange
         testProductReview.setScore(100);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -726,7 +726,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Decrease From 2 To 1 Near Zero - Success")
-    void setProductReviewScore_DecreaseNearZero_Success() {
+    void setProductReviewScore_f12_DecreaseNearZero_Success() {
         // Arrange
         testProductReview.setScore(2);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -747,7 +747,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Decrease When Already Zero - Stays Zero")
-    void setProductReviewScore_DecreaseWhenAlreadyZero_StaysZero() {
+    void setProductReviewScore_f13_DecreaseWhenAlreadyZero_StaysZero() {
         // Arrange
         testProductReview.setScore(0);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -768,7 +768,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Decrease When Null Score - Stays 0")
-    void setProductReviewScore_DecreaseWhenNullScore_Stays0() {
+    void setProductReviewScore_f14_DecreaseWhenNullScore_Stays0() {
         // Arrange
         testProductReview.setScore(null);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -789,7 +789,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - ID 2 - Throws NotFoundException")
-    void setProductReviewScore_Id2_ThrowsNotFoundException() {
+    void setProductReviewScore_f15_Id2_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(2L, TEST_CLIENT_ID, null);
 
@@ -807,7 +807,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - ID 99 - Throws NotFoundException")
-    void setProductReviewScore_Id99_ThrowsNotFoundException() {
+    void setProductReviewScore_f16_Id99_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(99L, TEST_CLIENT_ID, null);
 
@@ -825,7 +825,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - ID Max Long - Throws NotFoundException")
-    void setProductReviewScore_IdMaxLong_ThrowsNotFoundException() {
+    void setProductReviewScore_f17_IdMaxLong_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID, null);
 
@@ -843,7 +843,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - ID Min Long - Throws NotFoundException")
-    void setProductReviewScore_IdMinLong_ThrowsNotFoundException() {
+    void setProductReviewScore_f18_IdMinLong_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID, null);
 
@@ -861,7 +861,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - ID Negative 5 - Throws NotFoundException")
-    void setProductReviewScore_IdNegative5_ThrowsNotFoundException() {
+    void setProductReviewScore_f19_IdNegative5_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(-5L, TEST_CLIENT_ID, null);
 
@@ -879,7 +879,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Increase From 0 To 1 - Success")
-    void setProductReviewScore_IncreaseFrom0To1_Success() {
+    void setProductReviewScore_f20_IncreaseFrom0To1_Success() {
         // Arrange
         testProductReview.setScore(0);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -900,7 +900,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Increase From 10 To 11 - Success")
-    void setProductReviewScore_IncreaseFrom10To11_Success() {
+    void setProductReviewScore_f21_IncreaseFrom10To11_Success() {
         // Arrange
         testProductReview.setScore(10);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -921,7 +921,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Increase From 100 To 101 Large Score - Success")
-    void setProductReviewScore_IncreaseFromLargeScore_Success() {
+    void setProductReviewScore_f22_IncreaseFromLargeScore_Success() {
         // Arrange
         testProductReview.setScore(100);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -942,7 +942,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Increase From 5 To 6 Mid Range - Success")
-    void setProductReviewScore_IncreaseFromMidRange_Success() {
+    void setProductReviewScore_f23_IncreaseFromMidRange_Success() {
         // Arrange
         testProductReview.setScore(5);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -962,7 +962,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Increase From 999 To 1000 Very Large - Success")
-    void setProductReviewScore_IncreaseFromVeryLargeScore_Success() {
+    void setProductReviewScore_f24_IncreaseFromVeryLargeScore_Success() {
         // Arrange
         testProductReview.setScore(999);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -983,7 +983,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Increase When Null Score - Sets To 1")
-    void setProductReviewScore_IncreaseWhenNullScore_SetsToOne() {
+    void setProductReviewScore_f25_IncreaseWhenNullScore_SetsToOne() {
         // Arrange
         testProductReview.setScore(null);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -1004,7 +1004,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Max Long ID - Not Found")
-    void setProductReviewScore_MaxLongId_ThrowsNotFoundException() {
+    void setProductReviewScore_f26_MaxLongId_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID, null);
 
@@ -1022,7 +1022,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Negative ID - Not Found")
-    void setProductReviewScore_NegativeId_ThrowsNotFoundException() {
+    void setProductReviewScore_f27_NegativeId_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(-1L, TEST_CLIENT_ID, null);
 
@@ -1040,7 +1040,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Review Not Found")
-    void setProductReviewScore_ReviewNotFound_ThrowsNotFoundException() {
+    void setProductReviewScore_f28_ReviewNotFound_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, null);
 
@@ -1062,7 +1062,7 @@ class SetProductReviewScoreTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Set Product Review Score - Zero ID - Not Found")
-    void setProductReviewScore_ZeroId_ThrowsNotFoundException() {
+    void setProductReviewScore_f29_ZeroId_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(0L, TEST_CLIENT_ID, null);
 

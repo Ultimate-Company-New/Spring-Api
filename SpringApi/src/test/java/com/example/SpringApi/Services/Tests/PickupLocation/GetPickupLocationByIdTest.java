@@ -23,8 +23,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Get Pickup Location By ID Tests")
 class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
-    // Total Tests: 12
 
+    // Total Tests: 12
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -262,7 +262,7 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
     void getPickupLocationById_WithValidId_DelegatesToService() {
         // Arrange
         PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
-        PickupLocationResponseModel mockResponse = mock(PickupLocationResponseModel.class);
+        PickupLocationResponseModel mockResponse = new PickupLocationResponseModel(testPickupLocation);
         stubPickupLocationServiceGetPickupLocationByIdReturns(mockResponse);
 
         // Act

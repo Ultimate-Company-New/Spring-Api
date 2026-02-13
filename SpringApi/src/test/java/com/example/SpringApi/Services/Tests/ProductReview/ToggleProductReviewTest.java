@@ -22,8 +22,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("ProductReviewService - ToggleProductReview Tests")
 class ToggleProductReviewTest extends ProductReviewServiceTestBase {
 
-    // Total Tests: 26
 
+    // Total Tests: 26
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -37,7 +37,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - Multiple Toggles - State Persists")
-    void toggleProductReview_MultipleToggles_StatePersists() {
+    void toggleProductReview_s01_MultipleToggles_StatePersists() {
         // Arrange
         testProductReview.setIsDeleted(false);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -59,7 +59,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - Mark As Deleted - Success")
-    void toggleProductReview_Success_MarkAsDeleted() {
+    void toggleProductReview_s02_Success_MarkAsDeleted() {
         // Arrange
         testProductReview.setIsDeleted(false);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -81,7 +81,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - Restore From Deleted - Success")
-    void toggleProductReview_Success_RestoreFromDeleted() {
+    void toggleProductReview_s03_Success_RestoreFromDeleted() {
         // Arrange
         testProductReview.setIsDeleted(true);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -107,7 +107,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - ID 12345 - Throws NotFoundException")
-    void toggleProductReview_Id12345_ThrowsNotFoundException() {
+    void toggleProductReview_f01_Id12345_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(12345L, TEST_CLIENT_ID, null);
 
@@ -127,7 +127,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - ID 2 - Throws NotFoundException")
-    void toggleProductReview_Id2_ThrowsNotFoundException() {
+    void toggleProductReview_f02_Id2_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(2L, TEST_CLIENT_ID, null);
 
@@ -147,7 +147,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - ID 999 - Throws NotFoundException")
-    void toggleProductReview_Id999_ThrowsNotFoundException() {
+    void toggleProductReview_f03_Id999_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(999L, TEST_CLIENT_ID, null);
 
@@ -167,7 +167,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - ID Max Long - Throws NotFoundException")
-    void toggleProductReview_IdMaxLong_ThrowsNotFoundException() {
+    void toggleProductReview_f04_IdMaxLong_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID, null);
 
@@ -187,7 +187,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - ID Min Long - Throws NotFoundException")
-    void toggleProductReview_IdMinLong_ThrowsNotFoundException() {
+    void toggleProductReview_f05_IdMinLong_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID, null);
 
@@ -207,7 +207,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - ID Negative 100 - Throws NotFoundException")
-    void toggleProductReview_IdNegative100_ThrowsNotFoundException() {
+    void toggleProductReview_f06_IdNegative100_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(-100L, TEST_CLIENT_ID, null);
 
@@ -227,7 +227,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - Negative ID - Throws NotFoundException")
-    void toggleProductReview_NegativeId_ThrowsNotFoundException() {
+    void toggleProductReview_f07_NegativeId_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(-1L, TEST_CLIENT_ID, null);
 
@@ -247,7 +247,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - Review Not Found - Throws NotFoundException")
-    void toggleProductReview_ReviewNotFound_ThrowsNotFoundException() {
+    void toggleProductReview_f08_ReviewNotFound_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, null);
 
@@ -267,7 +267,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - Zero ID - Throws NotFoundException")
-    void toggleProductReview_ZeroId_ThrowsNotFoundException() {
+    void toggleProductReview_f09_ZeroId_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(0L, TEST_CLIENT_ID, null);
 
@@ -345,7 +345,7 @@ class ToggleProductReviewTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - Multiple Toggles - State Persistence")
-    void toggleProductReview_MultipleToggles_StatePersists() {
+    void toggleProductReview_s04_MultipleToggles_StatePersists() {
         // Arrange
         testProductReview.setIsDeleted(false);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -372,7 +372,7 @@ class ToggleProductReviewTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - Success - Mark as Deleted")
-    void toggleProductReview_Success_MarkAsDeleted() {
+    void toggleProductReview_s05_Success_MarkAsDeleted() {
         // Arrange
         testProductReview.setIsDeleted(false);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -397,7 +397,7 @@ class ToggleProductReviewTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - Success - Restore from Deleted")
-    void toggleProductReview_Success_RestoreFromDeleted() {
+    void toggleProductReview_s06_Success_RestoreFromDeleted() {
         // Arrange
         testProductReview.setIsDeleted(true);
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
@@ -424,7 +424,7 @@ class ToggleProductReviewTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - ID 12345 - Throws NotFoundException")
-    void toggleProductReview_Id12345_ThrowsNotFoundException() {
+    void toggleProductReview_f10_Id12345_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(12345L, TEST_CLIENT_ID, null);
 
@@ -441,7 +441,7 @@ class ToggleProductReviewTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - ID 2 - Throws NotFoundException")
-    void toggleProductReview_Id2_ThrowsNotFoundException() {
+    void toggleProductReview_f11_Id2_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(2L, TEST_CLIENT_ID, null);
 
@@ -459,7 +459,7 @@ class ToggleProductReviewTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - ID 999 - Throws NotFoundException")
-    void toggleProductReview_Id999_ThrowsNotFoundException() {
+    void toggleProductReview_f12_Id999_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(999L, TEST_CLIENT_ID, null);
 
@@ -477,7 +477,7 @@ class ToggleProductReviewTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - ID Max Long - Throws NotFoundException")
-    void toggleProductReview_IdMaxLong_ThrowsNotFoundException() {
+    void toggleProductReview_f13_IdMaxLong_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID, null);
 
@@ -495,7 +495,7 @@ class ToggleProductReviewTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - ID Min Long - Throws NotFoundException")
-    void toggleProductReview_IdMinLong_ThrowsNotFoundException() {
+    void toggleProductReview_f14_IdMinLong_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID, null);
 
@@ -513,7 +513,7 @@ class ToggleProductReviewTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - ID Negative 100 - Throws NotFoundException")
-    void toggleProductReview_IdNegative100_ThrowsNotFoundException() {
+    void toggleProductReview_f15_IdNegative100_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(-100L, TEST_CLIENT_ID, null);
 
@@ -531,7 +531,7 @@ class ToggleProductReviewTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - Negative ID - Not Found")
-    void toggleProductReview_NegativeId_ThrowsNotFoundException() {
+    void toggleProductReview_f16_NegativeId_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(-1L, TEST_CLIENT_ID, null);
 
@@ -549,7 +549,7 @@ class ToggleProductReviewTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - Review Not Found")
-    void toggleProductReview_ReviewNotFound_ThrowsNotFoundException() {
+    void toggleProductReview_f17_ReviewNotFound_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, null);
 
@@ -571,7 +571,7 @@ class ToggleProductReviewTestDuplicate extends ProductReviewServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Product Review - Zero ID - Not Found")
-    void toggleProductReview_ZeroId_ThrowsNotFoundException() {
+    void toggleProductReview_f18_ZeroId_ThrowsNotFoundException() {
         // Arrange
         stubProductReviewRepositoryFindByReviewIdAndClientId(0L, TEST_CLIENT_ID, null);
 

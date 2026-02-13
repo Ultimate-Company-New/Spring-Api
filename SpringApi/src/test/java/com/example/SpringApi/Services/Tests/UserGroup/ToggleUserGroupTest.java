@@ -21,12 +21,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserGroupService.toggleUserGroup method.
  * 
- * Total Tests: 12
  */
 @DisplayName("UserGroupService - ToggleUserGroup Tests")
 class ToggleUserGroupTest extends UserGroupServiceTestBase {
-    // Total Tests: 12
 
+    // Total Tests: 12
     // ========================================
     // SUCCESS TESTS
     // ========================================

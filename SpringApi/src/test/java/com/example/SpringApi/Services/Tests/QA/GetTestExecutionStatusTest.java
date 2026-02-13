@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for QAService.getTestExecutionStatus() method.
  * 
- * Total Tests: 16
  * 
  * Test Coverage:
  * - Success scenarios (5 tests)
@@ -22,8 +21,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(MockitoExtension.class)
 class GetTestExecutionStatusTest extends QAServiceTestBase {
-    // Total Tests: 16
 
+    // Total Tests: 16
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -36,14 +35,19 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
      */
     @Test
     @DisplayName("Completed execution returns completed status")
-    void getTestExecutionStatus_completedExecution_returnsCompletedStatus() {
+    void getTestExecutionStatus_completedExecution_returnsCompletedStatus_success() {
         // Arrange
         String validExecutionId = UUID.randomUUID().toString();
 
-        // Act & Assert
-        assertThrows(NotFoundException.class, () -> {
+        // Act
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             qaService.getTestExecutionStatus(validExecutionId);
         });
+
+        // Assert
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat,
+                validExecutionId);
+        assertEquals(expectedMessage, exception.getMessage());
     }
 
     /**
@@ -56,10 +60,15 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         // Arrange
         String executionId = java.util.UUID.randomUUID().toString();
 
-        // Act & Assert
-        assertThrows(NotFoundException.class, () -> {
+        // Act
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             qaService.getTestExecutionStatus(executionId);
         });
+
+        // Assert
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat,
+                executionId);
+        assertEquals(expectedMessage, exception.getMessage());
     }
 
     /**
@@ -95,10 +104,15 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         // For testing purposes, we'll verify the structure
         String executionId = java.util.UUID.randomUUID().toString();
 
-        // Act & Assert
-        assertThrows(NotFoundException.class, () -> {
+        // Act
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             qaService.getTestExecutionStatus(executionId);
         });
+
+        // Assert
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat,
+                executionId);
+        assertEquals(expectedMessage, exception.getMessage());
     }
 
     /**
@@ -130,10 +144,15 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         // Arrange
         String executionId = java.util.UUID.randomUUID().toString();
 
-        // Act & Assert
-        assertThrows(NotFoundException.class, () -> {
+        // Act
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             qaService.getTestExecutionStatus(executionId);
         });
+
+        // Assert
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat,
+                executionId);
+        assertEquals(expectedMessage, exception.getMessage());
     }
 
     // ==================== FAILURE TESTS ====================
@@ -145,7 +164,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
      */
     @Test
     @DisplayName("Valid execution ID returns status")
-    void getTestExecutionStatus_validId_returnsStatus() {
+    void getTestExecutionStatus_f01_validId_returnsStatus() {
         // Note: This test requires the execution to be started first
         // For now, we'll test the error case since we can't easily mock the internal
         // status map
@@ -154,10 +173,15 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         // Arrange - using a non-existent ID to test the not found case
         String validExecutionId = UUID.randomUUID().toString();
 
-        // Act & Assert
-        assertThrows(NotFoundException.class, () -> {
+        // Act
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             qaService.getTestExecutionStatus(validExecutionId);
         });
+
+        // Assert
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat,
+                validExecutionId);
+        assertEquals(expectedMessage, exception.getMessage());
     }
 
     /**
@@ -166,7 +190,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getTestExecutionStatus_veryLongId_handlesCorrectly() {
+    void getTestExecutionStatus_f02_veryLongId_handlesCorrectly() {
         // Arrange
         String longId = "very-long-execution-id-".repeat(10);
 
@@ -175,8 +199,8 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
             qaService.getTestExecutionStatus(longId);
         });
 
-        assertNotNull(exception.getMessage());
-        assertTrue(exception.getMessage().contains(longId));
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, longId);
+        assertEquals(expectedMessage, exception.getMessage());
     }
 
     /*
@@ -190,7 +214,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getTestExecutionStatus_emptyId_throwsNotFoundException() {
+    void getTestExecutionStatus_f03_emptyId_throwsNotFoundException() {
         // Arrange
 
         // Act & Assert
@@ -208,7 +232,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getTestExecutionStatus_exceptionMessage_usesErrorConstant() {
+    void getTestExecutionStatus_f04_exceptionMessage_usesErrorConstant() {
         // Arrange
         String executionId = "test-id";
 
@@ -217,8 +241,8 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
             qaService.getTestExecutionStatus(executionId);
         });
 
-        // Verify the exception message uses the format from ErrorMessages
-        assertTrue(exception.getMessage().contains(executionId));
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, executionId);
+        assertEquals(expectedMessage, exception.getMessage());
     }
 
     // ==================== EDGE CASES ====================
@@ -229,7 +253,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getTestExecutionStatus_invalidUuidFormat_throwsNotFoundException() {
+    void getTestExecutionStatus_f05_invalidUuidFormat_throwsNotFoundException() {
         // Arrange
         String invalidId = "not-a-valid-uuid";
 
@@ -248,7 +272,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getTestExecutionStatus_nonExistentId_throwsNotFoundException() {
+    void getTestExecutionStatus_f06_nonExistentId_throwsNotFoundException() {
         // Arrange
         String nonExistentId = java.util.UUID.randomUUID().toString();
 
@@ -268,7 +292,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getTestExecutionStatus_nullId_throwsNotFoundException() {
+    void getTestExecutionStatus_f07_nullId_throwsNotFoundException() {
         // Arrange
 
         // Act & Assert
@@ -286,7 +310,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getTestExecutionStatus_statusNotFound_throwsNotFoundException() {
+    void getTestExecutionStatus_f08_statusNotFound_throwsNotFoundException() {
         // Arrange
         String executionId = "unknown-execution-id";
 
@@ -305,7 +329,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getTestExecutionStatus_whitespaceId_throwsNotFoundException() {
+    void getTestExecutionStatus_f09_whitespaceId_throwsNotFoundException() {
         // Arrange
 
         // Act & Assert

@@ -17,7 +17,6 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for QAService.getAvailableServices() method.
  * 
- * Total Tests: 12
  * 
  * Test Coverage:
  * - Success scenarios (3 tests)
@@ -26,8 +25,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(MockitoExtension.class)
 class GetAvailableServicesTest extends QAServiceTestBase {
-    // Total Tests: 12
 
+    // Total Tests: 12
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -40,7 +39,7 @@ class GetAvailableServicesTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getAvailableServices_success_returnsServiceNames() {
+    void getAvailableServices_s01_success_returnsServiceNames() {
         // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
@@ -56,7 +55,7 @@ class GetAvailableServicesTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getAvailableServices_success_allNamesEndWithService() {
+    void getAvailableServices_s02_success_allNamesEndWithService() {
         // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
@@ -74,7 +73,7 @@ class GetAvailableServicesTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getAvailableServices_success_containsKnownServices() {
+    void getAvailableServices_s03_success_containsKnownServices() {
         // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
@@ -90,7 +89,7 @@ class GetAvailableServicesTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getAvailableServices_list_isNotNull() {
+    void getAvailableServices_s04_list_isNotNull() {
         // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
@@ -105,7 +104,7 @@ class GetAvailableServicesTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getAvailableServices_list_isNotEmpty() {
+    void getAvailableServices_s05_list_isNotEmpty() {
         // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
@@ -120,7 +119,7 @@ class GetAvailableServicesTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getAvailableServices_list_containsNoDuplicates() {
+    void getAvailableServices_s06_list_containsNoDuplicates() {
         // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
@@ -137,7 +136,7 @@ class GetAvailableServicesTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getAvailableServices_list_allNamesNonEmpty() {
+    void getAvailableServices_s07_list_allNamesNonEmpty() {
         // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
@@ -155,7 +154,7 @@ class GetAvailableServicesTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getAvailableServices_multipleInvocations_returnsSameList() {
+    void getAvailableServices_s08_multipleInvocations_returnsSameList() {
         // Arrange
         // Act
         List<String> services1 = qaService.getAvailableServices();
@@ -176,7 +175,7 @@ class GetAvailableServicesTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getAvailableServices_list_isImmutable() {
+    void getAvailableServices_s09_list_isImmutable() {
         // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();
@@ -200,7 +199,7 @@ class GetAvailableServicesTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getAvailableServices_count_matchesServiceMappings() {
+    void getAvailableServices_s10_count_matchesServiceMappings() {
         // Arrange
         // Act
         List<String> services = qaService.getAvailableServices();

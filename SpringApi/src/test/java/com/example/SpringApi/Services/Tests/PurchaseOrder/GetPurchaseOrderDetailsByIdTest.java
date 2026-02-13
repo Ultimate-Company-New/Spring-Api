@@ -19,14 +19,11 @@ import static org.junit.jupiter.api.Assertions.*;
  * Test class for PurchaseOrderService.getPurchaseOrderDetailsById method.
  *
  * Test count: 5 tests
- * - SUCCESS: 1 test
- * - FAILURE / EXCEPTION: 1 test
- * - PERMISSION: 3 tests
  */
 @DisplayName("PurchaseOrderService - GetPurchaseOrderDetailsById Tests")
 public class GetPurchaseOrderDetailsByIdTest extends PurchaseOrderServiceTestBase {
-    // Total Tests: 5
 
+    // Total Tests: 5
     /*
      **********************************************************************************************
      * SUCCESS TESTS

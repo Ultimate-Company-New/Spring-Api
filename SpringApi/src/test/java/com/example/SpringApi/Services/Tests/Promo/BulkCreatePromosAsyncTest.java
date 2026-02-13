@@ -180,7 +180,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("Bulk Create Promos - Failure - All invalid promos")
-        void bulkCreatePromosAsync_AllInvalid_NoSaves() {
+        void bulkCreatePromosAsync_f01_AllInvalid_NoSaves() {
                 // Arrange
                 List<PromoRequestModel> promos = new ArrayList<>();
                 for (int i = 0; i < 3; i++) {
@@ -206,7 +206,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("Bulk Create Promos - Failure - Database error")
-        void bulkCreatePromosAsync_DatabaseError_CapturesFailure() {
+        void bulkCreatePromosAsync_f02_DatabaseError_CapturesFailure() {
                 // Arrange
                 List<PromoRequestModel> promos = List.of(testPromoRequest);
                 stubPromoRepositoryFindByPromoCodeAndClientIdAny(Optional.empty());
@@ -227,7 +227,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("Bulk Create Promos - Failure - Overlapping codes in some")
-        void bulkCreatePromosAsync_Overlapping_PartialSuccess() {
+        void bulkCreatePromosAsync_f03_Overlapping_PartialSuccess() {
                 // Arrange
                 PromoRequestModel p1 = new PromoRequestModel();
                 p1.setPromoCode("P11");
@@ -265,7 +265,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("Bulk Create Promos - Failure - Duplicate promo code")
-        void bulkCreatePromosAsync_DuplicatePromoCode_PartialSuccess() {
+        void bulkCreatePromosAsync_f04_DuplicatePromoCode_PartialSuccess() {
                 // Arrange
                 List<PromoRequestModel> promos = List.of(testPromoRequest, testPromoRequest);
 
@@ -285,7 +285,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("Bulk Create Promos - Failure - Null list")
-        void bulkCreatePromosAsync_NullList_CapturesFailure() {
+        void bulkCreatePromosAsync_f05_NullList_CapturesFailure() {
                 // Arrange
 
                 // Act
@@ -303,7 +303,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("Bulk Create Promos - Failure - Expiry before start")
-        void bulkCreatePromosAsync_PartialFailure_InvalidDateRange() {
+        void bulkCreatePromosAsync_f06_PartialFailure_InvalidDateRange() {
                 // Arrange
                 PromoRequestModel valid = new PromoRequestModel();
                 valid.setPromoCode("VALID");
@@ -339,7 +339,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("Bulk Create Promos - Failure - Some fail validation")
-        void bulkCreatePromosAsync_SomeFailValidation_PartialSuccess() {
+        void bulkCreatePromosAsync_f07_SomeFailValidation_PartialSuccess() {
                 // Arrange
                 PromoRequestModel valid = testPromoRequest;
                 PromoRequestModel invalid = new PromoRequestModel();
@@ -367,7 +367,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("Bulk Create Promos - Failure - Partial failure reporting")
-        void bulkCreatePromosAsync_PartialFailure_Reporting_Success() {
+        void bulkCreatePromosAsync_f08_PartialFailure_Reporting_Success() {
                 // Arrange
                 PromoRequestModel p1 = new PromoRequestModel();
                 p1.setPromoCode("SUCCESS");
@@ -403,7 +403,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("Bulk Create Promos - Failure - Mixed validity")
-        void bulkCreatePromosAsync_MixedValidity_Success() {
+        void bulkCreatePromosAsync_f09_MixedValidity_Success() {
                 // Arrange
                 List<PromoRequestModel> promos = new ArrayList<>();
                 for (int i = 0; i < 10; i++) {
@@ -439,7 +439,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("bulkCreatePromos - Controller delegates to service")
-        void bulkCreatePromosAsync_ControllerDelegation_Success() {
+        void bulkCreatePromosAsync_p01_ControllerDelegation_Success() {
                 // Arrange
                 List<PromoRequestModel> promos = List.of(testPromoRequest);
                 // Using doNothing because service is a spy and we want to avoid real method
@@ -459,7 +459,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("bulkCreatePromos - Controller Permission - Unauthorized")
-        void bulkCreatePromosAsync_controller_permission_unauthorized() {
+        void bulkCreatePromosAsync_p02_controller_permission_unauthorized() {
                 // Arrange
                 List<PromoRequestModel> promos = List.of(testPromoRequest);
                 stubServiceThrowsUnauthorizedException();
@@ -476,7 +476,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("bulkCreatePromos - Controller handles BadRequestException")
-        void bulkCreatePromosAsync_ControllerHandlesBadRequest_Success() {
+        void bulkCreatePromosAsync_p03_ControllerHandlesBadRequest_Success() {
                 // Arrange
                 List<PromoRequestModel> promos = List.of(testPromoRequest);
                 stubServiceBulkCreatePromosAsyncThrowsBadRequest(
@@ -494,7 +494,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("bulkCreatePromos - Controller handles internal error")
-        void bulkCreatePromosAsync_ControllerHandlesInternalError_Failure() {
+        void bulkCreatePromosAsync_p04_ControllerHandlesInternalError_Failure() {
                 // Arrange
                 List<PromoRequestModel> promos = List.of(testPromoRequest);
                 stubServiceBulkCreatePromosAsyncThrowsRuntime(
@@ -512,7 +512,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("bulkCreatePromos - Failure - Context retrieval error")
-        void bulkCreatePromosAsync_ContextRetrievalError_Failure() {
+        void bulkCreatePromosAsync_p05_ContextRetrievalError_Failure() {
                 // Arrange
                 stubServiceGetUserIdThrowsUnauthorized(
                                 com.example.SpringApi.ErrorMessages.CommonErrorMessages.ContextMissing);
@@ -530,7 +530,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("bulkCreatePromos - Controller with empty list")
-        void bulkCreatePromosAsync_ControllerWithEmptyList_Success() {
+        void bulkCreatePromosAsync_p06_ControllerWithEmptyList_Success() {
                 // Arrange
                 List<PromoRequestModel> emptyList = Collections.emptyList();
                 stubServiceBulkCreatePromosAsyncDoNothing();
@@ -547,7 +547,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
          */
         @Test
         @DisplayName("bulkCreatePromos - Controller with null list")
-        void bulkCreatePromosAsync_ControllerWithNullList_Success() {
+        void bulkCreatePromosAsync_p07_ControllerWithNullList_Success() {
                 // Arrange
                 stubServiceBulkCreatePromosAsyncThrowsBadRequest(
                                 com.example.SpringApi.ErrorMessages.CommonErrorMessages.NullList);

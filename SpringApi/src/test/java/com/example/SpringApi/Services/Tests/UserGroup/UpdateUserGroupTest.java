@@ -27,12 +27,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserGroupService.updateUserGroup method.
  * 
- * Total Tests: 15
  */
 @DisplayName("UserGroupService - UpdateUserGroup Tests")
 class UpdateUserGroupTest extends UserGroupServiceTestBase {
-    // Total Tests: 15
 
+    // Total Tests: 15
     // ========================================
     // SUCCESS TESTS
     // ========================================

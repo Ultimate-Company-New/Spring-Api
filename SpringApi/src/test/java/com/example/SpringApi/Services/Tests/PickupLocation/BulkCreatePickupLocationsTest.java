@@ -34,8 +34,8 @@ import static org.mockito.Mockito.when;
  */
 @DisplayName("Bulk Create Pickup Locations Tests")
 class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
-    // Total Tests: 22
 
+    // Total Tests: 22
     /*
      **********************************************************************************************
      * SUCCESS TESTS

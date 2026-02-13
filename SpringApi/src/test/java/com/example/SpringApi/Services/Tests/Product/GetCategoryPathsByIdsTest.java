@@ -24,8 +24,8 @@ import static org.mockito.Mockito.verify;
  */
 @DisplayName("ProductService - GetCategoryPathsByIds Tests")
 class GetCategoryPathsByIdsTest extends ProductServiceTestBase {
-    // Total Tests: 8
 
+    // Total Tests: 8
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -151,7 +151,7 @@ class GetCategoryPathsByIdsTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("getCategoryPathsByIds - Controller permission unauthorized - Success")
-    void getCategoryPathsByIds_controller_permission_unauthorized() {
+    void getCategoryPathsByIds_p01_controller_permission_unauthorized() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
         stubProductServiceGetCategoryPathsByIdsThrowsUnauthorized();
@@ -171,7 +171,7 @@ class GetCategoryPathsByIdsTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("getCategoryPathsByIds - Verify @PreAuthorize annotation - Success")
-    void getCategoryPathsByIds_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void getCategoryPathsByIds_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = ProductController.class.getMethod("getCategoryPathsByIds", List.class);
 
@@ -190,7 +190,7 @@ class GetCategoryPathsByIdsTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("getCategoryPathsByIds - Controller delegation check - Success")
-    void getCategoryPathsByIds_ControllerDelegation_Success() {
+    void getCategoryPathsByIds_p03_ControllerDelegation_Success() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
         stubProductServiceGetCategoryPathsByIdsReturns(Collections.emptyMap());

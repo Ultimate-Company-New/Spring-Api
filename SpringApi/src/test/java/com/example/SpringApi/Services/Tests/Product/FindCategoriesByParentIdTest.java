@@ -24,8 +24,8 @@ import static org.mockito.Mockito.verify;
  */
 @DisplayName("ProductService - FindCategoriesByParentId Tests")
 class FindCategoriesByParentIdTest extends ProductServiceTestBase {
-    // Total Tests: 7
 
+    // Total Tests: 7
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -39,7 +39,7 @@ class FindCategoriesByParentIdTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("findCategoriesByParentId - Parent null - Success")
-    void findCategoriesByParentId_Root_Success() {
+    void findCategoriesByParentId_s01_Root_Success() {
         // Arrange
         testCategory.setParentId(null);
         stubProductCategoryRepositoryFindAll(Collections.singletonList(testCategory));
@@ -59,7 +59,7 @@ class FindCategoriesByParentIdTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("findCategoriesByParentId - Valid parent ID - Success")
-    void findCategoriesByParentId_Child_Success() {
+    void findCategoriesByParentId_s02_Child_Success() {
         // Arrange
         ProductCategory child = new ProductCategory();
         child.setCategoryId(11L);
@@ -132,7 +132,7 @@ class FindCategoriesByParentIdTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("findCategoriesByParentId - Controller permission unauthorized - Success")
-    void findCategoriesByParentId_controller_permission_unauthorized() {
+    void findCategoriesByParentId_p01_controller_permission_unauthorized() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
         stubProductServiceFindCategoriesByParentIdThrowsUnauthorized();
@@ -152,7 +152,7 @@ class FindCategoriesByParentIdTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("findCategoriesByParentId - Verify @PreAuthorize annotation - Success")
-    void findCategoriesByParentId_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void findCategoriesByParentId_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = ProductController.class.getMethod("findCategoriesByParentId", Long.class);
 
@@ -171,7 +171,7 @@ class FindCategoriesByParentIdTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("findCategoriesByParentId - Controller delegation check - Success")
-    void findCategoriesByParentId_ControllerDelegation_Success() {
+    void findCategoriesByParentId_p03_ControllerDelegation_Success() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
         stubProductServiceFindCategoriesByParentIdReturns(Collections.emptyList());

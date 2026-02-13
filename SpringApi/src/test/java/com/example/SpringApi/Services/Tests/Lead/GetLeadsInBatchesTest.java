@@ -28,8 +28,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Get Leads In Batches Tests")
 class GetLeadsInBatchesTest extends LeadServiceTestBase {
-        // Total Tests: 5
 
+        // Total Tests: 5
         /*
          **********************************************************************************************
          * SUCCESS TESTS
@@ -110,29 +110,9 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
 
         /*
          **********************************************************************************************
-         * CONTROLLER AUTHORIZATION TESTS
+         * PERMISSION TESTS
          **********************************************************************************************
          */
-
-        /**
-         * Purpose: Verify unauthorized access is handled at the controller level.
-         * Expected Result: Unauthorized status is returned.
-         * Assertions: Response status is 401 UNAUTHORIZED.
-         */
-        @Test
-        @DisplayName("Get Leads In Batches - Controller permission unauthorized - Success")
-        void getLeadsInBatches_controller_permission_unauthorized() {
-                // Arrange
-                LeadController controller = new LeadController(leadServiceMock); // leadServiceMock is now generic
-                                                                                 // enough or mocked correctly in Base
-                stubLeadServiceGetLeadsInBatchesThrowsUnauthorized();
-
-                // Act
-                ResponseEntity<?> response = controller.getLeadsInBatches(testLeadRequest);
-
-                // Assert
-                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        }
 
         /**
          * Purpose: Verify @PreAuthorize annotation is declared on getLeadsInBatches
@@ -142,7 +122,7 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
          */
         @Test
         @DisplayName("Get Leads In Batches - Verify @PreAuthorize annotation is configured correctly")
-        void getLeadsInBatches_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+        void getLeadsInBatches_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
                 // Arrange
                 var method = LeadController.class.getMethod("getLeadsInBatches",
                                 LeadRequestModel.class);
@@ -176,7 +156,7 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
          */
         @Test
         @DisplayName("Get Leads In Batches - Controller delegates to service correctly")
-        void getLeadsInBatches_WithValidRequest_DelegatesToService() {
+        void getLeadsInBatches_p02_WithValidRequest_DelegatesToService() {
                 // Arrange
                 LeadController controller = new LeadController(leadServiceMock);
                 testLeadRequest.setStart(0);
@@ -190,5 +170,25 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
                 verify(leadServiceMock, times(1)).getLeadsInBatches(testLeadRequest);
                 assertEquals(HttpStatus.OK, response.getStatusCode(),
                                 "Should return HTTP 200 OK");
+        }
+
+        /**
+         * Purpose: Verify unauthorized access is handled at the controller level.
+         * Expected Result: Unauthorized status is returned.
+         * Assertions: Response status is 401 UNAUTHORIZED.
+         */
+        @Test
+        @DisplayName("Get Leads In Batches - Controller permission unauthorized - Success")
+        void getLeadsInBatches_p03_controller_permission_unauthorized() {
+                // Arrange
+                LeadController controller = new LeadController(leadServiceMock); // leadServiceMock is now generic
+                                                                                 // enough or mocked correctly in Base
+                stubLeadServiceGetLeadsInBatchesThrowsUnauthorized();
+
+                // Act
+                ResponseEntity<?> response = controller.getLeadsInBatches(testLeadRequest);
+
+                // Assert
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         }
 }

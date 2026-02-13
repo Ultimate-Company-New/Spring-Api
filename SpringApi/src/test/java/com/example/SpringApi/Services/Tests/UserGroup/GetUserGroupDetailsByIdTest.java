@@ -19,12 +19,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserGroupService.getUserGroupDetailsById method.
  * 
- * Total Tests: 11
  */
 @DisplayName("UserGroupService - GetUserGroupDetailsById Tests")
 class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
-    // Total Tests: 11
 
+    // Total Tests: 11
     // ========================================
     // SUCCESS TESTS
     // ========================================

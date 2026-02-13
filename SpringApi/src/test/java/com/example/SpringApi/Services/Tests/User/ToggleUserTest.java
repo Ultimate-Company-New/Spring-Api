@@ -20,12 +20,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserService.toggleUser method.
  * 
- * Total Tests: 11
  */
 @DisplayName("UserService - ToggleUser Tests")
 class ToggleUserTest extends UserServiceTestBase {
-    // Total Tests: 11
 
+    // Total Tests: 11
     // ========================================
     // SUCCESS TESTS
     // ========================================

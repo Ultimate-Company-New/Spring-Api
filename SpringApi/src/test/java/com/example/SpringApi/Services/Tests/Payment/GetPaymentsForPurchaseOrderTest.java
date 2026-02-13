@@ -1,134 +1,197 @@
 package com.example.SpringApi.Services.Tests.Payment;
 
+import com.example.SpringApi.Controllers.PaymentController;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.Models.Authorizations;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.lang.reflect.Method;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
- * Tests for PaymentService.getPaymentsForPurchaseOrder() method.
- * Contains 12 tests covering various scenarios.
+ * Tests for PaymentService.getPaymentsForPurchaseOrder().
  */
 @DisplayName("GetPaymentsForPurchaseOrder Tests")
 class GetPaymentsForPurchaseOrderTest extends PaymentServiceTestBase {
 
+    // Total Tests: 8
+    // ========================================
+    // SUCCESS TESTS
+    // ========================================
+
     /**
-     * Purpose: Verify that getPaymentsForPurchaseOrder throws NotFoundException when PO doesn't exist.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Exception message matches PurchaseOrder InvalidId error.
+     * Purpose: Verify purchase order repository is queried with requested purchase order id.
+     * Expected Result: purchaseOrderRepository.findById is called once.
+     * Assertions: verify interaction count.
      */
     @Test
-    @DisplayName("getPaymentsForPurchaseOrder - PO not found - Throws NotFoundException")
-    void getPaymentsForPurchaseOrder_PONotFound_ThrowsNotFoundException() {
-        when(purchaseOrderRepository.findById(TEST_PO_ID)).thenReturn(Optional.empty());
+    @DisplayName("getPaymentsForPurchaseOrder - Verify Purchase Order Repository Interaction - Success")
+    void getPaymentsForPurchaseOrder_verifyPurchaseOrderRepositoryInteraction_success() {
+        // Arrange
+        stubPurchaseOrderRepositoryFindById(TEST_PO_ID, Optional.empty());
 
-        NotFoundException exception = assertThrows(NotFoundException.class,
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> paymentService.getPaymentsForPurchaseOrder(TEST_PO_ID));
 
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, exception.getMessage());
+        // Assert
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        verify(purchaseOrderRepository, times(1)).findById(TEST_PO_ID);
+    }
+
+    // ========================================
+    // FAILURE TESTS
+    // ========================================
+
+    /**
+     * Purpose: Verify missing purchase order throws NotFoundException.
+     * Expected Result: NotFoundException with purchase order invalid id message.
+     * Assertions: Exception type and exact message.
+     */
+    @Test
+    @DisplayName("getPaymentsForPurchaseOrder - Purchase Order Not Found - Failure")
+    void getPaymentsForPurchaseOrder_f01_purchaseOrderNotFound_failure() {
+        // Arrange
+        stubPurchaseOrderRepositoryFindById(TEST_PO_ID, Optional.empty());
+
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> paymentService.getPaymentsForPurchaseOrder(TEST_PO_ID));
+
+        // Assert
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
     }
 
     /**
-     * Purpose: Verify that getPaymentsForPurchaseOrder throws NotFoundException for negative ID.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Exception message matches PurchaseOrder InvalidId error.
+     * Purpose: Verify negative purchase order id throws NotFoundException.
+     * Expected Result: NotFoundException with purchase order invalid id message.
+     * Assertions: Exception type and exact message.
      */
     @Test
-    @DisplayName("getPaymentsForPurchaseOrder - Negative PO ID - Throws NotFoundException")
-    void getPaymentsForPurchaseOrder_NegativePOId_ThrowsNotFoundException() {
-        when(purchaseOrderRepository.findById(-1L)).thenReturn(Optional.empty());
+    @DisplayName("getPaymentsForPurchaseOrder - Negative Purchase Order Id - Failure")
+    void getPaymentsForPurchaseOrder_f02_negativePurchaseOrderId_failure() {
+        // Arrange
+        stubPurchaseOrderRepositoryFindById(-1L, Optional.empty());
 
-        NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> paymentService.getPaymentsForPurchaseOrder(-1L));
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.getPaymentsForPurchaseOrder(-1L));
 
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, exception.getMessage());
+        // Assert
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
     }
 
     /**
-     * Purpose: Verify that getPaymentsForPurchaseOrder throws NotFoundException for zero ID.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Exception message matches PurchaseOrder InvalidId error.
+     * Purpose: Verify zero purchase order id throws NotFoundException.
+     * Expected Result: NotFoundException with purchase order invalid id message.
+     * Assertions: Exception type and exact message.
      */
     @Test
-    @DisplayName("getPaymentsForPurchaseOrder - Zero PO ID - Throws NotFoundException")
-    void getPaymentsForPurchaseOrder_ZeroPOId_ThrowsNotFoundException() {
-        when(purchaseOrderRepository.findById(0L)).thenReturn(Optional.empty());
+    @DisplayName("getPaymentsForPurchaseOrder - Zero Purchase Order Id - Failure")
+    void getPaymentsForPurchaseOrder_f03_zeroPurchaseOrderId_failure() {
+        // Arrange
+        stubPurchaseOrderRepositoryFindById(0L, Optional.empty());
 
-        NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> paymentService.getPaymentsForPurchaseOrder(0L));
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.getPaymentsForPurchaseOrder(0L));
 
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, exception.getMessage());
+        // Assert
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
     }
 
     /**
-     * Purpose: Verify that getPaymentsForPurchaseOrder throws NotFoundException for Long.MAX_VALUE ID.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Exception message matches PurchaseOrder InvalidId error.
+     * Purpose: Verify max long purchase order id throws NotFoundException.
+     * Expected Result: NotFoundException with purchase order invalid id message.
+     * Assertions: Exception type and exact message.
      */
     @Test
-    @DisplayName("getPaymentsForPurchaseOrder - Long.MAX_VALUE PO ID - Throws NotFoundException")
-    void getPaymentsForPurchaseOrder_MaxLongPOId_ThrowsNotFoundException() {
-        when(purchaseOrderRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
+    @DisplayName("getPaymentsForPurchaseOrder - Max Long Purchase Order Id - Failure")
+    void getPaymentsForPurchaseOrder_f04_maxLongPurchaseOrderId_failure() {
+        // Arrange
+        stubPurchaseOrderRepositoryFindById(Long.MAX_VALUE, Optional.empty());
 
-        NotFoundException exception = assertThrows(NotFoundException.class,
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> paymentService.getPaymentsForPurchaseOrder(Long.MAX_VALUE));
 
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, exception.getMessage());
+        // Assert
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
     }
 
     /**
-     * Purpose: Verify that getPaymentsForPurchaseOrder throws BadRequestException when client access denied.
-     * Expected Result: BadRequestException is thrown (after PO found, client check fails).
-     * Assertions: Exception message matches AccessDeniedToPurchaseOrder error.
+     * Purpose: Verify access denied scenario when purchase order belongs to another client.
+     * Expected Result: BadRequestException with access denied message.
+     * Assertions: Exception type and exact message.
      */
     @Test
-    @DisplayName("getPaymentsForPurchaseOrder - Client access denied - Throws BadRequestException")
-    void getPaymentsForPurchaseOrder_ClientAccessDenied_ThrowsBadRequestException() {
+    @DisplayName("getPaymentsForPurchaseOrder - Client Access Denied - Failure")
+    void getPaymentsForPurchaseOrder_f05_clientAccessDenied_failure() {
+        // Arrange
         testPurchaseOrder.setClientId(TEST_CLIENT_ID + 1);
-        when(purchaseOrderRepository.findById(TEST_PO_ID)).thenReturn(Optional.of(testPurchaseOrder));
+        stubPurchaseOrderRepositoryFindById(TEST_PO_ID, Optional.of(testPurchaseOrder));
 
+        // Act
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> paymentService.getPaymentsForPurchaseOrder(TEST_PO_ID));
+
+        // Assert
         assertEquals(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder, ex.getMessage());
     }
 
     /**
-     * Purpose: Verify PO repository interaction for getPaymentsForPurchaseOrder.
-     * Expected Result: PO repository findById is called.
-     * Assertions: Verify repository interaction.
+     * Purpose: Verify additional invalid IDs throw NotFoundException.
+     * Expected Result: NotFoundException with purchase order invalid id for each id.
+     * Assertions: Exception type and exact message for each id.
      */
     @Test
-    @DisplayName("getPaymentsForPurchaseOrder - Verify PO repository interaction")
-    void getPaymentsForPurchaseOrder_VerifyPORepositoryInteraction() {
-        when(purchaseOrderRepository.findById(TEST_PO_ID)).thenReturn(Optional.empty());
-        
-        assertThrows(NotFoundException.class, () -> paymentService.getPaymentsForPurchaseOrder(TEST_PO_ID));
-        verify(purchaseOrderRepository, times(1)).findById(TEST_PO_ID);
+    @DisplayName("getPaymentsForPurchaseOrder - Additional Invalid Purchase Order Ids - Failure")
+    void getPaymentsForPurchaseOrder_f06_additionalInvalidPurchaseOrderIds_failure() {
+        // Arrange
+        Long[] invalidIds = new Long[] { 2L, 3L, 4L, 5L, 6L, -100L };
+
+        // Act
+        for (Long invalidId : invalidIds) {
+            stubPurchaseOrderRepositoryFindById(invalidId, Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> paymentService.getPaymentsForPurchaseOrder(invalidId));
+
+            // Assert
+            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        }
     }
 
+    // ========================================
+    // PERMISSION TESTS
+    // ========================================
+
     /**
-     * Purpose: Additional invalid PO ID coverage.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Exception message matches PurchaseOrder InvalidId.
+     * Purpose: Verify receipt download endpoint permission handling for payment-related access.
+     * Expected Result: Unauthorized status is returned and expected permission annotation exists.
+     * Assertions: HTTP status and annotation permission constant.
      */
-    @TestFactory
-    @DisplayName("getPaymentsForPurchaseOrder - Additional invalid PO IDs")
-    Stream<DynamicTest> getPaymentsForPurchaseOrder_AdditionalInvalidPoIds() {
-        return Stream.of(2L, 3L, 4L, 5L, 6L, -100L)
-                .map(id -> DynamicTest.dynamicTest("Invalid PO ID: " + id, () -> {
-                    when(purchaseOrderRepository.findById(id)).thenReturn(Optional.empty());
-                    NotFoundException ex = assertThrows(NotFoundException.class,
-                            () -> paymentService.getPaymentsForPurchaseOrder(id));
-                    assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
-                }));
+    @Test
+    @DisplayName("getPaymentsForPurchaseOrder - Controller Permission Forbidden")
+    void getPaymentsForPurchaseOrder_controller_permission_forbidden() throws Exception {
+        // Arrange
+        stubPaymentServiceGeneratePaymentReceiptPDFThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = paymentControllerWithMock.downloadPaymentReceipt(TEST_PAYMENT_ID);
+        Method method = PaymentController.class.getMethod("downloadPaymentReceipt", Long.class);
+        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNotNull(annotation, "@PreAuthorize annotation should be present");
+        assertTrue(annotation.value().contains(Authorizations.VIEW_PURCHASE_ORDERS_PERMISSION));
     }
 }

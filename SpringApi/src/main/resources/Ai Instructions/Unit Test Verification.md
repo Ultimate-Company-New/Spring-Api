@@ -40,27 +40,6 @@ A comprehensive markdown report containing:
 
 **THE AI PERFORMING VERIFICATION MUST NOT**:
 
-### ❌ **NO Code Execution**
-- Do NOT use `bash_tool` 
-- Do NOT use `str_replace`
-- Do NOT use `create_file`
-- Do NOT run `mvn test` or any commands
-- Do NOT execute any shell scripts
-- Do NOT modify any files
-
-### ❌ **NO Code Implementation**  
-- Do NOT write test code
-- Do NOT create test files
-- Do NOT modify service files
-- Do NOT add stubs to base test files
-- Do NOT add error constants
-
-### ❌ **NO Testing**
-- Do NOT run unit tests
-- Do NOT verify tests pass
-- Do NOT execute test suites
-- Do NOT check code coverage
-
 ### ✅ **ONLY Analysis & Reporting**
 - ✅ Read files using `view` tool only
 - ✅ Analyze file structure and content
@@ -854,8 +833,6 @@ public class CreateUserTest extends UserServiceBaseTest {
 ---
 
 #### Verification Checklist for Rule 1
-
-When validating compliance with Rule 1, the AI must check ALL of the following **BY READING THE FILES ONLY** (no code execution):
 
 **For Each Public Service Method**:
 - [ ] Test file exists (check file system structure)
@@ -1709,8 +1686,6 @@ This is **recommended** but not a violation if missing. The AI should suggest ad
 ---
 
 #### Verification Algorithm for AI
-
-**CRITICAL**: This algorithm uses ONLY the `view` tool to read files. No code execution.
 
 When checking Rule 2 compliance, the AI must execute these steps:
 

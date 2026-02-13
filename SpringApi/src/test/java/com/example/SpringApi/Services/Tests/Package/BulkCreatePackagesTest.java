@@ -27,8 +27,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Bulk Create Packages Tests")
 class BulkCreatePackagesTest extends PackageServiceTestBase {
-    // Total Tests: 37
 
+    // Total Tests: 37
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -42,7 +42,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - All Duplicate Names - Success")
-    void bulkCreatePackages_AllDuplicateNames_Success() {
+    void bulkCreatePackages_s01_AllDuplicateNames_Success() {
         // Arrange
         List<PackageRequestModel> requests = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
@@ -69,7 +69,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - All Valid - Success")
-    void bulkCreatePackages_AllValid_Success() {
+    void bulkCreatePackages_s02_AllValid_Success() {
         // Arrange
         List<PackageRequestModel> packages = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
@@ -97,7 +97,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Alternating Valid Invalid - Partial Success")
-    void bulkCreatePackages_AlternatingValidInvalid_PartialSuccess() {
+    void bulkCreatePackages_s03_AlternatingValidInvalid_PartialSuccess() {
         // Arrange
         List<PackageRequestModel> requests = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
@@ -126,7 +126,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Extreme Batch Size - Success")
-    void bulkCreatePackages_ExtremeBatchSize_Success() {
+    void bulkCreatePackages_s04_ExtremeBatchSize_Success() {
         // Arrange
         List<PackageRequestModel> requests = new ArrayList<>();
         for (int i = 0; i < 200; i++) {
@@ -149,7 +149,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Large Batch - Success")
-    void bulkCreatePackages_LargeBatch_Success() {
+    void bulkCreatePackages_s05_LargeBatch_Success() {
         // Arrange
         List<PackageRequestModel> requests = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
@@ -172,7 +172,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Mixed Invalid and Valid - Partial Success")
-    void bulkCreatePackages_MixedInvalidAndValid_PartialSuccess() {
+    void bulkCreatePackages_s06_MixedInvalidAndValid_PartialSuccess() {
         // Arrange
         List<PackageRequestModel> requests = new ArrayList<>();
         requests.add(createValidPackageRequest());
@@ -201,7 +201,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Single Valid Item - Success")
-    void bulkCreatePackages_SingleValidItem_Success() {
+    void bulkCreatePackages_s07_SingleValidItem_Success() {
         // Arrange
         List<PackageRequestModel> packages = List.of(createValidPackageRequest());
         stubPackageRepositorySave(testPackage);
@@ -228,7 +228,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - All Invalid Names - All Fail")
-    void bulkCreatePackages_AllInvalidNames_AllFail() {
+    void bulkCreatePackages_f01_AllInvalidNames_AllFail() {
         // Arrange
         List<PackageRequestModel> requests = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
@@ -252,7 +252,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Database Error - Records Failure")
-    void bulkCreatePackages_DatabaseError_RecordsFailure() {
+    void bulkCreatePackages_f02_DatabaseError_RecordsFailure() {
         // Arrange
         List<PackageRequestModel> packages = List.of(createValidPackageRequest());
         stubPackageRepositorySaveThrows(new RuntimeException("DB Error"));
@@ -272,7 +272,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Empty List - Throws BadRequestException")
-    void bulkCreatePackages_EmptyList_ThrowsBadRequestException() {
+    void bulkCreatePackages_f03_EmptyList_ThrowsBadRequestException() {
         // Arrange
         List<PackageRequestModel> packages = new ArrayList<>();
 
@@ -292,7 +292,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Invalid Breadth Zero - Fails")
-    void bulkCreatePackages_InvalidBreadthZero_Fails() {
+    void bulkCreatePackages_f04_InvalidBreadthZero_Fails() {
         // Arrange
         PackageRequestModel req = createValidPackageRequest();
         req.setBreadth(0);
@@ -311,7 +311,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Invalid Height Zero - Fails")
-    void bulkCreatePackages_InvalidHeightZero_Fails() {
+    void bulkCreatePackages_f05_InvalidHeightZero_Fails() {
         // Arrange
         PackageRequestModel req = createValidPackageRequest();
         req.setHeight(0);
@@ -330,7 +330,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Invalid Length Zero - Fails")
-    void bulkCreatePackages_InvalidLengthZero_Fails() {
+    void bulkCreatePackages_f06_InvalidLengthZero_Fails() {
         // Arrange
         PackageRequestModel req = createValidPackageRequest();
         req.setLength(0);
@@ -349,7 +349,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Invalid Negative Weight - Fails")
-    void bulkCreatePackages_InvalidNegativeWeight_Fails() {
+    void bulkCreatePackages_f07_InvalidNegativeWeight_Fails() {
         // Arrange
         PackageRequestModel req = createValidPackageRequest();
         req.setMaxWeight(new BigDecimal("-1.0"));
@@ -368,7 +368,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Null List - Throws BadRequestException")
-    void bulkCreatePackages_NullList_ThrowsBadRequestException() {
+    void bulkCreatePackages_f08_NullList_ThrowsBadRequestException() {
         // Arrange
         List<PackageRequestModel> packages = null;
 
@@ -388,7 +388,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Null Package Name - Fails")
-    void bulkCreatePackages_NullPackageName_Fails() {
+    void bulkCreatePackages_f09_NullPackageName_Fails() {
         // Arrange
         PackageRequestModel req = createValidPackageRequest();
         req.setPackageName(null);
@@ -413,7 +413,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("bulkCreatePackages - Controller Permission - Unauthorized")
-    void bulkCreatePackages_controller_permission_unauthorized() {
+    void bulkCreatePackages_p01_controller_permission_unauthorized() {
         // Arrange
         stubConcretePackageServiceThrowsUnauthorized();
         PackageController controller = new PackageController(packageServiceMock, concretePackageServiceMock);
@@ -433,7 +433,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("bulkCreatePackages - Verify @PreAuthorize Annotation")
-    void bulkCreatePackages_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void bulkCreatePackages_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = PackageController.class.getMethod("bulkCreatePackages", List.class);
 
@@ -453,7 +453,7 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("bulkCreatePackages - Controller delegates to service")
-    void bulkCreatePackages_WithValidRequest_DelegatesToService() {
+    void bulkCreatePackages_p03_WithValidRequest_DelegatesToService() {
         // Arrange
         stubConcretePackageServiceUserContext(TEST_USER_ID, "testuser", TEST_CLIENT_ID);
         PackageController controller = new PackageController(packageServiceMock, concretePackageServiceMock);
@@ -488,7 +488,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - All Duplicate Names - Success if Allowed")
-    void bulkCreatePackages_AllDuplicateNames_Success() {
+    void bulkCreatePackages_s08_AllDuplicateNames_Success() {
         // Arrange
         List<PackageRequestModel> requests = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
@@ -513,7 +513,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - All Valid - Success")
-    void bulkCreatePackages_AllValid_Success() {
+    void bulkCreatePackages_s09_AllValid_Success() {
         // Arrange
         List<PackageRequestModel> packages = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
@@ -541,7 +541,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Alternating Valid Invalid - Partial Success")
-    void bulkCreatePackages_AlternatingValidInvalid_PartialSuccess() {
+    void bulkCreatePackages_s10_AlternatingValidInvalid_PartialSuccess() {
         // Arrange
         List<PackageRequestModel> requests = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
@@ -570,7 +570,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Extreme Batch Size 1000 - Success")
-    void bulkCreatePackages_ExtremeBatchSize_Success() {
+    void bulkCreatePackages_s11_ExtremeBatchSize_Success() {
         // Arrange
         List<PackageRequestModel> requests = new ArrayList<>();
         for (int i = 0; i < 1000; i++) {
@@ -594,7 +594,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Large Batch - Success")
-    void bulkCreatePackages_LargeBatch_Success() {
+    void bulkCreatePackages_s12_LargeBatch_Success() {
         // Arrange
         List<PackageRequestModel> requests = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
@@ -616,7 +616,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Mixed Invalid and Valid - Partial Success")
-    void bulkCreatePackages_MixedInvalidAndValid_PartialSuccess() {
+    void bulkCreatePackages_s13_MixedInvalidAndValid_PartialSuccess() {
         // Arrange
         List<PackageRequestModel> requests = new ArrayList<>();
         requests.add(createValidPackageRequest());
@@ -643,7 +643,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Single Valid Item - Success")
-    void bulkCreatePackages_SingleValidItem_Success() {
+    void bulkCreatePackages_s14_SingleValidItem_Success() {
         // Arrange
         List<PackageRequestModel> packages = List.of(createValidPackageRequest());
         stubPackageRepositorySave(testPackage);
@@ -670,7 +670,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - All Invalid Names - All Fail")
-    void bulkCreatePackages_AllInvalidNames_AllFail() {
+    void bulkCreatePackages_f10_AllInvalidNames_AllFail() {
         // Arrange
         List<PackageRequestModel> requests = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
@@ -694,7 +694,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Database Error - Records Failure")
-    void bulkCreatePackages_DatabaseError_RecordsFailure() {
+    void bulkCreatePackages_f11_DatabaseError_RecordsFailure() {
         // Arrange
         List<PackageRequestModel> packages = List.of(createValidPackageRequest());
         stubPackageRepositorySaveThrows(new RuntimeException("DB Error"));
@@ -714,7 +714,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Empty List - Throws BadRequestException")
-    void bulkCreatePackages_EmptyList_ThrowsBadRequestException() {
+    void bulkCreatePackages_f12_EmptyList_ThrowsBadRequestException() {
         // Arrange
         List<PackageRequestModel> packages = new ArrayList<>();
 
@@ -734,7 +734,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Invalid Breadth Zero - Fails")
-    void bulkCreatePackages_InvalidBreadthZero_Fails() {
+    void bulkCreatePackages_f13_InvalidBreadthZero_Fails() {
         // Arrange
         PackageRequestModel req = createValidPackageRequest();
         req.setBreadth(0);
@@ -753,7 +753,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Invalid Height Zero - Fails")
-    void bulkCreatePackages_InvalidHeightZero_Fails() {
+    void bulkCreatePackages_f14_InvalidHeightZero_Fails() {
         // Arrange
         PackageRequestModel req = createValidPackageRequest();
         req.setHeight(0);
@@ -772,7 +772,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Invalid Length Zero - Fails")
-    void bulkCreatePackages_InvalidLengthZero_Fails() {
+    void bulkCreatePackages_f15_InvalidLengthZero_Fails() {
         // Arrange
         PackageRequestModel req = createValidPackageRequest();
         req.setLength(0);
@@ -791,7 +791,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Invalid Negative Weight - Fails")
-    void bulkCreatePackages_InvalidNegativeWeight_Fails() {
+    void bulkCreatePackages_f16_InvalidNegativeWeight_Fails() {
         // Arrange
         PackageRequestModel req = createValidPackageRequest();
         req.setMaxWeight(new BigDecimal("-1.0"));
@@ -810,7 +810,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Null List - Throws BadRequestException")
-    void bulkCreatePackages_NullList_ThrowsBadRequestException() {
+    void bulkCreatePackages_f17_NullList_ThrowsBadRequestException() {
         // Arrange
         // Act
         BadRequestException exception = assertThrows(BadRequestException.class,
@@ -828,7 +828,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Packages - Null Package Name - Fails")
-    void bulkCreatePackages_NullPackageName_Fails() {
+    void bulkCreatePackages_f18_NullPackageName_Fails() {
         // Arrange
         PackageRequestModel req = createValidPackageRequest();
         req.setPackageName(null);
@@ -853,7 +853,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("bulkCreatePackages - Verify @PreAuthorize Annotation")
-    void bulkCreatePackages_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void bulkCreatePackages_p04_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = PackageController.class.getMethod("bulkCreatePackages", List.class);
 
@@ -873,7 +873,7 @@ class BulkCreatePackagesTestDuplicate extends PackageServiceTestBase {
      */
     @Test
     @DisplayName("bulkCreatePackages - Controller delegates to service")
-    void bulkCreatePackages_WithValidRequest_DelegatesToService() {
+    void bulkCreatePackages_p05_WithValidRequest_DelegatesToService() {
         // Arrange
         stubConcretePackageServiceUserContext(TEST_USER_ID, "testuser", TEST_CLIENT_ID);
         PackageController controller = new PackageController(packageServiceMock, concretePackageServiceMock);

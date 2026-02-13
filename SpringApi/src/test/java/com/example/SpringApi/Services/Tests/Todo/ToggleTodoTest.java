@@ -24,8 +24,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("TodoService - ToggleTodo Tests")
 class ToggleTodoTest extends TodoServiceTestBase {
 
-    // Total Tests: 15
 
+    // Total Tests: 15
     // ========================================
     // Section 1: Success Tests
     // ========================================

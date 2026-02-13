@@ -22,8 +22,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Update Address Tests")
 class UpdateAddressTest extends AddressServiceTestBase {
-    // Total Tests: 31
 
+    // Total Tests: 31
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -604,7 +604,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
 
     /*
      **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
+     * PERMISSION TESTS
      **********************************************************************************************
      * The following tests verify that authorization is properly configured at the
      * controller level.
@@ -613,45 +613,13 @@ class UpdateAddressTest extends AddressServiceTestBase {
      */
 
     /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation
-     * for security.
-     * Expected Result: The method should be annotated with @PreAuthorize checking
-     * for UPDATE_ADDRESS_PERMISSION.
-     * Assertions: Annotation is present and contains expected permission string.
-     */
-    @Test
-    @DisplayName("Update Address - Controller permission forbidden - Success")
-    void updateAddress_controller_permission_forbidden() throws NoSuchMethodException {
-        // Arrange
-        var method = AddressController.class.getMethod("updateAddress",
-                Long.class, com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
-        testAddressRequest.setId(DEFAULT_ADDRESS_ID);
-        stubServiceUpdateAddressDoNothing();
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-                org.springframework.security.access.prepost.PreAuthorize.class);
-        ResponseEntity<?> response = addressController.updateAddress(DEFAULT_ADDRESS_ID, testAddressRequest);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation, "updateAddress method should have @PreAuthorize annotation");
-
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-                Authorizations.UPDATE_ADDRESS_PERMISSION + "')";
-
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                "PreAuthorize annotation should reference UPDATE_ADDRESS_PERMISSION");
-        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
-    }
-
-    /**
      * Purpose: Verify @PreAuthorize annotation is declared on updateAddress method.
      * Expected Result: Method has @PreAuthorize annotation with correct permission.
      * Assertions: Annotation exists and references UPDATE_ADDRESS_PERMISSION.
      */
     @Test
     @DisplayName("Update Address - Verify @PreAuthorize annotation is configured correctly")
-    void updateAddress_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void updateAddress_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         var method = AddressController.class.getMethod("updateAddress",
                 Long.class, com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
@@ -684,7 +652,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
      */
     @Test
     @DisplayName("Update Address - Controller delegates to service correctly")
-    void updateAddress_WithValidRequest_DelegatesToService() {
+    void updateAddress_p02_WithValidRequest_DelegatesToService() {
         // Arrange
         testAddressRequest.setId(DEFAULT_ADDRESS_ID);
         stubServiceUpdateAddressDoNothing();
@@ -694,6 +662,38 @@ class UpdateAddressTest extends AddressServiceTestBase {
 
         // Assert - Verify service was called and correct response returned
         verify(addressService, times(1)).updateAddress(testAddressRequest);
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
+    }
+
+    /**
+     * Purpose: Verify that the controller has the correct @PreAuthorize annotation
+     * for security.
+     * Expected Result: The method should be annotated with @PreAuthorize checking
+     * for UPDATE_ADDRESS_PERMISSION.
+     * Assertions: Annotation is present and contains expected permission string.
+     */
+    @Test
+    @DisplayName("Update Address - Controller permission forbidden - Success")
+    void updateAddress_p03_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = AddressController.class.getMethod("updateAddress",
+                Long.class, com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
+        testAddressRequest.setId(DEFAULT_ADDRESS_ID);
+        stubServiceUpdateAddressDoNothing();
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+        ResponseEntity<?> response = addressController.updateAddress(DEFAULT_ADDRESS_ID, testAddressRequest);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "updateAddress method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.UPDATE_ADDRESS_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference UPDATE_ADDRESS_PERMISSION");
         assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
     }
 }

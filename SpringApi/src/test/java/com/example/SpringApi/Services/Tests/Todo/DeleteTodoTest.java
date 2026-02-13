@@ -23,8 +23,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("TodoService - DeleteTodo Tests")
 class DeleteTodoTest extends TodoServiceTestBase {
 
-    // Total Tests: 12
 
+    // Total Tests: 12
     /*
      **********************************************************************************************
      * SUCCESS TESTS

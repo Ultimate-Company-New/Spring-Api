@@ -4,8 +4,6 @@ import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.DatabaseModels.UserLog;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -17,8 +15,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("UserLogService - LogData Tests")
 class LogDataTest extends UserLogServiceTestBase {
 
-    // Total Tests: 38
 
+    // Total Tests: 31
     // ========================================
     // Section 1: Success Tests
     // ========================================
@@ -31,7 +29,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - All Values Provided - Success")
-    void logData_allValuesProvided_success() {
+    void logData_s01_allValuesProvided_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -50,7 +48,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Always Returns True - Success")
-    void logData_alwaysReturnsTrue_success() {
+    void logData_s02_alwaysReturnsTrue_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -70,7 +68,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Basic 3 Param - Success")
-    void logData_basicThreeParam_success() {
+    void logData_s03_basicThreeParam_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -89,7 +87,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Both Null 3 Param - Success")
-    void logData_bothNullThreeParam_success() {
+    void logData_s04_bothNullThreeParam_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -108,7 +106,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Both Values Null 4 Param - Success")
-    void logData_bothValuesNullFourParam_success() {
+    void logData_s05_bothValuesNullFourParam_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -127,7 +125,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Empty Action - Success")
-    void logData_emptyAction_success() {
+    void logData_s06_emptyAction_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -146,7 +144,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Empty Endpoint - Success")
-    void logData_emptyEndpoint_success() {
+    void logData_s07_emptyEndpoint_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -165,7 +163,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Empty New Value - Success")
-    void logData_emptyNewValue_success() {
+    void logData_s08_emptyNewValue_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -184,7 +182,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Json Like Values - Success")
-    void logData_jsonLikeValues_success() {
+    void logData_s09_jsonLikeValues_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -204,7 +202,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Long Endpoint Path - Success")
-    void logData_longEndpointPath_success() {
+    void logData_s10_longEndpointPath_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
         String longEndpoint = "/api/v1/" + "segment/".repeat(100);
@@ -224,7 +222,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Multiple Calls Work Independently - Success")
-    void logData_multipleCallsWorkIndependently_success() {
+    void logData_s11_multipleCallsWorkIndependently_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -244,7 +242,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Null Endpoint - Success")
-    void logData_nullEndpoint_success() {
+    void logData_s12_nullEndpoint_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -263,7 +261,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Null New Value 4 Param - Success")
-    void logData_nullNewValueFourParam_success() {
+    void logData_s13_nullNewValueFourParam_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -282,7 +280,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Null New Value 3 Param - Success")
-    void logData_nullNewValueThreeParam_success() {
+    void logData_s14_nullNewValueThreeParam_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -301,7 +299,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Null Old Value - Success")
-    void logData_nullOldValue_success() {
+    void logData_s15_nullOldValue_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -320,7 +318,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Numeric String Values - Success")
-    void logData_numericStringValues_success() {
+    void logData_s16_numericStringValues_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -339,7 +337,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Repository Save Called Once - Success")
-    void logData_repositorySaveCalledOnce_success() {
+    void logData_s17_repositorySaveCalledOnce_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -357,7 +355,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Special Chars Endpoint - Success")
-    void logData_specialCharsEndpoint_success() {
+    void logData_s18_specialCharsEndpoint_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -376,7 +374,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Special Chars In Action - Success")
-    void logData_specialCharsInAction_success() {
+    void logData_s19_specialCharsInAction_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -395,7 +393,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Sql Like Values - Success")
-    void logData_sqlLikeValues_success() {
+    void logData_s20_sqlLikeValues_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -415,7 +413,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Unicode In Action - Success")
-    void logData_unicodeInAction_success() {
+    void logData_s21_unicodeInAction_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -435,7 +433,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Very Long Action - Success")
-    void logData_veryLongAction_success() {
+    void logData_s22_veryLongAction_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
         String longAction = "A".repeat(1000);
@@ -455,7 +453,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Very Long New Value - Success")
-    void logData_veryLongNewValue_success() {
+    void logData_s23_veryLongNewValue_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
         String longValue = "C".repeat(5000);
@@ -475,7 +473,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Very Long Old Value - Success")
-    void logData_veryLongOldValue_success() {
+    void logData_s24_veryLongOldValue_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
         String longValue = "B".repeat(5000);
@@ -495,7 +493,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Whitespace Action - Success")
-    void logData_whitespaceAction_success() {
+    void logData_s25_whitespaceAction_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -513,19 +511,22 @@ class LogDataTest extends UserLogServiceTestBase {
      * Expected Result: Log is created.
      * Assertions: assertTrue(result).
      */
-    @ParameterizedTest
-    @ValueSource(longs = { Long.MAX_VALUE, Long.MIN_VALUE, -1L, 0L })
+    @Test
     @DisplayName("logData - Varied User IDs (Max/Min/Neg/Zero) - Success")
-    void logData_variedUserIds_success(long userId) {
+    void logData_s26_variedUserIds_success() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
+        Long[] userIds = new Long[] { Long.MAX_VALUE, Long.MIN_VALUE, -1L, 0L };
 
         // Act
-        Boolean result = userLogService.logData(userId, TEST_ACTION, TEST_ENDPOINT);
+        for (Long userId : userIds) {
+            Boolean result = userLogService.logData(userId, TEST_ACTION, TEST_ENDPOINT);
 
-        // Assert
-        assertTrue(result);
-        verify(userLogRepository).save(any(UserLog.class));
+            // Assert
+            assertTrue(result);
+        }
+
+        verify(userLogRepository, times(userIds.length)).save(any(UserLog.class));
     }
 
     // ========================================
@@ -562,7 +563,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Controller permission forbidden")
-    void logData_controller_permission_forbidden() throws NoSuchMethodException {
+    void logData_p01_controller_permission_forbidden() throws NoSuchMethodException {
         // Arrange
         com.example.SpringApi.Models.RequestModels.UserLogsRequestModel request = new com.example.SpringApi.Models.RequestModels.UserLogsRequestModel();
         stubServiceThrowsUnauthorizedException();
@@ -591,7 +592,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Internal Service Method - No Public Endpoint")
-    void logData_internalServiceMethod_noControllerEndpoint() {
+    void logData_p02_internalServiceMethod_noControllerEndpoint() {
         // Arrange
         stubUserLogRepositorySave(testUserLog);
 
@@ -613,7 +614,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Controller permission unauthorized - Success")
-    void logData_controller_permission_unauthorized() {
+    void logData_p03_controller_permission_unauthorized() {
         // Arrange
         com.example.SpringApi.Models.RequestModels.UserLogsRequestModel request = new com.example.SpringApi.Models.RequestModels.UserLogsRequestModel();
         // Use both stubs to ensure coverage of user instruction and actual method
@@ -635,7 +636,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Controller delegates to service correctly")
-    void logData_controller_permission_Success() {
+    void logData_p04_controller_permission_Success() {
         // Arrange
         com.example.SpringApi.Models.RequestModels.UserLogsRequestModel request = new com.example.SpringApi.Models.RequestModels.UserLogsRequestModel();
         stubUserLogServiceFetchUserLogsInBatchesMock(request,

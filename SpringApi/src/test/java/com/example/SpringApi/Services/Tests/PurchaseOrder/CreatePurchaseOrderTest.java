@@ -37,8 +37,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @DisplayName("PurchaseOrderService - CreatePurchaseOrder Tests")
 public class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
-    // Total Tests: 8
 
+    // Total Tests: 8
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -215,16 +215,5 @@ public class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
-
-    private void stubSuccessfulPurchaseOrderCreate() {
-        stubPurchaseOrderRepositorySave(testPurchaseOrder);
-        stubOrderSummaryRepositorySave(testOrderSummary);
-        stubAddressRepositoryFindExactDuplicate(Optional.empty());
-        stubAddressRepositorySave(testAddress);
-        stubShipmentRepositorySaveAssigningId(1L);
-        stubShipmentProductRepositorySaveAll();
-        stubShipmentPackageRepositorySaveAssigningId(1L);
-        stubShipmentPackageProductRepositorySaveAll();
     }
 }

@@ -38,8 +38,8 @@ import static org.mockito.Mockito.verify;
  */
 @DisplayName("Update Package Tests")
 class UpdatePackageTest extends PackageServiceTestBase {
-    // Total Tests: 25
 
+    // Total Tests: 25
     /*
      **********************************************************************************************
      * SUCCESS TESTS

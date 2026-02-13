@@ -20,8 +20,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Confirm Email Tests")
 public class ConfirmEmailTest extends LoginServiceTestBase {
-    // Total Tests: 8
 
+    // Total Tests: 8
     /*
      **********************************************************************************************
      * SUCCESS TESTS

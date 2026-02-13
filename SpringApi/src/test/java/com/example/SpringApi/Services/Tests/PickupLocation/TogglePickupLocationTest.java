@@ -23,8 +23,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Toggle Pickup Location Tests")
 class TogglePickupLocationTest extends PickupLocationServiceTestBase {
-    // Total Tests: 15
 
+    // Total Tests: 15
     /*
      **********************************************************************************************
      * SUCCESS TESTS

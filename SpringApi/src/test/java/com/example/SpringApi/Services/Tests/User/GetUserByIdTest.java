@@ -21,12 +21,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserService.getUserById method.
  * 
- * Total Tests: 10
  */
 @DisplayName("UserService - GetUserById Tests")
 class GetUserByIdTest extends UserServiceTestBase {
-    // Total Tests: 10
 
+    // Total Tests: 10
     // ========================================
     // SUCCESS TESTS
     // ========================================

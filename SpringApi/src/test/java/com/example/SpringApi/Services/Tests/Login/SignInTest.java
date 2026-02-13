@@ -28,8 +28,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("SignIn Tests")
 public class SignInTest extends LoginServiceTestBase {
 
-    // Total Tests: 22
 
+    // Total Tests: 22
     /*
      **********************************************************************************************
      * SUCCESS TESTS

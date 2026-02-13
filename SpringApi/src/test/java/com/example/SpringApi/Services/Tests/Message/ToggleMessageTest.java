@@ -24,8 +24,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("ToggleMessage Tests")
 public class ToggleMessageTest extends MessageServiceTestBase {
 
-    // Total Tests: 12
 
+    // Total Tests: 12
     /*
      **********************************************************************************************
      * SUCCESS TESTS

@@ -27,8 +27,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("TodoService - UpdateTodo Tests")
 class UpdateTodoTest extends TodoServiceTestBase {
 
-    // Total Tests: 19
 
+    // Total Tests: 19
     // ========================================
     // Section 1: Success Tests
     // ========================================

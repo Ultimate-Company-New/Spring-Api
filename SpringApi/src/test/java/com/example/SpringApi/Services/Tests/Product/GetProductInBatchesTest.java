@@ -34,8 +34,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("ProductService - GetProductInBatches Tests")
 class GetProductInBatchesTest extends ProductServiceTestBase {
-    // Total Tests: 15
 
+    // Total Tests: 15
     @BeforeEach
     void setUpFilters() {
         // Stub ProductFilterQueryBuilder.getColumnType for various categories
@@ -301,7 +301,7 @@ class GetProductInBatchesTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("getProductInBatches - Controller permission unauthorized - Success")
-    void getProductInBatches_controller_permission_unauthorized() {
+    void getProductInBatches_p01_controller_permission_unauthorized() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
         PaginationBaseRequestModel request = createValidPaginationRequest();
@@ -322,7 +322,7 @@ class GetProductInBatchesTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("getProductInBatches - Verify @PreAuthorize annotation - Success")
-    void getProductInBatches_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void getProductInBatches_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = ProductController.class.getMethod("getProductInBatches",
                 PaginationBaseRequestModel.class);
@@ -342,7 +342,7 @@ class GetProductInBatchesTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("getProductInBatches - Controller delegation check - Success")
-    void getProductInBatches_ControllerDelegation_Success() {
+    void getProductInBatches_p03_ControllerDelegation_Success() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
         PaginationBaseRequestModel request = createValidPaginationRequest();

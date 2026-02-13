@@ -21,8 +21,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("Toggle Lead Tests")
 class ToggleLeadTest extends LeadServiceTestBase {
 
-    // Total Tests: 11
 
+    // Total Tests: 11
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -166,47 +166,9 @@ class ToggleLeadTest extends LeadServiceTestBase {
 
     /*
      **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
+     * PERMISSION TESTS
      **********************************************************************************************
      */
-
-    /**
-     * Purpose: Verify forbidden access is handled at the controller level.
-     * Expected Result: Forbidden status is returned.
-     * Assertions: Response status is 403 FORBIDDEN.
-     */
-    @Test
-    @DisplayName("Toggle Lead - Controller permission forbidden - Success")
-    void toggleLead_controller_permission_forbidden() {
-        // Arrange
-        LeadController controller = new LeadController(leadServiceMock);
-        stubLeadServiceToggleLeadThrowsForbidden(DEFAULT_LEAD_ID);
-
-        // Act
-        ResponseEntity<?> response = controller.toggleLead(DEFAULT_LEAD_ID);
-
-        // Assert
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-    }
-
-    /**
-     * Purpose: Verify unauthorized access is handled at the controller level.
-     * Expected Result: Unauthorized status is returned.
-     * Assertions: Response status is 401 UNAUTHORIZED.
-     */
-    @Test
-    @DisplayName("Toggle Lead - Controller permission unauthorized - Success")
-    void toggleLead_controller_permission_unauthorized() {
-        // Arrange
-        LeadController controller = new LeadController(leadServiceMock);
-        stubLeadServiceToggleLeadThrowsUnauthorized(DEFAULT_LEAD_ID);
-
-        // Act
-        ResponseEntity<?> response = controller.toggleLead(DEFAULT_LEAD_ID);
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
 
     /**
      * Purpose: Verify @PreAuthorize annotation is declared on toggleLead method.
@@ -215,7 +177,7 @@ class ToggleLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Lead - Verify @PreAuthorize annotation is configured correctly")
-    void toggleLead_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void toggleLead_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange - Use reflection to verify the @PreAuthorize annotation is present
         var method = LeadController.class.getMethod("toggleLead",
                 Long.class);
@@ -249,7 +211,7 @@ class ToggleLeadTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Lead - Controller delegates to service correctly")
-    void toggleLead_WithValidRequest_DelegatesToService() {
+    void toggleLead_p02_WithValidRequest_DelegatesToService() {
         // Arrange
         LeadController controller = new LeadController(leadServiceMock);
         stubLeadServiceToggleLeadDoNothing(DEFAULT_LEAD_ID);
@@ -261,5 +223,43 @@ class ToggleLeadTest extends LeadServiceTestBase {
         verify(leadServiceMock, times(1)).toggleLead(DEFAULT_LEAD_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode(),
                 "Should return HTTP 200 OK");
+    }
+
+    /**
+     * Purpose: Verify forbidden access is handled at the controller level.
+     * Expected Result: Forbidden status is returned.
+     * Assertions: Response status is 403 FORBIDDEN.
+     */
+    @Test
+    @DisplayName("Toggle Lead - Controller permission forbidden - Success")
+    void toggleLead_p03_controller_permission_forbidden() {
+        // Arrange
+        LeadController controller = new LeadController(leadServiceMock);
+        stubLeadServiceToggleLeadThrowsForbidden(DEFAULT_LEAD_ID);
+
+        // Act
+        ResponseEntity<?> response = controller.toggleLead(DEFAULT_LEAD_ID);
+
+        // Assert
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify unauthorized access is handled at the controller level.
+     * Expected Result: Unauthorized status is returned.
+     * Assertions: Response status is 401 UNAUTHORIZED.
+     */
+    @Test
+    @DisplayName("Toggle Lead - Controller permission unauthorized - Success")
+    void toggleLead_p04_controller_permission_unauthorized() {
+        // Arrange
+        LeadController controller = new LeadController(leadServiceMock);
+        stubLeadServiceToggleLeadThrowsUnauthorized(DEFAULT_LEAD_ID);
+
+        // Act
+        ResponseEntity<?> response = controller.toggleLead(DEFAULT_LEAD_ID);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }

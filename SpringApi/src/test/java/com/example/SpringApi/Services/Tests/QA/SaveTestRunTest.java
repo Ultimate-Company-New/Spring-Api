@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for QAService.saveTestRun() method.
  * 
- * Total Tests: 26
  * 
  * Test Coverage:
  * - Success scenarios (6 tests)
@@ -28,8 +27,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(MockitoExtension.class)
 class SaveTestRunTest extends QAServiceTestBase {
-    // Total Tests: 26
 
+    // Total Tests: 26
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -42,7 +41,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_ValidRequest_Success() {
+    void saveTestRun_s01_ValidRequest_Success() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         TestRun savedTestRun = createTestRun();
@@ -61,7 +60,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_multipleResults_savesAllResults() {
+    void saveTestRun_s02_multipleResults_savesAllResults() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest("TestService", 5);
         TestRun savedTestRun = createTestRun();
@@ -81,7 +80,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_withEnvironment_savesEnvironment() {
+    void saveTestRun_s03_withEnvironment_savesEnvironment() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         request.setEnvironment("production");
@@ -102,7 +101,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_withRunType_savesRunType() {
+    void saveTestRun_s04_withRunType_savesRunType() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         request.setRunType("automated");
@@ -123,7 +122,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_updatesLatestTestResults_correctly() {
+    void saveTestRun_s05_updatesLatestTestResults_correctly() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         TestRun savedTestRun = createTestRun();
@@ -143,7 +142,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_marksTestRunComplete_afterSave() {
+    void saveTestRun_s06_marksTestRunComplete_afterSave() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         TestRun savedTestRun = createTestRun();
@@ -168,7 +167,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_nullRequest_throwsBadRequestException() {
+    void saveTestRun_f01_nullRequest_throwsBadRequestException() {
         // Arrange
         TestRunRequestModel request = null;
 
@@ -185,7 +184,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_nullServiceName_throwsBadRequestException() {
+    void saveTestRun_f02_nullServiceName_throwsBadRequestException() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         request.setServiceName(null);
@@ -203,7 +202,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_emptyServiceName_throwsBadRequestException() {
+    void saveTestRun_f03_emptyServiceName_throwsBadRequestException() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         request.setServiceName("");
@@ -221,7 +220,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_whitespaceServiceName_throwsBadRequestException() {
+    void saveTestRun_f04_whitespaceServiceName_throwsBadRequestException() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         request.setServiceName("   ");
@@ -239,7 +238,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_nullResults_throwsBadRequestException() {
+    void saveTestRun_f05_nullResults_throwsBadRequestException() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         request.setResults(null);
@@ -257,7 +256,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_emptyResults_throwsBadRequestException() {
+    void saveTestRun_f06_emptyResults_throwsBadRequestException() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         request.setResults(new ArrayList<>());
@@ -275,7 +274,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_resultWithNullTestMethodName_handlesGracefully() {
+    void saveTestRun_f07_resultWithNullTestMethodName_handlesGracefully() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         request.getResults().get(0).setTestMethodName(null);
@@ -295,7 +294,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_resultWithNullMethodName_handlesGracefully() {
+    void saveTestRun_f08_resultWithNullMethodName_handlesGracefully() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         request.getResults().get(0).setMethodName(null);
@@ -315,7 +314,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_resultWithNullStatus_handlesGracefully() {
+    void saveTestRun_f09_resultWithNullStatus_handlesGracefully() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         request.getResults().get(0).setStatus(null);
@@ -335,7 +334,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_resultWithNullDuration_defaultsToZero() {
+    void saveTestRun_f10_resultWithNullDuration_defaultsToZero() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         request.getResults().get(0).setDurationMs(null);
@@ -355,7 +354,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_resultWithNegativeDuration_handlesGracefully() {
+    void saveTestRun_f11_resultWithNegativeDuration_handlesGracefully() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         request.getResults().get(0).setDurationMs(-100);
@@ -375,7 +374,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_exceptionMessages_useErrorConstants() {
+    void saveTestRun_f12_exceptionMessages_useErrorConstants() {
         // Arrange - null request
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
@@ -398,7 +397,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_singleResult_savesSingleResult() {
+    void saveTestRun_f13_singleResult_savesSingleResult() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest("TestService", 1);
         TestRun savedTestRun = createTestRun();
@@ -418,7 +417,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_largeNumberOfResults_savesAll() {
+    void saveTestRun_f14_largeNumberOfResults_savesAll() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest("TestService", 100);
         TestRun savedTestRun = createTestRun();
@@ -438,7 +437,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_resultWithErrorMessage_savesErrorMessage() {
+    void saveTestRun_f15_resultWithErrorMessage_savesErrorMessage() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         request.getResults().get(0).setErrorMessage("Test failed with error");
@@ -459,7 +458,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_resultWithStackTrace_savesStackTrace() {
+    void saveTestRun_f16_resultWithStackTrace_savesStackTrace() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         request.getResults().get(0).setStackTrace("at line 1\nat line 2");
@@ -480,7 +479,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_resultWithDisplayName_savesDisplayName() {
+    void saveTestRun_f17_resultWithDisplayName_savesDisplayName() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         request.getResults().get(0).setDisplayName("Custom Display Name");
@@ -501,7 +500,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_unknownServiceName_stillSaves() {
+    void saveTestRun_f18_unknownServiceName_stillSaves() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest("UnknownService", 1);
         TestRun savedTestRun = createTestRun();
@@ -520,7 +519,7 @@ class SaveTestRunTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void saveTestRun_repositorySaveFailure_propagatesException() {
+    void saveTestRun_f19_repositorySaveFailure_propagatesException() {
         // Arrange
         TestRunRequestModel request = createValidTestRunRequest();
         stubTestRunRepositorySaveThrows(new RuntimeException(ErrorMessages.CommonErrorMessages.DATABASE_ERROR));

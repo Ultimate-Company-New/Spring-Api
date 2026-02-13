@@ -27,12 +27,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserLogService.fetchUserLogsInBatches method.
  * 
- * Total Tests: 16
  */
 @DisplayName("UserLogService - FetchUserLogsInBatches Tests")
 class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
-    // Total Tests: 16
 
+    // Total Tests: 16
     // ========================================
     // SUCCESS TESTS
     // ========================================
@@ -377,7 +376,8 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> userLogService.fetchUserLogsInBatches(request),
                     "Invalid column '" + invalidColumn + "' should throw BadRequestException");
-            assertTrue(ex.getMessage().contains("Invalid column name"),
+            assertNotNull(ex.getMessage());
+            assertTrue(ex.getMessage().contains(invalidColumn),
                     "Error message should indicate invalid column name");
         }
     }

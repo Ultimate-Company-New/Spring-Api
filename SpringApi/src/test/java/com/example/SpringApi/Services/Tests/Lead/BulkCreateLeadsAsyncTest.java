@@ -22,8 +22,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("Bulk Create Leads Async Tests")
 class BulkCreateLeadsAsyncTest extends LeadServiceTestBase {
 
-    // Total Tests: 4
 
+    // Total Tests: 4
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -79,7 +79,7 @@ class BulkCreateLeadsAsyncTest extends LeadServiceTestBase {
 
     /*
      **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
+     * PERMISSION TESTS
      **********************************************************************************************
      */
 
@@ -113,7 +113,7 @@ class BulkCreateLeadsAsyncTest extends LeadServiceTestBase {
      */
     @Test
     @DisplayName("Bulk Create Leads Async - Verify @PreAuthorize annotation is configured correctly")
-    void bulkCreateLeads_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void bulkCreateLeadsAsync_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         var method = LeadController.class.getMethod("bulkCreateLeads", java.util.List.class);
 

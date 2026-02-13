@@ -18,8 +18,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Toggle Address Tests")
 class ToggleAddressTest extends AddressServiceTestBase {
-    // Total Tests: 13
 
+    // Total Tests: 13
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -247,7 +247,7 @@ class ToggleAddressTest extends AddressServiceTestBase {
 
     /*
      **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
+     * PERMISSION TESTS
      **********************************************************************************************
      * The following tests verify that authorization is properly configured at the
      * controller level.
@@ -256,43 +256,13 @@ class ToggleAddressTest extends AddressServiceTestBase {
      */
 
     /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation
-     * for security.
-     * Expected Result: The method should be annotated with @PreAuthorize checking
-     * for DELETE_ADDRESS_PERMISSION.
-     * Assertions: Annotation is present and contains expected permission string.
-     */
-    @Test
-    @DisplayName("Toggle Address - Controller permission forbidden - Success")
-    void toggleAddress_controller_permission_forbidden() throws NoSuchMethodException {
-        // Arrange
-        var method = AddressController.class.getMethod("toggleAddress", Long.class);
-        stubServiceToggleAddressDoNothing(DEFAULT_ADDRESS_ID);
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-                org.springframework.security.access.prepost.PreAuthorize.class);
-        ResponseEntity<?> response = addressController.toggleAddress(DEFAULT_ADDRESS_ID);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation, "toggleAddress method should have @PreAuthorize annotation");
-
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-                Authorizations.DELETE_ADDRESS_PERMISSION + "')";
-
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                "PreAuthorize annotation should reference DELETE_ADDRESS_PERMISSION");
-        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
-    }
-
-    /**
      * Purpose: Verify @PreAuthorize annotation is declared on toggleAddress method.
      * Expected Result: Method has @PreAuthorize annotation with correct permission.
      * Assertions: Annotation exists and references DELETE_ADDRESS_PERMISSION.
      */
     @Test
     @DisplayName("Toggle Address - Verify @PreAuthorize annotation is configured correctly")
-    void toggleAddress_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void toggleAddress_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         var method = AddressController.class.getMethod("toggleAddress", Long.class);
 
@@ -324,7 +294,7 @@ class ToggleAddressTest extends AddressServiceTestBase {
      */
     @Test
     @DisplayName("Toggle Address - Controller delegates to service correctly")
-    void toggleAddress_WithValidRequest_DelegatesToService() {
+    void toggleAddress_p02_WithValidRequest_DelegatesToService() {
         // Arrange
         stubServiceToggleAddressDoNothing(DEFAULT_ADDRESS_ID);
 
@@ -333,6 +303,36 @@ class ToggleAddressTest extends AddressServiceTestBase {
 
         // Assert - Verify service was called and correct response returned
         verify(addressService, times(1)).toggleAddress(DEFAULT_ADDRESS_ID);
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
+    }
+
+    /**
+     * Purpose: Verify that the controller has the correct @PreAuthorize annotation
+     * for security.
+     * Expected Result: The method should be annotated with @PreAuthorize checking
+     * for DELETE_ADDRESS_PERMISSION.
+     * Assertions: Annotation is present and contains expected permission string.
+     */
+    @Test
+    @DisplayName("Toggle Address - Controller permission forbidden - Success")
+    void toggleAddress_p03_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = AddressController.class.getMethod("toggleAddress", Long.class);
+        stubServiceToggleAddressDoNothing(DEFAULT_ADDRESS_ID);
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+        ResponseEntity<?> response = addressController.toggleAddress(DEFAULT_ADDRESS_ID);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "toggleAddress method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.DELETE_ADDRESS_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference DELETE_ADDRESS_PERMISSION");
         assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
     }
 }

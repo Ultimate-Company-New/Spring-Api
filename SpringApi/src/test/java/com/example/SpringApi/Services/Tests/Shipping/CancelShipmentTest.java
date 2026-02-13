@@ -23,8 +23,8 @@ import static org.mockito.Mockito.verify;
 @DisplayName("CancelShipment Tests")
 class CancelShipmentTest extends ShippingServiceTestBase {
 
-    // Total Tests: 8
 
+    // Total Tests: 8
     /*
      **********************************************************************************************
      * SUCCESS TESTS

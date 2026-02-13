@@ -30,12 +30,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserService.updateUser method.
  * 
- * Total Tests: 16
  */
 @DisplayName("UserService - UpdateUser Tests")
 class UpdateUserTest extends UserServiceTestBase {
-    // Total Tests: 16
 
+    // Total Tests: 16
     // ========================================
     // SUCCESS TESTS
     // ========================================

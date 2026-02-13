@@ -22,12 +22,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserService.getUserByEmail method.
  * 
- * Total Tests: 11
  */
 @DisplayName("UserService - GetUserByEmail Tests")
 class GetUserByEmailTest extends UserServiceTestBase {
-    // Total Tests: 11
 
+    // Total Tests: 11
     // ========================================
     // SUCCESS TESTS
     // ========================================

@@ -34,8 +34,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("UpdateMessage Tests")
 public class UpdateMessageTest extends MessageServiceTestBase {
 
-    // Total Tests: 31
 
+    // Total Tests: 31
     /*
      **********************************************************************************************
      * SUCCESS TESTS

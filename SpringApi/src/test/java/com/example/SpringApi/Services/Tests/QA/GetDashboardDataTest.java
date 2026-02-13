@@ -18,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for QAService.getDashboardData() method.
  * 
- * Total Tests: 17
  * 
  * Test Coverage:
  * - Success scenarios (5 tests)
@@ -27,8 +26,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(MockitoExtension.class)
 class GetDashboardDataTest extends QAServiceTestBase {
-    // Total Tests: 17
 
+    // Total Tests: 17
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -41,7 +40,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getDashboardData_success_returnsCompleteDashboardData() {
+    void getDashboardData_s01_success_returnsCompleteDashboardData() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));
@@ -64,7 +63,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getDashboardData_multipleServices_calculatesCorrectTotals() {
+    void getDashboardData_s02_multipleServices_calculatesCorrectTotals() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));
@@ -86,7 +85,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getDashboardData_emptyServices_returnsZeroCoverage() {
+    void getDashboardData_s03_emptyServices_returnsZeroCoverage() {
         // Arrange
         stubLatestTestResultRepositoryFindByClientId(new ArrayList<>());
 
@@ -104,7 +103,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getDashboardData_allMethodsCovered_returns100PercentCoverage() {
+    void getDashboardData_s04_allMethodsCovered_returns100PercentCoverage() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));
@@ -124,7 +123,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getDashboardData_partialCoverage_calculatesCorrectPercentage() {
+    void getDashboardData_s05_partialCoverage_calculatesCorrectPercentage() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));
@@ -147,7 +146,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getDashboardData_coveragePercentage_isBetween0And100() {
+    void getDashboardData_s06_coveragePercentage_isBetween0And100() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));
@@ -168,7 +167,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getDashboardData_totalMethods_isNonNegative() {
+    void getDashboardData_s07_totalMethods_isNonNegative() {
         // Arrange
         stubLatestTestResultRepositoryFindByClientId(new ArrayList<>());
 
@@ -186,7 +185,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getDashboardData_totalTests_isNonNegative() {
+    void getDashboardData_s08_totalTests_isNonNegative() {
         // Arrange
         stubLatestTestResultRepositoryFindByClientId(new ArrayList<>());
 
@@ -204,7 +203,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getDashboardData_serviceBreakdown_matchesTotalCounts() {
+    void getDashboardData_s09_serviceBreakdown_matchesTotalCounts() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));
@@ -226,7 +225,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getDashboardData_availableServices_containsAllMappedServices() {
+    void getDashboardData_s10_availableServices_containsAllMappedServices() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));
@@ -248,7 +247,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getDashboardData_noTestsForAnyMethod_returnsZeroTests() {
+    void getDashboardData_s11_noTestsForAnyMethod_returnsZeroTests() {
         // Arrange
         stubLatestTestResultRepositoryFindByClientId(new ArrayList<>());
 
@@ -266,7 +265,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getDashboardData_singleService_returnsCorrectData() {
+    void getDashboardData_s12_singleService_returnsCorrectData() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));
@@ -286,7 +285,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getDashboardData_largeNumberOfServices_handlesCorrectly() {
+    void getDashboardData_s13_largeNumberOfServices_handlesCorrectly() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         for (int i = 1; i <= 50; i++) {
@@ -308,7 +307,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getDashboardData_servicesWithNoMethods_excludedFromCounts() {
+    void getDashboardData_s14_servicesWithNoMethods_excludedFromCounts() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));
@@ -328,7 +327,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
      * Assertions: See assertions in test body.
      */
     @Test
-    void getDashboardData_roundingPrecision_correctToTwoDecimals() {
+    void getDashboardData_s15_roundingPrecision_correctToTwoDecimals() {
         // Arrange
         List<LatestTestResult> results = new ArrayList<>();
         results.add(createLatestTestResult(1L, "Service1", "testMethod1"));

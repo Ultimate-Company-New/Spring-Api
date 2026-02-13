@@ -1,155 +1,236 @@
 package com.example.SpringApi.Services.Tests.Payment;
 
 import com.example.SpringApi.Controllers.PaymentController;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Models.RequestModels.CashPaymentRequestModel;
-import com.example.SpringApi.Services.PaymentService;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.reflect.Method;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.DynamicTest;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
-
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
- * Tests for PaymentService.recordCashPaymentFollowUp() method.
- * Contains 12 tests covering various scenarios.
+ * Tests for PaymentService.recordCashPaymentFollowUp().
  */
 @DisplayName("RecordCashPaymentFollowUp Tests")
 class RecordCashPaymentFollowUpTest extends PaymentServiceTestBase {
 
+    // Total Tests: 10
+    // ========================================
+    // SUCCESS TESTS
+    // ========================================
+
     /**
-     * Purpose: Verify that recordCashPaymentFollowUp throws NotFoundException when PO not found.
-     * Expected Result: NotFoundException is thrown (PO lookup happens first).
-     * Assertions: Exception message matches PurchaseOrder InvalidId error.
+     * Purpose: Verify purchase order repository interaction for follow-up cash payment flow.
+     * Expected Result: purchaseOrderRepository.findById is called once.
+     * Assertions: verify interaction count.
      */
     @Test
-    @DisplayName("recordCashPaymentFollowUp - PO not found - Throws NotFoundException")
-    void recordCashPaymentFollowUp_PONotFound_ThrowsNotFoundException() {
-        when(purchaseOrderRepository.findById(TEST_PO_ID)).thenReturn(Optional.empty());
-        
+    @DisplayName("recordCashPaymentFollowUp - Verify Purchase Order Repository Interaction - Success")
+    void recordCashPaymentFollowUp_verifyPurchaseOrderRepositoryInteraction_success() {
+        // Arrange
+        stubPurchaseOrderRepositoryFindById(TEST_PO_ID, Optional.empty());
+
+        // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> paymentService.recordCashPaymentFollowUp(testCashPaymentRequest));
+
+        // Assert
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        verify(purchaseOrderRepository, times(1)).findById(TEST_PO_ID);
+    }
+
+    // ========================================
+    // FAILURE TESTS
+    // ========================================
+
+    /**
+     * Purpose: Verify follow-up cash payment fails when purchase order is missing.
+     * Expected Result: NotFoundException with purchase order invalid id message.
+     * Assertions: Exception type and exact message.
+     */
+    @Test
+    @DisplayName("recordCashPaymentFollowUp - Purchase Order Not Found - Failure")
+    void recordCashPaymentFollowUp_f01_purchaseOrderNotFound_failure() {
+        // Arrange
+        stubPurchaseOrderRepositoryFindById(TEST_PO_ID, Optional.empty());
+
+        // Act
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> paymentService.recordCashPaymentFollowUp(testCashPaymentRequest));
+
+        // Assert
         assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
     }
 
     /**
-     * Purpose: Verify that recordCashPaymentFollowUp handles null request.
-     * Expected Result: NullPointerException is thrown (accessing null request).
-     * Assertions: Exception is thrown.
+     * Purpose: Verify follow-up cash payment throws NullPointerException for null request.
+     * Expected Result: NullPointerException.
+     * Assertions: Exception type.
      */
     @Test
-    @DisplayName("recordCashPaymentFollowUp - Null request - Throws NullPointerException")
-    void recordCashPaymentFollowUp_NullRequest_ThrowsNullPointerException() {
-        assertThrows(NullPointerException.class,
-                () -> paymentService.recordCashPaymentFollowUp(null));
+    @DisplayName("recordCashPaymentFollowUp - Null Request - Failure")
+    void recordCashPaymentFollowUp_f02_nullRequest_failure() {
+        // Arrange
+        CashPaymentRequestModel request = null;
+
+        // Act
+        NullPointerException ex = assertThrows(NullPointerException.class,
+                () -> paymentService.recordCashPaymentFollowUp(request));
+
+        // Assert
+        assertNotNull(ex.getMessage());
     }
 
     /**
-     * Purpose: Verify that recordCashPaymentFollowUp handles negative PO ID.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Exception message matches PurchaseOrder InvalidId error.
+     * Purpose: Verify negative purchase order id throws NotFoundException.
+     * Expected Result: NotFoundException with purchase order invalid id message.
+     * Assertions: Exception type and exact message.
      */
     @Test
-    @DisplayName("recordCashPaymentFollowUp - Negative PO ID - Throws NotFoundException")
-    void recordCashPaymentFollowUp_NegativePurchaseOrderId_ThrowsNotFoundException() {
+    @DisplayName("recordCashPaymentFollowUp - Negative Purchase Order Id - Failure")
+    void recordCashPaymentFollowUp_f03_negativePurchaseOrderId_failure() {
+        // Arrange
         testCashPaymentRequest.setPurchaseOrderId(-1L);
-        when(purchaseOrderRepository.findById(-1L)).thenReturn(Optional.empty());
-        
+        stubPurchaseOrderRepositoryFindById(-1L, Optional.empty());
+
+        // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> paymentService.recordCashPaymentFollowUp(testCashPaymentRequest));
+
+        // Assert
         assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
     }
 
     /**
-     * Purpose: Verify that recordCashPaymentFollowUp handles zero PO ID.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Exception message matches PurchaseOrder InvalidId error.
+     * Purpose: Verify zero purchase order id throws NotFoundException.
+     * Expected Result: NotFoundException with purchase order invalid id message.
+     * Assertions: Exception type and exact message.
      */
     @Test
-    @DisplayName("recordCashPaymentFollowUp - Zero PO ID - Throws NotFoundException")
-    void recordCashPaymentFollowUp_ZeroPurchaseOrderId_ThrowsNotFoundException() {
+    @DisplayName("recordCashPaymentFollowUp - Zero Purchase Order Id - Failure")
+    void recordCashPaymentFollowUp_f04_zeroPurchaseOrderId_failure() {
+        // Arrange
         testCashPaymentRequest.setPurchaseOrderId(0L);
-        when(purchaseOrderRepository.findById(0L)).thenReturn(Optional.empty());
-        
+        stubPurchaseOrderRepositoryFindById(0L, Optional.empty());
+
+        // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> paymentService.recordCashPaymentFollowUp(testCashPaymentRequest));
+
+        // Assert
         assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
     }
 
     /**
-     * Purpose: Verify that recordCashPaymentFollowUp handles Long.MAX_VALUE PO ID.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Exception message matches PurchaseOrder InvalidId error.
+     * Purpose: Verify max long purchase order id throws NotFoundException.
+     * Expected Result: NotFoundException with purchase order invalid id message.
+     * Assertions: Exception type and exact message.
      */
     @Test
-    @DisplayName("recordCashPaymentFollowUp - Long.MAX_VALUE PO ID - Throws NotFoundException")
-    void recordCashPaymentFollowUp_MaxLongPurchaseOrderId_ThrowsNotFoundException() {
+    @DisplayName("recordCashPaymentFollowUp - Max Long Purchase Order Id - Failure")
+    void recordCashPaymentFollowUp_f05_maxLongPurchaseOrderId_failure() {
+        // Arrange
         testCashPaymentRequest.setPurchaseOrderId(Long.MAX_VALUE);
-        when(purchaseOrderRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
-        
+        stubPurchaseOrderRepositoryFindById(Long.MAX_VALUE, Optional.empty());
+
+        // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> paymentService.recordCashPaymentFollowUp(testCashPaymentRequest));
+
+        // Assert
         assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
     }
 
     /**
-     * Purpose: Additional recordCashPaymentFollowUp invalid ID coverage.
-     * Expected Result: NotFoundException is thrown.
-     * Assertions: Exception message matches PurchaseOrder InvalidId.
+     * Purpose: Verify additional invalid IDs throw NotFoundException.
+     * Expected Result: NotFoundException with purchase order invalid id for each id.
+     * Assertions: Exception type and exact message for each id.
      */
-    @TestFactory
-    @DisplayName("recordCashPaymentFollowUp - Additional invalid PO IDs")
-    Stream<DynamicTest> recordCashPaymentFollowUp_AdditionalInvalidPoIds() {
-        return Stream.of(2L, 3L, 4L, 5L, 6L, -100L)
-                .map(id -> DynamicTest.dynamicTest("Invalid PO ID: " + id, () -> {
-                    testCashPaymentRequest.setPurchaseOrderId(id);
-                    when(purchaseOrderRepository.findById(id)).thenReturn(Optional.empty());
-                    NotFoundException ex = assertThrows(NotFoundException.class,
-                            () -> paymentService.recordCashPaymentFollowUp(testCashPaymentRequest));
-                    assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
-                }));
+    @Test
+    @DisplayName("recordCashPaymentFollowUp - Additional Invalid Purchase Order Ids - Failure")
+    void recordCashPaymentFollowUp_f06_additionalInvalidPurchaseOrderIds_failure() {
+        // Arrange
+        Long[] invalidIds = new Long[] { 2L, 3L, 4L, 5L, 6L, -100L };
+
+        // Act
+        for (Long invalidId : invalidIds) {
+            testCashPaymentRequest.setPurchaseOrderId(invalidId);
+            stubPurchaseOrderRepositoryFindById(invalidId, Optional.empty());
+            NotFoundException ex = assertThrows(NotFoundException.class,
+                    () -> paymentService.recordCashPaymentFollowUp(testCashPaymentRequest));
+
+            // Assert
+            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        }
     }
 
-    /*
-     **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
-     **********************************************************************************************
-     */
+    // ========================================
+    // PERMISSION TESTS
+    // ========================================
 
+    /**
+     * Purpose: Verify controller returns unauthorized status when service throws UnauthorizedException.
+     * Expected Result: HTTP 401 UNAUTHORIZED.
+     * Assertions: HTTP status is UNAUTHORIZED.
+     */
     @Test
-    @DisplayName("recordCashPaymentFollowUp - Verify @PreAuthorize Annotation")
-    void recordCashPaymentFollowUp_VerifyPreAuthorizeAnnotation() throws NoSuchMethodException {
+    @DisplayName("recordCashPaymentFollowUp - Controller Permission Forbidden")
+    void recordCashPaymentFollowUp_p01_controller_permission_forbidden() {
+        // Arrange
+        stubPaymentServiceRecordCashPaymentFollowUpThrowsUnauthorized();
+
+        // Act
+        ResponseEntity<?> response = paymentControllerWithMock.recordCashPaymentFollowUp(testCashPaymentRequest);
+
+        // Assert
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    /**
+     * Purpose: Verify controller method has expected @PreAuthorize permission constant.
+     * Expected Result: Annotation exists and contains UPDATE_PURCHASE_ORDERS_PERMISSION.
+     * Assertions: annotation not null and value contains expected permission.
+     */
+    @Test
+    @DisplayName("recordCashPaymentFollowUp - Controller PreAuthorize Annotation - Success")
+    void recordCashPaymentFollowUp_p02_controllerPreAuthorizeAnnotation_success() throws NoSuchMethodException {
+        // Arrange
         Method method = PaymentController.class.getMethod("recordCashPaymentFollowUp", CashPaymentRequestModel.class);
+
+        // Act
         PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
+
+        // Assert
         assertNotNull(annotation, "@PreAuthorize annotation should be present");
-        assertTrue(annotation.value().contains(Authorizations.UPDATE_PURCHASE_ORDERS_PERMISSION),
-            "@PreAuthorize should reference UPDATE_PURCHASE_ORDERS_PERMISSION");
+        assertTrue(annotation.value().contains(Authorizations.UPDATE_PURCHASE_ORDERS_PERMISSION));
     }
 
+    /**
+     * Purpose: Verify controller delegates follow-up cash payment request to service.
+     * Expected Result: HTTP 200 OK with delegated service call.
+     * Assertions: Service interaction and response code.
+     */
     @Test
-    @DisplayName("recordCashPaymentFollowUp - Controller delegates to service")
-    void recordCashPaymentFollowUp_WithValidRequest_DelegatesToService() {
-        PaymentService paymentServiceMock = mock(PaymentService.class);
-        PaymentController controller = new PaymentController(paymentServiceMock, null);
-        when(paymentServiceMock.recordCashPaymentFollowUp(testCashPaymentRequest))
-            .thenReturn(com.example.SpringApi.Models.ResponseModels.PaymentVerificationResponseModel
-                .success("payment-id", TEST_PO_ID, "APPROVED"));
+    @DisplayName("recordCashPaymentFollowUp - Controller Delegates To Service - Success")
+    void recordCashPaymentFollowUp_p03_controllerDelegatesToService_success() {
+        // Arrange
+        stubPaymentServiceRecordCashPaymentFollowUp(createSuccessPaymentVerificationResponse());
 
-        ResponseEntity<?> response = controller.recordCashPaymentFollowUp(testCashPaymentRequest);
+        // Act
+        ResponseEntity<?> response = paymentControllerWithMock.recordCashPaymentFollowUp(testCashPaymentRequest);
 
-        verify(paymentServiceMock).recordCashPaymentFollowUp(testCashPaymentRequest);
+        // Assert
+        verify(paymentServiceMock, times(1)).recordCashPaymentFollowUp(testCashPaymentRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

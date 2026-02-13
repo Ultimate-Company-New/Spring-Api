@@ -133,6 +133,10 @@ public abstract class LeadServiceTestBase {
         stubAddressRepositorySave(new Address(testLeadRequest.getAddress(), DEFAULT_CREATED_USER));
 
         // Configure mock to return default values for controller tests
+        stubLeadServiceMockDefaults();
+    }
+
+    protected void stubLeadServiceMockDefaults() {
         lenient().when(leadServiceMock.getUserId()).thenReturn(DEFAULT_USER_ID);
         lenient().when(leadServiceMock.getUser()).thenReturn(DEFAULT_LOGIN_NAME);
         lenient().when(leadServiceMock.getClientId()).thenReturn(TEST_CLIENT_ID);
@@ -283,16 +287,6 @@ public abstract class LeadServiceTestBase {
     }
 
     // ==================== UNAUTHORIZED STUBS ====================
-
-    protected LeadService buildLeadServiceMockForBulkCreateUnauthorized() {
-        LeadService service = org.mockito.Mockito.mock(LeadService.class);
-        lenient().when(service.getClientId()).thenReturn(TEST_CLIENT_ID);
-        lenient().when(service.getUserId()).thenReturn(DEFAULT_USER_ID);
-        lenient().when(service.getUser()).thenReturn(DEFAULT_LOGIN_NAME);
-        lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
-                .when(service).bulkCreateLeadsAsync(anyList(), anyLong(), anyString(), anyLong());
-        return service;
-    }
 
     protected void stubLeadServiceGetLeadsInBatchesThrowsUnauthorized() {
         lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))

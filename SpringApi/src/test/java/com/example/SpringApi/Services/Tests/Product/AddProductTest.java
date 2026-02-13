@@ -33,8 +33,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("ProductService - AddProduct Tests")
 class AddProductTest extends ProductServiceTestBase {
-    // Total Tests: 34
 
+    // Total Tests: 34
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -540,7 +540,7 @@ class AddProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("addProduct - All optional images present - Success")
-    void addProduct_AllOptionalImagesPresent_Success() {
+    void addProduct_p01_AllOptionalImagesPresent_Success() {
         // Arrange - all optional images already set in base setup
         stubProductCategoryRepositoryFindById(TEST_CATEGORY_ID, testCategory);
         stubProductRepositorySave(testProduct);
@@ -560,7 +560,7 @@ class AddProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("addProduct - Controller delegates to service - Success")
-    void addProduct_ControllerDelegation_Success() {
+    void addProduct_p02_ControllerDelegation_Success() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
         stubProductServiceAddProductDoNothing();
@@ -579,7 +579,7 @@ class AddProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("addProduct - Minimum valid dimensions - Success")
-    void addProduct_MinimumValidDimensions_Success() {
+    void addProduct_p03_MinimumValidDimensions_Success() {
         // Arrange
         testProductRequest.setWeightKgs(BigDecimal.ZERO);
         testProductRequest.setLength(new BigDecimal("0.01"));
@@ -604,7 +604,7 @@ class AddProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("addProduct - Controller permission unauthorized - Success")
-    void addProduct_controller_permission_unauthorized() {
+    void addProduct_p04_controller_permission_unauthorized() {
         // Arrange
         ProductController controller = new ProductController(productServiceMock);
         stubProductServiceAddProductThrowsUnauthorized();
@@ -623,7 +623,7 @@ class AddProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("addProduct - Only required images - Success")
-    void addProduct_OnlyRequiredImages_Success() {
+    void addProduct_p05_OnlyRequiredImages_Success() {
         // Arrange
         testProductRequest.setDefectImage(null);
         testProductRequest.setAdditionalImage1(null);
@@ -647,7 +647,7 @@ class AddProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("addProduct - Partial optional images - Success")
-    void addProduct_PartialOptionalImages_Success() {
+    void addProduct_p06_PartialOptionalImages_Success() {
         // Arrange
         testProductRequest.setAdditionalImage2(null);
         testProductRequest.setAdditionalImage3(null);
@@ -670,7 +670,7 @@ class AddProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("addProduct - Verify PreAuthorize annotation - Success")
-    void addProduct_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void addProduct_p07_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         Method method = ProductController.class.getMethod("addProduct", ProductRequestModel.class);
 
@@ -688,7 +688,7 @@ class AddProductTest extends ProductServiceTestBase {
      */
     @Test
     @DisplayName("addProduct - Zero weight - Success")
-    void addProduct_ZeroWeight_Success() {
+    void addProduct_p08_ZeroWeight_Success() {
         // Arrange
         testProductRequest.setWeightKgs(BigDecimal.ZERO);
         stubProductCategoryRepositoryFindById(TEST_CATEGORY_ID, testCategory);

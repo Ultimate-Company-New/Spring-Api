@@ -21,8 +21,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("GetShipmentById Tests")
 class GetShipmentByIdTest extends ShippingServiceTestBase {
 
-    // Total Tests: 15
 
+    // Total Tests: 15
     /*
      **********************************************************************************************
      * SUCCESS TESTS

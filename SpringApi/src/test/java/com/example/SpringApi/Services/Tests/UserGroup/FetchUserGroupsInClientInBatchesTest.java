@@ -28,12 +28,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserGroupService.fetchUserGroupsInClientInBatches method.
  * 
- * Total Tests: 9
  */
 @DisplayName("UserGroupService - FetchUserGroupsInClientInBatches Tests")
 class FetchUserGroupsInClientInBatchesTest extends UserGroupServiceTestBase {
-    // Total Tests: 9
 
+    // Total Tests: 9
     // ========================================
     // SUCCESS TESTS
     // ========================================

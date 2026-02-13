@@ -27,8 +27,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("Create Client Tests")
 class CreateClientTest extends ClientServiceTestBase {
 
-    // Total Tests: 34
 
+    // Total Tests: 34
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -710,37 +710,9 @@ class CreateClientTest extends ClientServiceTestBase {
 
     /*
      **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
+     * PERMISSION TESTS
      **********************************************************************************************
      */
-
-        /*
-         * Purpose: Verify controller has correct @PreAuthorize permission.
-         * Expected Result: Annotation exists and contains INSERT_CLIENT_PERMISSION.
-         * Assertions: Annotation is present and permission matches.
-         */
-        @Test
-        @DisplayName("Create Client - Controller permission forbidden - Success")
-        void createClient_controller_permission_forbidden() throws NoSuchMethodException {
-        // Arrange
-        var method = ClientController.class.getMethod("createClient",
-            com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
-        stubServiceCreateClientDoNothing();
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-            org.springframework.security.access.prepost.PreAuthorize.class);
-        ResponseEntity<?> response = clientController.createClient(testClientRequest);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation, "createClient method should have @PreAuthorize annotation");
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-            Authorizations.INSERT_CLIENT_PERMISSION + "')";
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-            "PreAuthorize annotation should reference INSERT_CLIENT_PERMISSION");
-        assertEquals(HttpStatus.CREATED, response.getStatusCode(),
-            "Should return HTTP 201 Created");
-        }
 
     /*
      * Purpose: Verify @PreAuthorize annotation is declared on createClient method.
@@ -749,7 +721,7 @@ class CreateClientTest extends ClientServiceTestBase {
      */
     @Test
     @DisplayName("Create Client - Verify @PreAuthorize annotation is configured correctly")
-    void createClient_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void createClient_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         var method = ClientController.class.getMethod("createClient",
                 com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
@@ -778,7 +750,7 @@ class CreateClientTest extends ClientServiceTestBase {
      */
     @Test
     @DisplayName("Create Client - Controller delegates to service correctly")
-    void createClient_WithValidRequest_DelegatesToService_Success() {
+    void createClient_p02_WithValidRequest_DelegatesToService_Success() {
         // Arrange
         stubServiceCreateClientDoNothing();
 
@@ -787,6 +759,34 @@ class CreateClientTest extends ClientServiceTestBase {
 
         // Assert
         verify(mockClientService, times(1)).createClient(testClientRequest);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode(),
+                "Should return HTTP 201 Created");
+    }
+
+    /*
+     * Purpose: Verify controller has correct @PreAuthorize permission.
+     * Expected Result: Annotation exists and contains INSERT_CLIENT_PERMISSION.
+     * Assertions: Annotation is present and permission matches.
+     */
+    @Test
+    @DisplayName("Create Client - Controller permission forbidden - Success")
+    void createClient_p03_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = ClientController.class.getMethod("createClient",
+                com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
+        stubServiceCreateClientDoNothing();
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+        ResponseEntity<?> response = clientController.createClient(testClientRequest);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "createClient method should have @PreAuthorize annotation");
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.INSERT_CLIENT_PERMISSION + "')";
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference INSERT_CLIENT_PERMISSION");
         assertEquals(HttpStatus.CREATED, response.getStatusCode(),
                 "Should return HTTP 201 Created");
     }

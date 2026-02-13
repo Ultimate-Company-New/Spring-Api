@@ -25,8 +25,8 @@ import static org.mockito.Mockito.verify;
  */
 @DisplayName("ProcessShipmentsAfterPaymentApproval Tests")
 class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
-    // Total Tests: 23
 
+    // Total Tests: 23
     /*
      **********************************************************************************************
      * SUCCESS TESTS

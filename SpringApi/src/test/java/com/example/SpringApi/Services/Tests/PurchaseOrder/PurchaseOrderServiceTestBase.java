@@ -490,6 +490,17 @@ public abstract class PurchaseOrderServiceTestBase {
                 .when(purchaseOrderServiceMock).createPurchaseOrder(any());
     }
 
+    protected void stubSuccessfulPurchaseOrderCreate() {
+        stubPurchaseOrderRepositorySave(testPurchaseOrder);
+        stubOrderSummaryRepositorySave(testOrderSummary);
+        stubAddressRepositoryFindExactDuplicate(Optional.empty());
+        stubAddressRepositorySave(testAddress);
+        stubShipmentRepositorySaveAssigningId(1L);
+        stubShipmentProductRepositorySaveAll();
+        stubShipmentPackageRepositorySaveAssigningId(1L);
+        stubShipmentPackageProductRepositorySaveAll();
+    }
+
     protected void stubPurchaseOrderServiceThrowsUnauthorizedOnUpdate() {
         lenient().doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(
                 com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))

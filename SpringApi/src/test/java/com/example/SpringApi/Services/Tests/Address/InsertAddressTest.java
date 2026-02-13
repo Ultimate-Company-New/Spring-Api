@@ -22,8 +22,8 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("Insert Address Tests")
 class InsertAddressTest extends AddressServiceTestBase {
-    // Total Tests: 68
 
+    // Total Tests: 68
     /*
      **********************************************************************************************
      * SUCCESS TESTS
@@ -841,7 +841,8 @@ class InsertAddressTest extends AddressServiceTestBase {
     }
 
     /*
-     * Purpose: Verify that insertAddress throws BadRequestException when address type contains invalid characters
+     * Purpose: Verify that insertAddress throws BadRequestException when address
+     * type contains invalid characters
      * Expected Result: BadRequestException with message ER006
      * Assertions: Exception type and error message
      */
@@ -1280,7 +1281,7 @@ class InsertAddressTest extends AddressServiceTestBase {
 
     /*
      **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
+     * PERMISSION TESTS
      **********************************************************************************************
      * The following tests verify that authorization is properly configured at the
      * controller level.
@@ -1289,45 +1290,13 @@ class InsertAddressTest extends AddressServiceTestBase {
      */
 
     /**
-     * Purpose: Verify that the controller has the correct @PreAuthorize annotation
-     * for security.
-     * Expected Result: The method should be annotated with @PreAuthorize checking
-     * for INSERT_ADDRESS_PERMISSION.
-     * Assertions: Annotation is present and contains expected permission string.
-     */
-    @Test
-    @DisplayName("Insert Address - Controller permission forbidden - Success")
-    void insertAddress_controller_permission_forbidden() throws NoSuchMethodException {
-        // Arrange
-        var method = AddressController.class.getMethod("createAddress",
-                com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
-        stubServiceInsertAddressDoNothing();
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-                org.springframework.security.access.prepost.PreAuthorize.class);
-        ResponseEntity<?> response = addressController.createAddress(testAddressRequest);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation, "createAddress method should have @PreAuthorize annotation");
-
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-                Authorizations.INSERT_ADDRESS_PERMISSION + "')";
-
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                "PreAuthorize annotation should reference INSERT_ADDRESS_PERMISSION");
-        assertEquals(HttpStatus.CREATED, response.getStatusCode(),
-            "Should return HTTP 201 Created on successful insertion");
-    }
-
-    /**
      * Purpose: Verify @PreAuthorize annotation is declared on createAddress method.
      * Expected Result: Method has @PreAuthorize annotation with correct permission.
      * Assertions: Annotation exists and references INSERT_ADDRESS_PERMISSION.
      */
     @Test
     @DisplayName("Insert Address - Verify @PreAuthorize annotation is configured correctly")
-    void insertAddress_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
+    void insertAddress_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
         // Arrange
         var method = AddressController.class.getMethod("createAddress",
                 com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
@@ -1359,7 +1328,7 @@ class InsertAddressTest extends AddressServiceTestBase {
      */
     @Test
     @DisplayName("Insert Address - Controller delegates to service correctly")
-    void insertAddress_WithValidRequest_DelegatesToService() {
+    void insertAddress_p02_WithValidRequest_DelegatesToService() {
         // Arrange
         stubServiceInsertAddressDoNothing();
 
@@ -1368,6 +1337,38 @@ class InsertAddressTest extends AddressServiceTestBase {
 
         // Assert - Verify service was called and correct response returned
         verify(addressService, times(1)).insertAddress(testAddressRequest);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode(),
+                "Should return HTTP 201 Created on successful insertion");
+    }
+
+    /**
+     * Purpose: Verify that the controller has the correct @PreAuthorize annotation
+     * for security.
+     * Expected Result: The method should be annotated with @PreAuthorize checking
+     * for INSERT_ADDRESS_PERMISSION.
+     * Assertions: Annotation is present and contains expected permission string.
+     */
+    @Test
+    @DisplayName("Insert Address - Controller permission forbidden - Success")
+    void insertAddress_p03_controller_permission_forbidden() throws NoSuchMethodException {
+        // Arrange
+        var method = AddressController.class.getMethod("createAddress",
+                com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
+        stubServiceInsertAddressDoNothing();
+
+        // Act
+        var preAuthorizeAnnotation = method.getAnnotation(
+                org.springframework.security.access.prepost.PreAuthorize.class);
+        ResponseEntity<?> response = addressController.createAddress(testAddressRequest);
+
+        // Assert
+        assertNotNull(preAuthorizeAnnotation, "createAddress method should have @PreAuthorize annotation");
+
+        String expectedPermission = "@customAuthorization.hasAuthority('" +
+                Authorizations.INSERT_ADDRESS_PERMISSION + "')";
+
+        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
+                "PreAuthorize annotation should reference INSERT_ADDRESS_PERMISSION");
         assertEquals(HttpStatus.CREATED, response.getStatusCode(),
                 "Should return HTTP 201 Created on successful insertion");
     }

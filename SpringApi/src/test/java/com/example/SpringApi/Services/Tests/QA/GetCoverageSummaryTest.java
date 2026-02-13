@@ -14,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for QAService.getCoverageSummary() method.
  * 
- * Total Tests: 16
  * 
  * Test Coverage:
  * - Success scenarios (5 tests)
@@ -23,8 +22,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(MockitoExtension.class)
 class GetCoverageSummaryTest extends QAServiceTestBase {
-    // Total Tests: 16
 
+    // Total Tests: 16
     /*
      **********************************************************************************************
      * SUCCESS TESTS

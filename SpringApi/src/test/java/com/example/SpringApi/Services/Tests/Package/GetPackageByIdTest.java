@@ -21,14 +21,11 @@ import static org.mockito.Mockito.verify;
  * Unit tests for PackageService.getPackageById() method.
  *
  * Test count: 16 tests
-}
- * - FAILURE / EXCEPTION: 5 tests
- * - PERMISSION: 3 tests
  */
 @DisplayName("Get Package By ID Tests")
 class GetPackageByIdTest extends PackageServiceTestBase {
-    // Total Tests: 16
 
+    // Total Tests: 16
     /*
      **********************************************************************************************
      * SUCCESS TESTS

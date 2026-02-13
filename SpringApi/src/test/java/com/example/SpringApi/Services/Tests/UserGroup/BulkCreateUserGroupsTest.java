@@ -28,12 +28,11 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for UserGroupService.bulkCreateUserGroups method.
  * 
- * Total Tests: 11
  */
 @DisplayName("UserGroupService - BulkCreateUserGroups Tests")
 class BulkCreateUserGroupsTest extends UserGroupServiceTestBase {
-    // Total Tests: 11
 
+    // Total Tests: 11
     // ========================================
     // SUCCESS TESTS
     // ========================================

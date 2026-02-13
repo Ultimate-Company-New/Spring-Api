@@ -25,8 +25,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("OptimizeOrder Tests")
 class OptimizeOrderTest extends ShippingServiceTestBase {
 
-    // Total Tests: 12
 
+    // Total Tests: 12
     /*
      **********************************************************************************************
      * SUCCESS TESTS

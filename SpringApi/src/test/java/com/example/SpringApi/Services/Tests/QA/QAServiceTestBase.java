@@ -102,7 +102,6 @@ public abstract class QAServiceTestBase {
     /**
      * Access the QAService SERVICE_MAPPINGS map via reflection for test manipulation.
      */
-    @SuppressWarnings("unchecked")
     protected Map<String, Object> getServiceMappings() {
         try {
             Field field = QAService.class.getDeclaredField("SERVICE_MAPPINGS");

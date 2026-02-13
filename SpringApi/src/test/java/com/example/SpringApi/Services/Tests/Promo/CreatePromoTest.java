@@ -26,8 +26,8 @@ import static org.mockito.Mockito.*;
 @DisplayName("PromoService - CreatePromo Tests")
 class CreatePromoTest extends PromoServiceTestBase {
 
-    // Total Tests: 13
 
+    // Total Tests: 13
     /*
      **********************************************************************************************
      * SUCCESS TESTS
