@@ -239,6 +239,20 @@ public class ErrorMessages {
         public static final String InvalidPackageType = "Package type is required and cannot be empty.";
         public static final String InvalidClientId = "Package client ID is required.";
 
+        /** Format: "Invalid column name: %s" */
+        public static final String InvalidColumnNameFormat = "Invalid column name: %s";
+        /** Format: "Invalid operator: %s" */
+        public static final String InvalidOperatorFormat = "Invalid operator: %s";
+        /** Format: "Operator '%s' is not valid for column '%s'" */
+        public static final String InvalidOperatorForColumnFormat = "Operator '%s' is not valid for column '%s'";
+        /** Format: "Bulk item error: %s" */
+        public static final String BulkItemErrorFormat = "Bulk item error: %s";
+        /** Format: "Bulk critical error: %s" */
+        public static final String BulkCriticalErrorFormat = "Bulk critical error: %s";
+        public static final String UnknownPackageName = "unknown";
+        public static final String BulkImportKey = "bulk_import";
+        public static final String EntityName = "Package";
+
         // Additional error messages
         public static final String ER001 = "Length, breadth and height are required and should be greater than 0";
         public static final String ER002 = "Quantity is required and should be greater than 0";
@@ -295,6 +309,8 @@ public class ErrorMessages {
         public static final String DescriptionRequired = "Description is required.";
         public static final String LongDescriptionTooLong = "Description is too long.";
         public static final String ClientIdMismatch = "Client ID mismatch.";
+        /** Format: "Invalid operator: %s" */
+        public static final String InvalidOperatorFormat = "Invalid operator: %s";
 
         // Additional error messages
         public static final String ER001 = "Promo code is required.";
@@ -364,6 +380,15 @@ public class ErrorMessages {
     public static class LeadsErrorMessages {
         // standard error messages
         public static final String InvalidId = "Invalid lead id.";
+
+        /** Format: "Invalid column name: %s. Valid columns are: %s" */
+        public static final String InvalidColumnNameWithValidColumnsFormat = "Invalid column name: %s. Valid columns are: %s";
+        /** Format: "Operator '%s' is not valid for column '%s'" */
+        public static final String InvalidOperatorForColumnFormat = "Operator '%s' is not valid for column '%s'";
+        /** Format: "Bulk item error: %s" */
+        public static final String BulkItemErrorFormat = "Bulk item error: %s";
+        /** Format: "Bulk critical error: %s" */
+        public static final String BulkCriticalErrorFormat = "Bulk critical error: %s";
 
         // additional error messages
         public static final String ER001 = "Lead email is required.";
@@ -485,6 +510,7 @@ public class ErrorMessages {
 
         // Test execution validation
         public static final String TestExecutionRequestCannotBeNull = "Test execution request cannot be null";
+        public static final String ServiceNameNull = "Service name cannot be null or empty";
         public static final String TestClassNameRequired = "testClassName is required when running specific tests";
         public static final String MustSpecifyServiceNameOrTestClassName = "Must specify serviceName or testClassName when running tests by method name";
         /** Format: "No tests found for method: %s in class %s" */
@@ -617,6 +643,8 @@ public class ErrorMessages {
     }
 
     public static class ShippingErrorMessages {
+        public static final String NullShippingCalculationRequest = "Shipping calculation request cannot be null.";
+
         // ShipRocket configuration errors
         public static final String ShipRocketCredentialsNotConfigured = "Shiprocket credentials not configured for this client.";
         public static final String DeliveryAddressNotFound = "Delivery address not found in order summary.";
@@ -743,6 +771,13 @@ public class ErrorMessages {
         public static final String PaymentDateRequired = "Payment date is required.";
         public static final String ValidPaymentAmountRequired = "Valid payment amount is required.";
         public static final String PaymentOrderNotFound = "Payment order not found. Please try again.";
+        
+        // Additional format messages referenced by PaymentService
+        public static final String FailedToCreateRazorpayOrderFormat = "Failed to create Razorpay order: %s";
+        public static final String PaymentAmountExceedsPendingAmountFormat = "Payment amount %s exceeds pending amount %s";
+        public static final String RefundAmountExceedsRefundableAmountFormat = "Refund amount exceeds refundable amount: %s";
+        public static final String FailedToProcessRefundFormat = "Failed to process refund: %s";
+        public static final String PaymentAmountExceedsGrandTotalFormat = "Total paid %s exceeds grand total %s";
     }
 
     public static class ConfigurationErrorMessages {
@@ -790,10 +825,15 @@ public class ErrorMessages {
         public static final String DATABASE_ERROR = "Database error";
         public static final String DATABASE_CONNECTION_ERROR = "Database connection error";
         public static final String InvalidBulkRequest = "Invalid bulk request, the list cannot be null or empty.";
+        public static final String EmptyList = "List cannot be empty.";
+        public static final String NullList = "List cannot be null.";
+        public static final String ContextMissing = "Context values are missing.";
+        public static final String CriticalFailure = "Critical failure.";
     }
 
     public static class OrderSummaryNotFoundMessage {
         public static final String NotFound = "Order summary not found for purchase order.";
+        public static final String PurchaseOrderNotFound = "Order summary not found for purchase order.";
     }
 
 }

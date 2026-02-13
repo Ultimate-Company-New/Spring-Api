@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services.Tests.ProductReview;
 
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.Models.DatabaseModels.ProductReview;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.ProductReviewRequestModel;
@@ -46,6 +47,9 @@ public abstract class ProductReviewServiceTestBase {
     protected HttpServletRequest request;
 
     @Mock
+    protected JwtTokenProvider jwtTokenProvider;
+
+    @Mock
     protected IProductReviewSubTranslator productReviewServiceMock;
 
     protected ProductReviewService productReviewService;
@@ -73,7 +77,7 @@ public abstract class ProductReviewServiceTestBase {
 
         // Ensure service has filter query builder injected (constructor injection)
         productReviewService = new ProductReviewService(
-                productReviewRepository, userLogService, productReviewFilterQueryBuilder);
+            productReviewRepository, userLogService, productReviewFilterQueryBuilder, jwtTokenProvider, request);
     }
 
     /**

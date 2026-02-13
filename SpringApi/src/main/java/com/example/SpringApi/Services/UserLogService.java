@@ -1,7 +1,9 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.Models.DatabaseModels.UserLog;
 import com.example.SpringApi.Models.RequestModels.UserLogsRequestModel;
+import jakarta.servlet.http.HttpServletRequest;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.ResponseModels.UserLogsResponseModel;
 import com.example.SpringApi.Repositories.UserLogRepository;
@@ -29,8 +31,10 @@ public class UserLogService extends BaseService implements IUserLogSubTranslator
 
     @Autowired
     public UserLogService(UserLogRepository userLogRepository,
-                         UserLogFilterQueryBuilder userLogFilterQueryBuilder){
-        super();
+                         UserLogFilterQueryBuilder userLogFilterQueryBuilder,
+                         JwtTokenProvider jwtTokenProvider,
+                         HttpServletRequest request){
+        super(jwtTokenProvider, request);
         this.userLogRepository = userLogRepository;
         this.userLogFilterQueryBuilder = userLogFilterQueryBuilder;
     }

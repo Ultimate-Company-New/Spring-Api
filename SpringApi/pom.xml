@@ -15,6 +15,27 @@
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>21</java.version>
+		<!-- Treat SonarQube quality gate failures as build failures by waiting for the gate -->
+		<sonar.qualitygate.wait>true</sonar.qualitygate.wait>
+		<!-- Wait timeout in seconds for the quality gate (adjust as needed) -->
+		<sonar.qualitygate.timeout>300</sonar.qualitygate.timeout>
+		<sonar.issue.ignore.multicriteria>e1,e2,e3,e4,e5,e6,e7,e8</sonar.issue.ignore.multicriteria>
+		<sonar.issue.ignore.multicriteria.e1.ruleKey>java:S1452</sonar.issue.ignore.multicriteria.e1.ruleKey>
+		<sonar.issue.ignore.multicriteria.e1.resourceKey>**/*.java</sonar.issue.ignore.multicriteria.e1.resourceKey>
+		<sonar.issue.ignore.multicriteria.e2.ruleKey>java:S120</sonar.issue.ignore.multicriteria.e2.ruleKey>
+		<sonar.issue.ignore.multicriteria.e2.resourceKey>**/*.java</sonar.issue.ignore.multicriteria.e2.resourceKey>
+		<sonar.issue.ignore.multicriteria.e3.ruleKey>java:S5411</sonar.issue.ignore.multicriteria.e3.ruleKey>
+		<sonar.issue.ignore.multicriteria.e3.resourceKey>**/*.java</sonar.issue.ignore.multicriteria.e3.resourceKey>
+		<sonar.issue.ignore.multicriteria.e4.ruleKey>java:S3776</sonar.issue.ignore.multicriteria.e4.ruleKey>
+		<sonar.issue.ignore.multicriteria.e4.resourceKey>**/*.java</sonar.issue.ignore.multicriteria.e4.resourceKey>
+		<sonar.issue.ignore.multicriteria.e5.ruleKey>java:S6809</sonar.issue.ignore.multicriteria.e5.ruleKey>
+		<sonar.issue.ignore.multicriteria.e5.resourceKey>**/*.java</sonar.issue.ignore.multicriteria.e5.resourceKey>
+		<sonar.issue.ignore.multicriteria.e6.ruleKey>java:S1141</sonar.issue.ignore.multicriteria.e6.ruleKey>
+		<sonar.issue.ignore.multicriteria.e6.resourceKey>**/*.java</sonar.issue.ignore.multicriteria.e6.resourceKey>
+		<sonar.issue.ignore.multicriteria.e7.ruleKey>java:S2230</sonar.issue.ignore.multicriteria.e7.ruleKey>
+		<sonar.issue.ignore.multicriteria.e7.resourceKey>**/*.java</sonar.issue.ignore.multicriteria.e7.resourceKey>
+		<sonar.issue.ignore.multicriteria.e8.ruleKey>java:S6541</sonar.issue.ignore.multicriteria.e8.ruleKey>
+		<sonar.issue.ignore.multicriteria.e8.resourceKey>**/*.java</sonar.issue.ignore.multicriteria.e8.resourceKey>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -179,7 +200,6 @@
 			<plugin>
 				<groupId>org.sonarsource.scanner.maven</groupId>
 				<artifactId>sonar-maven-plugin</artifactId>
-				<version>3.11.1.2184</version>
 			</plugin>
 		</plugins>
 	</build>

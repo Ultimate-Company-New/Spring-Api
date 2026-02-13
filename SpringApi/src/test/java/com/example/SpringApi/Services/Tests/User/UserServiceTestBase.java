@@ -1,11 +1,17 @@
 package com.example.SpringApi.Services.Tests.User;
 
+import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Exceptions.PermissionException;
+import com.example.SpringApi.Exceptions.UnauthorizedException;
 import com.example.SpringApi.FilterQueryBuilder.UserFilterQueryBuilder;
 import com.example.SpringApi.Helpers.PasswordHelper;
 import com.example.SpringApi.Models.DatabaseModels.*;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.RequestModels.UserRequestModel;
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
+import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.SpringApi.Models.ResponseModels.PermissionResponseModel;
+import com.example.SpringApi.Models.ResponseModels.UserResponseModel;
 import com.example.SpringApi.Repositories.*;
 import com.example.SpringApi.Services.ClientService;
 import com.example.SpringApi.Services.UserLogService;
@@ -503,6 +509,109 @@ public abstract class UserServiceTestBase {
         stubUserFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Arrays.asList(testUser)));
 
         assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(request));
+    }
+
+    // ==========================================
+    // CONTROLLER MOCK USER SERVICE STUBS
+    // ==========================================
+
+    protected void stubMockUserServiceConfirmEmail(Long userId, String token) {
+        lenient().doNothing().when(mockUserService).confirmEmail(userId, token);
+    }
+
+    protected void stubMockUserServiceGetUserId(Long userId) {
+        lenient().when(mockUserService.getUserId()).thenReturn(userId);
+    }
+
+    protected void stubMockUserServiceGetUser(String user) {
+        lenient().when(mockUserService.getUser()).thenReturn(user);
+    }
+
+    protected void stubMockUserServiceGetClientId(Long clientId) {
+        lenient().when(mockUserService.getClientId()).thenReturn(clientId);
+    }
+
+    protected void stubMockUserServiceBulkCreateUsersAsyncThrowsUnauthorized(String message) {
+        String unauthorizedMessage = message != null ? message : ErrorMessages.ERROR_UNAUTHORIZED;
+        lenient().doThrow(new UnauthorizedException(unauthorizedMessage))
+                .when(mockUserService).bulkCreateUsersAsync(anyList(), anyLong(), anyString(), anyLong());
+    }
+
+    protected void stubMockUserServiceBulkCreateUsersAsync(List<UserRequestModel> users) {
+        lenient().doNothing().when(mockUserService).bulkCreateUsersAsync(eq(users), anyLong(), anyString(), anyLong());
+    }
+
+    protected void stubMockUserServiceUpdateUserThrowsUnauthorized(String message) {
+        String unauthorizedMessage = message != null ? message : ErrorMessages.ERROR_UNAUTHORIZED;
+        lenient().doThrow(new UnauthorizedException(unauthorizedMessage))
+                .when(mockUserService).updateUser(any(UserRequestModel.class));
+    }
+
+    protected void stubMockUserServiceUpdateUser(UserRequestModel request) {
+        lenient().doNothing().when(mockUserService).updateUser(request);
+    }
+
+    protected void stubMockUserServiceGetUserByIdThrowsUnauthorized(String message) {
+        String unauthorizedMessage = message != null ? message : ErrorMessages.ERROR_UNAUTHORIZED;
+        lenient().when(mockUserService.getUserById(anyLong())).thenThrow(new UnauthorizedException(unauthorizedMessage));
+    }
+
+    protected void stubMockUserServiceGetUserById(Long userId, UserResponseModel response) {
+        lenient().when(mockUserService.getUserById(userId)).thenReturn(response);
+    }
+
+    protected void stubMockUserServiceGetAllPermissionsThrowsUnauthorized() {
+        lenient().when(mockUserService.getAllPermissions())
+                .thenThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED));
+    }
+
+    protected void stubMockUserServiceGetAllPermissions(List<PermissionResponseModel> permissions) {
+        lenient().when(mockUserService.getAllPermissions()).thenReturn(permissions);
+    }
+
+    protected void stubMockUserServiceGetUserByEmailThrowsUnauthorized(String message) {
+        String unauthorizedMessage = message != null ? message : ErrorMessages.ERROR_UNAUTHORIZED;
+        lenient().when(mockUserService.getUserByEmail(anyString())).thenThrow(new UnauthorizedException(unauthorizedMessage));
+    }
+
+    protected void stubMockUserServiceGetUserByEmail(String email, UserResponseModel response) {
+        lenient().when(mockUserService.getUserByEmail(email)).thenReturn(response);
+    }
+
+    protected void stubMockUserServiceCreateUser(UserRequestModel request) {
+        lenient().doNothing().when(mockUserService).createUser(request);
+    }
+
+    protected void stubMockUserServiceCreateUserThrowsUnauthorized(String message) {
+        String unauthorizedMessage = message != null ? message : ErrorMessages.ERROR_UNAUTHORIZED;
+        lenient().doThrow(new UnauthorizedException(unauthorizedMessage))
+                .when(mockUserService).createUser(any(UserRequestModel.class));
+    }
+
+    protected void stubMockUserServiceCreateUserThrowsForbidden(String message) {
+        String forbiddenMessage = message != null ? message : "Forbidden";
+        lenient().doThrow(new PermissionException(forbiddenMessage))
+                .when(mockUserService).createUser(any(UserRequestModel.class));
+    }
+
+    protected void stubMockUserServiceToggleUserThrowsUnauthorized(String message) {
+        String unauthorizedMessage = message != null ? message : ErrorMessages.ERROR_UNAUTHORIZED;
+        lenient().doThrow(new UnauthorizedException(unauthorizedMessage))
+                .when(mockUserService).toggleUser(anyLong());
+    }
+
+    protected void stubMockUserServiceToggleUser(Long userId) {
+        lenient().doNothing().when(mockUserService).toggleUser(userId);
+    }
+
+    protected void stubMockUserServiceFetchUsersInCarrierInBatchesThrowsUnauthorized(String message) {
+        String unauthorizedMessage = message != null ? message : ErrorMessages.ERROR_UNAUTHORIZED;
+        lenient().when(mockUserService.fetchUsersInCarrierInBatches(any(UserRequestModel.class)))
+                .thenThrow(new UnauthorizedException(unauthorizedMessage));
+    }
+
+    protected void stubMockUserServiceFetchUsersInCarrierInBatches(PaginationBaseResponseModel<UserResponseModel> response) {
+        lenient().when(mockUserService.fetchUsersInCarrierInBatches(any(UserRequestModel.class))).thenReturn(response);
     }
 
     protected UserRequestModel createBasicPaginationRequest() {

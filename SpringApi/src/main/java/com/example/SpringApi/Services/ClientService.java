@@ -3,6 +3,7 @@ package com.example.SpringApi.Services;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.SuccessMessages;
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.Constants.ImageLocationConstants;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Models.DatabaseModels.GoogleCred;
@@ -13,6 +14,9 @@ import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
 import com.example.SpringApi.Repositories.ClientRepository;
 import com.example.SpringApi.Repositories.GoogleCredRepository;
 import com.example.SpringApi.Services.Interface.IClientSubTranslator;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -52,8 +56,10 @@ public class ClientService extends BaseService implements IClientSubTranslator {
             ClientRepository clientRepository,
             GoogleCredRepository googleCredRepository,
             UserLogService userLogService,
-            Environment environment) {
-        super();
+            Environment environment,
+            JwtTokenProvider jwtTokenProvider,
+            HttpServletRequest request) {
+        super(jwtTokenProvider, request);
         this.clientRepository = clientRepository;
         this.googleCredRepository = googleCredRepository;
         this.userLogService = userLogService;

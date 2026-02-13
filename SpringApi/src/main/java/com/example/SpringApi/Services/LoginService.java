@@ -14,11 +14,16 @@ import com.example.SpringApi.Repositories.UserClientMappingRepository;
 import com.example.SpringApi.Repositories.UserClientPermissionMappingRepository;
 import com.example.SpringApi.Repositories.UserRepository;
 import com.example.SpringApi.Services.Interface.ILoginSubTranslator;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Exceptions.UnauthorizedException;
 import com.example.SpringApi.Helpers.PasswordHelper;
+import com.example.SpringApi.Exceptions.ApplicationException;
 
+import org.apache.catalina.core.ApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -44,7 +49,6 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
     private final UserClientMappingRepository userClientMappingRepository;
     private final UserClientPermissionMappingRepository userClientPermissionMappingRepository;
     private final ClientRepository clientRepository;
-    private final JwtTokenProvider jwtTokenProvider;
     private final Environment environment;
 
     @Autowired
@@ -53,8 +57,10 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
             UserClientPermissionMappingRepository userClientPermissionMappingRepository,
             ClientRepository clientRepository,
             JwtTokenProvider jwtTokenProvider,
-            Environment environment) {
-        super();
+            Environment environment,
+            HttpServletRequest request,
+            ApplicationContext applicationContext) {
+        super(jwtTokenProvider, request);
         this.userRepository = userRepository;
         this.userClientMappingRepository = userClientMappingRepository;
         this.userClientPermissionMappingRepository = userClientPermissionMappingRepository;
@@ -250,7 +256,7 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
 
             Client client = clientRepository.findFirstByOrderByClientIdAsc();
             if (client == null) {
-                throw new RuntimeException(ErrorMessages.ConfigurationErrorMessages.NoClientConfigurationFound);
+                throw new ApplicationException(ErrorMessages.ConfigurationErrorMessages.NoClientConfigurationFound);
             }
 
             // Get email configuration from properties - all are required
@@ -285,7 +291,7 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
 
             // Verify that the email was sent successfully and contains the password
             if (!emailSent) {
-                throw new RuntimeException(ErrorMessages.LoginErrorMessages.ResetPasswordEmailFailed);
+                throw new ApplicationException(ErrorMessages.LoginErrorMessages.ResetPasswordEmailFailed);
             }
 
             // Save the user with updated password, salt, locked status, and login attempts

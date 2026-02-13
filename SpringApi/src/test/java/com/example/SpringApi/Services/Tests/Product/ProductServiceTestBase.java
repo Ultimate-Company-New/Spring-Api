@@ -89,9 +89,6 @@ public abstract class ProductServiceTestBase {
     protected HttpServletRequest request;
 
     @Mock
-    protected UserRepository userRepository;
-
-    @Mock
     protected JwtTokenProvider jwtTokenProvider;
 
     protected ProductService productService;
@@ -139,7 +136,6 @@ public abstract class ProductServiceTestBase {
         productFilterQueryBuilder = mock(ProductFilterQueryBuilder.class);
         environment = mock(Environment.class);
         request = mock(HttpServletRequest.class);
-        userRepository = mock(UserRepository.class);
         jwtTokenProvider = mock(JwtTokenProvider.class);
         productServiceMock = mock(ProductService.class);
 
@@ -157,9 +153,10 @@ public abstract class ProductServiceTestBase {
                 clientService,
                 productFilterQueryBuilder,
                 messageService,
-                environment);
+                environment,
+                jwtTokenProvider,
+                request);
         ReflectionTestUtils.setField(productService, "imageLocation", "imgbb");
-        ReflectionTestUtils.setField(productService, "userRepository", userRepository);
         ReflectionTestUtils.setField(productService, "jwtTokenProvider", jwtTokenProvider);
         ReflectionTestUtils.setField(productService, "request", request);
 

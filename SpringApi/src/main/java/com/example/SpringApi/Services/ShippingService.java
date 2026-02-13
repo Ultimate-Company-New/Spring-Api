@@ -1,8 +1,10 @@
 package com.example.SpringApi.Services;
 
 import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import com.example.SpringApi.FilterQueryBuilder.ShipmentFilterQueryBuilder;
 import com.example.SpringApi.Helpers.PackagingHelper;
 import com.example.SpringApi.Helpers.ShipRocketHelper;
@@ -105,7 +107,10 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             PackageRepository packageRepository,
             ClientRepository clientRepository,
             UserLogService userLogService,
-            ShipmentFilterQueryBuilder shipmentFilterQueryBuilder) {
+            ShipmentFilterQueryBuilder shipmentFilterQueryBuilder,
+            JwtTokenProvider jwtTokenProvider,
+            HttpServletRequest request) {
+        super(jwtTokenProvider, request);
         this.clientService = clientService;
         this.productRepository = productRepository;
         this.productPickupLocationMappingRepository = productPickupLocationMappingRepository;
@@ -894,6 +899,10 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
      */
     @Override
     public ShippingCalculationResponseModel calculateShipping(ShippingCalculationRequestModel request) {
+        if (request == null) {
+            throw new NullPointerException(ErrorMessages.ShippingErrorMessages.NullShippingCalculationRequest);
+        }
+
         Long clientId = getClientId();
         ShippingCalculationResponseModel response = new ShippingCalculationResponseModel();
         response.setLocationOptions(new ArrayList<>());

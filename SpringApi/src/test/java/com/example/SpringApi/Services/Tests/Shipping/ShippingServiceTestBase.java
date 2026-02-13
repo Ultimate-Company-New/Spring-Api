@@ -1,6 +1,7 @@
 package com.example.SpringApi.Services.Tests.Shipping;
 
 import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Exceptions.UnauthorizedException;
@@ -116,6 +117,9 @@ public abstract class ShippingServiceTestBase {
 
     @Mock
     protected HttpServletRequest request;
+
+    @Mock
+    protected JwtTokenProvider jwtTokenProvider;
 
     @Mock
     protected IShippingSubTranslator shippingServiceMock;
@@ -314,7 +318,9 @@ public abstract class ShippingServiceTestBase {
                     returnShipmentRepository, returnShipmentProductRepository, shipmentProductRepository,
                     shipmentPackageRepository, shipmentPackageProductRepository, purchaseOrderRepository,
                     orderSummaryRepository, paymentService, pickupLocationRepository, packageRepository,
-                    clientRepository, userLogService, shipmentFilterQueryBuilder);
+                    clientRepository, userLogService, shipmentFilterQueryBuilder,
+                    org.mockito.Mockito.mock(JwtTokenProvider.class),
+                    org.mockito.Mockito.mock(HttpServletRequest.class));
         }
 
         protected ShipRocketHelper createShipRocketHelper(String email, String password) {

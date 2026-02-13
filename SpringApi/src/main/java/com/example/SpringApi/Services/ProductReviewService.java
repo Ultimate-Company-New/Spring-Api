@@ -1,7 +1,9 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.FilterQueryBuilder.ProductReviewFilterQueryBuilder;
 import com.example.SpringApi.Services.Interface.IProductReviewSubTranslator;
+import jakarta.servlet.http.HttpServletRequest;
 import com.example.SpringApi.Models.ResponseModels.ProductReviewResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
@@ -47,8 +49,10 @@ public class ProductReviewService extends BaseService implements IProductReviewS
     @Autowired
     public ProductReviewService(ProductReviewRepository productReviewRepository,
                                UserLogService userLogService,
-                               ProductReviewFilterQueryBuilder productReviewFilterQueryBuilder) {
-        super();
+                               ProductReviewFilterQueryBuilder productReviewFilterQueryBuilder,
+                               JwtTokenProvider jwtTokenProvider,
+                               HttpServletRequest request) {
+        super(jwtTokenProvider, request);
         this.productReviewRepository = productReviewRepository;
         this.userLogService = userLogService;
         this.productReviewFilterQueryBuilder = productReviewFilterQueryBuilder;

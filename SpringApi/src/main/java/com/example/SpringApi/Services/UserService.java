@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.Models.DatabaseModels.User;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.DatabaseModels.Address;
@@ -103,8 +104,9 @@ public class UserService extends BaseService implements IUserSubTranslator {
             UserLogService userLogService,
             ClientService clientService,
             MessageService messageService,
-            HttpServletRequest request) {
-        super();
+            HttpServletRequest request,
+            JwtTokenProvider jwtTokenProvider) {
+        super(jwtTokenProvider, request);
         this.userRepository = userRepository;
         this.userFilterQueryBuilder = userFilterQueryBuilder;
         this.addressRepository = addressRepository;

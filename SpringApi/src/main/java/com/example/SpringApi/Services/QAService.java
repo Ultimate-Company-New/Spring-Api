@@ -1,8 +1,10 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.Models.DatabaseModels.LatestTestResult;
 import com.example.SpringApi.Models.DatabaseModels.TestRun;
 import com.example.SpringApi.Models.DatabaseModels.TestRunResult;
+import jakarta.servlet.http.HttpServletRequest;
 import com.example.SpringApi.Models.RequestModels.TestExecutionRequestModel;
 import com.example.SpringApi.Models.RequestModels.TestRunRequestModel;
 import com.example.SpringApi.Models.ResponseModels.LatestTestResultResponseModel;
@@ -138,7 +140,10 @@ public class QAService extends BaseService implements IQASubTranslator {
 
     @Autowired
     public QAService(TestRunRepository testRunRepository,
-                     LatestTestResultRepository latestTestResultRepository) {
+                     LatestTestResultRepository latestTestResultRepository,
+                     JwtTokenProvider jwtTokenProvider,
+                     HttpServletRequest request) {
+        super(jwtTokenProvider, request);
         this.testRunRepository = testRunRepository;
         this.latestTestResultRepository = latestTestResultRepository;
     }
@@ -267,6 +272,10 @@ public class QAService extends BaseService implements IQASubTranslator {
      */
     @Override
     public QAResponseModel getEndpointsWithTestsByService(String serviceName) {
+        if (serviceName == null) {
+            throw new NullPointerException(ErrorMessages.QAErrorMessages.ServiceNameNull);
+        }
+
         String trimmedServiceName = serviceName.trim();
         // Normalize service name (add "Service" suffix if not present)
         String normalizedServiceName = trimmedServiceName;
@@ -1267,14 +1276,14 @@ public class QAService extends BaseService implements IQASubTranslator {
 
         } catch (IOException e) {
             markExecutionFailed(executionId, status, startTime, String.format(ErrorMessages.TestExecutorErrorMessages.IoErrorDuringExecutionFormat, e.getMessage()));
-            throw new RuntimeException(ErrorMessages.TestExecutorErrorMessages.IoFailed, e);
+            throw new com.example.SpringApi.Exceptions.ApplicationException(ErrorMessages.TestExecutorErrorMessages.IoFailed, e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             markExecutionFailed(executionId, status, startTime, String.format(ErrorMessages.TestExecutorErrorMessages.InterruptedFormat, e.getMessage()));
-            throw new RuntimeException(ErrorMessages.TestExecutorErrorMessages.Interrupted, e);
+            throw new com.example.SpringApi.Exceptions.ApplicationException(ErrorMessages.TestExecutorErrorMessages.Interrupted, e);
         } catch (Exception e) {
             markExecutionFailed(executionId, status, startTime, String.format(ErrorMessages.TestExecutorErrorMessages.ExecutionFailedFormat, e.getMessage()));
-            throw new RuntimeException(ErrorMessages.TestExecutorErrorMessages.ExecutionFailed, e);
+            throw new com.example.SpringApi.Exceptions.ApplicationException(ErrorMessages.TestExecutorErrorMessages.ExecutionFailed, e);
         }
     }
 
@@ -1372,7 +1381,7 @@ public class QAService extends BaseService implements IQASubTranslator {
                     .filter(p -> testClassName == null || p.getFileName().toString().contains(testClassName))
                     .forEach(xmlFile -> parseXmlReport(xmlFile, status));
         } catch (IOException e) {
-            throw new RuntimeException(ErrorMessages.TestExecutorErrorMessages.FailedToListSurefireReports, e);
+            throw new com.example.SpringApi.Exceptions.ApplicationException(ErrorMessages.TestExecutorErrorMessages.FailedToListSurefireReports, e);
         }
     }
 
@@ -1430,7 +1439,7 @@ public class QAService extends BaseService implements IQASubTranslator {
             status.updateTotalsFromResults();
 
         } catch (IOException e) {
-            throw new RuntimeException(String.format(ErrorMessages.TestExecutorErrorMessages.FailedToParseSurefireReportFormat, xmlFile.getFileName()), e);
+            throw new com.example.SpringApi.Exceptions.ApplicationException(String.format(ErrorMessages.TestExecutorErrorMessages.FailedToParseSurefireReportFormat, xmlFile.getFileName()), e);
         }
     }
 

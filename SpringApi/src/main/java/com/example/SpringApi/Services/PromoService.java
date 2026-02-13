@@ -1,7 +1,9 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
+import jakarta.servlet.http.HttpServletRequest;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.FilterQueryBuilder.PromoFilterQueryBuilder;
 import com.example.SpringApi.Helpers.BulkInsertHelper;
@@ -54,8 +56,10 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
       PromoRepository promoRepository,
       UserLogService userLogService,
       PromoFilterQueryBuilder promoFilterQueryBuilder,
-      MessageService messageService) {
-    super();
+      MessageService messageService,
+      JwtTokenProvider jwtTokenProvider,
+      HttpServletRequest request) {
+    super(jwtTokenProvider, request);
     this.promoRepository = promoRepository;
     this.userLogService = userLogService;
     this.promoFilterQueryBuilder = promoFilterQueryBuilder;

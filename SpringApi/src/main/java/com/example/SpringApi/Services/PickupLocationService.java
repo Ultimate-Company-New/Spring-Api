@@ -16,6 +16,9 @@ import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.RequestModels.ProductPickupLocationMappingRequestModel;
 import com.example.SpringApi.Models.RequestModels.PackagePickupLocationMappingRequestModel;
 import com.example.SpringApi.Services.Interface.IPickupLocationSubTranslator;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
 import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
 import com.example.SpringApi.Models.DatabaseModels.Address;
@@ -27,6 +30,7 @@ import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Helpers.ShipRocketHelper;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.SuccessMessages;
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 
 import java.time.LocalDateTime;
 
@@ -80,15 +84,17 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
             UserLogService userLogService,
             ClientService clientService,
             PickupLocationFilterQueryBuilder pickupLocationFilterQueryBuilder,
-            MessageService messageService) {
-        super();
+            MessageService messageService,
+            JwtTokenProvider jwtTokenProvider,
+            HttpServletRequest request) {
+        super(jwtTokenProvider, request);
         this.pickupLocationRepository = pickupLocationRepository;
         this.addressRepository = addressRepository;
         this.productMappingRepository = productMappingRepository;
         this.packageMappingRepository = packageMappingRepository;
         this.userLogService = userLogService;
         this.clientService = clientService;
-        this.shipRocketHelper = null; // Initialized in getShipRocketHelper() for proper client context
+        this.shipRocketHelper = null;
         this.pickupLocationFilterQueryBuilder = pickupLocationFilterQueryBuilder;
         this.messageService = messageService;
     }
@@ -488,21 +494,21 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                         successCount++;
                     }
 
-                } catch (BadRequestException bre) {
+                } catch (BadRequestException badRequestException) {
                     // Validation or business logic error
                     response.addFailure(
                             pickupLocationRequest.getAddressNickName() != null
                                     ? pickupLocationRequest.getAddressNickName()
                                     : "unknown",
-                            bre.getMessage());
+                        badRequestException.getMessage());
                     failureCount++;
-                } catch (Exception e) {
+                } catch (Exception exception) {
                     // Unexpected error
                     response.addFailure(
                             pickupLocationRequest.getAddressNickName() != null
                                     ? pickupLocationRequest.getAddressNickName()
                                     : "unknown",
-                            "Error: " + e.getMessage());
+                        "Error: " + exception.getMessage());
                     failureCount++;
                 }
             }
@@ -525,13 +531,13 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                     response, "Pickup Location", "Pickup Locations", "Location Name", "Pickup Location ID",
                     messageService, requestingUserId, requestingUserLoginName, requestingClientId);
 
-        } catch (Exception e) {
+        } catch (Exception exception) {
             // Still send a message to user about the failure (using captured userId)
             BulkInsertResponseModel<Long> errorResponse = new BulkInsertResponseModel<>();
             errorResponse.setTotalRequested(pickupLocations != null ? pickupLocations.size() : 0);
             errorResponse.setSuccessCount(0);
             errorResponse.setFailureCount(pickupLocations != null ? pickupLocations.size() : 0);
-            errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
+            errorResponse.addFailure("bulk_import", "Critical error: " + exception.getMessage());
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
                     errorResponse, "Pickup Location", "Pickup Locations", "Location Name", "Pickup Location ID",
                     messageService, requestingUserId, requestingUserLoginName, requestingClientId);
@@ -575,19 +581,19 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                     successCount++;
                 }
 
-            } catch (BadRequestException bre) {
+                } catch (BadRequestException badRequestException) {
                 // Validation or business logic error
                 response.addFailure(
                         pickupLocationRequest.getAddressNickName() != null ? pickupLocationRequest.getAddressNickName()
                                 : "unknown",
-                        bre.getMessage());
+                    badRequestException.getMessage());
                 failureCount++;
-            } catch (Exception e) {
+                } catch (Exception exception) {
                 // Unexpected error
                 response.addFailure(
                         pickupLocationRequest.getAddressNickName() != null ? pickupLocationRequest.getAddressNickName()
                                 : "unknown",
-                        "Error: " + e.getMessage());
+                    "Error: " + exception.getMessage());
                 failureCount++;
             }
         }

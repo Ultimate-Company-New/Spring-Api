@@ -47,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 username = jwtTokenProvider.getUserNameFromToken(jwt);
             } catch (Exception e) {
-                logger.error(new RuntimeException("Unable to extract username from JWT token: " + e.getMessage()));
+                logger.error(new com.example.SpringApi.Exceptions.ApplicationException("Unable to extract username from JWT token: " + e.getMessage()));
             }
         }
 

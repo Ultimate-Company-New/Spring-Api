@@ -54,6 +54,8 @@ import java.net.URI;
 import java.util.Base64;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import com.example.SpringApi.Authentication.JwtTokenProvider;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Arrays;
@@ -97,8 +99,10 @@ public class ProductService extends BaseService implements IProductSubTranslator
             ClientService clientService,
             ProductFilterQueryBuilder productFilterQueryBuilder,
             MessageService messageService,
-            Environment environment) {
-        super();
+            Environment environment,
+            JwtTokenProvider jwtTokenProvider,
+            HttpServletRequest request) {
+        super(jwtTokenProvider, request);
         this.logger = LoggerFactory.getLogger(ProductService.class);
         this.productRepository = productRepository;
         this.productPickupLocationMappingRepository = productPickupLocationMappingRepository;

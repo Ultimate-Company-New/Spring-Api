@@ -1,7 +1,9 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.SuccessMessages;
+import jakarta.servlet.http.HttpServletRequest;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.DatabaseModels.UserGroup;
@@ -41,6 +43,8 @@ import java.util.*;
  */
 @Service
 public class UserGroupService extends BaseService implements IUserGroupSubTranslator {
+    private static final String UNKNOWN_GROUP_NAME = "unknown";
+
     private final UserGroupRepository userGroupRepository;
     private final UserGroupUserMapRepository userGroupUserMapRepository;
     private final UserLogService userLogService;
@@ -53,12 +57,13 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
                            UserGroupUserMapRepository userGroupUserMapRepository,
                            UserRepository userRepository,
                            UserGroupFilterQueryBuilder userGroupFilterQueryBuilder,
-                           MessageService messageService) {
-        super();
+                           MessageService messageService,
+                           JwtTokenProvider jwtTokenProvider,
+                           HttpServletRequest request) {
+        super(jwtTokenProvider, request);
         this.userLogService = userLogService;
         this.userGroupRepository = userGroupRepository;
         this.userGroupUserMapRepository = userGroupUserMapRepository;
-        this.userRepository = userRepository;
         this.userGroupFilterQueryBuilder = userGroupFilterQueryBuilder;
         this.messageService = messageService;
     }
@@ -318,14 +323,14 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
                 } catch (BadRequestException bre) {
                     // Validation or business logic error
                     response.addFailure(
-                        groupRequest.getGroupName() != null ? groupRequest.getGroupName() : "unknown", 
+                        groupRequest.getGroupName() != null ? groupRequest.getGroupName() : UNKNOWN_GROUP_NAME,
                         bre.getMessage()
                     );
                     failureCount++;
                 } catch (Exception e) {
                     // Unexpected error
                     response.addFailure(
-                        groupRequest.getGroupName() != null ? groupRequest.getGroupName() : "unknown", 
+                        groupRequest.getGroupName() != null ? groupRequest.getGroupName() : UNKNOWN_GROUP_NAME,
                         "Error: " + e.getMessage()
                     );
                     failureCount++;
@@ -396,14 +401,14 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
             } catch (BadRequestException bre) {
                 // Validation or business logic error
                 response.addFailure(
-                    groupRequest.getGroupName() != null ? groupRequest.getGroupName() : "unknown", 
+                    groupRequest.getGroupName() != null ? groupRequest.getGroupName() : UNKNOWN_GROUP_NAME,
                     bre.getMessage()
                 );
                 failureCount++;
             } catch (Exception e) {
                 // Unexpected error
                 response.addFailure(
-                    groupRequest.getGroupName() != null ? groupRequest.getGroupName() : "unknown", 
+                    groupRequest.getGroupName() != null ? groupRequest.getGroupName() : UNKNOWN_GROUP_NAME,
                     "Error: " + e.getMessage()
                 );
                 failureCount++;

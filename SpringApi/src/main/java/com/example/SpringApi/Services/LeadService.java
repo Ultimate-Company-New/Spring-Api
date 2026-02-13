@@ -9,6 +9,9 @@ import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
 import com.example.SpringApi.Repositories.LeadRepository;
 import com.example.SpringApi.Services.Interface.ILeadSubTranslator;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.example.SpringApi.FilterQueryBuilder.LeadFilterQueryBuilder;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
 
@@ -17,8 +20,10 @@ import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.SuccessMessages;
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -49,6 +54,8 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
     private final UserLogService userLogService;
     private final LeadFilterQueryBuilder leadFilterQueryBuilder;
     private final MessageService messageService;
+    private ApplicationContext applicationContext;
+    private static final String UNKNOWN_VALUE = "unknown";
 
     @Autowired
     public LeadService(
@@ -56,13 +63,17 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
             AddressRepository addressRepository,
             UserLogService userLogService,
             LeadFilterQueryBuilder leadFilterQueryBuilder,
-            MessageService messageService) {
-        super();
+            MessageService messageService,
+            JwtTokenProvider jwtTokenProvider,
+            HttpServletRequest request,
+            ApplicationContext applicationContext) {
+        super(jwtTokenProvider, request);
         this.leadRepository = leadRepository;
         this.addressRepository = addressRepository;
         this.userLogService = userLogService;
         this.leadFilterQueryBuilder = leadFilterQueryBuilder;
         this.messageService = messageService;
+        this.applicationContext = applicationContext;
     }
 
     /**
@@ -211,7 +222,9 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         if (leadRequestModel == null) {
             throw new BadRequestException(ErrorMessages.LeadsErrorMessages.ER009);
         }
-        this.createLead(leadRequestModel, getUser(), true, getClientId(), getUserId());
+        // Call the transactional overloaded method via the Spring proxy to ensure AOP interceptors are applied
+        LeadService proxy = applicationContext.getBean(LeadService.class);
+        proxy.createLead(leadRequestModel, getUser(), true, getClientId(), getUserId());
     }
 
     /**
@@ -351,13 +364,13 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
                 } catch (BadRequestException bre) {
                     // Validation or business logic error
                     response.addFailure(
-                            leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown",
+                            leadRequest.getEmail() != null ? leadRequest.getEmail() : UNKNOWN_VALUE,
                             bre.getMessage());
                     failureCount++;
                 } catch (Exception e) {
                     // Unexpected error
                     response.addFailure(
-                            leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown",
+                            leadRequest.getEmail() != null ? leadRequest.getEmail() : UNKNOWN_VALUE,
                             String.format(ErrorMessages.LeadsErrorMessages.BulkItemErrorFormat, e.getMessage()));
                     failureCount++;
                 }
@@ -438,13 +451,13 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
             } catch (BadRequestException bre) {
                 // Validation or business logic error
                 response.addFailure(
-                        leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown",
+                        leadRequest.getEmail() != null ? leadRequest.getEmail() : UNKNOWN_VALUE,
                         bre.getMessage());
                 failureCount++;
             } catch (Exception e) {
                 // Unexpected error
                 response.addFailure(
-                        leadRequest.getEmail() != null ? leadRequest.getEmail() : "unknown",
+                        leadRequest.getEmail() != null ? leadRequest.getEmail() : UNKNOWN_VALUE,
                         String.format(ErrorMessages.LeadsErrorMessages.BulkItemErrorFormat, e.getMessage()));
                 failureCount++;
             }

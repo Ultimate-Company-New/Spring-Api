@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services.Tests.PurchaseOrder;
 
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.FilterQueryBuilder.PurchaseOrderFilterQueryBuilder;
 import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Models.DatabaseModels.*;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -91,6 +93,12 @@ public abstract class PurchaseOrderServiceTestBase {
     protected Environment environment;
 
     @Mock
+    protected JwtTokenProvider jwtTokenProvider;
+
+    @Mock
+    protected HttpServletRequest request;
+
+    @Mock
     protected PurchaseOrderService purchaseOrderServiceMock;
 
     protected PurchaseOrderService purchaseOrderService;
@@ -156,8 +164,10 @@ public abstract class PurchaseOrderServiceTestBase {
                 paymentRepository,
                 userLogService,
                 purchaseOrderFilterQueryBuilder,
-            messageService,
-            environment
+                messageService,
+                environment,
+                jwtTokenProvider,
+                request
         );
     }
 

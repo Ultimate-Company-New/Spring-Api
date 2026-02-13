@@ -29,6 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -98,6 +99,9 @@ public abstract class LeadServiceTestBase {
     @Mock
     protected HttpServletRequest request;
 
+    @Mock
+    protected ApplicationContext applicationContext;
+
     @InjectMocks
     protected LeadService leadService;
 
@@ -134,6 +138,9 @@ public abstract class LeadServiceTestBase {
 
         // Configure mock to return default values for controller tests
         stubLeadServiceMockDefaults();
+
+        // LeadService.createLead uses applicationContext.getBean(LeadService.class)
+        lenient().when(applicationContext.getBean(LeadService.class)).thenReturn(leadService);
     }
 
     protected void stubLeadServiceMockDefaults() {

@@ -16,10 +16,13 @@ import com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository
 import com.example.SpringApi.Repositories.PackageRepository;
 import com.example.SpringApi.Services.Interface.IPackageSubTranslator;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.SuccessMessages;
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -58,13 +61,15 @@ public class PackageService extends BaseService implements IPackageSubTranslator
 
     @Autowired
     public PackageService(
-        PackageRepository packageRepository,
-        PackagePickupLocationMappingRepository packagePickupLocationMappingRepository,
-        com.example.SpringApi.Repositories.PickupLocationRepository pickupLocationRepository,
-        UserLogService userLogService,
-        PackageFilterQueryBuilder packageFilterQueryBuilder,
-        MessageService messageService) {
-        super();
+            PackageRepository packageRepository,
+            PackagePickupLocationMappingRepository packagePickupLocationMappingRepository,
+            com.example.SpringApi.Repositories.PickupLocationRepository pickupLocationRepository,
+            UserLogService userLogService,
+            PackageFilterQueryBuilder packageFilterQueryBuilder,
+            MessageService messageService,
+            JwtTokenProvider jwtTokenProvider,
+            HttpServletRequest request) {
+        super(jwtTokenProvider, request);
         this.packageRepository = packageRepository;
         this.packagePickupLocationMappingRepository = packagePickupLocationMappingRepository;
         this.pickupLocationRepository = pickupLocationRepository;
@@ -299,7 +304,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         List<PackagePickupLocationMapping> mappings = packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(pickupLocationId, getClientId());
         return mappings.stream()
             .map(mapping -> new PackageResponseModel(mapping.getPackageEntity()))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     /**
@@ -320,7 +325,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     public void bulkCreatePackagesAsync(List<PackageRequestModel> packages, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
         // Validate input
         if (packages == null || packages.isEmpty()) {
-            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Package"));
+            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, ErrorMessages.PackageErrorMessages.EntityName));
         }
 
         try {
@@ -342,17 +347,17 @@ public class PackageService extends BaseService implements IPackageSubTranslator
                     response.addSuccess(packageRequest.getPackageName(), packageRequest.getPackageId());
                     successCount++;
                     
-                } catch (BadRequestException bre) {
+                } catch (BadRequestException badRequestException) {
                     // Validation or business logic error
                     response.addFailure(
-                        packageRequest.getPackageName() != null ? packageRequest.getPackageName() : "unknown", 
-                        bre.getMessage()
+                        packageRequest.getPackageName() != null ? packageRequest.getPackageName() : ErrorMessages.PackageErrorMessages.UnknownPackageName, 
+                        badRequestException.getMessage()
                     );
                     failureCount++;
                 } catch (Exception e) {
                     // Unexpected error
                     response.addFailure(
-                        packageRequest.getPackageName() != null ? packageRequest.getPackageName() : "unknown", 
+                        packageRequest.getPackageName() != null ? packageRequest.getPackageName() : ErrorMessages.PackageErrorMessages.UnknownPackageName, 
                         String.format(ErrorMessages.PackageErrorMessages.BulkItemErrorFormat, e.getMessage())
                     );
                     failureCount++;
@@ -384,7 +389,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             errorResponse.setSuccessCount(0);
             errorResponse.setFailureCount(packages != null ? packages.size() : 0);
             errorResponse.addFailure(
-                "bulk_import",
+                ErrorMessages.PackageErrorMessages.BulkImportKey,
                 String.format(ErrorMessages.PackageErrorMessages.BulkCriticalErrorFormat, e.getMessage()));
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
                 errorResponse, "Package", "Packages", "Package Name", "Package ID", 
@@ -405,7 +410,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     public BulkInsertResponseModel<Long> bulkCreatePackages(List<PackageRequestModel> packages) {
         // Validate input
         if (packages == null || packages.isEmpty()) {
-            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Package"));
+            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, ErrorMessages.PackageErrorMessages.EntityName));
         }
 
         BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
@@ -424,17 +429,17 @@ public class PackageService extends BaseService implements IPackageSubTranslator
                 response.addSuccess(packageRequest.getPackageName(), packageRequest.getPackageId());
                 successCount++;
                 
-            } catch (BadRequestException bre) {
+            } catch (BadRequestException badRequestException) {
                 // Validation or business logic error
                 response.addFailure(
-                    packageRequest.getPackageName() != null ? packageRequest.getPackageName() : "unknown", 
-                    bre.getMessage()
+                    packageRequest.getPackageName() != null ? packageRequest.getPackageName() : ErrorMessages.PackageErrorMessages.UnknownPackageName, 
+                    badRequestException.getMessage()
                 );
                 failureCount++;
             } catch (Exception e) {
                 // Unexpected error
                 response.addFailure(
-                    packageRequest.getPackageName() != null ? packageRequest.getPackageName() : "unknown", 
+                    packageRequest.getPackageName() != null ? packageRequest.getPackageName() : ErrorMessages.PackageErrorMessages.UnknownPackageName, 
                     String.format(ErrorMessages.PackageErrorMessages.BulkItemErrorFormat, e.getMessage())
                 );
                 failureCount++;

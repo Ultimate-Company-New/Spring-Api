@@ -1,6 +1,9 @@
 package com.example.SpringApi.Services;
 
 import com.example.SpringApi.Services.Interface.IMessageSubTranslator;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.example.SpringApi.Models.ResponseModels.MessageResponseModel;
 import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
@@ -25,6 +28,8 @@ import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.SuccessMessages;
+import com.example.SpringApi.Authentication.JwtTokenProvider;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
@@ -67,8 +72,10 @@ public class MessageService extends BaseService implements IMessageSubTranslator
             MessageUserGroupMapRepository messageUserGroupMapRepository,
             ClientRepository clientRepository,
             UserLogService userLogService,
-            Environment environment) {
-        super();
+            Environment environment,
+            JwtTokenProvider jwtTokenProvider,
+            HttpServletRequest request) {
+        super(jwtTokenProvider, request);
         this.messageRepository = messageRepository;
         this.userRepository = userRepository;
         this.messageUserReadMapRepository = messageUserReadMapRepository;

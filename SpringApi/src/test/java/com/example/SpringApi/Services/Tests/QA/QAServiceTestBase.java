@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services.Tests.QA;
 
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.UnauthorizedException;
 import com.example.SpringApi.Models.DatabaseModels.LatestTestResult;
@@ -11,7 +12,7 @@ import com.example.SpringApi.Repositories.LatestTestResultRepository;
 import com.example.SpringApi.Repositories.TestRunRepository;
 import com.example.SpringApi.Services.Interface.IQASubTranslator;
 import com.example.SpringApi.Services.QAService;
-import com.example.SpringApi.Models.DatabaseModels.TestRun;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.mockito.Mock;
 
@@ -55,13 +56,20 @@ public abstract class QAServiceTestBase {
     @Mock
     protected IQASubTranslator qaSubTranslator;
 
+    @Mock
+    protected JwtTokenProvider jwtTokenProvider;
+
+    @Mock
+    protected HttpServletRequest request;
+
     protected QAService qaService;
 
     @BeforeEach
     public void setUp() {
         // Create a subclass that overrides the async execution method to prevent
         // actual Maven process execution during unit tests.
-        QAService realService = new QAService(testRunRepository, latestTestResultRepository) {
+        QAService realService = new QAService(testRunRepository, latestTestResultRepository, jwtTokenProvider, request) {
+            @Override
             protected void executeTestsAsync(String executionId, String testClassName, String testMethodFilter,
                     String serviceName) {
                 // Do nothing during unit tests

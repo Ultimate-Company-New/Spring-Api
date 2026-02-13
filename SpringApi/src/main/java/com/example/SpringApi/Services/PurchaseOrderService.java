@@ -1,7 +1,9 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.Constants.EntityType;
 import com.example.SpringApi.Exceptions.BadRequestException;
+import jakarta.servlet.http.HttpServletRequest;
 import com.example.SpringApi.Helpers.BulkInsertHelper;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.FilterQueryBuilder.PurchaseOrderFilterQueryBuilder;
@@ -117,8 +119,10 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                                 UserLogService userLogService,
                                 PurchaseOrderFilterQueryBuilder purchaseOrderFilterQueryBuilder,
                                 MessageService messageService,
-                                Environment environment) {
-        super();
+                                Environment environment,
+                                JwtTokenProvider jwtTokenProvider,
+                                HttpServletRequest request) {
+        super(jwtTokenProvider, request);
         this.purchaseOrderRepository = purchaseOrderRepository;
         this.addressRepository = addressRepository;
         this.userRepository = userRepository;
@@ -733,9 +737,9 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
 
         // Fetch OrderSummary to get shipping address
         OrderSummary orderSummary = orderSummaryRepository.findByEntityTypeAndEntityId(
-                OrderSummary.EntityType.PURCHASE_ORDER.getValue(),
-                purchaseOrder.getPurchaseOrderId()
-        ).orElseThrow(() -> new NotFoundException(ErrorMessages.OrderSummaryNotFoundMessage.PurchaseOrderNotFound));
+            OrderSummary.EntityType.PURCHASE_ORDER.getValue(),
+            purchaseOrder.getPurchaseOrderId()
+        ).orElseThrow(() -> new NotFoundException(ErrorMessages.OrderSummaryNotFoundMessage.NotFound));
 
         // Fetch shipping address from OrderSummary
         Optional<Address> shippingAddressOptional =

@@ -1,5 +1,6 @@
 package com.example.SpringApi.Services;
 
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
@@ -33,8 +34,8 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
     private final UserLogService userLogService;
     
     @Autowired
-    public TodoService(TodoRepository todoRepository, UserLogService userLogService, HttpServletRequest request) {
-        super();
+    public TodoService(TodoRepository todoRepository, UserLogService userLogService, HttpServletRequest request, JwtTokenProvider jwtTokenProvider) {
+        super(jwtTokenProvider, request);
         this.todoRepository = todoRepository;
         this.userLogService = userLogService;
     }

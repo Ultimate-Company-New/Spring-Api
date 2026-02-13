@@ -1,6 +1,8 @@
 package com.example.SpringApi.Services;
 
 import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Models.ApiRoutes;
+import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.Models.DatabaseModels.Client;
@@ -26,6 +28,8 @@ import com.razorpay.RazorpayException;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -39,7 +43,9 @@ import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -64,6 +70,11 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
     private final UserLogService userLogService;
     private final Environment environment;
 
+    // JSON field names reused for Razorpay requests/responses
+    private static final String RAZORPAY_JSON_FIELD_AMOUNT = "amount";
+    private static final String JSON_FIELD_CURRENCY = "currency";
+    private static final String JSON_FIELD_NOTES = "notes";
+
     @Autowired
     public PaymentService(
             PurchaseOrderRepository purchaseOrderRepository,
@@ -71,8 +82,10 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             PaymentRepository paymentRepository,
             ClientRepository clientRepository,
             UserLogService userLogService,
-            Environment environment) {
-        super();
+            Environment environment,
+            JwtTokenProvider jwtTokenProvider,
+            HttpServletRequest request) {
+        super(jwtTokenProvider, request);
         this.purchaseOrderRepository = purchaseOrderRepository;
         this.orderSummaryRepository = orderSummaryRepository;
         this.paymentRepository = paymentRepository;
@@ -133,8 +146,8 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             
             // Create Razorpay order
             JSONObject orderRequest = new JSONObject();
-            orderRequest.put("amount", amountInPaise);
-            orderRequest.put("currency", "INR");
+            orderRequest.put(RAZORPAY_JSON_FIELD_AMOUNT, amountInPaise);
+            orderRequest.put(JSON_FIELD_CURRENCY, "INR");
             orderRequest.put("receipt", receipt);
             orderRequest.put("payment_capture", 1); // Auto-capture payment
 
@@ -143,10 +156,10 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             notes.put("purchase_order_id", purchaseOrder.getPurchaseOrderId().toString());
             notes.put("vendor_number", purchaseOrder.getVendorNumber());
             notes.put("client_id", client.getClientId().toString());
-            orderRequest.put("notes", notes);
+            orderRequest.put(JSON_FIELD_NOTES, notes);
 
             Order razorpayOrder = razorpayClient.orders.create(orderRequest);
-            String razorpayOrderId = razorpayOrder.get("id");
+            String razorpayOrderId = String.valueOf(razorpayOrder.get("id"));
 
             // Create Payment record to track this transaction
             Payment payment = new Payment(
@@ -207,10 +220,10 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
 
             return response;
 
-        } catch (RazorpayException e) {
+        } catch (RazorpayException razorpayException) {
             throw new BadRequestException(String.format(
                     ErrorMessages.PaymentErrorMessages.FailedToCreateRazorpayOrderFormat,
-                    e.getMessage()));
+                    razorpayException.getMessage()));
         }
     }
 
@@ -269,8 +282,8 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             
             // Create Razorpay order
             JSONObject orderRequest = new JSONObject();
-            orderRequest.put("amount", amountInPaise);
-            orderRequest.put("currency", "INR");
+            orderRequest.put(RAZORPAY_JSON_FIELD_AMOUNT, amountInPaise);
+            orderRequest.put(JSON_FIELD_CURRENCY, "INR");
             orderRequest.put("receipt", receipt);
             orderRequest.put("payment_capture", 1); // Auto-capture payment
 
@@ -280,10 +293,10 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             notes.put("vendor_number", purchaseOrder.getVendorNumber());
             notes.put("client_id", client.getClientId().toString());
             notes.put("is_follow_up_payment", "true");
-            orderRequest.put("notes", notes);
+            orderRequest.put(JSON_FIELD_NOTES, notes);
 
             Order razorpayOrder = razorpayClient.orders.create(orderRequest);
-            String razorpayOrderId = razorpayOrder.get("id");
+            String razorpayOrderId = String.valueOf(razorpayOrder.get("id"));
 
             // Create Payment record to track this transaction
             Payment payment = new Payment(
@@ -343,10 +356,10 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             }
 
             return response;
-        } catch (RazorpayException e) {
+        } catch (RazorpayException razorpayException) {
             throw new BadRequestException(String.format(
                     ErrorMessages.PaymentErrorMessages.FailedToCreateRazorpayOrderFormat,
-                    e.getMessage()));
+                    razorpayException.getMessage()));
         }
     }
 
@@ -792,7 +805,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
     @Override
     @Transactional(readOnly = true)
     public boolean isPurchaseOrderPaid(Long purchaseOrderId) {
-        return paymentRepository.hasSuccessfulPayment("PURCHASE_ORDER", purchaseOrderId);
+        return paymentRepository.hasSuccessfulPayment(Payment.EntityType.PURCHASE_ORDER.getValue(), purchaseOrderId);
     }
 
     /**
@@ -833,23 +846,24 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             RazorpayClient razorpayClient = createRazorpayClient(client);
 
             JSONObject refundRequest = new JSONObject();
-            refundRequest.put("amount", amountInPaise);
+            refundRequest.put(RAZORPAY_JSON_FIELD_AMOUNT, amountInPaise);
             refundRequest.put("speed", "normal");
 
             JSONObject notes = new JSONObject();
             notes.put("reason", reason != null ? reason : "Customer requested refund");
             notes.put("payment_id", payment.getPaymentId().toString());
-            refundRequest.put("notes", notes);
+            refundRequest.put(JSON_FIELD_NOTES, notes);
 
             com.razorpay.Refund refund = razorpayClient.payments.refund(
                     payment.getRazorpayPaymentId(),
                     refundRequest
             );
 
-            payment.recordRefund(refund.get("id"), amountInPaise, getUser());
+            String refundId = String.valueOf(refund.get("id"));
+            payment.recordRefund(refundId, amountInPaise, getUser());
             paymentRepository.save(payment);
 
-            if ("PURCHASE_ORDER".equals(payment.getEntityType())) {
+            if (Payment.EntityType.PURCHASE_ORDER.getValue().equals(payment.getEntityType())) {
                 OrderSummary orderSummary = orderSummaryRepository
                         .findByPurchaseOrderId(payment.getEntityId())
                         .orElse(null);
@@ -865,16 +879,16 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             userLogService.logData(
                     getUserId(),
                     "Refund of " + amountInPaise + " paise processed for Payment #" + payment.getPaymentId() +
-                            ". Refund ID: " + refund.get("id"),
-                    "Payment/refund"
+                            ". Refund ID: " + refundId,
+                    ApiRoutes.ApiControllerNames.PAYMENTS + "/" + ApiRoutes.PaymentsSubRoute.PROCESS_REFUND
             );
 
             return payment;
 
-        } catch (RazorpayException e) {
+        } catch (RazorpayException razorpayException) {
             throw new BadRequestException(String.format(
                     ErrorMessages.PaymentErrorMessages.FailedToProcessRefundFormat,
-                    e.getMessage()));
+                    razorpayException.getMessage()));
         }
     }
 
@@ -981,15 +995,10 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
      * Checks if we're running in test/development mode.
      */
     private boolean isTestMode() {
-        String[] activeProfiles = environment.getActiveProfiles();
-        for (String profile : activeProfiles) {
-            if ("localhost".equalsIgnoreCase(profile) ||
-                    "development".equalsIgnoreCase(profile) ||
-                    "dev".equalsIgnoreCase(profile)) {
-                return true;
-            }
-        }
-        return false;
+        return Arrays.stream(environment.getActiveProfiles())
+                .anyMatch(profile -> "localhost".equalsIgnoreCase(profile) ||
+                        "development".equalsIgnoreCase(profile) ||
+                        "dev".equalsIgnoreCase(profile));
     }
 
     /**
@@ -1045,21 +1054,16 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
         try {
             String data = orderId + "|" + paymentId;
 
-            Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secret_key = new SecretKeySpec(apiSecret.getBytes(), "HmacSHA256");
-            sha256_HMAC.init(secret_key);
+            Mac sha256Hmac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secretKey = new SecretKeySpec(apiSecret.getBytes(), "HmacSHA256");
+            sha256Hmac.init(secretKey);
 
-            byte[] hash = sha256_HMAC.doFinal(data.getBytes());
-
-            StringBuilder sb = new StringBuilder();
-            for (byte b : hash) {
-                sb.append(String.format("%02x", b));
-            }
-            String generatedSignature = sb.toString();
+            byte[] hash = sha256Hmac.doFinal(data.getBytes());
+            String generatedSignature = HexFormat.of().formatHex(hash);
 
             return generatedSignature.equals(signature);
 
-        } catch (Exception e) {
+        } catch (Exception exception) {
             return false;
         }
     }
@@ -1096,9 +1100,15 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
         templateData.put("currentYear", java.time.Year.now().getValue());
         templateData.put("payment", payment);
 
-        LocalDateTime paymentDateTime = payment.getCapturedAt() != null
-                ? payment.getCapturedAt()
-                : (payment.getPaymentDate() != null ? payment.getPaymentDate() : payment.getOrderCreatedAt());
+        LocalDateTime paymentDateTime;
+        if (payment.getCapturedAt() != null) {
+            paymentDateTime = payment.getCapturedAt();
+        } else if (payment.getPaymentDate() != null) {
+            paymentDateTime = payment.getPaymentDate();
+        } else {
+            paymentDateTime = payment.getOrderCreatedAt();
+        }
+
         if (paymentDateTime != null) {
             templateData.put("paymentDate", paymentDateTime.format(DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm")));
         } else {
@@ -1111,13 +1121,16 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
         templateData.put("paymentMethod", payment.getPaymentMethod() != null ? payment.getPaymentMethod() : "N/A");
         templateData.put("paymentGateway", payment.getPaymentGateway() != null ? payment.getPaymentGateway() : "N/A");
 
-        BigDecimal amountPaid = payment.getAmountPaid() != null
-                ? payment.getAmountPaid()
-                : (payment.getAmountPaidPaise() != null
-                ? BigDecimal.valueOf(payment.getAmountPaidPaise()).divide(BigDecimal.valueOf(100))
-                : BigDecimal.ZERO);
+        BigDecimal amountPaid;
+        if (payment.getAmountPaid() != null) {
+            amountPaid = payment.getAmountPaid();
+        } else if (payment.getAmountPaidPaise() != null) {
+            amountPaid = BigDecimal.valueOf(payment.getAmountPaidPaise()).divide(BigDecimal.valueOf(100));
+        } else {
+            amountPaid = BigDecimal.ZERO;
+        }
         templateData.put("amountPaid", amountPaid.toString());
-        templateData.put("currency", payment.getCurrency() != null ? payment.getCurrency() : "INR");
+        templateData.put(JSON_FIELD_CURRENCY, payment.getCurrency() != null ? payment.getCurrency() : "INR");
 
         if (payment.getRazorpayFee() != null && payment.getRazorpayFee().compareTo(BigDecimal.ZERO) > 0) {
             templateData.put("razorpayFee", payment.getRazorpayFee().toString());
