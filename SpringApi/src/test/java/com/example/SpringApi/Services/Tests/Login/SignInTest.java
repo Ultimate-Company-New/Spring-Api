@@ -281,7 +281,7 @@ public class SignInTest extends LoginServiceTestBase {
                 NotFoundException.class,
                 () -> loginService.signIn(testLoginRequest));
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidEmail, exception.getMessage());
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_EMAIL, exception.getMessage());
     }
 
     /**
@@ -347,7 +347,7 @@ public class SignInTest extends LoginServiceTestBase {
                     UnauthorizedException.class,
                     () -> loginService.signIn(testLoginRequest));
 
-            assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidCredentials, exception.getMessage());
+            assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS, exception.getMessage());
         }
     }
 
@@ -460,7 +460,7 @@ public class SignInTest extends LoginServiceTestBase {
         // Act & Assert
         NullPointerException exception = assertThrows(NullPointerException.class,
                 () -> loginService.signIn(null));
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.NullRequest, exception.getMessage());
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.NULL_REQUEST, exception.getMessage());
     }
 
     /**
@@ -479,7 +479,7 @@ public class SignInTest extends LoginServiceTestBase {
                 NotFoundException.class,
                 () -> loginService.signIn(testLoginRequest));
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidEmail, exception.getMessage());
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_EMAIL, exception.getMessage());
     }
 
     /**

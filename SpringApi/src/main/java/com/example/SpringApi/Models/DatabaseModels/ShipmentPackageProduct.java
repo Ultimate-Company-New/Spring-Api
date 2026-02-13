@@ -104,22 +104,22 @@ public class ShipmentPackageProduct {
     private void validateRequest(Long shipmentPackageId,
                                 com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel.PackageProductData productData) {
         if (productData == null) {
-            throw new BadRequestException(ErrorMessages.ShipmentPackageProductErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.ShipmentPackageProductErrorMessages.INVALID_REQUEST);
         }
         
         // Validate shipment package ID
         if (shipmentPackageId == null || shipmentPackageId <= 0) {
-            throw new BadRequestException(ErrorMessages.ShipmentPackageProductErrorMessages.ShipmentPackageIdRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentPackageProductErrorMessages.SHIPMENT_PACKAGE_ID_REQUIRED);
         }
         
         // Validate product ID
         if (productData.getProductId() == null || productData.getProductId() <= 0) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_ID);
         }
         
         // Validate quantity
         if (productData.getQuantity() == null || productData.getQuantity() <= 0) {
-            throw new BadRequestException(ErrorMessages.ShipmentPackageProductErrorMessages.QuantityRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentPackageProductErrorMessages.QUANTITY_REQUIRED);
         }
     }
 }

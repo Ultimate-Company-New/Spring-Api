@@ -120,7 +120,7 @@ class GetClientByIdTest extends ClientServiceTestBase {
                                 () -> clientService.getClientById(Long.MAX_VALUE));
 
                 // Assert
-                assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+                assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
         }
 
         /*
@@ -139,7 +139,7 @@ class GetClientByIdTest extends ClientServiceTestBase {
                                 () -> clientService.getClientById(Long.MIN_VALUE));
 
                 // Assert
-                assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+                assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
         }
 
         /*
@@ -159,7 +159,7 @@ class GetClientByIdTest extends ClientServiceTestBase {
                                 () -> clientService.getClientById(negativeId));
 
                 // Assert
-                assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+                assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
         }
 
         /*
@@ -178,7 +178,7 @@ class GetClientByIdTest extends ClientServiceTestBase {
                                 () -> clientService.getClientById(TEST_CLIENT_ID));
 
                 // Assert
-                assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+                assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
         }
 
         /*
@@ -198,7 +198,7 @@ class GetClientByIdTest extends ClientServiceTestBase {
                                 () -> clientService.getClientById(zeroId));
 
                 // Assert
-                assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+                assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
         }
 
         /*

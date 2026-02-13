@@ -159,7 +159,7 @@ class EditProductTest extends ProductServiceTestBase {
         stubProductRepositoryFindByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID, testProduct);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidBrand,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_BRAND,
                 () -> productService.editProduct(testProductRequest));
     }
 
@@ -196,7 +196,7 @@ class EditProductTest extends ProductServiceTestBase {
         stubProductRepositoryFindByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID, testProduct);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidPrice,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_PRICE,
                 () -> productService.editProduct(testProductRequest));
     }
 
@@ -213,7 +213,7 @@ class EditProductTest extends ProductServiceTestBase {
         stubProductRepositoryFindByIdWithRelatedEntities(TEST_PRODUCT_ID, TEST_CLIENT_ID, testProduct);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidWeight,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_WEIGHT,
                 () -> productService.editProduct(testProductRequest));
     }
 
@@ -245,7 +245,7 @@ class EditProductTest extends ProductServiceTestBase {
         testProductRequest.setProductId(null);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidId,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_ID,
                 () -> productService.editProduct(testProductRequest));
     }
 

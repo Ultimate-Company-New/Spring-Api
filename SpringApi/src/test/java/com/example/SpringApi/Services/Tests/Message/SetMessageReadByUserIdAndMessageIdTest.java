@@ -138,7 +138,7 @@ public class SetMessageReadByUserIdAndMessageIdTest extends MessageServiceTestBa
         stubMessageRepositoryFindByMessageIdAndClientId(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.INVALID_ID,
                 () -> messageService.setMessageReadByUserIdAndMessageId(TEST_USER_ID, -1L));
     }
 
@@ -154,7 +154,7 @@ public class SetMessageReadByUserIdAndMessageIdTest extends MessageServiceTestBa
         stubMessageRepositoryFindByMessageIdAndClientId(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.INVALID_ID,
                 () -> messageService.setMessageReadByUserIdAndMessageId(TEST_USER_ID, 0L));
     }
 
@@ -171,7 +171,7 @@ public class SetMessageReadByUserIdAndMessageIdTest extends MessageServiceTestBa
         stubMessageRepositoryFindByMessageIdAndClientId(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.INVALID_ID,
                 () -> messageService.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID));
     }
 
@@ -186,7 +186,7 @@ public class SetMessageReadByUserIdAndMessageIdTest extends MessageServiceTestBa
         stubUserRepositoryFindByUserIdAndClientId(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.UserErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.UserErrorMessages.INVALID_ID,
                 () -> messageService.setMessageReadByUserIdAndMessageId(-1L, TEST_MESSAGE_ID));
     }
 
@@ -201,7 +201,7 @@ public class SetMessageReadByUserIdAndMessageIdTest extends MessageServiceTestBa
         stubUserRepositoryFindByUserIdAndClientId(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.UserErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.UserErrorMessages.INVALID_ID,
                 () -> messageService.setMessageReadByUserIdAndMessageId(0L, TEST_MESSAGE_ID));
     }
 
@@ -217,7 +217,7 @@ public class SetMessageReadByUserIdAndMessageIdTest extends MessageServiceTestBa
         stubUserRepositoryFindByUserIdAndClientId(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.UserErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.UserErrorMessages.INVALID_ID,
                 () -> messageService.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID));
     }
 
@@ -229,12 +229,12 @@ public class SetMessageReadByUserIdAndMessageIdTest extends MessageServiceTestBa
     @DisplayName("Set Message Read - User Repository Exception - Propagates Exception")
     void setMessageReadByUserIdAndMessageId_UserRepositoryException_Propagates() {
         // Arrange
-        stubUserRepositoryFindByUserIdAndClientIdThrows(ErrorMessages.MessagesErrorMessages.DbError);
+        stubUserRepositoryFindByUserIdAndClientIdThrows(ErrorMessages.MessagesErrorMessages.DB_ERROR);
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> messageService.setMessageReadByUserIdAndMessageId(TEST_USER_ID, TEST_MESSAGE_ID));
-        assertEquals(ErrorMessages.MessagesErrorMessages.DbError, ex.getMessage());
+        assertEquals(ErrorMessages.MessagesErrorMessages.DB_ERROR, ex.getMessage());
     }
 
     /*

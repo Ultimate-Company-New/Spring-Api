@@ -132,7 +132,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
 
                 // Assert
-                assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, Long.MAX_VALUE),
+                assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, Long.MAX_VALUE),
                                 ex.getMessage());
         }
 
@@ -153,7 +153,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
 
                 // Assert
-                assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, Long.MIN_VALUE),
+                assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, Long.MIN_VALUE),
                                 ex.getMessage());
         }
 
@@ -198,7 +198,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
 
                 // Assert
-                assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, -100L),
+                assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, -100L),
                                 ex.getMessage());
         }
 
@@ -283,7 +283,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
 
                 // Assert
-                assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickName, ex.getMessage());
+                assertEquals(ErrorMessages.PickupLocationErrorMessages.INVALID_ADDRESS_NICK_NAME, ex.getMessage());
         }
 
         /**
@@ -342,7 +342,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
                                 () -> pickupLocationService.updatePickupLocation(null));
 
                 // Assert
-                assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidRequest, ex.getMessage());
+                assertEquals(ErrorMessages.PickupLocationErrorMessages.INVALID_REQUEST, ex.getMessage());
         }
 
         /**
@@ -591,7 +591,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
 
                 // Assert
-                assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickName, ex.getMessage());
+                assertEquals(ErrorMessages.PickupLocationErrorMessages.INVALID_ADDRESS_NICK_NAME, ex.getMessage());
         }
 
         /**
@@ -694,7 +694,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
                                 () -> pickupLocationService.updatePickupLocation(testPickupLocationRequest));
 
                 // Assert
-                assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, 0L),
+                assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, 0L),
                                 ex.getMessage());
         }
 

@@ -129,25 +129,25 @@ public class PickupLocation {
      */
     private void validateRequest(PickupLocationRequestModel request) {
         if (request == null) {
-            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.INVALID_REQUEST);
         }
         
         // Validate address nickname (required, length > 0, max 36 chars - Shiprocket API limit)
         if (request.getAddressNickName() == null || request.getAddressNickName().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickName);
+            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.INVALID_ADDRESS_NICK_NAME);
         }
         if (request.getAddressNickName().trim().length() > 36) {
-            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.LocationNameTooLong);
+            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.LOCATION_NAME_TOO_LONG);
         }
         
         // Validate pickup location address ID (required, > 0)
         if (request.getPickupLocationAddressId() == null || request.getPickupLocationAddressId() <= 0) {
-            throw new BadRequestException(ErrorMessages.AddressErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.AddressErrorMessages.INVALID_ID);
         }
         
         // Validate ShipRocket pickup location ID (if provided, > 0)
         if (request.getShipRocketPickupLocationId() != null && request.getShipRocketPickupLocationId() <= 0) {
-            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.InvalidShipRocketId);
+            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.INVALID_SHIP_ROCKET_ID);
         }
     }
     
@@ -159,7 +159,7 @@ public class PickupLocation {
      */
     private void validateUser(String user) {
         if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
         }
     }
     

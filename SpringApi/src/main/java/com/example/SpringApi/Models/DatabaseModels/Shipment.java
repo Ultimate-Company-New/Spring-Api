@@ -351,55 +351,55 @@ public class Shipment {
                                 com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel.ShipmentData shipmentData,
                                 Long clientId, String user) {
         if (shipmentData == null) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.INVALID_REQUEST);
         }
         
         // Validate order summary ID
         if (orderSummaryId == null || orderSummaryId <= 0) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.OrderSummaryIdRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.ORDER_SUMMARY_ID_REQUIRED);
         }
         
         // Validate pickup location ID
         if (shipmentData.getPickupLocationId() == null || shipmentData.getPickupLocationId() <= 0) {
-            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.INVALID_ID);
         }
         
         // Validate weight
         if (shipmentData.getTotalWeightKgs() == null) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.TotalWeightRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.TOTAL_WEIGHT_REQUIRED);
         }
         if (shipmentData.getTotalWeightKgs().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.TotalWeightInvalid);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.TOTAL_WEIGHT_INVALID);
         }
         
         // Validate quantity
         if (shipmentData.getTotalQuantity() == null || shipmentData.getTotalQuantity() <= 0) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.TotalQuantityRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.TOTAL_QUANTITY_REQUIRED);
         }
         
         // Validate costs
         if (shipmentData.getPackagingCost() == null) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.PackagingCostRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.PACKAGING_COST_REQUIRED);
         }
         if (shipmentData.getPackagingCost().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.PackagingCostInvalid);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.PACKAGING_COST_INVALID);
         }
         
         if (shipmentData.getShippingCost() == null) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.ShippingCostRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.SHIPPING_COST_REQUIRED);
         }
         if (shipmentData.getShippingCost().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.ShippingCostInvalid);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.SHIPPING_COST_INVALID);
         }
         
         // Validate client ID (only for create)
         if (clientId != null && (clientId <= 0)) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_ID);
         }
         
         // Validate user
         if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
         }
     }
     
@@ -409,21 +409,21 @@ public class Shipment {
      */
     public void setCourierSelection(com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel.CourierSelectionData courierData) {
         if (courierData == null) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.CourierSelectionRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.COURIER_SELECTION_REQUIRED);
         }
         
         // Validate required fields
         if (courierData.getCourierCompanyId() == null) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.CourierCompanyIdRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.COURIER_COMPANY_ID_REQUIRED);
         }
         if (courierData.getCourierName() == null || courierData.getCourierName().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.CourierNameRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.COURIER_NAME_REQUIRED);
         }
         if (courierData.getCourierRate() == null) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.CourierRateRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.COURIER_RATE_REQUIRED);
         }
         if (courierData.getCourierMetadata() == null || courierData.getCourierMetadata().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.CourierMetadataRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.COURIER_METADATA_REQUIRED);
         }
         
         this.selectedCourierCompanyId = courierData.getCourierCompanyId();

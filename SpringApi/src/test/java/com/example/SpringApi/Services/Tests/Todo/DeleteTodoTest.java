@@ -145,7 +145,7 @@ class DeleteTodoTest extends TodoServiceTestBase {
     /*
      * Purpose: Verify max long ID throws NotFoundException.
      * Expected Result: NotFoundException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.NotFound
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.NOT_FOUND
      */
     @Test
     @DisplayName("deleteTodo - Max Long Id - NotFoundException")
@@ -158,13 +158,13 @@ class DeleteTodoTest extends TodoServiceTestBase {
                 () -> todoService.deleteTodo(Long.MAX_VALUE));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*
      * Purpose: Verify min long ID throws NotFoundException.
      * Expected Result: NotFoundException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.NotFound
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.NOT_FOUND
      */
     @Test
     @DisplayName("deleteTodo - Min Long Id - NotFoundException")
@@ -177,13 +177,13 @@ class DeleteTodoTest extends TodoServiceTestBase {
                 () -> todoService.deleteTodo(Long.MIN_VALUE));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*
      * Purpose: Verify negative ID throws NotFoundException.
      * Expected Result: NotFoundException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.NotFound
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.NOT_FOUND
      */
     @Test
     @DisplayName("deleteTodo - Negative Id - NotFoundException")
@@ -196,13 +196,13 @@ class DeleteTodoTest extends TodoServiceTestBase {
                 () -> todoService.deleteTodo(-1L));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*
      * Purpose: Verify not found throws NotFoundException.
      * Expected Result: NotFoundException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.NotFound
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.NOT_FOUND
      */
     @Test
     @DisplayName("deleteTodo - Not Found - NotFoundException")
@@ -215,13 +215,13 @@ class DeleteTodoTest extends TodoServiceTestBase {
                 () -> todoService.deleteTodo(TEST_TODO_ID));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*
      * Purpose: Verify zero ID throws NotFoundException.
      * Expected Result: NotFoundException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.NotFound
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.NOT_FOUND
      */
     @Test
     @DisplayName("deleteTodo - Zero Id - NotFoundException")
@@ -234,7 +234,7 @@ class DeleteTodoTest extends TodoServiceTestBase {
                 () -> todoService.deleteTodo(0L));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*

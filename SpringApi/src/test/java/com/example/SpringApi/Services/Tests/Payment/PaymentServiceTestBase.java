@@ -48,7 +48,7 @@ import static org.mockito.Mockito.lenient;
  *
  * Note: PaymentService extends BaseService. Methods have different flows:
  * - createOrder, createOrderFollowUp, verifyPayment, verifyPaymentFollowUp, initiateRefund:
- *   First call getClientWithRazorpayCredentials() which throws NotFoundException(ClientErrorMessages.InvalidId)
+ *   First call getClientWithRazorpayCredentials() which throws NotFoundException(ClientErrorMessages.INVALID_ID)
  *   when getClientId() returns null.
  * - recordCashPayment, recordCashPaymentFollowUp, getPaymentsForPurchaseOrder:
  *   First lookup PO, then check client access.

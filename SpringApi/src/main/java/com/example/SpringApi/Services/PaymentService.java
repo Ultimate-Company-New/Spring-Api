@@ -114,17 +114,17 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
         // Validate purchase order exists
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(request.getPurchaseOrderId())
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID));
 
         // Validate client access
         if (!purchaseOrder.getClientId().equals(getClientId())) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.ACCESS_DENIED_TO_PURCHASE_ORDER);
         }
 
         // Validate status - only PENDING_APPROVAL orders can be paid
         String status = purchaseOrder.getPurchaseOrderStatus();
         if (!PurchaseOrder.Status.PENDING_APPROVAL.getValue().equals(status)) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.OnlyPendingApprovalCanBePaid);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.ONLY_PENDING_APPROVAL_CAN_BE_PAID);
         }
 
         // Get amount from order summary if not provided
@@ -132,7 +132,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             OrderSummary orderSummary = orderSummaryRepository
                     .findByPurchaseOrderId(purchaseOrder.getPurchaseOrderId())
-                    .orElseThrow(() -> new BadRequestException(ErrorMessages.OrderSummaryNotFoundMessage.NotFound));
+                    .orElseThrow(() -> new BadRequestException(ErrorMessages.OrderSummaryNotFoundMessage.NOT_FOUND));
             amount = orderSummary.getGrandTotal();
         }
 
@@ -222,7 +222,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
 
         } catch (RazorpayException razorpayException) {
             throw new BadRequestException(String.format(
-                    ErrorMessages.PaymentErrorMessages.FailedToCreateRazorpayOrderFormat,
+                    ErrorMessages.PaymentErrorMessages.FAILED_TO_CREATE_RAZORPAY_ORDER_FORMAT,
                     razorpayException.getMessage()));
         }
     }
@@ -243,18 +243,18 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
         // Validate purchase order exists
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(request.getPurchaseOrderId())
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID));
 
         // Validate client access
         if (!purchaseOrder.getClientId().equals(getClientId())) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.ACCESS_DENIED_TO_PURCHASE_ORDER);
         }
 
         // Validate status - allow APPROVED or APPROVED_WITH_PARTIAL_PAYMENT for follow-up payments
         String status = purchaseOrder.getPurchaseOrderStatus();
         if (!PurchaseOrder.Status.APPROVED.getValue().equals(status) && 
             !PurchaseOrder.Status.APPROVED_WITH_PARTIAL_PAYMENT.getValue().equals(status)) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.FollowUpPaymentStatusRequired);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.FOLLOW_UP_PAYMENT_STATUS_REQUIRED);
         }
 
         // Get amount from order summary if not provided
@@ -262,7 +262,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             OrderSummary orderSummary = orderSummaryRepository
                     .findByPurchaseOrderId(purchaseOrder.getPurchaseOrderId())
-                    .orElseThrow(() -> new BadRequestException(ErrorMessages.OrderSummaryNotFoundMessage.NotFound));
+                    .orElseThrow(() -> new BadRequestException(ErrorMessages.OrderSummaryNotFoundMessage.NOT_FOUND));
             // For follow-up payments, use pending amount instead of grand total
             Long totalPaidPaise = paymentRepository.getTotalNetPaidPaiseForEntity(
                     Payment.EntityType.PURCHASE_ORDER.getValue(),
@@ -358,7 +358,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             return response;
         } catch (RazorpayException razorpayException) {
             throw new BadRequestException(String.format(
-                    ErrorMessages.PaymentErrorMessages.FailedToCreateRazorpayOrderFormat,
+                    ErrorMessages.PaymentErrorMessages.FAILED_TO_CREATE_RAZORPAY_ORDER_FORMAT,
                     razorpayException.getMessage()));
         }
     }
@@ -383,16 +383,16 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
         // Validate purchase order exists
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(request.getPurchaseOrderId())
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID));
 
         // Validate client access
         if (!purchaseOrder.getClientId().equals(getClientId())) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.ACCESS_DENIED_TO_PURCHASE_ORDER);
         }
 
         // Find the payment record
         Payment payment = paymentRepository.findByRazorpayOrderId(request.getRazorpayOrderId())
-                .orElseThrow(() -> new BadRequestException(ErrorMessages.PaymentErrorMessages.PaymentOrderNotFound));
+                .orElseThrow(() -> new BadRequestException(ErrorMessages.PaymentErrorMessages.PAYMENT_ORDER_NOT_FOUND));
 
         // Verify signature using client's secret
         boolean isValidSignature = verifyRazorpaySignature(
@@ -461,25 +461,25 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
         // Validate purchase order exists
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(request.getPurchaseOrderId())
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID));
 
         // Validate client access
         if (!purchaseOrder.getClientId().equals(getClientId())) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.ACCESS_DENIED_TO_PURCHASE_ORDER);
         }
 
         // Validate status - only PENDING_APPROVAL orders can be paid
         String status = purchaseOrder.getPurchaseOrderStatus();
         if (!PurchaseOrder.Status.PENDING_APPROVAL.getValue().equals(status)) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.OnlyPendingApprovalCanBePaid);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.ONLY_PENDING_APPROVAL_CAN_BE_PAID);
         }
 
         // Validate required fields
         if (request.getPaymentDate() == null) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.PaymentDateRequired);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.PAYMENT_DATE_REQUIRED);
         }
         if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.ValidPaymentAmountRequired);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.VALID_PAYMENT_AMOUNT_REQUIRED);
         }
         
         // Get order summary to validate payment amount
@@ -500,7 +500,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             // Validate new payment doesn't exceed pending amount
             if (request.getAmount().compareTo(pendingAmount) > 0) {
                 throw new BadRequestException(String.format(
-                        ErrorMessages.PaymentErrorMessages.PaymentAmountExceedsPendingAmountFormat,
+                        ErrorMessages.PaymentErrorMessages.PAYMENT_AMOUNT_EXCEEDS_PENDING_AMOUNT_FORMAT,
                         request.getAmount(),
                         pendingAmount));
             }
@@ -577,23 +577,23 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
         // Validate purchase order exists
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(request.getPurchaseOrderId())
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID));
 
         // Validate client access
         if (!purchaseOrder.getClientId().equals(getClientId())) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.ACCESS_DENIED_TO_PURCHASE_ORDER);
         }
 
         // Validate status - allow APPROVED or APPROVED_WITH_PARTIAL_PAYMENT for follow-up payments
         String status = purchaseOrder.getPurchaseOrderStatus();
         if (!PurchaseOrder.Status.APPROVED.getValue().equals(status) && 
             !PurchaseOrder.Status.APPROVED_WITH_PARTIAL_PAYMENT.getValue().equals(status)) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.FollowUpPaymentStatusRequired);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.FOLLOW_UP_PAYMENT_STATUS_REQUIRED);
         }
 
         // Find the payment record
         Payment payment = paymentRepository.findByRazorpayOrderId(request.getRazorpayOrderId())
-                .orElseThrow(() -> new BadRequestException(ErrorMessages.PaymentErrorMessages.PaymentOrderNotFound));
+                .orElseThrow(() -> new BadRequestException(ErrorMessages.PaymentErrorMessages.PAYMENT_ORDER_NOT_FOUND));
 
         // Verify signature using client's secret
         boolean isValidSignature = verifyRazorpaySignature(
@@ -662,26 +662,26 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
         // Validate purchase order exists
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(request.getPurchaseOrderId())
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID));
 
         // Validate client access
         if (!purchaseOrder.getClientId().equals(getClientId())) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.ACCESS_DENIED_TO_PURCHASE_ORDER);
         }
 
         // Validate status - allow APPROVED or APPROVED_WITH_PARTIAL_PAYMENT for follow-up payments
         String status = purchaseOrder.getPurchaseOrderStatus();
         if (!PurchaseOrder.Status.APPROVED.getValue().equals(status) && 
             !PurchaseOrder.Status.APPROVED_WITH_PARTIAL_PAYMENT.getValue().equals(status)) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.FollowUpPaymentStatusRequired);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.FOLLOW_UP_PAYMENT_STATUS_REQUIRED);
         }
 
         // Validate required fields
         if (request.getPaymentDate() == null) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.PaymentDateRequired);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.PAYMENT_DATE_REQUIRED);
         }
         if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.ValidPaymentAmountRequired);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.VALID_PAYMENT_AMOUNT_REQUIRED);
         }
         
         // Get order summary to validate payment amount
@@ -702,7 +702,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             // Validate new payment doesn't exceed pending amount
             if (request.getAmount().compareTo(pendingAmount) > 0) {
                 throw new BadRequestException(String.format(
-                        ErrorMessages.PaymentErrorMessages.PaymentAmountExceedsPendingAmountFormat,
+                        ErrorMessages.PaymentErrorMessages.PAYMENT_AMOUNT_EXCEEDS_PENDING_AMOUNT_FORMAT,
                         request.getAmount(),
                         pendingAmount));
             }
@@ -774,10 +774,10 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
     public List<Payment> getPaymentsForPurchaseOrder(Long purchaseOrderId) {
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(purchaseOrderId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID));
 
         if (!purchaseOrder.getClientId().equals(getClientId())) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.ACCESS_DENIED_TO_PURCHASE_ORDER);
         }
 
         return paymentRepository.findAllByPurchaseOrderId(purchaseOrderId);
@@ -790,10 +790,10 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
     @Transactional(readOnly = true)
     public Payment getPaymentById(Long paymentId) {
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.PaymentErrorMessages.NotFound));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PaymentErrorMessages.NOT_FOUND));
 
         if (!payment.getClientId().equals(getClientId())) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.AccessDenied);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.ACCESS_DENIED);
         }
 
         return payment;
@@ -822,14 +822,14 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
         Client client = getClientWithRazorpayCredentials();
 
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.PaymentErrorMessages.NotFound));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PaymentErrorMessages.NOT_FOUND));
 
         if (!payment.getClientId().equals(getClientId())) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.AccessDenied);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.ACCESS_DENIED);
         }
 
         if (!payment.canBeRefunded()) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.CannotRefund);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.CANNOT_REFUND);
         }
 
         if (amountInPaise == null || amountInPaise <= 0) {
@@ -838,7 +838,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
 
         if (amountInPaise > payment.getRefundableAmountPaise()) {
             throw new BadRequestException(String.format(
-                    ErrorMessages.PaymentErrorMessages.RefundAmountExceedsRefundableAmountFormat,
+                    ErrorMessages.PaymentErrorMessages.REFUND_AMOUNT_EXCEEDS_REFUNDABLE_AMOUNT_FORMAT,
                     payment.getRefundableAmountPaise()));
         }
 
@@ -887,7 +887,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
 
         } catch (RazorpayException razorpayException) {
             throw new BadRequestException(String.format(
-                    ErrorMessages.PaymentErrorMessages.FailedToProcessRefundFormat,
+                    ErrorMessages.PaymentErrorMessages.FAILED_TO_PROCESS_REFUND_FORMAT,
                     razorpayException.getMessage()));
         }
     }
@@ -927,21 +927,21 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
     public byte[] generatePaymentReceiptPDF(Long paymentId) throws TemplateException, IOException, DocumentException {
         // Fetch payment
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.PaymentErrorMessages.NotFound));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PaymentErrorMessages.NOT_FOUND));
 
         // Validate client access
         if (!payment.getClientId().equals(getClientId())) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.AccessDenied);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.ACCESS_DENIED);
         }
 
         // Fetch purchase order (basic info only)
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(payment.getEntityId())
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID));
 
         // Fetch client information
         Client client = clientRepository.findById(getClientId())
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID));
 
         // Generate HTML from template
         String htmlContent = formPaymentReceiptHtml(client, payment, purchaseOrder);
@@ -972,13 +972,13 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
     private Client getClientWithRazorpayCredentials() {
         Long clientId = getClientId();
         Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID));
 
         if (client.getRazorpayApiKey() == null || client.getRazorpayApiKey().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.RazorpayApiKeyNotConfigured);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.RAZORPAY_API_KEY_NOT_CONFIGURED);
         }
         if (client.getRazorpayApiSecret() == null || client.getRazorpayApiSecret().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.RazorpayApiSecretNotConfigured);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.RAZORPAY_API_SECRET_NOT_CONFIGURED);
         }
 
         return client;
@@ -1026,7 +1026,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
 
         if (pendingAmount.compareTo(BigDecimal.ZERO) < 0) {
             throw new BadRequestException(String.format(
-                    ErrorMessages.PaymentErrorMessages.PaymentAmountExceedsGrandTotalFormat,
+                    ErrorMessages.PaymentErrorMessages.PAYMENT_AMOUNT_EXCEEDS_GRAND_TOTAL_FORMAT,
                     totalPaid,
                     orderSummary.getGrandTotal()));
         }

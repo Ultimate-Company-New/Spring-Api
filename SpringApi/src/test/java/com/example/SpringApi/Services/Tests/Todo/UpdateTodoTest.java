@@ -191,7 +191,7 @@ class UpdateTodoTest extends TodoServiceTestBase {
     /*
      * Purpose: Verify empty task throws BadRequestException.
      * Expected Result: BadRequestException with InvalidTask message.
-     * Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidTask,
+     * Assertions: assertEquals(ErrorMessages.TodoErrorMessages.INVALID_TASK,
      * ex.getMessage())
      */
     @Test
@@ -208,13 +208,13 @@ class UpdateTodoTest extends TodoServiceTestBase {
                 () -> todoService.updateTodo(request));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidTask, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_TASK, ex.getMessage());
     }
 
     /*
      * Purpose: Verify max long ID not found.
      * Expected Result: NotFoundException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.NotFound
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.NOT_FOUND
      */
     @Test
     @DisplayName("updateTodo - Max Long TodoId - NotFoundException")
@@ -232,13 +232,13 @@ class UpdateTodoTest extends TodoServiceTestBase {
                 () -> todoService.updateTodo(request));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*
      * Purpose: Verify min long ID not found.
      * Expected Result: NotFoundException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.NotFound
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.NOT_FOUND
      */
     @Test
     @DisplayName("updateTodo - Min Long TodoId - NotFoundException")
@@ -256,13 +256,13 @@ class UpdateTodoTest extends TodoServiceTestBase {
                 () -> todoService.updateTodo(request));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*
      * Purpose: Verify negative ID not found.
      * Expected Result: NotFoundException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.NotFound
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.NOT_FOUND
      */
     @Test
     @DisplayName("updateTodo - Negative TodoId - NotFoundException")
@@ -280,13 +280,13 @@ class UpdateTodoTest extends TodoServiceTestBase {
                 () -> todoService.updateTodo(request));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*
      * Purpose: Verify not found throws NotFoundException.
      * Expected Result: NotFoundException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.NotFound
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.NOT_FOUND
      */
     @Test
     @DisplayName("updateTodo - Not Found - NotFoundException")
@@ -304,7 +304,7 @@ class UpdateTodoTest extends TodoServiceTestBase {
                 () -> todoService.updateTodo(request));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*
@@ -319,7 +319,7 @@ class UpdateTodoTest extends TodoServiceTestBase {
         TodoRequestModel request = null;
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.TodoErrorMessages.InvalidRequest,
+        assertThrowsBadRequest(ErrorMessages.TodoErrorMessages.INVALID_REQUEST,
                 () -> todoService.updateTodo(request));
     }
 
@@ -337,7 +337,7 @@ class UpdateTodoTest extends TodoServiceTestBase {
         request.setTask(null);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.TodoErrorMessages.InvalidTask,
+        assertThrowsBadRequest(ErrorMessages.TodoErrorMessages.INVALID_TASK,
                 () -> todoService.updateTodo(request));
     }
 
@@ -354,14 +354,14 @@ class UpdateTodoTest extends TodoServiceTestBase {
         request.setTodoId(null);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.TodoErrorMessages.InvalidRequest,
+        assertThrowsBadRequest(ErrorMessages.TodoErrorMessages.INVALID_REQUEST,
                 () -> todoService.updateTodo(request));
     }
 
     /*
      * Purpose: Verify task too long throws BadRequestException.
      * Expected Result: BadRequestException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.TaskTooLong
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.TASK_TOO_LONG
      */
     @Test
     @DisplayName("updateTodo - Task Too Long - BadRequestException")
@@ -377,13 +377,13 @@ class UpdateTodoTest extends TodoServiceTestBase {
                 () -> todoService.updateTodo(request));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.TaskTooLong, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.TASK_TOO_LONG, ex.getMessage());
     }
 
     /*
      * Purpose: Verify whitespace task throws BadRequestException.
      * Expected Result: BadRequestException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.InvalidTask
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.INVALID_TASK
      */
     @Test
     @DisplayName("updateTodo - Whitespace Task - BadRequestException")
@@ -399,13 +399,13 @@ class UpdateTodoTest extends TodoServiceTestBase {
                 () -> todoService.updateTodo(request));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidTask, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_TASK, ex.getMessage());
     }
 
     /*
      * Purpose: Verify zero ID not found.
      * Expected Result: NotFoundException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.NotFound
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.NOT_FOUND
      */
     @Test
     @DisplayName("updateTodo - Zero TodoId - NotFoundException")
@@ -423,7 +423,7 @@ class UpdateTodoTest extends TodoServiceTestBase {
                 () -> todoService.updateTodo(request));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     // ========================================

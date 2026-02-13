@@ -239,7 +239,7 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 paginationRequest.setId(-1L);
 
                 // Act & Assert
-                assertThrowsBadRequest(ErrorMessages.UserErrorMessages.InvalidId,
+                assertThrowsBadRequest(ErrorMessages.UserErrorMessages.INVALID_ID,
                                 () -> messageService.getMessagesByUserId(paginationRequest));
         }
 
@@ -256,7 +256,7 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 // Act & Assert
                 NullPointerException ex = assertThrows(NullPointerException.class,
                                 () -> messageService.getMessagesByUserId(null));
-                assertEquals(ErrorMessages.MessagesErrorMessages.NullPaginationRequest, ex.getMessage());
+                assertEquals(ErrorMessages.MessagesErrorMessages.NULL_PAGINATION_REQUEST, ex.getMessage());
         }
 
         /**
@@ -270,12 +270,12 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
                 paginationRequest.setId(TEST_USER_ID);
                 stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
-                stubMessageRepositoryFindMessagesByUserIdPaginatedThrows(ErrorMessages.MessagesErrorMessages.PageError);
+                stubMessageRepositoryFindMessagesByUserIdPaginatedThrows(ErrorMessages.MessagesErrorMessages.PAGE_ERROR);
 
                 // Act & Assert
                 RuntimeException ex = assertThrows(RuntimeException.class,
                                 () -> messageService.getMessagesByUserId(paginationRequest));
-                assertEquals(ErrorMessages.MessagesErrorMessages.PageError, ex.getMessage());
+                assertEquals(ErrorMessages.MessagesErrorMessages.PAGE_ERROR, ex.getMessage());
         }
 
         /**
@@ -313,7 +313,7 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 stubUserRepositoryFindByUserIdAndClientId(Optional.empty());
 
                 // Act & Assert
-                assertThrowsNotFound(ErrorMessages.UserErrorMessages.InvalidId,
+                assertThrowsNotFound(ErrorMessages.UserErrorMessages.INVALID_ID,
                                 () -> messageService.getMessagesByUserId(paginationRequest));
         }
 
@@ -327,12 +327,12 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 // Arrange
                 PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
                 paginationRequest.setId(TEST_USER_ID);
-                stubUserRepositoryFindByUserIdAndClientIdThrows(ErrorMessages.MessagesErrorMessages.UserDbError);
+                stubUserRepositoryFindByUserIdAndClientIdThrows(ErrorMessages.MessagesErrorMessages.USER_DB_ERROR);
 
                 // Act & Assert
                 RuntimeException ex = assertThrows(RuntimeException.class,
                                 () -> messageService.getMessagesByUserId(paginationRequest));
-                assertEquals(ErrorMessages.MessagesErrorMessages.UserDbError, ex.getMessage());
+                assertEquals(ErrorMessages.MessagesErrorMessages.USER_DB_ERROR, ex.getMessage());
         }
 
         /**
@@ -347,7 +347,7 @@ public class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 paginationRequest.setId(0L);
 
                 // Act & Assert
-                assertThrowsBadRequest(ErrorMessages.UserErrorMessages.InvalidId,
+                assertThrowsBadRequest(ErrorMessages.UserErrorMessages.INVALID_ID,
                                 () -> messageService.getMessagesByUserId(paginationRequest));
         }
 

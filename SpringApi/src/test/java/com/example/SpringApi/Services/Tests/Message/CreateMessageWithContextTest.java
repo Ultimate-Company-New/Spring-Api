@@ -65,7 +65,7 @@ class CreateMessageWithContextTest extends MessageServiceTestBase {
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> messageService.createMessageWithContext(validRequest, 0L, "admin", TEST_CLIENT_ID));
-        assertEquals(ErrorMessages.MessagesErrorMessages.InvalidUserId, exception.getMessage());
+        assertEquals(ErrorMessages.MessagesErrorMessages.INVALID_USER_ID, exception.getMessage());
     }
 
     /**
@@ -81,7 +81,7 @@ class CreateMessageWithContextTest extends MessageServiceTestBase {
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> messageService.createMessageWithContext(validRequest, -1L, "admin", TEST_CLIENT_ID));
-        assertEquals(ErrorMessages.MessagesErrorMessages.InvalidUserId, exception.getMessage());
+        assertEquals(ErrorMessages.MessagesErrorMessages.INVALID_USER_ID, exception.getMessage());
     }
 
     /**
@@ -97,7 +97,7 @@ class CreateMessageWithContextTest extends MessageServiceTestBase {
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> messageService.createMessageWithContext(null, TEST_USER_ID, "admin", TEST_CLIENT_ID));
-        assertEquals(ErrorMessages.MessagesErrorMessages.InvalidId, exception.getMessage());
+        assertEquals(ErrorMessages.MessagesErrorMessages.INVALID_ID, exception.getMessage());
     }
 
     /**
@@ -112,7 +112,7 @@ class CreateMessageWithContextTest extends MessageServiceTestBase {
         stubClientRepositoryFindById(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.ClientErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.ClientErrorMessages.INVALID_ID,
                 () -> messageService.createMessageWithContext(validRequest, TEST_USER_ID, "admin", 9999L));
     }
 

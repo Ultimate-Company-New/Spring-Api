@@ -141,34 +141,34 @@ public class Package {
      */
     private void validateRequest(PackageRequestModel request) {
         if (request == null) {
-            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.INVALID_REQUEST);
         }
         if (request.getPackageName() == null || request.getPackageName().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidPackageName);
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.INVALID_PACKAGE_NAME);
         }
         if (request.getPackageName().length() > 255) {
-            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidPackageName);
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.INVALID_PACKAGE_NAME);
         }
         if (request.getLength() == null || request.getLength() <= 0) {
-            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidLength);
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.INVALID_LENGTH);
         }
         if (request.getBreadth() == null || request.getBreadth() <= 0) {
-            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidBreadth);
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.INVALID_BREADTH);
         }
         if (request.getHeight() == null || request.getHeight() <= 0) {
-            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidHeight);
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.INVALID_HEIGHT);
         }
         if (request.getMaxWeight() == null || request.getMaxWeight().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidMaxWeight);
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.INVALID_MAX_WEIGHT);
         }
         if (request.getStandardCapacity() == null || request.getStandardCapacity() <= 0) {
-            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidStandardCapacity);
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.INVALID_STANDARD_CAPACITY);
         }
         if (request.getPricePerUnit() == null || request.getPricePerUnit().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidPricePerUnit);
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.INVALID_PRICE_PER_UNIT);
         }
         if (request.getPackageType() == null || request.getPackageType().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidPackageType);
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.INVALID_PACKAGE_TYPE);
         }
         // Note: clientId is passed as a constructor parameter from security context,
         // not from request body
@@ -183,7 +183,7 @@ public class Package {
      */
     private void validateUser(String user) {
         if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
         }
     }
 

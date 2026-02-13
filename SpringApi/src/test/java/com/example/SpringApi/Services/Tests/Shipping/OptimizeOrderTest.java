@@ -106,7 +106,7 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
 
         // Assert
         assertFalse(result.getSuccess());
-        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.DeliveryPostcodeRequired, result.getErrorMessage());
+        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.DELIVERY_POSTCODE_REQUIRED, result.getErrorMessage());
     }
 /**
      * Purpose: Verify empty product quantities returns error.
@@ -124,7 +124,7 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
 
         // Assert
         assertFalse(result.getSuccess());
-        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.NoProductsSpecified, result.getErrorMessage());
+        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.NO_PRODUCTS_SPECIFIED, result.getErrorMessage());
     }
 /**
      * Purpose: Verify exception path returns OptimizationFailedFormat.
@@ -142,7 +142,7 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
 
         // Assert
         assertFalse(result.getSuccess());
-        assertEquals(String.format(ErrorMessages.OrderOptimizationErrorMessages.OptimizationFailedFormat,
+        assertEquals(String.format(ErrorMessages.OrderOptimizationErrorMessages.OPTIMIZATION_FAILED_FORMAT,
             ErrorMessages.OPERATION_FAILED), result.getErrorMessage());
     }
 /**
@@ -170,7 +170,7 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
 
         // Assert
         assertFalse(result.getSuccess());
-        assertEquals(String.format(ErrorMessages.OrderOptimizationErrorMessages.ProductNotFoundFormat, 999L),
+        assertEquals(String.format(ErrorMessages.OrderOptimizationErrorMessages.PRODUCT_NOT_FOUND_FORMAT, 999L),
                 result.getErrorMessage());
     }
 /**
@@ -193,7 +193,7 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
 
         // Assert
         assertFalse(result.getSuccess());
-        assertEquals(String.format(ErrorMessages.OrderOptimizationErrorMessages.NoPackagesConfiguredFormat,
+        assertEquals(String.format(ErrorMessages.OrderOptimizationErrorMessages.NO_PACKAGES_CONFIGURED_FORMAT,
                 testProduct.getTitle(), 10, 2), result.getErrorMessage());
     }
 /**
@@ -212,7 +212,7 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
 
         // Assert
         assertFalse(result.getSuccess());
-        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.NoValidProductsFound, result.getErrorMessage());
+        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.NO_VALID_PRODUCTS_FOUND, result.getErrorMessage());
     }
 /**
      * Purpose: Verify null delivery postcode returns error.
@@ -230,7 +230,7 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
 
         // Assert
         assertFalse(result.getSuccess());
-        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.DeliveryPostcodeRequired, result.getErrorMessage());
+        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.DELIVERY_POSTCODE_REQUIRED, result.getErrorMessage());
     }
 /**
      * Purpose: Verify null product quantities returns error.
@@ -248,7 +248,7 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
 
         // Assert
         assertFalse(result.getSuccess());
-        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.NoProductsSpecified, result.getErrorMessage());
+        assertEquals(ErrorMessages.OrderOptimizationErrorMessages.NO_PRODUCTS_SPECIFIED, result.getErrorMessage());
     }
 /*
      **********************************************************************************************

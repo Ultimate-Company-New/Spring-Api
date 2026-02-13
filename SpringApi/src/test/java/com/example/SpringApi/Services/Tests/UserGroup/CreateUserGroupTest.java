@@ -261,7 +261,7 @@ class CreateUserGroupTest extends UserGroupServiceTestBase {
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.createUserGroup(testUserGroupRequest));
-        assertEquals(ErrorMessages.UserGroupErrorMessages.GroupNameExists, ex.getMessage());
+        assertEquals(ErrorMessages.UserGroupErrorMessages.GROUP_NAME_EXISTS, ex.getMessage());
     }
 
     /**

@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -239,11 +240,22 @@ public abstract class LeadServiceTestBase {
 
     protected void stubBulkSaveThrowsOnItem(int index) {
         // Stub for scenario where bulk save throws on specific item
-        lenient().when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> inv.getArgument(0));
+        AtomicInteger callCount = new AtomicInteger(0);
+        lenient().when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
+            if (callCount.getAndIncrement() == index) {
+                throw new RuntimeException("Simulated bulk save failure at index " + index);
+            }
+            return inv.getArgument(0);
+        });
     }
 
     protected void stubBulkSaveReturnsPartialResult(List<Lead> results) {
+        AtomicInteger callCount = new AtomicInteger(0);
         lenient().when(leadRepository.save(any(Lead.class))).thenAnswer(inv -> {
+            int currentIndex = callCount.getAndIncrement();
+            if (results != null && currentIndex < results.size() && results.get(currentIndex) != null) {
+                return results.get(currentIndex);
+            }
             Lead lead = inv.getArgument(0);
             lead.setLeadId(ThreadLocalRandom.current().nextLong(1, 1000));
             return lead;
@@ -329,21 +341,21 @@ public abstract class LeadServiceTestBase {
     // ==================== FACTORY METHODS ====================
 
     protected LeadRequestModel createValidLeadRequest(Long leadId, Long clientId) {
-        LeadRequestModel request = new LeadRequestModel();
-        request.setLeadId(leadId);
-        request.setClientId(clientId);
-        request.setFirstName(DEFAULT_FIRST_NAME);
-        request.setLastName(DEFAULT_LAST_NAME);
-        request.setEmail(DEFAULT_EMAIL);
-        request.setPhone(DEFAULT_PHONE);
-        request.setCompany(DEFAULT_COMPANY);
-        request.setCompanySize(DEFAULT_COMPANY_SIZE);
-        request.setLeadStatus(DEFAULT_LEAD_STATUS);
-        request.setCreatedById(DEFAULT_CREATED_BY_ID);
-        request.setAssignedAgentId(DEFAULT_ASSIGNED_AGENT_ID);
-        request.setAddress(createValidAddressRequest());
-        request.setIsDeleted(false);
-        return request;
+        LeadRequestModel leadRequest = new LeadRequestModel();
+        leadRequest.setLeadId(leadId);
+        leadRequest.setClientId(clientId);
+        leadRequest.setFirstName(DEFAULT_FIRST_NAME);
+        leadRequest.setLastName(DEFAULT_LAST_NAME);
+        leadRequest.setEmail(DEFAULT_EMAIL);
+        leadRequest.setPhone(DEFAULT_PHONE);
+        leadRequest.setCompany(DEFAULT_COMPANY);
+        leadRequest.setCompanySize(DEFAULT_COMPANY_SIZE);
+        leadRequest.setLeadStatus(DEFAULT_LEAD_STATUS);
+        leadRequest.setCreatedById(DEFAULT_CREATED_BY_ID);
+        leadRequest.setAssignedAgentId(DEFAULT_ASSIGNED_AGENT_ID);
+        leadRequest.setAddress(createValidAddressRequest());
+        leadRequest.setIsDeleted(false);
+        return leadRequest;
     }
 
     protected AddressRequestModel createValidAddressRequest() {
@@ -351,19 +363,19 @@ public abstract class LeadServiceTestBase {
     }
 
     protected AddressRequestModel createValidAddressRequest(Long addressId, Long userId, Long clientId) {
-        AddressRequestModel request = new AddressRequestModel();
-        request.setId(addressId);
-        request.setUserId(userId);
-        request.setClientId(clientId);
-        request.setAddressType(DEFAULT_ADDRESS_TYPE);
-        request.setStreetAddress(DEFAULT_STREET_ADDRESS);
-        request.setCity(DEFAULT_CITY);
-        request.setState(DEFAULT_STATE);
-        request.setPostalCode(DEFAULT_POSTAL_CODE);
-        request.setCountry(DEFAULT_COUNTRY);
-        request.setIsPrimary(true);
-        request.setIsDeleted(false);
-        return request;
+        AddressRequestModel addressRequest = new AddressRequestModel();
+        addressRequest.setId(addressId);
+        addressRequest.setUserId(userId);
+        addressRequest.setClientId(clientId);
+        addressRequest.setAddressType(DEFAULT_ADDRESS_TYPE);
+        addressRequest.setStreetAddress(DEFAULT_STREET_ADDRESS);
+        addressRequest.setCity(DEFAULT_CITY);
+        addressRequest.setState(DEFAULT_STATE);
+        addressRequest.setPostalCode(DEFAULT_POSTAL_CODE);
+        addressRequest.setCountry(DEFAULT_COUNTRY);
+        addressRequest.setIsPrimary(true);
+        addressRequest.setIsDeleted(false);
+        return addressRequest;
     }
 
     protected Lead createTestLead(LeadRequestModel request, String createdUser) {

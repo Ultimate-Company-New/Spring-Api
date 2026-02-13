@@ -116,7 +116,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
                 String column = filter.getColumn();
                 if (column == null || !validColumns.contains(column)) {
                     throw new BadRequestException(
-                            String.format(ErrorMessages.CommonErrorMessages.InvalidColumnName, column));
+                            String.format(ErrorMessages.CommonErrorMessages.INVALID_COLUMN_NAME, column));
                 }
             }
         }
@@ -128,7 +128,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
 
         // Validate page size
         if (pageSize <= 0) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION);
         }
 
         // Create custom Pageable with proper offset handling
@@ -189,7 +189,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
             String requestingUserLoginName, Long requestingClientId) {
         // Fetch client configuration
         Client client = clientRepository.findById(requestingClientId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID));
 
         // Use the Message constructor that handles validation and field mapping
         Message message = new Message(messageRequestModel, requestingUserId, requestingUserLoginName,
@@ -279,17 +279,17 @@ public class MessageService extends BaseService implements IMessageSubTranslator
     public void updateMessage(MessageRequestModel messageRequestModel) {
         // Validate messageId is provided
         if (messageRequestModel.getMessageId() == null || messageRequestModel.getMessageId() <= 0) {
-            throw new BadRequestException(ErrorMessages.MessagesErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.MessagesErrorMessages.INVALID_ID);
         }
 
         // Fetch client configuration
         Client client = clientRepository.findById(getClientId())
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID));
 
         // Fetch existing message and validate it belongs to current client
         Message existingMessage = messageRepository.findByMessageIdAndClientId(
                 messageRequestModel.getMessageId(),
-                getClientId()).orElseThrow(() -> new NotFoundException(ErrorMessages.MessagesErrorMessages.InvalidId));
+                getClientId()).orElseThrow(() -> new NotFoundException(ErrorMessages.MessagesErrorMessages.INVALID_ID));
 
         // Check if message can be edited (if scheduled email has already been sent,
         // cannot edit)
@@ -431,7 +431,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
         Optional<Message> messageOptional = messageRepository.findByMessageIdAndClientIdIncludingDeleted(id,
                 getClientId());
         if (messageOptional.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.MessagesErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.MessagesErrorMessages.INVALID_ID);
         }
 
         Message message = messageOptional.get();
@@ -463,13 +463,13 @@ public class MessageService extends BaseService implements IMessageSubTranslator
     public MessageResponseModel getMessageDetailsById(long id) {
         // Validate message ID
         if (id <= 0) {
-            throw new BadRequestException(ErrorMessages.MessagesErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.MessagesErrorMessages.INVALID_ID);
         }
 
         // Validate message exists and belongs to current client, fetch with targets
         Optional<Message> messageOptional = messageRepository.findByMessageIdAndClientIdWithTargets(id, getClientId());
         if (messageOptional.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.MessagesErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.MessagesErrorMessages.INVALID_ID);
         }
 
         // Return message response model with targeting info
@@ -499,13 +499,13 @@ public class MessageService extends BaseService implements IMessageSubTranslator
 
         // Validate user ID
         if (userId <= 0) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_ID);
         }
 
         // Validate user exists and belongs to current client
         Optional<User> userOptional = userRepository.findByUserIdAndClientId(userId, getClientId());
         if (userOptional.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.UserErrorMessages.INVALID_ID);
         }
 
         // Default page size
@@ -561,13 +561,13 @@ public class MessageService extends BaseService implements IMessageSubTranslator
         // 1. Validate user exists and belongs to current client
         Optional<User> userOptional = userRepository.findByUserIdAndClientId(userId, getClientId());
         if (userOptional.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.UserErrorMessages.INVALID_ID);
         }
 
         // 2. Validate message exists and belongs to current client
         Optional<Message> messageOptional = messageRepository.findByMessageIdAndClientId(messageId, getClientId());
         if (messageOptional.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.MessagesErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.MessagesErrorMessages.INVALID_ID);
         }
 
         // 3. Check if already marked as read

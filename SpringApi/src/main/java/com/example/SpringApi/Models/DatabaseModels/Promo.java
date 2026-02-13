@@ -103,48 +103,48 @@ public class Promo {
      */
     private void validateRequest(PromoRequestModel request) {
         if (request == null) {
-            throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.INVALID_REQUEST);
         }
 
         // Validate description (required, length > 0, max 1000 chars)
         if (request.getDescription() == null || request.getDescription().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.PromoErrorMessages.DescriptionRequired);
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.DESCRIPTION_REQUIRED);
         }
         if (request.getDescription().trim().length() > 1000) {
-            throw new BadRequestException(ErrorMessages.PromoErrorMessages.LongDescriptionTooLong);
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.LONG_DESCRIPTION_TOO_LONG);
         }
 
         // Validate discount value (required, > 0)
         if (request.getDiscountValue() == null || request.getDiscountValue().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BadRequestException(ErrorMessages.PromoErrorMessages.DiscountValueGreaterThanZero);
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.DISCOUNT_VALUE_GREATER_THAN_ZERO);
         }
 
         // Validate percentage constraint (if percentage, must be <= 100)
         if (request.getIsPercent() != null && request.getIsPercent() &&
                 request.getDiscountValue().compareTo(new BigDecimal("100")) > 0) {
-            throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidPercentageValue);
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.INVALID_PERCENTAGE_VALUE);
         }
 
         // Validate promo code (3-50 chars, alphanumeric)
         if (request.getPromoCode() == null || request.getPromoCode().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidPromoCode);
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.INVALID_PROMO_CODE);
         }
         String promoCode = request.getPromoCode().trim();
         if (promoCode.length() < 3 || promoCode.length() > 50) {
-            throw new BadRequestException(ErrorMessages.PromoErrorMessages.PromoCodeLength);
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.PROMO_CODE_LENGTH);
         }
         if (!promoCode.matches("^[a-zA-Z0-9]+$")) {
-            throw new BadRequestException(ErrorMessages.PromoErrorMessages.PromoCodeAlphaNumeric);
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.PROMO_CODE_ALPHA_NUMERIC);
         }
 
         // Validate start date (required)
         if (request.getStartDate() == null) {
-            throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidStartDate);
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.INVALID_START_DATE);
         }
 
         // Validate expiry date (optional, but if provided must be after start date)
         if (request.getExpiryDate() != null && request.getExpiryDate().isBefore(request.getStartDate())) {
-            throw new BadRequestException(ErrorMessages.PromoErrorMessages.ExpiryDateMustBeAfterStartDate);
+            throw new BadRequestException(ErrorMessages.PromoErrorMessages.EXPIRY_DATE_MUST_BE_AFTER_START_DATE);
         }
     }
 
@@ -156,7 +156,7 @@ public class Promo {
      */
     private void validateUser(String user) {
         if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
         }
     }
 

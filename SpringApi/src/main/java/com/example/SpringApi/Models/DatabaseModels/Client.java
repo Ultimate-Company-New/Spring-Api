@@ -242,19 +242,19 @@ public class Client {
      */
     private void validateRequest(ClientRequestModel request) {
         if (request == null) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_REQUEST);
         }
         if (request.getName() == null || request.getName().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidName);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_NAME);
         }
         if (request.getDescription() == null || request.getDescription().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidDescription);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_DESCRIPTION);
         }
         if (request.getSupportEmail() == null || request.getSupportEmail().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidSupportEmail);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_SUPPORT_EMAIL);
         }
         if (request.getWebsite() == null || request.getWebsite().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidWebsite);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_WEBSITE);
         }
     }
 
@@ -268,25 +268,25 @@ public class Client {
      */
     private void validateUpdateRequest(ClientRequestModel request) {
         if (request == null) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_REQUEST);
         }
         // Validate core required fields
         if (request.getName() == null || request.getName().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidName);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_NAME);
         }
         if (request.getDescription() == null || request.getDescription().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidDescription);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_DESCRIPTION);
         }
         if (request.getSupportEmail() == null || request.getSupportEmail().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidSupportEmail);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_SUPPORT_EMAIL);
         }
         if (request.getWebsite() == null || request.getWebsite().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidWebsite);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_WEBSITE);
         }
         // sendgridSenderName and googleCredId are optional in updates
         // Validate that if sendgridSenderName is provided, it's not empty
         if (request.getSendgridSenderName() != null && request.getSendgridSenderName().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidSendgridSenderName);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_SENDGRID_SENDER_NAME);
         }
     }
 
@@ -299,7 +299,7 @@ public class Client {
      */
     private void validateUser(String user) {
         if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
         }
     }
 

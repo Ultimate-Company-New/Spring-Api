@@ -127,7 +127,7 @@ class GetProductStockAtLocationsByProductIdTest extends ProductServiceTestBase {
         // Arrange
         stubProductRepositoryFindById(TEST_PRODUCT_ID, testProduct);
         stubProductPickupLocationMappingRepositoryFindByProductIdWithPickupLocationAndAddressThrows(
-                new RuntimeException(ErrorMessages.CommonErrorMessages.CriticalFailure));
+                new RuntimeException(ErrorMessages.CommonErrorMessages.CRITICAL_FAILURE));
 
         // Act
         List<ProductStockByLocationResponseModel> results = productService

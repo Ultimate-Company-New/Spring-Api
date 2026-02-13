@@ -55,7 +55,7 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
                 // Act & Assert
                 BadRequestException pagEx = assertThrows(BadRequestException.class,
                                 () -> leadService.getLeadsInBatches(testLeadRequest));
-                assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, pagEx.getMessage());
+                assertEquals(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION, pagEx.getMessage());
 
                 // ---- (2) Success: simple retrieval ----
                 // Act
@@ -105,7 +105,7 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
                 // Act & Assert
                 BadRequestException pagEx = assertThrows(BadRequestException.class,
                                 () -> leadService.getLeadsInBatches(testLeadRequest));
-                assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, pagEx.getMessage());
+                assertEquals(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION, pagEx.getMessage());
         }
 
         /*

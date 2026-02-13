@@ -134,10 +134,10 @@ public abstract class QAServiceTestBase {
      * count.
      */
     protected TestRunRequestModel createValidTestRunRequest(String serviceName, int resultCount) {
-        TestRunRequestModel request = new TestRunRequestModel();
-        request.setServiceName(serviceName);
-        request.setEnvironment("test");
-        request.setRunType("manual");
+        TestRunRequestModel testRunRequest = new TestRunRequestModel();
+        testRunRequest.setServiceName(serviceName);
+        testRunRequest.setEnvironment("test");
+        testRunRequest.setRunType("manual");
 
         List<TestRunRequestModel.TestResultData> results = new ArrayList<>();
         for (int i = 0; i < resultCount; i++) {
@@ -149,18 +149,18 @@ public abstract class QAServiceTestBase {
             result.setDisplayName("Test Method " + i);
             results.add(result);
         }
-        request.setResults(results);
+        testRunRequest.setResults(results);
 
-        return request;
+        return testRunRequest;
     }
 
     /**
      * Creates a valid TestExecutionRequestModel for running all tests.
      */
     protected TestExecutionRequestModel createValidTestExecutionRequest() {
-        TestExecutionRequestModel request = new TestExecutionRequestModel();
-        request.setRunAll(true);
-        return request;
+        TestExecutionRequestModel executionRequest = new TestExecutionRequestModel();
+        executionRequest.setRunAll(true);
+        return executionRequest;
     }
 
     /**
@@ -168,11 +168,11 @@ public abstract class QAServiceTestBase {
      */
     protected TestExecutionRequestModel createTestExecutionRequestWithTestNames(String testClassName,
             List<String> testNames) {
-        TestExecutionRequestModel request = new TestExecutionRequestModel();
-        request.setRunAll(false);
-        request.setTestClassName(testClassName);
-        request.setTestNames(testNames);
-        return request;
+        TestExecutionRequestModel executionRequest = new TestExecutionRequestModel();
+        executionRequest.setRunAll(false);
+        executionRequest.setTestClassName(testClassName);
+        executionRequest.setTestNames(testNames);
+        return executionRequest;
     }
 
     /**
@@ -180,11 +180,11 @@ public abstract class QAServiceTestBase {
      */
     protected TestExecutionRequestModel createTestExecutionRequestWithMethodName(String serviceName,
             String methodName) {
-        TestExecutionRequestModel request = new TestExecutionRequestModel();
-        request.setRunAll(false);
-        request.setServiceName(serviceName);
-        request.setMethodName(methodName);
-        return request;
+        TestExecutionRequestModel executionRequest = new TestExecutionRequestModel();
+        executionRequest.setRunAll(false);
+        executionRequest.setServiceName(serviceName);
+        executionRequest.setMethodName(methodName);
+        return executionRequest;
     }
 
     /**

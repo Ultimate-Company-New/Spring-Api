@@ -70,7 +70,7 @@ class GetWalletBalanceTest extends ShippingServiceTestBase {
                 () -> shippingService.getWalletBalance());
 
         // Assert
-        assertEquals(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured, ex.getMessage());
+        assertEquals(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_CREDENTIALS_NOT_CONFIGURED, ex.getMessage());
     }
 
     /*

@@ -33,7 +33,7 @@ public class BaseService {
         if (authentication != null && authentication.getPrincipal() instanceof User user) {
             String userName = user.getLoginName();
             if (userName == null || userName.trim().isEmpty()) {
-                throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+                throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
             }
             return userName;
         }
@@ -52,7 +52,7 @@ public class BaseService {
                 }
                 String userName = jwtTokenProvider.getUserNameFromToken(token);
                 if (userName == null || userName.trim().isEmpty()) {
-                    throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+                    throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
                 }
                 return userName;
             }

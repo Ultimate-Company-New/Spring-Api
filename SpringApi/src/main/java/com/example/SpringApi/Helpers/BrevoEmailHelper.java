@@ -88,16 +88,15 @@ public class BrevoEmailHelper implements IEmailHelper {
             body.put("htmlContent", request.getHtmlContent() != null ? request.getHtmlContent() : "");
             body.put("textContent", request.getPlainTextContent() != null ? request.getPlainTextContent() : "");
 
+            List<Map<String, String>> brevoAttachments = new java.util.ArrayList<>();
             // Attach any files if present
             if (request.getAttachments() != null && !request.getAttachments().isEmpty()) {
-                List<Map<String, String>> brevoAttachments = new java.util.ArrayList<>();
                 for (Attachments attachment : request.getAttachments()) {
                     brevoAttachments.add(Map.of(
                             "name", attachment.getFilename() != null ? attachment.getFilename() : "attachment",
                             "content", attachment.getContent() != null ? attachment.getContent() : ""
                     ));
                 }
-                body.put("attachment", brevoAttachments);
             }
 
             if (request.getSendAt() != null) {
@@ -115,16 +114,14 @@ public class BrevoEmailHelper implements IEmailHelper {
                 byte[] calendarBytes = calendarContent.getBytes(StandardCharsets.UTF_8);
                 String base64Calendar = Base64.getEncoder().encodeToString(calendarBytes);
 
-                @SuppressWarnings("unchecked")
-                List<Map<String, String>> attachments = (List<Map<String, String>>) body.get("attachment");
-                if (attachments == null) {
-                    attachments = new java.util.ArrayList<>();
-                    body.put("attachment", attachments);
-                }
-                attachments.add(Map.of(
+                brevoAttachments.add(Map.of(
                         "name", "invite.ics",
                         "content", base64Calendar
                 ));
+            }
+
+            if (!brevoAttachments.isEmpty()) {
+                body.put("attachment", brevoAttachments);
             }
 
             String jsonBody = new ObjectMapper().writeValueAsString(body);

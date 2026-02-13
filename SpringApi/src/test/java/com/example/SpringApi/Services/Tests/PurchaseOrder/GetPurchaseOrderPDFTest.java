@@ -103,7 +103,7 @@ public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
         stubAddressRepositoryFindById(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.INVALID_ID,
                 () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
     }
 /**
@@ -122,7 +122,7 @@ public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
         stubUserRepositoryFindByUserIdAndClientId(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.UserErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.UserErrorMessages.INVALID_ID,
                 () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
     }
 /**
@@ -142,7 +142,7 @@ public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
         stubClientRepositoryFindById(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.ClientErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.ClientErrorMessages.INVALID_ID,
                 () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
     }
 /**
@@ -160,7 +160,7 @@ public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
         stubUserRepositoryFindByUserIdAndClientId(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.UserErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.UserErrorMessages.INVALID_ID,
                 () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
     }
 /**
@@ -179,7 +179,7 @@ public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
         stubLeadRepositoryFindLeadWithDetails(null);
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.LeadsErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.LeadsErrorMessages.INVALID_ID,
                 () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
     }
 /**
@@ -198,7 +198,7 @@ public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
         com.example.SpringApi.Exceptions.NotFoundException ex = assertThrows(
                 com.example.SpringApi.Exceptions.NotFoundException.class,
                 () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
-        assertEquals(ErrorMessages.OrderSummaryNotFoundMessage.PurchaseOrderNotFound, ex.getMessage());
+        assertEquals(ErrorMessages.OrderSummaryNotFoundMessage.PURCHASE_ORDER_NOT_FOUND, ex.getMessage());
     }
 /**
      * Purpose: Reject missing purchase order.
@@ -212,7 +212,7 @@ public class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
         stubPurchaseOrderRepositoryFindByIdWithRelations(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.PurchaseOrderErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID,
                 () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
     }
 /*

@@ -92,7 +92,7 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> pickupLocationService.getPickupLocationById(Long.MAX_VALUE));
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, Long.MAX_VALUE),
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, Long.MAX_VALUE),
                 ex.getMessage());
     }
 
@@ -111,7 +111,7 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> pickupLocationService.getPickupLocationById(Long.MIN_VALUE));
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, Long.MIN_VALUE),
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, Long.MIN_VALUE),
                 ex.getMessage());
     }
 
@@ -129,7 +129,7 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> pickupLocationService.getPickupLocationById(-1L));
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, -1L),
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, -1L),
                 ex.getMessage());
     }
 
@@ -148,7 +148,7 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> pickupLocationService.getPickupLocationById(TEST_PICKUP_LOCATION_ID));
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, TEST_PICKUP_LOCATION_ID),
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, TEST_PICKUP_LOCATION_ID),
                 ex.getMessage());
     }
 
@@ -185,7 +185,7 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> pickupLocationService.getPickupLocationById(largeId));
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, largeId),
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, largeId),
                 ex.getMessage());
     }
 
@@ -203,7 +203,7 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> pickupLocationService.getPickupLocationById(0L));
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, 0L),
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, 0L),
                 ex.getMessage());
     }
 

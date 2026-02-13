@@ -76,7 +76,7 @@ class CancelShipmentTest extends ShippingServiceTestBase {
                 () -> shippingService.cancelShipment(TEST_SHIPMENT_ID));
 
         // Assert
-        assertEquals(ErrorMessages.ShipmentErrorMessages.AlreadyCancelled, ex.getMessage());
+        assertEquals(ErrorMessages.ShipmentErrorMessages.ALREADY_CANCELLED, ex.getMessage());
     }
 
     /**
@@ -98,7 +98,7 @@ class CancelShipmentTest extends ShippingServiceTestBase {
                 () -> shippingService.cancelShipment(TEST_SHIPMENT_ID));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.InvalidIdWithMessageFormat,
+        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.INVALID_ID_WITH_MESSAGE_FORMAT,
             ErrorMessages.OPERATION_FAILED),
                 ex.getMessage());
     }
@@ -122,7 +122,7 @@ class CancelShipmentTest extends ShippingServiceTestBase {
                 () -> shippingService.cancelShipment(TEST_SHIPMENT_ID));
 
         // Assert
-        assertEquals(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured, ex.getMessage());
+        assertEquals(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_CREDENTIALS_NOT_CONFIGURED, ex.getMessage());
     }
 
     /**
@@ -143,7 +143,7 @@ class CancelShipmentTest extends ShippingServiceTestBase {
                 () -> shippingService.cancelShipment(TEST_SHIPMENT_ID));
 
         // Assert
-        assertEquals(ErrorMessages.ShipmentErrorMessages.NoShipRocketOrderId, ex.getMessage());
+        assertEquals(ErrorMessages.ShipmentErrorMessages.NO_SHIP_ROCKET_ORDER_ID, ex.getMessage());
     }
 
     /**
@@ -165,7 +165,7 @@ class CancelShipmentTest extends ShippingServiceTestBase {
                 () -> shippingService.cancelShipment(TEST_SHIPMENT_ID));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.InvalidIdFormatErrorFormat, "SR-ABC"),
+        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.INVALID_ID_FORMAT_ERROR_FORMAT, "SR-ABC"),
                 ex.getMessage());
     }
 

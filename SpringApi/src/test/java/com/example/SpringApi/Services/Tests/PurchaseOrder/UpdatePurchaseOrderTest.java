@@ -120,7 +120,7 @@ public class UpdatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
         stubClientRepositoryFindById(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.ClientErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.ClientErrorMessages.INVALID_ID,
                 () -> purchaseOrderService.updatePurchaseOrder(testPurchaseOrderRequest));
     }
 
@@ -141,7 +141,7 @@ public class UpdatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
             testPurchaseOrderRequest.setPurchaseOrderId(id);
             stubPurchaseOrderRepositoryFindById(Optional.empty());
 
-            assertThrowsNotFound(ErrorMessages.PurchaseOrderErrorMessages.InvalidId,
+            assertThrowsNotFound(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID,
                     () -> purchaseOrderService.updatePurchaseOrder(testPurchaseOrderRequest));
         }
     }

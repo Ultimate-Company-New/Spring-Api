@@ -98,7 +98,7 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
                 () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
 
         // Assert
-        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.AlreadyCancelled, ex.getMessage());
+        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.ALREADY_CANCELLED, ex.getMessage());
     }
 
     /**
@@ -120,7 +120,7 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
                 () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.FailedToCancelReturn,
+        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.FAILED_TO_CANCEL_RETURN,
                 ErrorMessages.OPERATION_FAILED), ex.getMessage());
     }
 
@@ -142,7 +142,7 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
                 () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
 
         // Assert
-        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.NoShipRocketOrderId, ex.getMessage());
+        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.NO_SHIP_ROCKET_ORDER_ID, ex.getMessage());
     }
 
     /**
@@ -162,7 +162,7 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
                 () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.NotFound, TEST_RETURN_SHIPMENT_ID),
+        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.NOT_FOUND, TEST_RETURN_SHIPMENT_ID),
                 ex.getMessage());
     }
 

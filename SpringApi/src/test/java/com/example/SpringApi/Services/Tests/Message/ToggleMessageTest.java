@@ -138,7 +138,7 @@ public class ToggleMessageTest extends MessageServiceTestBase {
         stubMessageRepositoryFindByMessageIdAndClientIdIncludingDeleted(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.INVALID_ID,
                 () -> messageService.toggleMessage(TEST_MESSAGE_ID));
     }
 
@@ -153,7 +153,7 @@ public class ToggleMessageTest extends MessageServiceTestBase {
         stubMessageRepositoryFindByMessageIdAndClientIdIncludingDeleted(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId, () -> messageService.toggleMessage(-1L));
+        assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.INVALID_ID, () -> messageService.toggleMessage(-1L));
     }
 
     /**
@@ -166,11 +166,11 @@ public class ToggleMessageTest extends MessageServiceTestBase {
     void toggleMessage_RepositorySaveError_Propagates() {
         // Arrange
         stubMessageRepositoryFindByMessageIdAndClientIdIncludingDeleted(Optional.of(testMessage));
-        stubMessageRepositorySaveThrowsRuntimeException(ErrorMessages.MessagesErrorMessages.DbError);
+        stubMessageRepositorySaveThrowsRuntimeException(ErrorMessages.MessagesErrorMessages.DB_ERROR);
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.toggleMessage(TEST_MESSAGE_ID));
-        assertEquals(ErrorMessages.MessagesErrorMessages.DbError, ex.getMessage());
+        assertEquals(ErrorMessages.MessagesErrorMessages.DB_ERROR, ex.getMessage());
     }
 
     /**
@@ -203,7 +203,7 @@ public class ToggleMessageTest extends MessageServiceTestBase {
         stubMessageRepositoryFindByMessageIdAndClientIdIncludingDeleted(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId, () -> messageService.toggleMessage(0L));
+        assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.INVALID_ID, () -> messageService.toggleMessage(0L));
     }
 
     /*

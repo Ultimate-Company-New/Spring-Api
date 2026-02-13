@@ -219,7 +219,7 @@ class GetPackageByIdTest extends PackageServiceTestBase {
         stubPackageRepositoryFindByPackageIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID, null);
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.PackageErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.PackageErrorMessages.INVALID_ID,
                 () -> packageService.getPackageById(Long.MAX_VALUE));
     }
 
@@ -235,7 +235,7 @@ class GetPackageByIdTest extends PackageServiceTestBase {
         stubPackageRepositoryFindByPackageIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID, null);
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.PackageErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.PackageErrorMessages.INVALID_ID,
                 () -> packageService.getPackageById(Long.MIN_VALUE));
     }
 
@@ -251,7 +251,7 @@ class GetPackageByIdTest extends PackageServiceTestBase {
         stubPackageRepositoryFindByPackageIdAndClientId(-1L, TEST_CLIENT_ID, null);
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.PackageErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.PackageErrorMessages.INVALID_ID,
                 () -> packageService.getPackageById(-1L));
     }
 
@@ -267,7 +267,7 @@ class GetPackageByIdTest extends PackageServiceTestBase {
         stubPackageRepositoryFindByPackageIdAndClientId(TEST_PACKAGE_ID, TEST_CLIENT_ID, null);
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.PackageErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.PackageErrorMessages.INVALID_ID,
                 () -> packageService.getPackageById(TEST_PACKAGE_ID));
     }
 
@@ -283,7 +283,7 @@ class GetPackageByIdTest extends PackageServiceTestBase {
         stubPackageRepositoryFindByPackageIdAndClientId(0L, TEST_CLIENT_ID, null);
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.PackageErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.PackageErrorMessages.INVALID_ID,
                 () -> packageService.getPackageById(0L));
     }
 

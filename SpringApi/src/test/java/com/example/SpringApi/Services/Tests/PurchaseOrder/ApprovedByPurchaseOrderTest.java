@@ -65,7 +65,7 @@ public class ApprovedByPurchaseOrderTest extends PurchaseOrderServiceTestBase {
         stubPurchaseOrderRepositoryFindById(Optional.of(testPurchaseOrder));
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.AlreadyApproved,
+        assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.ALREADY_APPROVED,
                 () -> purchaseOrderService.approvedByPurchaseOrder(TEST_PO_ID));
     }
 
@@ -81,7 +81,7 @@ public class ApprovedByPurchaseOrderTest extends PurchaseOrderServiceTestBase {
         stubPurchaseOrderRepositoryFindById(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.PurchaseOrderErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID,
                 () -> purchaseOrderService.approvedByPurchaseOrder(TEST_PO_ID));
     }
 

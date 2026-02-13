@@ -480,7 +480,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
                 // Arrange
                 List<PromoRequestModel> promos = List.of(testPromoRequest);
                 stubServiceBulkCreatePromosAsyncThrowsBadRequest(
-                                com.example.SpringApi.ErrorMessages.CommonErrorMessages.EmptyList);
+                                com.example.SpringApi.ErrorMessages.CommonErrorMessages.EMPTY_LIST);
 
                 // Act
                 ResponseEntity<?> response = promoController.bulkCreatePromos(promos);
@@ -498,7 +498,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
                 // Arrange
                 List<PromoRequestModel> promos = List.of(testPromoRequest);
                 stubServiceBulkCreatePromosAsyncThrowsRuntime(
-                                com.example.SpringApi.ErrorMessages.CommonErrorMessages.CriticalFailure);
+                                com.example.SpringApi.ErrorMessages.CommonErrorMessages.CRITICAL_FAILURE);
 
                 // Act
                 ResponseEntity<?> response = promoController.bulkCreatePromos(promos);
@@ -515,7 +515,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
         void bulkCreatePromosAsync_p05_ContextRetrievalError_Failure() {
                 // Arrange
                 stubServiceGetUserIdThrowsUnauthorized(
-                                com.example.SpringApi.ErrorMessages.CommonErrorMessages.ContextMissing);
+                                com.example.SpringApi.ErrorMessages.CommonErrorMessages.CONTEXT_MISSING);
 
                 // Act
                 ResponseEntity<?> response = promoController.bulkCreatePromos(List.of(testPromoRequest));
@@ -550,7 +550,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
         void bulkCreatePromosAsync_p07_ControllerWithNullList_Success() {
                 // Arrange
                 stubServiceBulkCreatePromosAsyncThrowsBadRequest(
-                                com.example.SpringApi.ErrorMessages.CommonErrorMessages.NullList);
+                                com.example.SpringApi.ErrorMessages.CommonErrorMessages.NULL_LIST);
 
                 // Act
                 ResponseEntity<?> response = promoController.bulkCreatePromos(null);

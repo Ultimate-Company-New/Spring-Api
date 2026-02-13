@@ -236,7 +236,7 @@ class CreateUserTest extends UserServiceTestBase {
                 () -> userService.createUser(testUserRequest));
 
         // Assert
-        assertTrue(ex.getMessage().contains(ErrorMessages.UserErrorMessages.InvalidEmail));
+        assertTrue(ex.getMessage().contains(ErrorMessages.UserErrorMessages.INVALID_EMAIL));
         assertTrue(ex.getMessage().contains("Login name (email) already exists"));
         verify(userRepository, times(1)).findByLoginName(TEST_EMAIL);
     }
@@ -257,7 +257,7 @@ class CreateUserTest extends UserServiceTestBase {
                 () -> userService.createUser(testUserRequest));
 
         // Assert
-        assertTrue(ex.getMessage().contains(ErrorMessages.UserErrorMessages.InvalidEmail));
+        assertTrue(ex.getMessage().contains(ErrorMessages.UserErrorMessages.INVALID_EMAIL));
         assertTrue(ex.getMessage().contains("Login name (email) already exists"));
         verify(userRepository, never()).save(any(User.class));
     }
@@ -278,7 +278,7 @@ class CreateUserTest extends UserServiceTestBase {
                 () -> userService.createUser(testUserRequest));
 
         // Assert
-        assertTrue(ex.getMessage().contains(ErrorMessages.UserErrorMessages.InvalidEmail));
+        assertTrue(ex.getMessage().contains(ErrorMessages.UserErrorMessages.INVALID_EMAIL));
         assertTrue(ex.getMessage().contains("Login name (email) already exists"));
     }
 
@@ -299,7 +299,7 @@ class CreateUserTest extends UserServiceTestBase {
                 () -> userService.createUser(testUserRequest));
 
         // Assert
-        assertEquals(ErrorMessages.CommonErrorMessages.AtLeastOnePermissionRequired, ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.AT_LEAST_ONE_PERMISSION_REQUIRED, ex.getMessage());
     }
 
     /**
@@ -319,7 +319,7 @@ class CreateUserTest extends UserServiceTestBase {
                 () -> userService.createUser(testUserRequest));
 
         // Assert
-        assertEquals(ErrorMessages.CommonErrorMessages.AtLeastOnePermissionRequired, ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.AT_LEAST_ONE_PERMISSION_REQUIRED, ex.getMessage());
     }
 
     /*

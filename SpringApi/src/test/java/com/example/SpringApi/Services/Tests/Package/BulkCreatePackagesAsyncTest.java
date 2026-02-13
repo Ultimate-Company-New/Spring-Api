@@ -63,7 +63,7 @@ class BulkCreatePackagesAsyncTest extends PackageServiceTestBase {
     /*
      * Purpose: Reject async bulk creation when list is empty.
      * Expected Result: BadRequestException is thrown.
-     * Assertions: Exception message matches CommonErrorMessages.ListCannotBeNullOrEmpty.
+     * Assertions: Exception message matches CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY.
      */
     @Test
     @DisplayName("Bulk Create Packages Async - Empty List - Throws BadRequestException")
@@ -76,14 +76,14 @@ class BulkCreatePackagesAsyncTest extends PackageServiceTestBase {
                 () -> packageService.bulkCreatePackagesAsync(packages, TEST_USER_ID, "testuser", TEST_CLIENT_ID));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Package"),
+        assertEquals(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Package"),
                 exception.getMessage());
     }
 
     /*
      * Purpose: Reject async bulk creation when list is null.
      * Expected Result: BadRequestException is thrown.
-     * Assertions: Exception message matches CommonErrorMessages.ListCannotBeNullOrEmpty.
+     * Assertions: Exception message matches CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY.
      */
     @Test
     @DisplayName("Bulk Create Packages Async - Null List - Throws BadRequestException")
@@ -96,7 +96,7 @@ class BulkCreatePackagesAsyncTest extends PackageServiceTestBase {
                 () -> packageService.bulkCreatePackagesAsync(packages, TEST_USER_ID, "testuser", TEST_CLIENT_ID));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Package"),
+        assertEquals(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Package"),
                 exception.getMessage());
     }
 

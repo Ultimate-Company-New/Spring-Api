@@ -246,7 +246,7 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressByClientId(DEFAULT_CLIENT_ID));
         verify(addressRepository, never()).findByClientIdAndIsDeletedOrderByAddressIdDesc(anyLong(), anyBoolean());
     }
@@ -263,7 +263,7 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressByClientId(DEFAULT_CLIENT_ID + 1));
         verify(addressRepository, never()).findByClientIdAndIsDeletedOrderByAddressIdDesc(anyLong(), anyBoolean());
     }
@@ -280,7 +280,7 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressByClientId(Long.MIN_VALUE));
     }
 
@@ -296,7 +296,7 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressByClientId(-1L));
     }
 
@@ -312,7 +312,7 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressByClientId(Long.MAX_VALUE));
     }
 
@@ -328,7 +328,7 @@ class GetAddressByClientIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressByClientId(0L));
     }
 

@@ -117,7 +117,7 @@ public class UserGroup {
         
         // Validate group name length (max 100 characters)
         if (request.getGroupName().trim().length() > 100) {
-            throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.GroupNameExists);
+            throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.GROUP_NAME_EXISTS);
         }
 
         if (request.getUserIds() == null || request.getUserIds().isEmpty()) {
@@ -127,7 +127,7 @@ public class UserGroup {
 
     private void validateUser(String user) {
         if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
         }
     }
 

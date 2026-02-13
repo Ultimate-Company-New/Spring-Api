@@ -45,7 +45,7 @@ class GetPaymentsForPurchaseOrderTest extends PaymentServiceTestBase {
                 () -> paymentService.getPaymentsForPurchaseOrder(TEST_PO_ID));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
         verify(purchaseOrderRepository, times(1)).findById(TEST_PO_ID);
     }
 
@@ -69,7 +69,7 @@ class GetPaymentsForPurchaseOrderTest extends PaymentServiceTestBase {
                 () -> paymentService.getPaymentsForPurchaseOrder(TEST_PO_ID));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -87,7 +87,7 @@ class GetPaymentsForPurchaseOrderTest extends PaymentServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.getPaymentsForPurchaseOrder(-1L));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -105,7 +105,7 @@ class GetPaymentsForPurchaseOrderTest extends PaymentServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.getPaymentsForPurchaseOrder(0L));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -124,7 +124,7 @@ class GetPaymentsForPurchaseOrderTest extends PaymentServiceTestBase {
                 () -> paymentService.getPaymentsForPurchaseOrder(Long.MAX_VALUE));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -144,7 +144,7 @@ class GetPaymentsForPurchaseOrderTest extends PaymentServiceTestBase {
                 () -> paymentService.getPaymentsForPurchaseOrder(TEST_PO_ID));
 
         // Assert
-        assertEquals(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder, ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.ACCESS_DENIED_TO_PURCHASE_ORDER, ex.getMessage());
     }
 
     /**
@@ -165,7 +165,7 @@ class GetPaymentsForPurchaseOrderTest extends PaymentServiceTestBase {
                     () -> paymentService.getPaymentsForPurchaseOrder(invalidId));
 
             // Assert
-            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
         }
     }
 

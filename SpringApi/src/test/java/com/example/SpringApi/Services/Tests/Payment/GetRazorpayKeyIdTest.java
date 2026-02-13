@@ -63,7 +63,7 @@ class GetRazorpayKeyIdTest extends PaymentServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.getRazorpayKeyId());
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
         verify(clientRepository, times(1)).findById(any());
     }
 
@@ -86,7 +86,7 @@ class GetRazorpayKeyIdTest extends PaymentServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.getRazorpayKeyId());
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     // ========================================

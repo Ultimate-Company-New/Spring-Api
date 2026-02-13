@@ -370,7 +370,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(2L, true));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -388,7 +388,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(99L, true));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -406,7 +406,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(Long.MAX_VALUE, true));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -424,7 +424,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(Long.MIN_VALUE, true));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -442,7 +442,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(-5L, true));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -460,7 +460,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(Long.MAX_VALUE, true));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -478,7 +478,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(-1L, true));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -498,7 +498,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
                 NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(TEST_REVIEW_ID, true));
 
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, exception.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, exception.getMessage());
         verify(productReviewRepository, never()).save(any(ProductReview.class));
     }
 
@@ -517,7 +517,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(0L, true));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
     /*
@@ -796,7 +796,7 @@ class SetProductReviewScoreDuplicateTests extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(2L, true));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -814,7 +814,7 @@ class SetProductReviewScoreDuplicateTests extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(99L, true));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -832,7 +832,7 @@ class SetProductReviewScoreDuplicateTests extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(Long.MAX_VALUE, true));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -850,7 +850,7 @@ class SetProductReviewScoreDuplicateTests extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(Long.MIN_VALUE, true));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -868,7 +868,7 @@ class SetProductReviewScoreDuplicateTests extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(-5L, true));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -1011,7 +1011,7 @@ class SetProductReviewScoreDuplicateTests extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(Long.MAX_VALUE, true));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -1029,7 +1029,7 @@ class SetProductReviewScoreDuplicateTests extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(-1L, true));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -1049,7 +1049,7 @@ class SetProductReviewScoreDuplicateTests extends ProductReviewServiceTestBase {
                 NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(TEST_REVIEW_ID, true));
 
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, exception.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, exception.getMessage());
         verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
         verify(productReviewRepository, never()).save(any(ProductReview.class));
     }
@@ -1069,7 +1069,7 @@ class SetProductReviewScoreDuplicateTests extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(0L, true));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 }

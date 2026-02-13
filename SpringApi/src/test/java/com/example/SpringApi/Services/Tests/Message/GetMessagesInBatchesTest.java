@@ -115,7 +115,7 @@ public class GetMessagesInBatchesTest extends MessageServiceTestBase {
             // Act & Assert
             BadRequestException ex = assertThrows(BadRequestException.class,
                     () -> messageService.getMessagesInBatches(paginationRequest));
-            assertEquals(String.format(ErrorMessages.CommonErrorMessages.InvalidColumnName, invalidCol),
+            assertEquals(String.format(ErrorMessages.CommonErrorMessages.INVALID_COLUMN_NAME, invalidCol),
                     ex.getMessage());
         }
     }
@@ -134,7 +134,7 @@ public class GetMessagesInBatchesTest extends MessageServiceTestBase {
         paginationRequest.setEnd(5);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION,
                 () -> messageService.getMessagesInBatches(paginationRequest));
     }
 

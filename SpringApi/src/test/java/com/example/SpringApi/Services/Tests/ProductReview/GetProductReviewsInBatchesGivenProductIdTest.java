@@ -232,7 +232,7 @@ class GetProductReviewsInBatchesGivenProductIdTest extends ProductReviewServiceT
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> productReviewService.getProductReviewsInBatchesGivenProductId(testPaginationRequest,
                         TEST_PRODUCT_ID));
-        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, exception.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION, exception.getMessage());
     }
 
     /*
@@ -251,7 +251,7 @@ class GetProductReviewsInBatchesGivenProductIdTest extends ProductReviewServiceT
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> productReviewService.getProductReviewsInBatchesGivenProductId(testPaginationRequest,
                         TEST_PRODUCT_ID));
-        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, exception.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION, exception.getMessage());
     }
 
     /*
@@ -270,7 +270,7 @@ class GetProductReviewsInBatchesGivenProductIdTest extends ProductReviewServiceT
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> productReviewService.getProductReviewsInBatchesGivenProductId(testPaginationRequest,
                         TEST_PRODUCT_ID));
-        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, exception.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION, exception.getMessage());
     }
 
     /*
@@ -289,7 +289,7 @@ class GetProductReviewsInBatchesGivenProductIdTest extends ProductReviewServiceT
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> productReviewService.getProductReviewsInBatchesGivenProductId(testPaginationRequest,
                         TEST_PRODUCT_ID));
-        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, exception.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION, exception.getMessage());
     }
 
     /*

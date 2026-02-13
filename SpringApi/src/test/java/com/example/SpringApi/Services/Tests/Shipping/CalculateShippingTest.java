@@ -107,7 +107,7 @@ class CalculateShippingTest extends ShippingServiceTestBase {
         // Arrange
         stubClientServiceGetClientById(testClientResponse);
         stubShipRocketHelperGetAvailableShippingOptionsThrows(
-                new RuntimeException(ErrorMessages.CommonErrorMessages.CriticalFailure));
+                new RuntimeException(ErrorMessages.CommonErrorMessages.CRITICAL_FAILURE));
 
         // Act
         ShippingCalculationResponseModel result = shippingService.calculateShipping(shippingRequest);
@@ -291,7 +291,7 @@ class CalculateShippingTest extends ShippingServiceTestBase {
                 () -> shippingService.calculateShipping(request));
 
         // Assert
-        assertEquals(ErrorMessages.ShippingErrorMessages.NullShippingCalculationRequest, ex.getMessage());
+        assertEquals(ErrorMessages.ShippingErrorMessages.NULL_SHIPPING_CALCULATION_REQUEST, ex.getMessage());
     }
 
     /*

@@ -130,7 +130,7 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
                 stubMessageRepositoryFindByMessageIdAndClientIdWithTargets(Optional.empty());
 
                 // Act & Assert
-                assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
+                assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.INVALID_ID,
                                 () -> messageService.getMessageDetailsById(TEST_MESSAGE_ID));
         }
 
@@ -144,7 +144,7 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
                 // Arrange
 
                 // Act & Assert
-                assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.InvalidId,
+                assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.INVALID_ID,
                                 () -> messageService.getMessageDetailsById(-1L));
         }
 
@@ -157,12 +157,12 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
         void getMessageDetailsById_RepositoryError_Propagates() {
                 // Arrange
                 stubMessageRepositoryFindByMessageIdAndClientIdWithTargetsThrows(
-                                ErrorMessages.MessagesErrorMessages.LookupFailed);
+                                ErrorMessages.MessagesErrorMessages.LOOKUP_FAILED);
 
                 // Act & Assert
                 RuntimeException ex = assertThrows(RuntimeException.class,
                                 () -> messageService.getMessageDetailsById(TEST_MESSAGE_ID));
-                assertEquals(ErrorMessages.MessagesErrorMessages.LookupFailed, ex.getMessage());
+                assertEquals(ErrorMessages.MessagesErrorMessages.LOOKUP_FAILED, ex.getMessage());
         }
 
         /**
@@ -192,7 +192,7 @@ public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
                 // Arrange
 
                 // Act & Assert
-                assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.InvalidId,
+                assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.INVALID_ID,
                                 () -> messageService.getMessageDetailsById(0L));
         }
 

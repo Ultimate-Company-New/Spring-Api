@@ -284,7 +284,7 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> leadService.bulkCreateLeads(new ArrayList<>()));
-        assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Lead"), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Lead"), ex.getMessage());
     }
 
     /**
@@ -343,7 +343,7 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> leadService.bulkCreateLeads(null));
-        assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Lead"), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Lead"), ex.getMessage());
     }
 
     /**

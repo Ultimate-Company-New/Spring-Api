@@ -91,7 +91,7 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
     public void confirmEmail(LoginRequestModel loginRequestModel) {
         // Validate that userId is provided
         if (loginRequestModel.getUserId() == null) {
-            throw new BadRequestException(ErrorMessages.LoginErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.LoginErrorMessages.INVALID_ID);
         }
 
         Optional<User> userResponse = userRepository.findById(loginRequestModel.getUserId());
@@ -100,7 +100,7 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
 
             // Check if token is null or empty (already used/expired)
             if (user.getToken() == null || user.getToken().isEmpty() || user.getToken().isBlank()) {
-                throw new NotFoundException(ErrorMessages.LoginErrorMessages.InvalidToken);
+                throw new NotFoundException(ErrorMessages.LoginErrorMessages.INVALID_TOKEN);
             }
 
             if (user.getToken().equals(loginRequestModel.getToken())) {
@@ -108,10 +108,10 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
                 user.setToken(null); // Clear the token after successful confirmation
                 userRepository.save(user);
             } else {
-                throw new UnauthorizedException(ErrorMessages.LoginErrorMessages.InvalidToken);
+                throw new UnauthorizedException(ErrorMessages.LoginErrorMessages.INVALID_TOKEN);
             }
         } else {
-            throw new NotFoundException(ErrorMessages.LoginErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.LoginErrorMessages.INVALID_ID);
         }
     }
 
@@ -149,7 +149,7 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
 
         // check if the user was found
         if (user == null) {
-            throw new NotFoundException(ErrorMessages.LoginErrorMessages.InvalidEmail);
+            throw new NotFoundException(ErrorMessages.LoginErrorMessages.INVALID_EMAIL);
         }
 
         // check if the user's email has been confirmed
@@ -212,7 +212,7 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
             throw new UnauthorizedException(ErrorMessages.LoginErrorMessages.ER007);
         } else {
             userRepository.save(user);
-            throw new UnauthorizedException(ErrorMessages.LoginErrorMessages.InvalidCredentials);
+            throw new UnauthorizedException(ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS);
         }
     }
 
@@ -256,7 +256,7 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
 
             Client client = clientRepository.findFirstByOrderByClientIdAsc();
             if (client == null) {
-                throw new ApplicationException(ErrorMessages.ConfigurationErrorMessages.NoClientConfigurationFound);
+                throw new ApplicationException(ErrorMessages.ConfigurationErrorMessages.NO_CLIENT_CONFIGURATION_FOUND);
             }
 
             // Get email configuration from properties - all are required
@@ -274,15 +274,15 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
 
             // Validate all required email configuration properties are present
             if (senderEmail == null || senderEmail.trim().isEmpty()) {
-                throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.SendGridEmailNotConfigured);
+                throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.SEND_GRID_EMAIL_NOT_CONFIGURED);
             }
             if (senderName == null || senderName.trim().isEmpty()) {
-                throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.SendGridNameNotConfigured);
+                throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.SEND_GRID_NAME_NOT_CONFIGURED);
             }
             if (apiKey == null || apiKey.trim().isEmpty()) {
                 throw new BadRequestException(isBrevo
-                        ? ErrorMessages.ConfigurationErrorMessages.BrevoApiKeyNotConfigured
-                        : ErrorMessages.ConfigurationErrorMessages.SendGridApiKeyNotConfigured);
+                        ? ErrorMessages.ConfigurationErrorMessages.BREVO_API_KEY_NOT_CONFIGURED
+                        : ErrorMessages.ConfigurationErrorMessages.SEND_GRID_API_KEY_NOT_CONFIGURED);
             }
 
             EmailTemplates emailTemplates = new EmailTemplates(senderName, senderEmail, apiKey, environment,
@@ -291,7 +291,7 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
 
             // Verify that the email was sent successfully and contains the password
             if (!emailSent) {
-                throw new ApplicationException(ErrorMessages.LoginErrorMessages.ResetPasswordEmailFailed);
+                throw new ApplicationException(ErrorMessages.LoginErrorMessages.RESET_PASSWORD_EMAIL_FAILED);
             }
 
             // Save the user with updated password, salt, locked status, and login attempts
@@ -299,7 +299,7 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
 
             return true;
         } else {
-            throw new NotFoundException(ErrorMessages.LoginErrorMessages.InvalidEmail);
+            throw new NotFoundException(ErrorMessages.LoginErrorMessages.INVALID_EMAIL);
         }
     }
 
@@ -334,17 +334,17 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
         // Find the user with the specified email
         User user = userRepository.findByLoginName(loginRequestModel.getLoginName());
         if (user == null) {
-            throw new UnauthorizedException(ErrorMessages.LoginErrorMessages.InvalidCredentials);
+            throw new UnauthorizedException(ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS);
         }
 
         // Find the UserClientMapping by apiKey
         UserClientMapping userClientMapping = userClientMappingRepository
                 .findByApiKey(loginRequestModel.getApiKey())
-                .orElseThrow(() -> new UnauthorizedException(ErrorMessages.LoginErrorMessages.InvalidCredentials));
+                .orElseThrow(() -> new UnauthorizedException(ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS));
 
         // Verify that the apiKey belongs to the user requesting it
         if (!userClientMapping.getUserId().equals(user.getUserId())) {
-            throw new UnauthorizedException(ErrorMessages.LoginErrorMessages.InvalidCredentials);
+            throw new UnauthorizedException(ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS);
         }
 
         // Get the clientId from the mapping

@@ -45,7 +45,7 @@ class InitiateRefundTest extends PaymentServiceTestBase {
                 () -> paymentService.initiateRefund(TEST_PAYMENT_ID, 10000L, "refund"));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
         verify(clientRepository, times(1)).findById(any());
     }
 
@@ -69,7 +69,7 @@ class InitiateRefundTest extends PaymentServiceTestBase {
                 () -> paymentService.initiateRefund(TEST_PAYMENT_ID, 10000L, "refund"));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -88,7 +88,7 @@ class InitiateRefundTest extends PaymentServiceTestBase {
                 () -> paymentService.initiateRefund(-1L, 10000L, "refund"));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -107,7 +107,7 @@ class InitiateRefundTest extends PaymentServiceTestBase {
                 () -> paymentService.initiateRefund(0L, 10000L, "refund"));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -126,7 +126,7 @@ class InitiateRefundTest extends PaymentServiceTestBase {
                 () -> paymentService.initiateRefund(Long.MAX_VALUE, 10000L, "refund"));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -147,7 +147,7 @@ class InitiateRefundTest extends PaymentServiceTestBase {
                     () -> paymentService.initiateRefund(invalidId, 10000L, "refund"));
 
             // Assert
-            assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+            assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
         }
     }
 

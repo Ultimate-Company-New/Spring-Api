@@ -319,53 +319,53 @@ public class Product {
      */
     private void validateRequest(ProductRequestModel request) {
         if (request == null) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_REQUEST);
         }
         if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidTitle);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_TITLE);
         }
         if (request.getDescriptionHtml() == null || request.getDescriptionHtml().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidDescription);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_DESCRIPTION);
         }
         if (request.getBrand() == null || request.getBrand().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidBrand);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_BRAND);
         }
         if (request.getColorLabel() == null || request.getColorLabel().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidColorLabel);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_COLOR_LABEL);
         }
         if (request.getCondition() == null || request.getCondition().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidCondition);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_CONDITION);
         }
         if (!ProductConditionConstants.isValidCondition(request.getCondition())) {
             throw new BadRequestException(String.format(
-                    ErrorMessages.ProductErrorMessages.InvalidConditionValueFormat,
+                    ErrorMessages.ProductErrorMessages.INVALID_CONDITION_VALUE_FORMAT,
                     ProductConditionConstants.getValidConditionsList()));
         }
         if (request.getCountryOfManufacture() == null || request.getCountryOfManufacture().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidCountryOfManufacture);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_COUNTRY_OF_MANUFACTURE);
         }
         if (request.getPrice() == null || request.getPrice().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidPrice);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_PRICE);
         }
         if (request.getCategoryId() == null) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidCategoryId);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_CATEGORY_ID);
         }
         if (request.getWeightKgs() != null && request.getWeightKgs().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidWeight);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_WEIGHT);
         }
         if (request.getLength() != null && request.getLength().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidLength);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_LENGTH);
         }
         if (request.getBreadth() != null && request.getBreadth().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidBreadth);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_BREADTH);
         }
         if (request.getHeight() != null && request.getHeight().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidHeight);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_HEIGHT);
         }
         // Note: clientId is not validated from request - it comes from security context
         // via constructor parameter
         if (request.getPickupLocationQuantities() == null || request.getPickupLocationQuantities().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.AtLeastOnePickupLocationRequired);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.AT_LEAST_ONE_PICKUP_LOCATION_REQUIRED);
         }
     }
 
@@ -377,7 +377,7 @@ public class Product {
      */
     private void validateUser(String user) {
         if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
         }
     }
 
@@ -389,7 +389,7 @@ public class Product {
      */
     private void validateClientId(Long clientId) {
         if (clientId == null) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidClientId);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_CLIENT_ID);
         }
     }
 

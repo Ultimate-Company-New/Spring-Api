@@ -212,17 +212,17 @@ public class PurchaseOrder {
      */
     private void validateRequest(PurchaseOrderRequestModel request) {
         if (request == null) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_REQUEST);
         }
         
         // Validate OrderSummary data is provided
         if (request.getOrderSummary() == null) {
-            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.INVALID_REQUEST);
         }
         
         // Validate max 30 attachments
         if (request.getAttachments() != null && request.getAttachments().size() > 30) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.MaxAttachmentsExceeded);
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.MAX_ATTACHMENTS_EXCEEDED);
         }
         
         // Validate that products list is provided and not empty
@@ -237,7 +237,7 @@ public class PurchaseOrder {
             }
 
             if (item.getProductId() == null || item.getProductId() <= 0) {
-                throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidId);
+                throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_ID);
             }
 
             if (item.getQuantity() == null || item.getQuantity() <= 0) {
@@ -260,14 +260,14 @@ public class PurchaseOrder {
         
         // vendorNumber is optional (can be null)
         if (request.getPurchaseOrderStatus() == null || request.getPurchaseOrderStatus().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidOrderStatus);
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ORDER_STATUS);
         }
         // Validate purchaseOrderStatus values using enum
         if (!Status.isValid(request.getPurchaseOrderStatus().trim())) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidOrderStatusValue);
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ORDER_STATUS_VALUE);
         }
         if (request.getAssignedLeadId() == null) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidAssignedLeadId);
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ASSIGNED_LEAD_ID);
         }
     }
 
@@ -279,7 +279,7 @@ public class PurchaseOrder {
      */
     private void validateUser(String user) {
         if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
         }
     }
 

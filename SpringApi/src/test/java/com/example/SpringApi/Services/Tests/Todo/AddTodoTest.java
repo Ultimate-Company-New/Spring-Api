@@ -355,7 +355,7 @@ public class AddTodoTest extends TodoServiceTestBase {
     /*
      * Purpose: Verify empty task throws BadRequestException.
      * Expected Result: BadRequestException with InvalidTask message.
-     * Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidTask, ex.getMessage())
+     * Assertions: assertEquals(ErrorMessages.TodoErrorMessages.INVALID_TASK, ex.getMessage())
      */
     @Test
     @DisplayName("addTodo - Empty Task - Throws BadRequestException")
@@ -370,7 +370,7 @@ public class AddTodoTest extends TodoServiceTestBase {
                 () -> todoService.addTodo(request));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidTask, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_TASK, ex.getMessage());
     }
 
     /*
@@ -385,7 +385,7 @@ public class AddTodoTest extends TodoServiceTestBase {
         TodoRequestModel request = null;
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.TodoErrorMessages.InvalidRequest,
+        assertThrowsBadRequest(ErrorMessages.TodoErrorMessages.INVALID_REQUEST,
                 () -> todoService.addTodo(request));
     }
 
@@ -402,14 +402,14 @@ public class AddTodoTest extends TodoServiceTestBase {
         request.setTask(null);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.TodoErrorMessages.InvalidTask,
+        assertThrowsBadRequest(ErrorMessages.TodoErrorMessages.INVALID_TASK,
                 () -> todoService.addTodo(request));
     }
 
     /*
      * Purpose: Verify task too long throws BadRequestException.
      * Expected Result: BadRequestException with TaskTooLong message.
-     * Assertions: assertEquals(ErrorMessages.TodoErrorMessages.TaskTooLong, ex.getMessage())
+     * Assertions: assertEquals(ErrorMessages.TodoErrorMessages.TASK_TOO_LONG, ex.getMessage())
      */
     @Test
     @DisplayName("addTodo - Task Too Long - Throws BadRequestException")
@@ -424,13 +424,13 @@ public class AddTodoTest extends TodoServiceTestBase {
                 () -> todoService.addTodo(request));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.TaskTooLong, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.TASK_TOO_LONG, ex.getMessage());
     }
 
     /*
      * Purpose: Verify whitespace task throws BadRequestException.
      * Expected Result: BadRequestException with InvalidTask message.
-     * Assertions: assertEquals(ErrorMessages.TodoErrorMessages.InvalidTask, ex.getMessage())
+     * Assertions: assertEquals(ErrorMessages.TodoErrorMessages.INVALID_TASK, ex.getMessage())
      */
     @Test
     @DisplayName("addTodo - Whitespace Task - Throws BadRequestException")
@@ -445,7 +445,7 @@ public class AddTodoTest extends TodoServiceTestBase {
                 () -> todoService.addTodo(request));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidTask, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_TASK, ex.getMessage());
     }
 
     // ========================================

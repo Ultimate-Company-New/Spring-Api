@@ -92,19 +92,19 @@ public class UserGroupUserMap {
 
     private void validateUserId(Long userId) {
         if (userId == null || userId <= 0) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_ID);
         }
     }
 
     private void validateGroupId(Long groupId) {
         if (groupId == null || groupId <= 0) {
-            throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.INVALID_ID);
         }
     }
 
     private void validateUser(String user) {
         if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
         }
     }
 }

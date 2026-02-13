@@ -232,7 +232,7 @@ class TogglePackageTest extends PackageServiceTestBase {
                 () -> packageService.togglePackage(Long.MAX_VALUE));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, exception.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_ID, exception.getMessage());
     }
 
     /**
@@ -251,7 +251,7 @@ class TogglePackageTest extends PackageServiceTestBase {
                 () -> packageService.togglePackage(-1L));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, exception.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_ID, exception.getMessage());
     }
 
     /**
@@ -270,7 +270,7 @@ class TogglePackageTest extends PackageServiceTestBase {
                 () -> packageService.togglePackage(TEST_PACKAGE_ID));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, exception.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_ID, exception.getMessage());
     }
 
     /**
@@ -289,7 +289,7 @@ class TogglePackageTest extends PackageServiceTestBase {
                 () -> packageService.togglePackage(0L));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidId, exception.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_ID, exception.getMessage());
     }
 
     /*

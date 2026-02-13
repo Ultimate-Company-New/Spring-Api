@@ -125,7 +125,7 @@ class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userGroupService.getUserGroupDetailsById(Long.MAX_VALUE));
-        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserGroupErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -142,7 +142,7 @@ class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userGroupService.getUserGroupDetailsById(Long.MIN_VALUE));
-        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserGroupErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -159,7 +159,7 @@ class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userGroupService.getUserGroupDetailsById(-1L));
-        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserGroupErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -176,7 +176,7 @@ class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userGroupService.getUserGroupDetailsById(TEST_GROUP_ID));
-        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserGroupErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -193,7 +193,7 @@ class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userGroupService.getUserGroupDetailsById(0L));
-        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserGroupErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     // ========================================

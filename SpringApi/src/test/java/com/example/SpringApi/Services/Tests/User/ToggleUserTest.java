@@ -163,7 +163,7 @@ class ToggleUserTest extends UserServiceTestBase {
                 () -> userService.toggleUser(Long.MAX_VALUE));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -182,7 +182,7 @@ class ToggleUserTest extends UserServiceTestBase {
                 () -> userService.toggleUser(-1L));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -201,7 +201,7 @@ class ToggleUserTest extends UserServiceTestBase {
                 () -> userService.toggleUser(TEST_USER_ID));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, ex.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -221,7 +221,7 @@ class ToggleUserTest extends UserServiceTestBase {
                 () -> userService.toggleUser(0L));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     // ========================================

@@ -223,11 +223,11 @@ public abstract class ProductServiceTestBase {
     }
 
     protected com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel createValidPaginationRequest() {
-        com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel request = new com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel();
-        request.setStart(0);
-        request.setEnd(10);
-        request.setFilters(new java.util.ArrayList<>());
-        return request;
+        com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel paginationRequest = new com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel();
+        paginationRequest.setStart(0);
+        paginationRequest.setEnd(10);
+        paginationRequest.setFilters(new java.util.ArrayList<>());
+        return paginationRequest;
     }
 
     protected void assertThrowsBadRequest(String expectedMessage, org.junit.jupiter.api.function.Executable executable) {

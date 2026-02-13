@@ -142,7 +142,7 @@ class GetUserByEmailTest extends UserServiceTestBase {
                 () -> userService.getUserByEmail(TEST_EMAIL));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_EMAIL, ex.getMessage());
     }
 
     /**
@@ -161,7 +161,7 @@ class GetUserByEmailTest extends UserServiceTestBase {
                 () -> userService.getUserByEmail(""));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_EMAIL, ex.getMessage());
     }
 
     /**
@@ -180,7 +180,7 @@ class GetUserByEmailTest extends UserServiceTestBase {
                 () -> userService.getUserByEmail("not-an-email"));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_EMAIL, ex.getMessage());
     }
 
     /**
@@ -199,7 +199,7 @@ class GetUserByEmailTest extends UserServiceTestBase {
                 () -> userService.getUserByEmail(null));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_EMAIL, ex.getMessage());
     }
 
     /**
@@ -218,7 +218,7 @@ class GetUserByEmailTest extends UserServiceTestBase {
                 () -> userService.getUserByEmail("   "));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidEmail, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_EMAIL, ex.getMessage());
     }
 
     // ========================================

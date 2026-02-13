@@ -14,19 +14,10 @@ import com.example.SpringApi.SuccessMessages;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Service implementation for Todo operations.
- * 
- * This service handles all business logic related to todo items
- * including CRUD operations and task management functionality.
- * 
- * @author SpringApi Team
- * @version 1.0
- * @since 2024-01-15
- */
 @Service
 public class TodoService extends BaseService implements ITodoSubTranslator {
     
@@ -40,12 +31,6 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
         this.userLogService = userLogService;
     }
     
-    /**
-     * Adds a new todo item.
-     * 
-     * @param todoRequestModel The todo request model containing todo data
-     * @throws BadRequestException if the request is null or invalid
-     */
     @Override
     public void addTodo(TodoRequestModel todoRequestModel) {
         String authenticatedUser = getUser();
@@ -58,36 +43,29 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
         );
     }
     
-    /**
-     * Updates an existing todo item.
-     * 
-     * @param todoRequestModel The todo request model containing updated todo data
-     * @throws NotFoundException if the todo item is not found
-     * @throws BadRequestException if the request is invalid
-     */
     @Override
     public void updateTodo(TodoRequestModel todoRequestModel) {
         if (todoRequestModel == null) {
-            throw new BadRequestException(ErrorMessages.TodoErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.TodoErrorMessages.INVALID_REQUEST);
         }
 
         if (todoRequestModel.getTodoId() == null) {
-            throw new BadRequestException(ErrorMessages.TodoErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.TodoErrorMessages.INVALID_REQUEST);
         }
 
         String task = todoRequestModel.getTask();
         if (task == null || task.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.TodoErrorMessages.InvalidTask);
+            throw new BadRequestException(ErrorMessages.TodoErrorMessages.INVALID_TASK);
         }
 
         if (task.length() > 500) {
-            throw new BadRequestException(ErrorMessages.TodoErrorMessages.TaskTooLong);
+            throw new BadRequestException(ErrorMessages.TodoErrorMessages.TASK_TOO_LONG);
         }
         
         String authenticatedUser = getUser();
         
         Todo todoToUpdate = todoRepository.findById(todoRequestModel.getTodoId())
-            .orElseThrow(() -> new NotFoundException(ErrorMessages.TodoErrorMessages.InvalidId));
+            .orElseThrow(() -> new NotFoundException(ErrorMessages.TodoErrorMessages.INVALID_ID));
         
         Todo updatedTodo = new Todo(todoRequestModel, authenticatedUser, todoToUpdate, getUserId());
         userLogService.logData(
@@ -97,23 +75,14 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
         );
     }
     
-    /**
-     * Deletes a todo item by ID.
-     * 
-     * @param id The ID of the todo item to delete
-     * @throws NotFoundException if the todo item is not found
-     */
     @Override
     public void deleteTodo(long id) {
-        // Check if todo exists
         if (!todoRepository.existsById(id)) {
-            throw new NotFoundException(ErrorMessages.TodoErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.TodoErrorMessages.INVALID_ID);
         }
         
-        // Delete the todo
         todoRepository.deleteById(id);
         
-        // Log the operation
         userLogService.logData(
             getUserId(),
             SuccessMessages.TodoSuccessMessages.DeleteTodo + " " + id,
@@ -121,27 +90,18 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
         );
     }
     
-    /**
-     * Toggles the completion status of a todo item.
-     * 
-     * @param id The ID of the todo item to toggle
-     * @throws NotFoundException if the todo item is not found
-     */
     @Override
     public void toggleTodo(long id) {
         String authenticatedUser = getUser();
         
         Todo todo = todoRepository.findById(id)
-            .orElseThrow(() -> new NotFoundException(ErrorMessages.TodoErrorMessages.InvalidId));
+            .orElseThrow(() -> new NotFoundException(ErrorMessages.TodoErrorMessages.INVALID_ID));
         
-        // Toggle the completion status
         todo.setIsDone(!todo.getIsDone());
         todo.setModifiedUser(authenticatedUser);
         
-        // Save the updated todo
         todoRepository.save(todo);
         
-        // Log the operation
         userLogService.logData(
             getUserId(),
             SuccessMessages.TodoSuccessMessages.ToggleTodo + " " + id,
@@ -149,25 +109,18 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
         );
     }
     
-    /**
-     * Retrieves all todo items for the current user.
-     * 
-     * @return List of TodoResponseModel objects for the current user
-     */
     @Override
     public List<TodoResponseModel> getTodoItems() {
         List<Todo> todos = todoRepository.findAllByUserIdOrderByTodoIdDesc(getUserId());
 
         if (todos == null) {
-            throw new BadRequestException(ErrorMessages.TodoErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.TodoErrorMessages.INVALID_REQUEST);
         }
         
-        // Convert to response models
         List<TodoResponseModel> responseModels = todos.stream()
             .map(TodoResponseModel::new)
-            .collect(Collectors.toList());
+            .collect(Collectors.toCollection(ArrayList::new));
         
-        // Log the operation
         userLogService.logData(
             getUserId(),
             SuccessMessages.TodoSuccessMessages.GetTodoItems,

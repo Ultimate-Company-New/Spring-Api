@@ -290,7 +290,7 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
                                 () -> userService.fetchUsersInCarrierInBatches(request));
 
                 // Assert
-                assertEquals(ErrorMessages.CommonErrorMessages.InvalidLogicOperator, ex.getMessage());
+                assertEquals(ErrorMessages.CommonErrorMessages.INVALID_LOGIC_OPERATOR, ex.getMessage());
         }
 
         /**
@@ -338,7 +338,7 @@ class FetchUsersInCarrierInBatchesTest extends UserServiceTestBase {
                                 () -> userService.fetchUsersInCarrierInBatches(request));
 
                 // Assert
-                assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+                assertEquals(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION, ex.getMessage());
         }
 
         // ========================================

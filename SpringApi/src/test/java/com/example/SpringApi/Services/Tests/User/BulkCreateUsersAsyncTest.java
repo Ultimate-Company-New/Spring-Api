@@ -169,7 +169,7 @@ class BulkCreateUsersAsyncTest extends UserServiceTestBase {
                 () -> userService.bulkCreateUsersAsync(users, TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "User"),
+        assertEquals(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "User"),
                 exception.getMessage());
     }
 
@@ -188,7 +188,7 @@ class BulkCreateUsersAsyncTest extends UserServiceTestBase {
                 () -> userService.bulkCreateUsersAsync(null, TEST_USER_ID, TEST_LOGIN_NAME, TEST_CLIENT_ID));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "User"),
+        assertEquals(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "User"),
                 exception.getMessage());
     }
 

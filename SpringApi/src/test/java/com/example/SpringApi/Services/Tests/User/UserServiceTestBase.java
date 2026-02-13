@@ -447,52 +447,52 @@ public abstract class UserServiceTestBase {
     }
 
     protected void testStringFilter(String column, String operator, String value) {
-        UserRequestModel request = createBasicPaginationRequest();
+        UserRequestModel paginationRequest = createBasicPaginationRequest();
         PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
         filter.setColumn(column);
         filter.setOperator(operator);
         filter.setValue(value);
-        request.setFilters(Arrays.asList(filter));
-        request.setLogicOperator("AND");
+        paginationRequest.setFilters(Arrays.asList(filter));
+        paginationRequest.setLogicOperator("AND");
 
         stubUserFilterQueryBuilderGetColumnType(column, "string");
         stubUserFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Arrays.asList(testUser)));
 
-        assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(request));
+        assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(paginationRequest));
     }
 
     protected void testNumberFilter(String column, String operator, String value) {
-        UserRequestModel request = createBasicPaginationRequest();
+        UserRequestModel paginationRequest = createBasicPaginationRequest();
         PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
         filter.setColumn(column);
         filter.setOperator(operator);
         filter.setValue(value);
-        request.setFilters(Arrays.asList(filter));
-        request.setLogicOperator("AND");
+        paginationRequest.setFilters(Arrays.asList(filter));
+        paginationRequest.setLogicOperator("AND");
 
         stubUserFilterQueryBuilderGetColumnType(column, "number");
         stubUserFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Arrays.asList(testUser)));
 
-        assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(request));
+        assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(paginationRequest));
     }
 
     protected void testBooleanFilter(String column, String operator, String value) {
-        UserRequestModel request = createBasicPaginationRequest();
+        UserRequestModel paginationRequest = createBasicPaginationRequest();
         PaginationBaseRequestModel.FilterCondition filter = new PaginationBaseRequestModel.FilterCondition();
         filter.setColumn(column);
         filter.setOperator(operator);
         filter.setValue(value);
-        request.setFilters(Arrays.asList(filter));
-        request.setLogicOperator("AND");
+        paginationRequest.setFilters(Arrays.asList(filter));
+        paginationRequest.setLogicOperator("AND");
 
         stubUserFilterQueryBuilderGetColumnType(column, "boolean");
         stubUserFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Arrays.asList(testUser)));
 
-        assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(request));
+        assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(paginationRequest));
     }
 
     protected void testLogicOperator(String logicOperator) {
-        UserRequestModel request = createBasicPaginationRequest();
+        UserRequestModel paginationRequest = createBasicPaginationRequest();
         PaginationBaseRequestModel.FilterCondition filter1 = new PaginationBaseRequestModel.FilterCondition();
         filter1.setColumn("firstName");
         filter1.setOperator("equals");
@@ -501,14 +501,14 @@ public abstract class UserServiceTestBase {
         filter2.setColumn("lastName");
         filter2.setOperator("equals");
         filter2.setValue("test");
-        request.setFilters(Arrays.asList(filter1, filter2));
-        request.setLogicOperator(logicOperator);
+        paginationRequest.setFilters(Arrays.asList(filter1, filter2));
+        paginationRequest.setLogicOperator(logicOperator);
 
         stubUserFilterQueryBuilderGetColumnType("firstName", "string");
         stubUserFilterQueryBuilderGetColumnType("lastName", "string");
         stubUserFilterQueryBuilderFindPaginatedEntities(new PageImpl<>(Arrays.asList(testUser)));
 
-        assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(request));
+        assertDoesNotThrow(() -> userService.fetchUsersInCarrierInBatches(paginationRequest));
     }
 
     // ==========================================

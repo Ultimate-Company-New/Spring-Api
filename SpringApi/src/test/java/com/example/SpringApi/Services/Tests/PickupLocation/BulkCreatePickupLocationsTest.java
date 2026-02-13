@@ -23,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -255,7 +254,7 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
                 () -> pickupLocationService.bulkCreatePickupLocations(requests));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Pickup location"),
+        assertEquals(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Pickup location"),
                 ex.getMessage());
     }
 
@@ -430,7 +429,7 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
                 () -> pickupLocationService.bulkCreatePickupLocations(null));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Pickup location"),
+        assertEquals(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Pickup location"),
                 ex.getMessage());
     }
 

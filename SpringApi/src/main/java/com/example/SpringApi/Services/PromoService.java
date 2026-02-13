@@ -45,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class PromoService extends BaseService implements IPromoSubTranslator {
+  private static final String PROMO_ENTITY_LABEL = "Promo";
 
   private final PromoRepository promoRepository;
   private final UserLogService userLogService;
@@ -77,7 +78,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   public PaginationBaseResponseModel<Promo> getPromosInBatches(
       PaginationBaseRequestModel paginationBaseRequestModel) {
     if (paginationBaseRequestModel == null) {
-      throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
+      throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION);
     }
 
     // Valid columns for filtering
@@ -90,14 +91,14 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
         // Validate column name
         if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
           throw new BadRequestException(
-              String.format(ErrorMessages.CommonErrorMessages.InvalidColumnName, filter.getColumn()));
+              String.format(ErrorMessages.CommonErrorMessages.INVALID_COLUMN_NAME, filter.getColumn()));
         }
 
         // Validate operator (FilterCondition.setOperator auto-normalizes symbols to
         // words)
         if (!filter.isValidOperator()) {
           throw new BadRequestException(String.format(
-              ErrorMessages.PromoErrorMessages.InvalidOperatorFormat,
+              ErrorMessages.PromoErrorMessages.INVALID_OPERATOR_FORMAT,
               filter.getOperator()));
         }
 
@@ -115,13 +116,13 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
     int end = paginationBaseRequestModel.getEnd();
 
     if (start < 0) {
-      throw new BadRequestException(ErrorMessages.CommonErrorMessages.StartIndexCannotBeNegative);
+      throw new BadRequestException(ErrorMessages.CommonErrorMessages.START_INDEX_CANNOT_BE_NEGATIVE);
     }
     int pageSize = end - start;
 
     // Validate page size
     if (pageSize <= 0) {
-      throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
+      throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION);
     }
 
     // Create custom Pageable with proper offset handling
@@ -172,7 +173,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   public PromoResponseModel getPromoDetailsById(long id) {
     Promo promo = promoRepository
         .findByPromoIdAndClientId(id, getClientId())
-        .orElseThrow(() -> new NotFoundException(ErrorMessages.PromoErrorMessages.InvalidId));
+        .orElseThrow(() -> new NotFoundException(ErrorMessages.PromoErrorMessages.INVALID_ID));
     return new PromoResponseModel(promo);
   }
 
@@ -187,7 +188,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   public void togglePromo(long id) {
     Promo promo = promoRepository
         .findByPromoIdAndClientId(id, getClientId())
-        .orElseThrow(() -> new NotFoundException(ErrorMessages.PromoErrorMessages.InvalidId));
+        .orElseThrow(() -> new NotFoundException(ErrorMessages.PromoErrorMessages.INVALID_ID));
 
     // Toggle the isDeleted flag
     promo.setIsDeleted(!promo.getIsDeleted());
@@ -217,14 +218,14 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   public PromoResponseModel getPromoDetailsByName(String promoCode) {
     // Validate promo code is not null or empty
     if (promoCode == null || promoCode.trim().isEmpty()) {
-      throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidPromoCode);
+      throw new BadRequestException(ErrorMessages.PromoErrorMessages.INVALID_PROMO_CODE);
     }
 
     // Convert to uppercase for case-insensitive lookup
     Promo promo = promoRepository
         .findByPromoCodeAndClientId(promoCode.toUpperCase(), getClientId())
         .orElseThrow(
-            () -> new NotFoundException(ErrorMessages.PromoErrorMessages.InvalidName));
+            () -> new NotFoundException(ErrorMessages.PromoErrorMessages.INVALID_NAME));
     return new PromoResponseModel(promo);
   }
 
@@ -259,7 +260,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
       // Validate input
       if (promos == null || promos.isEmpty()) {
         throw new BadRequestException(
-            String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Promo"));
+            String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, PROMO_ENTITY_LABEL));
       }
 
       BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
@@ -314,7 +315,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
       // Create a message with the bulk insert results using the helper (using
       // captured context)
       BulkInsertHelper.createDetailedBulkInsertResultMessage(
-          response, "Promo", "Promos", "Promo Code", "Promo ID",
+          response, PROMO_ENTITY_LABEL, "Promos", "Promo Code", "Promo ID",
           messageService, requestingUserId, requestingUserLoginName, requestingClientId);
 
     } catch (Exception e) {
@@ -325,7 +326,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
       errorResponse.setFailureCount(promos != null ? promos.size() : 0);
       errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
       BulkInsertHelper.createDetailedBulkInsertResultMessage(
-          errorResponse, "Promo", "Promos", "Promo Code", "Promo ID",
+          errorResponse, PROMO_ENTITY_LABEL, "Promos", "Promo Code", "Promo ID",
           messageService, requestingUserId, requestingUserLoginName, requestingClientId);
     }
   }
@@ -352,17 +353,17 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
 
     // Validate request model and required fields
     if (promoRequestModel == null) {
-      throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidRequest);
+      throw new BadRequestException(ErrorMessages.PromoErrorMessages.INVALID_REQUEST);
     }
 
     // Validate promo code is not null or empty
     if (promoRequestModel.getPromoCode() == null || promoRequestModel.getPromoCode().trim().isEmpty()) {
-      throw new BadRequestException(ErrorMessages.PromoErrorMessages.InvalidPromoCode);
+      throw new BadRequestException(ErrorMessages.PromoErrorMessages.INVALID_PROMO_CODE);
     }
 
     // Client ID consistency check (Service level responsibility)
     if (promoRequestModel.getClientId() != null && !promoRequestModel.getClientId().equals(currentClientId)) {
-      throw new BadRequestException(ErrorMessages.PromoErrorMessages.ClientIdMismatch);
+      throw new BadRequestException(ErrorMessages.PromoErrorMessages.CLIENT_ID_MISMATCH);
     }
 
     // Check for overlapping promo codes in the same date range
@@ -373,7 +374,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
         promoRequestModel.getExpiryDate());
 
     if (!overlappingPromos.isEmpty()) {
-      throw new BadRequestException(ErrorMessages.PromoErrorMessages.OverlappingPromoCode);
+      throw new BadRequestException(ErrorMessages.PromoErrorMessages.OVERLAPPING_PROMO_CODE);
     }
 
     // Create and save promo

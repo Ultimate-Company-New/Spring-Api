@@ -100,7 +100,7 @@ class GetAddressByIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressById(DEFAULT_ADDRESS_ID + 1));
     }
 
@@ -117,7 +117,7 @@ class GetAddressByIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressById(DEFAULT_ADDRESS_ID));
         verify(addressRepository, times(1)).findById(DEFAULT_ADDRESS_ID);
     }
@@ -134,7 +134,7 @@ class GetAddressByIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressById(Long.MAX_VALUE));
     }
 
@@ -150,7 +150,7 @@ class GetAddressByIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressById(Long.MIN_VALUE));
     }
 
@@ -167,7 +167,7 @@ class GetAddressByIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressById(negativeId));
     }
 
@@ -184,7 +184,7 @@ class GetAddressByIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressById(zeroId));
     }
 

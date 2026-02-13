@@ -45,7 +45,7 @@ class VerifyPaymentTest extends PaymentServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.verifyPayment(testVerifyRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
         verify(clientRepository, times(1)).findById(any());
     }
 
@@ -68,7 +68,7 @@ class VerifyPaymentTest extends PaymentServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.verifyPayment(testVerifyRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -87,7 +87,7 @@ class VerifyPaymentTest extends PaymentServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.verifyPayment(testVerifyRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -106,7 +106,7 @@ class VerifyPaymentTest extends PaymentServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.verifyPayment(testVerifyRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -125,7 +125,7 @@ class VerifyPaymentTest extends PaymentServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.verifyPayment(testVerifyRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -146,7 +146,7 @@ class VerifyPaymentTest extends PaymentServiceTestBase {
             NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.verifyPayment(testVerifyRequest));
 
             // Assert
-            assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+            assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
         }
     }
 

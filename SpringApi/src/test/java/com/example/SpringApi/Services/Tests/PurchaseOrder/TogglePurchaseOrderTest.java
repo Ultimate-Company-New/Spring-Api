@@ -87,7 +87,7 @@ public class TogglePurchaseOrderTest extends PurchaseOrderServiceTestBase {
         stubPurchaseOrderRepositoryFindById(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.PurchaseOrderErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID,
                 () -> purchaseOrderService.togglePurchaseOrder(TEST_PO_ID));
     }
 

@@ -138,7 +138,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
         // Act & Assert
         NullPointerException ex = assertThrows(NullPointerException.class,
                 () -> qaService.getEndpointsWithTestsByService(serviceName));
-        assertEquals(ErrorMessages.QAErrorMessages.ServiceNameNull, ex.getMessage());
+        assertEquals(ErrorMessages.QAErrorMessages.SERVICE_NAME_NULL, ex.getMessage());
     }
 
     /**
@@ -407,7 +407,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
     }
 
     private String expectedServiceNotFoundMessage(String serviceName) {
-        return String.format(ErrorMessages.QAErrorMessages.ServiceNotFoundFormat,
+        return String.format(ErrorMessages.QAErrorMessages.SERVICE_NOT_FOUND_FORMAT,
                 serviceName.trim(),
                 String.join(", ", getServiceMappings().keySet()));
     }

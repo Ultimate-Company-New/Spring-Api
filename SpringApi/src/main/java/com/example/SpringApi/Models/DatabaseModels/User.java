@@ -222,39 +222,39 @@ public class User {
      */
     private void validateRequest(UserRequestModel request) {
         if (request == null) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_REQUEST);
         }
         
         if (request.getLoginName() == null || request.getLoginName().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidLoginName);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_LOGIN_NAME);
         }
         
         if (request.getFirstName() == null || request.getFirstName().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidFirstName);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_FIRST_NAME);
         }
         
         if (request.getLastName() == null || request.getLastName().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidLastName);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_LAST_NAME);
         }
         
         if (request.getPhone() == null || request.getPhone().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidPhone);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_PHONE);
         }
         
         // Validate role using UserRole enum
         if (request.getRole() == null || request.getRole().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidRole);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_ROLE);
         }
         
         if (!UserRole.isValid(request.getRole())) {
             throw new BadRequestException(
-                ErrorMessages.UserErrorMessages.InvalidRole + 
+                ErrorMessages.UserErrorMessages.INVALID_ROLE + 
                 " - Must be one of: SUPERADMIN, ADMIN, MANAGER, VIEWER, CUSTOMER, CUSTOM"
             );
         }
         
         if (request.getDob() == null) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidDob);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_DOB);
         }
     }
 
@@ -266,7 +266,7 @@ public class User {
      */
     private void validateUser(String user) {
         if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
         }
     }
 

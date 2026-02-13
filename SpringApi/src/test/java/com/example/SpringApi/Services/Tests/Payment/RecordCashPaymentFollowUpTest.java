@@ -45,7 +45,7 @@ class RecordCashPaymentFollowUpTest extends PaymentServiceTestBase {
                 () -> paymentService.recordCashPaymentFollowUp(testCashPaymentRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
         verify(purchaseOrderRepository, times(1)).findById(TEST_PO_ID);
     }
 
@@ -69,7 +69,7 @@ class RecordCashPaymentFollowUpTest extends PaymentServiceTestBase {
                 () -> paymentService.recordCashPaymentFollowUp(testCashPaymentRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -108,7 +108,7 @@ class RecordCashPaymentFollowUpTest extends PaymentServiceTestBase {
                 () -> paymentService.recordCashPaymentFollowUp(testCashPaymentRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -128,7 +128,7 @@ class RecordCashPaymentFollowUpTest extends PaymentServiceTestBase {
                 () -> paymentService.recordCashPaymentFollowUp(testCashPaymentRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -148,7 +148,7 @@ class RecordCashPaymentFollowUpTest extends PaymentServiceTestBase {
                 () -> paymentService.recordCashPaymentFollowUp(testCashPaymentRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -170,7 +170,7 @@ class RecordCashPaymentFollowUpTest extends PaymentServiceTestBase {
                     () -> paymentService.recordCashPaymentFollowUp(testCashPaymentRequest));
 
             // Assert
-            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
         }
     }
 

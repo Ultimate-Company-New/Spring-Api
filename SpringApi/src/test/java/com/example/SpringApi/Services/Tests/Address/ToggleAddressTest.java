@@ -189,7 +189,7 @@ class ToggleAddressTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.toggleAddress(DEFAULT_ADDRESS_ID + 1));
         verify(addressRepository, never()).save(any(Address.class));
         verify(userLogService, never()).logData(anyLong(), anyString(), anyString());
@@ -207,7 +207,7 @@ class ToggleAddressTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.toggleAddress(Long.MIN_VALUE));
     }
 
@@ -224,7 +224,7 @@ class ToggleAddressTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.toggleAddress(negativeId));
     }
 
@@ -241,7 +241,7 @@ class ToggleAddressTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.toggleAddress(zeroId));
     }
 

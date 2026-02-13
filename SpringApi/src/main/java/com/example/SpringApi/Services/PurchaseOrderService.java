@@ -183,12 +183,12 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
             for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
                 // Validate column name
                 if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
-                    throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidColumnName, filter.getColumn()));
+                    throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.INVALID_COLUMN_NAME, filter.getColumn()));
                 }
 
                 // Validate operator
                 if (!filter.isValidOperator()) {
-                    throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidOperator, filter.getOperator()));
+                    throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.INVALID_OPERATOR, filter.getOperator()));
                 }
 
                 // Validate column type matches operator
@@ -204,7 +204,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
 
         // Validate page size
         if (pageSize <= 0) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidPagination);
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_PAGINATION);
         }
 
         // Create custom Pageable with proper offset handling
@@ -313,7 +313,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                         purchaseOrderRequestModel.getPurchaseOrderId(),
                         getClientId()
                 )
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID));
 
         PurchaseOrder updatedPurchaseOrder = new PurchaseOrder(
                 purchaseOrderRequestModel,
@@ -405,7 +405,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                 if (shipmentData.getSelectedCourier() != null) {
                     shipment.setCourierSelection(shipmentData.getSelectedCourier());
                 } else {
-                    throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.CourierSelectionRequired);
+                    throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.COURIER_SELECTION_REQUIRED);
                 }
 
                 shipment = shipmentRepository.save(shipment);
@@ -453,15 +453,15 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                             }
                             shipmentPackageProductRepository.saveAll(packageProducts);
                         } else {
-                            throw new BadRequestException(ErrorMessages.ShipmentPackageProductErrorMessages.AtLeastOneProductRequired);
+                            throw new BadRequestException(ErrorMessages.ShipmentPackageProductErrorMessages.AT_LEAST_ONE_PRODUCT_REQUIRED);
                         }
                     }
                 } else {
-                    throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.AtLeastOnePackageRequired);
+                    throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.AT_LEAST_ONE_PACKAGE_REQUIRED);
                 }
             }
         } else {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AtLeastOneShipmentRequired);
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AT_LEAST_ONE_SHIPMENT_REQUIRED);
         }
 
         // Step 6: Update the Resources (attachments)
@@ -508,7 +508,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                 purchaseOrderRepository.findByPurchaseOrderIdAndClientIdWithAllRelations(id, getClientId());
 
         if (purchaseOrderOptional.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID);
         }
 
         PurchaseOrder purchaseOrder = purchaseOrderOptional.get();
@@ -610,7 +610,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         // Validate purchase order exists and belongs to current client
         Optional<PurchaseOrder> purchaseOrderOptional = purchaseOrderRepository.findByPurchaseOrderIdAndClientId(id, getClientId());
         if (purchaseOrderOptional.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID);
         }
 
         PurchaseOrder purchaseOrder = purchaseOrderOptional.get();
@@ -647,14 +647,14 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         // Validate purchase order exists and belongs to current client
         Optional<PurchaseOrder> purchaseOrderOptional = purchaseOrderRepository.findByPurchaseOrderIdAndClientId(id, getClientId());
         if (purchaseOrderOptional.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID);
         }
 
         PurchaseOrder purchaseOrder = purchaseOrderOptional.get();
 
         // Check if purchase order is already approved
         if (purchaseOrder.getApprovedByUserId() != null) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AlreadyApproved);
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.ALREADY_APPROVED);
         }
 
         // Set approval fields (also clears rejection fields and updates modified user)
@@ -686,14 +686,14 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         // Validate purchase order exists and belongs to current client
         Optional<PurchaseOrder> purchaseOrderOptional = purchaseOrderRepository.findByPurchaseOrderIdAndClientId(id, getClientId());
         if (purchaseOrderOptional.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID);
         }
 
         PurchaseOrder purchaseOrder = purchaseOrderOptional.get();
 
         // Check if purchase order is already rejected
         if (purchaseOrder.getRejectedByUserId() != null) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AlreadyRejected);
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.ALREADY_REJECTED);
         }
 
         // Set rejection fields (also clears approval fields and updates modified user)
@@ -731,7 +731,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                 purchaseOrderRepository.findByPurchaseOrderIdAndClientIdWithAllRelations(id, getClientId());
 
         if (purchaseOrderOptional.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID);
         }
 
         PurchaseOrder purchaseOrder = purchaseOrderOptional.get();
@@ -740,14 +740,14 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         OrderSummary orderSummary = orderSummaryRepository.findByEntityTypeAndEntityId(
             OrderSummary.EntityType.PURCHASE_ORDER.getValue(),
             purchaseOrder.getPurchaseOrderId()
-        ).orElseThrow(() -> new NotFoundException(ErrorMessages.OrderSummaryNotFoundMessage.NotFound));
+        ).orElseThrow(() -> new NotFoundException(ErrorMessages.OrderSummaryNotFoundMessage.NOT_FOUND));
 
         // Fetch shipping address from OrderSummary
         Optional<Address> shippingAddressOptional =
                 addressRepository.findById(orderSummary.getEntityAddressId());
 
         if (shippingAddressOptional.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.AddressErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.AddressErrorMessages.INVALID_ID);
         }
 
         Address shippingAddress = shippingAddressOptional.get();
@@ -757,7 +757,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                 userRepository.findByUserIdAndClientId(getUserId(), getClientId());
 
         if (purchaseOrderCreatedByOptional.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.UserErrorMessages.INVALID_ID);
         }
 
         User purchaseOrderCreatedBy = purchaseOrderCreatedByOptional.get();
@@ -769,7 +769,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                     userRepository.findByUserIdAndClientId(purchaseOrder.getApprovedByUserId(), getClientId());
 
             if (purchaseOrderApprovedByOptional.isEmpty()) {
-                throw new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId);
+                throw new NotFoundException(ErrorMessages.UserErrorMessages.INVALID_ID);
             }
 
             purchaseOrderApprovedBy = purchaseOrderApprovedByOptional.get();
@@ -782,14 +782,14 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         );
 
         if (lead == null) {
-            throw new NotFoundException(ErrorMessages.LeadsErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.LeadsErrorMessages.INVALID_ID);
         }
 
         // Fetch client details
         Optional<Client> clientOptional = clientRepository.findById(getClientId());
 
         if (clientOptional.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID);
         }
 
         Client client = clientOptional.get();
@@ -1003,7 +1003,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                     List<String> deleteHashes = existingResources.stream()
                             .map(Resources::getDeleteHashValue)
                             .filter(hash -> hash != null && !hash.trim().isEmpty())
-                            .collect(Collectors.toList());
+                            .collect(Collectors.toCollection(ArrayList::new));
 
                     // Delete all from ImgBB
                     imgbbHelper.deleteMultipleImages(deleteHashes);
@@ -1035,7 +1035,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         try {
             // Validate input
             if (purchaseOrders == null || purchaseOrders.isEmpty()) {
-                throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Purchase order"));
+                throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Purchase order"));
             }
 
             com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response =
@@ -1158,7 +1158,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                 if (shipmentData.getSelectedCourier() != null) {
                     shipment.setCourierSelection(shipmentData.getSelectedCourier());
                 } else {
-                    throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.CourierSelectionRequired);
+                    throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.COURIER_SELECTION_REQUIRED);
                 }
 
                 shipment = shipmentRepository.save(shipment);
@@ -1206,15 +1206,15 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                             }
                             shipmentPackageProductRepository.saveAll(packageProducts);
                         } else {
-                            throw new BadRequestException(ErrorMessages.ShipmentPackageProductErrorMessages.AtLeastOneProductRequired);
+                            throw new BadRequestException(ErrorMessages.ShipmentPackageProductErrorMessages.AT_LEAST_ONE_PRODUCT_REQUIRED);
                         }
                     }
                 } else {
-                    throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.AtLeastOnePackageRequired);
+                    throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.AT_LEAST_ONE_PACKAGE_REQUIRED);
                 }
             }
         } else {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AtLeastOneShipmentRequired);
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AT_LEAST_ONE_SHIPMENT_REQUIRED);
         }
 
         // Step 6: Handle attachments if provided
@@ -1252,11 +1252,11 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      */
     private Map<Long, BigDecimal> buildProductIdToPricePerUnitMap(PurchaseOrderRequestModel purchaseOrderRequestModel) {
         if (purchaseOrderRequestModel == null) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_REQUEST);
         }
 
         if (purchaseOrderRequestModel.getProducts() == null || purchaseOrderRequestModel.getProducts().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AtLeastOneProductRequired);
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AT_LEAST_ONE_PRODUCT_REQUIRED);
         }
 
         Map<Long, BigDecimal> map = new HashMap<>();
@@ -1266,19 +1266,19 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
             }
 
             if (item.getProductId() == null || item.getProductId() <= 0) {
-                throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidId);
+                throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_ID);
             }
 
             if (item.getPricePerUnit() == null) {
-                throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.PricePerUnitRequiredForProductFormat, item.getProductId()));
+                throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.PRICE_PER_UNIT_REQUIRED_FOR_PRODUCT_FORMAT, item.getProductId()));
             }
             if (item.getPricePerUnit().compareTo(BigDecimal.ZERO) < 0) {
-                throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.PricePerUnitMustBeNonNegativeForProductFormat, item.getProductId()));
+                throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.PRICE_PER_UNIT_MUST_BE_NON_NEGATIVE_FOR_PRODUCT_FORMAT, item.getProductId()));
             }
 
             // Enforce uniqueness to avoid ambiguous pricing
             if (map.containsKey(item.getProductId())) {
-                throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.DuplicateProductIdFormat, item.getProductId()));
+                throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.DUPLICATE_PRODUCT_ID_FORMAT, item.getProductId()));
             }
 
             map.put(item.getProductId(), item.getPricePerUnit());
@@ -1298,7 +1298,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
      */
     private Long findOrCreateAddressWithContext(AddressRequestModel addressRequest, String createdUser, Long clientId) {
         if (addressRequest == null) {
-            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.AddressDataRequired);
+            throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.ADDRESS_DATA_REQUIRED);
         }
 
         Long effectiveClientId = addressRequest.getClientId() != null ? addressRequest.getClientId() : clientId;
@@ -1363,7 +1363,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
             String data = attachment.getValue();
 
             if (fileName == null || fileName.trim().isEmpty() || data == null || data.trim().isEmpty()) {
-                throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.InvalidAttachmentData);
+                throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ATTACHMENT_DATA);
             }
 
             // Separate new base64 uploads from existing URLs
@@ -1396,11 +1396,11 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         if (isImgbbConfigured) {
             // Upload to ImgBB and save URLs
             Client client = clientRepository.findById(clientId)
-                    .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
+                    .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID));
             String imgbbApiKey = client.getImgbbApiKey();
 
             if (imgbbApiKey == null || imgbbApiKey.trim().isEmpty()) {
-                throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.ImgbbApiKeyNotConfigured);
+                throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.IMGBB_API_KEY_NOT_CONFIGURED);
             }
 
             // Get environment name for custom file naming
@@ -1434,7 +1434,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                         purchaseOrderId
                 );
             } catch (IOException e) {
-                throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.FailedToUploadAttachments, e.getMessage()));
+                throw new BadRequestException(String.format(ErrorMessages.PurchaseOrderErrorMessages.FAILED_TO_UPLOAD_ATTACHMENTS, e.getMessage()));
             }
 
             // Save resource records to database with ImgBB URLs

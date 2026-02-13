@@ -97,7 +97,7 @@ class GetPromosInBatchesTest extends PromoServiceTestBase {
                 () -> promoService.getPromosInBatches(testPaginationRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.CommonErrorMessages.InvalidColumnName, "invalidColumn"),
+        assertEquals(String.format(ErrorMessages.CommonErrorMessages.INVALID_COLUMN_NAME, "invalidColumn"),
                 ex.getMessage());
     }
 
@@ -120,7 +120,7 @@ class GetPromosInBatchesTest extends PromoServiceTestBase {
                 () -> promoService.getPromosInBatches(testPaginationRequest));
 
         // Assert
-        assertEquals(ErrorMessages.CommonErrorMessages.StartIndexCannotBeNegative, ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.START_INDEX_CANNOT_BE_NEGATIVE, ex.getMessage());
     }
 
 
@@ -142,7 +142,7 @@ class GetPromosInBatchesTest extends PromoServiceTestBase {
                 () -> promoService.getPromosInBatches(testPaginationRequest));
 
         // Assert
-        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION, ex.getMessage());
     }
 
     /*

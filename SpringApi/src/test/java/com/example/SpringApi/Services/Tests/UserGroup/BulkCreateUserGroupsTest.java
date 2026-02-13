@@ -287,7 +287,7 @@ class BulkCreateUserGroupsTest extends UserGroupServiceTestBase {
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.bulkCreateUserGroups(emptyList));
         assertTrue(ex.getMessage()
-                .contains(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "User group")));
+                .contains(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "User group")));
     }
 
     /**
@@ -304,7 +304,7 @@ class BulkCreateUserGroupsTest extends UserGroupServiceTestBase {
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.bulkCreateUserGroups(null));
         assertTrue(ex.getMessage()
-                .contains(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "User group")));
+                .contains(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "User group")));
     }
 
     // ========================================

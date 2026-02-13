@@ -137,7 +137,7 @@ class CreatePromoTest extends PromoServiceTestBase {
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.DiscountValueGreaterThanZero, ex.getMessage());
+        assertEquals(ErrorMessages.PromoErrorMessages.DISCOUNT_VALUE_GREATER_THAN_ZERO, ex.getMessage());
     }
 
 
@@ -157,7 +157,7 @@ class CreatePromoTest extends PromoServiceTestBase {
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.OverlappingPromoCode, ex.getMessage());
+        assertEquals(ErrorMessages.PromoErrorMessages.OVERLAPPING_PROMO_CODE, ex.getMessage());
     }
 
 
@@ -177,7 +177,7 @@ class CreatePromoTest extends PromoServiceTestBase {
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.DescriptionRequired, ex.getMessage());
+        assertEquals(ErrorMessages.PromoErrorMessages.DESCRIPTION_REQUIRED, ex.getMessage());
     }
 
 
@@ -197,7 +197,7 @@ class CreatePromoTest extends PromoServiceTestBase {
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> promoService.createPromo(testPromoRequest));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidPromoCode, ex.getMessage());
+        assertEquals(ErrorMessages.PromoErrorMessages.INVALID_PROMO_CODE, ex.getMessage());
     }
 
 
@@ -216,7 +216,7 @@ class CreatePromoTest extends PromoServiceTestBase {
 
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class, () -> promoService.createPromo(request));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidRequest, ex.getMessage());
+        assertEquals(ErrorMessages.PromoErrorMessages.INVALID_REQUEST, ex.getMessage());
     }
 
     /*

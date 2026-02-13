@@ -195,7 +195,7 @@ class UpdateUserGroupTest extends UserGroupServiceTestBase {
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.updateUserGroup(testUserGroupRequest));
-        assertEquals(ErrorMessages.UserGroupErrorMessages.GroupNameExists, ex.getMessage());
+        assertEquals(ErrorMessages.UserGroupErrorMessages.GROUP_NAME_EXISTS, ex.getMessage());
     }
 
     /**
@@ -213,7 +213,7 @@ class UpdateUserGroupTest extends UserGroupServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userGroupService.updateUserGroup(testUserGroupRequest));
-        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserGroupErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -231,7 +231,7 @@ class UpdateUserGroupTest extends UserGroupServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userGroupService.updateUserGroup(testUserGroupRequest));
-        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserGroupErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -250,7 +250,7 @@ class UpdateUserGroupTest extends UserGroupServiceTestBase {
                 () -> userGroupService.updateUserGroup(testUserGroupRequest));
 
         // Assert
-        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserGroupErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -320,7 +320,7 @@ class UpdateUserGroupTest extends UserGroupServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> userGroupService.updateUserGroup(testUserGroupRequest));
-        assertEquals(ErrorMessages.UserGroupErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserGroupErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     // ========================================

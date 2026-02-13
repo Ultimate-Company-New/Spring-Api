@@ -45,7 +45,7 @@ class RecordCashPaymentTest extends PaymentServiceTestBase {
                 () -> paymentService.recordCashPayment(testCashPaymentRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
         verify(purchaseOrderRepository, times(1)).findById(TEST_PO_ID);
     }
 
@@ -69,7 +69,7 @@ class RecordCashPaymentTest extends PaymentServiceTestBase {
                 () -> paymentService.recordCashPayment(testCashPaymentRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -107,7 +107,7 @@ class RecordCashPaymentTest extends PaymentServiceTestBase {
                 () -> paymentService.recordCashPayment(testCashPaymentRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -127,7 +127,7 @@ class RecordCashPaymentTest extends PaymentServiceTestBase {
                 () -> paymentService.recordCashPayment(testCashPaymentRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -147,7 +147,7 @@ class RecordCashPaymentTest extends PaymentServiceTestBase {
                 () -> paymentService.recordCashPayment(testCashPaymentRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -167,7 +167,7 @@ class RecordCashPaymentTest extends PaymentServiceTestBase {
                 () -> paymentService.recordCashPayment(testCashPaymentRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -189,7 +189,7 @@ class RecordCashPaymentTest extends PaymentServiceTestBase {
                     () -> paymentService.recordCashPayment(testCashPaymentRequest));
 
             // Assert
-            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+            assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
         }
     }
 

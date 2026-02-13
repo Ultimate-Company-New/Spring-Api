@@ -46,6 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.Set;
@@ -75,6 +76,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
     private final PickupLocationFilterQueryBuilder pickupLocationFilterQueryBuilder;
     private final ShipRocketHelper shipRocketHelper;
     private final MessageService messageService;
+    private static final String UNKNOWN_NAME = "unknown";
 
     @Autowired
     public PickupLocationService(PickupLocationRepository pickupLocationRepository,
@@ -118,18 +120,18 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
     public PaginationBaseResponseModel<PickupLocationResponseModel> getPickupLocationsInBatches(
             PaginationBaseRequestModel paginationBaseRequestModel) {
         if (paginationBaseRequestModel == null) {
-            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.INVALID_REQUEST);
         }
 
         // Validate pagination indices
         if (paginationBaseRequestModel.getStart() < 0) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.StartIndexCannotBeNegative);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.START_INDEX_CANNOT_BE_NEGATIVE);
         }
         if (paginationBaseRequestModel.getEnd() <= 0) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.EndIndexMustBeGreaterThanZero);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.END_INDEX_MUST_BE_GREATER_THAN_ZERO);
         }
         if (paginationBaseRequestModel.getStart() >= paginationBaseRequestModel.getEnd()) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.StartIndexMustBeLessThanEnd);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.START_INDEX_MUST_BE_LESS_THAN_END);
         }
 
         // Valid columns for filtering
@@ -144,14 +146,14 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                 // Validate column name
                 if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
                     throw new BadRequestException(String.format(
-                            ErrorMessages.PickupLocationErrorMessages.InvalidColumnNameFormat, filter.getColumn()));
+                            ErrorMessages.PickupLocationErrorMessages.INVALID_COLUMN_NAME_FORMAT, filter.getColumn()));
                 }
 
                 // Validate operator (FilterCondition.setOperator auto-normalizes symbols to
                 // words)
                 if (!filter.isValidOperator()) {
                     throw new BadRequestException(String.format(
-                            ErrorMessages.PickupLocationErrorMessages.InvalidOperatorFormat, filter.getOperator()));
+                            ErrorMessages.PickupLocationErrorMessages.INVALID_OPERATOR_FORMAT, filter.getOperator()));
                 }
 
                 // Validate column type matches operator
@@ -170,7 +172,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
 
         // Validate page size
         if (pageSize <= 0) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION);
         }
 
         // Create custom Pageable with proper offset handling
@@ -194,7 +196,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         // Get all pickup location IDs from the result for batch count queries
         List<Long> pickupLocationIds = result.getContent().stream()
                 .map(PickupLocation::getPickupLocationId)
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(ArrayList::new));
 
         // Batch fetch product and package counts (2 queries instead of 2*N queries)
         Map<Long, Integer> productCountMap = new HashMap<>();
@@ -226,7 +228,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                             .setPackageCount(packageCountMap.getOrDefault(pickupLocation.getPickupLocationId(), 0));
                     return responseModel;
                 })
-                .collect(Collectors.toList()));
+                .collect(Collectors.toCollection(ArrayList::new)));
         response.setTotalDataCount(result.getTotalElements());
 
         return response;
@@ -250,7 +252,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                 getClientId());
         if (pickupLocation == null) {
             throw new NotFoundException(
-                    String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, pickupLocationId));
+                    String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, pickupLocationId));
         }
 
         return new PickupLocationResponseModel(pickupLocation);
@@ -292,12 +294,11 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         pickupLocation = pickupLocationRepository.save(pickupLocation);
 
         // Call ShipRocket to create pickup location
-        ShipRocketHelper shipRocketHelper = getShipRocketHelper();
-        AddPickupLocationResponseModel addPickupLocationResponse = shipRocketHelper.addPickupLocation(pickupLocation);
+        ShipRocketHelper shipRocketHelperInstance = getShipRocketHelper();
+        AddPickupLocationResponseModel addPickupLocationResponse = shipRocketHelperInstance.addPickupLocation(pickupLocation);
 
         // Extract and set the ShipRocket ID
-        Long shipRocketPickupLocationId = extractShipRocketPickupLocationId(
-                shipRocketHelper, addPickupLocationResponse, pickupLocation);
+        Long shipRocketPickupLocationId = extractShipRocketPickupLocationId(addPickupLocationResponse);
         pickupLocation.setShipRocketPickupLocationId(shipRocketPickupLocationId);
         pickupLocation = pickupLocationRepository.save(pickupLocation);
 
@@ -339,13 +340,13 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         PickupLocation existingPickupLocation = pickupLocationRepository.findPickupLocationByIdAndClientId(
                 pickupLocationRequestModel.getPickupLocationId(), getClientId());
         if (existingPickupLocation == null) {
-            throw new NotFoundException(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound,
+            throw new NotFoundException(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND,
                     pickupLocationRequestModel.getPickupLocationId()));
         }
 
         // Get the existing address for comparison
         Address existingAddress = addressRepository.findById(existingPickupLocation.getPickupLocationAddressId())
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.AddressErrorMessages.NOT_FOUND));
 
         // Check if physical address fields have changed (requires new Shiprocket
         // location)
@@ -375,11 +376,10 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         // Only call Shiprocket if physical address fields have changed
         if (addressFieldsChanged) {
             // Create new pickup location in ShipRocket and get new ID
-            ShipRocketHelper shipRocketHelper = getShipRocketHelper();
-            AddPickupLocationResponseModel addPickupLocationResponse = shipRocketHelper
+            ShipRocketHelper shipRocketHelperInstance = getShipRocketHelper();
+            AddPickupLocationResponseModel addPickupLocationResponse = shipRocketHelperInstance
                     .addPickupLocation(updatedPickupLocation);
-            Long shipRocketPickupLocationId = extractShipRocketPickupLocationId(
-                    shipRocketHelper, addPickupLocationResponse, updatedPickupLocation);
+            Long shipRocketPickupLocationId = extractShipRocketPickupLocationId(addPickupLocationResponse);
             updatedPickupLocation.setShipRocketPickupLocationId(shipRocketPickupLocationId);
         } else {
             // Keep the existing Shiprocket ID
@@ -432,7 +432,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                 getClientId());
         if (pickupLocation == null) {
             throw new NotFoundException(
-                    String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, pickupLocationId));
+                    String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, pickupLocationId));
         }
 
         pickupLocation.setIsDeleted(!pickupLocation.getIsDeleted());
@@ -473,7 +473,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
             // Validate input
             if (pickupLocations == null || pickupLocations.isEmpty()) {
                 throw new BadRequestException(
-                        String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Pickup location"));
+                        String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Pickup location"));
             }
 
             BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
@@ -499,7 +499,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                     response.addFailure(
                             pickupLocationRequest.getAddressNickName() != null
                                     ? pickupLocationRequest.getAddressNickName()
-                                    : "unknown",
+                                    : UNKNOWN_NAME,
                         badRequestException.getMessage());
                     failureCount++;
                 } catch (Exception exception) {
@@ -507,7 +507,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                     response.addFailure(
                             pickupLocationRequest.getAddressNickName() != null
                                     ? pickupLocationRequest.getAddressNickName()
-                                    : "unknown",
+                                    : UNKNOWN_NAME,
                         "Error: " + exception.getMessage());
                     failureCount++;
                 }
@@ -561,7 +561,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         // Validate input
         if (pickupLocations == null || pickupLocations.isEmpty()) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Pickup location"));
+                    String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Pickup location"));
         }
 
         BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
@@ -585,14 +585,14 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                 // Validation or business logic error
                 response.addFailure(
                         pickupLocationRequest.getAddressNickName() != null ? pickupLocationRequest.getAddressNickName()
-                                : "unknown",
+                                : UNKNOWN_NAME,
                     badRequestException.getMessage());
                 failureCount++;
                 } catch (Exception exception) {
                 // Unexpected error
                 response.addFailure(
                         pickupLocationRequest.getAddressNickName() != null ? pickupLocationRequest.getAddressNickName()
-                                : "unknown",
+                                : UNKNOWN_NAME,
                     "Error: " + exception.getMessage());
                 failureCount++;
             }
@@ -718,8 +718,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                 .addPickupLocation(pickupLocation);
 
         // Extract and set the ShipRocket ID
-        Long shipRocketPickupLocationId = extractShipRocketPickupLocationId(
-                shipRocketHelperInstance, addPickupLocationResponse, pickupLocation);
+        Long shipRocketPickupLocationId = extractShipRocketPickupLocationId(addPickupLocationResponse);
         pickupLocation.setShipRocketPickupLocationId(shipRocketPickupLocationId);
         pickupLocationRepository.save(pickupLocation);
 
@@ -735,18 +734,11 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
     /**
      * Extracts the ShipRocket pickup location ID from the API response.
      * 
-     * @param shipRocketHelper            The ShipRocketHelper instance (unused, kept
-     *                                  for compatibility)
      * @param addPickupLocationResponse The response from adding pickup location
-     * @param pickupLocation            The pickup location entity (unused, kept for
-     *                                  compatibility)
      * @return The ShipRocket pickup location ID from pickupId field
      * @throws BadRequestException if pickupId is invalid or missing
      */
-    private Long extractShipRocketPickupLocationId(
-            ShipRocketHelper shipRocketHelper,
-            AddPickupLocationResponseModel addPickupLocationResponse,
-            PickupLocation pickupLocation) throws Exception {
+    private Long extractShipRocketPickupLocationId(AddPickupLocationResponseModel addPickupLocationResponse) {
 
         // Extract ID from pickupId field only
         long pickupId = addPickupLocationResponse.getPickupId();
@@ -754,7 +746,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         // Validate that we have a valid ShipRocket pickup location ID
         if (pickupId <= 0) {
             throw new BadRequestException(String.format(
-                    ErrorMessages.PickupLocationErrorMessages.ShipRocketPickupLocationIdInvalidFormat, pickupId));
+                    ErrorMessages.PickupLocationErrorMessages.SHIP_ROCKET_PICKUP_LOCATION_ID_INVALID_FORMAT, pickupId));
         }
 
         return pickupId;
@@ -833,11 +825,11 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
      */
     private void validatePickupLocationRequest(PickupLocationRequestModel request, boolean isNew) {
         if (request == null) {
-            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.INVALID_REQUEST);
         }
 
         if (request.getAddressNickName() == null || request.getAddressNickName().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickName);
+            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.INVALID_ADDRESS_NICK_NAME);
         }
 
         if (request.getAddress() == null) {

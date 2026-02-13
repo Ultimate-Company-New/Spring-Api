@@ -45,7 +45,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         });
 
         // Assert
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat,
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT,
                 validExecutionId);
         assertEquals(expectedMessage, exception.getMessage());
     }
@@ -66,7 +66,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         });
 
         // Assert
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat,
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT,
                 executionId);
         assertEquals(expectedMessage, exception.getMessage());
     }
@@ -110,7 +110,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         });
 
         // Assert
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat,
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT,
                 executionId);
         assertEquals(expectedMessage, exception.getMessage());
     }
@@ -130,7 +130,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
             qaService.getTestExecutionStatus(specialId);
         });
 
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, specialId);
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, specialId);
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -150,7 +150,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         });
 
         // Assert
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat,
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT,
                 executionId);
         assertEquals(expectedMessage, exception.getMessage());
     }
@@ -179,7 +179,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         });
 
         // Assert
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat,
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT,
                 validExecutionId);
         assertEquals(expectedMessage, exception.getMessage());
     }
@@ -199,7 +199,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
             qaService.getTestExecutionStatus(longId);
         });
 
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, longId);
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, longId);
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -222,7 +222,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
             qaService.getTestExecutionStatus("");
         });
 
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, "");
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, "");
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -241,7 +241,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
             qaService.getTestExecutionStatus(executionId);
         });
 
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, executionId);
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, executionId);
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -262,7 +262,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
             qaService.getTestExecutionStatus(invalidId);
         });
 
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, invalidId);
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, invalidId);
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -281,7 +281,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
             qaService.getTestExecutionStatus(nonExistentId);
         });
 
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat,
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT,
                 nonExistentId);
         assertEquals(expectedMessage, exception.getMessage());
     }
@@ -300,7 +300,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
             qaService.getTestExecutionStatus(null);
         });
 
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, "null");
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, "null");
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -319,7 +319,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
             qaService.getTestExecutionStatus(executionId);
         });
 
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, executionId);
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, executionId);
         assertEquals(expectedMessage, exception.getMessage());
     }
 
@@ -337,7 +337,7 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
             qaService.getTestExecutionStatus("   ");
         });
 
-        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TestExecutionNotFoundFormat, "   ");
+        String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, "   ");
         assertEquals(expectedMessage, exception.getMessage());
     }
 

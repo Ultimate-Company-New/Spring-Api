@@ -123,13 +123,13 @@ public class ProductCategory {
      */
     private void validateRequest(ProductCategoryRequestModel request) {
         if (request == null) {
-            throw new BadRequestException(ErrorMessages.ProductCategoryErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.ProductCategoryErrorMessages.INVALID_REQUEST);
         }
         if (request.getName() == null || request.getName().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ProductCategoryErrorMessages.InvalidName);
+            throw new BadRequestException(ErrorMessages.ProductCategoryErrorMessages.INVALID_NAME);
         }
         if (request.getIsEnd() == null) {
-            throw new BadRequestException(ErrorMessages.ProductCategoryErrorMessages.InvalidIsEnd);
+            throw new BadRequestException(ErrorMessages.ProductCategoryErrorMessages.INVALID_IS_END);
         }
     }
 
@@ -141,7 +141,7 @@ public class ProductCategory {
      */
     private void validateUser(String user) {
         if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
         }
     }
 

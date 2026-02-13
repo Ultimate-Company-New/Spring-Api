@@ -177,7 +177,7 @@ class AddProductTest extends ProductServiceTestBase {
         testProductRequest.setBrand(null);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidBrand,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_BRAND,
                 () -> productService.addProduct(testProductRequest));
     }
 
@@ -194,7 +194,7 @@ class AddProductTest extends ProductServiceTestBase {
         testProductRequest.setCategoryId(null);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidCategoryId,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_CATEGORY_ID,
                 () -> productService.addProduct(testProductRequest));
     }
 
@@ -230,7 +230,7 @@ class AddProductTest extends ProductServiceTestBase {
         testProductRequest.setClientId(0L);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ClientErrorMessages.InvalidId,
+        assertThrowsBadRequest(ErrorMessages.ClientErrorMessages.INVALID_ID,
                 () -> productService.addProduct(testProductRequest));
     }
 
@@ -246,7 +246,7 @@ class AddProductTest extends ProductServiceTestBase {
         testProductRequest.setColorLabel(" ");
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidColorLabel,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_COLOR_LABEL,
                 () -> productService.addProduct(testProductRequest));
     }
 
@@ -262,7 +262,7 @@ class AddProductTest extends ProductServiceTestBase {
         testProductRequest.setCondition(" ");
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidCondition,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_CONDITION,
                 () -> productService.addProduct(testProductRequest));
     }
 
@@ -278,7 +278,7 @@ class AddProductTest extends ProductServiceTestBase {
         testProductRequest.setCountryOfManufacture(" ");
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidCountryOfManufacture,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_COUNTRY_OF_MANUFACTURE,
                 () -> productService.addProduct(testProductRequest));
     }
 
@@ -295,7 +295,7 @@ class AddProductTest extends ProductServiceTestBase {
         testProductRequest.setDescriptionHtml(null);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidDescription,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_DESCRIPTION,
                 () -> productService.addProduct(testProductRequest));
     }
 
@@ -373,7 +373,7 @@ class AddProductTest extends ProductServiceTestBase {
 
         // Act & Assert
         assertThrowsBadRequest(
-                String.format(ErrorMessages.ProductPickupLocationMappingErrorMessages.AvailableStockMustBePositive, 1L),
+                String.format(ErrorMessages.ProductPickupLocationMappingErrorMessages.AVAILABLE_STOCK_MUST_BE_POSITIVE, 1L),
                 () -> productService.addProduct(testProductRequest));
     }
 
@@ -389,7 +389,7 @@ class AddProductTest extends ProductServiceTestBase {
         testProductRequest.setWeightKgs(new BigDecimal("-1.5"));
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidWeight,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_WEIGHT,
                 () -> productService.addProduct(testProductRequest));
     }
 
@@ -407,7 +407,7 @@ class AddProductTest extends ProductServiceTestBase {
         testProductRequest.setPickupLocationQuantities(new HashMap<>());
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.AtLeastOnePickupLocationRequired,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.AT_LEAST_ONE_PICKUP_LOCATION_REQUIRED,
                 () -> productService.addProduct(testProductRequest));
     }
 
@@ -424,7 +424,7 @@ class AddProductTest extends ProductServiceTestBase {
         testProductRequest.setPrice(new BigDecimal("-10.00"));
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidPrice,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_PRICE,
                 () -> productService.addProduct(testProductRequest));
     }
 
@@ -441,7 +441,7 @@ class AddProductTest extends ProductServiceTestBase {
         testProductRequest.setPrice(null);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidPrice,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_PRICE,
                 () -> productService.addProduct(testProductRequest));
     }
 
@@ -458,7 +458,7 @@ class AddProductTest extends ProductServiceTestBase {
         testProductRequest.setTitle("   ");
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidTitle,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_TITLE,
                 () -> productService.addProduct(testProductRequest));
     }
 
@@ -475,7 +475,7 @@ class AddProductTest extends ProductServiceTestBase {
         testProductRequest.setTitle(null);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidTitle,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_TITLE,
                 () -> productService.addProduct(testProductRequest));
     }
 
@@ -491,7 +491,7 @@ class AddProductTest extends ProductServiceTestBase {
         testProductRequest.setBreadth(BigDecimal.ZERO);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidBreadth,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_BREADTH,
                 () -> productService.addProduct(testProductRequest));
     }
 
@@ -507,7 +507,7 @@ class AddProductTest extends ProductServiceTestBase {
         testProductRequest.setHeight(BigDecimal.ZERO);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidHeight,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_HEIGHT,
                 () -> productService.addProduct(testProductRequest));
     }
 
@@ -523,7 +523,7 @@ class AddProductTest extends ProductServiceTestBase {
         testProductRequest.setLength(BigDecimal.ZERO);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.InvalidLength,
+        assertThrowsBadRequest(ErrorMessages.ProductErrorMessages.INVALID_LENGTH,
                 () -> productService.addProduct(testProductRequest));
     }
 

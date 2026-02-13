@@ -139,7 +139,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
     public void toggleUser(long id) {
         User user = userRepository.findByIdWithAllRelations(id, getClientId());
         if (user == null) {
-            throw new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.UserErrorMessages.INVALID_ID);
         }
 
         user.setIsDeleted(!user.getIsDeleted());
@@ -173,7 +173,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         // groups (for this client)
         User user = userRepository.findByIdWithAllRelations(id, getClientId());
         if (user == null) {
-            throw new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.UserErrorMessages.INVALID_ID);
         }
 
         return new UserResponseModel(user);
@@ -196,7 +196,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         // Permissions and usergroups are filtered by current client session
         User user = userRepository.findByEmailWithAllRelations(email, getClientId());
         if (user == null) {
-            throw new NotFoundException(ErrorMessages.UserErrorMessages.InvalidEmail);
+            throw new NotFoundException(ErrorMessages.UserErrorMessages.INVALID_EMAIL);
         }
 
         return new UserResponseModel(user);
@@ -239,7 +239,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
     public void updateUser(UserRequestModel user) {
         User existingUser = userRepository.findByIdWithAllRelations(user.getUserId(), getClientId());
         if (existingUser == null) {
-            throw new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.UserErrorMessages.INVALID_ID);
         }
 
         // 1. Update address
@@ -290,7 +290,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         int limit = end - start;
 
         if (limit <= 0) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION);
         }
 
         // Define valid columns
@@ -308,7 +308,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         if (userRequestModel.hasMultipleFilters()) {
             // Validate logic operator
             if (!userRequestModel.isValidLogicOperator()) {
-                throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidLogicOperator);
+                throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_LOGIC_OPERATOR);
             }
 
             // Validate each filter condition
@@ -390,19 +390,19 @@ public class UserService extends BaseService implements IUserSubTranslator {
         // endpoint)
         Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.UserErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.UserErrorMessages.INVALID_ID);
         }
 
         User user = userOptional.get();
 
         // 2. Verify the token matches
         if (user.getToken() == null || !user.getToken().equals(token)) {
-            throw new BadRequestException(ErrorMessages.LoginErrorMessages.InvalidToken);
+            throw new BadRequestException(ErrorMessages.LoginErrorMessages.INVALID_TOKEN);
         }
 
         // 3. Check if email is already confirmed
         if (user.getEmailConfirmed() != null && user.getEmailConfirmed()) {
-            throw new BadRequestException(ErrorMessages.LoginErrorMessages.AccountConfirmed);
+            throw new BadRequestException(ErrorMessages.LoginErrorMessages.ACCOUNT_CONFIRMED);
         }
 
         // 4. Set emailConfirmed to true
@@ -463,7 +463,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         // Validate input immediately - should throw BadRequestException even if async
         if (users == null || users.isEmpty()) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "User"));
+                    String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "User"));
         }
 
         try {
@@ -569,7 +569,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         // 1. Check if user email already exists
         if (userRepository.findByLoginName(userRequestModel.getLoginName()) != null) {
             throw new BadRequestException(
-                    ErrorMessages.UserErrorMessages.InvalidEmail + " - Login name (email) already exists");
+                    ErrorMessages.UserErrorMessages.INVALID_EMAIL + " - Login name (email) already exists");
         }
 
         // 2. Generate password and set security fields
@@ -585,7 +585,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         User savedUser = userRepository.save(newUser);
 
         // 4. Create address if provided
-        savedUser = createUserAddress(userRequestModel, savedUser, createdUser);
+        createUserAddress(userRequestModel, savedUser, createdUser);
 
         // 5. Create permission mappings
         createUserPermissions(userRequestModel, savedUser, createdUser);
@@ -646,7 +646,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
      */
     private void createUserPermissions(UserRequestModel userRequestModel, User savedUser, String createdUser) {
         if (userRequestModel.getPermissionIds() == null || userRequestModel.getPermissionIds().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AtLeastOnePermissionRequired);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AT_LEAST_ONE_PERMISSION_REQUIRED);
         }
 
         List<UserClientPermissionMapping> permissionMappings = new ArrayList<>();
@@ -722,10 +722,10 @@ public class UserService extends BaseService implements IUserSubTranslator {
 
         if (ImageLocationConstants.IMGBB.equalsIgnoreCase(imageLocation)) {
             Client client = clientRepository.findById(clientId)
-                    .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
+                    .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID));
 
             if (client.getImgbbApiKey() == null || client.getImgbbApiKey().trim().isEmpty()) {
-                throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.ImgbbApiKeyNotConfigured);
+                throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.IMGBB_API_KEY_NOT_CONFIGURED);
             }
 
             String customFileName = ImgbbHelper.generateCustomFileNameForUserProfile(
@@ -802,7 +802,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
                     password);
 
             if (!sendAccountConfirmationEmailResponse) {
-                throw new BadRequestException(ErrorMessages.CommonErrorMessages.FailedToSendConfirmationEmail);
+                throw new BadRequestException(ErrorMessages.CommonErrorMessages.FAILED_TO_SEND_CONFIRMATION_EMAIL);
             }
         } catch (Exception e) {
             throw new BadRequestException("Failed to send confirmation email: " + e.getMessage());
@@ -856,7 +856,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
      */
     private void updateUserPermissions(UserRequestModel userRequestModel, User existingUser) {
         if (userRequestModel.getPermissionIds() == null || userRequestModel.getPermissionIds().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AtLeastOnePermissionRequired);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AT_LEAST_ONE_PERMISSION_REQUIRED);
         }
 
         // Remove all existing permission mappings for this user and client
@@ -921,10 +921,10 @@ public class UserService extends BaseService implements IUserSubTranslator {
         if (ImageLocationConstants.IMGBB.equalsIgnoreCase(imageLocation)) {
             // ImgBB-based profile picture management
             Client client = clientRepository.findById(clientId)
-                    .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
+                    .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID));
 
             if (client.getImgbbApiKey() == null || client.getImgbbApiKey().trim().isEmpty()) {
-                throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.ImgbbApiKeyNotConfigured);
+                throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.IMGBB_API_KEY_NOT_CONFIGURED);
             }
 
             ImgbbHelper imgbbHelper = new ImgbbHelper(client.getImgbbApiKey());

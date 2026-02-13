@@ -47,7 +47,7 @@ class CreateOrderFollowUpTest extends PaymentServiceTestBase {
                 () -> paymentService.createOrderFollowUp(testOrderRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
         verify(clientRepository, times(1)).findById(any());
     }
 
@@ -71,7 +71,7 @@ class CreateOrderFollowUpTest extends PaymentServiceTestBase {
                 () -> paymentService.createOrderFollowUp(testOrderRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -91,7 +91,7 @@ class CreateOrderFollowUpTest extends PaymentServiceTestBase {
                 () -> paymentService.createOrderFollowUp(testOrderRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -111,7 +111,7 @@ class CreateOrderFollowUpTest extends PaymentServiceTestBase {
                 () -> paymentService.createOrderFollowUp(testOrderRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -131,7 +131,7 @@ class CreateOrderFollowUpTest extends PaymentServiceTestBase {
                 () -> paymentService.createOrderFollowUp(testOrderRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -153,7 +153,7 @@ class CreateOrderFollowUpTest extends PaymentServiceTestBase {
                     () -> paymentService.createOrderFollowUp(testOrderRequest));
 
             // Assert
-            assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+            assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
         }
     }
 

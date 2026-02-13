@@ -103,7 +103,7 @@ public class GetPurchaseOrdersInBatchesTest extends PurchaseOrderServiceTestBase
                 () -> purchaseOrderService.getPurchaseOrdersInBatches(request));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidColumnName, "invalidColumn"),
+        assertEquals(String.format(ErrorMessages.PurchaseOrderErrorMessages.INVALID_COLUMN_NAME, "invalidColumn"),
                 ex.getMessage());
     }
 
@@ -130,7 +130,7 @@ public class GetPurchaseOrdersInBatchesTest extends PurchaseOrderServiceTestBase
                 () -> purchaseOrderService.getPurchaseOrdersInBatches(request));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.PurchaseOrderErrorMessages.InvalidOperator, "invalidOperator"),
+        assertEquals(String.format(ErrorMessages.PurchaseOrderErrorMessages.INVALID_OPERATOR, "invalidOperator"),
                 ex.getMessage());
     }
 
@@ -152,7 +152,7 @@ public class GetPurchaseOrdersInBatchesTest extends PurchaseOrderServiceTestBase
                 () -> purchaseOrderService.getPurchaseOrdersInBatches(request));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidPagination, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_PAGINATION, ex.getMessage());
     }
 
     /*

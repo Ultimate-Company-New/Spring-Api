@@ -158,7 +158,7 @@ public class GetTokenTest extends LoginServiceTestBase {
                 UnauthorizedException.class,
                 () -> loginService.getToken(testLoginRequest));
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidCredentials, exception.getMessage());
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS, exception.getMessage());
     }
 
     /**
@@ -178,7 +178,7 @@ public class GetTokenTest extends LoginServiceTestBase {
                 UnauthorizedException.class,
                 () -> loginService.getToken(testLoginRequest));
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidCredentials, exception.getMessage());
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS, exception.getMessage());
     }
 
     /**
@@ -198,7 +198,7 @@ public class GetTokenTest extends LoginServiceTestBase {
                 UnauthorizedException.class,
                 () -> loginService.getToken(testLoginRequest));
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidCredentials, exception.getMessage());
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS, exception.getMessage());
     }
 
     /**
@@ -293,7 +293,7 @@ public class GetTokenTest extends LoginServiceTestBase {
                 UnauthorizedException.class,
                 () -> loginService.getToken(testLoginRequest));
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidCredentials, exception.getMessage());
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS, exception.getMessage());
     }
 
     /*

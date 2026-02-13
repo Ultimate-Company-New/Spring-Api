@@ -118,7 +118,7 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressByUserId(Long.MAX_VALUE));
     }
 
@@ -134,7 +134,7 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressByUserId(Long.MIN_VALUE));
     }
 
@@ -151,7 +151,7 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressByUserId(negativeId));
     }
 
@@ -168,7 +168,7 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressByUserId(DEFAULT_USER_ID));
         verify(addressRepository, never()).findByUserIdAndIsDeletedOrderByAddressIdDesc(anyLong(), anyBoolean());
     }
@@ -185,7 +185,7 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressByUserId(DEFAULT_USER_ID + 1));
         verify(addressRepository, never()).findByUserIdAndIsDeletedOrderByAddressIdDesc(anyLong(), anyBoolean());
     }
@@ -203,7 +203,7 @@ class GetAddressByUserIdTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.getAddressByUserId(zeroId));
     }
 

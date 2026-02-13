@@ -337,71 +337,71 @@ public class OrderSummary {
                                  com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel.OrderSummaryData orderSummaryData,
                                  Long entityAddressId, Long clientId, String user) {
         if (orderSummaryData == null) {
-            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.INVALID_REQUEST);
         }
         
         // Validate entity type
         if (entityType == null || entityType.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.EntityTypeRequired);
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.ENTITY_TYPE_REQUIRED);
         }
         if (!EntityType.isValid(entityType.trim())) {
-            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.InvalidEntityType);
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.INVALID_ENTITY_TYPE);
         }
         
         // Validate entity ID
         if (entityId == null || entityId <= 0) {
-            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.EntityIdRequired);
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.ENTITY_ID_REQUIRED);
         }
         
         // Validate financial amounts
         if (orderSummaryData.getProductsSubtotal() == null) {
-            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.ProductsSubtotalRequired);
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.PRODUCTS_SUBTOTAL_REQUIRED);
         }
         if (orderSummaryData.getProductsSubtotal().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.ProductsSubtotalInvalid);
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.PRODUCTS_SUBTOTAL_INVALID);
         }
         
         if (orderSummaryData.getTotalDiscount() != null && orderSummaryData.getTotalDiscount().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.TotalDiscountInvalid);
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.TOTAL_DISCOUNT_INVALID);
         }
         
         if (orderSummaryData.getPackagingFee() != null && orderSummaryData.getPackagingFee().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.PackagingFeeInvalid);
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.PACKAGING_FEE_INVALID);
         }
         
         if (orderSummaryData.getTotalShipping() != null && orderSummaryData.getTotalShipping().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.TotalShippingInvalid);
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.TOTAL_SHIPPING_INVALID);
         }
         
         // Validate GST percentage
         if (orderSummaryData.getGstPercentage() != null) {
             if (orderSummaryData.getGstPercentage().compareTo(BigDecimal.ZERO) < 0 || 
                 orderSummaryData.getGstPercentage().compareTo(new BigDecimal("100")) > 0) {
-                throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.InvalidGstPercentage);
+                throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.INVALID_GST_PERCENTAGE);
             }
         }
         
         // Validate address ID
         if (entityAddressId == null || entityAddressId <= 0) {
-            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.EntityAddressIdRequired);
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.ENTITY_ADDRESS_ID_REQUIRED);
         }
         
         // Validate priority
         if (orderSummaryData.getPriority() == null || orderSummaryData.getPriority().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.PriorityRequired);
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.PRIORITY_REQUIRED);
         }
         if (!Priority.isValid(orderSummaryData.getPriority().trim())) {
-            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.InvalidPriority);
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.INVALID_PRIORITY);
         }
         
         // Validate client ID (only for create)
         if (clientId != null && (clientId <= 0)) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_ID);
         }
         
         // Validate user
         if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
         }
     }
     
@@ -426,10 +426,10 @@ public class OrderSummary {
      */
     public void updatePendingAmount(BigDecimal paidAmount) {
         if (paidAmount == null || paidAmount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.PaidAmountInvalid);
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.PAID_AMOUNT_INVALID);
         }
         if (paidAmount.compareTo(this.grandTotal) > 0) {
-            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.PaidAmountExceedsGrandTotal);
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.PAID_AMOUNT_EXCEEDS_GRAND_TOTAL);
         }
         this.pendingAmount = this.grandTotal.subtract(paidAmount);
     }

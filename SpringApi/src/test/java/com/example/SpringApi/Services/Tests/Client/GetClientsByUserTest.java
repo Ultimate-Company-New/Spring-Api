@@ -459,7 +459,7 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         assertThrows(NullPointerException.class,
                 () -> clientService.getClientsByUser());
         // NullPointerException message in Java 17+ reflects the cause
-        // assertEquals(ErrorMessages.ClientErrorMessages.ClientsListNull,
+        // assertEquals(ErrorMessages.ClientErrorMessages.CLIENTS_LIST_NULL,
         // ex.getMessage());
     }
 

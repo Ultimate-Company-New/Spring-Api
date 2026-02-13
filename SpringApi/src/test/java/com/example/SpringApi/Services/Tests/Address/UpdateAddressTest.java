@@ -215,7 +215,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
         stubFindAddressById(DEFAULT_ADDRESS_ID + 1, Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.updateAddress(testAddressRequest));
         verify(addressRepository, times(1)).findById(DEFAULT_ADDRESS_ID + 1);
         verify(addressRepository, never()).save(any(Address.class));
@@ -332,7 +332,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
                 BadRequestException.class,
                 () -> addressService.updateAddress(testAddressRequest));
 
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidUser, exception.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_USER, exception.getMessage());
     }
 
     /**
@@ -368,7 +368,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.updateAddress(testAddressRequest));
         verify(addressRepository, never()).save(any(Address.class));
     }
@@ -390,7 +390,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
                 BadRequestException.class,
                 () -> addressService.updateAddress(testAddressRequest));
 
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, exception.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, exception.getMessage());
     }
 
     /**
@@ -406,7 +406,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.updateAddress(testAddressRequest));
         verify(addressRepository, never()).save(any(Address.class));
     }
@@ -428,7 +428,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
                 BadRequestException.class,
                 () -> addressService.updateAddress(testAddressRequest));
 
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, exception.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, exception.getMessage());
     }
 
     /**
@@ -561,7 +561,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
                 BadRequestException.class,
                 () -> addressService.updateAddress(testAddressRequest));
 
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, exception.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, exception.getMessage());
     }
 
     /**
@@ -577,7 +577,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
         stubDefaultRepositoryResponses();
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NotFound,
+        assertThrowsNotFound(ErrorMessages.AddressErrorMessages.NOT_FOUND,
                 () -> addressService.updateAddress(testAddressRequest));
         verify(addressRepository, never()).save(any(Address.class));
     }
@@ -599,7 +599,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
                 BadRequestException.class,
                 () -> addressService.updateAddress(testAddressRequest));
 
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, exception.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, exception.getMessage());
     }
 
     /*

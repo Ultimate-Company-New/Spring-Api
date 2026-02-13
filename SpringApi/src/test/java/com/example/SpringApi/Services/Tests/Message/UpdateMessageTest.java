@@ -66,7 +66,7 @@ public class UpdateMessageTest extends MessageServiceTestBase {
 
         // Act & Assert
         try (MockedConstruction<EmailHelper> emailHelperMock = stubEmailHelperCancelEmail()) {
-            assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CannotModifyScheduledPublishDate,
+            assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CANNOT_MODIFY_SCHEDULED_PUBLISH_DATE,
                     () -> messageService.updateMessage(validRequest));
         }
     }
@@ -215,7 +215,7 @@ public class UpdateMessageTest extends MessageServiceTestBase {
 
         // Act & Assert
         try (MockedConstruction<EmailHelper> emailHelperMock = stubEmailHelperCancelEmail()) {
-            assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CannotModifyScheduledPublishDate,
+            assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CANNOT_MODIFY_SCHEDULED_PUBLISH_DATE,
                     () -> messageService.updateMessage(validRequest));
         }
     }
@@ -402,7 +402,7 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CannotAddPublishDateAfterSent,
+        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CANNOT_ADD_PUBLISH_DATE_AFTER_SENT,
                 () -> messageService.updateMessage(validRequest));
     }
 
@@ -423,7 +423,7 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CannotDisableSendAsEmailOnce,
+        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CANNOT_DISABLE_SEND_AS_EMAIL_ONCE,
                 () -> messageService.updateMessage(validRequest));
     }
 
@@ -458,7 +458,7 @@ public class UpdateMessageTest extends MessageServiceTestBase {
                 stubClientRepositoryFindById(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.ClientErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.ClientErrorMessages.INVALID_ID,
                 () -> messageService.updateMessage(validRequest));
     }
 
@@ -482,7 +482,7 @@ public class UpdateMessageTest extends MessageServiceTestBase {
 
         // Act & Assert
         try (MockedConstruction<EmailHelper> emailHelperMock = stubEmailHelperCancelEmail()) {
-            assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CannotDisableSendAsEmailOnce,
+            assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.CANNOT_DISABLE_SEND_AS_EMAIL_ONCE,
                     () -> messageService.updateMessage(validRequest));
         }
     }
@@ -519,7 +519,7 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         stubMessageRepositoryFindByMessageIdAndClientId(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.MessagesErrorMessages.INVALID_ID,
                 () -> messageService.updateMessage(validRequest));
     }
 
@@ -534,7 +534,7 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         validRequest.setMessageId(null);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.InvalidId,
+        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.INVALID_ID,
                 () -> messageService.updateMessage(validRequest));
     }
 
@@ -591,7 +591,7 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.PublishDateRequiresSendAsEmail,
+        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.PUBLISH_DATE_REQUIRES_SEND_AS_EMAIL,
                 () -> messageService.updateMessage(validRequest));
     }
 
@@ -605,11 +605,11 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         // Arrange
         stubClientRepositoryFindById(Optional.of(testClient));
         stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
-        stubMessageRepositorySaveThrowsRuntimeException(ErrorMessages.MessagesErrorMessages.UpdateFailed);
+        stubMessageRepositorySaveThrowsRuntimeException(ErrorMessages.MessagesErrorMessages.UPDATE_FAILED);
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.updateMessage(validRequest));
-        assertEquals(ErrorMessages.MessagesErrorMessages.UpdateFailed, ex.getMessage());
+        assertEquals(ErrorMessages.MessagesErrorMessages.UPDATE_FAILED, ex.getMessage());
     }
 
     /**
@@ -625,7 +625,7 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         stubMessageRepositoryFindByMessageIdAndClientId(Optional.of(testMessage));
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.TitleTooLong,
+        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.TITLE_TOO_LONG,
                 () -> messageService.updateMessage(validRequest));
     }
 
@@ -640,7 +640,7 @@ public class UpdateMessageTest extends MessageServiceTestBase {
         validRequest.setMessageId(0L);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.InvalidId,
+        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.INVALID_ID,
                 () -> messageService.updateMessage(validRequest));
     }
 

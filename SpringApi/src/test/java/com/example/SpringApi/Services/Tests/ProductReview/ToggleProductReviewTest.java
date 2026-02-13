@@ -116,7 +116,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
                 () -> productReviewService.toggleProductReview(12345L));
 
         // Assert
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -136,7 +136,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
                 () -> productReviewService.toggleProductReview(2L));
 
         // Assert
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -156,7 +156,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
                 () -> productReviewService.toggleProductReview(999L));
 
         // Assert
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -176,7 +176,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
                 () -> productReviewService.toggleProductReview(Long.MAX_VALUE));
 
         // Assert
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -196,7 +196,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
                 () -> productReviewService.toggleProductReview(Long.MIN_VALUE));
 
         // Assert
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -216,7 +216,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
                 () -> productReviewService.toggleProductReview(-100L));
 
         // Assert
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -236,7 +236,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
                 () -> productReviewService.toggleProductReview(-1L));
 
         // Assert
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -256,7 +256,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
                 () -> productReviewService.toggleProductReview(TEST_REVIEW_ID));
 
         // Assert
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -276,7 +276,7 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
                 () -> productReviewService.toggleProductReview(0L));
 
         // Assert
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
     /*
@@ -431,7 +431,7 @@ class ToggleProductReviewDuplicateTests extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.toggleProductReview(12345L));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
     /*
@@ -448,7 +448,7 @@ class ToggleProductReviewDuplicateTests extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.toggleProductReview(2L));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -466,7 +466,7 @@ class ToggleProductReviewDuplicateTests extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.toggleProductReview(999L));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -484,7 +484,7 @@ class ToggleProductReviewDuplicateTests extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.toggleProductReview(Long.MAX_VALUE));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -502,7 +502,7 @@ class ToggleProductReviewDuplicateTests extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.toggleProductReview(Long.MIN_VALUE));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -520,7 +520,7 @@ class ToggleProductReviewDuplicateTests extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.toggleProductReview(-100L));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -538,7 +538,7 @@ class ToggleProductReviewDuplicateTests extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.toggleProductReview(-1L));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 
@@ -558,7 +558,7 @@ class ToggleProductReviewDuplicateTests extends ProductReviewServiceTestBase {
                 NotFoundException.class,
                 () -> productReviewService.toggleProductReview(TEST_REVIEW_ID));
 
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, exception.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, exception.getMessage());
         verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
         verify(productReviewRepository, never()).save(any(ProductReview.class));
     }
@@ -578,7 +578,7 @@ class ToggleProductReviewDuplicateTests extends ProductReviewServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.toggleProductReview(0L));
-        assertEquals(ErrorMessages.ProductReviewErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
 }

@@ -385,7 +385,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             qaService.startTestExecution(request);
         });
-        assertEquals(ErrorMessages.QAErrorMessages.MustSpecifyRunAllOrTestNamesOrMethod, exception.getMessage());
+        assertEquals(ErrorMessages.QAErrorMessages.MUST_SPECIFY_RUN_ALL_OR_TEST_NAMES_OR_METHOD, exception.getMessage());
     }
 
     // ==================== EDGE CASES ====================
@@ -407,7 +407,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             qaService.startTestExecution(request);
         });
-        assertEquals(ErrorMessages.QAErrorMessages.MustSpecifyRunAllOrTestNamesOrMethod, exception.getMessage());
+        assertEquals(ErrorMessages.QAErrorMessages.MUST_SPECIFY_RUN_ALL_OR_TEST_NAMES_OR_METHOD, exception.getMessage());
     }
 
     /**
@@ -424,7 +424,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
         });
 
         // Verify the exception message comes from ErrorMessages constants
-        assertTrue(exception.getMessage().equals(ErrorMessages.QAErrorMessages.TestExecutionRequestCannotBeNull));
+        assertTrue(exception.getMessage().equals(ErrorMessages.QAErrorMessages.TEST_EXECUTION_REQUEST_CANNOT_BE_NULL));
     }
 
     /**
@@ -444,7 +444,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
 
         // Assert
         String expectedMessage = String.format(
-                ErrorMessages.QAErrorMessages.NoTestsFoundForMethodFormat,
+                ErrorMessages.QAErrorMessages.NO_TESTS_FOUND_FOR_METHOD_FORMAT,
                 "someMethod",
                 "InvalidServiceTest");
         assertEquals(expectedMessage, exception.getMessage());
@@ -466,7 +466,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             qaService.startTestExecution(request);
         });
-        assertEquals(ErrorMessages.QAErrorMessages.MustSpecifyServiceNameOrTestClassName, exception.getMessage());
+        assertEquals(ErrorMessages.QAErrorMessages.MUST_SPECIFY_SERVICE_NAME_OR_TEST_CLASS_NAME, exception.getMessage());
     }
 
     /**
@@ -486,7 +486,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
 
         // Assert
         String expectedMessage = String.format(
-                ErrorMessages.QAErrorMessages.NoTestsFoundForMethodFormat,
+                ErrorMessages.QAErrorMessages.NO_TESTS_FOUND_FOR_METHOD_FORMAT,
                 "nonExistentMethod",
                 "QAServiceTest");
         assertEquals(expectedMessage, exception.getMessage());
@@ -529,7 +529,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             qaService.startTestExecution(request);
         });
-        assertEquals(ErrorMessages.QAErrorMessages.MustSpecifyRunAllOrTestNamesOrMethod, exception.getMessage());
+        assertEquals(ErrorMessages.QAErrorMessages.MUST_SPECIFY_RUN_ALL_OR_TEST_NAMES_OR_METHOD, exception.getMessage());
     }
 
     /**
@@ -545,7 +545,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             qaService.startTestExecution(null);
         });
-        assertEquals(ErrorMessages.QAErrorMessages.TestExecutionRequestCannotBeNull, exception.getMessage());
+        assertEquals(ErrorMessages.QAErrorMessages.TEST_EXECUTION_REQUEST_CANNOT_BE_NULL, exception.getMessage());
     }
 
     /**
@@ -565,7 +565,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             qaService.startTestExecution(request);
         });
-        assertEquals(ErrorMessages.QAErrorMessages.TestClassNameRequired, exception.getMessage());
+        assertEquals(ErrorMessages.QAErrorMessages.TEST_CLASS_NAME_REQUIRED, exception.getMessage());
     }
 
     /**
@@ -583,7 +583,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             qaService.startTestExecution(request);
         });
-        assertEquals(ErrorMessages.QAErrorMessages.MustSpecifyRunAllOrTestNamesOrMethod, exception.getMessage());
+        assertEquals(ErrorMessages.QAErrorMessages.MUST_SPECIFY_RUN_ALL_OR_TEST_NAMES_OR_METHOD, exception.getMessage());
     }
 
     /**
@@ -603,7 +603,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             qaService.startTestExecution(request);
         });
-        assertEquals(ErrorMessages.QAErrorMessages.TestClassNameRequired, exception.getMessage());
+        assertEquals(ErrorMessages.QAErrorMessages.TEST_CLASS_NAME_REQUIRED, exception.getMessage());
     }
 
     /*

@@ -115,15 +115,15 @@ public class Todo {
      */
     private void validateRequest(TodoRequestModel request) {
         if (request == null) {
-            throw new BadRequestException(ErrorMessages.TodoErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.TodoErrorMessages.INVALID_REQUEST);
         }
         
         // Validate task (required, length > 0, max 500 chars)
         if (request.getTask() == null || request.getTask().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.TodoErrorMessages.InvalidTask);
+            throw new BadRequestException(ErrorMessages.TodoErrorMessages.INVALID_TASK);
         }
         if (request.getTask().trim().length() > 500) {
-            throw new BadRequestException(ErrorMessages.TodoErrorMessages.TaskTooLong);
+            throw new BadRequestException(ErrorMessages.TodoErrorMessages.TASK_TOO_LONG);
         }
     }
     
@@ -135,7 +135,7 @@ public class Todo {
      */
     private void validateUser(String user) {
         if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
         }
     }
     

@@ -132,7 +132,7 @@ public class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
         testPurchaseOrderRequest.setOrderSummary(null);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.OrderSummaryErrorMessages.InvalidRequest,
+        assertThrowsBadRequest(ErrorMessages.OrderSummaryErrorMessages.INVALID_REQUEST,
                 () -> purchaseOrderService.createPurchaseOrder(testPurchaseOrderRequest));
     }
 
@@ -148,7 +148,7 @@ public class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
         PurchaseOrderRequestModel request = null;
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.InvalidRequest,
+        assertThrowsBadRequest(ErrorMessages.PurchaseOrderErrorMessages.INVALID_REQUEST,
                 () -> purchaseOrderService.createPurchaseOrder(request));
     }
 

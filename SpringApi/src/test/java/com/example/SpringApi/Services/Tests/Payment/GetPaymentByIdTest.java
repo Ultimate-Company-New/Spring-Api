@@ -46,7 +46,7 @@ class GetPaymentByIdTest extends PaymentServiceTestBase {
                 () -> paymentService.getPaymentById(TEST_PAYMENT_ID));
 
         // Assert
-        assertEquals(ErrorMessages.PaymentErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.PaymentErrorMessages.NOT_FOUND, ex.getMessage());
         verify(paymentRepository, times(1)).findById(TEST_PAYMENT_ID);
     }
 
@@ -69,7 +69,7 @@ class GetPaymentByIdTest extends PaymentServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.getPaymentById(TEST_PAYMENT_ID));
 
         // Assert
-        assertEquals(ErrorMessages.PaymentErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.PaymentErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
     /**
@@ -87,7 +87,7 @@ class GetPaymentByIdTest extends PaymentServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.getPaymentById(-1L));
 
         // Assert
-        assertEquals(ErrorMessages.PaymentErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.PaymentErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
     /**
@@ -105,7 +105,7 @@ class GetPaymentByIdTest extends PaymentServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.getPaymentById(0L));
 
         // Assert
-        assertEquals(ErrorMessages.PaymentErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.PaymentErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
     /**
@@ -123,7 +123,7 @@ class GetPaymentByIdTest extends PaymentServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.getPaymentById(Long.MAX_VALUE));
 
         // Assert
-        assertEquals(ErrorMessages.PaymentErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.PaymentErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
     /**
@@ -142,7 +142,7 @@ class GetPaymentByIdTest extends PaymentServiceTestBase {
         BadRequestException ex = assertThrows(BadRequestException.class, () -> paymentService.getPaymentById(TEST_PAYMENT_ID));
 
         // Assert
-        assertEquals(ErrorMessages.PaymentErrorMessages.AccessDenied, ex.getMessage());
+        assertEquals(ErrorMessages.PaymentErrorMessages.ACCESS_DENIED, ex.getMessage());
     }
 
     /**
@@ -161,8 +161,8 @@ class GetPaymentByIdTest extends PaymentServiceTestBase {
         NotFoundException exTwo = assertThrows(NotFoundException.class, () -> paymentService.getPaymentById(2L));
 
         // Assert
-        assertEquals(ErrorMessages.PaymentErrorMessages.NotFound, exOne.getMessage());
-        assertEquals(ErrorMessages.PaymentErrorMessages.NotFound, exTwo.getMessage());
+        assertEquals(ErrorMessages.PaymentErrorMessages.NOT_FOUND, exOne.getMessage());
+        assertEquals(ErrorMessages.PaymentErrorMessages.NOT_FOUND, exTwo.getMessage());
         verify(paymentRepository, times(2)).findById(anyLong());
     }
 
@@ -183,7 +183,7 @@ class GetPaymentByIdTest extends PaymentServiceTestBase {
             NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.getPaymentById(invalidId));
 
             // Assert
-            assertEquals(ErrorMessages.PaymentErrorMessages.NotFound, ex.getMessage());
+            assertEquals(ErrorMessages.PaymentErrorMessages.NOT_FOUND, ex.getMessage());
         }
     }
 

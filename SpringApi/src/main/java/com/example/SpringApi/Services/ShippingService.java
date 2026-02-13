@@ -48,6 +48,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ShippingService extends BaseService implements IShippingSubTranslator {
+    private static final String PRODUCT_ERROR_PREFIX = "Product '";
+    private static final String UNKNOWN_LOCATION_NAME = "Unknown";
 
     /**
      * Maximum weight per shipment in kg.
@@ -150,11 +152,11 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
                 if (filter.getColumn() != null && !VALID_SHIPMENT_COLUMNS.contains(filter.getColumn())) {
                     throw new BadRequestException(String
-                            .format(ErrorMessages.ShipmentErrorMessages.InvalidColumnNameFormat, filter.getColumn()));
+                            .format(ErrorMessages.ShipmentErrorMessages.INVALID_COLUMN_NAME_FORMAT, filter.getColumn()));
                 }
                 if (!filter.isValidOperator()) {
                     throw new BadRequestException(String
-                            .format(ErrorMessages.ShipmentErrorMessages.InvalidOperatorFormat, filter.getOperator()));
+                            .format(ErrorMessages.ShipmentErrorMessages.INVALID_OPERATOR_FORMAT, filter.getOperator()));
                 }
                 String columnType = shipmentFilterQueryBuilder.getColumnType(filter.getColumn());
                 filter.validateOperatorForType(columnType, filter.getColumn());
@@ -167,7 +169,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         int pageSize = end - start;
 
         if (pageSize <= 0) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION);
         }
 
         Pageable pageable = new PageRequest(0, pageSize, Sort.by("createdAt").descending()) {
@@ -190,7 +192,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                     initializeShipmentLazyFields(shipment);
                     return new ShipmentResponseModel(shipment);
                 })
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(ArrayList::new));
 
         return new PaginationBaseResponseModel<>(data, result.getTotalElements());
     }
@@ -202,21 +204,21 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     @Transactional(readOnly = true)
     public ShipmentResponseModel getShipmentById(Long shipmentId) {
         if (shipmentId == null || shipmentId <= 0) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.INVALID_ID);
         }
 
         Long clientId = getClientId();
 
         Shipment shipment = shipmentRepository.findById(shipmentId)
                 .orElseThrow(() -> new NotFoundException(
-                        String.format(ErrorMessages.ShipmentErrorMessages.NotFound, shipmentId)));
+                        String.format(ErrorMessages.ShipmentErrorMessages.NOT_FOUND, shipmentId)));
 
         if (!shipment.getClientId().equals(clientId)) {
-            throw new NotFoundException(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, shipmentId));
+            throw new NotFoundException(String.format(ErrorMessages.ShipmentErrorMessages.NOT_FOUND, shipmentId));
         }
 
         if (shipment.getShipRocketOrderId() == null || shipment.getShipRocketOrderId().trim().isEmpty()) {
-            throw new NotFoundException(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, shipmentId));
+            throw new NotFoundException(String.format(ErrorMessages.ShipmentErrorMessages.NOT_FOUND, shipmentId));
         }
 
         initializeShipmentLazyFields(shipment);
@@ -279,26 +281,26 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(purchaseOrderId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID));
 
         if (!purchaseOrder.getClientId().equals(clientId)) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.ACCESS_DENIED_TO_PURCHASE_ORDER);
         }
 
         String status = purchaseOrder.getPurchaseOrderStatus();
         if (!PurchaseOrder.Status.PENDING_APPROVAL.getValue().equals(status)) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.OnlyPendingApprovalCanBePaid);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.ONLY_PENDING_APPROVAL_CAN_BE_PAID);
         }
 
         OrderSummary orderSummary = orderSummaryRepository
                 .findByEntityTypeAndEntityId(
                         OrderSummary.EntityType.PURCHASE_ORDER.getValue(),
                         purchaseOrderId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.OrderSummaryNotFoundMessage.NotFound));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.OrderSummaryNotFoundMessage.NOT_FOUND));
 
         List<Shipment> shipments = shipmentRepository.findByOrderSummaryId(orderSummary.getOrderSummaryId());
         if (shipments == null || shipments.isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.NoShipmentsFound);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.NO_SHIPMENTS_FOUND);
         }
 
         validateProductAndPackageAvailability(shipments);
@@ -307,7 +309,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
         if (!paymentResponse.isSuccess()) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.ShipmentProcessingErrorMessages.OperationFailedWithMessageFormat,
+                    String.format(ErrorMessages.ShipmentProcessingErrorMessages.OPERATION_FAILED_WITH_MESSAGE_FORMAT,
                             ErrorMessages.OPERATION_FAILED, paymentResponse.getMessage()));
         }
 
@@ -338,26 +340,26 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
         PurchaseOrder purchaseOrder = purchaseOrderRepository
                 .findById(purchaseOrderId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID));
 
         if (!purchaseOrder.getClientId().equals(clientId)) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.ACCESS_DENIED_TO_PURCHASE_ORDER);
         }
 
         String status = purchaseOrder.getPurchaseOrderStatus();
         if (!PurchaseOrder.Status.PENDING_APPROVAL.getValue().equals(status)) {
-            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.OnlyPendingApprovalCanBePaid);
+            throw new BadRequestException(ErrorMessages.PaymentErrorMessages.ONLY_PENDING_APPROVAL_CAN_BE_PAID);
         }
 
         OrderSummary orderSummary = orderSummaryRepository
                 .findByEntityTypeAndEntityId(
                         OrderSummary.EntityType.PURCHASE_ORDER.getValue(),
                         purchaseOrderId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.OrderSummaryNotFoundMessage.NotFound));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.OrderSummaryNotFoundMessage.NOT_FOUND));
 
         List<Shipment> shipments = shipmentRepository.findByOrderSummaryId(orderSummary.getOrderSummaryId());
         if (shipments == null || shipments.isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.NoShipmentsFound);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.NO_SHIPMENTS_FOUND);
         }
 
         validateProductAndPackageAvailability(shipments);
@@ -366,7 +368,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
         if (!paymentResponse.isSuccess()) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.ShipmentProcessingErrorMessages.OperationFailedWithMessageFormat,
+                    String.format(ErrorMessages.ShipmentProcessingErrorMessages.OPERATION_FAILED_WITH_MESSAGE_FORMAT,
                             ErrorMessages.OPERATION_FAILED, paymentResponse.getMessage()));
         }
 
@@ -398,12 +400,12 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                                 shipmentProduct.getProductId(),
                                 pickupLocationId)
                         .orElseThrow(() -> new BadRequestException(String.format(
-                                ErrorMessages.ShipmentProcessingErrorMessages.ProductNotAvailableAtPickupLocationFormat,
+                                ErrorMessages.ShipmentProcessingErrorMessages.PRODUCT_NOT_AVAILABLE_AT_PICKUP_LOCATION_FORMAT,
                                 shipmentProduct.getProductId(), pickupLocationId)));
 
                 if (mapping.getAvailableStock() < shipmentProduct.getAllocatedQuantity()) {
                     throw new BadRequestException(String.format(
-                            ErrorMessages.ShipmentProcessingErrorMessages.InsufficientProductStockFormat,
+                            ErrorMessages.ShipmentProcessingErrorMessages.INSUFFICIENT_PRODUCT_STOCK_FORMAT,
                             shipmentProduct.getProductId(), pickupLocationId,
                             mapping.getAvailableStock(), shipmentProduct.getAllocatedQuantity()));
                 }
@@ -417,12 +419,12 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                                 shipmentPackage.getPackageId(),
                                 pickupLocationId)
                         .orElseThrow(() -> new BadRequestException(String.format(
-                                ErrorMessages.ShipmentProcessingErrorMessages.PackageNotAvailableAtPickupLocationFormat,
+                                ErrorMessages.ShipmentProcessingErrorMessages.PACKAGE_NOT_AVAILABLE_AT_PICKUP_LOCATION_FORMAT,
                                 shipmentPackage.getPackageId(), pickupLocationId)));
 
                 if (mapping.getAvailableQuantity() < shipmentPackage.getQuantityUsed()) {
                     throw new BadRequestException(String.format(
-                            ErrorMessages.ShipmentProcessingErrorMessages.InsufficientPackageStockFormat,
+                            ErrorMessages.ShipmentProcessingErrorMessages.INSUFFICIENT_PACKAGE_STOCK_FORMAT,
                             shipmentPackage.getPackageId(), pickupLocationId,
                             mapping.getAvailableQuantity(), shipmentPackage.getQuantityUsed()));
                 }
@@ -480,11 +482,11 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             String userName) {
 
         Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID));
 
         if (client.getShipRocketEmail() == null || client.getShipRocketEmail().trim().isEmpty() ||
                 client.getShipRocketPassword() == null || client.getShipRocketPassword().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured);
+            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_CREDENTIALS_NOT_CONFIGURED);
         }
 
         ShipRocketHelper shipRocketHelper = createShipRocketHelper(client.getShipRocketEmail(),
@@ -492,14 +494,14 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
         Address deliveryAddress = orderSummary.getEntityAddress();
         if (deliveryAddress == null) {
-            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.DeliveryAddressNotFound);
+            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.DELIVERY_ADDRESS_NOT_FOUND);
         }
 
         Map<Long, PickupLocation> pickupLocationMap = new HashMap<>();
         for (Shipment shipment : shipments) {
             PickupLocation pickupLocation = pickupLocationRepository.findById(shipment.getPickupLocationId())
                     .orElseThrow(() -> new NotFoundException(String.format(
-                            ErrorMessages.PickupLocationErrorMessages.NotFound, shipment.getPickupLocationId())));
+                            ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, shipment.getPickupLocationId())));
             pickupLocationMap.put(shipment.getPickupLocationId(), pickupLocation);
         }
 
@@ -531,14 +533,14 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         ShipRocketOrderRequestModel request = new ShipRocketOrderRequestModel();
 
         Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID));
 
         request.setOrderId("PO_" + purchaseOrder.getPurchaseOrderId());
         request.setOrderDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
 
         if (pickupLocation.getAddressNickName() == null || pickupLocation.getAddressNickName().trim().isEmpty()) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.ShippingErrorMessages.PickupLocationNameNotConfigured,
+                    String.format(ErrorMessages.ShippingErrorMessages.PICKUP_LOCATION_NAME_NOT_CONFIGURED,
                             pickupLocation.getPickupLocationId()));
         }
         request.setPickupLocation(pickupLocation.getAddressNickName().trim());
@@ -606,7 +608,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             com.example.SpringApi.Models.DatabaseModels.Package packageEntity = packageRepository
                     .findById(shipmentPackage.getPackageId())
                     .orElseThrow(() -> new NotFoundException(String.format(
-                            ErrorMessages.PackageErrorMessages.InvalidIdWithIdFormat, shipmentPackage.getPackageId())));
+                            ErrorMessages.PackageErrorMessages.INVALID_ID_WITH_ID_FORMAT, shipmentPackage.getPackageId())));
 
             totalLength += packageEntity.getLength() * shipmentPackage.getQuantityUsed();
             totalBreadth += packageEntity.getBreadth() * shipmentPackage.getQuantityUsed();
@@ -647,12 +649,12 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             pincode = Integer.parseInt(deliveryAddress.getPostalCode());
         } catch (NumberFormatException e) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.ShippingErrorMessages.BillingPostalCodeMustBeNumeric,
+                    String.format(ErrorMessages.ShippingErrorMessages.BILLING_POSTAL_CODE_MUST_BE_NUMERIC,
                             deliveryAddress.getPostalCode()));
         }
         String phone = cleanPhoneNumber(deliveryAddress.getPhoneOnAddress());
         if (phone.length() != 10) {
-            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.BillingPhoneMustBe10Digits,
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.BILLING_PHONE_MUST_BE10_DIGITS,
                     deliveryAddress.getPhoneOnAddress() != null ? deliveryAddress.getPhoneOnAddress() : "empty"));
         }
         long phoneLong = Long.parseLong(phone);
@@ -722,31 +724,31 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
         if (shipRocketResponse == null) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.ShippingErrorMessages.ShipRocketApiNullResponse, shipmentId));
+                    String.format(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_API_NULL_RESPONSE, shipmentId));
         }
 
         if (shipRocketResponse.getMessage() != null && !shipRocketResponse.getMessage().trim().isEmpty()) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed, shipmentId,
+                    String.format(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_ORDER_CREATION_FAILED, shipmentId,
                             shipRocketResponse.getMessage()));
         }
 
         if (shipRocketResponse.getOrderId() == null) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed, shipmentId,
-                    ErrorMessages.ShippingErrorMessages.ShipRocketOrderIdMissing));
+                    String.format(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_ORDER_CREATION_FAILED, shipmentId,
+                    ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_ORDER_ID_MISSING));
         }
 
         if (shipRocketResponse.getShipmentId() == null) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed, shipmentId,
-                    ErrorMessages.ShippingErrorMessages.ShipRocketShipmentIdMissing));
+                    String.format(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_ORDER_CREATION_FAILED, shipmentId,
+                    ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_SHIPMENT_ID_MISSING));
         }
 
         if (shipRocketResponse.getStatus() == null || shipRocketResponse.getStatus().trim().isEmpty()) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed, shipmentId,
-                    ErrorMessages.ShippingErrorMessages.ShipRocketStatusMissing));
+                    String.format(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_ORDER_CREATION_FAILED, shipmentId,
+                    ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_STATUS_MISSING));
         }
 
         if (!Shipment.ShipRocketStatus.isValid(shipRocketResponse.getStatus())) {
@@ -755,8 +757,8 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                             .map(Shipment.ShipRocketStatus::getValue)
                             .toArray(String[]::new));
             throw new BadRequestException(
-                    String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed, shipmentId,
-                            String.format(ErrorMessages.ShippingErrorMessages.InvalidShipRocketStatusFormat,
+                    String.format(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_ORDER_CREATION_FAILED, shipmentId,
+                            String.format(ErrorMessages.ShippingErrorMessages.INVALID_SHIP_ROCKET_STATUS_FORMAT,
                                     shipRocketResponse.getStatus(), validStatuses)));
         }
     }
@@ -795,7 +797,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 shipment.setShipRocketAwbCode(shipRocketResponse.getAwbCode());
             }
         } catch (Exception e) {
-            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.AwbAssignmentFailed,
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.AWB_ASSIGNMENT_FAILED,
                     shipRocketResponse.getShipmentId(), e.getMessage()));
         }
 
@@ -806,7 +808,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 shipment.setShipRocketPickupMetadata(pickupMetadataJson);
             }
         } catch (Exception e) {
-            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.PickupGenerationFailed,
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.PICKUP_GENERATION_FAILED,
                     shipRocketResponse.getShipmentId(), e.getMessage()));
         }
 
@@ -817,7 +819,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 shipment.setShipRocketGeneratedManifestUrl(manifestUrl);
             }
         } catch (Exception e) {
-            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.ManifestGenerationFailed,
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.MANIFEST_GENERATION_FAILED,
                     shipRocketResponse.getShipmentId(), e.getMessage()));
         }
 
@@ -828,7 +830,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 shipment.setShipRocketGeneratedLabelUrl(labelUrl);
             }
         } catch (Exception e) {
-            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.LabelGenerationFailed,
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.LABEL_GENERATION_FAILED,
                     shipRocketResponse.getShipmentId(), e.getMessage()));
         }
 
@@ -839,7 +841,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 shipment.setShipRocketGeneratedInvoiceUrl(invoiceUrl);
             }
         } catch (Exception e) {
-            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.InvoiceGenerationFailed,
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.INVOICE_GENERATION_FAILED,
                     shipRocketResponse.getShipmentId(), e.getMessage()));
         }
 
@@ -850,7 +852,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 shipment.setShipRocketTrackingMetadata(trackingJson);
             }
         } catch (Exception e) {
-            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.TrackingFetchFailed,
+            throw new BadRequestException(String.format(ErrorMessages.ShippingErrorMessages.TRACKING_FETCH_FAILED,
                     shipment.getShipRocketAwbCode(), e.getMessage()));
         }
 
@@ -864,7 +866,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 shipment.setShipRocketFullResponse(fullResponseJson);
             } catch (Exception serializationEx) {
                 BadRequestException exception = new BadRequestException(String.format(
-                        ErrorMessages.ShippingErrorMessages.FailedToSerializeShipRocketResponseFormat,
+                        ErrorMessages.ShippingErrorMessages.FAILED_TO_SERIALIZE_SHIP_ROCKET_RESPONSE_FORMAT,
                         shipment.getShipmentId(), serializationEx.getMessage()));
                 exception.initCause(serializationEx);
                 throw exception;
@@ -900,7 +902,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     @Override
     public ShippingCalculationResponseModel calculateShipping(ShippingCalculationRequestModel request) {
         if (request == null) {
-            throw new NullPointerException(ErrorMessages.ShippingErrorMessages.NullShippingCalculationRequest);
+            throw new NullPointerException(ErrorMessages.ShippingErrorMessages.NULL_SHIPPING_CALCULATION_REQUEST);
         }
 
         Long clientId = getClientId();
@@ -993,12 +995,12 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
         if (request.getProductQuantities() == null || request.getProductQuantities().isEmpty()) {
             return OrderOptimizationResponseModel
-                    .error(ErrorMessages.OrderOptimizationErrorMessages.NoProductsSpecified);
+                    .error(ErrorMessages.OrderOptimizationErrorMessages.NO_PRODUCTS_SPECIFIED);
         }
 
         if (request.getDeliveryPostcode() == null || request.getDeliveryPostcode().isEmpty()) {
             return OrderOptimizationResponseModel
-                    .error(ErrorMessages.OrderOptimizationErrorMessages.DeliveryPostcodeRequired);
+                    .error(ErrorMessages.OrderOptimizationErrorMessages.DELIVERY_POSTCODE_REQUIRED);
         }
 
         try {
@@ -1006,7 +1008,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
             if (productInfoMap.isEmpty()) {
                 return OrderOptimizationResponseModel
-                        .error(ErrorMessages.OrderOptimizationErrorMessages.NoValidProductsFound);
+                        .error(ErrorMessages.OrderOptimizationErrorMessages.NO_VALID_PRODUCTS_FOUND);
             }
 
             Map<Long, LocationInfo> locationInfoMap = fetchLocationData(productInfoMap);
@@ -1039,7 +1041,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
                 if (candidates.isEmpty()) {
                     return OrderOptimizationResponseModel
-                            .error(ErrorMessages.OrderOptimizationErrorMessages.NoValidAllocationStrategiesFound);
+                            .error(ErrorMessages.OrderOptimizationErrorMessages.NO_VALID_ALLOCATION_STRATEGIES_FOUND);
                 }
             }
 
@@ -1062,16 +1064,21 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                     .sorted(Comparator.comparing(c -> c.totalCost))
                     .toList();
 
-            AllocationCandidate candidateToUse = !validCandidates.isEmpty()
-                    ? validCandidates.getFirst()
-                    : (!invalidCandidates.isEmpty() ? invalidCandidates.getFirst() : null);
+            AllocationCandidate candidateToUse;
+            if (!validCandidates.isEmpty()) {
+                candidateToUse = validCandidates.getFirst();
+            } else if (!invalidCandidates.isEmpty()) {
+                candidateToUse = invalidCandidates.getFirst();
+            } else {
+                candidateToUse = null;
+            }
             if (candidateToUse != null) {
                 boolean allCouriersAvailable = !validCandidates.isEmpty();
-                populateResponseFromCandidate(response, candidateToUse, locationInfoMap, allCouriersAvailable);
+                populateResponseFromCandidate(response, candidateToUse, allCouriersAvailable);
                 if (!allCouriersAvailable) {
                     response.setUnavailabilityReason(candidateToUse.unavailabilityReason);
                     response.setErrorMessage(
-                            ErrorMessages.OrderOptimizationErrorMessages.NoShippingOptionsForAnyStrategy);
+                            ErrorMessages.OrderOptimizationErrorMessages.NO_SHIPPING_OPTIONS_FOR_ANY_STRATEGY);
                 }
             }
 
@@ -1082,7 +1089,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
         } catch (Exception e) {
             return OrderOptimizationResponseModel.error(String
-                    .format(ErrorMessages.OrderOptimizationErrorMessages.OptimizationFailedFormat, e.getMessage()));
+                    .format(ErrorMessages.OrderOptimizationErrorMessages.OPTIMIZATION_FAILED_FORMAT, e.getMessage()));
         }
 
         return response;
@@ -1166,21 +1173,21 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
         Shipment shipment = shipmentRepository.findByShipmentIdAndClientId(shipmentId, clientId);
         if (shipment == null) {
-            throw new NotFoundException(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, shipmentId));
+            throw new NotFoundException(String.format(ErrorMessages.ShipmentErrorMessages.NOT_FOUND, shipmentId));
         }
 
         if ("CANCELLED".equals(shipment.getShipRocketStatus())) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.AlreadyCancelled);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.ALREADY_CANCELLED);
         }
 
         String shipRocketOrderId = shipment.getShipRocketOrderId();
         if (shipRocketOrderId == null || shipRocketOrderId.isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.NoShipRocketOrderId);
+            throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.NO_SHIP_ROCKET_ORDER_ID);
         }
 
         ClientResponseModel clientResponse = clientService.getClientById(clientId);
         if (clientResponse.getShipRocketEmail() == null || clientResponse.getShipRocketPassword() == null) {
-            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured);
+            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_CREDENTIALS_NOT_CONFIGURED);
         }
 
         ShipRocketHelper shiprocketHelper = createShipRocketHelper(
@@ -1192,10 +1199,10 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             shiprocketHelper.cancelOrders(java.util.List.of(shipRocketOrderIdLong));
         } catch (NumberFormatException e) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.ShipmentErrorMessages.InvalidIdFormatErrorFormat, shipRocketOrderId));
+                    String.format(ErrorMessages.ShipmentErrorMessages.INVALID_ID_FORMAT_ERROR_FORMAT, shipRocketOrderId));
         } catch (Exception e) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.ShipmentErrorMessages.InvalidIdWithMessageFormat, e.getMessage()));
+                    String.format(ErrorMessages.ShipmentErrorMessages.INVALID_ID_WITH_MESSAGE_FORMAT, e.getMessage()));
         }
 
         shipment.setShipRocketStatus("CANCELLED");
@@ -1214,26 +1221,26 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         String currentUser = getUser();
 
         if (request.getShipmentId() == null) {
-            throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.ShipmentIdRequired);
+            throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.SHIPMENT_ID_REQUIRED);
         }
         if (request.getProducts() == null || request.getProducts().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.AtLeastOneProductRequired);
+            throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.AT_LEAST_ONE_PRODUCT_REQUIRED);
         }
 
         Shipment shipment = shipmentRepository.findByShipmentIdAndClientId(request.getShipmentId(), clientId);
         if (shipment == null) {
             throw new NotFoundException(
-                    String.format(ErrorMessages.ShipmentErrorMessages.NotFound, request.getShipmentId()));
+                    String.format(ErrorMessages.ShipmentErrorMessages.NOT_FOUND, request.getShipmentId()));
         }
 
         if (!"DELIVERED".equals(shipment.getShipRocketStatus())) {
             throw new BadRequestException(String.format(
-                    ErrorMessages.ReturnShipmentErrorMessages.OnlyDeliveredCanReturn, shipment.getShipRocketStatus()));
+                    ErrorMessages.ReturnShipmentErrorMessages.ONLY_DELIVERED_CAN_RETURN, shipment.getShipRocketStatus()));
         }
 
         ClientResponseModel clientResponse = clientService.getClientById(clientId);
         if (clientResponse.getShipRocketEmail() == null || clientResponse.getShipRocketPassword() == null) {
-            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured);
+            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_CREDENTIALS_NOT_CONFIGURED);
         }
 
         if (shipment.getShipmentProducts() == null || shipment.getShipmentProducts().isEmpty()) {
@@ -1242,7 +1249,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 requestedProductId = request.getProducts().get(0).getProductId();
             }
             throw new BadRequestException(String.format(
-                    ErrorMessages.ReturnShipmentErrorMessages.ProductNotInShipment, requestedProductId));
+                    ErrorMessages.ReturnShipmentErrorMessages.PRODUCT_NOT_IN_SHIPMENT, requestedProductId));
         }
 
         org.hibernate.Hibernate.initialize(shipment.getShipmentProducts());
@@ -1258,24 +1265,24 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
         for (CreateReturnRequestModel.ReturnProductItem item : request.getProducts()) {
             if (item.getProductId() == null) {
-                throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.ProductIdRequired);
+                throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.PRODUCT_ID_REQUIRED);
             }
             if (item.getQuantity() == null || item.getQuantity() <= 0) {
-                throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.ValidQuantityRequired);
+                throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.VALID_QUANTITY_REQUIRED);
             }
             if (item.getReason() == null || item.getReason().isEmpty()) {
-                throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.ReturnReasonRequired);
+                throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.RETURN_REASON_REQUIRED);
             }
 
             Integer shipmentQty = shipmentProductQuantities.get(item.getProductId());
             if (shipmentQty == null) {
                 throw new BadRequestException(String
-                        .format(ErrorMessages.ReturnShipmentErrorMessages.ProductNotInShipment, item.getProductId()));
+                        .format(ErrorMessages.ReturnShipmentErrorMessages.PRODUCT_NOT_IN_SHIPMENT, item.getProductId()));
             }
 
             if (item.getQuantity() > shipmentQty) {
                 throw new BadRequestException(
-                        String.format(ErrorMessages.ReturnShipmentErrorMessages.ReturnQuantityExceeds,
+                        String.format(ErrorMessages.ReturnShipmentErrorMessages.RETURN_QUANTITY_EXCEEDS,
                                 item.getQuantity(), shipmentQty, item.getProductId()));
             }
 
@@ -1289,12 +1296,12 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                         .plusDays(product.getReturnWindowDays());
                 if (java.time.LocalDateTime.now().isAfter(returnDeadline)) {
                     throw new BadRequestException(
-                            String.format(ErrorMessages.ReturnShipmentErrorMessages.ProductPastReturnWindow,
+                            String.format(ErrorMessages.ReturnShipmentErrorMessages.PRODUCT_PAST_RETURN_WINDOW,
                                     product.getTitle(), product.getReturnWindowDays()));
                 }
             } else if (product.getReturnWindowDays() == null || product.getReturnWindowDays() == 0) {
                 throw new BadRequestException(String
-                        .format(ErrorMessages.ReturnShipmentErrorMessages.ProductNotReturnable, product.getTitle()));
+                        .format(ErrorMessages.ReturnShipmentErrorMessages.PRODUCT_NOT_RETURNABLE, product.getTitle()));
             }
 
             productsToReturn.add(product);
@@ -1399,7 +1406,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             returnOrderResponse = new Gson().fromJson(returnOrderJson, ShipRocketReturnOrderResponseModel.class);
         } catch (Exception e) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.ReturnShipmentErrorMessages.FailedToCreateReturn, e.getMessage()));
+                    String.format(ErrorMessages.ReturnShipmentErrorMessages.FAILED_TO_CREATE_RETURN, e.getMessage()));
         }
 
         ReturnShipment returnShipment = ReturnShipment.fromCreateReturn(
@@ -1451,22 +1458,22 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 clientId);
         if (returnShipment == null) {
             throw new NotFoundException(
-                    String.format(ErrorMessages.ReturnShipmentErrorMessages.NotFound, returnShipmentId));
+                    String.format(ErrorMessages.ReturnShipmentErrorMessages.NOT_FOUND, returnShipmentId));
         }
 
         if (ReturnShipment.ReturnStatus.RETURN_CANCELLED.getValue()
                 .equals(returnShipment.getShipRocketReturnStatus())) {
-            throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.AlreadyCancelled);
+            throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.ALREADY_CANCELLED);
         }
 
         String shipRocketReturnOrderId = returnShipment.getShipRocketReturnOrderId();
         if (shipRocketReturnOrderId == null || shipRocketReturnOrderId.isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.NoShipRocketOrderId);
+            throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.NO_SHIP_ROCKET_ORDER_ID);
         }
 
         ClientResponseModel clientResponse = clientService.getClientById(clientId);
         if (clientResponse.getShipRocketEmail() == null || clientResponse.getShipRocketPassword() == null) {
-            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured);
+            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_CREDENTIALS_NOT_CONFIGURED);
         }
 
         ShipRocketHelper shiprocketHelper = createShipRocketHelper(
@@ -1478,10 +1485,10 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             shiprocketHelper.cancelOrders(java.util.List.of(shipRocketReturnOrderIdLong));
         } catch (NumberFormatException e) {
             throw new BadRequestException(
-                    ErrorMessages.ReturnShipmentErrorMessages.InvalidId + " Format error: " + shipRocketReturnOrderId);
+                    ErrorMessages.ReturnShipmentErrorMessages.INVALID_ID + " Format error: " + shipRocketReturnOrderId);
         } catch (Exception e) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.ReturnShipmentErrorMessages.FailedToCancelReturn, e.getMessage()));
+                    String.format(ErrorMessages.ReturnShipmentErrorMessages.FAILED_TO_CANCEL_RETURN, e.getMessage()));
         }
 
         returnShipment.setShipRocketReturnStatus(ReturnShipment.ReturnStatus.RETURN_CANCELLED.getValue());
@@ -1498,7 +1505,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         Long clientId = getClientId();
         ClientResponseModel clientResponse = clientService.getClientById(clientId);
         if (clientResponse.getShipRocketEmail() == null || clientResponse.getShipRocketPassword() == null) {
-            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured);
+            throw new BadRequestException(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_CREDENTIALS_NOT_CONFIGURED);
         }
 
         ShipRocketHelper shiprocketHelper = createShipRocketHelper(
@@ -1543,11 +1550,12 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     private Map<Long, LocationInfo> fetchLocationData(Map<Long, ProductLocationInfo> productInfoMap) {
         Map<Long, LocationInfo> locationInfoMap = new HashMap<>();
 
-        for (Long productId : productInfoMap.keySet()) {
+        for (Map.Entry<Long, ProductLocationInfo> productEntry : productInfoMap.entrySet()) {
+            Long productId = productEntry.getKey();
             List<ProductPickupLocationMapping> mappings = productPickupLocationMappingRepository
                     .findByProductIdWithPickupLocationAndAddress(productId);
 
-            ProductLocationInfo productInfo = productInfoMap.get(productId);
+            ProductLocationInfo productInfo = productEntry.getValue();
 
             for (ProductPickupLocationMapping mapping : mappings) {
                 Long locationId = mapping.getPickupLocationId();
@@ -1667,7 +1675,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
             ProductLocationInfo info = productInfoMap.get(productId);
             if (info == null) {
-                return String.format(ErrorMessages.OrderOptimizationErrorMessages.ProductNotFoundFormat, productId);
+                return String.format(ErrorMessages.OrderOptimizationErrorMessages.PRODUCT_NOT_FOUND_FORMAT, productId);
             }
 
             int totalStock = info.stockByLocation.values().stream()
@@ -1742,24 +1750,24 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
             if (totalPackable < requestedQty) {
                 if (totalStock == 0) {
-                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.InsufficientStockZeroFormat,
+                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.INSUFFICIENT_STOCK_ZERO_FORMAT,
                             info.productTitle, requestedQty);
                 } else if (!hasPackagesConfigured) {
-                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.NoPackagesConfiguredFormat,
+                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.NO_PACKAGES_CONFIGURED_FORMAT,
                             info.productTitle, totalStock, requestedQty);
                 } else if (!hasAvailablePackages) {
-                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.NoPackagesAvailableFormat,
+                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.NO_PACKAGES_AVAILABLE_FORMAT,
                             info.productTitle, totalStock, requestedQty);
                 } else if (!canFitInAnyPackageType) {
-                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.ProductExceedsPackageLimitsFormat,
+                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.PRODUCT_EXCEEDS_PACKAGE_LIMITS_FORMAT,
                             info.productTitle, totalStock, requestedQty);
                 } else if (totalStock >= requestedQty && totalPackable == 0) {
                     String errorDetail = packagingError != null ? packagingError
-                            : ErrorMessages.OrderOptimizationErrorMessages.NotEnoughPackagesForQuantity;
-                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.CannotPackageWithDetailFormat,
+                            : ErrorMessages.OrderOptimizationErrorMessages.NOT_ENOUGH_PACKAGES_FOR_QUANTITY;
+                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.CANNOT_PACKAGE_WITH_DETAIL_FORMAT,
                             info.productTitle, totalStock, errorDetail, requestedQty);
                 } else {
-                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.InsufficientStockPackagingFormat,
+                    return String.format(ErrorMessages.OrderOptimizationErrorMessages.INSUFFICIENT_STOCK_PACKAGING_FORMAT,
                             info.productTitle, requestedQty, totalStock, totalPackable);
                 }
             }
@@ -1781,7 +1789,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         for (Long locationId : locationInfoMap.keySet()) {
             if (canLocationFulfillAll(locationId, productInfoMap, productQuantities, locationInfoMap)) {
                 AllocationCandidate candidate = createSingleLocationCandidate(
-                        locationId, productInfoMap, productQuantities);
+                        locationId, productQuantities);
                 candidates.add(candidate);
             }
         }
@@ -1832,7 +1840,6 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     }
 
     private AllocationCandidate createSingleLocationCandidate(Long locationId,
-            Map<Long, ProductLocationInfo> productInfoMap,
             Map<Long, Integer> productQuantities) {
         AllocationCandidate candidate = new AllocationCandidate();
         Map<Long, Integer> productQtys = new HashMap<>();
@@ -1872,22 +1879,22 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 if (qty != null && qty > 0) {
                     LocationInfo locInfo = locationInfoMap.get(locationId);
                     if (locInfo == null) {
-                        errors.add("Product '" + productInfo.productTitle + "': Location ID " + locationId + " not found");
+                        errors.add(PRODUCT_ERROR_PREFIX + productInfo.productTitle + "': Location ID " + locationId + " not found");
                     } else {
                         LocationStock stock = productInfo.stockByLocation.get(locationId);
                         if (stock == null) {
-                            errors.add("Product '" + productInfo.productTitle + "': Not available at location '" +
+                            errors.add(PRODUCT_ERROR_PREFIX + productInfo.productTitle + "': Not available at location '" +
                                     locInfo.locationName + "' (no stock mapping exists)");
                         } else if (stock.availableStock < qty) {
-                            errors.add("Product '" + productInfo.productTitle + "': Insufficient stock at '" +
+                            errors.add(PRODUCT_ERROR_PREFIX + productInfo.productTitle + "': Insufficient stock at '" +
                                     locInfo.locationName + "'. Requested: " + qty + ", Available: " + stock.availableStock);
                         } else if (locInfo.packageDimensions.isEmpty()) {
-                            errors.add("Product '" + productInfo.productTitle + "': No packages available at '" +
+                            errors.add(PRODUCT_ERROR_PREFIX + productInfo.productTitle + "': No packages available at '" +
                                     locInfo.locationName + "'");
                         } else {
                             int packable = Math.min(stock.availableStock, stock.maxItemsPackable);
                             if (packable < qty) {
-                                errors.add("Product '" + productInfo.productTitle + "': Cannot package " + qty +
+                                errors.add(PRODUCT_ERROR_PREFIX + productInfo.productTitle + "': Cannot package " + qty +
                                         " units at '" + locInfo.locationName + "'. Max packable: " + packable +
                                         (stock.packagingErrorMessage != null ? " (" + stock.packagingErrorMessage + ")" : ""));
                             } else {
@@ -1903,13 +1910,13 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
         if (!errors.isEmpty()) {
             return CustomAllocationResult.error(
-                    String.format(ErrorMessages.OrderOptimizationErrorMessages.CustomAllocationValidationFailedFormat,
+                    String.format(ErrorMessages.OrderOptimizationErrorMessages.CUSTOM_ALLOCATION_VALIDATION_FAILED_FORMAT,
                             String.join("\n• ", errors)));
         }
 
         if (candidate.locationProductQuantities.isEmpty()) {
             return CustomAllocationResult
-                    .error(ErrorMessages.OrderOptimizationErrorMessages.NoValidAllocationsSpecified);
+                    .error(ErrorMessages.OrderOptimizationErrorMessages.NO_VALID_ALLOCATIONS_SPECIFIED);
         }
 
         candidate.canFulfillOrder = true;
@@ -1946,7 +1953,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                             .count();
                     return Long.compare(countB, countA);
                 })
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(ArrayList::new));
 
         for (Long locationId : sortedLocations) {
             Map<Long, Integer> locationAlloc = new HashMap<>();
@@ -2010,7 +2017,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                         return Integer.compare(availB, availA);
                     })
                     .map(Map.Entry::getKey)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toCollection(ArrayList::new));
 
             for (Long locationId : sortedLocs) {
                 if (remaining <= 0)
@@ -2120,7 +2127,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                         int availB = Math.min(stockB.availableStock, stockB.maxItemsPackable);
                         return Integer.compare(availB, availA);
                     })
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toCollection(ArrayList::new));
 
             for (Long locationId : sortedServiceableLocations) {
                 if (qtyToReallocate <= 0)
@@ -2260,7 +2267,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
                     if (routeMaxWeight.compareTo(BigDecimal.ZERO) == 0) {
                         hasUnserviceableRoute = true;
-                        String locationName = locInfo.locationName != null ? locInfo.locationName : "Unknown";
+                        String locationName = locInfo.locationName != null ? locInfo.locationName : UNKNOWN_LOCATION_NAME;
                         if (!routeErrors.isEmpty())
                             routeErrors.append("; ");
                         routeErrors.append("No courier options available between pickup location ")
@@ -2373,7 +2380,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                 if (shipment.getPackagesUsed() == null || shipment.getPackagesUsed().isEmpty()) {
                     String locationName = shipment.getPickupLocation() != null
                             ? shipment.getPickupLocation().getAddressNickName()
-                            : "Unknown";
+                            : UNKNOWN_LOCATION_NAME;
                     if (!unavailabilityReasons.isEmpty()) {
                         unavailabilityReasons.append("; ");
                     }
@@ -2417,7 +2424,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                         allCouriersAvailable = false;
                         String locationName = shipment.getPickupLocation() != null
                                 ? shipment.getPickupLocation().getAddressNickName()
-                                : "Unknown";
+                                : UNKNOWN_LOCATION_NAME;
                         if (!unavailabilityReasons.isEmpty()) {
                             unavailabilityReasons.append("; ");
                         }
@@ -2571,7 +2578,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         List<Integer> shipmentQuantities = shipmentProducts.stream()
                 .map(prods -> prods.stream()
                         .mapToInt(OrderOptimizationResponseModel.ProductAllocation::getAllocatedQuantity).sum())
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(ArrayList::new));
 
         int totalQty = shipmentQuantities.stream().mapToInt(Integer::intValue).sum();
         if (totalQty == 0)
@@ -2703,9 +2710,8 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
     private void populateResponseFromCandidate(OrderOptimizationResponseModel response,
             AllocationCandidate candidate,
-            Map<Long, LocationInfo> locationInfoMap,
             boolean allCouriersAvailable) {
-        response.setDescription(generateDescription(candidate, locationInfoMap));
+        response.setDescription(generateDescription(candidate));
         response.setTotalCost(candidate.totalCost);
         response.setTotalPackagingCost(candidate.totalPackagingCost);
         response.setTotalShippingCost(candidate.totalShippingCost);
@@ -2716,8 +2722,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         response.setAllCouriersAvailable(allCouriersAvailable);
     }
 
-    private String generateDescription(AllocationCandidate candidate,
-            Map<Long, LocationInfo> locationInfoMap) {
+    private String generateDescription(AllocationCandidate candidate) {
 
         Map<Long, List<OrderOptimizationResponseModel.Shipment>> shipmentsByLocation = new LinkedHashMap<>();
         for (OrderOptimizationResponseModel.Shipment s : candidate.shipments) {

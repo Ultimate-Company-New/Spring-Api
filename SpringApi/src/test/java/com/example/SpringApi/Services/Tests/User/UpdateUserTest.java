@@ -263,7 +263,7 @@ class UpdateUserTest extends UserServiceTestBase {
                 () -> userService.updateUser(testUserRequest));
 
         // Assert
-        assertEquals(ErrorMessages.CommonErrorMessages.AtLeastOnePermissionRequired, ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.AT_LEAST_ONE_PERMISSION_REQUIRED, ex.getMessage());
     }
 
     /**
@@ -283,7 +283,7 @@ class UpdateUserTest extends UserServiceTestBase {
                 () -> userService.updateUser(testUserRequest));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -303,7 +303,7 @@ class UpdateUserTest extends UserServiceTestBase {
                 () -> userService.updateUser(testUserRequest));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -324,7 +324,7 @@ class UpdateUserTest extends UserServiceTestBase {
                 () -> userService.updateUser(testUserRequest));
 
         // Assert
-        assertEquals(ErrorMessages.CommonErrorMessages.AtLeastOnePermissionRequired, ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.AT_LEAST_ONE_PERMISSION_REQUIRED, ex.getMessage());
     }
 
     /**
@@ -343,7 +343,7 @@ class UpdateUserTest extends UserServiceTestBase {
                 () -> userService.updateUser(testUserRequest));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, ex.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -364,7 +364,7 @@ class UpdateUserTest extends UserServiceTestBase {
                 () -> userService.updateUser(testUserRequest));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     // ========================================

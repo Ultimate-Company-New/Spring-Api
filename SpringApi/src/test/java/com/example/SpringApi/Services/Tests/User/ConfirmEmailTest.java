@@ -125,7 +125,7 @@ class ConfirmEmailTest extends UserServiceTestBase {
                 () -> userService.confirmEmail(TEST_USER_ID, "valid-token"));
 
         // Assert
-        assertEquals(ErrorMessages.LoginErrorMessages.AccountConfirmed, ex.getMessage());
+        assertEquals(ErrorMessages.LoginErrorMessages.ACCOUNT_CONFIRMED, ex.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -149,7 +149,7 @@ class ConfirmEmailTest extends UserServiceTestBase {
                 () -> userService.confirmEmail(TEST_USER_ID, ""));
 
         // Assert
-        assertEquals(ErrorMessages.LoginErrorMessages.InvalidToken, ex.getMessage());
+        assertEquals(ErrorMessages.LoginErrorMessages.INVALID_TOKEN, ex.getMessage());
     }
 
     /**
@@ -167,7 +167,7 @@ class ConfirmEmailTest extends UserServiceTestBase {
                 () -> userService.confirmEmail(Long.MAX_VALUE, "valid-token"));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -185,7 +185,7 @@ class ConfirmEmailTest extends UserServiceTestBase {
                 () -> userService.confirmEmail(-1L, "valid-token"));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -208,7 +208,7 @@ class ConfirmEmailTest extends UserServiceTestBase {
                 () -> userService.confirmEmail(TEST_USER_ID, "any-token"));
 
         // Assert
-        assertEquals(ErrorMessages.LoginErrorMessages.InvalidToken, ex.getMessage());
+        assertEquals(ErrorMessages.LoginErrorMessages.INVALID_TOKEN, ex.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -232,7 +232,7 @@ class ConfirmEmailTest extends UserServiceTestBase {
                 () -> userService.confirmEmail(TEST_USER_ID, "wrong-token"));
 
         // Assert
-        assertEquals(ErrorMessages.LoginErrorMessages.InvalidToken, ex.getMessage());
+        assertEquals(ErrorMessages.LoginErrorMessages.INVALID_TOKEN, ex.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -251,7 +251,7 @@ class ConfirmEmailTest extends UserServiceTestBase {
                 () -> userService.confirmEmail(TEST_USER_ID, "valid-token"));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, ex.getMessage());
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -270,7 +270,7 @@ class ConfirmEmailTest extends UserServiceTestBase {
                 () -> userService.confirmEmail(0L, "valid-token"));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     // ========================================

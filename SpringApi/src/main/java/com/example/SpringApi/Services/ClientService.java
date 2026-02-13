@@ -90,7 +90,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
                     SuccessMessages.ClientSuccessMessages.ToggleClient + " " + client.get().getClientId(),
                     ApiRoutes.ClientSubRoute.TOGGLE_CLIENT);
         } else {
-            throw new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID);
         }
     }
 
@@ -112,7 +112,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
         if (client.isPresent()) {
             return new ClientResponseModel(client.get());
         } else {
-            throw new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID);
         }
     }
 
@@ -132,7 +132,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
     @Transactional
     public void createClient(ClientRequestModel clientRequest) {
         if (clientRequest == null) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_REQUEST);
         }
 
         validateUniqueClientName(clientRequest.getName(), null);
@@ -168,11 +168,11 @@ public class ClientService extends BaseService implements IClientSubTranslator {
     @Transactional
     public void updateClient(ClientRequestModel clientRequest) {
         if (clientRequest == null) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_REQUEST);
         }
 
         Client existingClient = clientRepository.findById(clientRequest.getClientId())
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID));
 
         validateUniqueClientName(clientRequest.getName(), clientRequest.getClientId());
 
@@ -222,7 +222,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
         clientRepository.findByName(name).ifPresent(duplicateClient -> {
             if (clientId == null || !duplicateClient.getClientId().equals(clientId)) {
                 throw new BadRequestException(
-                        String.format(ErrorMessages.ClientErrorMessages.DuplicateClientNameFormat, name));
+                        String.format(ErrorMessages.ClientErrorMessages.DUPLICATE_CLIENT_NAME_FORMAT, name));
             }
         });
     }
@@ -249,7 +249,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
             handleFirebaseLogo(client, logoBase64, environmentName, hasNewLogo);
         } else {
             throw new BadRequestException(String.format(
-                    ErrorMessages.ConfigurationErrorMessages.InvalidImageLocationConfigFormat, imageLocation));
+                    ErrorMessages.ConfigurationErrorMessages.INVALID_IMAGE_LOCATION_CONFIG_FORMAT, imageLocation));
         }
     }
 
@@ -266,7 +266,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
      */
     private void handleImgbbLogo(Client client, String logoBase64, String env, boolean hasNewLogo) {
         if (client.getImgbbApiKey() == null || client.getImgbbApiKey().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.ImgbbApiKeyNotConfigured);
+            throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.IMGBB_API_KEY_NOT_CONFIGURED);
         }
 
         ImgbbHelper imgbbHelper = new ImgbbHelper(client.getImgbbApiKey());
@@ -287,7 +287,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
                 client.setLogoUrl(uploadResponse.getUrl());
                 client.setLogoDeleteHash(uploadResponse.getDeleteHash());
             } else {
-                throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidLogoUpload);
+                throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_LOGO_UPLOAD);
             }
         }
         clientRepository.save(client);
@@ -312,7 +312,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
         firebaseHelper.deleteFile(filePath);
 
         if (hasNewLogo && !firebaseHelper.uploadFileToFirebase(logoBase64, filePath)) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidLogoUpload);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_LOGO_UPLOAD);
         }
     }
 }

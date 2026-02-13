@@ -232,7 +232,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidBreadth, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_BREADTH, ex.getMessage());
     }
 
     /**
@@ -251,7 +251,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidHeight, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_HEIGHT, ex.getMessage());
     }
 
     /**
@@ -270,7 +270,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidLength, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_LENGTH, ex.getMessage());
     }
 
     /**
@@ -289,7 +289,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidMaxWeight, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_MAX_WEIGHT, ex.getMessage());
     }
 
     /**
@@ -308,7 +308,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidMaxWeight, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_MAX_WEIGHT, ex.getMessage());
     }
 
     /**
@@ -327,7 +327,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidPricePerUnit, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_PRICE_PER_UNIT, ex.getMessage());
     }
 
     /**
@@ -346,7 +346,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidStandardCapacity, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_STANDARD_CAPACITY, ex.getMessage());
     }
 
     /**
@@ -365,7 +365,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidBreadth, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_BREADTH, ex.getMessage());
     }
 
     /**
@@ -384,7 +384,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidHeight, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_HEIGHT, ex.getMessage());
     }
 
     /**
@@ -403,7 +403,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidLength, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_LENGTH, ex.getMessage());
     }
 
     /**
@@ -422,7 +422,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidMaxWeight, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_MAX_WEIGHT, ex.getMessage());
     }
 
     /**
@@ -441,7 +441,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidPackageName, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_PACKAGE_NAME, ex.getMessage());
     }
 
     /**
@@ -460,7 +460,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidPricePerUnit, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_PRICE_PER_UNIT, ex.getMessage());
     }
 
     /**
@@ -478,7 +478,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(null));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidRequest, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_REQUEST, ex.getMessage());
     }
 
     /**
@@ -497,7 +497,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidStandardCapacity, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_STANDARD_CAPACITY, ex.getMessage());
     }
 
     /**
@@ -516,7 +516,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidPackageType, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_PACKAGE_TYPE, ex.getMessage());
     }
 
     /**
@@ -536,7 +536,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidPackageName, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_PACKAGE_NAME, ex.getMessage());
     }
 
     /**
@@ -555,7 +555,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidPackageType, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_PACKAGE_TYPE, ex.getMessage());
     }
 
     /**
@@ -574,7 +574,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidBreadth, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_BREADTH, ex.getMessage());
     }
 
     /**
@@ -593,7 +593,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidHeight, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_HEIGHT, ex.getMessage());
     }
 
     /**
@@ -612,7 +612,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidLength, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_LENGTH, ex.getMessage());
     }
 
     /**
@@ -631,7 +631,7 @@ class CreatePackageTest extends PackageServiceTestBase {
                 () -> packageService.createPackage(testPackageRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PackageErrorMessages.InvalidStandardCapacity, ex.getMessage());
+        assertEquals(ErrorMessages.PackageErrorMessages.INVALID_STANDARD_CAPACITY, ex.getMessage());
     }
 
     /*

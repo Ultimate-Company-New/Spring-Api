@@ -210,7 +210,7 @@ class GetProductInBatchesTest extends ProductServiceTestBase {
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> productService.getProductInBatches(request));
-        assertEquals(String.format(ErrorMessages.ProductErrorMessages.InvalidOperatorForColumnFormat,
+        assertEquals(String.format(ErrorMessages.ProductErrorMessages.INVALID_OPERATOR_FOR_COLUMN_FORMAT,
                 "greaterThan", "string", "title"), exception.getMessage());
     }
 
@@ -228,7 +228,7 @@ class GetProductInBatchesTest extends ProductServiceTestBase {
         request.setEnd(5);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION,
                 () -> productService.getProductInBatches(request));
     }
 
@@ -247,7 +247,7 @@ class GetProductInBatchesTest extends ProductServiceTestBase {
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> productService.getProductInBatches(request));
-        assertEquals(String.format(ErrorMessages.ProductErrorMessages.InvalidOperatorFormat, "unknown_op"),
+        assertEquals(String.format(ErrorMessages.ProductErrorMessages.INVALID_OPERATOR_FORMAT, "unknown_op"),
                 exception.getMessage());
     }
 
@@ -266,7 +266,7 @@ class GetProductInBatchesTest extends ProductServiceTestBase {
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> productService.getProductInBatches(request));
-        assertEquals(String.format(ErrorMessages.ProductErrorMessages.InvalidColumnNameFormat, "nonExistent"),
+        assertEquals(String.format(ErrorMessages.ProductErrorMessages.INVALID_COLUMN_NAME_FORMAT, "nonExistent"),
                 exception.getMessage());
     }
 
@@ -284,7 +284,7 @@ class GetProductInBatchesTest extends ProductServiceTestBase {
         request.setEnd(5);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.InvalidPagination,
+        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION,
                 () -> productService.getProductInBatches(request));
     }
 

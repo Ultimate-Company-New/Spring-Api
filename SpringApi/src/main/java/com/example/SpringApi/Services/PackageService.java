@@ -93,15 +93,15 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         int end = paginationBaseRequestModel.getEnd();
         
         if (start < 0) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.StartIndexCannotBeNegative);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.START_INDEX_CANNOT_BE_NEGATIVE);
         }
         
         if (end <= 0) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.EndIndexMustBeGreaterThanZero);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.END_INDEX_MUST_BE_GREATER_THAN_ZERO);
         }
         
         if (start >= end) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.StartIndexMustBeLessThanEnd);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.START_INDEX_MUST_BE_LESS_THAN_END);
         }
         
         // Validate column name
@@ -118,14 +118,14 @@ public class PackageService extends BaseService implements IPackageSubTranslator
                 // Validate column name
                 if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
                     throw new BadRequestException(String.format(
-                        ErrorMessages.PackageErrorMessages.InvalidColumnNameFormat,
+                        ErrorMessages.PackageErrorMessages.INVALID_COLUMN_NAME_FORMAT,
                         filter.getColumn()));
                 }
 
                 // Validate operator
                 if (!filter.isValidOperator()) {
                     throw new BadRequestException(String.format(
-                        ErrorMessages.PackageErrorMessages.InvalidOperatorForColumnFormat,
+                        ErrorMessages.PackageErrorMessages.INVALID_OPERATOR_FOR_COLUMN_FORMAT,
                         filter.getOperator(),
                         filter.getColumn()));
                 }
@@ -197,7 +197,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     public PackageResponseModel getPackageById(Long packageId) {
         Package packageEntity = packageRepository.findByPackageIdAndClientId(packageId, getClientId());
         if (packageEntity == null) {
-            throw new NotFoundException(ErrorMessages.PackageErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.PackageErrorMessages.INVALID_ID);
         }
         
         PackageResponseModel response = new PackageResponseModel(packageEntity);
@@ -222,7 +222,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     public void togglePackage(Long packageId) {
         Package packageEntity = packageRepository.findByPackageIdAndClientId(packageId, getClientId());
         if (packageEntity == null) {
-            throw new NotFoundException(ErrorMessages.PackageErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.PackageErrorMessages.INVALID_ID);
         }
 
         // Toggle the deleted status (active/inactive)
@@ -248,7 +248,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     public void updatePackage(PackageRequestModel packageRequest) {
         Package existingPackage = packageRepository.findByPackageIdAndClientId(packageRequest.getPackageId(), getClientId());
         if (existingPackage == null) {
-            throw new NotFoundException(ErrorMessages.PackageErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.PackageErrorMessages.INVALID_ID);
         }
 
         // Create updated package using the constructor
@@ -298,7 +298,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     public List<PackageResponseModel> getPackagesByPickupLocationId(Long pickupLocationId) {
         // Validate that the pickup location exists
         if (pickupLocationRepository.countByPickupLocationIdAndClientId(pickupLocationId, getClientId()) == 0) {
-            throw new NotFoundException(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, pickupLocationId));
+            throw new NotFoundException(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, pickupLocationId));
         }
         
         List<PackagePickupLocationMapping> mappings = packagePickupLocationMappingRepository.findByPickupLocationIdAndClientId(pickupLocationId, getClientId());
@@ -325,7 +325,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     public void bulkCreatePackagesAsync(List<PackageRequestModel> packages, Long requestingUserId, String requestingUserLoginName, Long requestingClientId) {
         // Validate input
         if (packages == null || packages.isEmpty()) {
-            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, ErrorMessages.PackageErrorMessages.EntityName));
+            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, ErrorMessages.PackageErrorMessages.ENTITY_NAME));
         }
 
         try {
@@ -350,15 +350,15 @@ public class PackageService extends BaseService implements IPackageSubTranslator
                 } catch (BadRequestException badRequestException) {
                     // Validation or business logic error
                     response.addFailure(
-                        packageRequest.getPackageName() != null ? packageRequest.getPackageName() : ErrorMessages.PackageErrorMessages.UnknownPackageName, 
+                        packageRequest.getPackageName() != null ? packageRequest.getPackageName() : ErrorMessages.PackageErrorMessages.UNKNOWN_PACKAGE_NAME, 
                         badRequestException.getMessage()
                     );
                     failureCount++;
                 } catch (Exception e) {
                     // Unexpected error
                     response.addFailure(
-                        packageRequest.getPackageName() != null ? packageRequest.getPackageName() : ErrorMessages.PackageErrorMessages.UnknownPackageName, 
-                        String.format(ErrorMessages.PackageErrorMessages.BulkItemErrorFormat, e.getMessage())
+                        packageRequest.getPackageName() != null ? packageRequest.getPackageName() : ErrorMessages.PackageErrorMessages.UNKNOWN_PACKAGE_NAME, 
+                        String.format(ErrorMessages.PackageErrorMessages.BULK_ITEM_ERROR_FORMAT, e.getMessage())
                     );
                     failureCount++;
                 }
@@ -389,8 +389,8 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             errorResponse.setSuccessCount(0);
             errorResponse.setFailureCount(packages != null ? packages.size() : 0);
             errorResponse.addFailure(
-                ErrorMessages.PackageErrorMessages.BulkImportKey,
-                String.format(ErrorMessages.PackageErrorMessages.BulkCriticalErrorFormat, e.getMessage()));
+                ErrorMessages.PackageErrorMessages.BULK_IMPORT_KEY,
+                String.format(ErrorMessages.PackageErrorMessages.BULK_CRITICAL_ERROR_FORMAT, e.getMessage()));
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
                 errorResponse, "Package", "Packages", "Package Name", "Package ID", 
                 messageService, requestingUserId, requestingUserLoginName, requestingClientId
@@ -410,7 +410,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     public BulkInsertResponseModel<Long> bulkCreatePackages(List<PackageRequestModel> packages) {
         // Validate input
         if (packages == null || packages.isEmpty()) {
-            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, ErrorMessages.PackageErrorMessages.EntityName));
+            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, ErrorMessages.PackageErrorMessages.ENTITY_NAME));
         }
 
         BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
@@ -432,15 +432,15 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             } catch (BadRequestException badRequestException) {
                 // Validation or business logic error
                 response.addFailure(
-                    packageRequest.getPackageName() != null ? packageRequest.getPackageName() : ErrorMessages.PackageErrorMessages.UnknownPackageName, 
+                    packageRequest.getPackageName() != null ? packageRequest.getPackageName() : ErrorMessages.PackageErrorMessages.UNKNOWN_PACKAGE_NAME, 
                     badRequestException.getMessage()
                 );
                 failureCount++;
             } catch (Exception e) {
                 // Unexpected error
                 response.addFailure(
-                    packageRequest.getPackageName() != null ? packageRequest.getPackageName() : ErrorMessages.PackageErrorMessages.UnknownPackageName, 
-                    String.format(ErrorMessages.PackageErrorMessages.BulkItemErrorFormat, e.getMessage())
+                    packageRequest.getPackageName() != null ? packageRequest.getPackageName() : ErrorMessages.PackageErrorMessages.UNKNOWN_PACKAGE_NAME, 
+                    String.format(ErrorMessages.PackageErrorMessages.BULK_ITEM_ERROR_FORMAT, e.getMessage())
                 );
                 failureCount++;
             }

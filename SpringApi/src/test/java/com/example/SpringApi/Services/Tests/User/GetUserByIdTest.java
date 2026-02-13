@@ -142,7 +142,7 @@ class GetUserByIdTest extends UserServiceTestBase {
                 () -> userService.getUserById(Long.MAX_VALUE));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -161,7 +161,7 @@ class GetUserByIdTest extends UserServiceTestBase {
                 () -> userService.getUserById(-1L));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -180,7 +180,7 @@ class GetUserByIdTest extends UserServiceTestBase {
                 () -> userService.getUserById(TEST_USER_ID));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /**
@@ -199,7 +199,7 @@ class GetUserByIdTest extends UserServiceTestBase {
                 () -> userService.getUserById(0L));
 
         // Assert
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     // ========================================

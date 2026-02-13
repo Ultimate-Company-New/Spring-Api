@@ -122,7 +122,7 @@ class ToggleClientTest extends ClientServiceTestBase {
                                 () -> clientService.toggleClient(TEST_CLIENT_ID));
 
                 // Assert
-                assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+                assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
                 verify(clientRepository, never()).save(any());
         }
 
@@ -142,7 +142,7 @@ class ToggleClientTest extends ClientServiceTestBase {
                                 () -> clientService.toggleClient(Long.MAX_VALUE));
 
                 // Assert
-                assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+                assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
         }
 
         /*
@@ -161,7 +161,7 @@ class ToggleClientTest extends ClientServiceTestBase {
                                 () -> clientService.toggleClient(Long.MIN_VALUE));
 
                 // Assert
-                assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+                assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
         }
 
         /*
@@ -181,7 +181,7 @@ class ToggleClientTest extends ClientServiceTestBase {
                                 () -> clientService.toggleClient(negativeId));
 
                 // Assert
-                assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+                assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
         }
 
         /*
@@ -201,7 +201,7 @@ class ToggleClientTest extends ClientServiceTestBase {
                                 () -> clientService.toggleClient(zeroId));
 
                 // Assert
-                assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+                assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
         }
 
         /*

@@ -81,7 +81,7 @@ public class AddressService extends BaseService implements IAddressSubTranslator
             userLogService.logData(getUserId(), SuccessMessages.AddressSuccessMessages.ToggleAddress + " " + address.get().getAddressId(),
                     ApiRoutes.AddressSubRoute.TOGGLE_ADDRESS);
         } else {
-            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound);
+            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NOT_FOUND);
         }
     }
 
@@ -101,10 +101,10 @@ public class AddressService extends BaseService implements IAddressSubTranslator
     public AddressResponseModel getAddressById(long addressId) {
         Optional<Address> address = addressRepository.findById(addressId);
         if (address.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound);
+            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NOT_FOUND);
         }
         if (address.get().getIsDeleted()) {
-            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound);
+            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NOT_FOUND);
         }
         return new AddressResponseModel(address.get());
     }
@@ -156,7 +156,7 @@ public class AddressService extends BaseService implements IAddressSubTranslator
             userLogService.logData(getUserId(), SuccessMessages.AddressSuccessMessages.UpdateAddress + " " + updatedAddress.getAddressId(),
                     ApiRoutes.AddressSubRoute.UPDATE_ADDRESS);
         } else {
-            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound);
+            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NOT_FOUND);
         }
     }
 
@@ -179,10 +179,10 @@ public class AddressService extends BaseService implements IAddressSubTranslator
         // Validate that user exists and is not deleted
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound);
+            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NOT_FOUND);
         }
         if (user.get().getIsDeleted()) {
-            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound);
+            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NOT_FOUND);
         }
         
         List<Address> addresses = addressRepository.findByUserIdAndIsDeletedOrderByAddressIdDesc(userId, false);
@@ -214,10 +214,10 @@ public class AddressService extends BaseService implements IAddressSubTranslator
         // Validate that client exists and is not deleted
         Optional<Client> client = clientRepository.findById(clientId);
         if (client.isEmpty()) {
-            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound);
+            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NOT_FOUND);
         }
         if (client.get().getIsDeleted()) {
-            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NotFound);
+            throw new NotFoundException(ErrorMessages.AddressErrorMessages.NOT_FOUND);
         }
         
         List<Address> addresses = addressRepository.findByClientIdAndIsDeletedOrderByAddressIdDesc(clientId, false);

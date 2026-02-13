@@ -86,7 +86,7 @@ public class ResetPasswordTest extends LoginServiceTestBase {
             RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> loginService.resetPassword(testLoginRequest));
 
-            assertEquals(ErrorMessages.LoginErrorMessages.ResetPasswordEmailFailed, exception.getMessage());
+            assertEquals(ErrorMessages.LoginErrorMessages.RESET_PASSWORD_EMAIL_FAILED, exception.getMessage());
         }
     }
 
@@ -127,7 +127,7 @@ public class ResetPasswordTest extends LoginServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> loginService.resetPassword(testLoginRequest));
 
-        assertEquals(ErrorMessages.ConfigurationErrorMessages.BrevoApiKeyNotConfigured, exception.getMessage());
+        assertEquals(ErrorMessages.ConfigurationErrorMessages.BREVO_API_KEY_NOT_CONFIGURED, exception.getMessage());
     }
 
     /**
@@ -166,7 +166,7 @@ public class ResetPasswordTest extends LoginServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> loginService.resetPassword(testLoginRequest));
 
-        assertEquals(ErrorMessages.ConfigurationErrorMessages.SendGridEmailNotConfigured, exception.getMessage());
+        assertEquals(ErrorMessages.ConfigurationErrorMessages.SEND_GRID_EMAIL_NOT_CONFIGURED, exception.getMessage());
     }
 
     /**
@@ -186,7 +186,7 @@ public class ResetPasswordTest extends LoginServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> loginService.resetPassword(testLoginRequest));
 
-        assertEquals(ErrorMessages.ConfigurationErrorMessages.SendGridNameNotConfigured, exception.getMessage());
+        assertEquals(ErrorMessages.ConfigurationErrorMessages.SEND_GRID_NAME_NOT_CONFIGURED, exception.getMessage());
     }
 
     /**
@@ -206,7 +206,7 @@ public class ResetPasswordTest extends LoginServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class,
             () -> loginService.resetPassword(testLoginRequest));
 
-        assertEquals(ErrorMessages.ConfigurationErrorMessages.SendGridApiKeyNotConfigured, exception.getMessage());
+        assertEquals(ErrorMessages.ConfigurationErrorMessages.SEND_GRID_API_KEY_NOT_CONFIGURED, exception.getMessage());
     }
 
     /**
@@ -225,7 +225,7 @@ public class ResetPasswordTest extends LoginServiceTestBase {
         RuntimeException exception = assertThrows(RuntimeException.class,
             () -> loginService.resetPassword(testLoginRequest));
 
-        assertEquals(ErrorMessages.ConfigurationErrorMessages.NoClientConfigurationFound, exception.getMessage());
+        assertEquals(ErrorMessages.ConfigurationErrorMessages.NO_CLIENT_CONFIGURATION_FOUND, exception.getMessage());
     }
 
     /**
@@ -280,7 +280,7 @@ public class ResetPasswordTest extends LoginServiceTestBase {
         // Act & Assert
         NullPointerException exception = assertThrows(NullPointerException.class,
                 () -> loginService.resetPassword(null));
-        assertEquals(ErrorMessages.LoginErrorMessages.NullRequest, exception.getMessage());
+        assertEquals(ErrorMessages.LoginErrorMessages.NULL_REQUEST, exception.getMessage());
     }
 
     /**
@@ -299,7 +299,7 @@ public class ResetPasswordTest extends LoginServiceTestBase {
                 NotFoundException.class,
                 () -> loginService.resetPassword(testLoginRequest));
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidEmail, exception.getMessage());
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_EMAIL, exception.getMessage());
     }
 
     /**

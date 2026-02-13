@@ -42,9 +42,14 @@ public class UserLogService extends BaseService implements IUserLogSubTranslator
     @Override
     public Boolean logData(long userId, String action, String oldValue, String newValue) {
         // Create log entry with action as the change and description combining old/new values
-        String description = oldValue != null && newValue != null ? 
-            "Changed from '" + oldValue + "' to '" + newValue + "'" : 
-            (newValue != null ? "Set to '" + newValue + "'" : "Cleared value");
+        String description;
+        if (oldValue != null && newValue != null) {
+            description = "Changed from '" + oldValue + "' to '" + newValue + "'";
+        } else if (newValue != null) {
+            description = "Set to '" + newValue + "'";
+        } else {
+            description = "Cleared value";
+        }
   
         UserLog userLog = new UserLog(userId, getClientId(), action, description, newValue, oldValue, getUser());
         userLogRepository.save(userLog);
@@ -120,12 +125,12 @@ public class UserLogService extends BaseService implements IUserLogSubTranslator
 
         // Validate page size
         if (pageSize <= 0) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION);
         }
 
         // Validate logic operator if provided
         if (getUserLogsRequestModel.getLogicOperator() != null && !getUserLogsRequestModel.isValidLogicOperator()) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidLogicOperator);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_LOGIC_OPERATOR);
         }
 
         // Validate filters if provided

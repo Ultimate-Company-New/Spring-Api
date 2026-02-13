@@ -122,7 +122,7 @@ public class ProductReview {
      */
     private void validateRequest(ProductReviewRequestModel request) {
         if (request == null) {
-            throw new BadRequestException(ErrorMessages.ProductReviewErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.ProductReviewErrorMessages.INVALID_ID);
         }
         
         // Validate ratings
@@ -156,7 +156,7 @@ public class ProductReview {
      */
     private void validateUser(String user) {
         if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ProductReviewErrorMessages.InvalidAuditUser);
+            throw new BadRequestException(ErrorMessages.ProductReviewErrorMessages.INVALID_AUDIT_USER);
         }
     }
 

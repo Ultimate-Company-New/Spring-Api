@@ -124,7 +124,7 @@ class GetPackagesByPickupLocationIdTest extends PackageServiceTestBase {
                 () -> packageService.getPackagesByPickupLocationId(locationId));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, locationId), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, locationId), ex.getMessage());
     }
 
     /*
@@ -261,7 +261,7 @@ class GetPackagesByPickupLocationIdTest extends PackageServiceTestBase {
                 () -> packageService.getPackagesByPickupLocationId(Long.MAX_VALUE));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, Long.MAX_VALUE), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, Long.MAX_VALUE), ex.getMessage());
     }
 
     /*
@@ -281,7 +281,7 @@ class GetPackagesByPickupLocationIdTest extends PackageServiceTestBase {
                 () -> packageService.getPackagesByPickupLocationId(invalidId));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, invalidId), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, invalidId), ex.getMessage());
     }
 
     /*
@@ -300,7 +300,7 @@ class GetPackagesByPickupLocationIdTest extends PackageServiceTestBase {
                 () -> packageService.getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, TEST_PICKUP_LOCATION_ID),
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, TEST_PICKUP_LOCATION_ID),
                 ex.getMessage());
     }
 
@@ -320,7 +320,7 @@ class GetPackagesByPickupLocationIdTest extends PackageServiceTestBase {
                 () -> packageService.getPackagesByPickupLocationId(0L));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, 0L), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, 0L), ex.getMessage());
     }
 
     /*
@@ -491,7 +491,7 @@ class GetPackagesByPickupLocationIdDuplicateTests extends PackageServiceTestBase
                 () -> packageService.getPackagesByPickupLocationId(locationId));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, locationId), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, locationId), ex.getMessage());
     }
 
     /**
@@ -627,7 +627,7 @@ class GetPackagesByPickupLocationIdDuplicateTests extends PackageServiceTestBase
                 () -> packageService.getPackagesByPickupLocationId(Long.MAX_VALUE));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, Long.MAX_VALUE), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, Long.MAX_VALUE), ex.getMessage());
     }
 
     /**
@@ -647,7 +647,7 @@ class GetPackagesByPickupLocationIdDuplicateTests extends PackageServiceTestBase
                 () -> packageService.getPackagesByPickupLocationId(invalidId));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, invalidId), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, invalidId), ex.getMessage());
     }
 
     /**
@@ -666,7 +666,7 @@ class GetPackagesByPickupLocationIdDuplicateTests extends PackageServiceTestBase
                 () -> packageService.getPackagesByPickupLocationId(TEST_PICKUP_LOCATION_ID));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, TEST_PICKUP_LOCATION_ID),
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, TEST_PICKUP_LOCATION_ID),
                 ex.getMessage());
     }
 
@@ -686,7 +686,7 @@ class GetPackagesByPickupLocationIdDuplicateTests extends PackageServiceTestBase
                 () -> packageService.getPackagesByPickupLocationId(0L));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, 0L), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, 0L), ex.getMessage());
     }
 
     /*

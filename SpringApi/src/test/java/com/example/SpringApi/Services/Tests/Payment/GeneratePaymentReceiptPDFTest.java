@@ -45,7 +45,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
                 () -> paymentService.generatePaymentReceiptPDF(TEST_PAYMENT_ID));
 
         // Assert
-        assertEquals(ErrorMessages.PaymentErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.PaymentErrorMessages.NOT_FOUND, ex.getMessage());
         verify(paymentRepository, times(1)).findById(TEST_PAYMENT_ID);
     }
 
@@ -90,7 +90,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
                 () -> paymentService.generatePaymentReceiptPDF(TEST_PAYMENT_ID));
 
         // Assert
-        assertEquals(ErrorMessages.PaymentErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.PaymentErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
     /**
@@ -108,7 +108,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.generatePaymentReceiptPDF(-1L));
 
         // Assert
-        assertEquals(ErrorMessages.PaymentErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.PaymentErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
     /**
@@ -126,7 +126,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> paymentService.generatePaymentReceiptPDF(0L));
 
         // Assert
-        assertEquals(ErrorMessages.PaymentErrorMessages.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.PaymentErrorMessages.NOT_FOUND, ex.getMessage());
     }
 
     /**
@@ -146,7 +146,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
                 () -> paymentService.generatePaymentReceiptPDF(TEST_PAYMENT_ID));
 
         // Assert
-        assertEquals(ErrorMessages.PaymentErrorMessages.AccessDenied, ex.getMessage());
+        assertEquals(ErrorMessages.PaymentErrorMessages.ACCESS_DENIED, ex.getMessage());
     }
 
     // ========================================

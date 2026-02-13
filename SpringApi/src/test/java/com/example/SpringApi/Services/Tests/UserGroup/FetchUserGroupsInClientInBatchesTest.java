@@ -171,7 +171,7 @@ class FetchUserGroupsInClientInBatchesTest extends UserGroupServiceTestBase {
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.fetchUserGroupsInClientInBatches(request));
         assertTrue(ex.getMessage().startsWith(
-                String.format(ErrorMessages.CommonErrorMessages.InvalidColumnName, "invalidColumn")));
+                String.format(ErrorMessages.CommonErrorMessages.INVALID_COLUMN_NAME, "invalidColumn")));
     }
 
     /**
@@ -189,7 +189,7 @@ class FetchUserGroupsInClientInBatchesTest extends UserGroupServiceTestBase {
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.fetchUserGroupsInClientInBatches(request));
-        assertEquals(ErrorMessages.CommonErrorMessages.InvalidLogicOperator, ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.INVALID_LOGIC_OPERATOR, ex.getMessage());
     }
 
     /**
@@ -208,7 +208,7 @@ class FetchUserGroupsInClientInBatchesTest extends UserGroupServiceTestBase {
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> userGroupService.fetchUserGroupsInClientInBatches(request));
-        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION, ex.getMessage());
     }
 
     // ========================================

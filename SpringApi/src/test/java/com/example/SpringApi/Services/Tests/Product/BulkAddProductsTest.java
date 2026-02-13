@@ -133,7 +133,7 @@ class BulkAddProductsTest extends ProductServiceTestBase {
         // Arrange
 
         // Act & Assert
-        assertThrowsBadRequest(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Product"),
+        assertThrowsBadRequest(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Product"),
                 () -> productService.bulkAddProducts(new ArrayList<>()));
     }
 
@@ -148,7 +148,7 @@ class BulkAddProductsTest extends ProductServiceTestBase {
         // Arrange
 
         // Act & Assert
-        assertThrowsBadRequest(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Product"),
+        assertThrowsBadRequest(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Product"),
                 () -> productService.bulkAddProducts(null));
     }
 

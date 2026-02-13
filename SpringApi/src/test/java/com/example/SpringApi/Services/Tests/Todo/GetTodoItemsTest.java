@@ -286,7 +286,7 @@ class GetTodoItemsTest extends TodoServiceTestBase {
     /*
      * Purpose: Verify null from repository is handled.
      * Expected Result: BadRequestException is thrown.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.InvalidRequest
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.INVALID_REQUEST
      */
     @Test
     @DisplayName("getTodoItems - Null From Repository - Throws BadRequestException")
@@ -299,7 +299,7 @@ class GetTodoItemsTest extends TodoServiceTestBase {
         BadRequestException ex = assertThrows(BadRequestException.class, () -> todoService.getTodoItems());
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidRequest, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_REQUEST, ex.getMessage());
     }
 
     // ========================================

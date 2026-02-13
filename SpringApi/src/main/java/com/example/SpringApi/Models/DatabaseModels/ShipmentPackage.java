@@ -115,30 +115,30 @@ public class ShipmentPackage {
     private void validateRequest(Long shipmentId,
                                 com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel.ShipmentPackageData packageData) {
         if (packageData == null) {
-            throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.INVALID_REQUEST);
         }
         
         // Validate shipment ID
         if (shipmentId == null || shipmentId <= 0) {
-            throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.ShipmentIdRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.SHIPMENT_ID_REQUIRED);
         }
         
         // Validate package ID
         if (packageData.getPackageId() == null || packageData.getPackageId() <= 0) {
-            throw new BadRequestException(ErrorMessages.PackageErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.PackageErrorMessages.INVALID_ID);
         }
         
         // Validate quantity used
         if (packageData.getQuantityUsed() == null || packageData.getQuantityUsed() <= 0) {
-            throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.QuantityUsedRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.QUANTITY_USED_REQUIRED);
         }
         
         // Validate total cost
         if (packageData.getTotalCost() == null) {
-            throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.TotalCostRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.TOTAL_COST_REQUIRED);
         }
         if (packageData.getTotalCost().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.TotalCostInvalid);
+            throw new BadRequestException(ErrorMessages.ShipmentPackageErrorMessages.TOTAL_COST_INVALID);
         }
     }
 }

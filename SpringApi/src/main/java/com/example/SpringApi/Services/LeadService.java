@@ -103,12 +103,12 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
 
         // Validate page size
         if (pageSize <= 0) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION);
         }
 
         // Validate logic operator if provided
         if (leadRequestModel.getLogicOperator() != null && !leadRequestModel.isValidLogicOperator()) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidLogicOperator);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_LOGIC_OPERATOR);
         }
 
         // Validate filters if provided
@@ -123,7 +123,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
                 // Validate column name
                 if (!validColumns.contains(filter.getColumn())) {
                     throw new BadRequestException(String.format(
-                            ErrorMessages.LeadsErrorMessages.InvalidColumnNameWithValidColumnsFormat,
+                            ErrorMessages.LeadsErrorMessages.INVALID_COLUMN_NAME_WITH_VALID_COLUMNS_FORMAT,
                             filter.getColumn(),
                             String.join(", ", validColumns)));
                 }
@@ -131,7 +131,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
                 // Validate operator
                 if (!filter.isValidOperator()) {
                     throw new BadRequestException(String.format(
-                            ErrorMessages.LeadsErrorMessages.InvalidOperatorForColumnFormat,
+                            ErrorMessages.LeadsErrorMessages.INVALID_OPERATOR_FOR_COLUMN_FORMAT,
                             filter.getOperator(),
                             filter.getColumn()));
                 }
@@ -331,7 +331,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
             // Validate input
             if (leads == null || leads.isEmpty()) {
                 throw new BadRequestException(
-                        String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Lead"));
+                        String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Lead"));
             }
 
             com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
@@ -371,7 +371,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
                     // Unexpected error
                     response.addFailure(
                             leadRequest.getEmail() != null ? leadRequest.getEmail() : UNKNOWN_VALUE,
-                            String.format(ErrorMessages.LeadsErrorMessages.BulkItemErrorFormat, e.getMessage()));
+                            String.format(ErrorMessages.LeadsErrorMessages.BULK_ITEM_ERROR_FORMAT, e.getMessage()));
                     failureCount++;
                 }
             }
@@ -402,7 +402,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
             errorResponse.setFailureCount(leads != null ? leads.size() : 0);
             errorResponse.addFailure(
                     "bulk_import",
-                    String.format(ErrorMessages.LeadsErrorMessages.BulkCriticalErrorFormat, e.getMessage()));
+                    String.format(ErrorMessages.LeadsErrorMessages.BULK_CRITICAL_ERROR_FORMAT, e.getMessage()));
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
                     errorResponse, "Lead", "Leads", "Email", "Lead ID",
                     messageService, requestingUserId, requestingUserLoginName, requestingClientId);
@@ -425,7 +425,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         // Validate input
         if (leads == null || leads.isEmpty()) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Lead"));
+                    String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Lead"));
         }
 
         com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
@@ -458,7 +458,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
                 // Unexpected error
                 response.addFailure(
                         leadRequest.getEmail() != null ? leadRequest.getEmail() : UNKNOWN_VALUE,
-                        String.format(ErrorMessages.LeadsErrorMessages.BulkItemErrorFormat, e.getMessage()));
+                        String.format(ErrorMessages.LeadsErrorMessages.BULK_ITEM_ERROR_FORMAT, e.getMessage()));
                 failureCount++;
             }
         }

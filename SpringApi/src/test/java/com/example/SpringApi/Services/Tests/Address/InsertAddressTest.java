@@ -914,7 +914,7 @@ class InsertAddressTest extends AddressServiceTestBase {
                 BadRequestException.class,
                 () -> addressService.insertAddress(testAddressRequest));
 
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidUser, exception.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_USER, exception.getMessage());
     }
 
     /**
@@ -1009,7 +1009,7 @@ class InsertAddressTest extends AddressServiceTestBase {
                 BadRequestException.class,
                 () -> addressService.insertAddress(testAddressRequest));
 
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, exception.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, exception.getMessage());
     }
 
     /**
@@ -1028,7 +1028,7 @@ class InsertAddressTest extends AddressServiceTestBase {
                 BadRequestException.class,
                 () -> addressService.insertAddress(testAddressRequest));
 
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, exception.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, exception.getMessage());
     }
 
     /**
@@ -1257,7 +1257,7 @@ class InsertAddressTest extends AddressServiceTestBase {
                 BadRequestException.class,
                 () -> addressService.insertAddress(testAddressRequest));
 
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, exception.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, exception.getMessage());
     }
 
     /**
@@ -1276,7 +1276,7 @@ class InsertAddressTest extends AddressServiceTestBase {
                 BadRequestException.class,
                 () -> addressService.insertAddress(testAddressRequest));
 
-        assertEquals(ErrorMessages.UserErrorMessages.InvalidId, exception.getMessage());
+        assertEquals(ErrorMessages.UserErrorMessages.INVALID_ID, exception.getMessage());
     }
 
     /*

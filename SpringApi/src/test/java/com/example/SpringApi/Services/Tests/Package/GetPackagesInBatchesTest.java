@@ -157,7 +157,7 @@ class GetPackagesInBatchesTest extends PackageServiceTestBase {
         testPaginationRequest.setEnd(0);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.EndIndexMustBeGreaterThanZero,
+        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.END_INDEX_MUST_BE_GREATER_THAN_ZERO,
                 () -> packageService.getPackagesInBatches(testPaginationRequest));
     }
 
@@ -173,7 +173,7 @@ class GetPackagesInBatchesTest extends PackageServiceTestBase {
         testPaginationRequest.setStart(-1);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.StartIndexCannotBeNegative,
+        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.START_INDEX_CANNOT_BE_NEGATIVE,
                 () -> packageService.getPackagesInBatches(testPaginationRequest));
     }
 
@@ -190,7 +190,7 @@ class GetPackagesInBatchesTest extends PackageServiceTestBase {
         testPaginationRequest.setEnd(5);
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.StartIndexMustBeLessThanEnd,
+        assertThrowsBadRequest(ErrorMessages.CommonErrorMessages.START_INDEX_MUST_BE_LESS_THAN_END,
                 () -> packageService.getPackagesInBatches(testPaginationRequest));
     }
 

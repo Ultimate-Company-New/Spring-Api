@@ -6,8 +6,14 @@ import com.example.SpringApi.Exceptions.BadRequestException;
 import com.example.SpringApi.ErrorMessages;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -161,79 +167,37 @@ class CreateLeadTest extends LeadServiceTestBase {
      * Expected Result: BadRequestException is thrown.
      * Assertions: Error message matches ER001.
      */
-    @Test
-    @DisplayName("Create Lead - Empty Email - ThrowsBadRequestException")
-    void createLead_f01_EmptyEmail_ThrowsBadRequestException() {
+    @ParameterizedTest(name = "Create Lead - {0} - ThrowsBadRequestException")
+    @MethodSource("emptyRequiredFieldScenarios")
+    void createLead_emptyRequiredFields_ThrowsBadRequestException(
+            String scenario,
+            Consumer<com.example.SpringApi.Models.RequestModels.LeadRequestModel> mutator,
+            String expectedError) {
         // Arrange
-        testLeadRequest.setEmail("");
+        mutator.accept(testLeadRequest);
 
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class, () -> leadService.createLead(testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER001, ex.getMessage());
+        assertEquals(expectedError, ex.getMessage(), "Scenario: " + scenario);
     }
 
-    /**
-     * Purpose: Reject lead creation with an empty first name.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER002.
-     */
-    @Test
-    @DisplayName("Create Lead - Empty First Name - ThrowsBadRequestException")
-    void createLead_f02_EmptyFirstName_ThrowsBadRequestException() {
-        // Arrange
-        testLeadRequest.setFirstName("");
-
-        // Act & Assert
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> leadService.createLead(testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER002, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Reject lead creation with an empty last name.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER003.
-     */
-    @Test
-    @DisplayName("Create Lead - Empty Last Name - ThrowsBadRequestException")
-    void createLead_f03_EmptyLastName_ThrowsBadRequestException() {
-        // Arrange
-        testLeadRequest.setLastName("");
-
-        // Act & Assert
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> leadService.createLead(testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER003, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Reject lead creation with an empty phone string.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER004.
-     */
-    @Test
-    @DisplayName("Create Lead - Empty Phone - ThrowsBadRequestException")
-    void createLead_f04_EmptyPhone_ThrowsBadRequestException() {
-        // Arrange
-        testLeadRequest.setPhone("");
-
-        // Act & Assert
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> leadService.createLead(testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER004, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Reject lead creation with an empty status string.
-     * Expected Result: BadRequestException is thrown.
-     * Assertions: Error message matches ER008.
-     */
-    @Test
-    @DisplayName("Create Lead - Empty Status - ThrowsBadRequestException")
-    void createLead_f05_EmptyStatus_ThrowsBadRequestException() {
-        // Arrange
-        testLeadRequest.setLeadStatus("");
-
-        // Act & Assert
-        BadRequestException ex = assertThrows(BadRequestException.class, () -> leadService.createLead(testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER008, ex.getMessage());
+    private static Stream<Arguments> emptyRequiredFieldScenarios() {
+        return Stream.of(
+                Arguments.of("Empty Email",
+                        (Consumer<com.example.SpringApi.Models.RequestModels.LeadRequestModel>) req -> req.setEmail(""),
+                        ErrorMessages.LeadsErrorMessages.ER001),
+                Arguments.of("Empty First Name",
+                        (Consumer<com.example.SpringApi.Models.RequestModels.LeadRequestModel>) req -> req.setFirstName(""),
+                        ErrorMessages.LeadsErrorMessages.ER002),
+                Arguments.of("Empty Last Name",
+                        (Consumer<com.example.SpringApi.Models.RequestModels.LeadRequestModel>) req -> req.setLastName(""),
+                        ErrorMessages.LeadsErrorMessages.ER003),
+                Arguments.of("Empty Phone",
+                        (Consumer<com.example.SpringApi.Models.RequestModels.LeadRequestModel>) req -> req.setPhone(""),
+                        ErrorMessages.LeadsErrorMessages.ER004),
+                Arguments.of("Empty Status",
+                        (Consumer<com.example.SpringApi.Models.RequestModels.LeadRequestModel>) req -> req.setLeadStatus(""),
+                        ErrorMessages.LeadsErrorMessages.ER008));
     }
 
     /**
@@ -506,24 +470,6 @@ class CreateLeadTest extends LeadServiceTestBase {
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class, () -> leadService.createLead(testLeadRequest));
         assertEquals(ErrorMessages.LeadsErrorMessages.ER016, ex.getMessage());
-    }
-
-    /**
-     * Purpose: Ensure input validation rejects missing required email field.
-     * Given: LeadDTO without email
-     * When: createLead is called
-     * Then: BadRequestException is thrown with email validation error message
-     */
-    @Test
-    @DisplayName("Create Lead - Validation Missing Email Failure")
-    void createLead_f23_unit_validation_missingEmail() {
-        // Arrange
-        testLeadRequest.setEmail(null);
-
-        // Act & Assert
-        BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.createLead(testLeadRequest));
-        assertEquals(ErrorMessages.LeadsErrorMessages.ER001, ex.getMessage());
     }
 
     /*

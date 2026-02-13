@@ -114,7 +114,7 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentById(TEST_SHIPMENT_ID));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NOT_FOUND, TEST_SHIPMENT_ID), ex.getMessage());
         }
 
         /**
@@ -134,7 +134,7 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentById(Long.MAX_VALUE));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, Long.MAX_VALUE), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NOT_FOUND, Long.MAX_VALUE), ex.getMessage());
         }
 
         /**
@@ -158,8 +158,8 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentById(shipmentId2));
 
         // Assert
-        assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, ex1.getMessage());
-        assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, ex2.getMessage());
+        assertEquals(ErrorMessages.ShipmentErrorMessages.INVALID_ID, ex1.getMessage());
+        assertEquals(ErrorMessages.ShipmentErrorMessages.INVALID_ID, ex2.getMessage());
         }
 
         /**
@@ -179,7 +179,7 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentById(shipmentId));
 
         // Assert
-        assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ShipmentErrorMessages.INVALID_ID, ex.getMessage());
         }
 
         /**
@@ -199,7 +199,7 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentById(TEST_SHIPMENT_ID));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NOT_FOUND, TEST_SHIPMENT_ID), ex.getMessage());
         }
 
         /**
@@ -219,7 +219,7 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentById(shipmentId));
 
         // Assert
-        assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ShipmentErrorMessages.INVALID_ID, ex.getMessage());
         }
 
         /**
@@ -240,7 +240,7 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentById(TEST_SHIPMENT_ID));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NOT_FOUND, TEST_SHIPMENT_ID), ex.getMessage());
         }
 
         /**
@@ -261,7 +261,7 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentById(TEST_SHIPMENT_ID));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NOT_FOUND, TEST_SHIPMENT_ID), ex.getMessage());
         }
 
         /**
@@ -282,7 +282,7 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentById(TEST_SHIPMENT_ID));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NOT_FOUND, TEST_SHIPMENT_ID), ex.getMessage());
         }
 
         /**
@@ -302,7 +302,7 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentById(shipmentId));
 
         // Assert
-        assertEquals(ErrorMessages.ShipmentErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ShipmentErrorMessages.INVALID_ID, ex.getMessage());
         }
 
     /*

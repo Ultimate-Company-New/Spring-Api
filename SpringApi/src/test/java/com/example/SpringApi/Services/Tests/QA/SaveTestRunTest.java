@@ -175,7 +175,7 @@ class SaveTestRunTest extends QAServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             qaService.saveTestRun(request);
         });
-        assertEquals(ErrorMessages.QAErrorMessages.TestRunRequestCannotBeNull, exception.getMessage());
+        assertEquals(ErrorMessages.QAErrorMessages.TEST_RUN_REQUEST_CANNOT_BE_NULL, exception.getMessage());
     }
 
     /**
@@ -193,7 +193,7 @@ class SaveTestRunTest extends QAServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             qaService.saveTestRun(request);
         });
-        assertEquals(ErrorMessages.QAErrorMessages.ServiceNameRequired, exception.getMessage());
+        assertEquals(ErrorMessages.QAErrorMessages.SERVICE_NAME_REQUIRED, exception.getMessage());
     }
 
     /**
@@ -211,7 +211,7 @@ class SaveTestRunTest extends QAServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             qaService.saveTestRun(request);
         });
-        assertEquals(ErrorMessages.QAErrorMessages.ServiceNameRequired, exception.getMessage());
+        assertEquals(ErrorMessages.QAErrorMessages.SERVICE_NAME_REQUIRED, exception.getMessage());
     }
 
     /**
@@ -229,7 +229,7 @@ class SaveTestRunTest extends QAServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             qaService.saveTestRun(request);
         });
-        assertEquals(ErrorMessages.QAErrorMessages.ServiceNameRequired, exception.getMessage());
+        assertEquals(ErrorMessages.QAErrorMessages.SERVICE_NAME_REQUIRED, exception.getMessage());
     }
 
     /**
@@ -247,7 +247,7 @@ class SaveTestRunTest extends QAServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             qaService.saveTestRun(request);
         });
-        assertEquals(ErrorMessages.QAErrorMessages.AtLeastOneTestResultRequired, exception.getMessage());
+        assertEquals(ErrorMessages.QAErrorMessages.AT_LEAST_ONE_TEST_RESULT_REQUIRED, exception.getMessage());
     }
 
     /**
@@ -265,7 +265,7 @@ class SaveTestRunTest extends QAServiceTestBase {
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             qaService.saveTestRun(request);
         });
-        assertEquals(ErrorMessages.QAErrorMessages.AtLeastOneTestResultRequired, exception.getMessage());
+        assertEquals(ErrorMessages.QAErrorMessages.AT_LEAST_ONE_TEST_RESULT_REQUIRED, exception.getMessage());
     }
 
     /**
@@ -382,7 +382,7 @@ class SaveTestRunTest extends QAServiceTestBase {
         });
 
         // Verify the exception message comes from ErrorMessages constants
-        assertTrue(exception.getMessage().equals(ErrorMessages.QAErrorMessages.TestRunRequestCannotBeNull));
+        assertTrue(exception.getMessage().equals(ErrorMessages.QAErrorMessages.TEST_RUN_REQUEST_CANNOT_BE_NULL));
     }
 
     /*

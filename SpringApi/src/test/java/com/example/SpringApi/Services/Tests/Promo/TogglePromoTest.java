@@ -142,7 +142,7 @@ class TogglePromoTest extends PromoServiceTestBase {
                 () -> promoService.togglePromo(TEST_PROMO_ID));
 
         // Assert
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PromoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
 
@@ -161,7 +161,7 @@ class TogglePromoTest extends PromoServiceTestBase {
 
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class, () -> promoService.togglePromo(999L));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PromoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
 
@@ -180,7 +180,7 @@ class TogglePromoTest extends PromoServiceTestBase {
 
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class, () -> promoService.togglePromo(Long.MAX_VALUE));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PromoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
 
@@ -199,7 +199,7 @@ class TogglePromoTest extends PromoServiceTestBase {
 
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class, () -> promoService.togglePromo(Long.MIN_VALUE));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PromoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
 
@@ -218,7 +218,7 @@ class TogglePromoTest extends PromoServiceTestBase {
 
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class, () -> promoService.togglePromo(-100L));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PromoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
 
@@ -237,7 +237,7 @@ class TogglePromoTest extends PromoServiceTestBase {
 
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class, () -> promoService.togglePromo(-1L));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PromoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
 
@@ -256,7 +256,7 @@ class TogglePromoTest extends PromoServiceTestBase {
 
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class, () -> promoService.togglePromo(TEST_PROMO_ID));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PromoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
 
@@ -275,7 +275,7 @@ class TogglePromoTest extends PromoServiceTestBase {
 
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class, () -> promoService.togglePromo(0L));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PromoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*

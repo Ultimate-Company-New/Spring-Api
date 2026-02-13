@@ -72,6 +72,8 @@ import java.util.Map;
  */
 @Service
 public class ProductService extends BaseService implements IProductSubTranslator {
+    private static final String PRODUCT_ENTITY_LABEL = "Product";
+    private static final String UNKNOWN_TITLE = "unknown";
 
     private final Logger logger;
 
@@ -152,7 +154,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
     public void editProduct(ProductRequestModel productRequestModel) {
         // Validate request
         if (productRequestModel.getProductId() == null) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_ID);
         }
 
         // Find existing product
@@ -315,20 +317,20 @@ public class ProductService extends BaseService implements IProductSubTranslator
                 // Validate column name
                 if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
                     throw new BadRequestException(String
-                            .format(ErrorMessages.ProductErrorMessages.InvalidColumnNameFormat, filter.getColumn()));
+                            .format(ErrorMessages.ProductErrorMessages.INVALID_COLUMN_NAME_FORMAT, filter.getColumn()));
                 }
 
                 // Validate operator using centralized validation from FilterCondition
                 if (filter.getOperator() != null && !filter.isValidOperator()) {
                     throw new BadRequestException(String
-                            .format(ErrorMessages.ProductErrorMessages.InvalidOperatorFormat, filter.getOperator()));
+                            .format(ErrorMessages.ProductErrorMessages.INVALID_OPERATOR_FORMAT, filter.getOperator()));
                 }
 
                 // Validate column type matches operator using centralized validation
                 String columnType = productFilterQueryBuilder.getColumnType(filter.getColumn());
                 if (columnType != null && filter.getOperator() != null && !filter.isValidOperatorForType(columnType)) {
                     throw new BadRequestException(
-                            String.format(ErrorMessages.ProductErrorMessages.InvalidOperatorForColumnFormat,
+                            String.format(ErrorMessages.ProductErrorMessages.INVALID_OPERATOR_FOR_COLUMN_FORMAT,
                                     filter.getOperator(), columnType, filter.getColumn()));
                 }
             }
@@ -341,7 +343,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
 
         // Validate page size
         if (pageSize <= 0) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION);
         }
 
         // Create custom Pageable with proper offset handling
@@ -366,7 +368,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
         PaginationBaseResponseModel<ProductResponseModel> response = new PaginationBaseResponseModel<>();
         response.setData(productPage.getContent().stream()
                 .map(ProductResponseModel::new)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toCollection(ArrayList::new)));
 
         // Set pagination metadata
         response.setTotalDataCount(productPage.getTotalElements());
@@ -406,7 +408,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
             // Validate input
             if (products == null || products.isEmpty()) {
                 throw new BadRequestException(
-                        String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Product"));
+                        String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, PRODUCT_ENTITY_LABEL));
             }
 
             com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
@@ -428,13 +430,13 @@ public class ProductService extends BaseService implements IProductSubTranslator
                 } catch (BadRequestException bre) {
                     // Validation or business logic error
                     response.addFailure(
-                            productRequest.getTitle() != null ? productRequest.getTitle() : "unknown",
+                            productRequest.getTitle() != null ? productRequest.getTitle() : UNKNOWN_TITLE,
                             bre.getMessage());
                     failureCount++;
                 } catch (Exception e) {
                     // Unexpected error
                     response.addFailure(
-                            productRequest.getTitle() != null ? productRequest.getTitle() : "unknown",
+                            productRequest.getTitle() != null ? productRequest.getTitle() : UNKNOWN_TITLE,
                             "Error: " + e.getMessage());
                     failureCount++;
                 }
@@ -455,7 +457,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
             // Create a message with the bulk insert results using the helper (using
             // captured context)
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
-                    response, "Product", "Products", "Title", "Product ID",
+                    response, PRODUCT_ENTITY_LABEL, "Products", "Title", "Product ID",
                     messageService, requestingUserId, requestingUserLoginName, requestingClientId);
 
         } catch (Exception e) {
@@ -466,7 +468,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
             errorResponse.setFailureCount(products != null ? products.size() : 0);
             errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
-                    errorResponse, "Product", "Products", "Title", "Product ID",
+                    errorResponse, PRODUCT_ENTITY_LABEL, "Products", "Title", "Product ID",
                     messageService, requestingUserId, requestingUserLoginName, requestingClientId);
         }
     }
@@ -488,7 +490,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
         // Validate input
         if (products == null || products.isEmpty()) {
             throw new BadRequestException(
-                    String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "Product"));
+                    String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, PRODUCT_ENTITY_LABEL));
         }
 
         com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
@@ -505,12 +507,12 @@ public class ProductService extends BaseService implements IProductSubTranslator
                 successCount++;
             } catch (BadRequestException bre) {
                 response.addFailure(
-                        productRequest.getTitle() != null ? productRequest.getTitle() : "unknown",
+                        productRequest.getTitle() != null ? productRequest.getTitle() : UNKNOWN_TITLE,
                         bre.getMessage());
                 failureCount++;
             } catch (Exception e) {
                 response.addFailure(
-                        productRequest.getTitle() != null ? productRequest.getTitle() : "unknown",
+                        productRequest.getTitle() != null ? productRequest.getTitle() : UNKNOWN_TITLE,
                         "Error: " + e.getMessage());
                 failureCount++;
             }
@@ -554,7 +556,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
             // Fetch all root categories (categories with null parentId)
             categories = productCategoryRepository.findAll().stream()
                     .filter(cat -> cat.getParentId() == null)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toCollection(ArrayList::new));
         } else {
             // Fetch ALL child categories with the specified parentId (both leaf and
             // non-leaf)
@@ -562,7 +564,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
             categories = productCategoryRepository.findAll().stream()
                     .filter(cat -> cat.getParentId() != null &&
                             cat.getParentId().equals(parentId))
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toCollection(ArrayList::new));
         }
 
         // Build response models with full paths and isEnd flag
@@ -639,10 +641,10 @@ public class ProductService extends BaseService implements IProductSubTranslator
         // Get client and validate ImgBB API key
         Long clientId = getClientId();
         Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.InvalidId));
+                .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID));
 
         if (client.getImgbbApiKey() == null || client.getImgbbApiKey().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.ImgbbApiKeyNotConfigured);
+            throw new BadRequestException(ErrorMessages.ConfigurationErrorMessages.IMGBB_API_KEY_NOT_CONFIGURED);
         }
 
         ClientResponseModel clientDetails = clientService.getClientById(clientId);
@@ -920,6 +922,9 @@ public class ProductService extends BaseService implements IProductSubTranslator
                 product.setAdditionalImage3Url(url);
                 product.setAdditionalImage3DeleteHash(deleteHash);
                 break;
+            default:
+                // No-op for unknown image types to preserve current behavior.
+                break;
         }
     }
 
@@ -963,7 +968,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
 
             int responseCode = connection.getResponseCode();
             if (responseCode != 200) {
-                throw new IOException(String.format(ErrorMessages.ProductErrorMessages.HttpErrorWhenFetchingImageFormat,
+                throw new IOException(String.format(ErrorMessages.ProductErrorMessages.HTTP_ERROR_WHEN_FETCHING_IMAGE_FORMAT,
                         responseCode));
             }
 
@@ -1045,7 +1050,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
             Long userId, boolean shouldLog) {
         // Validate category exists
         if (productRequestModel.getCategoryId() == null) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidCategoryId);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_CATEGORY_ID);
         }
 
         Optional<com.example.SpringApi.Models.DatabaseModels.ProductCategory> categoryOpt = productCategoryRepository
@@ -1057,7 +1062,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
 
         // Validate clientId first
         if (clientId == null || clientId == 0) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_ID);
         }
 
         // Validate required images are present before any DB operations
@@ -1218,7 +1223,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
         // Get all pickup location IDs
         java.util.List<Long> pickupLocationIds = mappings.stream()
                 .map(ProductPickupLocationMapping::getPickupLocationId)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
 
         // Fetch package info for all locations in one query
         java.util.Map<Long, java.util.List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping>> packagesByLocation = new java.util.HashMap<>();

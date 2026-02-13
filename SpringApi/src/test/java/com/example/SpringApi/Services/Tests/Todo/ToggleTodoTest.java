@@ -204,7 +204,7 @@ class ToggleTodoTest extends TodoServiceTestBase {
     /*
      * Purpose: Verify max long ID throws NotFoundException.
      * Expected Result: NotFoundException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.InvalidId
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.INVALID_ID
      */
     @Test
     @DisplayName("toggleTodo - Max Long Id - NotFoundException")
@@ -217,13 +217,13 @@ class ToggleTodoTest extends TodoServiceTestBase {
                 () -> todoService.toggleTodo(Long.MAX_VALUE));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*
      * Purpose: Verify min long ID throws NotFoundException.
      * Expected Result: NotFoundException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.InvalidId
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.INVALID_ID
      */
     @Test
     @DisplayName("toggleTodo - Min Long Id - NotFoundException")
@@ -236,13 +236,13 @@ class ToggleTodoTest extends TodoServiceTestBase {
                 () -> todoService.toggleTodo(Long.MIN_VALUE));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*
      * Purpose: Verify negative ID throws NotFoundException.
      * Expected Result: NotFoundException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.InvalidId
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.INVALID_ID
      */
     @Test
     @DisplayName("toggleTodo - Negative Id - NotFoundException")
@@ -255,13 +255,13 @@ class ToggleTodoTest extends TodoServiceTestBase {
                 () -> todoService.toggleTodo(-1L));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*
      * Purpose: Verify not found throws NotFoundException.
      * Expected Result: NotFoundException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.InvalidId
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.INVALID_ID
      */
     @Test
     @DisplayName("toggleTodo - Not Found - NotFoundException")
@@ -274,13 +274,13 @@ class ToggleTodoTest extends TodoServiceTestBase {
                 () -> todoService.toggleTodo(TEST_TODO_ID));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*
      * Purpose: Verify zero ID throws NotFoundException.
      * Expected Result: NotFoundException.
-     * Assertions: message equals ErrorMessages.TodoErrorMessages.InvalidId
+     * Assertions: message equals ErrorMessages.TodoErrorMessages.INVALID_ID
      */
     @Test
     @DisplayName("toggleTodo - Zero Id - NotFoundException")
@@ -293,7 +293,7 @@ class ToggleTodoTest extends TodoServiceTestBase {
                 () -> todoService.toggleTodo(0L));
 
         // Assert
-        assertEquals(ErrorMessages.TodoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.TodoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     // ========================================

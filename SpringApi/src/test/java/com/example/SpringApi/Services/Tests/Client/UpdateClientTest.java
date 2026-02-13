@@ -367,7 +367,7 @@ class UpdateClientTest extends ClientServiceTestBase {
 
         // Assert
         assertEquals(
-                String.format(ErrorMessages.ClientErrorMessages.DuplicateClientNameFormat, testClientRequest.getName()),
+                String.format(ErrorMessages.ClientErrorMessages.DUPLICATE_CLIENT_NAME_FORMAT, testClientRequest.getName()),
                 ex.getMessage());
     }
 
@@ -388,7 +388,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidDescription, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_DESCRIPTION, ex.getMessage());
     }
 
     /*
@@ -408,7 +408,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidName, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_NAME, ex.getMessage());
     }
 
     /*
@@ -428,7 +428,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidSendgridSenderName, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_SENDGRID_SENDER_NAME, ex.getMessage());
     }
 
     /*
@@ -448,7 +448,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidSupportEmail, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_SUPPORT_EMAIL, ex.getMessage());
     }
 
     /*
@@ -468,7 +468,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidWebsite, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_WEBSITE, ex.getMessage());
     }
 
     /*
@@ -519,7 +519,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                     () -> clientService.updateClient(testClientRequest));
 
             // Assert
-            assertEquals(ErrorMessages.ClientErrorMessages.InvalidLogoUpload, ex.getMessage());
+            assertEquals(ErrorMessages.ClientErrorMessages.INVALID_LOGO_UPLOAD, ex.getMessage());
         }
     }
 
@@ -544,7 +544,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ConfigurationErrorMessages.ImgbbApiKeyNotConfigured, ex.getMessage());
+        assertEquals(ErrorMessages.ConfigurationErrorMessages.IMGBB_API_KEY_NOT_CONFIGURED, ex.getMessage());
     }
 
     /*
@@ -570,7 +570,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                     () -> clientService.updateClient(testClientRequest));
 
             // Assert
-            assertEquals(ErrorMessages.ClientErrorMessages.InvalidLogoUpload, ex.getMessage());
+            assertEquals(ErrorMessages.ClientErrorMessages.INVALID_LOGO_UPLOAD, ex.getMessage());
         }
     }
 
@@ -595,7 +595,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ConfigurationErrorMessages.InvalidImageLocationConfigFormat,
+        assertEquals(String.format(ErrorMessages.ConfigurationErrorMessages.INVALID_IMAGE_LOCATION_CONFIG_FORMAT,
                 "invalid"), ex.getMessage());
     }
 
@@ -616,7 +616,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*
@@ -635,7 +635,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*
@@ -655,7 +655,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidDescription, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_DESCRIPTION, ex.getMessage());
     }
 
     /*
@@ -675,7 +675,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidName, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_NAME, ex.getMessage());
     }
 
     /*
@@ -692,7 +692,7 @@ class UpdateClientTest extends ClientServiceTestBase {
         BadRequestException ex = assertThrows(BadRequestException.class, () -> clientService.updateClient(null));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidRequest, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_REQUEST, ex.getMessage());
     }
 
     /*
@@ -712,7 +712,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidSupportEmail, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_SUPPORT_EMAIL, ex.getMessage());
     }
 
     /*
@@ -732,7 +732,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidWebsite, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_WEBSITE, ex.getMessage());
     }
 
     /*
@@ -752,7 +752,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidDescription, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_DESCRIPTION, ex.getMessage());
     }
 
     /*
@@ -772,7 +772,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidSupportEmail, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_SUPPORT_EMAIL, ex.getMessage());
     }
 
     /*
@@ -792,7 +792,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidName, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_NAME, ex.getMessage());
     }
 
     /*
@@ -812,7 +812,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidSendgridSenderName, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_SENDGRID_SENDER_NAME, ex.getMessage());
     }
 
     /*
@@ -832,7 +832,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidWebsite, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_WEBSITE, ex.getMessage());
     }
 
     /*
@@ -852,7 +852,7 @@ class UpdateClientTest extends ClientServiceTestBase {
                 () -> clientService.updateClient(testClientRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ClientErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*

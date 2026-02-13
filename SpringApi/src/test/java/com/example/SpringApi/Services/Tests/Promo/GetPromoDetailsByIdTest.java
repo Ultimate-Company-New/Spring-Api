@@ -66,7 +66,7 @@ class GetPromoDetailsByIdTest extends PromoServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> promoService.getPromoDetailsById(-1L));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PromoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
 
@@ -86,7 +86,7 @@ class GetPromoDetailsByIdTest extends PromoServiceTestBase {
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> promoService.getPromoDetailsById(0L));
-        assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PromoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
 
@@ -108,7 +108,7 @@ class GetPromoDetailsByIdTest extends PromoServiceTestBase {
                 () -> promoService.getPromoDetailsById(TEST_PROMO_ID));
 
         // Assert
-            assertEquals(ErrorMessages.PromoErrorMessages.InvalidId, ex.getMessage());
+            assertEquals(ErrorMessages.PromoErrorMessages.INVALID_ID, ex.getMessage());
     }
 
     /*

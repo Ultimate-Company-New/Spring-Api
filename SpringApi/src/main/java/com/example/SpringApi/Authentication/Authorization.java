@@ -47,7 +47,7 @@ public class Authorization{
     }
 
     private void validateToken() {
-        PermissionException permissionException = new PermissionException(ErrorMessages.Unauthorized);
+        PermissionException permissionException = new PermissionException(ErrorMessages.UNAUTHORIZED);
         String token = getJwtFromRequest();
     
         Long userId = jwtTokenProvider.getUserIdFromToken(token);
@@ -73,7 +73,7 @@ public class Authorization{
         List<Long> permissionIds = jwtTokenProvider.getUserPermissionIds(getJwtFromRequest());  
         boolean isUserAuthorized = isAllowed(userPermission, permissionIds);
         if(!isUserAuthorized) {
-            PermissionException permissionException = new PermissionException(ErrorMessages.Unauthorized);
+            PermissionException permissionException = new PermissionException(ErrorMessages.UNAUTHORIZED);
             logger.error(permissionException);
             throw permissionException;
         }   

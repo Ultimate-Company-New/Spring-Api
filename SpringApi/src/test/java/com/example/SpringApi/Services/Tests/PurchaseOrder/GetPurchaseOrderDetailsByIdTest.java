@@ -69,7 +69,7 @@ public class GetPurchaseOrderDetailsByIdTest extends PurchaseOrderServiceTestBas
         stubPurchaseOrderRepositoryFindByIdWithRelations(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.PurchaseOrderErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID,
                 () -> purchaseOrderService.getPurchaseOrderDetailsById(TEST_PO_ID));
     }
 

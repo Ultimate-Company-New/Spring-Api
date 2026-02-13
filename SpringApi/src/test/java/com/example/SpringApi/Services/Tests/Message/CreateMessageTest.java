@@ -397,7 +397,7 @@ class CreateMessageTest extends MessageServiceTestBase {
         stubClientRepositoryFindById(Optional.empty());
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.ClientErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.ClientErrorMessages.INVALID_ID,
                 () -> messageService.createMessage(validRequest));
     }
 
@@ -504,7 +504,7 @@ class CreateMessageTest extends MessageServiceTestBase {
         // Act & Assert
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> messageService.createMessage(null));
-        assertEquals(ErrorMessages.MessagesErrorMessages.InvalidId, exception.getMessage());
+        assertEquals(ErrorMessages.MessagesErrorMessages.INVALID_ID, exception.getMessage());
     }
 
     /**
@@ -537,7 +537,7 @@ class CreateMessageTest extends MessageServiceTestBase {
         stubClientRepositoryFindById(Optional.of(testClient));
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.PublishDateRequiresSendAsEmail,
+        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.PUBLISH_DATE_REQUIRES_SEND_AS_EMAIL,
                 () -> messageService.createMessage(validRequest));
     }
 
@@ -570,7 +570,7 @@ class CreateMessageTest extends MessageServiceTestBase {
         stubClientRepositoryFindById(Optional.of(testClient));
 
         // Act & Assert
-        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.TitleTooLong,
+        assertThrowsBadRequest(ErrorMessages.MessagesErrorMessages.TITLE_TOO_LONG,
                 () -> messageService.createMessage(validRequest));
     }
 
@@ -584,7 +584,7 @@ class CreateMessageTest extends MessageServiceTestBase {
         // Arrange
 
         // Act & Assert
-        assertThrowsNotFound(ErrorMessages.ClientErrorMessages.InvalidId,
+        assertThrowsNotFound(ErrorMessages.ClientErrorMessages.INVALID_ID,
                 () -> messageService.createMessage(validRequest));
     }
 

@@ -112,16 +112,16 @@ public class ProductPickupLocationMapping {
     public ProductPickupLocationMapping(Long productId, Long pickupLocationId, Integer availableStock, String createdUser) {
         // Validate inputs
         if (productId == null) {
-            throw new BadRequestException(ErrorMessages.ProductPickupLocationMappingErrorMessages.ProductIdRequired);
+            throw new BadRequestException(ErrorMessages.ProductPickupLocationMappingErrorMessages.PRODUCT_ID_REQUIRED);
         }
         if (pickupLocationId == null) {
-            throw new BadRequestException(ErrorMessages.ProductPickupLocationMappingErrorMessages.PickupLocationIdRequired);
+            throw new BadRequestException(ErrorMessages.ProductPickupLocationMappingErrorMessages.PICKUP_LOCATION_ID_REQUIRED);
         }
         if (availableStock == null || availableStock <= 0) {
-            throw new BadRequestException(String.format(ErrorMessages.ProductPickupLocationMappingErrorMessages.AvailableStockMustBePositive, pickupLocationId));
+            throw new BadRequestException(String.format(ErrorMessages.ProductPickupLocationMappingErrorMessages.AVAILABLE_STOCK_MUST_BE_POSITIVE, pickupLocationId));
         }
         if (createdUser == null || createdUser.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ProductPickupLocationMappingErrorMessages.CreatedUserRequired);
+            throw new BadRequestException(ErrorMessages.ProductPickupLocationMappingErrorMessages.CREATED_USER_REQUIRED);
         }
         
         this.productId = productId;
@@ -152,7 +152,7 @@ public class ProductPickupLocationMapping {
                                                                     Map<Long, Integer> pickupLocationQuantities, 
                                                                     String createdUser) {
         if (pickupLocationQuantities == null || pickupLocationQuantities.isEmpty()) {
-            throw new BadRequestException(ErrorMessages.ProductPickupLocationMappingErrorMessages.AtLeastOnePickupLocationRequired);
+            throw new BadRequestException(ErrorMessages.ProductPickupLocationMappingErrorMessages.AT_LEAST_ONE_PICKUP_LOCATION_REQUIRED);
         }
         
         List<ProductPickupLocationMapping> mappings = new ArrayList<>();

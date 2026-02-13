@@ -171,7 +171,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
                 () -> shippingService.processShipmentsAfterPaymentApproval(TEST_PURCHASE_ORDER_ID, razorpayRequest));
 
         // Assert
-        assertEquals(ErrorMessages.CommonErrorMessages.AccessDeniedToPurchaseOrder, ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.ACCESS_DENIED_TO_PURCHASE_ORDER, ex.getMessage());
     }
 /**
      * Purpose: Verify credentials missing throws BadRequestException.
@@ -202,7 +202,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
                 () -> shippingService.processShipmentsAfterPaymentApproval(TEST_PURCHASE_ORDER_ID, razorpayRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured, ex.getMessage());
+        assertEquals(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_CREDENTIALS_NOT_CONFIGURED, ex.getMessage());
     }
 /**
      * Purpose: Verify delivery address missing throws BadRequestException.
@@ -233,7 +233,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
                 () -> shippingService.processShipmentsAfterPaymentApproval(TEST_PURCHASE_ORDER_ID, razorpayRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ShippingErrorMessages.DeliveryAddressNotFound, ex.getMessage());
+        assertEquals(ErrorMessages.ShippingErrorMessages.DELIVERY_ADDRESS_NOT_FOUND, ex.getMessage());
     }
 /**
      * Purpose: Verify order summary not found throws NotFoundException.
@@ -253,7 +253,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
                 () -> shippingService.processShipmentsAfterPaymentApproval(TEST_PURCHASE_ORDER_ID, razorpayRequest));
 
         // Assert
-        assertEquals(ErrorMessages.OrderSummaryNotFoundMessage.NotFound, ex.getMessage());
+        assertEquals(ErrorMessages.OrderSummaryNotFoundMessage.NOT_FOUND, ex.getMessage());
     }
 /**
      * Purpose: Verify package not available throws BadRequestException.
@@ -280,7 +280,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
 
         // Assert
         assertEquals(String.format(
-                ErrorMessages.ShipmentProcessingErrorMessages.PackageNotAvailableAtPickupLocationFormat,
+                ErrorMessages.ShipmentProcessingErrorMessages.PACKAGE_NOT_AVAILABLE_AT_PICKUP_LOCATION_FORMAT,
                 TEST_PACKAGE_ID, TEST_PICKUP_LOCATION_ID), ex.getMessage());
     }
 /**
@@ -309,7 +309,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
 
         // Assert
         assertEquals(String.format(
-                ErrorMessages.ShipmentProcessingErrorMessages.InsufficientPackageStockFormat,
+                ErrorMessages.ShipmentProcessingErrorMessages.INSUFFICIENT_PACKAGE_STOCK_FORMAT,
                 TEST_PACKAGE_ID, TEST_PICKUP_LOCATION_ID, 0, testShipmentPackage.getQuantityUsed()), ex.getMessage());
     }
 /**
@@ -338,7 +338,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
                 () -> shippingService.processShipmentsAfterPaymentApproval(TEST_PURCHASE_ORDER_ID, razorpayRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShipmentProcessingErrorMessages.OperationFailedWithMessageFormat,
+        assertEquals(String.format(ErrorMessages.ShipmentProcessingErrorMessages.OPERATION_FAILED_WITH_MESSAGE_FORMAT,
                 ErrorMessages.OPERATION_FAILED, "fail"), ex.getMessage());
     }
 /**
@@ -370,7 +370,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
                 () -> shippingService.processShipmentsAfterPaymentApproval(TEST_PURCHASE_ORDER_ID, razorpayRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NotFound, TEST_PICKUP_LOCATION_ID),
+        assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, TEST_PICKUP_LOCATION_ID),
                 ex.getMessage());
     }
 /**
@@ -390,7 +390,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
                 () -> shippingService.processShipmentsAfterPaymentApproval(TEST_PURCHASE_ORDER_ID, razorpayRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.InvalidId, ex.getMessage());
+        assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
     }
 /**
      * Purpose: Verify product not available throws BadRequestException.
@@ -414,7 +414,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
 
         // Assert
         assertEquals(String.format(
-                ErrorMessages.ShipmentProcessingErrorMessages.ProductNotAvailableAtPickupLocationFormat,
+                ErrorMessages.ShipmentProcessingErrorMessages.PRODUCT_NOT_AVAILABLE_AT_PICKUP_LOCATION_FORMAT,
                 TEST_PRODUCT_ID, TEST_PICKUP_LOCATION_ID), ex.getMessage());
     }
 /**
@@ -436,7 +436,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
                 () -> shippingService.processShipmentsAfterPaymentApproval(TEST_PURCHASE_ORDER_ID, razorpayRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ShipmentErrorMessages.NoShipmentsFound, ex.getMessage());
+        assertEquals(ErrorMessages.ShipmentErrorMessages.NO_SHIPMENTS_FOUND, ex.getMessage());
     }
 /**
      * Purpose: Verify invalid status throws BadRequestException.
@@ -475,9 +475,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
                         .map(Shipment.ShipRocketStatus::getValue)
                         .toArray(String[]::new));
         String expectedDetail = String.format(
-                ErrorMessages.ShippingErrorMessages.InvalidShipRocketStatusFormat,
+                ErrorMessages.ShippingErrorMessages.INVALID_SHIP_ROCKET_STATUS_FORMAT,
                 "INVALID", validStatuses);
-        assertEquals(String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed,
+        assertEquals(String.format(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_ORDER_CREATION_FAILED,
                 TEST_SHIPMENT_ID, expectedDetail), ex.getMessage());
     }
 /**
@@ -512,8 +512,8 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
                 () -> shippingService.processShipmentsAfterPaymentApproval(TEST_PURCHASE_ORDER_ID, razorpayRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed,
-                TEST_SHIPMENT_ID, ErrorMessages.ShippingErrorMessages.ShipRocketOrderIdMissing), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_ORDER_CREATION_FAILED,
+                TEST_SHIPMENT_ID, ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_ORDER_ID_MISSING), ex.getMessage());
     }
 /**
      * Purpose: Verify missing shipment_id throws BadRequestException.
@@ -547,8 +547,8 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
                 () -> shippingService.processShipmentsAfterPaymentApproval(TEST_PURCHASE_ORDER_ID, razorpayRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed,
-                TEST_SHIPMENT_ID, ErrorMessages.ShippingErrorMessages.ShipRocketShipmentIdMissing), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_ORDER_CREATION_FAILED,
+                TEST_SHIPMENT_ID, ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_SHIPMENT_ID_MISSING), ex.getMessage());
     }
 /**
      * Purpose: Verify missing status throws BadRequestException.
@@ -582,8 +582,8 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
                 () -> shippingService.processShipmentsAfterPaymentApproval(TEST_PURCHASE_ORDER_ID, razorpayRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed,
-                TEST_SHIPMENT_ID, ErrorMessages.ShippingErrorMessages.ShipRocketStatusMissing), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_ORDER_CREATION_FAILED,
+                TEST_SHIPMENT_ID, ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_STATUS_MISSING), ex.getMessage());
     }
 /**
      * Purpose: Verify ShipRocket response message throws BadRequestException.
@@ -617,7 +617,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
                 () -> shippingService.processShipmentsAfterPaymentApproval(TEST_PURCHASE_ORDER_ID, razorpayRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShippingErrorMessages.ShipRocketOrderCreationFailed,
+        assertEquals(String.format(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_ORDER_CREATION_FAILED,
                 TEST_SHIPMENT_ID, ErrorMessages.OPERATION_FAILED), ex.getMessage());
     }
 /**
@@ -650,7 +650,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
                 () -> shippingService.processShipmentsAfterPaymentApproval(TEST_PURCHASE_ORDER_ID, razorpayRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShippingErrorMessages.ShipRocketApiNullResponse, TEST_SHIPMENT_ID),
+        assertEquals(String.format(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_API_NULL_RESPONSE, TEST_SHIPMENT_ID),
                 ex.getMessage());
     }
 /**
@@ -671,7 +671,7 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
                 () -> shippingService.processShipmentsAfterPaymentApproval(TEST_PURCHASE_ORDER_ID, razorpayRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PaymentErrorMessages.OnlyPendingApprovalCanBePaid, ex.getMessage());
+        assertEquals(ErrorMessages.PaymentErrorMessages.ONLY_PENDING_APPROVAL_CAN_BE_PAID, ex.getMessage());
     }
 /*
          **********************************************************************************************

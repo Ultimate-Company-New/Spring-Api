@@ -217,7 +217,7 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
                 () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickName, ex.getMessage());
+        assertEquals(ErrorMessages.PickupLocationErrorMessages.INVALID_ADDRESS_NICK_NAME, ex.getMessage());
     }
 
     /**
@@ -270,7 +270,7 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
                 () -> pickupLocationService.createPickupLocation(null));
 
         // Assert
-        assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidRequest, ex.getMessage());
+        assertEquals(ErrorMessages.PickupLocationErrorMessages.INVALID_REQUEST, ex.getMessage());
     }
 
     /**
@@ -455,7 +455,7 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
                 () -> pickupLocationService.createPickupLocation(testPickupLocationRequest));
 
         // Assert
-        assertEquals(ErrorMessages.PickupLocationErrorMessages.InvalidAddressNickName, ex.getMessage());
+        assertEquals(ErrorMessages.PickupLocationErrorMessages.INVALID_ADDRESS_NICK_NAME, ex.getMessage());
     }
 
     /**

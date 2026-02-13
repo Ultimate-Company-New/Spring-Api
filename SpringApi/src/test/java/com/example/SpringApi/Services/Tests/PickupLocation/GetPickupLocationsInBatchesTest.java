@@ -114,7 +114,7 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
                 // Act & Assert
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.getPickupLocationsInBatches(testPaginationRequest));
-                assertEquals(ErrorMessages.CommonErrorMessages.EndIndexMustBeGreaterThanZero, ex.getMessage());
+                assertEquals(ErrorMessages.CommonErrorMessages.END_INDEX_MUST_BE_GREATER_THAN_ZERO, ex.getMessage());
         }
 
         /**
@@ -257,7 +257,7 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
                 // Act & Assert
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.getPickupLocationsInBatches(testPaginationRequest));
-                assertEquals(ErrorMessages.CommonErrorMessages.StartIndexCannotBeNegative, ex.getMessage());
+                assertEquals(ErrorMessages.CommonErrorMessages.START_INDEX_CANNOT_BE_NEGATIVE, ex.getMessage());
         }
 
         /**
@@ -275,7 +275,7 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
                 // Act & Assert
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.getPickupLocationsInBatches(testPaginationRequest));
-                assertEquals(ErrorMessages.CommonErrorMessages.StartIndexMustBeLessThanEnd, ex.getMessage());
+                assertEquals(ErrorMessages.CommonErrorMessages.START_INDEX_MUST_BE_LESS_THAN_END, ex.getMessage());
         }
 
         /**
@@ -294,7 +294,7 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
                 // Act & Assert
                 BadRequestException ex = assertThrows(BadRequestException.class,
                                 () -> pickupLocationService.getPickupLocationsInBatches(testPaginationRequest));
-                assertEquals(ErrorMessages.CommonErrorMessages.StartIndexMustBeLessThanEnd, ex.getMessage());
+                assertEquals(ErrorMessages.CommonErrorMessages.START_INDEX_MUST_BE_LESS_THAN_END, ex.getMessage());
         }
 
         /*

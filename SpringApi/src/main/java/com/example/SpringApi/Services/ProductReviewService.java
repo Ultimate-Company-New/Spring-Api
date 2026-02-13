@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.Set;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 
@@ -103,11 +104,11 @@ public class ProductReviewService extends BaseService implements IProductReviewS
         if (paginationBaseRequestModel.getFilters() != null && !paginationBaseRequestModel.getFilters().isEmpty()) {
             for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
                 if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
-                    throw new BadRequestException(String.format(ErrorMessages.ProductReviewErrorMessages.InvalidColumnNameFormat, filter.getColumn()));
+                    throw new BadRequestException(String.format(ErrorMessages.ProductReviewErrorMessages.INVALID_COLUMN_NAME_FORMAT, filter.getColumn()));
                 }
 
                 if (!filter.isValidOperator()) {
-                    throw new BadRequestException(String.format(ErrorMessages.ProductReviewErrorMessages.InvalidOperatorFormat, filter.getOperator()));
+                    throw new BadRequestException(String.format(ErrorMessages.ProductReviewErrorMessages.INVALID_OPERATOR_FORMAT, filter.getOperator()));
                 }
 
                 String columnType = productReviewFilterQueryBuilder.getColumnType(filter.getColumn());
@@ -123,7 +124,7 @@ public class ProductReviewService extends BaseService implements IProductReviewS
         int pageSize = end - start;
 
         if (pageSize <= 0) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION);
         }
 
         Pageable pageable = new PageRequest(0, pageSize, Sort.by("reviewId").descending()) {
@@ -146,7 +147,7 @@ public class ProductReviewService extends BaseService implements IProductReviewS
         PaginationBaseResponseModel<ProductReviewResponseModel> response = new PaginationBaseResponseModel<>();
         response.setData(reviewPage.getContent().stream()
             .map(ProductReviewResponseModel::new)
-            .collect(Collectors.toList()));
+            .collect(Collectors.toCollection(ArrayList::new)));
         response.setTotalDataCount(reviewPage.getTotalElements());
 
         return response;
@@ -168,7 +169,7 @@ public class ProductReviewService extends BaseService implements IProductReviewS
         // Find the review filtered by clientId
         ProductReview review = productReviewRepository.findByReviewIdAndClientId(id, getClientId());
         if (review == null) {
-            throw new NotFoundException(ErrorMessages.ProductReviewErrorMessages.NotFound);
+            throw new NotFoundException(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND);
         }
         
         // Toggle the deleted status
@@ -204,7 +205,7 @@ public class ProductReviewService extends BaseService implements IProductReviewS
         // Find the review filtered by clientId
         ProductReview review = productReviewRepository.findByReviewIdAndClientId(id, getClientId());
         if (review == null) {
-            throw new NotFoundException(ErrorMessages.ProductReviewErrorMessages.NotFound);
+            throw new NotFoundException(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND);
         }
         
         // Update the score

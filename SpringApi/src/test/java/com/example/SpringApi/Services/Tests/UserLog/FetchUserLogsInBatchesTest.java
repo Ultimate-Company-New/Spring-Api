@@ -415,7 +415,7 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
                     () -> userLogService.fetchUserLogsInBatches(request),
                     "Invalid logic operator '" + invalidLogic
                             + "' should throw BadRequestException");
-            assertEquals(ErrorMessages.CommonErrorMessages.InvalidLogicOperator, ex.getMessage());
+            assertEquals(ErrorMessages.CommonErrorMessages.INVALID_LOGIC_OPERATOR, ex.getMessage());
         }
     }
 
@@ -441,7 +441,7 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
                     () -> userLogService.fetchUserLogsInBatches(request),
                     "Pagination start=" + pagination[0] + ", end=" + pagination[1]
                             + " should throw");
-            assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+            assertEquals(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION, ex.getMessage());
         }
     }
 

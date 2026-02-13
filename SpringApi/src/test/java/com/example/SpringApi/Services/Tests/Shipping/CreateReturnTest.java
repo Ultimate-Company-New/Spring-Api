@@ -53,7 +53,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
         stubReturnShipmentProductRepositorySave(new ReturnShipmentProduct());
         stubShipRocketHelperCreateReturnOrderAsJson("{\"order_id\":1,\"shipment_id\":2}");
         stubShipRocketHelperAssignReturnAwbAsJsonThrows(
-                new RuntimeException(ErrorMessages.CommonErrorMessages.CriticalFailure));
+                new RuntimeException(ErrorMessages.CommonErrorMessages.CRITICAL_FAILURE));
 
         // Act
         ReturnShipmentResponseModel result = shippingService.createReturn(createReturnRequest);
@@ -212,7 +212,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ShippingErrorMessages.ShipRocketCredentialsNotConfigured, ex.getMessage());
+        assertEquals(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_CREDENTIALS_NOT_CONFIGURED, ex.getMessage());
     }
 /**
      * Purpose: Verify non-delivered shipment throws BadRequestException.
@@ -232,7 +232,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.OnlyDeliveredCanReturn, "NEW"),
+        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.ONLY_DELIVERED_CAN_RETURN, "NEW"),
                 ex.getMessage());
     }
 /**
@@ -258,7 +258,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.ProductPastReturnWindow,
+        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.PRODUCT_PAST_RETURN_WINDOW,
                 testProduct.getTitle(), testProduct.getReturnWindowDays()), ex.getMessage());
     }
 /**
@@ -283,7 +283,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.ProductIdRequired, ex.getMessage());
+        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.PRODUCT_ID_REQUIRED, ex.getMessage());
     }
 /**
      * Purpose: Verify product not found throws NotFoundException.
@@ -330,7 +330,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.ProductNotInShipment, 999L),
+        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.PRODUCT_NOT_IN_SHIPMENT, 999L),
                 ex.getMessage());
     }
 /**
@@ -356,7 +356,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.ProductNotReturnable, testProduct.getTitle()),
+        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.PRODUCT_NOT_RETURNABLE, testProduct.getTitle()),
                 ex.getMessage());
     }
 /**
@@ -376,7 +376,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.AtLeastOneProductRequired, ex.getMessage());
+        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.AT_LEAST_ONE_PRODUCT_REQUIRED, ex.getMessage());
     }
 /**
      * Purpose: Verify null products list throws BadRequestException.
@@ -395,7 +395,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.AtLeastOneProductRequired, ex.getMessage());
+        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.AT_LEAST_ONE_PRODUCT_REQUIRED, ex.getMessage());
     }
 /**
      * Purpose: Verify return quantity exceeds throws BadRequestException.
@@ -419,7 +419,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.ReturnQuantityExceeds,
+        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.RETURN_QUANTITY_EXCEEDS,
                 99, testShipmentProduct.getAllocatedQuantity(), TEST_PRODUCT_ID), ex.getMessage());
     }
 /**
@@ -444,7 +444,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.ValidQuantityRequired, ex.getMessage());
+        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.VALID_QUANTITY_REQUIRED, ex.getMessage());
     }
 /**
      * Purpose: Verify null quantity throws BadRequestException.
@@ -468,7 +468,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.ValidQuantityRequired, ex.getMessage());
+        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.VALID_QUANTITY_REQUIRED, ex.getMessage());
     }
 /**
      * Purpose: Verify quantity zero throws BadRequestException.
@@ -492,7 +492,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.ValidQuantityRequired, ex.getMessage());
+        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.VALID_QUANTITY_REQUIRED, ex.getMessage());
     }
 /**
      * Purpose: Verify empty reason throws BadRequestException.
@@ -516,7 +516,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.ReturnReasonRequired, ex.getMessage());
+        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.RETURN_REASON_REQUIRED, ex.getMessage());
     }
 /**
      * Purpose: Verify null reason throws BadRequestException.
@@ -540,7 +540,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.ReturnReasonRequired, ex.getMessage());
+        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.RETURN_REASON_REQUIRED, ex.getMessage());
     }
 /**
      * Purpose: Verify null return window days throws BadRequestException.
@@ -565,7 +565,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.ProductNotReturnable, testProduct.getTitle()),
+        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.PRODUCT_NOT_RETURNABLE, testProduct.getTitle()),
                 ex.getMessage());
     }
 /**
@@ -594,7 +594,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                         () -> shippingService.createReturn(createReturnRequest));
 
                 // Assert
-                assertEquals(ErrorMessages.ReturnShipmentErrorMessages.ProductIdRequired, ex.getMessage());
+                assertEquals(ErrorMessages.ReturnShipmentErrorMessages.PRODUCT_ID_REQUIRED, ex.getMessage());
         }
 /**
          * Purpose: Verify second item with null quantity throws BadRequestException.
@@ -622,7 +622,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                         () -> shippingService.createReturn(createReturnRequest));
 
                 // Assert
-                assertEquals(ErrorMessages.ReturnShipmentErrorMessages.ValidQuantityRequired, ex.getMessage());
+                assertEquals(ErrorMessages.ReturnShipmentErrorMessages.VALID_QUANTITY_REQUIRED, ex.getMessage());
         }
 /**
          * Purpose: Verify second item with null reason throws BadRequestException.
@@ -650,7 +650,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                         () -> shippingService.createReturn(createReturnRequest));
 
                 // Assert
-                assertEquals(ErrorMessages.ReturnShipmentErrorMessages.ReturnReasonRequired, ex.getMessage());
+                assertEquals(ErrorMessages.ReturnShipmentErrorMessages.RETURN_REASON_REQUIRED, ex.getMessage());
         }
 /**
      * Purpose: Verify null shipmentId throws BadRequestException.
@@ -669,7 +669,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.ShipmentIdRequired, ex.getMessage());
+        assertEquals(ErrorMessages.ReturnShipmentErrorMessages.SHIPMENT_ID_REQUIRED, ex.getMessage());
     }
 /**
      * Purpose: Verify shipment not found throws NotFoundException.
@@ -688,7 +688,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NotFound, TEST_SHIPMENT_ID), ex.getMessage());
+        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.NOT_FOUND, TEST_SHIPMENT_ID), ex.getMessage());
     }
 /**
      * Purpose: Verify shipment products null triggers ProductNotInShipment.
@@ -710,7 +710,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.ProductNotInShipment, TEST_PRODUCT_ID),
+        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.PRODUCT_NOT_IN_SHIPMENT, TEST_PRODUCT_ID),
                 ex.getMessage());
     }
 /**
@@ -736,7 +736,7 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 () -> shippingService.createReturn(createReturnRequest));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.FailedToCreateReturn,
+        assertEquals(String.format(ErrorMessages.ReturnShipmentErrorMessages.FAILED_TO_CREATE_RETURN,
                 ErrorMessages.OPERATION_FAILED), ex.getMessage());
     }
 /*

@@ -171,18 +171,18 @@ public class Address {
         
         // Validate user ID (if provided, must be positive)
         if (request.getUserId() != null && request.getUserId() <= 0) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_ID);
         }
         
         // Validate client ID (if provided, must be positive)
         if (request.getClientId() != null && request.getClientId() <= 0) {
-            throw new BadRequestException(ErrorMessages.ClientErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.ClientErrorMessages.INVALID_ID);
         }
     }
     
     private void validateUser(String user) {
         if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.InvalidUser);
+            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
         }
     }
     

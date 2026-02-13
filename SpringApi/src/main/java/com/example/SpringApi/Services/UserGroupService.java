@@ -89,7 +89,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
                 SuccessMessages.UserGroupSuccessMessages.ToggleGroup + " " + userGroup.get().getGroupId(),
                 ApiRoutes.UserGroupSubRoute.TOGGLE_USER_GROUP);
         } else {
-            throw new NotFoundException(ErrorMessages.UserGroupErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.UserGroupErrorMessages.INVALID_ID);
         }
     }
 
@@ -114,7 +114,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
             // UserGroupResponseModel constructor auto-populates users from userMappings
             return new UserGroupResponseModel(userGroup);
         } else {
-            throw new NotFoundException(ErrorMessages.UserGroupErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.UserGroupErrorMessages.INVALID_ID);
         }
     }
 
@@ -159,7 +159,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
             // Check if the new group name already exists for a different group
             UserGroup groupWithSameName = userGroupRepository.findByGroupName(userGroupRequest.getGroupName());
             if (groupWithSameName != null && !groupWithSameName.getGroupId().equals(userGroupRequest.getGroupId())) {
-                throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.GroupNameExists);
+                throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.GROUP_NAME_EXISTS);
             }
             
             // Update the user group
@@ -173,7 +173,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
                 SuccessMessages.UserGroupSuccessMessages.UpdateGroup + " " + updatedGroup.getGroupId(),
                 ApiRoutes.UserGroupSubRoute.UPDATE_USER_GROUP);
         } else {
-            throw new NotFoundException(ErrorMessages.UserGroupErrorMessages.InvalidId);
+            throw new NotFoundException(ErrorMessages.UserGroupErrorMessages.INVALID_ID);
         }
     }
 
@@ -204,12 +204,12 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
         int pageSize = end - start;
         
         if (pageSize <= 0) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidPagination);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION);
         }
 
         // Validate logic operator if provided
         if (userGroupRequestModel.getLogicOperator() != null && !userGroupRequestModel.isValidLogicOperator()) {
-            throw new BadRequestException(ErrorMessages.CommonErrorMessages.InvalidLogicOperator);
+            throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_LOGIC_OPERATOR);
         }
 
         // Validate filters if provided
@@ -298,7 +298,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
         try {
             // Validate input
             if (userGroups == null || userGroups.isEmpty()) {
-                throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "User group"));
+                throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "User group"));
             }
 
             com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
@@ -376,7 +376,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
     public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateUserGroups(List<UserGroupRequestModel> userGroups) {
         // Validate input
         if (userGroups == null || userGroups.isEmpty()) {
-            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.ListCannotBeNullOrEmpty, "User group"));
+            throw new BadRequestException(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "User group"));
         }
 
         com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response = 
@@ -452,7 +452,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
         // Check if group name already exists
         UserGroup existingGroup = userGroupRepository.findByGroupName(userGroup.getGroupName());
         if (existingGroup != null) {
-            throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.GroupNameExists);
+            throw new BadRequestException(ErrorMessages.UserGroupErrorMessages.GROUP_NAME_EXISTS);
         }
         UserGroup savedGroup = userGroupRepository.save(userGroup);
         

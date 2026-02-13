@@ -93,7 +93,7 @@ public class ConfirmEmailTest extends LoginServiceTestBase {
                 NotFoundException.class,
                 () -> loginService.confirmEmail(testLoginRequest));
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidToken, exception.getMessage());
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_TOKEN, exception.getMessage());
     }
 
     /**
@@ -113,7 +113,7 @@ public class ConfirmEmailTest extends LoginServiceTestBase {
                 UnauthorizedException.class,
                 () -> loginService.confirmEmail(testLoginRequest));
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidToken, exception.getMessage());
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_TOKEN, exception.getMessage());
         verify(userRepository, times(1)).findById(TEST_USER_ID);
         verify(userRepository, never()).save(any(User.class));
     }
@@ -135,7 +135,7 @@ public class ConfirmEmailTest extends LoginServiceTestBase {
                 NotFoundException.class,
                 () -> loginService.confirmEmail(testLoginRequest));
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidToken, exception.getMessage());
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_TOKEN, exception.getMessage());
     }
 
     /**
@@ -154,7 +154,7 @@ public class ConfirmEmailTest extends LoginServiceTestBase {
                 BadRequestException.class,
                 () -> loginService.confirmEmail(testLoginRequest));
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidId, exception.getMessage());
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_ID, exception.getMessage());
     }
 
     /**
@@ -173,7 +173,7 @@ public class ConfirmEmailTest extends LoginServiceTestBase {
                 NotFoundException.class,
                 () -> loginService.confirmEmail(testLoginRequest));
 
-        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.InvalidId, exception.getMessage());
+        assertEquals(com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_ID, exception.getMessage());
         verify(userRepository, times(1)).findById(TEST_USER_ID);
         verify(userRepository, never()).save(any(User.class));
     }

@@ -110,30 +110,30 @@ public class ShipmentProduct {
     private void validateRequest(Long shipmentId,
                                 com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel.ShipmentProductData productData) {
         if (productData == null) {
-            throw new BadRequestException(ErrorMessages.ShipmentProductErrorMessages.InvalidRequest);
+            throw new BadRequestException(ErrorMessages.ShipmentProductErrorMessages.INVALID_REQUEST);
         }
         
         // Validate shipment ID
         if (shipmentId == null || shipmentId <= 0) {
-            throw new BadRequestException(ErrorMessages.ShipmentProductErrorMessages.ShipmentIdRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentProductErrorMessages.SHIPMENT_ID_REQUIRED);
         }
         
         // Validate product ID
         if (productData.getProductId() == null || productData.getProductId() <= 0) {
-            throw new BadRequestException(ErrorMessages.ProductErrorMessages.InvalidId);
+            throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_ID);
         }
         
         // Validate quantity
         if (productData.getAllocatedQuantity() == null || productData.getAllocatedQuantity() <= 0) {
-            throw new BadRequestException(ErrorMessages.ShipmentProductErrorMessages.AllocatedQuantityRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentProductErrorMessages.ALLOCATED_QUANTITY_REQUIRED);
         }
         
         // Validate price
         if (productData.getAllocatedPrice() == null) {
-            throw new BadRequestException(ErrorMessages.ShipmentProductErrorMessages.AllocatedPriceRequired);
+            throw new BadRequestException(ErrorMessages.ShipmentProductErrorMessages.ALLOCATED_PRICE_REQUIRED);
         }
         if (productData.getAllocatedPrice().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException(ErrorMessages.ShipmentProductErrorMessages.AllocatedPriceInvalid);
+            throw new BadRequestException(ErrorMessages.ShipmentProductErrorMessages.ALLOCATED_PRICE_INVALID);
         }
     }
 }

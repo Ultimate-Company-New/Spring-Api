@@ -183,7 +183,7 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentsInBatches(request));
 
         // Assert
-        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION, ex.getMessage());
     }
 
     /**
@@ -205,7 +205,7 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentsInBatches(request));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.InvalidColumnNameFormat, "invalidColumn"),
+        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.INVALID_COLUMN_NAME_FORMAT, "invalidColumn"),
             ex.getMessage());
     }
 
@@ -228,7 +228,7 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentsInBatches(request));
 
         // Assert
-        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.InvalidOperatorFormat, "badOperator"),
+        assertEquals(String.format(ErrorMessages.ShipmentErrorMessages.INVALID_OPERATOR_FORMAT, "badOperator"),
             ex.getMessage());
     }
 
@@ -251,7 +251,7 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentsInBatches(request));
 
         // Assert
-        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION, ex.getMessage());
     }
 
     /**
@@ -273,7 +273,7 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentsInBatches(request));
 
         // Assert
-        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION, ex.getMessage());
     }
 
     /**
@@ -295,7 +295,7 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentsInBatches(request));
 
         // Assert
-        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION, ex.getMessage());
     }
 
     /**
@@ -317,7 +317,7 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
             () -> shippingService.getShipmentsInBatches(request));
 
         // Assert
-        assertEquals(ErrorMessages.CommonErrorMessages.InvalidPagination, ex.getMessage());
+        assertEquals(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION, ex.getMessage());
     }
 
     /*
