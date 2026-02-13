@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
  * Unit tests for MessageService.getMessagesInBatches method.
  */
 @DisplayName("GetMessagesInBatches Tests")
-public class GetMessagesInBatchesTest extends MessageServiceTestBase {
+class GetMessagesInBatchesTest extends MessageServiceTestBase {
 
 
     // Total Tests: 7

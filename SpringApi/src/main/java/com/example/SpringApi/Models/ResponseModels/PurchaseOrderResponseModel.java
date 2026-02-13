@@ -56,10 +56,12 @@ public class PurchaseOrderResponseModel {
     // Shipment Data (List of shipments with products, packages, and courier selections)
     private List<ShipmentResponseModel> shipments = new ArrayList<>();
     
-    // Products (DEPRECATED - products are available in shipments, no need for separate field)
-    // Frontend should extract products from shipments[].products[] instead
-    // Keeping field for backward compatibility but it will be null/empty
-    @Deprecated
+    /**
+     * Products extracted from shipments for backward compatibility.
+     *
+     * @deprecated Use `shipments[].products[]` instead.
+     */
+    @Deprecated(since = "2026-02", forRemoval = false)
     private List<PurchaseOrderProductItem> products;
     
     // Attachments (List of resource details - contains both fileName (key) and URL/base64 (value))

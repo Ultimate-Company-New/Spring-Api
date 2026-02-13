@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
  * Unit tests for MessageService.getMessagesByUserId method.
  */
 @DisplayName("GetMessagesByUserId Tests")
-public class GetMessagesByUserIdTest extends MessageServiceTestBase {
+class GetMessagesByUserIdTest extends MessageServiceTestBase {
 
 
         // Total Tests: 16

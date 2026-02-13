@@ -374,11 +374,10 @@ public class OrderSummary {
         }
         
         // Validate GST percentage
-        if (orderSummaryData.getGstPercentage() != null) {
-            if (orderSummaryData.getGstPercentage().compareTo(BigDecimal.ZERO) < 0 || 
-                orderSummaryData.getGstPercentage().compareTo(new BigDecimal("100")) > 0) {
-                throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.INVALID_GST_PERCENTAGE);
-            }
+        if (orderSummaryData.getGstPercentage() != null
+                && (orderSummaryData.getGstPercentage().compareTo(BigDecimal.ZERO) < 0
+                || orderSummaryData.getGstPercentage().compareTo(new BigDecimal("100")) > 0)) {
+            throw new BadRequestException(ErrorMessages.OrderSummaryErrorMessages.INVALID_GST_PERCENTAGE);
         }
         
         // Validate address ID

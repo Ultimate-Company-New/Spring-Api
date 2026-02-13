@@ -128,24 +128,7 @@ public class LatestTestResult {
     // ========================================================================
 
     public LatestTestResult() {
-    }
-
-    public LatestTestResult(String serviceName, String testClassName, String testMethodName,
-            String status, Integer durationMs,
-            String errorMessage, String stackTrace, Long lastRunId,
-            Long lastRunByUserId, String lastRunByUserName, Long clientId) {
-        this.serviceName = serviceName;
-        this.testClassName = testClassName;
-        this.testMethodName = testMethodName;
-        this.status = status;
-        this.durationMs = durationMs;
-        this.errorMessage = errorMessage;
-        this.stackTrace = stackTrace;
-        this.lastRunId = lastRunId;
-        this.lastRunByUserId = lastRunByUserId;
-        this.lastRunByUserName = lastRunByUserName;
-        this.lastRunAt = LocalDateTime.now();
-        this.clientId = clientId;
+        // Required by JPA.
     }
 
     // ========================================================================

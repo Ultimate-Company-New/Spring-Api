@@ -50,6 +50,7 @@ public class ShippingCalculationResponseModel {
         private CourierOption selectedCourier;
 
         public LocationShippingOptions() {
+            // Required for JSON serialization/deserialization.
         }
 
         public LocationShippingOptions(Long pickupLocationId, String locationName, String pickupPostcode,
@@ -126,6 +127,7 @@ public class ShippingCalculationResponseModel {
         private Integer cod;
 
         public CourierOption() {
+            // Required for JSON serialization/deserialization.
         }
 
         /**

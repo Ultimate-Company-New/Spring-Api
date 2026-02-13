@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
  * Unit tests for ConfirmEmail functionality in LoginService.
  */
 @DisplayName("Confirm Email Tests")
-public class ConfirmEmailTest extends LoginServiceTestBase {
+class ConfirmEmailTest extends LoginServiceTestBase {
 
     // Total Tests: 8
     /*

@@ -3,6 +3,7 @@ package com.example.SpringApi.Services.Tests.QA;
 import com.example.SpringApi.Controllers.QAController;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.SpringApi.Models.ResponseModels.QAResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,10 +42,12 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
         String serviceName = "QAService";
 
         // Act
-        Object result = qaService.getEndpointsWithTestsByService(serviceName);
+        QAResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
 
         // Assert
         assertNotNull(result);
+        assertEquals("QAService", result.getServiceName());
+        assertEquals("/api/QA", result.getBasePath());
     }
 
     /**
@@ -58,10 +61,11 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
         String serviceName = "QA";
 
         // Act
-        Object result = qaService.getEndpointsWithTestsByService(serviceName);
+        QAResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
 
         // Assert
         assertNotNull(result);
+        assertEquals("QAService", result.getServiceName());
     }
 
     /**
@@ -75,10 +79,14 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
         String serviceName = "QAService";
 
         // Act
-        Object result = qaService.getEndpointsWithTestsByService(serviceName);
+        QAResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
 
         // Assert
         assertNotNull(result);
+        assertNotNull(result.getControllerName());
+        assertTrue(result.getControllerName().endsWith("Controller"));
+        assertNotNull(result.getMethods());
+        assertTrue(result.getBasePath().startsWith("/api/"));
     }
 
     /**
@@ -94,8 +102,9 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
         // Act & Assert
         // May throw NotFoundException if case-sensitive
         try {
-            Object result = qaService.getEndpointsWithTestsByService(serviceName);
+            QAResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
             assertNotNull(result);
+            assertEquals("qaservice", result.getServiceName().toLowerCase());
         } catch (NotFoundException e) {
             // Expected if implementation is case-sensitive
             assertTrue(true);
@@ -113,10 +122,13 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
         String serviceName = "QAService";
 
         // Act
-        Object result = qaService.getEndpointsWithTestsByService(serviceName);
+        QAResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
 
         // Assert
         assertNotNull(result);
+        assertNotNull(result.getMethods());
+        assertEquals("QAService", result.getServiceName());
+        assertTrue(result.getTotalMethods() >= result.getMethods().size());
     }
 
     /*
@@ -270,11 +282,13 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
         String serviceName = "QAService";
 
         // Act
-        Object result = qaService.getEndpointsWithTestsByService(serviceName);
+        QAResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
 
         // Assert
         assertNotNull(result);
-        // The result should have an empty methods list if no methods exist
+        assertTrue(result.getTotalMethods() >= 0);
+        assertNotNull(result.getMethods());
+        assertTrue(result.getMethods().size() <= result.getTotalMethods());
     }
 
     /**
@@ -288,10 +302,13 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
         String serviceName = "QAService";
 
         // Act
-        Object result = qaService.getEndpointsWithTestsByService(serviceName);
+        QAResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
 
         // Assert
         assertNotNull(result);
+        assertTrue(result.getMethodsWithCoverage() <= result.getTotalMethods());
+        assertTrue(result.getCoveragePercentage() >= 0.0 && result.getCoveragePercentage() <= 100.0);
+        assertFalse(Double.isNaN(result.getCoveragePercentage()));
     }
 
     /**
@@ -305,13 +322,14 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
         String serviceName = "QAService";
 
         // Act
-        Object result1 = qaService.getEndpointsWithTestsByService(serviceName);
-        Object result2 = qaService.getEndpointsWithTestsByService(serviceName);
+        QAResponseModel result1 = qaService.getEndpointsWithTestsByService(serviceName);
+        QAResponseModel result2 = qaService.getEndpointsWithTestsByService(serviceName);
 
         // Assert
         assertNotNull(result1);
         assertNotNull(result2);
-        // Results should be consistent
+        assertEquals(result1.getServiceName(), result2.getServiceName());
+        assertEquals(result1.getMethods().size(), result2.getMethods().size());
     }
 
     /**
@@ -325,11 +343,11 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
         String service1 = "QAService";
 
         // Act
-        Object result1 = qaService.getEndpointsWithTestsByService(service1);
+        QAResponseModel result1 = qaService.getEndpointsWithTestsByService(service1);
 
         // Assert
         assertNotNull(result1);
-        // Different services should return different data
+        assertEquals("QAService", result1.getServiceName());
     }
 
     /**
@@ -343,10 +361,11 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
         String serviceName = "  QAService  ";
 
         // Act
-        Object result = qaService.getEndpointsWithTestsByService(serviceName);
+        QAResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
 
         // Assert
         assertNotNull(result);
+        assertEquals("QAService", result.getServiceName());
     }
 
     /**
@@ -379,6 +398,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> qaService.getEndpointsWithTestsByService(serviceName));
         assertEquals(expectedServiceNotFoundMessage(serviceName), ex.getMessage());
+        assertTrue(ex.getMessage().contains("QAService"));
     }
 
     /*

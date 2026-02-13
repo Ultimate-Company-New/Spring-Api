@@ -48,7 +48,7 @@ import static org.mockito.Mockito.lenient;
  * @since 2024-01-15
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class UserGroupServiceTestBase {
+abstract class UserGroupServiceTestBase {
 
     @Mock
     protected UserGroupRepository userGroupRepository;

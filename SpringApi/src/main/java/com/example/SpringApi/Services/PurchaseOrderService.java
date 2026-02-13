@@ -18,6 +18,7 @@ import com.example.SpringApi.Models.DatabaseModels.Lead;
 import com.example.SpringApi.Models.DatabaseModels.OrderSummary;
 import com.example.SpringApi.Models.DatabaseModels.Product;
 import com.example.SpringApi.Models.DatabaseModels.PurchaseOrder;
+import com.example.SpringApi.Models.DTOs.AddressDuplicateCriteria;
 import com.example.SpringApi.Models.DTOs.PurchaseOrderWithDetails;
 import com.example.SpringApi.Models.DatabaseModels.Resources;
 import com.example.SpringApi.Models.DatabaseModels.Shipment;
@@ -64,7 +65,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.math.BigDecimal;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -481,7 +481,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         // Log the update
         userLogService.logData(
                 getUserId(),
-                SuccessMessages.PurchaseOrderSuccessMessages.UpdatePurchaseOrder + " " + updatedPurchaseOrder.getPurchaseOrderId(),
+                SuccessMessages.PurchaseOrderSuccessMessages.UPDATE_PURCHASE_ORDER + " " + updatedPurchaseOrder.getPurchaseOrderId(),
                 ApiRoutes.PurchaseOrderSubRoute.UPDATE_PURCHASE_ORDER);
     }
 
@@ -627,7 +627,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         // Logging
         userLogService.logData(
                 getUserId(),
-                SuccessMessages.PurchaseOrderSuccessMessages.TogglePurchaseOrder + " " + purchaseOrder.getPurchaseOrderId(),
+                SuccessMessages.PurchaseOrderSuccessMessages.TOGGLE_PURCHASE_ORDER + " " + purchaseOrder.getPurchaseOrderId(),
                 ApiRoutes.PurchaseOrderSubRoute.TOGGLE_PURCHASE_ORDER);
     }
 
@@ -666,7 +666,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         // Logging
         userLogService.logData(
                 getUserId(),
-                SuccessMessages.PurchaseOrderSuccessMessages.SetApprovedByPurchaseOrder + " PO: " + purchaseOrder.getPurchaseOrderId(),
+                SuccessMessages.PurchaseOrderSuccessMessages.SET_APPROVED_BY_PURCHASE_ORDER + " PO: " + purchaseOrder.getPurchaseOrderId(),
                 ApiRoutes.PurchaseOrderSubRoute.APPROVED_BY_PURCHASE_ORDER);
     }
 
@@ -705,7 +705,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         // Logging
         userLogService.logData(
                 getUserId(),
-                SuccessMessages.PurchaseOrderSuccessMessages.SetRejectedByPurchaseOrder + " PO: " + purchaseOrder.getPurchaseOrderId(),
+                SuccessMessages.PurchaseOrderSuccessMessages.SET_REJECTED_BY_PURCHASE_ORDER + " PO: " + purchaseOrder.getPurchaseOrderId(),
                 ApiRoutes.PurchaseOrderSubRoute.REJECTED_BY_PURCHASE_ORDER);
     }
 
@@ -812,22 +812,12 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         htmlContent = HTMLHelper.replaceBrTags(htmlContent);
 
         // Convert HTML to PDF
-        String logoFilePath = Path.of(
-                environment.getActiveProfiles().length > 0 ? environment.getActiveProfiles()[0] : "default",
-                client.getName(),
-                "Logo.png")
-                .toString();
-
-        byte[] pdfBytes = PDFHelper.convertPurchaseOrderHtmlToPdf(
-                client.getGoogleCred(),
-                logoFilePath,
-                htmlContent
-        );
+        byte[] pdfBytes = PDFHelper.convertPurchaseOrderHtmlToPdf(htmlContent);
 
         // Log the PDF generation
         userLogService.logData(
                 getUserId(),
-                SuccessMessages.PurchaseOrderSuccessMessages.GetPurchaseOrderPdf + " " + id,
+                SuccessMessages.PurchaseOrderSuccessMessages.GET_PURCHASE_ORDER_PDF + " " + id,
                 ApiRoutes.PurchaseOrderSubRoute.GET_PURCHASE_ORDER_PDF
         );
 
@@ -1076,7 +1066,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                     requestingUserId,
                     requestingUserLoginName,
                     requestingClientId,
-                    SuccessMessages.PurchaseOrderSuccessMessages.InsertPurchaseOrder + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+                    SuccessMessages.PurchaseOrderSuccessMessages.INSERT_PURCHASE_ORDER + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
                     ApiRoutes.PurchaseOrderSubRoute.BULK_CREATE_PURCHASE_ORDER
             );
 
@@ -1085,8 +1075,17 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
 
             // Create a message with the bulk insert results using the helper (using captured context)
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
-                    response, "Purchase Order", "Purchase Orders", "Vendor Number", "Purchase Order ID",
-                    messageService, requestingUserId, requestingUserLoginName, requestingClientId
+                    response,
+                    new BulkInsertHelper.BulkMessageTemplate(
+                            "Purchase Order",
+                            "Purchase Orders",
+                            "Vendor Number",
+                            "Purchase Order ID"),
+                    new BulkInsertHelper.NotificationContext(
+                            messageService,
+                            requestingUserId,
+                            requestingUserLoginName,
+                            requestingClientId)
             );
 
         } catch (Exception e) {
@@ -1098,8 +1097,17 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
             errorResponse.setFailureCount(purchaseOrders != null ? purchaseOrders.size() : 0);
             errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
-                    errorResponse, "Purchase Order", "Purchase Orders", "Vendor Number", "Purchase Order ID",
-                    messageService, requestingUserId, requestingUserLoginName, requestingClientId
+                    errorResponse,
+                    new BulkInsertHelper.BulkMessageTemplate(
+                            "Purchase Order",
+                            "Purchase Orders",
+                            "Vendor Number",
+                            "Purchase Order ID"),
+                    new BulkInsertHelper.NotificationContext(
+                            messageService,
+                            requestingUserId,
+                            requestingUserLoginName,
+                            requestingClientId)
             );
         }
     }
@@ -1234,7 +1242,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                     userId,
                     createdUser,
                     clientId,
-                    SuccessMessages.PurchaseOrderSuccessMessages.InsertPurchaseOrder + " " + purchaseOrder.getPurchaseOrderId() +
+                    SuccessMessages.PurchaseOrderSuccessMessages.INSERT_PURCHASE_ORDER + " " + purchaseOrder.getPurchaseOrderId() +
                             " with OrderSummary " + orderSummary.getOrderSummaryId() +
                             " and " + (purchaseOrderRequestModel.getShipments() != null ? purchaseOrderRequestModel.getShipments().size() : 0) + " shipments",
                     ApiRoutes.PurchaseOrderSubRoute.CREATE_PURCHASE_ORDER);
@@ -1304,23 +1312,24 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         Long effectiveClientId = addressRequest.getClientId() != null ? addressRequest.getClientId() : clientId;
 
         // Check for exact duplicate (normalization is handled in the repository query)
-        Optional<Address> existingAddress = addressRepository.findExactDuplicate(
-                addressRequest.getUserId(),
-                effectiveClientId,
-                addressRequest.getAddressType(),
-                addressRequest.getStreetAddress(),
-                addressRequest.getStreetAddress2(),
-                addressRequest.getStreetAddress3(),
-                addressRequest.getCity(),
-                addressRequest.getState(),
-                addressRequest.getPostalCode(),
-                addressRequest.getNameOnAddress(),
-                addressRequest.getEmailOnAddress(),
-                addressRequest.getPhoneOnAddress(),
-                addressRequest.getCountry(),
-                addressRequest.getIsPrimary(),
-                addressRequest.getIsDeleted()
-        );
+        AddressDuplicateCriteria duplicateCriteria = new AddressDuplicateCriteria();
+        duplicateCriteria.setUserId(addressRequest.getUserId());
+        duplicateCriteria.setClientId(effectiveClientId);
+        duplicateCriteria.setAddressType(addressRequest.getAddressType());
+        duplicateCriteria.setStreetAddress(addressRequest.getStreetAddress());
+        duplicateCriteria.setStreetAddress2(addressRequest.getStreetAddress2());
+        duplicateCriteria.setStreetAddress3(addressRequest.getStreetAddress3());
+        duplicateCriteria.setCity(addressRequest.getCity());
+        duplicateCriteria.setState(addressRequest.getState());
+        duplicateCriteria.setPostalCode(addressRequest.getPostalCode());
+        duplicateCriteria.setNameOnAddress(addressRequest.getNameOnAddress());
+        duplicateCriteria.setEmailOnAddress(addressRequest.getEmailOnAddress());
+        duplicateCriteria.setPhoneOnAddress(addressRequest.getPhoneOnAddress());
+        duplicateCriteria.setCountry(addressRequest.getCountry());
+        duplicateCriteria.setIsPrimary(addressRequest.getIsPrimary());
+        duplicateCriteria.setIsDeleted(addressRequest.getIsDeleted());
+
+        Optional<Address> existingAddress = addressRepository.findExactDuplicate(duplicateCriteria);
 
         if (existingAddress.isPresent()) {
             return existingAddress.get().getAddressId();

@@ -52,6 +52,7 @@ class SaveTestRunTest extends QAServiceTestBase {
 
         // Assert
         assertNotNull(result);
+        assertEquals(1L, result.getTestRunId());
     }
 
     /**
@@ -72,6 +73,7 @@ class SaveTestRunTest extends QAServiceTestBase {
         // Assert
         assertNotNull(result);
         assertEquals(5, request.getResults().size());
+        assertEquals("TestService", result.getServiceName());
     }
 
     /**
@@ -93,6 +95,7 @@ class SaveTestRunTest extends QAServiceTestBase {
         // Assert
         assertNotNull(result);
         assertEquals("production", request.getEnvironment());
+        assertEquals("TestService", result.getServiceName());
     }
 
     /**
@@ -114,6 +117,7 @@ class SaveTestRunTest extends QAServiceTestBase {
         // Assert
         assertNotNull(result);
         assertEquals("automated", request.getRunType());
+        assertEquals(1L, result.getTestRunId());
     }
 
     /**
@@ -134,6 +138,8 @@ class SaveTestRunTest extends QAServiceTestBase {
 
         // Assert
         assertNotNull(result);
+        assertEquals("TestService", result.getServiceName());
+        assertEquals("manual", result.getRunType());
     }
 
     /**
@@ -153,6 +159,10 @@ class SaveTestRunTest extends QAServiceTestBase {
 
         // Assert
         assertNotNull(result);
+        assertNotNull(result.getStartTime());
+        assertNotNull(result.getEndTime());
+        assertFalse(result.getEndTime().isBefore(result.getStartTime()));
+        assertEquals("manual", result.getRunType());
     }
 
     /*
@@ -194,6 +204,7 @@ class SaveTestRunTest extends QAServiceTestBase {
             qaService.saveTestRun(request);
         });
         assertEquals(ErrorMessages.QAErrorMessages.SERVICE_NAME_REQUIRED, exception.getMessage());
+        assertNull(request.getServiceName());
     }
 
     /**
@@ -212,6 +223,7 @@ class SaveTestRunTest extends QAServiceTestBase {
             qaService.saveTestRun(request);
         });
         assertEquals(ErrorMessages.QAErrorMessages.SERVICE_NAME_REQUIRED, exception.getMessage());
+        assertTrue(request.getServiceName().isEmpty());
     }
 
     /**
@@ -230,6 +242,7 @@ class SaveTestRunTest extends QAServiceTestBase {
             qaService.saveTestRun(request);
         });
         assertEquals(ErrorMessages.QAErrorMessages.SERVICE_NAME_REQUIRED, exception.getMessage());
+        assertTrue(request.getServiceName().isBlank());
     }
 
     /**
@@ -382,7 +395,7 @@ class SaveTestRunTest extends QAServiceTestBase {
         });
 
         // Verify the exception message comes from ErrorMessages constants
-        assertTrue(exception.getMessage().equals(ErrorMessages.QAErrorMessages.TEST_RUN_REQUEST_CANNOT_BE_NULL));
+        assertEquals(ErrorMessages.QAErrorMessages.TEST_RUN_REQUEST_CANNOT_BE_NULL, exception.getMessage());
     }
 
     /*

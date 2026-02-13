@@ -18,6 +18,8 @@ public class ImgbbHelper {
     private final String imgbbApiKey;
     private static final String IMGBB_UPLOAD_URL = "https://api.imgbb.com/1/upload";
     private static final String IMGBB_INFO_URL = "https://api.imgbb.com/1/image/";
+    private static final String FILE_NAME_TIMESTAMP_PATTERN = "MM_dd_yyyy_hh_mm_ss_a";
+    private static final String API_KEY_QUERY_PARAM = "?key=";
 
     /**
      * Constructor to initialize ImgbbHelper with API key.
@@ -65,7 +67,7 @@ public class ImgbbHelper {
         String sanitizedClientName = clientName.replaceAll("\\s+", "_");
         
         // Format timestamp as MM_dd_yyyy_hh_mm_ss_a (with AM/PM)
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MM_dd_yyyy_hh_mm_ss_a");
+        SimpleDateFormat dateFormat = new SimpleDateFormat(FILE_NAME_TIMESTAMP_PATTERN);
         String timestamp = dateFormat.format(new Date());
         
         // Construct filename (no extension - ImgBB adds it automatically)
@@ -89,7 +91,7 @@ public class ImgbbHelper {
         String sanitizedClientName = clientName.replaceAll("\\s+", "_");
         
         // Format timestamp as MM_dd_yyyy_hh_mm_ss_a (with AM/PM)
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MM_dd_yyyy_hh_mm_ss_a");
+        SimpleDateFormat dateFormat = new SimpleDateFormat(FILE_NAME_TIMESTAMP_PATTERN);
         String timestamp = dateFormat.format(new Date());
         
         // Construct filename (no extension - ImgBB adds it automatically)
@@ -120,7 +122,7 @@ public class ImgbbHelper {
         sanitizedAttachmentName = sanitizedAttachmentName.replaceAll("[^a-zA-Z0-9_-]", "_");
         
         // Format timestamp as MM_dd_yyyy_hh_mm_ss_a (with AM/PM)
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MM_dd_yyyy_hh_mm_ss_a");
+        SimpleDateFormat dateFormat = new SimpleDateFormat(FILE_NAME_TIMESTAMP_PATTERN);
         String timestamp = dateFormat.format(new Date());
         
         // Construct filename (no extension - ImgBB adds it automatically)
@@ -183,7 +185,7 @@ public class ImgbbHelper {
             }
 
             // Construct the full API URL including the key
-            String fullUrlString = IMGBB_UPLOAD_URL + "?key=" + imgbbApiKey;
+            String fullUrlString = IMGBB_UPLOAD_URL + API_KEY_QUERY_PARAM + imgbbApiKey;
             URL url = java.net.URI.create(fullUrlString).toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
@@ -231,8 +233,7 @@ public class ImgbbHelper {
         }
         
         try {
-            // ImgBB delete URL format: https://api.imgbb.com/1/image/{deleteHash}?key={apiKey}
-            String deleteUrl = "https://api.imgbb.com/1/image/" + deleteHash + "?key=" + imgbbApiKey;
+            String deleteUrl = IMGBB_INFO_URL + deleteHash + API_KEY_QUERY_PARAM + imgbbApiKey;
             URL url = java.net.URI.create(deleteUrl).toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             
@@ -251,7 +252,8 @@ public class ImgbbHelper {
      * Attempts to download the file contents as a raw byte array from the public URL.
      * NOTE: ImgBB does not offer a direct API endpoint to get the image contents,
      * so we download directly from the public URL.
-     * * @param publicUrl The public URL of the image hosted on ImgBB.
+     *
+     * @param publicUrl The public URL of the image hosted on ImgBB.
      * @return The image data as a byte array, or null on failure.
      */
     public byte[] downloadFileAsBytesFromImgBB(String publicUrl) {
@@ -268,10 +270,10 @@ public class ImgbbHelper {
                     return inputStream.readAllBytes();
                 }
             } else {
-                return null;
+                return new byte[0];
             }
         } catch (IOException e) {
-            return null;
+            return new byte[0];
         }
     }
 
@@ -279,11 +281,12 @@ public class ImgbbHelper {
      * Checks if a file exists on ImgBB by checking the image info endpoint.
      * This requires the ImgBB image ID, which must be extracted from the public URL 
      * or stored during the upload.
-     * * @param imageId The ImgBB image ID (e.g., "2ndCYJK" from ibb.co/2ndCYJK).
+     *
+     * @param imageId The ImgBB image ID (e.g., "2ndCYJK" from ibb.co/2ndCYJK).
      * @return true if the file exists and is accessible, false otherwise.
      */
     public boolean fileExists(String imageId) {
-        String fullUrlString = IMGBB_INFO_URL + imageId + "?key=" + imgbbApiKey;
+        String fullUrlString = IMGBB_INFO_URL + imageId + API_KEY_QUERY_PARAM + imgbbApiKey;
 
         try {
             URL url = java.net.URI.create(fullUrlString).toURL();

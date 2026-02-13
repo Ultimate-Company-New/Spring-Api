@@ -50,7 +50,7 @@ import static org.mockito.Mockito.lenient;
  * LeadService test classes.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class LeadServiceTestBase {
+abstract class LeadServiceTestBase {
 
     // ==================== COMMON TEST CONSTANTS ====================
 

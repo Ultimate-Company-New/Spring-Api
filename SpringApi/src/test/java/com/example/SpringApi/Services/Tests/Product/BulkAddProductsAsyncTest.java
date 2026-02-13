@@ -54,7 +54,7 @@ class BulkAddProductsAsyncTest extends ProductServiceTestBase {
 
             // Assert
             verify(userLogService, atLeastOnce()).logDataWithContext(eq(DEFAULT_USER_ID), eq(CREATED_USER),
-                    eq(TEST_CLIENT_ID), contains(SuccessMessages.ProductsSuccessMessages.InsertProduct), anyString());
+                    eq(TEST_CLIENT_ID), contains(SuccessMessages.ProductsSuccessMessages.INSERT_PRODUCT), anyString());
         }
     }
 

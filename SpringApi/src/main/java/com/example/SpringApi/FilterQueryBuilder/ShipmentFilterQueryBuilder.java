@@ -27,6 +27,8 @@ import java.util.Map;
  */
 @Component
 public class ShipmentFilterQueryBuilder extends BaseFilterQueryBuilder {
+    private static final String CLIENT_ID = "clientId";
+    private static final String CLIENT_ID_PARAM = ":" + CLIENT_ID;
 
     private final EntityManager entityManager;
 
@@ -58,7 +60,7 @@ public class ShipmentFilterQueryBuilder extends BaseFilterQueryBuilder {
             case "shipRocketAwbCode": return "s.shipRocketAwbCode";
             case "shipRocketTrackingId": return "s.shipRocketTrackingId";
             case "shipRocketStatus": return "s.shipRocketStatus";
-            case "clientId": return "s.clientId";
+            case CLIENT_ID: return "s.clientId";
             case "createdUser": return "s.createdUser";
             case "modifiedUser": return "s.modifiedUser";
             case "createdAt": return "s.createdAt";
@@ -137,7 +139,7 @@ public class ShipmentFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Base query - Only return shipments with ShipRocket order ID assigned
         String baseQuery = "SELECT s FROM Shipment s " +
-                "WHERE s.clientId = :clientId " +
+                "WHERE s.clientId = " + CLIENT_ID_PARAM + " " +
                 "AND s.shipRocketOrderId IS NOT NULL " +
                 "AND s.shipRocketOrderId != '' ";
 
@@ -158,7 +160,7 @@ public class ShipmentFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Count query - Only count shipments with ShipRocket order ID assigned
         String countQuery = "SELECT COUNT(s) FROM Shipment s " +
-                "WHERE s.clientId = :clientId " +
+                "WHERE s.clientId = " + CLIENT_ID_PARAM + " " +
                 "AND s.shipRocketOrderId IS NOT NULL " +
                 "AND s.shipRocketOrderId != '' ";
 
@@ -172,7 +174,7 @@ public class ShipmentFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute count query
         TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
-        countTypedQuery.setParameter("clientId", clientId);
+        countTypedQuery.setParameter(CLIENT_ID, clientId);
         
         if (selectedIds != null && !selectedIds.isEmpty()) {
             countTypedQuery.setParameter("selectedIds", selectedIds);
@@ -187,7 +189,7 @@ public class ShipmentFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute main query with pagination
         TypedQuery<Shipment> mainQuery = entityManager.createQuery(baseQuery, Shipment.class);
-        mainQuery.setParameter("clientId", clientId);
+        mainQuery.setParameter(CLIENT_ID, clientId);
         
         if (selectedIds != null && !selectedIds.isEmpty()) {
             mainQuery.setParameter("selectedIds", selectedIds);

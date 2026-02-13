@@ -23,6 +23,8 @@ import java.util.Map;
  */
 @Component
 public class PromoFilterQueryBuilder extends BaseFilterQueryBuilder {
+    private static final String CLIENT_ID = "clientId";
+    private static final String CLIENT_ID_PARAM = ":" + CLIENT_ID;
 
     private final EntityManager entityManager;
 
@@ -37,7 +39,7 @@ public class PromoFilterQueryBuilder extends BaseFilterQueryBuilder {
     protected String mapColumnToField(String column) {
         switch (column) {
             case "promoId": return "p.promoId";
-            case "clientId": return "p.clientId";
+            case CLIENT_ID: return "p.clientId";
             case "promoCode": return "p.promoCode";
             case "description": return "p.description";
             case "discountValue": return "p.discountValue";
@@ -64,7 +66,7 @@ public class PromoFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     @Override
     protected List<String> getNumberColumns() {
-        return Arrays.asList("promoId", "clientId", "discountValue");
+        return Arrays.asList("promoId", CLIENT_ID, "discountValue");
     }
 
     /**
@@ -109,7 +111,7 @@ public class PromoFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Base query
         String baseQuery = "SELECT p FROM Promo p " +
-                "WHERE p.clientId = :clientId ";
+                "WHERE p.clientId = " + CLIENT_ID_PARAM + " ";
 
         // Add selectedIds condition
         if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -133,7 +135,7 @@ public class PromoFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Count query
         String countQuery = "SELECT COUNT(p) FROM Promo p " +
-                "WHERE p.clientId = :clientId ";
+                "WHERE p.clientId = " + CLIENT_ID_PARAM + " ";
 
         if (selectedIds != null && !selectedIds.isEmpty()) {
             countQuery += "AND p.promoId IN :selectedIds ";
@@ -149,7 +151,7 @@ public class PromoFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute count query
         TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
-        countTypedQuery.setParameter("clientId", clientId);
+        countTypedQuery.setParameter(CLIENT_ID, clientId);
         
         if (selectedIds != null && !selectedIds.isEmpty()) {
             countTypedQuery.setParameter("selectedIds", selectedIds);
@@ -164,7 +166,7 @@ public class PromoFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute main query with pagination
         TypedQuery<Promo> mainQuery = entityManager.createQuery(baseQuery, Promo.class);
-        mainQuery.setParameter("clientId", clientId);
+        mainQuery.setParameter(CLIENT_ID, clientId);
         
         if (selectedIds != null && !selectedIds.isEmpty()) {
             mainQuery.setParameter("selectedIds", selectedIds);
@@ -184,4 +186,3 @@ public class PromoFilterQueryBuilder extends BaseFilterQueryBuilder {
         return new PageImpl<>(promos, pageable, totalCount);
     }
 }
-

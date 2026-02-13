@@ -187,6 +187,8 @@ class StartTestExecutionTest extends QAServiceTestBase {
         // Assert
         assertNotNull(status);
         assertNotNull(status.getExecutionId());
+        assertEquals("PENDING", status.getStatus());
+        assertEquals(1, status.getTotalTests());
     }
 
     /**
@@ -246,6 +248,10 @@ class StartTestExecutionTest extends QAServiceTestBase {
 
         // Assert
         assertNotNull(status);
+        assertNotNull(status.getExecutionId());
+        assertEquals(1, status.getTotalTests());
+        assertEquals("PENDING", status.getStatus());
+        assertFalse(status.getExecutionId().contains("+"));
     }
 
     /**
@@ -302,6 +308,9 @@ class StartTestExecutionTest extends QAServiceTestBase {
         // Assert
         assertNotNull(status);
         assertNotNull(status.getStatus());
+        assertEquals("PENDING", status.getStatus());
+        assertEquals(0, status.getCompletedTests());
+        assertTrue(status.getTotalTests() >= status.getCompletedTests());
     }
 
     /**
@@ -424,7 +433,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
         });
 
         // Verify the exception message comes from ErrorMessages constants
-        assertTrue(exception.getMessage().equals(ErrorMessages.QAErrorMessages.TEST_EXECUTION_REQUEST_CANNOT_BE_NULL));
+        assertEquals(ErrorMessages.QAErrorMessages.TEST_EXECUTION_REQUEST_CANNOT_BE_NULL, exception.getMessage());
     }
 
     /**
@@ -566,6 +575,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
             qaService.startTestExecution(request);
         });
         assertEquals(ErrorMessages.QAErrorMessages.TEST_CLASS_NAME_REQUIRED, exception.getMessage());
+        assertEquals(1, request.getTestNames().size());
     }
 
     /**
@@ -604,6 +614,9 @@ class StartTestExecutionTest extends QAServiceTestBase {
             qaService.startTestExecution(request);
         });
         assertEquals(ErrorMessages.QAErrorMessages.TEST_CLASS_NAME_REQUIRED, exception.getMessage());
+        assertNull(request.getTestClassName());
+        assertEquals(1, request.getTestNames().size());
+        assertFalse(request.getRunAll());
     }
 
     /*

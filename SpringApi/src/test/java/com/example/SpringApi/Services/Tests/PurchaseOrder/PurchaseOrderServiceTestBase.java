@@ -4,6 +4,7 @@ import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.FilterQueryBuilder.PurchaseOrderFilterQueryBuilder;
 import com.example.SpringApi.Helpers.ImgbbHelper;
 import com.example.SpringApi.Models.DatabaseModels.*;
+import com.example.SpringApi.Models.DTOs.AddressDuplicateCriteria;
 import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
 import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
 import com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem;
@@ -42,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Provides common setup, test data, and helper methods for all PurchaseOrder test files.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class PurchaseOrderServiceTestBase {
+abstract class PurchaseOrderServiceTestBase {
 
     @Mock
     protected PurchaseOrderRepository purchaseOrderRepository;
@@ -340,8 +341,7 @@ public abstract class PurchaseOrderServiceTestBase {
     }
 
     protected void stubAddressRepositoryFindExactDuplicate(Optional<Address> address) {
-        lenient().when(addressRepository.findExactDuplicate(any(), any(), any(), any(), any(), any(), any(), any(),
-                any(), any(), any(), any(), any(), any(), any())).thenReturn(address);
+        lenient().when(addressRepository.findExactDuplicate(any(AddressDuplicateCriteria.class))).thenReturn(address);
     }
 
     protected void stubAddressRepositorySave(Address address) {
@@ -582,7 +582,7 @@ public abstract class PurchaseOrderServiceTestBase {
         org.mockito.MockedStatic<com.example.SpringApi.Helpers.PDFHelper> mocked =
             org.mockito.Mockito.mockStatic(com.example.SpringApi.Helpers.PDFHelper.class);
         mocked.when(() -> com.example.SpringApi.Helpers.PDFHelper.convertPurchaseOrderHtmlToPdf(
-            any(), anyString(), anyString())).thenReturn(pdfBytes);
+            anyString())).thenReturn(pdfBytes);
         return mocked;
         }
 

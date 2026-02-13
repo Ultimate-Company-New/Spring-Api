@@ -11,9 +11,9 @@ import com.example.SpringApi.ErrorMessages;
 import java.time.LocalDateTime;
 
 /**
- * JPA Entity for the Todo table.
+ * JPA entity for the task item table.
  * 
- * This entity represents todo items for task management and personal productivity.
+ * This entity represents task items for task management and personal productivity.
  * It includes user association and completion tracking.
  * 
  * @author SpringApi Team
@@ -70,9 +70,9 @@ public class Todo {
     public Todo() {}
     
     /**
-     * Constructor for creating a new todo item.
+     * Constructor for creating a new task item.
      * 
-     * @param request The TodoRequestModel containing todo data
+     * @param request The TodoRequestModel containing task item data
      * @param createdUser The username of the user creating this record
      */
     public Todo(TodoRequestModel request, String createdUser, long userId) {
@@ -86,11 +86,11 @@ public class Todo {
     }
     
     /**
-     * Constructor for updating an existing todo item.
+     * Constructor for updating an existing task item.
      * 
-     * @param request The TodoRequestModel containing updated todo data
+     * @param request The TodoRequestModel containing updated task item data
      * @param modifiedUser The username of the user modifying this record
-     * @param existingTodo The existing todo entity to be updated
+     * @param existingTodo The existing task item entity to be updated
      */
     public Todo(TodoRequestModel request, String modifiedUser, Todo existingTodo, long userId) {
         validateRequest(request);

@@ -45,7 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Contains common mocks, dependencies, and setup logic shared across all PackageService test classes.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class PackageServiceTestBase {
+abstract class PackageServiceTestBase {
 
     // ==================== COMMON TEST CONSTANTS ====================
 
@@ -280,18 +280,18 @@ public abstract class PackageServiceTestBase {
     // ==================== FACTORY METHODS ====================
 
     protected PackageRequestModel createValidPackageRequest() {
-        PackageRequestModel request = new PackageRequestModel();
-        request.setPackageId(DEFAULT_PACKAGE_ID);
-        request.setPackageName(DEFAULT_PACKAGE_NAME);
-        request.setLength(10);
-        request.setBreadth(10);
-        request.setHeight(10);
-        request.setMaxWeight(new BigDecimal("5.00"));
-        request.setStandardCapacity(100);
-        request.setPricePerUnit(new BigDecimal("10.00"));
-        request.setPackageType("BOX");
-        request.setIsDeleted(false);
-        return request;
+        PackageRequestModel packageRequest = new PackageRequestModel();
+        packageRequest.setPackageId(DEFAULT_PACKAGE_ID);
+        packageRequest.setPackageName(DEFAULT_PACKAGE_NAME);
+        packageRequest.setLength(10);
+        packageRequest.setBreadth(10);
+        packageRequest.setHeight(10);
+        packageRequest.setMaxWeight(new BigDecimal("5.00"));
+        packageRequest.setStandardCapacity(100);
+        packageRequest.setPricePerUnit(new BigDecimal("10.00"));
+        packageRequest.setPackageType("BOX");
+        packageRequest.setIsDeleted(false);
+        return packageRequest;
     }
 
     protected Package createTestPackage() {
@@ -339,11 +339,11 @@ public abstract class PackageServiceTestBase {
     }
 
     protected PaginationBaseRequestModel createValidPaginationRequest() {
-        PaginationBaseRequestModel request = new PaginationBaseRequestModel();
-        request.setStart(0);
-        request.setEnd(10);
-        request.setFilters(new java.util.ArrayList<>());
-        return request;
+        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
+        paginationRequest.setStart(0);
+        paginationRequest.setEnd(10);
+        paginationRequest.setFilters(new java.util.ArrayList<>());
+        return paginationRequest;
     }
 
     protected void assertThrowsBadRequest(String expectedMessage, org.junit.jupiter.api.function.Executable executable) {

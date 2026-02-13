@@ -78,7 +78,7 @@ public class ProductReviewService extends BaseService implements IProductReviewS
         productReviewRepository.save(productReview);
         
         // Log the operation
-        userLogService.logData(getUserId(), SuccessMessages.ProductReviewSuccessMessages.InsertProductReview + " " + productReview.getReviewId(), ApiRoutes.ProductReviewSubRoute.INSERT_PRODUCT_REVIEW);
+        userLogService.logData(getUserId(), SuccessMessages.ProductReviewSuccessMessages.INSERT_PRODUCT_REVIEW + " " + productReview.getReviewId(), ApiRoutes.ProductReviewSubRoute.INSERT_PRODUCT_REVIEW);
     }
     
     /**
@@ -186,7 +186,7 @@ public class ProductReviewService extends BaseService implements IProductReviewS
         }
         
         // Log the operation
-        userLogService.logData(getUserId(), SuccessMessages.ProductReviewSuccessMessages.ToggleProductReview + " " + review.getReviewId(), ApiRoutes.ProductReviewSubRoute.TOGGLE_PRODUCT_REVIEW);
+        userLogService.logData(getUserId(), SuccessMessages.ProductReviewSuccessMessages.TOGGLE_PRODUCT_REVIEW + " " + review.getReviewId(), ApiRoutes.ProductReviewSubRoute.TOGGLE_PRODUCT_REVIEW);
     }
     
     /**
@@ -221,6 +221,6 @@ public class ProductReviewService extends BaseService implements IProductReviewS
         productReviewRepository.save(review);
         
         // Log the operation
-        userLogService.logData(getUserId(), SuccessMessages.ProductReviewSuccessMessages.ScoreUpdate + " " + review.getReviewId(), ApiRoutes.ProductReviewSubRoute.SET_PRODUCT_REVIEW_SCORE);
+        userLogService.logData(getUserId(), SuccessMessages.ProductReviewSuccessMessages.SCORE_UPDATE + " " + review.getReviewId(), ApiRoutes.ProductReviewSubRoute.SET_PRODUCT_REVIEW_SCORE);
     }
 }

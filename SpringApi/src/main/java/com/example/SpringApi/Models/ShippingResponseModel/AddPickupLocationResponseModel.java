@@ -8,13 +8,23 @@ import lombok.Setter;
 @Setter
 public class AddPickupLocationResponseModel {
     private boolean success;
-    private Address address;
+    @SerializedName("address")
+    private Address pickupAddress;
     @SerializedName("pickup_id")
     private long pickupId;
     @SerializedName("company_name")
     private String companyName;
     @SerializedName("full_name")
     private String fullName;
+
+    // Backward-compatible accessors for existing call sites using getAddress/setAddress.
+    public Address getAddress() {
+        return pickupAddress;
+    }
+
+    public void setAddress(Address address) {
+        this.pickupAddress = address;
+    }
 
     @Getter
     @Setter
@@ -23,7 +33,8 @@ public class AddPickupLocationResponseModel {
         private int companyId;
         @SerializedName("pickup_code")
         private String pickupCode;
-        private String address;
+        @SerializedName("address")
+        private String addressLine1;
         @SerializedName("address_2")
         private String address2;
         @SerializedName("address_type")

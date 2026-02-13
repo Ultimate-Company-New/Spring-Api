@@ -13,6 +13,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.mockito.ArgumentCaptor;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -21,7 +22,6 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 /**
@@ -77,6 +77,9 @@ class InsertProductReviewTest extends ProductReviewServiceTestBase {
 
         // Assert
         verify(productReviewRepository, times(1)).save(any(ProductReview.class));
+        ArgumentCaptor<ProductReview> reviewCaptor = ArgumentCaptor.forClass(ProductReview.class);
+        verify(productReviewRepository).save(reviewCaptor.capture());
+        assertEquals(0, reviewCaptor.getValue().getRatings().compareTo(new BigDecimal("5.0")));
     }
 
 
@@ -98,6 +101,9 @@ class InsertProductReviewTest extends ProductReviewServiceTestBase {
 
         // Assert
         verify(productReviewRepository, times(1)).save(any(ProductReview.class));
+        ArgumentCaptor<ProductReview> reviewCaptor = ArgumentCaptor.forClass(ProductReview.class);
+        verify(productReviewRepository).save(reviewCaptor.capture());
+        assertEquals(0, reviewCaptor.getValue().getRatings().compareTo(BigDecimal.ONE));
     }
 
 
@@ -119,6 +125,9 @@ class InsertProductReviewTest extends ProductReviewServiceTestBase {
 
         // Assert
         verify(productReviewRepository, times(1)).save(any(ProductReview.class));
+        ArgumentCaptor<ProductReview> reviewCaptor = ArgumentCaptor.forClass(ProductReview.class);
+        verify(productReviewRepository).save(reviewCaptor.capture());
+        assertEquals(0, reviewCaptor.getValue().getRatings().compareTo(BigDecimal.ZERO));
     }
 
 
@@ -133,6 +142,7 @@ class InsertProductReviewTest extends ProductReviewServiceTestBase {
         // Arrange
         ProductReviewRequestModel request = buildValidProductReviewRequest();
         request.setRatings(new BigDecimal("5.0"));
+        assertEquals(0, request.getRatings().compareTo(new BigDecimal("5.0")));
         stubProductReviewRepositorySave(testProductReview);
 
         // Act
@@ -140,6 +150,10 @@ class InsertProductReviewTest extends ProductReviewServiceTestBase {
 
         // Assert
         verify(productReviewRepository, times(1)).save(any(ProductReview.class));
+        ArgumentCaptor<ProductReview> reviewCaptor = ArgumentCaptor.forClass(ProductReview.class);
+        verify(productReviewRepository).save(reviewCaptor.capture());
+        assertEquals(0, reviewCaptor.getValue().getRatings().compareTo(new BigDecimal("5.0")));
+        assertTrue(reviewCaptor.getValue().getRatings().scale() >= 0);
     }
 
 
@@ -154,6 +168,7 @@ class InsertProductReviewTest extends ProductReviewServiceTestBase {
         // Arrange
         ProductReviewRequestModel request = buildValidProductReviewRequest();
         request.setRatings(BigDecimal.ZERO);
+        assertEquals(0, request.getRatings().compareTo(BigDecimal.ZERO));
         stubProductReviewRepositorySave(testProductReview);
 
         // Act
@@ -161,6 +176,10 @@ class InsertProductReviewTest extends ProductReviewServiceTestBase {
 
         // Assert
         verify(productReviewRepository, times(1)).save(any(ProductReview.class));
+        ArgumentCaptor<ProductReview> reviewCaptor = ArgumentCaptor.forClass(ProductReview.class);
+        verify(productReviewRepository).save(reviewCaptor.capture());
+        assertEquals(0, reviewCaptor.getValue().getRatings().compareTo(BigDecimal.ZERO));
+        assertFalse(reviewCaptor.getValue().getRatings().signum() > 0);
     }
 
 

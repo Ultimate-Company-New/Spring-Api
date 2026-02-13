@@ -34,7 +34,7 @@ import static org.mockito.Mockito.lenient;
  * ClientService test classes.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class ClientServiceTestBase {
+abstract class ClientServiceTestBase {
 
     // ==================== COMMON TEST CONSTANTS ====================
 
@@ -99,16 +99,16 @@ public abstract class ClientServiceTestBase {
     // ==================== FACTORY METHODS ====================
 
     protected ClientRequestModel createValidClientRequest(Long clientId, String name) {
-        ClientRequestModel request = new ClientRequestModel();
-        request.setClientId(clientId);
-        request.setName(name);
-        request.setDescription(DEFAULT_CLIENT_DESCRIPTION);
-        request.setSupportEmail(DEFAULT_SUPPORT_EMAIL);
-        request.setWebsite(DEFAULT_WEBSITE);
-        request.setSendgridSenderName("Sender");
-        request.setGoogleCredId(DEFAULT_GOOGLE_CRED_ID);
-        request.setIsDeleted(false);
-        return request;
+        ClientRequestModel clientRequest = new ClientRequestModel();
+        clientRequest.setClientId(clientId);
+        clientRequest.setName(name);
+        clientRequest.setDescription(DEFAULT_CLIENT_DESCRIPTION);
+        clientRequest.setSupportEmail(DEFAULT_SUPPORT_EMAIL);
+        clientRequest.setWebsite(DEFAULT_WEBSITE);
+        clientRequest.setSendgridSenderName("Sender");
+        clientRequest.setGoogleCredId(DEFAULT_GOOGLE_CRED_ID);
+        clientRequest.setIsDeleted(false);
+        return clientRequest;
     }
 
     protected Client createTestClient(Long clientId, String name) {

@@ -270,7 +270,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         // Logging
         userLogService.logData(
                 currentUserId,
-                SuccessMessages.LeadSuccessMessages.UpdateLead + updatedLead.getLeadId(),
+                SuccessMessages.LeadSuccessMessages.UPDATE_LEAD + updatedLead.getLeadId(),
                 ApiRoutes.LeadsSubRoute.UPDATE_LEAD);
     }
 
@@ -296,7 +296,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         // Logging
         userLogService.logData(
                 getUserId(),
-                SuccessMessages.LeadSuccessMessages.ToggleLead + lead.getLeadId(),
+                SuccessMessages.LeadSuccessMessages.TOGGLE_LEAD + lead.getLeadId(),
                 ApiRoutes.LeadsSubRoute.TOGGLE_LEAD);
     }
 
@@ -381,7 +381,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
                     requestingUserId,
                     requestingUserLoginName,
                     requestingClientId,
-                    SuccessMessages.LeadSuccessMessages.InsertLead + " (Bulk: " + successCount + " succeeded, "
+                    SuccessMessages.LeadSuccessMessages.INSERT_LEAD + " (Bulk: " + successCount + " succeeded, "
                             + failureCount + " failed)",
                     ApiRoutes.LeadsSubRoute.BULK_CREATE_LEAD);
 
@@ -391,8 +391,13 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
             // Create a message with the bulk insert results using the helper (using
             // captured context)
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
-                    response, "Lead", "Leads", "Email", "Lead ID",
-                    messageService, requestingUserId, requestingUserLoginName, requestingClientId);
+                    response,
+                    new BulkInsertHelper.BulkMessageTemplate("Lead", "Leads", "Email", "Lead ID"),
+                    new BulkInsertHelper.NotificationContext(
+                            messageService,
+                            requestingUserId,
+                            requestingUserLoginName,
+                            requestingClientId));
 
         } catch (Exception e) {
             // Still send a message to user about the failure (using captured userId)
@@ -404,8 +409,13 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
                     "bulk_import",
                     String.format(ErrorMessages.LeadsErrorMessages.BULK_CRITICAL_ERROR_FORMAT, e.getMessage()));
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
-                    errorResponse, "Lead", "Leads", "Email", "Lead ID",
-                    messageService, requestingUserId, requestingUserLoginName, requestingClientId);
+                    errorResponse,
+                    new BulkInsertHelper.BulkMessageTemplate("Lead", "Leads", "Email", "Lead ID"),
+                    new BulkInsertHelper.NotificationContext(
+                            messageService,
+                            requestingUserId,
+                            requestingUserLoginName,
+                            requestingClientId));
         }
     }
 
@@ -466,7 +476,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         // Log bulk lead creation
         userLogService.logData(
                 getUserId(),
-                SuccessMessages.LeadSuccessMessages.InsertLead + " (Bulk: " + successCount + " succeeded, "
+                SuccessMessages.LeadSuccessMessages.INSERT_LEAD + " (Bulk: " + successCount + " succeeded, "
                         + failureCount + " failed)",
                 ApiRoutes.LeadsSubRoute.BULK_CREATE_LEAD);
 
@@ -518,7 +528,7 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
         if (shouldLog) {
             userLogService.logData(
                     userId,
-                    SuccessMessages.LeadSuccessMessages.InsertLead + savedLead.getLeadId(),
+                    SuccessMessages.LeadSuccessMessages.INSERT_LEAD + savedLead.getLeadId(),
                     ApiRoutes.LeadsSubRoute.CREATE_LEAD);
         }
     }

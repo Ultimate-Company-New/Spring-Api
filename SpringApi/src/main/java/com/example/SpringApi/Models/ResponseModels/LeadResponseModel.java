@@ -160,15 +160,11 @@ public class LeadResponseModel {
         if (this.leadStatus == null) return "gray";
         
         switch (this.leadStatus) {
-            case "Contacted":
-            case "Re Qualified":
+            case "Contacted", "Re Qualified":
                 return "green";
-            case "Lost Lead":
-            case "Junk Lead":
-            case "Not Qualified":
+            case "Lost Lead", "Junk Lead", "Not Qualified":
                 return "red";
-            case "Attempted To Contact":
-            case "Contact In Future":
+            case "Attempted To Contact", "Contact In Future":
                 return "orange";
             case "Not Contacted":
                 return "blue";

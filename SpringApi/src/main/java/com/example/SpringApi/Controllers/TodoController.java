@@ -16,10 +16,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * REST Controller for Todo operations.
+ * REST controller for task item operations.
  *
- * This controller handles all HTTP requests related to todo management
- * including creating, reading, updating, deleting, and managing todo items.
+ * This controller handles all HTTP requests related to task item management
+ * including creating, reading, updating, deleting, and managing task items.
  * All endpoints require token validation for access.
  *
  * @author SpringApi Team
@@ -39,12 +39,12 @@ public class TodoController {
     }
 
     /**
-     * Adds a new todo item.
+     * Adds a new task item.
      *
-     * This endpoint creates a new todo item for the authenticated user.
-     * The todo object should contain the task description and other relevant details.
+     * This endpoint creates a new task item for the authenticated user.
+     * The request object should contain the task description and other relevant details.
      *
-     * @return ResponseEntity containing the ID of the newly created todo item or error
+     * @return ResponseEntity containing the ID of the newly created task item or error
      */
     @PutMapping("/" + ApiRoutes.TodoSubRoute.ADD_ITEM)
     @PreAuthorize("@customAuthorization.hasAuthority(null)")
@@ -65,12 +65,12 @@ public class TodoController {
     }
 
     /**
-     * Updates an existing todo item.
+     * Updates an existing task item.
      * 
-     * This endpoint updates an existing todo item for the authenticated user.
-     * The todo object should contain the ID and updated task details.
+     * This endpoint updates an existing task item for the authenticated user.
+     * The request object should contain the ID and updated task details.
      * 
-     * @param todoRequest The todo item to update
+     * @param todoRequest The task item to update
      * @return ResponseEntity containing success status or error
      */
     @PostMapping("/" + ApiRoutes.TodoSubRoute.UPDATE_ITEM)
@@ -95,12 +95,12 @@ public class TodoController {
     }
 
     /**
-     * Deletes a todo item by ID.
+     * Deletes a task item by ID.
      * 
-     * This endpoint permanently removes a todo item from the system.
-     * Only the owner of the todo item can delete it.
+     * This endpoint permanently removes a task item from the system.
+     * Only the owner of the task item can delete it.
      * 
-     * @param id The ID of the todo item to delete
+     * @param id The ID of the task item to delete
      * @return ResponseEntity containing success status or error
      */
     @DeleteMapping("/" + ApiRoutes.TodoSubRoute.DELETE_ITEM + "/{id}")
@@ -125,12 +125,12 @@ public class TodoController {
     }
 
     /**
-     * Toggles the completion status of a todo item.
+     * Toggles the completion status of a task item.
      * 
-     * This endpoint changes the isDone status of a todo item.
+     * This endpoint changes the isDone status of a task item.
      * If the item is completed, it will be marked as pending and vice versa.
      * 
-     * @param id The ID of the todo item to toggle
+     * @param id The ID of the task item to toggle
      * @return ResponseEntity containing success status or error
      */
     @DeleteMapping("/" + ApiRoutes.TodoSubRoute.TOGGLE_DONE + "/{id}")
@@ -155,12 +155,12 @@ public class TodoController {
     }
 
     /**
-     * Retrieves all todo items for the authenticated user.
+     * Retrieves all task items for the authenticated user.
      * 
-     * This endpoint returns a list of all todo items belonging to the current user.
-     * Both completed and pending todo items are included in the response.
+     * This endpoint returns a list of all task items belonging to the current user.
+     * Both completed and pending task items are included in the response.
      * 
-     * @return ResponseEntity containing list of todo items or error
+     * @return ResponseEntity containing list of task items or error
      */
     @GetMapping("/" + ApiRoutes.TodoSubRoute.GET_ITEMS)
     @PreAuthorize("@customAuthorization.hasAuthority(null)")

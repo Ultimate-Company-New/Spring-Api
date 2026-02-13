@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
  * Test Count: 12 tests
  */
 @DisplayName("Get Token Tests")
-public class GetTokenTest extends LoginServiceTestBase {
+class GetTokenTest extends LoginServiceTestBase {
 
 
     // Total Tests: 13

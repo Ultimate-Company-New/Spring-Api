@@ -78,7 +78,7 @@ public class AddressService extends BaseService implements IAddressSubTranslator
         if (address.isPresent()) {
             address.get().setIsDeleted(!address.get().getIsDeleted());
             addressRepository.save(address.get());
-            userLogService.logData(getUserId(), SuccessMessages.AddressSuccessMessages.ToggleAddress + " " + address.get().getAddressId(),
+            userLogService.logData(getUserId(), SuccessMessages.AddressSuccessMessages.TOGGLE_ADDRESS + " " + address.get().getAddressId(),
                     ApiRoutes.AddressSubRoute.TOGGLE_ADDRESS);
         } else {
             throw new NotFoundException(ErrorMessages.AddressErrorMessages.NOT_FOUND);
@@ -128,7 +128,7 @@ public class AddressService extends BaseService implements IAddressSubTranslator
 
         Address address = new Address(addressRequest, getUser());
         Address savedAddress = addressRepository.save(address);
-        userLogService.logData(getUserId(), SuccessMessages.AddressSuccessMessages.InsertAddress + " " + savedAddress.getAddressId(),
+        userLogService.logData(getUserId(), SuccessMessages.AddressSuccessMessages.INSERT_ADDRESS + " " + savedAddress.getAddressId(),
             ApiRoutes.AddressSubRoute.INSERT_ADDRESS);
     }
 
@@ -153,7 +153,7 @@ public class AddressService extends BaseService implements IAddressSubTranslator
         if (existingAddress.isPresent()) {
             Address address = new Address(addressRequest, getUser(), existingAddress.get());
             Address updatedAddress = addressRepository.save(address);
-            userLogService.logData(getUserId(), SuccessMessages.AddressSuccessMessages.UpdateAddress + " " + updatedAddress.getAddressId(),
+            userLogService.logData(getUserId(), SuccessMessages.AddressSuccessMessages.UPDATE_ADDRESS + " " + updatedAddress.getAddressId(),
                     ApiRoutes.AddressSubRoute.UPDATE_ADDRESS);
         } else {
             throw new NotFoundException(ErrorMessages.AddressErrorMessages.NOT_FOUND);

@@ -40,14 +40,13 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         String validExecutionId = UUID.randomUUID().toString();
 
         // Act
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(validExecutionId);
-        });
+        NotFoundException exception = assertExecutionNotFound(validExecutionId);
 
         // Assert
         String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT,
                 validExecutionId);
         assertEquals(expectedMessage, exception.getMessage());
+        assertEquals(36, validExecutionId.length());
     }
 
     /**
@@ -61,14 +60,13 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         String executionId = java.util.UUID.randomUUID().toString();
 
         // Act
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(executionId);
-        });
+        NotFoundException exception = assertExecutionNotFound(executionId);
 
         // Assert
         String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT,
                 executionId);
         assertEquals(expectedMessage, exception.getMessage());
+        assertTrue(executionId.contains("-"));
     }
 
     /**
@@ -82,15 +80,11 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         String executionId = java.util.UUID.randomUUID().toString();
 
         // Act & Assert - Both should throw the same exception
-        NotFoundException exception1 = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(executionId);
-        });
-
-        NotFoundException exception2 = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(executionId);
-        });
+        NotFoundException exception1 = assertExecutionNotFound(executionId);
+        NotFoundException exception2 = assertExecutionNotFound(executionId);
 
         assertEquals(exception1.getMessage(), exception2.getMessage());
+        assertEquals(exception1.getClass(), exception2.getClass());
     }
 
     /**
@@ -105,14 +99,14 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         String executionId = java.util.UUID.randomUUID().toString();
 
         // Act
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(executionId);
-        });
+        NotFoundException exception = assertExecutionNotFound(executionId);
 
         // Assert
         String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT,
                 executionId);
         assertEquals(expectedMessage, exception.getMessage());
+        assertTrue(executionId.matches("[0-9a-f\\-]{36}"));
+        assertTrue(exception.getMessage().contains(executionId));
     }
 
     /**
@@ -126,12 +120,11 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         String specialId = "exec-id-!@#$%^&*()";
 
         // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(specialId);
-        });
+        NotFoundException exception = assertExecutionNotFound(specialId);
 
         String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, specialId);
         assertEquals(expectedMessage, exception.getMessage());
+        assertTrue(specialId.contains("!@#"));
     }
 
     /**
@@ -145,14 +138,14 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         String executionId = java.util.UUID.randomUUID().toString();
 
         // Act
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(executionId);
-        });
+        NotFoundException exception = assertExecutionNotFound(executionId);
 
         // Assert
         String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT,
                 executionId);
         assertEquals(expectedMessage, exception.getMessage());
+        assertTrue(exception.getMessage().endsWith(executionId));
+        assertTrue(exception.getMessage().startsWith("Test execution"));
     }
 
     // ==================== FAILURE TESTS ====================
@@ -174,14 +167,14 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         String validExecutionId = UUID.randomUUID().toString();
 
         // Act
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(validExecutionId);
-        });
+        NotFoundException exception = assertExecutionNotFound(validExecutionId);
 
         // Assert
         String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT,
                 validExecutionId);
         assertEquals(expectedMessage, exception.getMessage());
+        assertTrue(validExecutionId.contains("-"));
+        assertTrue(validExecutionId.matches("[0-9a-f\\-]{36}"));
     }
 
     /**
@@ -195,12 +188,11 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         String longId = "very-long-execution-id-".repeat(10);
 
         // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(longId);
-        });
+        NotFoundException exception = assertExecutionNotFound(longId);
 
         String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, longId);
         assertEquals(expectedMessage, exception.getMessage());
+        assertTrue(longId.length() > 100);
     }
 
     /*
@@ -218,12 +210,11 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         // Arrange
 
         // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus("");
-        });
+        NotFoundException exception = assertExecutionNotFound("");
 
         String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, "");
         assertEquals(expectedMessage, exception.getMessage());
+        assertTrue(expectedMessage.endsWith(""));
     }
 
     /**
@@ -237,12 +228,11 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         String executionId = "test-id";
 
         // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(executionId);
-        });
+        NotFoundException exception = assertExecutionNotFound(executionId);
 
         String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, executionId);
         assertEquals(expectedMessage, exception.getMessage());
+        assertTrue(expectedMessage.contains("test-id"));
     }
 
     // ==================== EDGE CASES ====================
@@ -258,12 +248,11 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         String invalidId = "not-a-valid-uuid";
 
         // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(invalidId);
-        });
+        NotFoundException exception = assertExecutionNotFound(invalidId);
 
         String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, invalidId);
         assertEquals(expectedMessage, exception.getMessage());
+        assertFalse(invalidId.contains(" "));
     }
 
     /**
@@ -277,13 +266,12 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         String nonExistentId = java.util.UUID.randomUUID().toString();
 
         // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(nonExistentId);
-        });
+        NotFoundException exception = assertExecutionNotFound(nonExistentId);
 
         String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT,
                 nonExistentId);
         assertEquals(expectedMessage, exception.getMessage());
+        assertEquals(36, nonExistentId.length());
     }
 
     /**
@@ -296,12 +284,11 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         // Arrange
 
         // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(null);
-        });
+        NotFoundException exception = assertExecutionNotFound(null);
 
         String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, "null");
         assertEquals(expectedMessage, exception.getMessage());
+        assertTrue(exception.getMessage().contains("null"));
     }
 
     /**
@@ -315,12 +302,11 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         String executionId = "unknown-execution-id";
 
         // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus(executionId);
-        });
+        NotFoundException exception = assertExecutionNotFound(executionId);
 
         String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, executionId);
         assertEquals(expectedMessage, exception.getMessage());
+        assertTrue(executionId.startsWith("unknown"));
     }
 
     /**
@@ -333,12 +319,11 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         // Arrange
 
         // Act & Assert
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            qaService.getTestExecutionStatus("   ");
-        });
+        NotFoundException exception = assertExecutionNotFound("   ");
 
         String expectedMessage = String.format(ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, "   ");
         assertEquals(expectedMessage, exception.getMessage());
+        assertTrue("   ".isBlank());
     }
 
     /*
@@ -362,5 +347,9 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
 
         // Assert
         org.junit.jupiter.api.Assertions.assertEquals(org.springframework.http.HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    private NotFoundException assertExecutionNotFound(String executionId) {
+        return assertThrows(NotFoundException.class, () -> qaService.getTestExecutionStatus(executionId));
     }
 }

@@ -1,8 +1,14 @@
 package com.example.SpringApi.Models;
 
 public class ApiRoutes {
+    private ApiRoutes() {
+    }
+
     public static class ApiControllerNames
     {
+        private ApiControllerNames() {
+        }
+
         public static final String ADDRESS = "Address";
         public static final String CARRIER = "Carrier";
         public static final String CLIENT = "Client";
@@ -35,6 +41,9 @@ public class ApiRoutes {
 
     }
     public static class EventSubRoute {
+        private EventSubRoute() {
+        }
+
         public static final String GET_ALL_EVENTS_FOR_USERID_BASED_ON_MONTH = "getAllEventsForUserIdBasedOnMonth";
         public static final String CREATE_EVENT = "createEvent";
         public static final String UPDATE_EVENT = "updateEvent";
@@ -43,6 +52,9 @@ public class ApiRoutes {
     }
 
     public static class SupportSubRoute {
+        private SupportSubRoute() {
+        }
+
         // purely frontend endpoints
         public static final String SET_INCLUDE_DELETED = "setIncludeDeleted";
         public static final String GET_INCLUDE_DELETED = "getIncludeDeleted";
@@ -62,6 +74,9 @@ public class ApiRoutes {
     }
 
     public static class AddressSubRoute {
+        private AddressSubRoute() {
+        }
+
         public static final String TOGGLE_ADDRESS = "toggleAddress";
         public static final String GET_ADDRESS_BY_USER_ID = "getAddressByUserId";
         public static final String GET_ADDRESS_BY_CLIENT_ID = "getAddressByClientId";
@@ -71,6 +86,9 @@ public class ApiRoutes {
     }
 
     public static class ClientSubRoute {
+        private ClientSubRoute() {
+        }
+
         // purely frontend endpoints
         public static final String SET_INCLUDE_DELETED = "setIncludeDeleted";
         public static final String GET_INCLUDE_DELETED = "getIncludeDeleted";
@@ -85,6 +103,9 @@ public class ApiRoutes {
     }
 
     public static class UserSubRoute {
+        private UserSubRoute() {
+        }
+
         public static final String TOGGLE_USER = "toggleUser";
         public static final String GET_USER_BY_ID = "getUserById";
         public static final String GET_USER_BY_EMAIL = "getUserByEmail";
@@ -95,6 +116,9 @@ public class ApiRoutes {
 
 
     public static class CarriersSubRoute {
+        private CarriersSubRoute() {
+        }
+
         // purely frontend endpoints
         public static final String SET_INCLUDE_DELETED = "setIncludeDeleted";
         public static final String GET_INCLUDE_DELETED = "getIncludeDeleted";
@@ -115,6 +139,9 @@ public class ApiRoutes {
     }
 
     public static class PackageSubRoute {
+        private PackageSubRoute() {
+        }
+
         // purely frontend endpoints
         public static final String SET_INCLUDE_DELETED = "setIncludeDeleted";
         public static final String GET_INCLUDE_DELETED = "getIncludeDeleted";
@@ -130,6 +157,9 @@ public class ApiRoutes {
     }
 
     public static class UserGroupSubRoute {
+        private UserGroupSubRoute() {
+        }
+
         // purely frontend endpoints
         public static final String SET_INCLUDE_DELETED = "setIncludeDeleted";
         public static final String GET_INCLUDE_DELETED = "getIncludeDeleted";
@@ -147,6 +177,9 @@ public class ApiRoutes {
     }
 
     public static class LoginSubRoute {
+        private LoginSubRoute() {
+        }
+
         // Purely frontend endpoints
         public static final String CHECK_IF_USER_IS_LOGGED_IN = "checkIfUserIsLoggedIn";
         public static final String LOG_OUT = "logOut";
@@ -160,6 +193,9 @@ public class ApiRoutes {
     }
 
     public static class MessagesSubRoute {
+        private MessagesSubRoute() {
+        }
+
         // purely frontend endpoints
         public static final String SET_INCLUDE_DELETED = "setIncludeDeleted";
         public static final String GET_INCLUDE_DELETED = "getIncludeDeleted";
@@ -179,24 +215,27 @@ public class ApiRoutes {
 
     public enum OrdersSubRoute
     {
-        GetOrdersInBatches,
-        PlaceOrder,
-        GetOrderInBatches,
-        GetPricingInformationByQuantityandIds,
-        FilterOrders,
-        GetOrderDetailsById,
-        UpdateShippingDetails,
-        RemoveProductsInOrder,
-        OnPaymentSuccess,
-        UpdateProductQuantityInOrder,
-        CancelOrder,
-        GetCancellationPricing,
-        GetOrderStatistics,
-        GetOrderDetailsById_Pb,
-        OnPaymentSuccess_Pb
+        GET_ORDERS_IN_BATCHES,
+        PLACE_ORDER,
+        GET_ORDER_IN_BATCHES,
+        GET_PRICING_INFORMATION_BY_QUANTITYAND_IDS,
+        FILTER_ORDERS,
+        GET_ORDER_DETAILS_BY_ID,
+        UPDATE_SHIPPING_DETAILS,
+        REMOVE_PRODUCTS_IN_ORDER,
+        ON_PAYMENT_SUCCESS,
+        UPDATE_PRODUCT_QUANTITY_IN_ORDER,
+        CANCEL_ORDER,
+        GET_CANCELLATION_PRICING,
+        GET_ORDER_STATISTICS,
+        GET_ORDER_DETAILS_BY_ID_PB,
+        ON_PAYMENT_SUCCESS_PB
     }
 
     public static class PaymentsSubRoute {
+        private PaymentsSubRoute() {
+        }
+
         public static final String INSERT_PAYMENT = "insertPayment";
         public static final String GET_PAYMENTS_IN_BATCHES = "getPaymentsInBatches";
         public static final String GET_REFUNDS_IN_BATCHES = "getRefundsInBatches";
@@ -207,6 +246,9 @@ public class ApiRoutes {
 
 
     public static class PickupLocationsSubRoute {
+        private PickupLocationsSubRoute() {
+        }
+
         // purely frontend endpoints
         public static final String SET_INCLUDE_DELETED = "setIncludeDeleted";
         public static final String GET_INCLUDE_DELETED = "getIncludeDeleted";
@@ -223,6 +265,9 @@ public class ApiRoutes {
 
     public static class ProductCategorySubRoute
     {
+        private ProductCategorySubRoute() {
+        }
+
         public static final String GET_ROOT_CATEGORIES = "getRootCategories";
         public static final String GET_CHILD_CATEGORIES_GIVEN_PARENT_ID = "getChildCategoriesGivenParentId";
         public static final String GET_CATEGORY_BY_NAME = "getCategoryByName";
@@ -231,6 +276,9 @@ public class ApiRoutes {
     }
 
     public static class ProductsSubRoute {
+        private ProductsSubRoute() {
+        }
+
         // purely frontend endpoints
         public static final String SET_INCLUDE_DELETED = "setIncludeDeleted";
         public static final String GET_INCLUDE_DELETED = "getIncludeDeleted";
@@ -261,6 +309,9 @@ public class ApiRoutes {
     }
 
     public static class PromosSubRoute {
+        private PromosSubRoute() {
+        }
+
         // purely frontend endpoints
         public static final String SET_INCLUDE_DELETED = "setIncludeDeleted";
         public static final String GET_INCLUDE_DELETED = "getIncludeDeleted";
@@ -275,10 +326,16 @@ public class ApiRoutes {
     }
 
     public static class UserLogSubRoute {
+        private UserLogSubRoute() {
+        }
+
         public static final String GET_USER_LOGS_IN_BATCHES_BY_USERID = "getUserLogsInBatchesByUserId";
     }
 
     public static class GridSubRoute {
+        private GridSubRoute() {
+        }
+
         public static final String UPDATE_GRID_VISIBILITY_PREFERENCE = "updateGridVisibilityPreference";
         public static final String UPDATE_GRID_DENSITY_PREFERENCE = "updateGridDensityVisibilityPreference";
         public static final String UPDATE_ROWS_PER_PAGE_PREFERENCE = "updateRowsPerPagePreference";
@@ -286,6 +343,9 @@ public class ApiRoutes {
     }
 
     public static class UsersSubRoute {
+        private UsersSubRoute() {
+        }
+
         // purely frontend endpoints
         public static final String GET_LOGGED_IN_USER_PERMISSIONS = "getLoggedInUserPermissions";
         public static final String GET_LOGGED_IN_USER = "getLoggedInUser";
@@ -311,6 +371,9 @@ public class ApiRoutes {
     }
 
     public static class PermissionsSubRoute {
+        private PermissionsSubRoute() {
+        }
+
 
         public static final String CREATE_PERMISSIONS = "CreatePermissions";
         public static final String UPDATE_PERMISSIONS = "UpdatePermissions";
@@ -319,6 +382,9 @@ public class ApiRoutes {
 
 
     public static class TodoSubRoute {
+        private TodoSubRoute() {
+        }
+
         public static final String ADD_ITEM = "addItem";
         public static final String UPDATE_ITEM = "updateItem";
         public static final String DELETE_ITEM = "deleteItem";
@@ -328,6 +394,9 @@ public class ApiRoutes {
 
 
     public static class LeadsSubRoute {
+        private LeadsSubRoute() {
+        }
+
         // purely frontend endpoints
         public static final String SET_INCLUDE_DELETED = "setIncludeDeleted";
         public static final String GET_INCLUDE_DELETED = "getIncludeDeleted";
@@ -343,6 +412,9 @@ public class ApiRoutes {
     }
 
     public static class PurchaseOrderSubRoute {
+        private PurchaseOrderSubRoute() {
+        }
+
         // purely frontend endpoints
         public static final String SET_INCLUDE_DELETED = "setIncludeDeleted";
         public static final String GET_INCLUDE_DELETED = "getIncludeDeleted";
@@ -360,6 +432,9 @@ public class ApiRoutes {
     }
 
     public static class ShippingSubRoute {
+        private ShippingSubRoute() {
+        }
+
         public static final String GET_SHIPPING_OPTIONS = "getShippingOptions";
         public static final String CALCULATE_SHIPPING = "calculateShipping";
         public static final String OPTIMIZE_ORDER = "optimizeOrder";
@@ -370,6 +445,9 @@ public class ApiRoutes {
     }
 
     public static class ShipmentSubRoute {
+        private ShipmentSubRoute() {
+        }
+
         // purely frontend endpoints
         public static final String SET_INCLUDE_DELETED = "setIncludeDeleted";
         public static final String GET_INCLUDE_DELETED = "getIncludeDeleted";
@@ -380,6 +458,9 @@ public class ApiRoutes {
     }
 
     public static class WebTemplateSubRoute {
+        private WebTemplateSubRoute() {
+        }
+
         // purely frontend endpoints
         public static final String SET_INCLUDE_DELETED = "setIncludeDeleted";
         public static final String GET_INCLUDE_DELETED = "getIncludeDeleted";
@@ -399,6 +480,9 @@ public class ApiRoutes {
     }
 
     public static class ProductReviewSubRoute {
+        private ProductReviewSubRoute() {
+        }
+
         public static final String INSERT_PRODUCT_REVIEW = "insertProductReview";
         public static final String GET_PRODUCT_REVIEWS_IN_BATCHES_GIVEN_PRODUCT_ID = "getProductReviewsInBatchesGivenProductId";
         public static final String TOGGLE_PRODUCT_REVIEW = "toggleProductReview";
@@ -406,6 +490,9 @@ public class ApiRoutes {
     }
 
     public static class DataSubRoute {
+        private DataSubRoute() {
+        }
+
         // purely frontend endpoints
         public static final String GET_COLORS = "getColors";
         public static final String GET_STATES = "getStates";
@@ -423,6 +510,9 @@ public class ApiRoutes {
     }
 
     public static class BulkSubRoute {
+        private BulkSubRoute() {
+        }
+
         public static final String BULK_INSERT = "bulkInsert";
         public static final String GENERATE_BULK_IMPORT_EXCEL = "generateBulkImportExcel";
     }

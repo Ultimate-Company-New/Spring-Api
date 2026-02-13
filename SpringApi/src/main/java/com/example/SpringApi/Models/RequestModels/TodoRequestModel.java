@@ -4,9 +4,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Request model for Todo operations.
+ * Request model for task item operations.
  * 
- * This model contains all the fields required for creating or updating a todo item.
+ * This model contains all the fields required for creating or updating a task item.
  * It includes validation constraints and business logic requirements.
  * 
  * @author SpringApi Team

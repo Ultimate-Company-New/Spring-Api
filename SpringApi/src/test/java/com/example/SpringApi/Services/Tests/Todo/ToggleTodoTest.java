@@ -15,7 +15,6 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 /**
@@ -132,7 +131,7 @@ class ToggleTodoTest extends TodoServiceTestBase {
         // Assert
         verify(userLogService, times(1)).logData(
                 eq(TEST_USER_ID.longValue()),
-                contains(SuccessMessages.TodoSuccessMessages.ToggleTodo),
+                contains(SuccessMessages.TodoSuccessMessages.TOGGLE_TODO),
                 eq(ApiRoutes.TodoSubRoute.TOGGLE_DONE));
     }
 

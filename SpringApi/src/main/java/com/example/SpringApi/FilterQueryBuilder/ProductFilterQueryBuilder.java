@@ -23,6 +23,9 @@ import java.util.Map;
  */
 @Component
 public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
+    private static final String CLIENT_ID = "clientId";
+    private static final String CLIENT_ID_PARAM = ":" + CLIENT_ID;
+    private static final String PICKUP_LOCATION_ID = "pickupLocationId";
 
     private final EntityManager entityManager;
 
@@ -37,7 +40,7 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
     protected String mapColumnToField(String column) {
         switch (column) {
             case "productId": return "p.productId";
-            case "clientId": return "p.clientId";
+            case CLIENT_ID: return "p.clientId";
             case "title": return "p.title";
             case "descriptionHtml": return "p.descriptionHtml";
             case "brand": return "p.brand";
@@ -65,7 +68,7 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
             case "createdAt": return "p.createdAt";
             case "updatedAt": return "p.updatedAt";
             // Special case: filter through ProductPickupLocationMapping join
-            case "pickupLocationId": return "pplm.pickupLocationId";
+            case PICKUP_LOCATION_ID: return "pplm.pickupLocationId";
             default: return "p." + column;
         }
     }
@@ -82,8 +85,8 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     @Override
     protected List<String> getNumberColumns() {
-        return Arrays.asList("productId", "clientId", "price", "discount", "length", "breadth", 
-                "height", "weightKgs", "categoryId", "pickupLocationId");
+        return Arrays.asList("productId", CLIENT_ID, "price", "discount", "length", "breadth",
+                "height", "weightKgs", "categoryId", PICKUP_LOCATION_ID);
     }
 
     /**
@@ -134,7 +137,7 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
         Long pickupLocationIdFilter = null;
         if (filters != null) {
             for (FilterCondition filter : filters) {
-                if ("pickupLocationId".equals(filter.getColumn())) {
+                if (PICKUP_LOCATION_ID.equals(filter.getColumn())) {
                     hasPickupLocationIdFilter = true;
                     if ("equals".equals(filter.getOperator())) {
                         try {
@@ -162,7 +165,7 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
                         "INNER JOIN FETCH p.productPickupLocationMappings pplm " +
                         "INNER JOIN FETCH pplm.pickupLocation pl " +
                         "LEFT JOIN FETCH pl.address " +
-                        "WHERE p.clientId = :clientId ";
+                        "WHERE p.clientId = " + CLIENT_ID_PARAM + " ";
             } else {
                 // Use LEFT JOIN when filtering by pickupLocationId with other operators
                 baseQuery = "SELECT DISTINCT p FROM Product p " +
@@ -171,7 +174,7 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
                         "LEFT JOIN FETCH p.productPickupLocationMappings pplm " +
                         "LEFT JOIN FETCH pplm.pickupLocation pl " +
                         "LEFT JOIN FETCH pl.address " +
-                        "WHERE p.clientId = :clientId ";
+                        "WHERE p.clientId = " + CLIENT_ID_PARAM + " ";
             }
         } else {
             // No pickupLocationId filter - still fetch pickup locations for display
@@ -181,7 +184,7 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
                     "LEFT JOIN FETCH p.productPickupLocationMappings pplm " +
                     "LEFT JOIN FETCH pplm.pickupLocation pl " +
                     "LEFT JOIN FETCH pl.address " +
-                    "WHERE p.clientId = :clientId ";
+                    "WHERE p.clientId = " + CLIENT_ID_PARAM + " ";
         }
 
         // Add selectedIds condition
@@ -211,16 +214,16 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
             if (pickupLocationIdFilter != null) {
                 countQuery = "SELECT COUNT(DISTINCT p) FROM Product p " +
                         "INNER JOIN p.productPickupLocationMappings pplm " +
-                        "WHERE p.clientId = :clientId ";
+                        "WHERE p.clientId = " + CLIENT_ID_PARAM + " ";
             } else {
                 countQuery = "SELECT COUNT(DISTINCT p) FROM Product p " +
                         "LEFT JOIN p.productPickupLocationMappings pplm " +
-                        "WHERE p.clientId = :clientId ";
+                        "WHERE p.clientId = " + CLIENT_ID_PARAM + " ";
             }
         } else {
             // No pickupLocationId filter - don't join ProductPickupLocationMapping table
             countQuery = "SELECT COUNT(DISTINCT p) FROM Product p " +
-                    "WHERE p.clientId = :clientId ";
+                    "WHERE p.clientId = " + CLIENT_ID_PARAM + " ";
         }
 
         if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -237,7 +240,7 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute count query
         TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
-        countTypedQuery.setParameter("clientId", clientId);
+        countTypedQuery.setParameter(CLIENT_ID, clientId);
         
         if (selectedIds != null && !selectedIds.isEmpty()) {
             countTypedQuery.setParameter("selectedIds", selectedIds);
@@ -252,7 +255,7 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute main query with pagination
         TypedQuery<Product> mainQuery = entityManager.createQuery(baseQuery, Product.class);
-        mainQuery.setParameter("clientId", clientId);
+        mainQuery.setParameter(CLIENT_ID, clientId);
         
         if (selectedIds != null && !selectedIds.isEmpty()) {
             mainQuery.setParameter("selectedIds", selectedIds);
@@ -272,4 +275,3 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
         return new PageImpl<>(products, pageable, totalCount);
     }
 }
-

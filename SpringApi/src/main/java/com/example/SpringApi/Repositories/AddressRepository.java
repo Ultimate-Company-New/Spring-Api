@@ -1,5 +1,6 @@
 package com.example.SpringApi.Repositories;
 
+import com.example.SpringApi.Models.DTOs.AddressDuplicateCriteria;
 import com.example.SpringApi.Models.DatabaseModels.Address;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -37,37 +38,22 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
      * @return Optional containing the matching address if found
      */
     @Query("SELECT a FROM Address a WHERE " +
-           "(a.userId = :userId OR (a.userId IS NULL AND :userId IS NULL)) AND " +
-           "(a.clientId = :clientId OR (a.clientId IS NULL AND :clientId IS NULL)) AND " +
-           "a.addressType = :addressType AND " +
-           "a.streetAddress = :streetAddress AND " +
-           "(a.streetAddress2 = :streetAddress2 OR (a.streetAddress2 IS NULL AND :streetAddress2 IS NULL)) AND " +
-           "(a.streetAddress3 = :streetAddress3 OR (a.streetAddress3 IS NULL AND :streetAddress3 IS NULL)) AND " +
-           "a.city = :city AND " +
-           "a.state = :state AND " +
-           "a.postalCode = :postalCode AND " +
-           "(a.nameOnAddress = :nameOnAddress OR (a.nameOnAddress IS NULL AND :nameOnAddress IS NULL)) AND " +
-           "(a.emailOnAddress = :emailOnAddress OR (a.emailOnAddress IS NULL AND :emailOnAddress IS NULL)) AND " +
-           "(a.phoneOnAddress = :phoneOnAddress OR (a.phoneOnAddress IS NULL AND :phoneOnAddress IS NULL)) AND " +
-           "a.country = :country AND " +
-           "a.isPrimary = :isPrimary AND " +
-           "a.isDeleted = :isDeleted")
+           "(a.userId = :#{#criteria.userId} OR (a.userId IS NULL AND :#{#criteria.userId} IS NULL)) AND " +
+           "(a.clientId = :#{#criteria.clientId} OR (a.clientId IS NULL AND :#{#criteria.clientId} IS NULL)) AND " +
+           "a.addressType = :#{#criteria.addressType} AND " +
+           "a.streetAddress = :#{#criteria.streetAddress} AND " +
+           "(a.streetAddress2 = :#{#criteria.streetAddress2} OR (a.streetAddress2 IS NULL AND :#{#criteria.streetAddress2} IS NULL)) AND " +
+           "(a.streetAddress3 = :#{#criteria.streetAddress3} OR (a.streetAddress3 IS NULL AND :#{#criteria.streetAddress3} IS NULL)) AND " +
+           "a.city = :#{#criteria.city} AND " +
+           "a.state = :#{#criteria.state} AND " +
+           "a.postalCode = :#{#criteria.postalCode} AND " +
+           "(a.nameOnAddress = :#{#criteria.nameOnAddress} OR (a.nameOnAddress IS NULL AND :#{#criteria.nameOnAddress} IS NULL)) AND " +
+           "(a.emailOnAddress = :#{#criteria.emailOnAddress} OR (a.emailOnAddress IS NULL AND :#{#criteria.emailOnAddress} IS NULL)) AND " +
+           "(a.phoneOnAddress = :#{#criteria.phoneOnAddress} OR (a.phoneOnAddress IS NULL AND :#{#criteria.phoneOnAddress} IS NULL)) AND " +
+           "a.country = :#{#criteria.country} AND " +
+           "a.isPrimary = :#{#criteria.isPrimary} AND " +
+           "a.isDeleted = :#{#criteria.isDeleted}")
     java.util.Optional<Address> findExactDuplicate(
-        @Param("userId") Long userId,
-        @Param("clientId") Long clientId,
-        @Param("addressType") String addressType,
-        @Param("streetAddress") String streetAddress,
-        @Param("streetAddress2") String streetAddress2,
-        @Param("streetAddress3") String streetAddress3,
-        @Param("city") String city,
-        @Param("state") String state,
-        @Param("postalCode") String postalCode,
-        @Param("nameOnAddress") String nameOnAddress,
-        @Param("emailOnAddress") String emailOnAddress,
-        @Param("phoneOnAddress") String phoneOnAddress,
-        @Param("country") String country,
-        @Param("isPrimary") Boolean isPrimary,
-        @Param("isDeleted") Boolean isDeleted
+        @Param("criteria") AddressDuplicateCriteria criteria
     );
 }
-

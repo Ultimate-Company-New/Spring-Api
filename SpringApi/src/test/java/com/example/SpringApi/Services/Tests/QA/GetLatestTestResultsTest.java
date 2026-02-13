@@ -9,8 +9,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
 
 /**
  * Unit tests for QAService.getLatestTestResults() method.
@@ -48,6 +51,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
         // Assert
         assertNotNull(response);
         assertEquals(1, response.size());
+        assertEquals("Service1", response.get(0).getServiceName());
     }
 
     /**
@@ -69,6 +73,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
         // Assert
         assertNotNull(response);
         assertEquals(1, response.size());
+        assertEquals("testMethod1", response.get(0).getTestMethodName());
     }
 
     /**
@@ -90,6 +95,10 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
         // Assert
         assertNotNull(response);
         assertEquals(2, response.size());
+        Set<String> serviceNames = response.stream()
+                .map(LatestTestResultResponseModel::getServiceName)
+                .collect(Collectors.toSet());
+        assertEquals(Set.of("Service1", "Service2"), serviceNames);
     }
 
     /**
@@ -126,6 +135,10 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
         // Assert
         assertNotNull(response);
         assertTrue(response.isEmpty());
+        verify(latestTestResultRepository)
+                .findByClientIdAndServiceNameOrderByTestMethodNameAsc(
+                        org.mockito.ArgumentMatchers.anyLong(),
+                        org.mockito.ArgumentMatchers.eq("NonExistentService"));
     }
 
     /**
@@ -147,6 +160,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
         // Assert
         assertNotNull(response);
         assertEquals(2, response.size());
+        assertTrue(response.stream().allMatch(result -> result.getServiceName() != null && !result.getServiceName().isBlank()));
     }
 
     /**
@@ -169,7 +183,11 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
         assertFalse(response.isEmpty());
         LatestTestResultResponseModel first = response.get(0);
         assertNotNull(first);
-        // Verify response model has required fields
+        assertNotNull(first.getServiceName());
+        assertNotNull(first.getTestMethodName());
+        assertNotNull(first.getStatus());
+        assertNotNull(first.getLatestTestResultId());
+        assertTrue(first.getDurationMs() >= 0);
     }
 
     /**
@@ -189,8 +207,8 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
 
         // Assert
         assertNotNull(response);
-        // All results should be for the current client
         assertEquals(1, response.size());
+        assertEquals("Service1", response.get(0).getServiceName());
     }
 
     /**
@@ -214,6 +232,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
         assertFalse(response.isEmpty());
         // Verify mapping occurred
         assertTrue(response.get(0) instanceof LatestTestResultResponseModel);
+        assertEquals(result.getLatestTestResultId(), response.get(0).getLatestTestResultId());
     }
 
     // ==================== EDGE CASES ====================
@@ -236,8 +255,9 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
 
         // Assert
         assertNotNull(response);
-        // Results should be ordered (implementation may vary)
-        assertTrue(response.size() >= 0);
+        assertEquals(2, response.size());
+        assertTrue(response.stream().anyMatch(item -> "testMethodA".equals(item.getTestMethodName())));
+        assertTrue(response.stream().anyMatch(item -> "testMethodB".equals(item.getTestMethodName())));
     }
 
     /**
@@ -257,6 +277,10 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
 
         // Assert
         assertNotNull(response);
+        assertEquals(1, response.size());
+        assertEquals("TestService", response.get(0).getServiceName());
+        assertEquals("testMethod1", response.get(0).getTestMethodName());
+        assertFalse(response.get(0).getStatus().isBlank());
     }
 
     // ==================== VALIDATION TESTS ====================
@@ -300,6 +324,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
         // Assert
         assertNotNull(response);
         assertEquals(2, response.size());
+        assertTrue(response.stream().allMatch(item -> "TestService".equals(item.getServiceName())));
     }
 
     /**
@@ -320,6 +345,7 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
         // Assert
         assertNotNull(response);
         assertEquals(1, response.size());
+        assertEquals("Service1", response.get(0).getServiceName());
     }
 
     /*

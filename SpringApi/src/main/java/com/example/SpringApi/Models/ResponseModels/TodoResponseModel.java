@@ -6,9 +6,9 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 /**
- * Response model for Todo operations.
+ * Response model for task item operations.
  * 
- * This model contains all the fields returned when retrieving todo information.
+ * This model contains all the fields returned when retrieving task item information.
  * It includes related entities and calculated fields for the UI.
  * 
  * @author SpringApi Team
@@ -37,7 +37,7 @@ public class TodoResponseModel {
     /**
      * Constructor to create response model from database entity.
      * 
-     * @param todo The Todo entity
+     * @param todo The task item entity
      */
     public TodoResponseModel(Todo todo) {
         if (todo != null) {
@@ -71,7 +71,7 @@ public class TodoResponseModel {
     }
     
     /**
-     * Calculates the number of days since the todo was created.
+     * Calculates the number of days since the task item was created.
      * 
      * @return Number of days old
      */

@@ -280,10 +280,11 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
     @DisplayName("Bulk Create Leads - Empty List - ThrowsBadRequestException")
     void bulkCreateLeads_EmptyList_ThrowsBadRequestException() {
         // Arrange
+        List<LeadRequestModel> emptyLeads = new ArrayList<>();
 
         // Act & Assert
         BadRequestException ex = assertThrows(BadRequestException.class,
-                () -> leadService.bulkCreateLeads(new ArrayList<>()));
+                () -> leadService.bulkCreateLeads(emptyLeads));
         assertEquals(String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Lead"), ex.getMessage());
     }
 

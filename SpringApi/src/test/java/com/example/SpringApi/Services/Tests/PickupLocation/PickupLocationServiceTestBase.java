@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
  * PickupLocationService test classes.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class PickupLocationServiceTestBase {
+abstract class PickupLocationServiceTestBase {
 
     // ==================== COMMON TEST CONSTANTS ====================
 
@@ -408,11 +408,11 @@ public abstract class PickupLocationServiceTestBase {
         addressRequest.setEmailOnAddress("email" + id + "@example.com");
         addressRequest.setPhoneOnAddress("1234567890");
 
-        PickupLocationRequestModel request = new PickupLocationRequestModel();
-        request.setPickupLocationId(id);
-        request.setAddressNickName("Nick " + id);
-        request.setAddress(addressRequest);
-        request.setIsDeleted(false);
-        return request;
+        PickupLocationRequestModel locationRequest = new PickupLocationRequestModel();
+        locationRequest.setPickupLocationId(id);
+        locationRequest.setAddressNickName("Nick " + id);
+        locationRequest.setAddress(addressRequest);
+        locationRequest.setIsDeleted(false);
+        return locationRequest;
     }
 }

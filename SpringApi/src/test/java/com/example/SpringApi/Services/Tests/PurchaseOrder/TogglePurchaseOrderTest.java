@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Test count: 6 tests
  */
 @DisplayName("PurchaseOrderService - TogglePurchaseOrder Tests")
-public class TogglePurchaseOrderTest extends PurchaseOrderServiceTestBase {
+class TogglePurchaseOrderTest extends PurchaseOrderServiceTestBase {
 
     // Total Tests: 6
     /*

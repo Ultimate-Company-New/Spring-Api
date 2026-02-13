@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
  * Test class for TodoService.addTodo method.
  */
 @DisplayName("TodoService - AddTodo Tests")
-public class AddTodoTest extends TodoServiceTestBase {
+class AddTodoTest extends TodoServiceTestBase {
 
 
     // Total Tests: 20
@@ -176,7 +176,7 @@ public class AddTodoTest extends TodoServiceTestBase {
         // Assert
         verify(userLogService).logData(
                 eq(TEST_USER_ID.longValue()),
-                contains(SuccessMessages.TodoSuccessMessages.InsertTodo),
+                contains(SuccessMessages.TodoSuccessMessages.INSERT_TODO),
                 eq(ApiRoutes.TodoSubRoute.ADD_ITEM));
     }
 

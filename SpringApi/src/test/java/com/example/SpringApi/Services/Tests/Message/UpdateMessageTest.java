@@ -32,7 +32,7 @@ import static org.mockito.Mockito.*;
  * Unit tests for MessageService.updateMessage method.
  */
 @DisplayName("UpdateMessage Tests")
-public class UpdateMessageTest extends MessageServiceTestBase {
+class UpdateMessageTest extends MessageServiceTestBase {
 
 
     // Total Tests: 31

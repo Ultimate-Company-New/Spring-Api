@@ -23,6 +23,9 @@ import java.util.Map;
  */
 @Component
 public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
+    private static final String CLIENT_ID = "clientId";
+    private static final String CLIENT_ID_PARAM = ":" + CLIENT_ID;
+    private static final String PICKUP_LOCATION_ID = "pickupLocationId";
 
     private final EntityManager entityManager;
 
@@ -37,7 +40,7 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
     protected String mapColumnToField(String column) {
         switch (column) {
             case "packageId": return "pkg.packageId";
-            case "clientId": return "pkg.clientId";
+            case CLIENT_ID: return "pkg.clientId";
             case "packageName": return "pkg.packageName";
             case "length": return "pkg.length";
             case "breadth": return "pkg.breadth";
@@ -55,7 +58,7 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
             // Special case for dimensions - concatenated field
             case "dimensions": return "CONCAT(pkg.length, ' x ', pkg.breadth, ' x ', pkg.height)";
             // Special case: filter through PackagePickupLocationMapping join
-            case "pickupLocationId": return "pplm.pickupLocationId";
+            case PICKUP_LOCATION_ID: return "pplm.pickupLocationId";
             default: return "pkg." + column;
         }
     }
@@ -72,8 +75,8 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     @Override
     protected List<String> getNumberColumns() {
-        return Arrays.asList("packageId", "clientId", "length", "breadth", "height", 
-                "maxWeight", "standardCapacity", "pricePerUnit", "pickupLocationId");
+        return Arrays.asList("packageId", CLIENT_ID, "length", "breadth", "height",
+                "maxWeight", "standardCapacity", "pricePerUnit", PICKUP_LOCATION_ID);
     }
 
     /**
@@ -122,7 +125,7 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
         Long pickupLocationIdFilter = null;
         if (filters != null) {
             for (FilterCondition filter : filters) {
-                if ("pickupLocationId".equals(filter.getColumn()) && "equals".equals(filter.getOperator())) {
+                if (PICKUP_LOCATION_ID.equals(filter.getColumn()) && "equals".equals(filter.getOperator())) {
                     try {
                         pickupLocationIdFilter = Long.parseLong(filter.getValue().toString());
                     } catch (NumberFormatException e) {
@@ -136,12 +139,12 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
         // Base query - use INNER JOIN when filtering by pickupLocationId
         String baseQuery;
         if (pickupLocationIdFilter != null) {
-            baseQuery = "SELECT DISTINCT pkg FROM Package pkg " +
+                    baseQuery = "SELECT DISTINCT pkg FROM Package pkg " +
                     "INNER JOIN PackagePickupLocationMapping pplm ON pkg.packageId = pplm.packageId " +
-                    "WHERE pkg.clientId = :clientId ";
+                    "WHERE pkg.clientId = " + CLIENT_ID_PARAM + " ";
         } else {
             baseQuery = "SELECT pkg FROM Package pkg " +
-                "WHERE pkg.clientId = :clientId ";
+                "WHERE pkg.clientId = " + CLIENT_ID_PARAM + " ";
         }
 
         // Add selectedIds condition
@@ -169,10 +172,10 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
         if (pickupLocationIdFilter != null) {
             countQuery = "SELECT COUNT(DISTINCT pkg) FROM Package pkg " +
                     "INNER JOIN PackagePickupLocationMapping pplm ON pkg.packageId = pplm.packageId " +
-                    "WHERE pkg.clientId = :clientId ";
+                    "WHERE pkg.clientId = " + CLIENT_ID_PARAM + " ";
         } else {
             countQuery = "SELECT COUNT(pkg) FROM Package pkg " +
-                "WHERE pkg.clientId = :clientId ";
+                "WHERE pkg.clientId = " + CLIENT_ID_PARAM + " ";
         }
 
         if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -189,7 +192,7 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute count query
         TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
-        countTypedQuery.setParameter("clientId", clientId);
+        countTypedQuery.setParameter(CLIENT_ID, clientId);
         
         if (selectedIds != null && !selectedIds.isEmpty()) {
             countTypedQuery.setParameter("selectedIds", selectedIds);
@@ -204,7 +207,7 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute main query with pagination
         TypedQuery<Package> mainQuery = entityManager.createQuery(baseQuery, Package.class);
-        mainQuery.setParameter("clientId", clientId);
+        mainQuery.setParameter(CLIENT_ID, clientId);
         
         if (selectedIds != null && !selectedIds.isEmpty()) {
             mainQuery.setParameter("selectedIds", selectedIds);
@@ -234,7 +237,7 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
     public Long extractPickupLocationIdFilter(List<FilterCondition> filters) {
         if (filters != null) {
             for (FilterCondition filter : filters) {
-                if ("pickupLocationId".equals(filter.getColumn()) && "equals".equals(filter.getOperator())) {
+                if (PICKUP_LOCATION_ID.equals(filter.getColumn()) && "equals".equals(filter.getOperator())) {
                     try {
                         return Long.parseLong(filter.getValue().toString());
                     } catch (NumberFormatException e) {
@@ -246,4 +249,3 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
         return null;
     }
 }
-

@@ -41,7 +41,7 @@ import static org.mockito.Mockito.lenient;
  * Contains common mocks, test data, and centralized stubbing methods.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class UserServiceTestBase {
+abstract class UserServiceTestBase {
 
     @Mock
     protected UserRepository userRepository;
@@ -547,8 +547,8 @@ public abstract class UserServiceTestBase {
                 .when(mockUserService).updateUser(any(UserRequestModel.class));
     }
 
-    protected void stubMockUserServiceUpdateUser(UserRequestModel request) {
-        lenient().doNothing().when(mockUserService).updateUser(request);
+    protected void stubMockUserServiceUpdateUser(UserRequestModel userRequest) {
+        lenient().doNothing().when(mockUserService).updateUser(userRequest);
     }
 
     protected void stubMockUserServiceGetUserByIdThrowsUnauthorized(String message) {
@@ -578,8 +578,8 @@ public abstract class UserServiceTestBase {
         lenient().when(mockUserService.getUserByEmail(email)).thenReturn(response);
     }
 
-    protected void stubMockUserServiceCreateUser(UserRequestModel request) {
-        lenient().doNothing().when(mockUserService).createUser(request);
+    protected void stubMockUserServiceCreateUser(UserRequestModel userRequest) {
+        lenient().doNothing().when(mockUserService).createUser(userRequest);
     }
 
     protected void stubMockUserServiceCreateUserThrowsUnauthorized(String message) {
@@ -615,10 +615,10 @@ public abstract class UserServiceTestBase {
     }
 
     protected UserRequestModel createBasicPaginationRequest() {
-        UserRequestModel request = new UserRequestModel();
-        request.setStart(0);
-        request.setEnd(10);
-        request.setIncludeDeleted(false);
-        return request;
+        UserRequestModel paginationRequest = new UserRequestModel();
+        paginationRequest.setStart(0);
+        paginationRequest.setEnd(10);
+        paginationRequest.setIncludeDeleted(false);
+        return paginationRequest;
     }
 }

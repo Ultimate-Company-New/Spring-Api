@@ -93,7 +93,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
         // Assert
         verify(userLogService).logData(
                 eq(DEFAULT_USER_ID),
-                contains(com.example.SpringApi.SuccessMessages.AddressSuccessMessages.UpdateAddress),
+                contains(com.example.SpringApi.SuccessMessages.AddressSuccessMessages.UPDATE_ADDRESS),
                 eq(com.example.SpringApi.Models.ApiRoutes.AddressSubRoute.UPDATE_ADDRESS));
     }
 

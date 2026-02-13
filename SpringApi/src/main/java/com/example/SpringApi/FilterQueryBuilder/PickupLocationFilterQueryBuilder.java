@@ -23,6 +23,8 @@ import java.util.Map;
  */
 @Component
 public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
+    private static final String CLIENT_ID = "clientId";
+    private static final String CLIENT_ID_PARAM = ":" + CLIENT_ID;
 
     private final EntityManager entityManager;
 
@@ -37,7 +39,7 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
     protected String mapColumnToField(String column) {
         switch (column) {
             case "pickupLocationId": return "pl.pickupLocationId";
-            case "clientId": return "pl.clientId";
+            case CLIENT_ID: return "pl.clientId";
             case "addressNickName": return "pl.addressNickName";
             case "locationName": return "pl.addressNickName"; // Alias for addressNickName
             case "pickupLocationAddressId": return "pl.pickupLocationAddressId";
@@ -66,7 +68,7 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     @Override
     protected List<String> getNumberColumns() {
-        return Arrays.asList("pickupLocationId", "clientId", "pickupLocationAddressId", "shipRocketPickupLocationId");
+        return Arrays.asList("pickupLocationId", CLIENT_ID, "pickupLocationAddressId", "shipRocketPickupLocationId");
     }
 
     /**
@@ -113,7 +115,7 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
         // Uses INNER JOIN to exclude pickup locations with missing address (bad data)
         String baseQuery = "SELECT pl FROM PickupLocation pl " +
                 "JOIN FETCH pl.address a " +
-                "WHERE pl.clientId = :clientId ";
+                "WHERE pl.clientId = " + CLIENT_ID_PARAM + " ";
 
         // Add selectedIds condition
         if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -139,7 +141,7 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
         // Uses INNER JOIN to match main query - excludes pickup locations with missing address (bad data)
         String countQuery = "SELECT COUNT(pl) FROM PickupLocation pl " +
                 "JOIN pl.address a " +
-                "WHERE pl.clientId = :clientId ";
+                "WHERE pl.clientId = " + CLIENT_ID_PARAM + " ";
 
         if (selectedIds != null && !selectedIds.isEmpty()) {
             countQuery += "AND pl.pickupLocationId IN :selectedIds ";
@@ -155,7 +157,7 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute count query
         TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
-        countTypedQuery.setParameter("clientId", clientId);
+        countTypedQuery.setParameter(CLIENT_ID, clientId);
         
         if (selectedIds != null && !selectedIds.isEmpty()) {
             countTypedQuery.setParameter("selectedIds", selectedIds);
@@ -170,7 +172,7 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute main query with pagination
         TypedQuery<PickupLocation> mainQuery = entityManager.createQuery(baseQuery, PickupLocation.class);
-        mainQuery.setParameter("clientId", clientId);
+        mainQuery.setParameter(CLIENT_ID, clientId);
         
         if (selectedIds != null && !selectedIds.isEmpty()) {
             mainQuery.setParameter("selectedIds", selectedIds);
@@ -190,4 +192,3 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
         return new PageImpl<>(pickupLocations, pageable, totalCount);
     }
 }
-

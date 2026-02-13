@@ -45,6 +45,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     void setProductReviewScore_s01_DecreaseFrom1To0_Success() {
         // Arrange
         testProductReview.setScore(1);
+        int previousScore = testProductReview.getScore();
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
         stubProductReviewRepositorySave(testProductReview);
 
@@ -53,6 +54,9 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(0, testProductReview.getScore());
+        assertEquals(previousScore - 1, testProductReview.getScore());
+        assertTrue(testProductReview.getScore() >= 0);
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
     }
 
 
@@ -66,6 +70,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     void setProductReviewScore_s02_DecreaseFromLargeScore_Success() {
         // Arrange
         testProductReview.setScore(100);
+        int previousScore = testProductReview.getScore();
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
         stubProductReviewRepositorySave(testProductReview);
 
@@ -74,6 +79,9 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(99, testProductReview.getScore());
+        assertEquals(previousScore - 1, testProductReview.getScore());
+        assertTrue(testProductReview.getScore() > 0);
+        verify(productReviewRepository, times(1)).save(testProductReview);
     }
 
 
@@ -87,6 +95,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     void setProductReviewScore_s03_DecreaseNearZero_Success() {
         // Arrange
         testProductReview.setScore(2);
+        int previousScore = testProductReview.getScore();
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
         stubProductReviewRepositorySave(testProductReview);
 
@@ -95,6 +104,9 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(1, testProductReview.getScore());
+        assertEquals(previousScore - 1, testProductReview.getScore());
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
+        verify(productReviewRepository, times(1)).save(testProductReview);
     }
 
 
@@ -108,6 +120,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     void setProductReviewScore_s04_DecreaseWhenAlreadyZero_StaysZero() {
         // Arrange
         testProductReview.setScore(0);
+        int previousScore = testProductReview.getScore();
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
         stubProductReviewRepositorySave(testProductReview);
 
@@ -116,6 +129,9 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(0, testProductReview.getScore());
+        assertEquals(previousScore, testProductReview.getScore());
+        assertFalse(testProductReview.getScore() > previousScore);
+        verify(productReviewRepository, times(1)).save(testProductReview);
     }
 
 
@@ -129,6 +145,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     void setProductReviewScore_s05_DecreaseWhenNullScore_Stays0() {
         // Arrange
         testProductReview.setScore(null);
+        assertNull(testProductReview.getScore());
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
         stubProductReviewRepositorySave(testProductReview);
 
@@ -137,6 +154,8 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(0, testProductReview.getScore());
+        assertNotNull(testProductReview.getScore());
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
     }
 
 
@@ -150,6 +169,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     void setProductReviewScore_s06_IncreaseFrom0To1_Success() {
         // Arrange
         testProductReview.setScore(0);
+        int previousScore = testProductReview.getScore();
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
         stubProductReviewRepositorySave(testProductReview);
 
@@ -158,6 +178,8 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(1, testProductReview.getScore());
+        assertEquals(previousScore + 1, testProductReview.getScore());
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
     }
 
 
@@ -171,6 +193,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     void setProductReviewScore_s07_IncreaseFrom10To11_Success() {
         // Arrange
         testProductReview.setScore(10);
+        int previousScore = testProductReview.getScore();
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
         stubProductReviewRepositorySave(testProductReview);
 
@@ -179,6 +202,9 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(11, testProductReview.getScore());
+        assertEquals(previousScore + 1, testProductReview.getScore());
+        assertTrue(testProductReview.getScore() > previousScore);
+        verify(productReviewRepository, times(1)).save(testProductReview);
     }
 
 
@@ -192,6 +218,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     void setProductReviewScore_s08_IncreaseFromLargeScore_Success() {
         // Arrange
         testProductReview.setScore(100);
+        int previousScore = testProductReview.getScore();
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
         stubProductReviewRepositorySave(testProductReview);
 
@@ -200,6 +227,9 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(101, testProductReview.getScore());
+        assertEquals(previousScore + 1, testProductReview.getScore());
+        assertTrue(testProductReview.getScore() >= 100);
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
     }
 
 
@@ -213,6 +243,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     void setProductReviewScore_s09_IncreaseFromMidRange_Success() {
         // Arrange
         testProductReview.setScore(5);
+        int previousScore = testProductReview.getScore();
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
         stubProductReviewRepositorySave(testProductReview);
 
@@ -221,6 +252,9 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(6, testProductReview.getScore());
+        assertEquals(previousScore + 1, testProductReview.getScore());
+        assertTrue(testProductReview.getScore() % 2 == 0);
+        verify(productReviewRepository, times(1)).save(testProductReview);
     }
 
 
@@ -234,6 +268,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     void setProductReviewScore_s10_IncreaseFromVeryLargeScore_Success() {
         // Arrange
         testProductReview.setScore(999);
+        int previousScore = testProductReview.getScore();
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
         stubProductReviewRepositorySave(testProductReview);
 
@@ -242,6 +277,9 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(1000, testProductReview.getScore());
+        assertEquals(previousScore + 1, testProductReview.getScore());
+        assertTrue(String.valueOf(testProductReview.getScore()).startsWith("10"));
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
     }
 
 
@@ -255,6 +293,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     void setProductReviewScore_s11_IncreaseWhenNullScore_SetsToOne() {
         // Arrange
         testProductReview.setScore(null);
+        assertNull(testProductReview.getScore());
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
         stubProductReviewRepositorySave(testProductReview);
 
@@ -263,6 +302,9 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(1, testProductReview.getScore());
+        assertNotNull(testProductReview.getScore());
+        assertTrue(testProductReview.getScore() > 0);
+        verify(productReviewRepository, times(1)).save(testProductReview);
     }
 
 
@@ -276,6 +318,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     void setProductReviewScore_s12_Success_DecreaseScore() {
         // Arrange
         testProductReview.setScore(3);
+        int previousScore = testProductReview.getScore();
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
         stubProductReviewRepositorySave(testProductReview);
 
@@ -284,6 +327,8 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(2, testProductReview.getScore());
+        assertEquals(previousScore - 1, testProductReview.getScore());
+        verify(productReviewRepository).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
         verify(productReviewRepository, times(1)).save(testProductReview);
     }
 
@@ -306,6 +351,8 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(0, testProductReview.getScore());
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
+        verify(productReviewRepository, times(1)).save(testProductReview);
     }
 
 
@@ -319,6 +366,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     void setProductReviewScore_s14_Success_IncreaseScore() {
         // Arrange
         testProductReview.setScore(3);
+        int previousScore = testProductReview.getScore();
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
         stubProductReviewRepositorySave(testProductReview);
 
@@ -327,6 +375,9 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(4, testProductReview.getScore());
+        assertEquals(previousScore + 1, testProductReview.getScore());
+        assertTrue(testProductReview.getScore() > 3);
+        verify(productReviewRepository, times(1)).save(testProductReview);
     }
 
 
@@ -340,6 +391,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     void setProductReviewScore_s15_Success_NullScore() {
         // Arrange
         testProductReview.setScore(null);
+        assertNull(testProductReview.getScore());
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
         stubProductReviewRepositorySave(testProductReview);
 
@@ -348,6 +400,9 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(1, testProductReview.getScore());
+        assertNotNull(testProductReview.getScore());
+        verify(productReviewRepository, times(1)).save(testProductReview);
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
     }
 
     /*
@@ -365,12 +420,14 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     @DisplayName("Set Product Review Score - ID 2 - Throws NotFoundException")
     void setProductReviewScore_f01_Id2_ThrowsNotFoundException() {
         // Arrange
+        long reviewId = 2L;
         stubProductReviewRepositoryFindByReviewIdAndClientId(2L, TEST_CLIENT_ID, null);
 
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> productReviewService.setProductReviewScore(2L, true));
+                () -> productReviewService.setProductReviewScore(reviewId, true));
         assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(reviewId, TEST_CLIENT_ID);
     }
 
 
@@ -383,12 +440,15 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     @DisplayName("Set Product Review Score - ID 99 - Throws NotFoundException")
     void setProductReviewScore_f02_Id99_ThrowsNotFoundException() {
         // Arrange
+        long reviewId = 99L;
         stubProductReviewRepositoryFindByReviewIdAndClientId(99L, TEST_CLIENT_ID, null);
 
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> productReviewService.setProductReviewScore(99L, true));
+                () -> productReviewService.setProductReviewScore(reviewId, true));
         assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
+        assertTrue(reviewId > TEST_REVIEW_ID);
+        verify(productReviewRepository, never()).save(any(ProductReview.class));
     }
 
 
@@ -407,6 +467,7 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(Long.MAX_VALUE, true));
         assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID);
     }
 
 
@@ -419,12 +480,15 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     @DisplayName("Set Product Review Score - ID Min Long - Throws NotFoundException")
     void setProductReviewScore_f04_IdMinLong_ThrowsNotFoundException() {
         // Arrange
-        stubProductReviewRepositoryFindByReviewIdAndClientId(Long.MIN_VALUE, TEST_CLIENT_ID, null);
+        long reviewId = Long.MIN_VALUE;
+        stubProductReviewRepositoryFindByReviewIdAndClientId(reviewId, TEST_CLIENT_ID, null);
 
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> productReviewService.setProductReviewScore(Long.MIN_VALUE, true));
+                () -> productReviewService.setProductReviewScore(reviewId, true));
         assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
+        assertTrue(reviewId < 0);
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(reviewId, TEST_CLIENT_ID);
     }
 
 
@@ -437,12 +501,15 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     @DisplayName("Set Product Review Score - ID Negative 5 - Throws NotFoundException")
     void setProductReviewScore_f05_IdNegative5_ThrowsNotFoundException() {
         // Arrange
-        stubProductReviewRepositoryFindByReviewIdAndClientId(-5L, TEST_CLIENT_ID, null);
+        long reviewId = -5L;
+        stubProductReviewRepositoryFindByReviewIdAndClientId(reviewId, TEST_CLIENT_ID, null);
 
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> productReviewService.setProductReviewScore(-5L, true));
+                () -> productReviewService.setProductReviewScore(reviewId, true));
         assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
+        assertTrue(reviewId < 0);
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(reviewId, TEST_CLIENT_ID);
     }
 
 
@@ -461,6 +528,8 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(Long.MAX_VALUE, true));
         assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID);
+        verify(productReviewRepository, never()).save(any(ProductReview.class));
     }
 
 
@@ -473,12 +542,15 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     @DisplayName("Set Product Review Score - Negative ID - Not Found")
     void setProductReviewScore_f07_NegativeId_ThrowsNotFoundException() {
         // Arrange
-        stubProductReviewRepositoryFindByReviewIdAndClientId(-1L, TEST_CLIENT_ID, null);
+        long reviewId = -1L;
+        stubProductReviewRepositoryFindByReviewIdAndClientId(reviewId, TEST_CLIENT_ID, null);
 
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> productReviewService.setProductReviewScore(-1L, true));
+                () -> productReviewService.setProductReviewScore(reviewId, true));
         assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
+        assertEquals(-1L, reviewId);
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(reviewId, TEST_CLIENT_ID);
     }
 
 
@@ -512,12 +584,15 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
     @DisplayName("Set Product Review Score - Zero ID - Not Found")
     void setProductReviewScore_f09_ZeroId_ThrowsNotFoundException() {
         // Arrange
-        stubProductReviewRepositoryFindByReviewIdAndClientId(0L, TEST_CLIENT_ID, null);
+        long reviewId = 0L;
+        stubProductReviewRepositoryFindByReviewIdAndClientId(reviewId, TEST_CLIENT_ID, null);
 
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> productReviewService.setProductReviewScore(0L, true));
+                () -> productReviewService.setProductReviewScore(reviewId, true));
         assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
+        assertEquals(0L, reviewId);
+        verify(productReviewRepository, never()).save(any(ProductReview.class));
     }
 
     /*
@@ -833,6 +908,7 @@ class SetProductReviewScoreDuplicateTests extends ProductReviewServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class,
                 () -> productReviewService.setProductReviewScore(Long.MAX_VALUE, true));
         assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID);
     }
 
 
@@ -965,6 +1041,7 @@ class SetProductReviewScoreDuplicateTests extends ProductReviewServiceTestBase {
     void setProductReviewScore_f24_IncreaseFromVeryLargeScore_Success() {
         // Arrange
         testProductReview.setScore(999);
+        int previousScore = testProductReview.getScore();
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
         stubProductReviewRepositorySave(testProductReview);
 
@@ -973,6 +1050,9 @@ class SetProductReviewScoreDuplicateTests extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(1000, testProductReview.getScore());
+        assertEquals(previousScore + 1, testProductReview.getScore());
+        assertTrue(String.valueOf(testProductReview.getScore()).length() >= 4);
+        verify(productReviewRepository, times(1)).save(testProductReview);
     }
 
 
@@ -986,6 +1066,7 @@ class SetProductReviewScoreDuplicateTests extends ProductReviewServiceTestBase {
     void setProductReviewScore_f25_IncreaseWhenNullScore_SetsToOne() {
         // Arrange
         testProductReview.setScore(null);
+        assertNull(testProductReview.getScore());
         stubProductReviewRepositoryFindByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID, testProductReview);
         stubProductReviewRepositorySave(testProductReview);
 
@@ -994,6 +1075,10 @@ class SetProductReviewScoreDuplicateTests extends ProductReviewServiceTestBase {
 
         // Assert
         assertEquals(1, testProductReview.getScore());
+        assertNotNull(testProductReview.getScore());
+        assertTrue(testProductReview.getScore() > 0);
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(TEST_REVIEW_ID, TEST_CLIENT_ID);
+        verify(productReviewRepository, times(1)).save(testProductReview);
     }
 
 
@@ -1006,12 +1091,16 @@ class SetProductReviewScoreDuplicateTests extends ProductReviewServiceTestBase {
     @DisplayName("Set Product Review Score - Max Long ID - Not Found")
     void setProductReviewScore_f26_MaxLongId_ThrowsNotFoundException() {
         // Arrange
-        stubProductReviewRepositoryFindByReviewIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID, null);
+        long reviewId = Long.MAX_VALUE;
+        stubProductReviewRepositoryFindByReviewIdAndClientId(reviewId, TEST_CLIENT_ID, null);
 
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> productReviewService.setProductReviewScore(Long.MAX_VALUE, true));
+                () -> productReviewService.setProductReviewScore(reviewId, true));
         assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
+        assertTrue(reviewId > 0);
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(reviewId, TEST_CLIENT_ID);
+        verify(productReviewRepository, never()).save(any(ProductReview.class));
     }
 
 

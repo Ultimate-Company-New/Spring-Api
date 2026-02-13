@@ -47,6 +47,18 @@ public class PackagingHelper {
      * Package dimension info for packaging calculation
      */
     public static class PackageDimension {
+        public static class PackageSize {
+            private final int length;
+            private final int breadth;
+            private final int height;
+
+            public PackageSize(int length, int breadth, int height) {
+                this.length = length;
+                this.breadth = breadth;
+                this.height = height;
+            }
+        }
+
         private final Long packageId;
         private final String packageName;
         private final String packageType;
@@ -58,14 +70,14 @@ public class PackagingHelper {
         private int availableQuantity;
 
         public PackageDimension(Long packageId, String packageName, String packageType,
-                                int length, int breadth, int height,
+                                PackageSize packageSize,
                                 BigDecimal maxWeight, BigDecimal pricePerUnit, int availableQuantity) {
             this.packageId = packageId;
             this.packageName = packageName;
             this.packageType = packageType;
-            this.length = length;
-            this.breadth = breadth;
-            this.height = height;
+            this.length = packageSize != null ? packageSize.length : 0;
+            this.breadth = packageSize != null ? packageSize.breadth : 0;
+            this.height = packageSize != null ? packageSize.height : 0;
             this.maxWeight = maxWeight != null ? maxWeight : BigDecimal.ZERO;
             this.pricePerUnit = pricePerUnit != null ? pricePerUnit : BigDecimal.ZERO;
             this.availableQuantity = availableQuantity;
@@ -220,9 +232,7 @@ public class PackagingHelper {
                     pkg.getPackageId(),
                     pkg.getPackageName(),
                     pkg.getPackageType(),
-                    pkg.length,
-                    pkg.breadth,
-                    pkg.height,
+                    new PackageDimension.PackageSize(pkg.length, pkg.breadth, pkg.height),
                     pkg.maxWeight,
                     pkg.pricePerUnit,
                     pkg.getAvailableQuantity()
@@ -315,10 +325,8 @@ public class PackagingHelper {
         // If no package fits, return the largest available (might need multiple items per package)
         PackageDimension largest = null;
         for (PackageDimension pkg : packages) {
-            if (pkg.getAvailableQuantity() > 0) {
-                if (largest == null || pkg.getVolume() > largest.getVolume()) {
-                    largest = pkg;
-                }
+            if (pkg.getAvailableQuantity() > 0 && (largest == null || pkg.getVolume() > largest.getVolume())) {
+                largest = pkg;
             }
         }
 
@@ -501,9 +509,7 @@ public class PackagingHelper {
                     pkg.getPackageId(),
                     pkg.getPackageName(),
                     pkg.getPackageType(),
-                    pkg.length,
-                    pkg.breadth,
-                    pkg.height,
+                    new PackageDimension.PackageSize(pkg.length, pkg.breadth, pkg.height),
                     pkg.maxWeight,
                     pkg.pricePerUnit,
                     pkg.getAvailableQuantity()

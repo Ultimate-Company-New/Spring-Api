@@ -56,7 +56,7 @@ import static org.mockito.Mockito.lenient;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PaymentService Tests")
-public class PaymentServiceTestBase {
+class PaymentServiceTestBase {
 
     // ==================== COMMON TEST CONSTANTS ====================
 

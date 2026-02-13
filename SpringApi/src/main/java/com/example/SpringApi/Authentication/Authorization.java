@@ -71,11 +71,10 @@ public class Authorization{
             return true;
         }
         List<Long> permissionIds = jwtTokenProvider.getUserPermissionIds(getJwtFromRequest());  
-        boolean isUserAuthorized = isAllowed(userPermission, permissionIds);
-        if(!isUserAuthorized) {
+        if(!isAllowed(userPermission, permissionIds)) {
             PermissionException permissionException = new PermissionException(ErrorMessages.UNAUTHORIZED);
             logger.error(permissionException);
-            throw permissionException;
+            return false;
         }   
         return true;
     }

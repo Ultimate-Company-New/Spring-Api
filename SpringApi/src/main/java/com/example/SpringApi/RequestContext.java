@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RequestContext {
+    private RequestContext() {
+    }
 
     private static final ThreadLocal<Map<String, String>> context = ThreadLocal.withInitial(HashMap::new);
 

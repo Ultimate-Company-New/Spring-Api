@@ -52,7 +52,7 @@ import static org.mockito.Mockito.mockStatic;
  * test setup and reduce code duplication.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class LoginServiceTestBase {
+abstract class LoginServiceTestBase {
 
     // ==================== COMMON TEST CONSTANTS ====================
 
@@ -230,12 +230,12 @@ public abstract class LoginServiceTestBase {
     }
 
     protected LoginRequestModel createValidLoginRequest() {
-        LoginRequestModel request = new LoginRequestModel();
-        request.setUserId(DEFAULT_USER_ID);
-        request.setLoginName(DEFAULT_LOGIN_NAME);
-        request.setPassword("testPassword123");
-        request.setClientId(DEFAULT_CLIENT_ID);
-        return request;
+        LoginRequestModel loginRequest = new LoginRequestModel();
+        loginRequest.setUserId(DEFAULT_USER_ID);
+        loginRequest.setLoginName(DEFAULT_LOGIN_NAME);
+        loginRequest.setPassword("testPassword123");
+        loginRequest.setClientId(DEFAULT_CLIENT_ID);
+        return loginRequest;
     }
 
     protected GoogleCred createTestGoogleCred(Long googleCredId) {

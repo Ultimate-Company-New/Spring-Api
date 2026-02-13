@@ -1,6 +1,5 @@
 package com.example.SpringApi.Helpers;
 
-import com.example.SpringApi.Models.DatabaseModels.GoogleCred;
 import com.itextpdf.text.DocumentException;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
@@ -19,23 +18,20 @@ import java.util.Base64;
  * @since 2024-01-15
  */
 public class PDFHelper {
+    private PDFHelper() {
+    }
     
     /**
      * Converts HTML content to PDF bytes.
      * 
      * This method uses Flying Saucer (xhtmlrenderer) library to convert HTML to PDF format.
      * 
-     * @param googleCred Google credentials for Drive API access (can be null, currently unused)
-     * @param logoFilePath Path to the logo file (currently unused, for future enhancement)
      * @param htmlContent The HTML content to convert
      * @return PDF as byte array
      * @throws IOException if PDF generation fails
      * @throws DocumentException if PDF document creation fails
      */
-    public static byte[] convertPurchaseOrderHtmlToPdf(
-            GoogleCred googleCred,
-            String logoFilePath,
-            String htmlContent) throws IOException, DocumentException {
+    public static byte[] convertPurchaseOrderHtmlToPdf(String htmlContent) throws IOException, DocumentException {
         
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ITextRenderer renderer = new ITextRenderer();
@@ -72,4 +68,3 @@ public class PDFHelper {
         return Base64.getEncoder().encodeToString(pdfBytes);
     }
 }
-

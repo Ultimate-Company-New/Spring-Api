@@ -162,17 +162,17 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             String razorpayOrderId = String.valueOf(razorpayOrder.get("id"));
 
             // Create Payment record to track this transaction
-            Payment payment = new Payment(
-                    Payment.EntityType.PURCHASE_ORDER.getValue(),
-                    purchaseOrder.getPurchaseOrderId(),
-                    razorpayOrderId,
-                    receipt,
-                    amountInPaise,
-                    "INR",
-                    Payment.PaymentGateway.RAZORPAY.getValue(),
-                    getClientId(),
-                    getUser()
-            );
+            Payment.PaymentOrderData paymentOrderData = new Payment.PaymentOrderData();
+            paymentOrderData.setEntityType(Payment.EntityType.PURCHASE_ORDER.getValue());
+            paymentOrderData.setEntityId(purchaseOrder.getPurchaseOrderId());
+            paymentOrderData.setRazorpayOrderId(razorpayOrderId);
+            paymentOrderData.setRazorpayReceipt(receipt);
+            paymentOrderData.setOrderAmountPaise(amountInPaise);
+            paymentOrderData.setCurrency("INR");
+            paymentOrderData.setPaymentGateway(Payment.PaymentGateway.RAZORPAY.getValue());
+            paymentOrderData.setClientId(getClientId());
+            paymentOrderData.setCreatedUser(getUser());
+            Payment payment = new Payment(paymentOrderData);
             
             // Set customer details if provided
             if (request.getCustomerName() != null) {
@@ -299,17 +299,17 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             String razorpayOrderId = String.valueOf(razorpayOrder.get("id"));
 
             // Create Payment record to track this transaction
-            Payment payment = new Payment(
-                    Payment.EntityType.PURCHASE_ORDER.getValue(),
-                    purchaseOrder.getPurchaseOrderId(),
-                    razorpayOrderId,
-                    receipt,
-                    amountInPaise,
-                    "INR",
-                    Payment.PaymentGateway.RAZORPAY.getValue(),
-                    getClientId(),
-                    getUser()
-            );
+            Payment.PaymentOrderData paymentOrderData = new Payment.PaymentOrderData();
+            paymentOrderData.setEntityType(Payment.EntityType.PURCHASE_ORDER.getValue());
+            paymentOrderData.setEntityId(purchaseOrder.getPurchaseOrderId());
+            paymentOrderData.setRazorpayOrderId(razorpayOrderId);
+            paymentOrderData.setRazorpayReceipt(receipt);
+            paymentOrderData.setOrderAmountPaise(amountInPaise);
+            paymentOrderData.setCurrency("INR");
+            paymentOrderData.setPaymentGateway(Payment.PaymentGateway.RAZORPAY.getValue());
+            paymentOrderData.setClientId(getClientId());
+            paymentOrderData.setCreatedUser(getUser());
+            Payment payment = new Payment(paymentOrderData);
             
             // Set customer details if provided
             if (request.getCustomerName() != null) {
@@ -519,22 +519,22 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
         LocalDateTime paymentDateTime = request.getPaymentDate().atStartOfDay();
         
         // Create Payment record for cash payment using constructor
-        Payment payment = new Payment(
-                Payment.EntityType.PURCHASE_ORDER.getValue(),
-                purchaseOrder.getPurchaseOrderId(),
-                amountInPaise,
-                request.getAmount(),
-                "INR",
-                paymentMethod,
-                paymentDateTime,
-                request.getNotes(),
-                request.getUpiTransactionId(),
-                "Cash payment for Purchase Order #" + purchaseOrder.getPurchaseOrderId() + 
-                        " (" + purchaseOrder.getVendorNumber() + ")",
-                isTestMode(),
-                getClientId(),
-                getUser()
-        );
+        Payment.ManualPaymentData manualPaymentData = new Payment.ManualPaymentData();
+        manualPaymentData.setEntityType(Payment.EntityType.PURCHASE_ORDER.getValue());
+        manualPaymentData.setEntityId(purchaseOrder.getPurchaseOrderId());
+        manualPaymentData.setAmountPaidPaise(amountInPaise);
+        manualPaymentData.setAmountPaid(request.getAmount());
+        manualPaymentData.setCurrency("INR");
+        manualPaymentData.setPaymentMethod(paymentMethod);
+        manualPaymentData.setPaymentDate(paymentDateTime);
+        manualPaymentData.setNotes(request.getNotes());
+        manualPaymentData.setUpiTransactionId(request.getUpiTransactionId());
+        manualPaymentData.setDescription("Cash payment for Purchase Order #" + purchaseOrder.getPurchaseOrderId()
+                + " (" + purchaseOrder.getVendorNumber() + ")");
+        manualPaymentData.setTestPayment(isTestMode());
+        manualPaymentData.setClientId(getClientId());
+        manualPaymentData.setCreatedUser(getUser());
+        Payment payment = new Payment(manualPaymentData);
         
         paymentRepository.save(payment);
 
@@ -721,22 +721,22 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
         LocalDateTime paymentDateTime = request.getPaymentDate().atStartOfDay();
         
         // Create Payment record for cash payment using constructor
-        Payment payment = new Payment(
-                Payment.EntityType.PURCHASE_ORDER.getValue(),
-                purchaseOrder.getPurchaseOrderId(),
-                amountInPaise,
-                request.getAmount(),
-                "INR",
-                paymentMethod,
-                paymentDateTime,
-                request.getNotes(),
-                request.getUpiTransactionId(),
-                "Follow-up cash payment for Purchase Order #" + purchaseOrder.getPurchaseOrderId() + 
-                        " (" + purchaseOrder.getVendorNumber() + ")",
-                isTestMode(),
-                getClientId(),
-                getUser()
-        );
+        Payment.ManualPaymentData manualPaymentData = new Payment.ManualPaymentData();
+        manualPaymentData.setEntityType(Payment.EntityType.PURCHASE_ORDER.getValue());
+        manualPaymentData.setEntityId(purchaseOrder.getPurchaseOrderId());
+        manualPaymentData.setAmountPaidPaise(amountInPaise);
+        manualPaymentData.setAmountPaid(request.getAmount());
+        manualPaymentData.setCurrency("INR");
+        manualPaymentData.setPaymentMethod(paymentMethod);
+        manualPaymentData.setPaymentDate(paymentDateTime);
+        manualPaymentData.setNotes(request.getNotes());
+        manualPaymentData.setUpiTransactionId(request.getUpiTransactionId());
+        manualPaymentData.setDescription("Follow-up cash payment for Purchase Order #" + purchaseOrder.getPurchaseOrderId()
+                + " (" + purchaseOrder.getVendorNumber() + ")");
+        manualPaymentData.setTestPayment(isTestMode());
+        manualPaymentData.setClientId(getClientId());
+        manualPaymentData.setCreatedUser(getUser());
+        Payment payment = new Payment(manualPaymentData);
         
         paymentRepository.save(payment);
 

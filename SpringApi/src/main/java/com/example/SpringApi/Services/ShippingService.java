@@ -1592,7 +1592,10 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                     locInfo.packageEntities.put(pkg.getPackageId(), pkg);
                     locInfo.packageDimensions.add(new PackagingHelper.PackageDimension(
                             pkg.getPackageId(), pkg.getPackageName(), pkg.getPackageType(),
-                            pkg.getLength(), pkg.getBreadth(), pkg.getHeight(),
+                            new PackagingHelper.PackageDimension.PackageSize(
+                                    pkg.getLength(),
+                                    pkg.getBreadth(),
+                                    pkg.getHeight()),
                             pkg.getMaxWeight(), pkg.getPricePerUnit(), pm.getAvailableQuantity()));
                 }
             }

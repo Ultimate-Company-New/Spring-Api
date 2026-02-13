@@ -327,12 +327,18 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_CaseInsensitiveHome_Success() {
         // Arrange
         testAddressRequest.setAddressType("home");
+        testAddressRequest.setCity("CaseHomeCity");
         stubBaseServiceBehaviors();
         stubAddressRepositorySave(testAddress);
         stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+        ArgumentCaptor<Address> captor = ArgumentCaptor.forClass(Address.class);
+        verify(addressRepository).save(captor.capture());
+        assertEquals("HOME", captor.getValue().getAddressType());
+        assertEquals("CaseHomeCity", captor.getValue().getCity());
+        verify(userLogService, atLeastOnce()).logData(anyLong(), anyString(), anyString());
     }
 
     /**
@@ -345,12 +351,18 @@ class InsertAddressTest extends AddressServiceTestBase {
     void insertAddress_CaseInsensitiveWork_Success() {
         // Arrange
         testAddressRequest.setAddressType("work");
+        testAddressRequest.setCity("CaseWorkCity");
         stubBaseServiceBehaviors();
         stubAddressRepositorySave(testAddress);
         stubUserLogSuccess();
 
         // Act & Assert
         assertDoesNotThrow(() -> addressService.insertAddress(testAddressRequest));
+        ArgumentCaptor<Address> captor = ArgumentCaptor.forClass(Address.class);
+        verify(addressRepository).save(captor.capture());
+        assertEquals("WORK", captor.getValue().getAddressType());
+        assertEquals("CaseWorkCity", captor.getValue().getCity());
+        verify(userLogService, atLeastOnce()).logData(anyLong(), anyString(), anyString());
     }
 
     /**
@@ -426,7 +438,7 @@ class InsertAddressTest extends AddressServiceTestBase {
         // Assert
         verify(userLogService).logData(
                 eq(DEFAULT_USER_ID),
-                contains(com.example.SpringApi.SuccessMessages.AddressSuccessMessages.InsertAddress),
+                contains(com.example.SpringApi.SuccessMessages.AddressSuccessMessages.INSERT_ADDRESS),
                 eq(com.example.SpringApi.Models.ApiRoutes.AddressSubRoute.INSERT_ADDRESS));
     }
 

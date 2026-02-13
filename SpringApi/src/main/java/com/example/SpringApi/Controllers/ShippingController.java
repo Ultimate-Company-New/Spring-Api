@@ -111,17 +111,16 @@ public class ShippingController {
     @PostMapping(ApiRoutes.ShippingSubRoute.OPTIMIZE_ORDER)
     public ResponseEntity<?> optimizeOrder(@RequestBody OrderOptimizationRequestModel request) {
         long startTime = System.currentTimeMillis();
-        logger.info("Received optimizeOrder request for " +
-                (request.getProductQuantities() != null ? request.getProductQuantities().size() : 0) +
-                " products, delivery postcode: " + request.getDeliveryPostcode());
+        int productCount = request.getProductQuantities() != null ? request.getProductQuantities().size() : 0;
+        logger.info("Received optimizeOrder request for {} products, delivery postcode: {}", productCount, request.getDeliveryPostcode());
         try {
             OrderOptimizationResponseModel response = shippingService.optimizeOrder(request);
             long duration = System.currentTimeMillis() - startTime;
-            logger.info("optimizeOrder completed in " + duration + "ms, success: " + response.getSuccess());
+            logger.info("optimizeOrder completed in {}ms, success: {}", duration, response.getSuccess());
             return ResponseEntity.ok(response);
         } catch (BadRequestException bre) {
             long duration = System.currentTimeMillis() - startTime;
-            logger.error("optimizeOrder failed after " + duration + "ms: BadRequestException");
+            logger.error("optimizeOrder failed after {}ms: BadRequestException", duration);
             contextualLogger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST,
                     bre.getMessage(), HttpStatus.BAD_REQUEST.value()));

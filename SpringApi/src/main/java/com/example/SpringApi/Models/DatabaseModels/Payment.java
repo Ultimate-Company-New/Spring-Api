@@ -37,6 +37,37 @@ import java.time.LocalDateTime;
     @Index(name = "idx_payment_created_at", columnList = "createdAt")
 })
 public class Payment {
+    @Getter
+    @Setter
+    public static class PaymentOrderData {
+        private String entityType;
+        private Long entityId;
+        private String razorpayOrderId;
+        private String razorpayReceipt;
+        private Long orderAmountPaise;
+        private String currency;
+        private String paymentGateway;
+        private Long clientId;
+        private String createdUser;
+    }
+
+    @Getter
+    @Setter
+    public static class ManualPaymentData {
+        private String entityType;
+        private Long entityId;
+        private Long amountPaidPaise;
+        private BigDecimal amountPaid;
+        private String currency;
+        private String paymentMethod;
+        private LocalDateTime paymentDate;
+        private String notes;
+        private String upiTransactionId;
+        private String description;
+        private boolean testPayment;
+        private Long clientId;
+        private String createdUser;
+    }
 
     // ========================================================================
     // ENUMS
@@ -461,20 +492,18 @@ public class Payment {
     /**
      * Constructor for creating a new payment order (before payment)
      */
-    public Payment(String entityType, Long entityId, String razorpayOrderId, 
-                   String razorpayReceipt, Long orderAmountPaise, String currency,
-                   String paymentGateway, Long clientId, String createdUser) {
-        this.entityType = entityType;
-        this.entityId = entityId;
-        this.razorpayOrderId = razorpayOrderId;
-        this.razorpayReceipt = razorpayReceipt;
-        this.orderAmountPaise = orderAmountPaise;
-        this.currency = currency;
-        this.paymentGateway = paymentGateway;
+    public Payment(PaymentOrderData data) {
+        this.entityType = data.entityType;
+        this.entityId = data.entityId;
+        this.razorpayOrderId = data.razorpayOrderId;
+        this.razorpayReceipt = data.razorpayReceipt;
+        this.orderAmountPaise = data.orderAmountPaise;
+        this.currency = data.currency;
+        this.paymentGateway = data.paymentGateway;
         this.paymentStatus = PaymentStatus.CREATED.getValue();
-        this.clientId = clientId;
-        this.createdUser = createdUser;
-        this.modifiedUser = createdUser;
+        this.clientId = data.clientId;
+        this.createdUser = data.createdUser;
+        this.modifiedUser = data.createdUser;
         this.orderCreatedAt = LocalDateTime.now();
         this.refundCount = 0;
         this.amountRefundedPaise = 0L;
@@ -484,30 +513,27 @@ public class Payment {
     /**
      * Constructor for creating a cash/manual payment (immediately captured)
      */
-    public Payment(String entityType, Long entityId, Long amountPaidPaise, BigDecimal amountPaid,
-                   String currency, String paymentMethod, LocalDateTime paymentDate,
-                   String notes, String upiTransactionId, String description,
-                   boolean isTestPayment, Long clientId, String createdUser) {
-        this.entityType = entityType;
-        this.entityId = entityId;
+    public Payment(ManualPaymentData data) {
+        this.entityType = data.entityType;
+        this.entityId = data.entityId;
         this.razorpayOrderId = null; // No Razorpay order for cash payment
-        this.razorpayReceipt = "CASH_" + entityId + "_" + System.currentTimeMillis();
-        this.orderAmountPaise = amountPaidPaise;
-        this.currency = currency;
+        this.razorpayReceipt = "CASH_" + data.entityId + "_" + System.currentTimeMillis();
+        this.orderAmountPaise = data.amountPaidPaise;
+        this.currency = data.currency;
         this.paymentGateway = PaymentGateway.MANUAL.getValue();
-        this.paymentMethod = paymentMethod;
+        this.paymentMethod = data.paymentMethod;
         this.paymentStatus = PaymentStatus.CAPTURED.getValue();
-        this.amountPaidPaise = amountPaidPaise;
-        this.amountPaid = amountPaid;
-        this.paymentDate = paymentDate;
+        this.amountPaidPaise = data.amountPaidPaise;
+        this.amountPaid = data.amountPaid;
+        this.paymentDate = data.paymentDate;
         this.capturedAt = LocalDateTime.now();
-        this.notes = notes;
-        this.upiTransactionId = upiTransactionId;
-        this.description = description;
-        this.isTestPayment = isTestPayment;
-        this.clientId = clientId;
-        this.createdUser = createdUser;
-        this.modifiedUser = createdUser;
+        this.notes = data.notes;
+        this.upiTransactionId = data.upiTransactionId;
+        this.description = data.description;
+        this.isTestPayment = data.testPayment;
+        this.clientId = data.clientId;
+        this.createdUser = data.createdUser;
+        this.modifiedUser = data.createdUser;
         this.orderCreatedAt = LocalDateTime.now();
         this.refundCount = 0;
         this.amountRefundedPaise = 0L;
@@ -638,4 +664,3 @@ public class Payment {
         return paid - refunded;
     }
 }
-

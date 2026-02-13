@@ -97,5 +97,7 @@ public class GoogleCred {
      * Default constructor.
      * Required by JPA for entity instantiation.
      */
-    public GoogleCred() {}
+    public GoogleCred() {
+        // Required by JPA.
+    }
 }

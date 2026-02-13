@@ -47,28 +47,30 @@ public class EmailHelper implements IEmailHelper {
      */
     private String meetingRequestString(String from, Collection<String> toUsers, String subject,
                                         String desc, LocalDateTime startTime, LocalDateTime endTime, boolean isCancel) {
-        return "BEGIN:VCALENDAR\n" +
-                "PRODID:-//Microsoft Corporation//Outlook 12.0 MIMEDIR//EN\n" +
-                "VERSION:2.0\n" +
-                String.format("METHOD:%s\n", isCancel ? "CANCEL" : "REQUEST") +
-                "BEGIN:VEVENT\n" +
-                String.format("DTSTART:%s\n", startTime.atZone(ZoneId.systemDefault()).toInstant().toString()) +
-                String.format("DTSTAMP:%s\n", LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toString()) +
-                String.format("DTEND:%s\n", endTime.atZone(ZoneId.systemDefault()).toInstant().toString()) +
-                String.format("DESCRIPTION:%s\n", desc.replace("\n", "<br>")) +
-                String.format("X-ALT-DESC;FMTTYPE=text/html:%s\n", desc.replace("\n", "<br>")) +
-                String.format("SUMMARY:%s\n", subject) +
-                String.format("ORGANIZER;CN=\"%s\":MAILTO:%s\n", from, from) +
+        String lineSeparator = System.lineSeparator();
+        String htmlDescription = desc.replaceAll("\\R", "<br>");
+        return "BEGIN:VCALENDAR" + lineSeparator +
+                "PRODID:-//Microsoft Corporation//Outlook 12.0 MIMEDIR//EN" + lineSeparator +
+                "VERSION:2.0" + lineSeparator +
+                String.format("METHOD:%s%n", isCancel ? "CANCEL" : "REQUEST") +
+                "BEGIN:VEVENT" + lineSeparator +
+                String.format("DTSTART:%s%n", startTime.atZone(ZoneId.systemDefault()).toInstant().toString()) +
+                String.format("DTSTAMP:%s%n", LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toString()) +
+                String.format("DTEND:%s%n", endTime.atZone(ZoneId.systemDefault()).toInstant().toString()) +
+                String.format("DESCRIPTION:%s%n", htmlDescription) +
+                String.format("X-ALT-DESC;FMTTYPE=text/html:%s%n", htmlDescription) +
+                String.format("SUMMARY:%s%n", subject) +
+                String.format("ORGANIZER;CN=\"%s\":MAILTO:%s%n", from, from) +
                 String.format(
-                        "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;CN=\"%s\";RSVP=TRUE:mailto:%s\n",
+                        "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;CN=\"%s\";RSVP=TRUE:mailto:%s%n",
                         String.join(",", toUsers), String.join(",", toUsers)) +
-                "BEGIN:VALARM\n" +
-                "TRIGGER:-PT15M\n" +
-                "ACTION:DISPLAY\n" +
-                "DESCRIPTION:Reminder\n" +
-                "END:VALARM\n" +
-                "END:VEVENT\n" +
-                "END:VCALENDAR\n";
+                "BEGIN:VALARM" + lineSeparator +
+                "TRIGGER:-PT15M" + lineSeparator +
+                "ACTION:DISPLAY" + lineSeparator +
+                "DESCRIPTION:Reminder" + lineSeparator +
+                "END:VALARM" + lineSeparator +
+                "END:VEVENT" + lineSeparator +
+                "END:VCALENDAR" + lineSeparator;
     }
 
     public boolean sendEmail(SendEmailRequest request) {

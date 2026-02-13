@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
  * Unit tests for MessageService.setMessageReadByUserIdAndMessageId method.
  */
 @DisplayName("SetMessageReadByUserIdAndMessageId Tests")
-public class SetMessageReadByUserIdAndMessageIdTest extends MessageServiceTestBase {
+class SetMessageReadByUserIdAndMessageIdTest extends MessageServiceTestBase {
 
 
     // Total Tests: 14

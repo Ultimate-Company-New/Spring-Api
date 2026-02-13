@@ -194,11 +194,15 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
     @DisplayName("Get Unread Message Count - User ID Lookup Failure - Propagates")
     void getUnreadMessageCount_UserIdLookupFailure_Propagates() {
         // Arrange
-        stubMessageRepositoryCountUnreadMessagesByUserIdThrows(ErrorMessages.CommonErrorMessages.DATABASE_ERROR);
+        String databaseFailure = ErrorMessages.CommonErrorMessages.DATABASE_CONNECTION_ERROR;
+        stubMessageRepositoryCountUnreadMessagesByUserIdThrows(databaseFailure);
 
         // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> messageService.getUnreadMessageCount());
-        assertEquals(ErrorMessages.CommonErrorMessages.DATABASE_ERROR, ex.getMessage());
+        assertEquals(databaseFailure, ex.getMessage());
+        assertFalse(ex.getMessage().isBlank());
+        verify(messageRepository, times(1)).countUnreadMessagesByUserId(TEST_CLIENT_ID, TEST_USER_ID);
+        verifyNoMoreInteractions(messageRepository);
     }
 
     /*

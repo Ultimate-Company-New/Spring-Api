@@ -189,21 +189,22 @@ public class TestRun {
         this.results.add(result);
         this.totalTests++;
 
-        String status = result.getStatus();
-        if (status == null) {
+        String resultStatus = result.getStatus();
+        if (resultStatus == null) {
             return;
         }
 
-        switch (status) {
+        switch (resultStatus) {
             case "PASSED":
                 this.passedCount++;
                 break;
-            case "FAILED":
-            case "ERROR":
+            case "FAILED", "ERROR":
                 this.failedCount++;
                 break;
             case "SKIPPED":
                 this.skippedCount++;
+                break;
+            default:
                 break;
         }
     }

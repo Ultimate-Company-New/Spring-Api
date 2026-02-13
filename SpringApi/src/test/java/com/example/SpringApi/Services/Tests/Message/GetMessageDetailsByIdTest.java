@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
  * Unit tests for MessageService.getMessageDetailsById method.
  */
 @DisplayName("GetMessageDetailsById Tests")
-public class GetMessageDetailsByIdTest extends MessageServiceTestBase {
+class GetMessageDetailsByIdTest extends MessageServiceTestBase {
 
 
         // Total Tests: 12

@@ -54,9 +54,8 @@ public interface IPickupLocationSubTranslator {
      * 
      * @param pickupLocationRequestModel The pickup location data to create
      * @throws IllegalArgumentException if the request model is invalid
-     * @throws Exception if external service integration fails
      */
-    void createPickupLocation(PickupLocationRequestModel pickupLocationRequestModel) throws Exception;
+    void createPickupLocation(PickupLocationRequestModel pickupLocationRequestModel);
     
     /**
      * Updates an existing pickup location with new information.
@@ -66,9 +65,8 @@ public interface IPickupLocationSubTranslator {
      * 
      * @param pickupLocationRequestModel The updated pickup location data
      * @throws IllegalArgumentException if the request model is invalid
-     * @throws Exception if external service integration fails
      */
-    void updatePickupLocation(PickupLocationRequestModel pickupLocationRequestModel) throws Exception;
+    void updatePickupLocation(PickupLocationRequestModel pickupLocationRequestModel);
     
     /**
      * Toggles the deletion status of a pickup location by its ID.

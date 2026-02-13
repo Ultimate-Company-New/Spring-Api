@@ -23,6 +23,7 @@ import com.sendgrid.helpers.mail.objects.Attachments;
 
 public class BrevoEmailHelper implements IEmailHelper {
     private static final String BREVO_API_BASE = "https://api.brevo.com/v3";
+    private static final String APPLICATION_JSON = "application/json";
     private static final DateTimeFormatter ISO_UTC_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC);
 
@@ -50,28 +51,30 @@ public class BrevoEmailHelper implements IEmailHelper {
      */
     private String meetingRequestString(String from, Collection<String> toUsers, String subject,
                                         String desc, LocalDateTime startTime, LocalDateTime endTime, boolean isCancel) {
-        return "BEGIN:VCALENDAR\n" +
-                "PRODID:-//Microsoft Corporation//Outlook 12.0 MIMEDIR//EN\n" +
-                "VERSION:2.0\n" +
-                String.format("METHOD:%s\n", isCancel ? "CANCEL" : "REQUEST") +
-                "BEGIN:VEVENT\n" +
-                String.format("DTSTART:%s\n", startTime.atZone(ZoneId.systemDefault()).toInstant().toString()) +
-                String.format("DTSTAMP:%s\n", LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toString()) +
-                String.format("DTEND:%s\n", endTime.atZone(ZoneId.systemDefault()).toInstant().toString()) +
-                String.format("DESCRIPTION:%s\n", desc.replace("\n", "<br>")) +
-                String.format("X-ALT-DESC;FMTTYPE=text/html:%s\n", desc.replace("\n", "<br>")) +
-                String.format("SUMMARY:%s\n", subject) +
-                String.format("ORGANIZER;CN=\"%s\":MAILTO:%s\n", from, from) +
+        String lineSeparator = System.lineSeparator();
+        String htmlDescription = desc.replaceAll("\\R", "<br>");
+        return "BEGIN:VCALENDAR" + lineSeparator +
+                "PRODID:-//Microsoft Corporation//Outlook 12.0 MIMEDIR//EN" + lineSeparator +
+                "VERSION:2.0" + lineSeparator +
+                String.format("METHOD:%s%n", isCancel ? "CANCEL" : "REQUEST") +
+                "BEGIN:VEVENT" + lineSeparator +
+                String.format("DTSTART:%s%n", startTime.atZone(ZoneId.systemDefault()).toInstant().toString()) +
+                String.format("DTSTAMP:%s%n", LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toString()) +
+                String.format("DTEND:%s%n", endTime.atZone(ZoneId.systemDefault()).toInstant().toString()) +
+                String.format("DESCRIPTION:%s%n", htmlDescription) +
+                String.format("X-ALT-DESC;FMTTYPE=text/html:%s%n", htmlDescription) +
+                String.format("SUMMARY:%s%n", subject) +
+                String.format("ORGANIZER;CN=\"%s\":MAILTO:%s%n", from, from) +
                 String.format(
-                        "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;CN=\"%s\";RSVP=TRUE:mailto:%s\n",
+                        "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;CN=\"%s\";RSVP=TRUE:mailto:%s%n",
                         String.join(",", toUsers), String.join(",", toUsers)) +
-                "BEGIN:VALARM\n" +
-                "TRIGGER:-PT15M\n" +
-                "ACTION:DISPLAY\n" +
-                "DESCRIPTION:Reminder\n" +
-                "END:VALARM\n" +
-                "END:VEVENT\n" +
-                "END:VCALENDAR\n";
+                "BEGIN:VALARM" + lineSeparator +
+                "TRIGGER:-PT15M" + lineSeparator +
+                "ACTION:DISPLAY" + lineSeparator +
+                "DESCRIPTION:Reminder" + lineSeparator +
+                "END:VALARM" + lineSeparator +
+                "END:VEVENT" + lineSeparator +
+                "END:VCALENDAR" + lineSeparator;
     }
 
     public boolean sendEmail(SendEmailRequest request) {
@@ -129,8 +132,8 @@ public class BrevoEmailHelper implements IEmailHelper {
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(URI.create(BREVO_API_BASE + "/smtp/email"))
                     .header("api-key", sendGridApiKey)
-                    .header("Content-Type", "application/json")
-                    .header("accept", "application/json")
+                    .header("Content-Type", APPLICATION_JSON)
+                    .header("accept", APPLICATION_JSON)
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
@@ -173,7 +176,7 @@ public class BrevoEmailHelper implements IEmailHelper {
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(URI.create(BREVO_API_BASE + "/smtp/email/" + batchId))
                     .header("api-key", sendGridApiKey)
-                    .header("accept", "application/json")
+                    .header("accept", APPLICATION_JSON)
                     .DELETE()
                     .build();
 

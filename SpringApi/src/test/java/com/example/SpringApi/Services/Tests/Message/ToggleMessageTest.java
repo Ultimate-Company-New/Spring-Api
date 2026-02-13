@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
  * Unit tests for MessageService.toggleMessage method.
  */
 @DisplayName("ToggleMessage Tests")
-public class ToggleMessageTest extends MessageServiceTestBase {
+class ToggleMessageTest extends MessageServiceTestBase {
 
 
     // Total Tests: 12

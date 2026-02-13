@@ -23,6 +23,8 @@ import java.util.Map;
  */
 @Component
 public class UserGroupFilterQueryBuilder extends BaseFilterQueryBuilder {
+    private static final String CLIENT_ID = "clientId";
+    private static final String CLIENT_ID_PARAM = ":" + CLIENT_ID;
 
     private final EntityManager entityManager;
 
@@ -37,7 +39,7 @@ public class UserGroupFilterQueryBuilder extends BaseFilterQueryBuilder {
     protected String mapColumnToField(String column) {
         switch (column) {
             case "groupId": return "ug.groupId";
-            case "clientId": return "ug.clientId";
+            case CLIENT_ID: return "ug.clientId";
             case "groupName": return "ug.groupName";
             case "description": return "ug.description";
             case "isActive": return "ug.isActive";
@@ -47,9 +49,7 @@ public class UserGroupFilterQueryBuilder extends BaseFilterQueryBuilder {
             case "modifiedUser": return "ug.modifiedUser";
             case "createdAt": return "ug.createdAt";
             case "updatedAt": return "ug.updatedAt";
-            case "userCount":
-            case "memberCount":
-            case "members": 
+            case "userCount", "memberCount", "members":
                 // Use subquery to count user mappings
                 return "(SELECT COUNT(ugm2) FROM UserGroupUserMap ugm2 WHERE ugm2.groupId = ug.groupId)";
             default: return "ug." + column;
@@ -68,7 +68,7 @@ public class UserGroupFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     @Override
     protected List<String> getNumberColumns() {
-        return Arrays.asList("groupId", "clientId", "userCount", "memberCount", "members");
+        return Arrays.asList("groupId", CLIENT_ID, "userCount", "memberCount", "members");
     }
 
     /**
@@ -115,7 +115,7 @@ public class UserGroupFilterQueryBuilder extends BaseFilterQueryBuilder {
         String baseQuery = "SELECT DISTINCT ug FROM UserGroup ug " +
                 "LEFT JOIN FETCH ug.userMappings ugm " +
                 "LEFT JOIN FETCH ugm.user u " +
-                "WHERE ug.clientId = :clientId ";
+                "WHERE ug.clientId = " + CLIENT_ID_PARAM + " ";
 
         // Add selectedIds condition
         if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -139,7 +139,7 @@ public class UserGroupFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Count query (without FETCH joins)
         String countQuery = "SELECT COUNT(DISTINCT ug) FROM UserGroup ug " +
-                "WHERE ug.clientId = :clientId ";
+                "WHERE ug.clientId = " + CLIENT_ID_PARAM + " ";
 
         if (selectedIds != null && !selectedIds.isEmpty()) {
             countQuery += "AND ug.groupId IN :selectedIds ";
@@ -155,7 +155,7 @@ public class UserGroupFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute count query
         TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
-        countTypedQuery.setParameter("clientId", clientId);
+        countTypedQuery.setParameter(CLIENT_ID, clientId);
         
         if (selectedIds != null && !selectedIds.isEmpty()) {
             countTypedQuery.setParameter("selectedIds", selectedIds);
@@ -170,7 +170,7 @@ public class UserGroupFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute main query with pagination
         TypedQuery<UserGroup> mainQuery = entityManager.createQuery(baseQuery, UserGroup.class);
-        mainQuery.setParameter("clientId", clientId);
+        mainQuery.setParameter(CLIENT_ID, clientId);
         
         if (selectedIds != null && !selectedIds.isEmpty()) {
             mainQuery.setParameter("selectedIds", selectedIds);

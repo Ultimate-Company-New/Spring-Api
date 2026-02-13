@@ -36,7 +36,7 @@ class UpdateTodoTest extends TodoServiceTestBase {
     /*
      * Purpose: Verify update with max length task.
      * Expected Result: Todo is updated.
-     * Assertions: assertDoesNotThrow();
+     * Assertions: method call completes without exception.
      */
     @Test
     @DisplayName("updateTodo - Max Length Task - Success")
@@ -60,7 +60,7 @@ class UpdateTodoTest extends TodoServiceTestBase {
     /*
      * Purpose: Verify update with special characters in task.
      * Expected Result: Todo is updated.
-     * Assertions: assertDoesNotThrow();
+     * Assertions: method call completes without exception.
      */
     @Test
     @DisplayName("updateTodo - Special Chars In Task - Success")
@@ -84,7 +84,7 @@ class UpdateTodoTest extends TodoServiceTestBase {
     /*
      * Purpose: Verify logging is called after successful update.
      * Expected Result: userLogService.logData is called.
-     * Assertions: verify(userLogService).logData(...);
+     * Assertions: logging call is executed with expected route and message.
      */
     @Test
     @DisplayName("updateTodo - Logs Operation - Success")
@@ -106,7 +106,7 @@ class UpdateTodoTest extends TodoServiceTestBase {
         // Assert
         verify(userLogService).logData(
                 eq(TEST_USER_ID.longValue()),
-                contains(SuccessMessages.TodoSuccessMessages.UpdateTodo),
+                contains(SuccessMessages.TodoSuccessMessages.UPDATE_TODO),
                 eq(ApiRoutes.TodoSubRoute.UPDATE_ITEM));
     }
 
@@ -137,7 +137,7 @@ class UpdateTodoTest extends TodoServiceTestBase {
     /*
      * Purpose: Verify update with valid request.
      * Expected Result: Todo is updated.
-     * Assertions: assertDoesNotThrow();
+     * Assertions: method call completes without exception.
      */
     @Test
     @DisplayName("updateTodo - Valid Request - Success")

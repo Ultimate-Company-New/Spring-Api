@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 
 public class EmailTemplates {
+    private static final String IMPORT_OF_PREFIX = "Import of ";
     private final IEmailHelper emailHelper;
     private final Environment environment;
     private final Client client;
@@ -33,11 +34,11 @@ public class EmailTemplates {
 
         String status;
         if (errors == null || errors.isEmpty()) {
-            status = "Import of " + importType + " was successful, with no errors reported.";
+            status = IMPORT_OF_PREFIX + importType + " was successful, with no errors reported.";
         } else if (errors.size() < totalDataCountToBeImported) {
-            status = "Import of " + importType + " was partially successful.";
+            status = IMPORT_OF_PREFIX + importType + " was partially successful.";
         } else {
-            status = "Import of " + importType + " failed.";
+            status = IMPORT_OF_PREFIX + importType + " failed.";
         }
 
         StringBuilder tableRows = new StringBuilder();
@@ -109,9 +110,9 @@ public class EmailTemplates {
                 status,
                 errors != null && !errors.isEmpty() ? "Details of errors are listed below:" : "",
                 errors != null && !errors.isEmpty() ? errors.entrySet().stream()
-                        .map(entry -> String.format("Sr No: %d\nImport Field: %s\nError: %s\n",
+                        .map(entry -> String.format("Sr No: %d%nImport Field: %s%nError: %s%n",
                                 errors.entrySet().stream().toList().indexOf(entry) + 1, entry.getKey(), entry.getValue()))
-                        .collect(Collectors.joining("\n"))
+                        .collect(Collectors.joining(System.lineSeparator()))
                         : "No errors reported."
         );
 

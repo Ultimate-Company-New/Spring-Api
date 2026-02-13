@@ -200,7 +200,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
     // Log the operation
     userLogService.logData(
         getUserId(),
-        SuccessMessages.PromoSuccessMessages.ToggledPromo + id,
+        SuccessMessages.PromoSuccessMessages.TOGGLED_PROMO + id,
         ApiRoutes.PromosSubRoute.TOGGLE_PROMO);
   }
 
@@ -305,7 +305,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
           requestingUserId,
           requestingUserLoginName,
           requestingClientId,
-          SuccessMessages.PromoSuccessMessages.CreatePromo + " (Bulk: " + successCount + " succeeded, " + failureCount
+          SuccessMessages.PromoSuccessMessages.CREATE_PROMO + " (Bulk: " + successCount + " succeeded, " + failureCount
               + " failed)",
           ApiRoutes.PromosSubRoute.BULK_CREATE_PROMO);
 
@@ -315,8 +315,13 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
       // Create a message with the bulk insert results using the helper (using
       // captured context)
       BulkInsertHelper.createDetailedBulkInsertResultMessage(
-          response, PROMO_ENTITY_LABEL, "Promos", "Promo Code", "Promo ID",
-          messageService, requestingUserId, requestingUserLoginName, requestingClientId);
+          response,
+          new BulkInsertHelper.BulkMessageTemplate(PROMO_ENTITY_LABEL, "Promos", "Promo Code", "Promo ID"),
+          new BulkInsertHelper.NotificationContext(
+              messageService,
+              requestingUserId,
+              requestingUserLoginName,
+              requestingClientId));
 
     } catch (Exception e) {
       // Still send a message to user about the failure (using captured userId)
@@ -326,8 +331,13 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
       errorResponse.setFailureCount(promos != null ? promos.size() : 0);
       errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
       BulkInsertHelper.createDetailedBulkInsertResultMessage(
-          errorResponse, PROMO_ENTITY_LABEL, "Promos", "Promo Code", "Promo ID",
-          messageService, requestingUserId, requestingUserLoginName, requestingClientId);
+          errorResponse,
+          new BulkInsertHelper.BulkMessageTemplate(PROMO_ENTITY_LABEL, "Promos", "Promo Code", "Promo ID"),
+          new BulkInsertHelper.NotificationContext(
+              messageService,
+              requestingUserId,
+              requestingUserLoginName,
+              requestingClientId));
     }
   }
 
@@ -385,7 +395,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
     if (shouldLog) {
       userLogService.logData(
           currentUserId,
-          SuccessMessages.PromoSuccessMessages.CreatePromo + promoRequestModel.getPromoCode(),
+          SuccessMessages.PromoSuccessMessages.CREATE_PROMO + promoRequestModel.getPromoCode(),
           ApiRoutes.PromosSubRoute.CREATE_PROMO);
     }
   }

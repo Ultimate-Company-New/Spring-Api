@@ -38,7 +38,7 @@ import static org.mockito.Mockito.verify;
  * Test count: 6 tests
  */
 @DisplayName("PurchaseOrderService - UpdatePurchaseOrder Tests")
-public class UpdatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
+class UpdatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
 
     // Total Tests: 6
     /*

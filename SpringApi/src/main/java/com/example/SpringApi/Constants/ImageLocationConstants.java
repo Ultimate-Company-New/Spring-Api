@@ -11,6 +11,8 @@ package com.example.SpringApi.Constants;
  * @since 2024-01-15
  */
 public final class ImageLocationConstants {
+    private ImageLocationConstants() {
+    }
     
     /**
      * Constant for ImgBB image storage service.
@@ -23,4 +25,3 @@ public final class ImageLocationConstants {
     public static final String FIREBASE = "firebase";
 
 }
-

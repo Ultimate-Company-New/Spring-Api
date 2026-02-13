@@ -3,10 +3,6 @@ package com.example.SpringApi.Logging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -16,16 +12,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Component
-public class ContextualLogger implements ApplicationContextAware {
+public class ContextualLogger {
     private static final String REQUEST_BODY_KEY = "requestBody";
     private final Logger logger;
     private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-    private static ApplicationContext applicationContext;
-
-    @Override
-    public void setApplicationContext(ApplicationContext context) throws BeansException {
-        applicationContext = context;
-    }
 
     // Use a factory method to get the instance for the current class
     public static ContextualLogger getLogger(Class<?> clazz) {
@@ -131,16 +121,16 @@ public class ContextualLogger implements ApplicationContextAware {
      */
     private String getCurrentUser() {
         try {
+            String mdcUser = MDC.get("user");
+            if (mdcUser != null && !mdcUser.isEmpty()) {
+                return mdcUser;
+            }
             ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
                 String bearerToken = request.getHeader("Authorization");
                 if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-                    String token = bearerToken.substring(7);
-                    if (applicationContext != null) {
-                        JwtTokenProvider jwtTokenProvider = applicationContext.getBean(JwtTokenProvider.class);
-                        return jwtTokenProvider.getUserNameFromToken(token);
-                    }
+                    return "Authenticated User";
                 }
             }
         } catch (Exception e) {

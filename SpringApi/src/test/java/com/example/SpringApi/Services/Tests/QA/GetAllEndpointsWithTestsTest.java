@@ -1,6 +1,7 @@
 package com.example.SpringApi.Services.Tests.QA;
 
 import com.example.SpringApi.Controllers.QAController;
+import com.example.SpringApi.Models.ResponseModels.QAResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 /**
@@ -36,11 +39,12 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
         // Arrange
 
         // Act
-        List<?> services = qaService.getAllEndpointsWithTests();
+        List<QAResponseModel> services = qaService.getAllEndpointsWithTests();
 
         // Assert
         assertNotNull(services);
         assertFalse(services.isEmpty());
+        assertTrue(services.stream().anyMatch(service -> "QAService".equals(service.getServiceName())));
     }
 
     /**
@@ -53,12 +57,14 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
         // Arrange
 
         // Act
-        List<?> services = qaService.getAllEndpointsWithTests();
+        List<QAResponseModel> services = qaService.getAllEndpointsWithTests();
 
         // Assert
         assertNotNull(services);
-        for (Object service : services) {
+        for (QAResponseModel service : services) {
             assertNotNull(service);
+            assertNotNull(service.getServiceName());
+            assertFalse(service.getServiceName().isBlank());
         }
     }
 
@@ -72,11 +78,14 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
         // Arrange
 
         // Act
-        List<?> services = qaService.getAllEndpointsWithTests();
+        List<QAResponseModel> services = qaService.getAllEndpointsWithTests();
 
         // Assert
         assertNotNull(services);
-        assertTrue(services.size() >= 0);
+        Set<String> uniqueServiceNames = services.stream()
+                .map(QAResponseModel::getServiceName)
+                .collect(Collectors.toSet());
+        assertEquals(services.size(), uniqueServiceNames.size());
     }
 
     /**
@@ -89,11 +98,17 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
         // Arrange
 
         // Act
-        List<?> services = qaService.getAllEndpointsWithTests();
+        List<QAResponseModel> services = qaService.getAllEndpointsWithTests();
 
         // Assert
         assertNotNull(services);
         assertFalse(services.isEmpty());
+        assertTrue(services.stream()
+                .allMatch(service -> service.getControllerName() != null && service.getControllerName().endsWith("Controller")));
+        assertTrue(services.stream()
+                .map(QAResponseModel::getControllerName)
+                .distinct()
+                .count() >= 1);
     }
 
     /**
@@ -106,11 +121,13 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
         // Arrange
 
         // Act
-        List<?> services = qaService.getAllEndpointsWithTests();
+        List<QAResponseModel> services = qaService.getAllEndpointsWithTests();
 
         // Assert
         assertNotNull(services);
         assertFalse(services.isEmpty());
+        assertTrue(services.stream().allMatch(service -> service.getServiceName().endsWith("Service")));
+        assertFalse(services.stream().map(QAResponseModel::getServiceName).anyMatch(String::isBlank));
     }
 
     /**
@@ -123,11 +140,14 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
         // Arrange
 
         // Act
-        List<?> services = qaService.getAllEndpointsWithTests();
+        List<QAResponseModel> services = qaService.getAllEndpointsWithTests();
 
         // Assert
         assertNotNull(services);
         assertFalse(services.isEmpty());
+        assertTrue(services.stream()
+                .allMatch(service -> service.getControllerName() != null && !service.getControllerName().isBlank()));
+        assertEquals(services.size(), services.stream().filter(service -> service.getControllerName() != null).count());
     }
 
     /**
@@ -140,11 +160,14 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
         // Arrange
 
         // Act
-        List<?> services = qaService.getAllEndpointsWithTests();
+        List<QAResponseModel> services = qaService.getAllEndpointsWithTests();
 
         // Assert
         assertNotNull(services);
         assertFalse(services.isEmpty());
+        assertTrue(services.stream()
+                .allMatch(service -> service.getBasePath() != null && service.getBasePath().startsWith("/api/")));
+        assertTrue(services.stream().noneMatch(service -> "/api/".equals(service.getBasePath())));
     }
 
     /**
@@ -157,11 +180,12 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
         // Arrange
 
         // Act
-        List<?> services = qaService.getAllEndpointsWithTests();
+        List<QAResponseModel> services = qaService.getAllEndpointsWithTests();
 
         // Assert
         assertNotNull(services);
         assertFalse(services.isEmpty());
+        assertTrue(services.stream().allMatch(service -> service.getMethods() != null));
     }
 
     /**
@@ -174,10 +198,15 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
         // Arrange
 
         // Act
-        List<?> services = qaService.getAllEndpointsWithTests();
+        List<QAResponseModel> services = qaService.getAllEndpointsWithTests();
 
         // Assert
         assertNotNull(services);
+        assertTrue(services.stream()
+                .allMatch(service -> service.getMethodsWithCoverage() <= service.getTotalMethods()));
+        int totalMethods = services.stream().mapToInt(QAResponseModel::getTotalMethods).sum();
+        int coveredMethods = services.stream().mapToInt(QAResponseModel::getMethodsWithCoverage).sum();
+        assertTrue(totalMethods >= coveredMethods);
     }
 
     /**
@@ -190,10 +219,13 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
         // Arrange
 
         // Act
-        List<?> services = qaService.getAllEndpointsWithTests();
+        List<QAResponseModel> services = qaService.getAllEndpointsWithTests();
 
         // Assert
         assertNotNull(services);
+        assertTrue(services.stream()
+                .allMatch(service -> service.getCoveragePercentage() >= 0.0 && service.getCoveragePercentage() <= 100.0));
+        assertTrue(services.stream().noneMatch(service -> Double.isNaN(service.getCoveragePercentage())));
     }
 
     /**
@@ -206,10 +238,13 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
         // Arrange
 
         // Act
-        List<?> services = qaService.getAllEndpointsWithTests();
+        List<QAResponseModel> services = qaService.getAllEndpointsWithTests();
 
         // Assert
         assertNotNull(services);
+        assertTrue(services.stream().allMatch(service -> service.getTotalTests() >= 0));
+        int totalTests = services.stream().mapToInt(QAResponseModel::getTotalTests).sum();
+        assertTrue(totalTests >= 0);
     }
 
     /**
@@ -222,11 +257,11 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
         // Arrange
 
         // Act
-        List<?> services = qaService.getAllEndpointsWithTests();
+        List<QAResponseModel> services = qaService.getAllEndpointsWithTests();
 
         // Assert
         assertNotNull(services);
-        assertTrue(services.size() >= 0);
+        assertTrue(services.stream().mapToInt(QAResponseModel::getTotalMethods).sum() >= 0);
     }
 
     /*

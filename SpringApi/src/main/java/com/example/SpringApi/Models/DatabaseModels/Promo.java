@@ -129,11 +129,11 @@ public class Promo {
         if (request.getPromoCode() == null || request.getPromoCode().trim().isEmpty()) {
             throw new BadRequestException(ErrorMessages.PromoErrorMessages.INVALID_PROMO_CODE);
         }
-        String promoCode = request.getPromoCode().trim();
-        if (promoCode.length() < 3 || promoCode.length() > 50) {
+        String requestedPromoCode = request.getPromoCode().trim();
+        if (requestedPromoCode.length() < 3 || requestedPromoCode.length() > 50) {
             throw new BadRequestException(ErrorMessages.PromoErrorMessages.PROMO_CODE_LENGTH);
         }
-        if (!promoCode.matches("^[a-zA-Z0-9]+$")) {
+        if (!requestedPromoCode.matches("^[a-zA-Z0-9]+$")) {
             throw new BadRequestException(ErrorMessages.PromoErrorMessages.PROMO_CODE_ALPHA_NUMERIC);
         }
 

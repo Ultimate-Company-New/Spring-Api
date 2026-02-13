@@ -29,5 +29,6 @@ public class ProductReviewRequestModel {
      * Default constructor.
      */
     public ProductReviewRequestModel() {
+        // Required for JSON deserialization.
     }
 }

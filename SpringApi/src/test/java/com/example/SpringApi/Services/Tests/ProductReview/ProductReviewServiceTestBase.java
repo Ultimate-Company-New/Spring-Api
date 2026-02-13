@@ -32,7 +32,7 @@ import static org.mockito.Mockito.lenient;
  * test files.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class ProductReviewServiceTestBase {
+abstract class ProductReviewServiceTestBase {
 
     @Mock
     protected ProductReviewRepository productReviewRepository;

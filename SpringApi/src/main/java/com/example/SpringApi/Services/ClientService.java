@@ -87,7 +87,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
             clientRepository.save(client.get());
             userLogService.logData(
                     getUserId(),
-                    SuccessMessages.ClientSuccessMessages.ToggleClient + " " + client.get().getClientId(),
+                    SuccessMessages.ClientSuccessMessages.TOGGLE_CLIENT + " " + client.get().getClientId(),
                     ApiRoutes.ClientSubRoute.TOGGLE_CLIENT);
         } else {
             throw new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID);
@@ -146,7 +146,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
 
         userLogService.logData(
                 getUserId(),
-                SuccessMessages.ClientSuccessMessages.CreateClient + " " + savedClient.getClientId(),
+                SuccessMessages.ClientSuccessMessages.CREATE_CLIENT + " " + savedClient.getClientId(),
                 ApiRoutes.ClientSubRoute.CREATE_CLIENT);
     }
 
@@ -183,7 +183,7 @@ public class ClientService extends BaseService implements IClientSubTranslator {
 
         userLogService.logData(
                 getUserId(),
-                SuccessMessages.ClientSuccessMessages.UpdateClient + " " + updatedClient.getClientId(),
+                SuccessMessages.ClientSuccessMessages.UPDATE_CLIENT + " " + updatedClient.getClientId(),
                 ApiRoutes.ClientSubRoute.UPDATE_CLIENT);
     }
 

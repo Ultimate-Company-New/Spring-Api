@@ -49,7 +49,9 @@ public class ProductStockByLocationResponseModel {
     private List<CourierOptionModel> availableCouriers = new ArrayList<>();
     private CourierOptionModel selectedCourier; // Default: cheapest option
     
-    public ProductStockByLocationResponseModel() {}
+    public ProductStockByLocationResponseModel() {
+        // Required for JSON serialization/deserialization.
+    }
     
     public ProductStockByLocationResponseModel(ProductPickupLocationMapping mapping) {
         this.pickupLocationId = mapping.getPickupLocationId();
@@ -103,21 +105,10 @@ public class ProductStockByLocationResponseModel {
         private Integer packageHeight;
         private BigDecimal maxWeight;
         
-        public PackageInfoModel() {}
-        
-        public PackageInfoModel(Long packageId, String packageName, String packageType, 
-                                BigDecimal pricePerUnit, Integer availableQuantity,
-                                Integer packageLength, Integer packageBreadth, Integer packageHeight, BigDecimal maxWeight) {
-            this.packageId = packageId;
-            this.packageName = packageName;
-            this.packageType = packageType;
-            this.pricePerUnit = pricePerUnit;
-            this.availableQuantity = availableQuantity;
-            this.packageLength = packageLength;
-            this.packageBreadth = packageBreadth;
-            this.packageHeight = packageHeight;
-            this.maxWeight = maxWeight;
+        public PackageInfoModel() {
+            // Required for JSON serialization/deserialization.
         }
+        
     }
     
     /**
@@ -133,7 +124,9 @@ public class ProductStockByLocationResponseModel {
         private BigDecimal pricePerUnit;
         private BigDecimal totalCost;
         
-        public PackageUsageModel() {}
+        public PackageUsageModel() {
+            // Required for JSON serialization/deserialization.
+        }
         
         public PackageUsageModel(Long packageId, String packageName, String packageType,
                                  Integer quantityUsed, BigDecimal pricePerUnit, BigDecimal totalCost) {
@@ -237,6 +230,8 @@ public class ProductStockByLocationResponseModel {
         private String deliveryBoyContact;
         private String others;
         
-        public CourierOptionModel() {}
+        public CourierOptionModel() {
+            // Required for JSON serialization/deserialization.
+        }
     }
 }

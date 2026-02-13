@@ -86,7 +86,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
             userGroup.get().setIsDeleted(!userGroup.get().getIsDeleted());
             userGroupRepository.save(userGroup.get());
             userLogService.logData(getUserId(), 
-                SuccessMessages.UserGroupSuccessMessages.ToggleGroup + " " + userGroup.get().getGroupId(),
+                SuccessMessages.UserGroupSuccessMessages.TOGGLE_GROUP + " " + userGroup.get().getGroupId(),
                 ApiRoutes.UserGroupSubRoute.TOGGLE_USER_GROUP);
         } else {
             throw new NotFoundException(ErrorMessages.UserGroupErrorMessages.INVALID_ID);
@@ -170,7 +170,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
             updateUserGroupMappings(userGroupRequest, updatedGroup);
             
             userLogService.logData(getUserId(), 
-                SuccessMessages.UserGroupSuccessMessages.UpdateGroup + " " + updatedGroup.getGroupId(),
+                SuccessMessages.UserGroupSuccessMessages.UPDATE_GROUP + " " + updatedGroup.getGroupId(),
                 ApiRoutes.UserGroupSubRoute.UPDATE_USER_GROUP);
         } else {
             throw new NotFoundException(ErrorMessages.UserGroupErrorMessages.INVALID_ID);
@@ -342,7 +342,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
                 requestingUserId,
                 requestingUserLoginName,
                 requestingClientId,
-                SuccessMessages.UserGroupSuccessMessages.InsertGroup + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+                SuccessMessages.UserGroupSuccessMessages.INSERT_GROUP + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
                 ApiRoutes.UserGroupSubRoute.BULK_CREATE_USER_GROUP
             );
             
@@ -418,7 +418,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
         // Log bulk user group creation
         userLogService.logData(
             getUserId(),
-            SuccessMessages.UserGroupSuccessMessages.InsertGroup + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+            SuccessMessages.UserGroupSuccessMessages.INSERT_GROUP + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
             ApiRoutes.UserGroupSubRoute.BULK_CREATE_USER_GROUP
         );
         
@@ -462,7 +462,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
         // Log user group creation (skip for bulk operations as they log collectively)
         if (shouldLog) {
             userLogService.logData(getUserId(), 
-                SuccessMessages.UserGroupSuccessMessages.InsertGroup + " " + savedGroup.getGroupId(),
+                SuccessMessages.UserGroupSuccessMessages.INSERT_GROUP + " " + savedGroup.getGroupId(),
                 ApiRoutes.UserGroupSubRoute.CREATE_USER_GROUP);
         }
     }

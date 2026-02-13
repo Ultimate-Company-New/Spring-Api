@@ -55,6 +55,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
         assertNotNull(dashboard.getCoverageSummary());
         assertNotNull(dashboard.getCoverageSummary().getServiceBreakdown());
         assertNotNull(dashboard.getServices());
+        assertNotNull(dashboard.getAvailableServices());
     }
 
     /**
@@ -77,6 +78,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
         // Assert
         assertNotNull(dashboard);
         assertNotNull(dashboard.getCoverageSummary());
+        assertEquals(dashboard.getServices().size(), dashboard.getCoverageSummary().getTotalServices());
     }
 
     /**
@@ -95,6 +97,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
         // Assert
         assertNotNull(dashboard);
         assertNotNull(dashboard.getCoverageSummary());
+        assertNotNull(dashboard.getAvailableServices());
     }
 
     /**
@@ -115,6 +118,8 @@ class GetDashboardDataTest extends QAServiceTestBase {
         // Assert
         assertNotNull(dashboard);
         assertNotNull(dashboard.getCoverageSummary());
+        assertTrue(dashboard.getCoverageSummary().getOverallCoveragePercentage() >= 0.0);
+        assertTrue(dashboard.getCoverageSummary().getOverallCoveragePercentage() <= 100.0);
     }
 
     /**
@@ -136,6 +141,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
         // Assert
         assertNotNull(dashboard);
         assertNotNull(dashboard.getCoverageSummary());
+        assertFalse(dashboard.getCoverageSummary().getServiceBreakdown().isEmpty());
     }
 
     // ==================== VALIDATION TESTS ====================
@@ -158,7 +164,9 @@ class GetDashboardDataTest extends QAServiceTestBase {
         // Assert
         assertNotNull(dashboard);
         assertNotNull(dashboard.getCoverageSummary());
-        // Coverage percentage should be between 0 and 100
+        assertTrue(dashboard.getCoverageSummary().getOverallCoveragePercentage() >= 0.0);
+        assertTrue(dashboard.getCoverageSummary().getOverallCoveragePercentage() <= 100.0);
+        assertFalse(Double.isNaN(dashboard.getCoverageSummary().getOverallCoveragePercentage()));
     }
 
     /**
@@ -177,6 +185,9 @@ class GetDashboardDataTest extends QAServiceTestBase {
         // Assert
         assertNotNull(dashboard);
         assertNotNull(dashboard.getCoverageSummary());
+        assertTrue(dashboard.getCoverageSummary().getTotalMethods() >= 0);
+        assertTrue(dashboard.getCoverageSummary().getTotalMethodsWithCoverage()
+                <= dashboard.getCoverageSummary().getTotalMethods());
     }
 
     /**
@@ -195,6 +206,8 @@ class GetDashboardDataTest extends QAServiceTestBase {
         // Assert
         assertNotNull(dashboard);
         assertNotNull(dashboard.getCoverageSummary());
+        assertTrue(dashboard.getCoverageSummary().getTotalTests() >= 0);
+        assertNotNull(dashboard.getCoverageSummary().getServiceBreakdown());
     }
 
     /**
@@ -216,7 +229,8 @@ class GetDashboardDataTest extends QAServiceTestBase {
         // Assert
         assertNotNull(dashboard);
         assertNotNull(dashboard.getCoverageSummary().getServiceBreakdown());
-        // Service breakdown should match total counts
+        assertEquals(dashboard.getCoverageSummary().getTotalServices(),
+                dashboard.getCoverageSummary().getServiceBreakdown().size());
     }
 
     /**
@@ -236,7 +250,10 @@ class GetDashboardDataTest extends QAServiceTestBase {
 
         // Assert
         assertNotNull(dashboard);
-        // Available services should contain all mapped services
+        assertTrue(dashboard.getAvailableServices().contains("QAService"));
+        assertEquals(
+                dashboard.getAvailableServices().stream().distinct().count(),
+                dashboard.getAvailableServices().size());
     }
 
     // ==================== EDGE CASES ====================
@@ -257,6 +274,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
         // Assert
         assertNotNull(dashboard);
         assertNotNull(dashboard.getCoverageSummary());
+        assertTrue(dashboard.getCoverageSummary().getTotalTests() >= 0);
     }
 
     /**
@@ -277,6 +295,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
         // Assert
         assertNotNull(dashboard);
         assertNotNull(dashboard.getCoverageSummary().getServiceBreakdown());
+        assertTrue(dashboard.getCoverageSummary().getServiceBreakdown().size() <= dashboard.getAvailableServices().size());
     }
 
     /**
@@ -299,6 +318,8 @@ class GetDashboardDataTest extends QAServiceTestBase {
         // Assert
         assertNotNull(dashboard);
         assertNotNull(dashboard.getCoverageSummary().getServiceBreakdown());
+        assertFalse(dashboard.getAvailableServices().isEmpty());
+        assertTrue(dashboard.getCoverageSummary().getTotalServices() >= 1);
     }
 
     /**
@@ -318,7 +339,8 @@ class GetDashboardDataTest extends QAServiceTestBase {
 
         // Assert
         assertNotNull(dashboard);
-        // Services with no methods should be excluded from counts
+        assertTrue(dashboard.getCoverageSummary().getTotalMethodsWithCoverage() <= dashboard.getCoverageSummary().getTotalMethods());
+        assertTrue(dashboard.getCoverageSummary().getOverallCoveragePercentage() <= 100.0);
     }
 
     /**
@@ -341,7 +363,8 @@ class GetDashboardDataTest extends QAServiceTestBase {
         // Assert
         assertNotNull(dashboard);
         assertNotNull(dashboard.getCoverageSummary());
-        // Coverage percentage should be rounded to 2 decimal places
+        double overallCoverage = dashboard.getCoverageSummary().getOverallCoveragePercentage();
+        assertEquals(Math.round(overallCoverage * 100.0) / 100.0, overallCoverage);
     }
 
     /*

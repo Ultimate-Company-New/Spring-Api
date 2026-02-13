@@ -27,6 +27,13 @@ import java.util.stream.Collectors;
  */
 @Component
 public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
+    private static final String CLIENT_ID = "clientId";
+    private static final String CLIENT_ID_PARAM = ":" + CLIENT_ID;
+    private static final String SELECTED_IDS = "selectedIds";
+    private static final String SELECTED_IDS_CLAUSE = "AND po.purchaseOrderId IN :" + SELECTED_IDS + " ";
+    private static final String SELECTED_PRODUCT_IDS = "selectedProductIds";
+    private static final String NOT_DELETED_CLAUSE = "AND po.isDeleted = false ";
+    private static final String FILTER_GROUP_PREFIX = "AND (";
 
     private final EntityManager entityManager;
 
@@ -41,7 +48,7 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
     protected String mapColumnToField(String column) {
         switch (column) {
             case "purchaseOrderId": return "po.purchaseOrderId";
-            case "clientId": return "po.clientId";
+            case CLIENT_ID: return "po.clientId";
             case "vendorNumber": return "po.vendorNumber";
             case "purchaseOrderStatus": return "po.purchaseOrderStatus";
             case "priority": return "po.priority";
@@ -79,7 +86,7 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     @Override
     protected List<String> getNumberColumns() {
-        return Arrays.asList("purchaseOrderId", "clientId", "approvedByUserId", "rejectedByUserId");
+        return Arrays.asList("purchaseOrderId", CLIENT_ID, "approvedByUserId", "rejectedByUserId");
     }
 
     /**
@@ -137,11 +144,11 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Add address join only if needed (through OrderSummary)
         // Note: JPQL doesn't support direct joins to unrelated entities, so we'll handle address filtering in WHERE clause
-        baseQuery += "WHERE po.clientId = :clientId ";
+        baseQuery += "WHERE po.clientId = " + CLIENT_ID_PARAM + " ";
 
         // Add selectedIds condition
         if (selectedIds != null && !selectedIds.isEmpty()) {
-            baseQuery += "AND po.purchaseOrderId IN :selectedIds ";
+            baseQuery += SELECTED_IDS_CLAUSE;
         }
 
         // Add selectedProductIds condition - filter through ShipmentProducts via OrderSummary
@@ -151,16 +158,16 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
                         "AND os2.entityId = po.purchaseOrderId " +
                         "AND s.orderSummaryId = os2.orderSummaryId " +
                         "AND sp.shipmentId = s.shipmentId " +
-                        "AND sp.productId IN :selectedProductIds) ";
+                        "AND sp.productId IN :" + SELECTED_PRODUCT_IDS + ") ";
         }
 
         // Add includeDeleted condition
         if (!includeDeleted) {
-            baseQuery += "AND po.isDeleted = false ";
+            baseQuery += NOT_DELETED_CLAUSE;
         }
         
         if (filterResult.hasConditions()) {
-            baseQuery += "AND (" + filterResult.getWhereClause() + ") ";
+            baseQuery += FILTER_GROUP_PREFIX + filterResult.getWhereClause() + ") ";
         }
 
         // Add ordering
@@ -169,10 +176,10 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
         // Count query (without FETCH joins)
         // Note: Address filtering will be handled via subquery in WHERE clause
         String countQuery = "SELECT COUNT(DISTINCT po) FROM PurchaseOrder po " +
-                "WHERE po.clientId = :clientId ";
+                "WHERE po.clientId = " + CLIENT_ID_PARAM + " ";
 
         if (selectedIds != null && !selectedIds.isEmpty()) {
-            countQuery += "AND po.purchaseOrderId IN :selectedIds ";
+            countQuery += SELECTED_IDS_CLAUSE;
         }
 
         if (selectedProductIds != null && !selectedProductIds.isEmpty()) {
@@ -181,27 +188,27 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
                          "AND os2.entityId = po.purchaseOrderId " +
                          "AND s.orderSummaryId = os2.orderSummaryId " +
                          "AND sp.shipmentId = s.shipmentId " +
-                         "AND sp.productId IN :selectedProductIds) ";
+                         "AND sp.productId IN :" + SELECTED_PRODUCT_IDS + ") ";
         }
 
         if (!includeDeleted) {
-            countQuery += "AND po.isDeleted = false ";
+            countQuery += NOT_DELETED_CLAUSE;
         }
 
         if (filterResult.hasConditions()) {
-            countQuery += "AND (" + filterResult.getWhereClause() + ") ";
+            countQuery += FILTER_GROUP_PREFIX + filterResult.getWhereClause() + ") ";
         }
 
         // Execute count query
         TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
-        countTypedQuery.setParameter("clientId", clientId);
+        countTypedQuery.setParameter(CLIENT_ID, clientId);
         
         if (selectedIds != null && !selectedIds.isEmpty()) {
-            countTypedQuery.setParameter("selectedIds", selectedIds);
+            countTypedQuery.setParameter(SELECTED_IDS, selectedIds);
         }
 
         if (selectedProductIds != null && !selectedProductIds.isEmpty()) {
-            countTypedQuery.setParameter("selectedProductIds", selectedProductIds);
+            countTypedQuery.setParameter(SELECTED_PRODUCT_IDS, selectedProductIds);
         }
 
         // Set filter parameters
@@ -213,14 +220,14 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute main query with pagination
         TypedQuery<PurchaseOrder> mainQuery = entityManager.createQuery(baseQuery, PurchaseOrder.class);
-        mainQuery.setParameter("clientId", clientId);
+        mainQuery.setParameter(CLIENT_ID, clientId);
         
         if (selectedIds != null && !selectedIds.isEmpty()) {
-            mainQuery.setParameter("selectedIds", selectedIds);
+            mainQuery.setParameter(SELECTED_IDS, selectedIds);
         }
 
         if (selectedProductIds != null && !selectedProductIds.isEmpty()) {
-            mainQuery.setParameter("selectedProductIds", selectedProductIds);
+            mainQuery.setParameter(SELECTED_PRODUCT_IDS, selectedProductIds);
         }
 
         // Set filter parameters
@@ -277,49 +284,49 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
                 "LEFT JOIN FETCH pl.address " +
                 "LEFT JOIN FETCH s.shipmentProducts sp " +
                 "LEFT JOIN FETCH sp.product " +
-                "WHERE po.clientId = :clientId ";
+                "WHERE po.clientId = " + CLIENT_ID_PARAM + " ";
 
         if (selectedIds != null && !selectedIds.isEmpty()) {
-            baseQuery += "AND po.purchaseOrderId IN :selectedIds ";
+            baseQuery += SELECTED_IDS_CLAUSE;
         }
         if (selectedProductIds != null && !selectedProductIds.isEmpty()) {
             baseQuery += "AND EXISTS (SELECT 1 FROM OrderSummary os2, Shipment s2, ShipmentProduct sp2 " +
                     "WHERE os2.entityType = 'PURCHASE_ORDER' AND os2.entityId = po.purchaseOrderId " +
                     "AND s2.orderSummaryId = os2.orderSummaryId AND sp2.shipmentId = s2.shipmentId " +
-                    "AND sp2.productId IN :selectedProductIds) ";
+                    "AND sp2.productId IN :" + SELECTED_PRODUCT_IDS + ") ";
         }
         if (!includeDeleted) {
-            baseQuery += "AND po.isDeleted = false ";
+            baseQuery += NOT_DELETED_CLAUSE;
         }
         if (filterResult.hasConditions()) {
-            baseQuery += "AND (" + filterResult.getWhereClause() + ") ";
+            baseQuery += FILTER_GROUP_PREFIX + filterResult.getWhereClause() + ") ";
         }
         baseQuery += "ORDER BY po.purchaseOrderId DESC, s.shipmentId";
 
-        String countQuery = "SELECT COUNT(DISTINCT po) FROM PurchaseOrder po WHERE po.clientId = :clientId ";
+        String countQuery = "SELECT COUNT(DISTINCT po) FROM PurchaseOrder po WHERE po.clientId = " + CLIENT_ID_PARAM + " ";
         if (selectedIds != null && !selectedIds.isEmpty()) {
-            countQuery += "AND po.purchaseOrderId IN :selectedIds ";
+            countQuery += SELECTED_IDS_CLAUSE;
         }
         if (selectedProductIds != null && !selectedProductIds.isEmpty()) {
             countQuery += "AND EXISTS (SELECT 1 FROM OrderSummary os2, Shipment s2, ShipmentProduct sp2 " +
                     "WHERE os2.entityType = 'PURCHASE_ORDER' AND os2.entityId = po.purchaseOrderId " +
                     "AND s2.orderSummaryId = os2.orderSummaryId AND sp2.shipmentId = s2.shipmentId " +
-                    "AND sp2.productId IN :selectedProductIds) ";
+                    "AND sp2.productId IN :" + SELECTED_PRODUCT_IDS + ") ";
         }
         if (!includeDeleted) {
-            countQuery += "AND po.isDeleted = false ";
+            countQuery += NOT_DELETED_CLAUSE;
         }
         if (filterResult.hasConditions()) {
-            countQuery += "AND (" + filterResult.getWhereClause() + ") ";
+            countQuery += FILTER_GROUP_PREFIX + filterResult.getWhereClause() + ") ";
         }
 
         TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
-        countTypedQuery.setParameter("clientId", clientId);
+        countTypedQuery.setParameter(CLIENT_ID, clientId);
         if (selectedIds != null && !selectedIds.isEmpty()) {
-            countTypedQuery.setParameter("selectedIds", selectedIds);
+            countTypedQuery.setParameter(SELECTED_IDS, selectedIds);
         }
         if (selectedProductIds != null && !selectedProductIds.isEmpty()) {
-            countTypedQuery.setParameter("selectedProductIds", selectedProductIds);
+            countTypedQuery.setParameter(SELECTED_PRODUCT_IDS, selectedProductIds);
         }
         for (Map.Entry<String, Object> entry : filterResult.getParameters().entrySet()) {
             countTypedQuery.setParameter(entry.getKey(), entry.getValue());
@@ -327,12 +334,12 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
         Long totalCount = countTypedQuery.getSingleResult();
 
         TypedQuery<PurchaseOrder> mainQuery = entityManager.createQuery(baseQuery, PurchaseOrder.class);
-        mainQuery.setParameter("clientId", clientId);
+        mainQuery.setParameter(CLIENT_ID, clientId);
         if (selectedIds != null && !selectedIds.isEmpty()) {
-            mainQuery.setParameter("selectedIds", selectedIds);
+            mainQuery.setParameter(SELECTED_IDS, selectedIds);
         }
         if (selectedProductIds != null && !selectedProductIds.isEmpty()) {
-            mainQuery.setParameter("selectedProductIds", selectedProductIds);
+            mainQuery.setParameter(SELECTED_PRODUCT_IDS, selectedProductIds);
         }
         for (Map.Entry<String, Object> entry : filterResult.getParameters().entrySet()) {
             mainQuery.setParameter(entry.getKey(), entry.getValue());
@@ -406,4 +413,3 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
         return new PageImpl<>(result, pageable, totalCount);
     }
 }
-

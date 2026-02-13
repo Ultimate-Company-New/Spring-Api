@@ -183,7 +183,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
 
         // Log the operation
         userLogService.logData(getUserId(),
-                SuccessMessages.ProductsSuccessMessages.UpdateProduct + " " + updatedProduct.getProductId(),
+                SuccessMessages.ProductsSuccessMessages.UPDATE_PRODUCT + " " + updatedProduct.getProductId(),
                 ApiRoutes.ProductsSubRoute.EDIT_PRODUCT);
     }
 
@@ -215,7 +215,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
 
         // Log the operation
         userLogService.logData(getUserId(),
-                SuccessMessages.ProductsSuccessMessages.ToggleProduct + " " + product.getProductId(),
+                SuccessMessages.ProductsSuccessMessages.TOGGLE_PRODUCT + " " + product.getProductId(),
                 ApiRoutes.ProductsSubRoute.TOGGLE_DELETE_PRODUCT);
     }
 
@@ -253,7 +253,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
 
         // Log the operation
         userLogService.logData(getUserId(),
-                SuccessMessages.ProductsSuccessMessages.ToggleReturnProduct + " " + product.getProductId(),
+                SuccessMessages.ProductsSuccessMessages.TOGGLE_RETURN_PRODUCT + " " + product.getProductId(),
                 ApiRoutes.ProductsSubRoute.TOGGLE_RETURN_PRODUCT);
     }
 
@@ -447,7 +447,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
                     requestingUserId,
                     requestingUserLoginName,
                     requestingClientId,
-                    SuccessMessages.ProductsSuccessMessages.InsertProduct + " (Bulk: " + successCount + " succeeded, "
+                    SuccessMessages.ProductsSuccessMessages.INSERT_PRODUCT + " (Bulk: " + successCount + " succeeded, "
                             + failureCount + " failed)",
                     ApiRoutes.ProductsSubRoute.BULK_ADD_PRODUCT);
 
@@ -457,8 +457,13 @@ public class ProductService extends BaseService implements IProductSubTranslator
             // Create a message with the bulk insert results using the helper (using
             // captured context)
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
-                    response, PRODUCT_ENTITY_LABEL, "Products", "Title", "Product ID",
-                    messageService, requestingUserId, requestingUserLoginName, requestingClientId);
+                    response,
+                    new BulkInsertHelper.BulkMessageTemplate(PRODUCT_ENTITY_LABEL, "Products", "Title", "Product ID"),
+                    new BulkInsertHelper.NotificationContext(
+                            messageService,
+                            requestingUserId,
+                            requestingUserLoginName,
+                            requestingClientId));
 
         } catch (Exception e) {
             // Still send a message to user about the failure (using captured userId)
@@ -468,8 +473,13 @@ public class ProductService extends BaseService implements IProductSubTranslator
             errorResponse.setFailureCount(products != null ? products.size() : 0);
             errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
-                    errorResponse, PRODUCT_ENTITY_LABEL, "Products", "Title", "Product ID",
-                    messageService, requestingUserId, requestingUserLoginName, requestingClientId);
+                    errorResponse,
+                    new BulkInsertHelper.BulkMessageTemplate(PRODUCT_ENTITY_LABEL, "Products", "Title", "Product ID"),
+                    new BulkInsertHelper.NotificationContext(
+                            messageService,
+                            requestingUserId,
+                            requestingUserLoginName,
+                            requestingClientId));
         }
     }
 
@@ -521,7 +531,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
         // Log bulk product creation
         userLogService.logData(
                 getUserId(),
-                SuccessMessages.ProductsSuccessMessages.InsertProduct + " (Bulk: " + successCount + " succeeded, "
+                SuccessMessages.ProductsSuccessMessages.INSERT_PRODUCT + " (Bulk: " + successCount + " succeeded, "
                         + failureCount + " failed)",
                 ApiRoutes.ProductsSubRoute.BULK_ADD_PRODUCT);
 
@@ -1088,7 +1098,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
             // Use provided userId or fall back to security context
             Long logUserId = userId != null ? userId : getUserId();
             userLogService.logDataWithContext(logUserId, createdUser, clientId,
-                    SuccessMessages.ProductsSuccessMessages.InsertProduct + " " + savedProduct.getProductId(),
+                    SuccessMessages.ProductsSuccessMessages.INSERT_PRODUCT + " " + savedProduct.getProductId(),
                     ApiRoutes.ProductsSubRoute.ADD_PRODUCT);
         }
         return savedProduct;
@@ -1303,16 +1313,26 @@ public class ProductService extends BaseService implements IProductSubTranslator
                 continue;
 
             // Add to response
-            response.getAvailablePackages().add(
-                    new com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel.PackageInfoModel(
-                            pkg.getPackageId(), pkg.getPackageName(), pkg.getPackageType(),
-                            pkg.getPricePerUnit(), pm.getAvailableQuantity(),
-                            pkg.getLength(), pkg.getBreadth(), pkg.getHeight(), pkg.getMaxWeight()));
+            com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel.PackageInfoModel packageInfo =
+                    new com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel.PackageInfoModel();
+            packageInfo.setPackageId(pkg.getPackageId());
+            packageInfo.setPackageName(pkg.getPackageName());
+            packageInfo.setPackageType(pkg.getPackageType());
+            packageInfo.setPricePerUnit(pkg.getPricePerUnit());
+            packageInfo.setAvailableQuantity(pm.getAvailableQuantity());
+            packageInfo.setPackageLength(pkg.getLength());
+            packageInfo.setPackageBreadth(pkg.getBreadth());
+            packageInfo.setPackageHeight(pkg.getHeight());
+            packageInfo.setMaxWeight(pkg.getMaxWeight());
+            response.getAvailablePackages().add(packageInfo);
 
             // Add to packaging calculation list
             packageDimensions.add(new com.example.SpringApi.Helpers.PackagingHelper.PackageDimension(
                     pkg.getPackageId(), pkg.getPackageName(), pkg.getPackageType(),
-                    pkg.getLength(), pkg.getBreadth(), pkg.getHeight(),
+                    new com.example.SpringApi.Helpers.PackagingHelper.PackageDimension.PackageSize(
+                            pkg.getLength(),
+                            pkg.getBreadth(),
+                            pkg.getHeight()),
                     pkg.getMaxWeight(), pkg.getPricePerUnit(), pm.getAvailableQuantity()));
         }
 

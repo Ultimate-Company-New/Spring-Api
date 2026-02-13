@@ -23,6 +23,10 @@ import java.util.Map;
  */
 @Component
 public class UserLogFilterQueryBuilder extends BaseFilterQueryBuilder {
+    private static final String USER_ID = "userId";
+    private static final String USER_ID_PARAM = ":" + USER_ID;
+    private static final String CLIENT_ID = "clientId";
+    private static final String CLIENT_ID_PARAM = ":" + CLIENT_ID;
 
     private final EntityManager entityManager;
 
@@ -37,8 +41,8 @@ public class UserLogFilterQueryBuilder extends BaseFilterQueryBuilder {
     protected String mapColumnToField(String column) {
         switch (column) {
             case "logId": return "ul.logId";
-            case "userId": return "ul.userId";
-            case "clientId": return "ul.clientId";
+            case USER_ID: return "ul.userId";
+            case CLIENT_ID: return "ul.clientId";
             case "action": return "ul.action";
             case "description": return "ul.description";
             case "ipAddress": return "ul.ipAddress";
@@ -70,7 +74,7 @@ public class UserLogFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     @Override
     protected List<String> getNumberColumns() {
-        return Arrays.asList("logId", "userId", "clientId", "auditUserId");
+        return Arrays.asList("logId", USER_ID, CLIENT_ID, "auditUserId");
     }
 
     /**
@@ -113,8 +117,8 @@ public class UserLogFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Base query - filter by userId and optionally by clientId (allows NULL clientId as well)
         String baseQuery = "SELECT ul FROM UserLog ul " +
-                "WHERE ul.userId = :userId " +
-                "AND (ul.clientId = :clientId OR ul.clientId IS NULL) ";
+                "WHERE ul.userId = " + USER_ID_PARAM + " " +
+                "AND (ul.clientId = " + CLIENT_ID_PARAM + " OR ul.clientId IS NULL) ";
 
         // Build dynamic filter conditions using the query builder
         QueryResult filterResult = buildFilterConditions(filters, logicOperator);
@@ -128,8 +132,8 @@ public class UserLogFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Count query
         String countQuery = "SELECT COUNT(ul) FROM UserLog ul " +
-                "WHERE ul.userId = :userId " +
-                "AND (ul.clientId = :clientId OR ul.clientId IS NULL) ";
+                "WHERE ul.userId = " + USER_ID_PARAM + " " +
+                "AND (ul.clientId = " + CLIENT_ID_PARAM + " OR ul.clientId IS NULL) ";
 
         if (filterResult.hasConditions()) {
             countQuery += "AND (" + filterResult.getWhereClause() + ") ";
@@ -137,8 +141,8 @@ public class UserLogFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute count query
         TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
-        countTypedQuery.setParameter("userId", userId);
-        countTypedQuery.setParameter("clientId", clientId);
+        countTypedQuery.setParameter(USER_ID, userId);
+        countTypedQuery.setParameter(CLIENT_ID, clientId);
 
         // Set filter parameters
         for (Map.Entry<String, Object> entry : filterResult.getParameters().entrySet()) {
@@ -149,8 +153,8 @@ public class UserLogFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute main query with pagination
         TypedQuery<UserLog> mainQuery = entityManager.createQuery(baseQuery, UserLog.class);
-        mainQuery.setParameter("userId", userId);
-        mainQuery.setParameter("clientId", clientId);
+        mainQuery.setParameter(USER_ID, userId);
+        mainQuery.setParameter(CLIENT_ID, clientId);
 
         // Set filter parameters
         for (Map.Entry<String, Object> entry : filterResult.getParameters().entrySet()) {
@@ -166,4 +170,3 @@ public class UserLogFilterQueryBuilder extends BaseFilterQueryBuilder {
         return new PageImpl<>(userLogs, pageable, totalCount);
     }
 }
-

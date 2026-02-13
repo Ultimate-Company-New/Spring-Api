@@ -843,17 +843,18 @@ public class QAService extends BaseService implements IQASubTranslator {
 
         for (TestRunRequestModel.TestResultData resultData : request.getResults()) {
             // Create and add the result
-            TestRunResult result = new TestRunResult(
-                    request.getServiceName(),
-                    resultData.getMethodName() != null ? resultData.getMethodName() : "",
-                    testClassName,
-                    resultData.getTestMethodName(),
-                    resultData.getDisplayName(),
-                    resultData.getStatus(),
-                    resultData.getDurationMs() != null ? resultData.getDurationMs() : 0,
-                    resultData.getErrorMessage(),
-                    resultData.getStackTrace(),
-                    clientId);
+            TestRunResult result = new TestRunResult();
+            result.setServiceName(request.getServiceName());
+            result.setMethodName(resultData.getMethodName() != null ? resultData.getMethodName() : "");
+            result.setTestClassName(testClassName);
+            result.setTestMethodName(resultData.getTestMethodName());
+            result.setDisplayName(resultData.getDisplayName());
+            result.setStatus(resultData.getStatus());
+            result.setDurationMs(resultData.getDurationMs() != null ? resultData.getDurationMs() : 0);
+            result.setErrorMessage(resultData.getErrorMessage());
+            result.setStackTrace(resultData.getStackTrace());
+            result.setClientId(clientId);
+            result.setExecutedAt(LocalDateTime.now());
             testRun.addResult(result);
 
             // Update or create the latest result entry
@@ -914,18 +915,19 @@ public class QAService extends BaseService implements IQASubTranslator {
             latestTestResultRepository.save(existing);
         } else {
             // Create new
-            LatestTestResult newResult = new LatestTestResult(
-                    result.getServiceName(),
-                    result.getTestClassName(),
-                    result.getTestMethodName(),
-                    result.getStatus(),
-                    result.getDurationMs(),
-                    result.getErrorMessage(),
-                    result.getStackTrace(),
-                    testRunId,
-                    userId,
-                    userName,
-                    clientId);
+            LatestTestResult newResult = new LatestTestResult();
+            newResult.setServiceName(result.getServiceName());
+            newResult.setTestClassName(result.getTestClassName());
+            newResult.setTestMethodName(result.getTestMethodName());
+            newResult.setStatus(result.getStatus());
+            newResult.setDurationMs(result.getDurationMs());
+            newResult.setErrorMessage(result.getErrorMessage());
+            newResult.setStackTrace(result.getStackTrace());
+            newResult.setLastRunId(testRunId);
+            newResult.setLastRunByUserId(userId);
+            newResult.setLastRunByUserName(userName);
+            newResult.setLastRunAt(LocalDateTime.now());
+            newResult.setClientId(clientId);
             latestTestResultRepository.save(newResult);
         }
     }

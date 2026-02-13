@@ -123,21 +123,6 @@ public class TestRunResult {
     // ========================================================================
 
     public TestRunResult() {
-    }
-
-    public TestRunResult(String serviceName, String methodName, String testClassName, 
-                         String testMethodName, String displayName, String status,
-                         Integer durationMs, String errorMessage, String stackTrace, Long clientId) {
-        this.serviceName = serviceName;
-        this.methodName = methodName;
-        this.testClassName = testClassName;
-        this.testMethodName = testMethodName;
-        this.displayName = displayName;
-        this.status = status;
-        this.durationMs = durationMs;
-        this.errorMessage = errorMessage;
-        this.stackTrace = stackTrace;
-        this.clientId = clientId;
-        this.executedAt = LocalDateTime.now();
+        // Required by JPA.
     }
 }

@@ -33,7 +33,7 @@ import static org.mockito.Mockito.lenient;
  * PromoService test classes.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class PromoServiceTestBase {
+abstract class PromoServiceTestBase {
 
         @Mock
         protected PromoRepository promoRepository;

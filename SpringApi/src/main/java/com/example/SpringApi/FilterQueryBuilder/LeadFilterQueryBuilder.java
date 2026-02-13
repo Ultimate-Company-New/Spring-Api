@@ -23,6 +23,8 @@ import java.util.Map;
  */
 @Component
 public class LeadFilterQueryBuilder extends BaseFilterQueryBuilder {
+    private static final String CLIENT_ID = "clientId";
+    private static final String CLIENT_ID_PARAM = ":" + CLIENT_ID;
 
     private final EntityManager entityManager;
 
@@ -49,7 +51,7 @@ public class LeadFilterQueryBuilder extends BaseFilterQueryBuilder {
             case "fax" -> "l.fax";
             case "website" -> "l.website";
             case "isDeleted" -> "l.isDeleted";
-            case "clientId" -> "l.clientId";
+            case CLIENT_ID -> "l.clientId";
             case "addressId" -> "l.addressId";
             case "createdById" -> "l.createdById";
             case "assignedAgentId" -> "l.assignedAgentId";
@@ -77,7 +79,7 @@ public class LeadFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     @Override
     protected List<String> getNumberColumns() {
-        return Arrays.asList("leadId", "companySize", "clientId", "addressId", "createdById", "assignedAgentId");
+        return Arrays.asList("leadId", "companySize", CLIENT_ID, "addressId", "createdById", "assignedAgentId");
     }
 
     /**
@@ -123,7 +125,7 @@ public class LeadFilterQueryBuilder extends BaseFilterQueryBuilder {
                 "LEFT JOIN FETCH l.address a " +
                 "LEFT JOIN FETCH l.createdByUser " +
                 "LEFT JOIN FETCH l.assignedAgent " +
-                "WHERE l.clientId = :clientId ";
+                "WHERE l.clientId = " + CLIENT_ID_PARAM + " ";
 
         // Add includeDeleted condition
         if (!includeDeleted) {
@@ -143,7 +145,7 @@ public class LeadFilterQueryBuilder extends BaseFilterQueryBuilder {
         // Count query (without FETCH joins)
         String countQuery = "SELECT COUNT(DISTINCT l) FROM Lead l " +
                 "LEFT JOIN l.address a " +
-                "WHERE l.clientId = :clientId ";
+                "WHERE l.clientId = " + CLIENT_ID_PARAM + " ";
 
         if (!includeDeleted) {
             countQuery += "AND l.isDeleted = false ";
@@ -155,7 +157,7 @@ public class LeadFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute count query
         TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
-        countTypedQuery.setParameter("clientId", clientId);
+        countTypedQuery.setParameter(CLIENT_ID, clientId);
 
         // Set filter parameters
         for (Map.Entry<String, Object> entry : filterResult.getParameters().entrySet()) {
@@ -166,7 +168,7 @@ public class LeadFilterQueryBuilder extends BaseFilterQueryBuilder {
 
         // Execute main query with pagination
         TypedQuery<Lead> mainQuery = entityManager.createQuery(baseQuery, Lead.class);
-        mainQuery.setParameter("clientId", clientId);
+        mainQuery.setParameter(CLIENT_ID, clientId);
 
         // Set filter parameters
         for (Map.Entry<String, Object> entry : filterResult.getParameters().entrySet()) {
@@ -182,4 +184,3 @@ public class LeadFilterQueryBuilder extends BaseFilterQueryBuilder {
         return new PageImpl<>(leads, pageable, totalCount);
     }
 }
-

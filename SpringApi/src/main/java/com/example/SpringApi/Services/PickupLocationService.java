@@ -269,11 +269,10 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
      * 
      * @param pickupLocationRequestModel The pickup location data to create
      * @throws BadRequestException if the request model is invalid
-     * @throws Exception           if ShipRocket API integration fails
      */
     @Override
     @Transactional
-    public void createPickupLocation(PickupLocationRequestModel pickupLocationRequestModel) throws Exception {
+    public void createPickupLocation(PickupLocationRequestModel pickupLocationRequestModel) {
         // Validate request
         validatePickupLocationRequest(pickupLocationRequestModel, true);
 
@@ -310,7 +309,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
 
         // Log the creation
         userLogService.logData(getUserId(),
-                SuccessMessages.PickupLocationSuccessMessages.InsertPickupLocation + " "
+                SuccessMessages.PickupLocationSuccessMessages.INSERT_PICKUP_LOCATION + " "
                         + pickupLocation.getPickupLocationId(),
                 ApiRoutes.PickupLocationsSubRoute.CREATE_PICKUP_LOCATION);
     }
@@ -328,11 +327,10 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
      * @param pickupLocationRequestModel The updated pickup location data
      * @throws NotFoundException   if the pickup location or address is not found
      * @throws BadRequestException if the request model is invalid
-     * @throws Exception           if ShipRocket API integration fails
      */
     @Override
     @Transactional
-    public void updatePickupLocation(PickupLocationRequestModel pickupLocationRequestModel) throws Exception {
+    public void updatePickupLocation(PickupLocationRequestModel pickupLocationRequestModel) {
         // Validate request
         validatePickupLocationRequest(pickupLocationRequestModel, false);
 
@@ -408,7 +406,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
 
         // Log the update
         userLogService.logData(getUserId(),
-                SuccessMessages.PickupLocationSuccessMessages.UpdatePickupLocation + " "
+                SuccessMessages.PickupLocationSuccessMessages.UPDATE_PICKUP_LOCATION + " "
                         + updatedPickupLocation.getPickupLocationId(),
                 ApiRoutes.PickupLocationsSubRoute.UPDATE_PICKUP_LOCATION);
     }
@@ -441,7 +439,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
 
         // Log the toggle action
         userLogService.logData(getUserId(),
-                SuccessMessages.PickupLocationSuccessMessages.TogglePickupLocation + " "
+                SuccessMessages.PickupLocationSuccessMessages.TOGGLE_PICKUP_LOCATION + " "
                         + pickupLocation.getPickupLocationId(),
                 ApiRoutes.PickupLocationsSubRoute.TOGGLE_PICKUP_LOCATION);
     }
@@ -518,7 +516,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
                     requestingUserId,
                     requestingUserLoginName,
                     requestingClientId,
-                    SuccessMessages.PickupLocationSuccessMessages.InsertPickupLocation + " (Bulk: " + successCount
+                    SuccessMessages.PickupLocationSuccessMessages.INSERT_PICKUP_LOCATION + " (Bulk: " + successCount
                             + " succeeded, " + failureCount + " failed)",
                     ApiRoutes.PickupLocationsSubRoute.BULK_CREATE_PICKUP_LOCATION);
 
@@ -528,8 +526,17 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
             // Create a message with the bulk insert results using the helper (using
             // captured context)
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
-                    response, "Pickup Location", "Pickup Locations", "Location Name", "Pickup Location ID",
-                    messageService, requestingUserId, requestingUserLoginName, requestingClientId);
+                    response,
+                    new BulkInsertHelper.BulkMessageTemplate(
+                            "Pickup Location",
+                            "Pickup Locations",
+                            "Location Name",
+                            "Pickup Location ID"),
+                    new BulkInsertHelper.NotificationContext(
+                            messageService,
+                            requestingUserId,
+                            requestingUserLoginName,
+                            requestingClientId));
 
         } catch (Exception exception) {
             // Still send a message to user about the failure (using captured userId)
@@ -539,8 +546,17 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
             errorResponse.setFailureCount(pickupLocations != null ? pickupLocations.size() : 0);
             errorResponse.addFailure("bulk_import", "Critical error: " + exception.getMessage());
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
-                    errorResponse, "Pickup Location", "Pickup Locations", "Location Name", "Pickup Location ID",
-                    messageService, requestingUserId, requestingUserLoginName, requestingClientId);
+                    errorResponse,
+                    new BulkInsertHelper.BulkMessageTemplate(
+                            "Pickup Location",
+                            "Pickup Locations",
+                            "Location Name",
+                            "Pickup Location ID"),
+                    new BulkInsertHelper.NotificationContext(
+                            messageService,
+                            requestingUserId,
+                            requestingUserLoginName,
+                            requestingClientId));
         }
     }
 
@@ -601,7 +617,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
         // Log bulk pickup location creation
         userLogService.logData(
                 getUserId(),
-                SuccessMessages.PickupLocationSuccessMessages.InsertPickupLocation + " (Bulk: " + successCount
+                SuccessMessages.PickupLocationSuccessMessages.INSERT_PICKUP_LOCATION + " (Bulk: " + successCount
                         + " succeeded, " + failureCount + " failed)",
                 ApiRoutes.PickupLocationsSubRoute.BULK_CREATE_PICKUP_LOCATION);
 

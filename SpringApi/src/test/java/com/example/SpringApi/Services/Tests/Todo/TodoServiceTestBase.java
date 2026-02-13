@@ -27,12 +27,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * Base test class for TodoService tests.
- * Provides common mocks, test data, and setup for all Todo service tests.
- */
 @ExtendWith(MockitoExtension.class)
-public abstract class TodoServiceTestBase {
+abstract class TodoServiceTestBase {
 
     // ==================== COMMON TEST CONSTANTS ====================
 
@@ -152,22 +148,22 @@ public abstract class TodoServiceTestBase {
     }
 
     protected TodoRequestModel createValidTodoRequest(Long todoId) {
-        TodoRequestModel request = new TodoRequestModel();
-        request.setTodoId(todoId);
-        request.setTask(DEFAULT_TODO_TITLE);
-        request.setIsDone(DEFAULT_TODO_COMPLETED);
-        return request;
+        TodoRequestModel todoRequest = new TodoRequestModel();
+        todoRequest.setTodoId(todoId);
+        todoRequest.setTask(DEFAULT_TODO_TITLE);
+        todoRequest.setIsDone(DEFAULT_TODO_COMPLETED);
+        return todoRequest;
     }
 
     protected Todo createTestTodo() {
         return createTestTodo(createValidTodoRequest(), DEFAULT_CREATED_USER);
     }
 
-    protected Todo createTestTodo(TodoRequestModel request, String createdUser) {
+    protected Todo createTestTodo(TodoRequestModel todoRequest, String createdUser) {
         Todo todo = new Todo();
-        todo.setTodoId(request.getTodoId());
-        todo.setTask(request.getTask());
-        todo.setIsDone(request.getIsDone());
+        todo.setTodoId(todoRequest.getTodoId());
+        todo.setTask(todoRequest.getTask());
+        todo.setIsDone(todoRequest.getIsDone());
         todo.setCreatedUser(createdUser);
         todo.setCreatedAt(LocalDateTime.now());
         todo.setUpdatedAt(LocalDateTime.now());

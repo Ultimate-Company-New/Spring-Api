@@ -32,6 +32,7 @@ import com.example.SpringApi.Adapters.LocalDateTimeAdapter;
 
 public class ShipRocketHelper {
     private static final String API_URL = "https://apiv2.shiprocket.in/v1/external";
+    private static final String SHIPMENT_ID_KEY = "shipment_id";
     private final String email;
     private final String password;
     
@@ -342,7 +343,7 @@ public class ShipRocketHelper {
         String token = getToken();
         
         HashMap<String, Object> jsonBody = new HashMap<>();
-        jsonBody.put("shipment_id", String.valueOf(shipmentId));
+        jsonBody.put(SHIPMENT_ID_KEY, String.valueOf(shipmentId));
         jsonBody.put("courier_id", String.valueOf(courierId));
         
         // Use base HTTP method
@@ -389,7 +390,7 @@ public class ShipRocketHelper {
         
         // ShipRocket expects shipment_id as an array
         HashMap<String, Object> jsonBody = new HashMap<>();
-        jsonBody.put("shipment_id", java.util.List.of(shipmentId));
+        jsonBody.put(SHIPMENT_ID_KEY, java.util.List.of(shipmentId));
         
         // Use base HTTP method
         String responseBody = httpResponseRaw(token, API_URL + "/courier/generate/pickup", "POST", jsonBody);
@@ -471,7 +472,7 @@ public class ShipRocketHelper {
         
         // ShipRocket expects shipment_id as an array of strings
         HashMap<String, Object> jsonBody = new HashMap<>();
-        jsonBody.put("shipment_id", java.util.List.of(String.valueOf(shipmentId)));
+        jsonBody.put(SHIPMENT_ID_KEY, java.util.List.of(String.valueOf(shipmentId)));
         
         // Use base HTTP method
         String responseBody = httpResponseRaw(token, API_URL + "/courier/generate/label", "POST", jsonBody);
@@ -689,7 +690,7 @@ public class ShipRocketHelper {
         String token = getToken();
         
         HashMap<String, Object> jsonBody = new HashMap<>();
-        jsonBody.put("shipment_id", String.valueOf(shipmentId));
+        jsonBody.put(SHIPMENT_ID_KEY, String.valueOf(shipmentId));
         jsonBody.put("is_return", 1);  // Indicates this is a return shipment
         
         // Use base HTTP method

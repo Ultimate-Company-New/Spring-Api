@@ -40,7 +40,7 @@ import static org.mockito.Mockito.doThrow;
  * test data and
  * follow the no-inline-mocks rule.
  */
-public abstract class QAServiceTestBase {
+abstract class QAServiceTestBase {
 
     // ==================== COMMON TEST CONSTANTS ====================
 

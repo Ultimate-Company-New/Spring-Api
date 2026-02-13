@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * - PERMISSION: 3 tests
  */
 @DisplayName("PurchaseOrderService - CreatePurchaseOrder Tests")
-public class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
+class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
 
     // Total Tests: 8
     /*

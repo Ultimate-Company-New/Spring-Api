@@ -41,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * ProductService test classes.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class ProductServiceTestBase {
+abstract class ProductServiceTestBase {
 
     // ==================== COMMON TEST CONSTANTS ====================
 

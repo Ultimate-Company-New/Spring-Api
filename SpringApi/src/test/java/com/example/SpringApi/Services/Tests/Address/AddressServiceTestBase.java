@@ -300,24 +300,24 @@ abstract class AddressServiceTestBase {
     }
 
     protected AddressRequestModel createValidAddressRequest(Long addressId, Long userId, Long clientId) {
-        AddressRequestModel request = new AddressRequestModel();
-        request.setId(addressId);
-        request.setUserId(userId);
-        request.setClientId(clientId);
-        request.setAddressType(DEFAULT_ADDRESS_TYPE);
-        request.setStreetAddress(DEFAULT_STREET_ADDRESS);
-        request.setCity(DEFAULT_CITY);
-        request.setState(DEFAULT_STATE);
-        request.setPostalCode(DEFAULT_POSTAL_CODE);
-        request.setCountry(DEFAULT_COUNTRY);
-        request.setIsPrimary(true);
-        request.setIsDeleted(false);
-        return request;
+        AddressRequestModel addressRequest = new AddressRequestModel();
+        addressRequest.setId(addressId);
+        addressRequest.setUserId(userId);
+        addressRequest.setClientId(clientId);
+        addressRequest.setAddressType(DEFAULT_ADDRESS_TYPE);
+        addressRequest.setStreetAddress(DEFAULT_STREET_ADDRESS);
+        addressRequest.setCity(DEFAULT_CITY);
+        addressRequest.setState(DEFAULT_STATE);
+        addressRequest.setPostalCode(DEFAULT_POSTAL_CODE);
+        addressRequest.setCountry(DEFAULT_COUNTRY);
+        addressRequest.setIsPrimary(true);
+        addressRequest.setIsDeleted(false);
+        return addressRequest;
     }
 
-    protected Address createTestAddress(AddressRequestModel request, String createdUser) {
-        Address address = new Address(request, createdUser);
-        address.setAddressId(request.getId());
+    protected Address createTestAddress(AddressRequestModel addressRequest, String createdUser) {
+        Address address = new Address(addressRequest, createdUser);
+        address.setAddressId(addressRequest.getId());
         address.setIsDeleted(false);
         address.setCreatedAt(LocalDateTime.now());
         address.setUpdatedAt(LocalDateTime.now());
@@ -329,15 +329,15 @@ abstract class AddressServiceTestBase {
     }
 
     protected Address createTestAddress(Long addressId) {
-        AddressRequestModel request = createValidAddressRequest();
-        request.setId(addressId);
-        return createTestAddress(request, DEFAULT_CREATED_USER);
+        AddressRequestModel addressRequest = createValidAddressRequest();
+        addressRequest.setId(addressId);
+        return createTestAddress(addressRequest, DEFAULT_CREATED_USER);
     }
 
     protected Address createTestAddress(Long addressId, String addressType) {
-        AddressRequestModel request = createValidAddressRequest();
-        request.setId(addressId);
-        request.setAddressType(addressType);
-        return createTestAddress(request, DEFAULT_CREATED_USER);
+        AddressRequestModel addressRequest = createValidAddressRequest();
+        addressRequest.setId(addressId);
+        addressRequest.setAddressType(addressType);
+        return createTestAddress(addressRequest, DEFAULT_CREATED_USER);
     }
 }

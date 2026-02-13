@@ -458,14 +458,10 @@ class GetClientsByUserTest extends ClientServiceTestBase {
         // Act & Assert
         assertThrows(NullPointerException.class,
                 () -> clientService.getClientsByUser());
-        // NullPointerException message in Java 17+ reflects the cause
-        // assertEquals(ErrorMessages.ClientErrorMessages.CLIENTS_LIST_NULL,
-        // ex.getMessage());
     }
 
     /*
-     * Purpose: Verify behavior when clientRepository.findByUserId() throws
-     * exception.
+     * Purpose: Verify behavior when repository throws a runtime exception.
      * Expected Result: Exception from repository is propagated.
      * Assertions: RuntimeException is raised.
      */

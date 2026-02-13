@@ -270,7 +270,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
                 requestingUserId,
                 requestingUserLoginName,
                 requestingClientId,
-                SuccessMessages.MessagesSuccessMessages.InsertMessage + " " + savedMessage.getMessageId(),
+                SuccessMessages.MessagesSuccessMessages.INSERT_MESSAGE + " " + savedMessage.getMessageId(),
                 ApiRoutes.MessagesSubRoute.CREATE_MESSAGE);
     }
 
@@ -410,7 +410,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
         // Logging
         userLogService.logData(
                 getUserId(),
-                SuccessMessages.MessagesSuccessMessages.UpdateMessage + " " + savedMessage.getMessageId(),
+                SuccessMessages.MessagesSuccessMessages.UPDATE_MESSAGE + " " + savedMessage.getMessageId(),
                 ApiRoutes.MessagesSubRoute.UPDATE_MESSAGE);
     }
 
@@ -445,7 +445,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
         // Logging
         userLogService.logData(
                 getUserId(),
-                SuccessMessages.MessagesSuccessMessages.ToggleMessage + message.getMessageId(),
+                SuccessMessages.MessagesSuccessMessages.TOGGLE_MESSAGE + message.getMessageId(),
                 ApiRoutes.MessagesSubRoute.TOGGLE_MESSAGE);
     }
 
@@ -584,7 +584,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
         // Logging
         userLogService.logData(
                 getUserId(),
-                SuccessMessages.MessagesSuccessMessages.SetMessageRead + " MessageId: " + messageId + ", UserId: "
+                SuccessMessages.MessagesSuccessMessages.SET_MESSAGE_READ + " MessageId: " + messageId + ", UserId: "
                         + userId,
                 ApiRoutes.MessagesSubRoute.SET_MESSAGE_READ_BY_USER_ID_AND_MESSAGE_ID);
     }

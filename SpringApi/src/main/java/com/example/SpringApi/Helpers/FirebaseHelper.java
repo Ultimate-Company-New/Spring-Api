@@ -42,7 +42,7 @@ public class FirebaseHelper {
             }
         }
         catch (Exception ignored) {
-
+            // Firebase app may already be initialized in another thread/context.
         }
     }
 
@@ -55,8 +55,7 @@ public class FirebaseHelper {
 
         // Check if the blob exists
         if (blob == null) {
-            // Return null if the file does not exist
-            return null;
+            return new byte[0];
         }
 
         // Download the file into a byte array

@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
  * Test Count: 16 tests
  */
 @DisplayName("Reset Password Tests")
-public class ResetPasswordTest extends LoginServiceTestBase {
+class ResetPasswordTest extends LoginServiceTestBase {
 
 
     // Total Tests: 15

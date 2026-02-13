@@ -148,7 +148,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
 
         // Log user toggle operation
         userLogService.logData(getUserId(),
-                SuccessMessages.UserSuccessMessages.ToggleUser + " " + user.getUserId() + " deletion status to "
+                SuccessMessages.UserSuccessMessages.TOGGLE_USER + " " + user.getUserId() + " deletion status to "
                         + user.getIsDeleted(),
                 ApiRoutes.UserSubRoute.TOGGLE_USER);
     }
@@ -260,7 +260,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
 
         // 6. User log
         userLogService.logData(getUserId(),
-                SuccessMessages.UserSuccessMessages.UpdateUser + " " + savedUser.getUserId(),
+                SuccessMessages.UserSuccessMessages.UPDATE_USER + " " + savedUser.getUserId(),
                 ApiRoutes.UserSubRoute.UPDATE_USER);
     }
 
@@ -506,7 +506,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
                     requestingUserId,
                     requestingUserLoginName,
                     requestingClientId,
-                    SuccessMessages.UserSuccessMessages.CreateUser + " (Bulk: " + successCount + " succeeded, "
+                    SuccessMessages.UserSuccessMessages.CREATE_USER + " (Bulk: " + successCount + " succeeded, "
                             + failureCount + " failed)",
                     ApiRoutes.UsersSubRoute.BULK_CREATE_USER);
 
@@ -607,7 +607,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         // 10. Log user creation (skip for bulk operations as they log collectively)
         if (shouldLog) {
             userLogService.logData(getUserId(),
-                    SuccessMessages.UserSuccessMessages.CreateUser + " " + savedUser.getUserId(),
+                    SuccessMessages.UserSuccessMessages.CREATE_USER + " " + savedUser.getUserId(),
                     ApiRoutes.UserSubRoute.CREATE_USER);
         }
     }

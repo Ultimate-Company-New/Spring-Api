@@ -29,6 +29,7 @@ import java.util.HashMap;
         }
 )
 public class DatabaseConfig {
+    private static final String MYSQL_DRIVER_CLASS = "com.mysql.cj.jdbc.Driver";
     
     @Bean(name = "entityManagerFactoryBuilder")
     public EntityManagerFactoryBuilder entityManagerFactoryBuilder() {
@@ -45,37 +46,42 @@ public class DatabaseConfig {
                         .url("jdbc:mysql://host.docker.internal:3307/UltimateCompanyDatabase")
                         .password("root")
                         .username("root")
-                        .driverClassName("com.mysql.cj.jdbc.Driver")
+                        .driverClassName(MYSQL_DRIVER_CLASS)
                         .build();
             case "localhost":
                 return DataSourceBuilder.create()
                         .url("jdbc:mysql://localhost:3306/UltimateCompanyDatabase")
                         .username("root")
-                        .driverClassName("com.mysql.cj.jdbc.Driver")
+                        .driverClassName(MYSQL_DRIVER_CLASS)
                         .build();
             case "staging":
                 return DataSourceBuilder.create()
                         .url("jdbc:mysql://staging-host:3307/UltimateCompanyDatabase")
                         .password("staging_password")
                         .username("staging_user")
-                        .driverClassName("com.mysql.cj.jdbc.Driver")
+                        .driverClassName(MYSQL_DRIVER_CLASS)
                         .build();
             case "uat":
                 return DataSourceBuilder.create()
                         .url("jdbc:mysql://uat-host:3307/UltimateCompanyDatabase")
                         .password("uat_password")
                         .username("uat_user")
-                        .driverClassName("com.mysql.cj.jdbc.Driver")
+                        .driverClassName(MYSQL_DRIVER_CLASS)
                         .build();
             case "production":
                 return DataSourceBuilder.create()
                         .url("jdbc:mysql://prod-host:3307/UltimateCompanyDatabase")
                         .password("prod_password")
                         .username("prod_user")
-                        .driverClassName("com.mysql.cj.jdbc.Driver")
+                        .driverClassName(MYSQL_DRIVER_CLASS)
+                        .build();
+            default:
+                return DataSourceBuilder.create()
+                        .url("jdbc:mysql://localhost:3306/UltimateCompanyDatabase")
+                        .username("root")
+                        .driverClassName(MYSQL_DRIVER_CLASS)
                         .build();
         }
-        return null;
     }
 
     @Primary

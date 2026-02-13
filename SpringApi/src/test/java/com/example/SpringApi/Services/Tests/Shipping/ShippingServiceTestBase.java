@@ -46,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Centralizes mocks, default objects, and stub helpers.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class ShippingServiceTestBase {
+abstract class ShippingServiceTestBase {
 
     // ==================== COMMON TEST CONSTANTS ====================
 

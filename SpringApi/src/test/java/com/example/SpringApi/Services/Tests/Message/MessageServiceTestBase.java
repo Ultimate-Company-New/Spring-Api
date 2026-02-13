@@ -50,7 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Contains common mocks, dependencies, and setup logic shared across all MessageService test classes.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class MessageServiceTestBase {
+abstract class MessageServiceTestBase {
 
     @Mock
     protected MessageRepository messageRepository;
@@ -517,14 +517,14 @@ public abstract class MessageServiceTestBase {
     // ==================== FACTORY METHODS ====================
 
     protected MessageRequestModel createValidMessageRequest() {
-        MessageRequestModel request = new MessageRequestModel();
-        request.setMessageId(DEFAULT_MESSAGE_ID);
-        request.setTitle("Test Message");
-        request.setDescriptionHtml("<p>Test message content</p>");
-        request.setSendAsEmail(false);
-        request.setIsDeleted(false);
-        request.setPublishDate(LocalDateTime.now().plusDays(1));
-        return request;
+        MessageRequestModel messageRequest = new MessageRequestModel();
+        messageRequest.setMessageId(DEFAULT_MESSAGE_ID);
+        messageRequest.setTitle("Test Message");
+        messageRequest.setDescriptionHtml("<p>Test message content</p>");
+        messageRequest.setSendAsEmail(false);
+        messageRequest.setIsDeleted(false);
+        messageRequest.setPublishDate(LocalDateTime.now().plusDays(1));
+        return messageRequest;
     }
 
     protected Message createTestMessage() {
@@ -578,11 +578,11 @@ public abstract class MessageServiceTestBase {
     }
 
     protected PaginationBaseRequestModel createValidPaginationRequest() {
-        PaginationBaseRequestModel request = new PaginationBaseRequestModel();
-        request.setStart(0);
-        request.setEnd(10);
-        request.setFilters(new java.util.ArrayList<>());
-        return request;
+        PaginationBaseRequestModel paginationRequest = new PaginationBaseRequestModel();
+        paginationRequest.setStart(0);
+        paginationRequest.setEnd(10);
+        paginationRequest.setFilters(new java.util.ArrayList<>());
+        return paginationRequest;
     }
 
     protected PaginationBaseRequestModel.FilterCondition createFilterCondition(String column, String operator, String value) {

@@ -11,6 +11,8 @@ package com.example.SpringApi.Helpers;
  * @since 2024-01-15
  */
 public class HTMLHelper {
+    private HTMLHelper() {
+    }
     
     /**
      * Replaces <br> tags with proper line breaks for PDF generation.
@@ -48,4 +50,3 @@ public class HTMLHelper {
         return htmlContent.trim();
     }
 }
-

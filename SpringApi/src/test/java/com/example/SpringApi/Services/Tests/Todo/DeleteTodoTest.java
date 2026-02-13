@@ -112,7 +112,7 @@ class DeleteTodoTest extends TodoServiceTestBase {
         // Assert
         verify(userLogService).logData(
                 eq(TEST_USER_ID.longValue()),
-                contains(SuccessMessages.TodoSuccessMessages.DeleteTodo),
+                contains(SuccessMessages.TodoSuccessMessages.DELETE_TODO),
                 eq(ApiRoutes.TodoSubRoute.DELETE_ITEM));
     }
 
@@ -125,15 +125,21 @@ class DeleteTodoTest extends TodoServiceTestBase {
     @DisplayName("deleteTodo - Valid Id - Success")
     void deleteTodo_validId_success() {
         // Arrange
+        long validTodoId = TEST_TODO_ID;
         stubTodoRepositoryExistsById(TEST_TODO_ID, true);
         stubTodoRepositoryDeleteById(TEST_TODO_ID);
         stubUserLogServiceLogDataReturnsTrue();
 
         // Act
-        todoService.deleteTodo(TEST_TODO_ID);
+        todoService.deleteTodo(validTodoId);
 
         // Assert
-        verify(todoRepository).deleteById(TEST_TODO_ID);
+        verify(todoRepository).existsById(validTodoId);
+        verify(todoRepository).deleteById(validTodoId);
+        verify(userLogService, atLeastOnce()).logData(
+                anyLong(),
+                org.mockito.ArgumentMatchers.contains("deleted"),
+                org.mockito.ArgumentMatchers.anyString());
     }
 
     /*

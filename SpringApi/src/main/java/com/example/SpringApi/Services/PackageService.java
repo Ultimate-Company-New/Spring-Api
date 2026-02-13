@@ -234,7 +234,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         // Logging
         userLogService.logData(
             getUserId(),
-            SuccessMessages.PackagesSuccessMessages.TogglePackage + packageEntity.getPackageId(),
+            SuccessMessages.PackagesSuccessMessages.TOGGLE_PACKAGE + packageEntity.getPackageId(),
             ApiRoutes.PackageSubRoute.TOGGLE_PACKAGE);
     }
 
@@ -271,7 +271,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         // Logging
         userLogService.logData(
             getUserId(),
-            SuccessMessages.PackagesSuccessMessages.UpdatePackage + updatedPackage.getPackageId(),
+            SuccessMessages.PackagesSuccessMessages.UPDATE_PACKAGE + updatedPackage.getPackageId(),
             ApiRoutes.PackageSubRoute.UPDATE_PACKAGE);
     }
 
@@ -369,7 +369,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
                 requestingUserId,
                 requestingUserLoginName,
                 requestingClientId,
-                SuccessMessages.PackagesSuccessMessages.InsertPackage + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+                SuccessMessages.PackagesSuccessMessages.INSERT_PACKAGE + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
                 ApiRoutes.PackageSubRoute.BULK_CREATE_PACKAGE
             );
             
@@ -378,8 +378,13 @@ public class PackageService extends BaseService implements IPackageSubTranslator
             
             // Create a message with the bulk insert results using the helper (using captured context)
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
-                response, "Package", "Packages", "Package Name", "Package ID", 
-                messageService, requestingUserId, requestingUserLoginName, requestingClientId
+                response,
+                new BulkInsertHelper.BulkMessageTemplate("Package", "Packages", "Package Name", "Package ID"),
+                new BulkInsertHelper.NotificationContext(
+                    messageService,
+                    requestingUserId,
+                    requestingUserLoginName,
+                    requestingClientId)
             );
             
         } catch (Exception e) {
@@ -392,8 +397,13 @@ public class PackageService extends BaseService implements IPackageSubTranslator
                 ErrorMessages.PackageErrorMessages.BULK_IMPORT_KEY,
                 String.format(ErrorMessages.PackageErrorMessages.BULK_CRITICAL_ERROR_FORMAT, e.getMessage()));
             BulkInsertHelper.createDetailedBulkInsertResultMessage(
-                errorResponse, "Package", "Packages", "Package Name", "Package ID", 
-                messageService, requestingUserId, requestingUserLoginName, requestingClientId
+                errorResponse,
+                new BulkInsertHelper.BulkMessageTemplate("Package", "Packages", "Package Name", "Package ID"),
+                new BulkInsertHelper.NotificationContext(
+                    messageService,
+                    requestingUserId,
+                    requestingUserLoginName,
+                    requestingClientId)
             );
         }
     }
@@ -449,7 +459,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         // Log bulk package creation
         userLogService.logData(
             getUserId(),
-            SuccessMessages.PackagesSuccessMessages.InsertPackage + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
+            SuccessMessages.PackagesSuccessMessages.INSERT_PACKAGE + " (Bulk: " + successCount + " succeeded, " + failureCount + " failed)",
             ApiRoutes.PackageSubRoute.BULK_CREATE_PACKAGE
         );
         
@@ -486,7 +496,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         if (shouldLog) {
             userLogService.logData(
                 userId,
-                SuccessMessages.PackagesSuccessMessages.InsertPackage + savedPackage.getPackageId(),
+                SuccessMessages.PackagesSuccessMessages.INSERT_PACKAGE + savedPackage.getPackageId(),
                 ApiRoutes.PackageSubRoute.CREATE_PACKAGE
             );
         }

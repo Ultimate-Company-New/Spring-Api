@@ -92,6 +92,7 @@ public class OrderOptimizationResponseModel {
     private Boolean success = true;
 
     public OrderOptimizationResponseModel() {
+        // Required for JSON serialization/deserialization.
     }
 
     /**

@@ -23,6 +23,8 @@ import java.util.Map;
  */
 @Component
 public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
+    private static final String PRODUCT_ID = "productId";
+    private static final String PRODUCT_ID_PARAM = ":" + PRODUCT_ID;
 
     private final EntityManager entityManager;
 
@@ -47,7 +49,7 @@ public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     @Override
     protected List<String> getNumberColumns() {
-        return Arrays.asList("reviewId", "ratings", "score", "userId", "productId", "parentId");
+        return Arrays.asList("reviewId", "ratings", "score", "userId", PRODUCT_ID, "parentId");
     }
 
     /**
@@ -94,7 +96,7 @@ public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
                 "WHERE pr.productId IN (SELECT p.productId FROM Product p WHERE p.clientId = :clientId) ";
 
         if (productId != null) {
-            baseQuery += "AND pr.productId = :productId ";
+            baseQuery += "AND pr.productId = " + PRODUCT_ID_PARAM + " ";
         }
 
         if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -117,7 +119,7 @@ public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
                 "WHERE pr.productId IN (SELECT p.productId FROM Product p WHERE p.clientId = :clientId) ";
 
         if (productId != null) {
-            countQuery += "AND pr.productId = :productId ";
+            countQuery += "AND pr.productId = " + PRODUCT_ID_PARAM + " ";
         }
 
         if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -135,7 +137,7 @@ public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
         TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
         countTypedQuery.setParameter("clientId", clientId);
         if (productId != null) {
-            countTypedQuery.setParameter("productId", productId);
+            countTypedQuery.setParameter(PRODUCT_ID, productId);
         }
         if (selectedIds != null && !selectedIds.isEmpty()) {
             countTypedQuery.setParameter("selectedIds", selectedIds);
@@ -149,7 +151,7 @@ public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
         TypedQuery<ProductReview> mainQuery = entityManager.createQuery(baseQuery, ProductReview.class);
         mainQuery.setParameter("clientId", clientId);
         if (productId != null) {
-            mainQuery.setParameter("productId", productId);
+            mainQuery.setParameter(PRODUCT_ID, productId);
         }
         if (selectedIds != null && !selectedIds.isEmpty()) {
             mainQuery.setParameter("selectedIds", selectedIds);

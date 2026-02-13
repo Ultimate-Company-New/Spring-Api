@@ -109,14 +109,16 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
     @DisplayName("Toggle Product Review - ID 12345 - Throws NotFoundException")
     void toggleProductReview_f01_Id12345_ThrowsNotFoundException() {
         // Arrange
-        stubProductReviewRepositoryFindByReviewIdAndClientId(12345L, TEST_CLIENT_ID, null);
+        long reviewId = 12345L;
+        stubProductReviewRepositoryFindByReviewIdAndClientId(reviewId, TEST_CLIENT_ID, null);
 
         // Act
         NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> productReviewService.toggleProductReview(12345L));
+                () -> productReviewService.toggleProductReview(reviewId));
 
         // Assert
         assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
+        assertTrue(reviewId > 10000L);
     }
 
 
@@ -426,12 +428,14 @@ class ToggleProductReviewDuplicateTests extends ProductReviewServiceTestBase {
     @DisplayName("Toggle Product Review - ID 12345 - Throws NotFoundException")
     void toggleProductReview_f10_Id12345_ThrowsNotFoundException() {
         // Arrange
-        stubProductReviewRepositoryFindByReviewIdAndClientId(12345L, TEST_CLIENT_ID, null);
+        long reviewId = 12345L;
+        stubProductReviewRepositoryFindByReviewIdAndClientId(reviewId, TEST_CLIENT_ID, null);
 
         // Act & Assert
         NotFoundException ex = assertThrows(NotFoundException.class,
-                () -> productReviewService.toggleProductReview(12345L));
+                () -> productReviewService.toggleProductReview(reviewId));
         assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
+        verify(productReviewRepository, times(1)).findByReviewIdAndClientId(reviewId, TEST_CLIENT_ID);
     }
 
     /*

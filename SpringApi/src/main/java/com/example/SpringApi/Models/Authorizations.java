@@ -3,6 +3,8 @@ package com.example.SpringApi.Models;
 import com.example.SpringApi.Constants.UserRole;
 
 public class Authorizations {
+    private Authorizations() {
+    }
 
     // Roles - Using uppercase to match database constraint
     public static final String SUPER_ADMIN_ROLE = UserRole.SUPERADMIN.getValue();

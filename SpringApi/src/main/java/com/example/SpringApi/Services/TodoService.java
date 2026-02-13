@@ -38,7 +38,7 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
         Todo savedTodo = todoRepository.save(todo);
         userLogService.logData(
             getUserId(),
-            SuccessMessages.TodoSuccessMessages.InsertTodo + " " + savedTodo.getTodoId(),
+            SuccessMessages.TodoSuccessMessages.INSERT_TODO + " " + savedTodo.getTodoId(),
             ApiRoutes.TodoSubRoute.ADD_ITEM
         );
     }
@@ -70,7 +70,7 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
         Todo updatedTodo = new Todo(todoRequestModel, authenticatedUser, todoToUpdate, getUserId());
         userLogService.logData(
             getUserId(),
-            SuccessMessages.TodoSuccessMessages.UpdateTodo + " " + todoRepository.save(updatedTodo).getTodoId(),
+            SuccessMessages.TodoSuccessMessages.UPDATE_TODO + " " + todoRepository.save(updatedTodo).getTodoId(),
             ApiRoutes.TodoSubRoute.UPDATE_ITEM
         );
     }
@@ -85,7 +85,7 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
         
         userLogService.logData(
             getUserId(),
-            SuccessMessages.TodoSuccessMessages.DeleteTodo + " " + id,
+            SuccessMessages.TodoSuccessMessages.DELETE_TODO + " " + id,
             ApiRoutes.TodoSubRoute.DELETE_ITEM
         );
     }
@@ -104,7 +104,7 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
         
         userLogService.logData(
             getUserId(),
-            SuccessMessages.TodoSuccessMessages.ToggleTodo + " " + id,
+            SuccessMessages.TodoSuccessMessages.TOGGLE_TODO + " " + id,
             ApiRoutes.TodoSubRoute.TOGGLE_DONE
         );
     }
@@ -123,7 +123,7 @@ public class TodoService extends BaseService implements ITodoSubTranslator {
         
         userLogService.logData(
             getUserId(),
-            SuccessMessages.TodoSuccessMessages.GetTodoItems,
+            SuccessMessages.TodoSuccessMessages.GET_TODO_ITEMS,
             ApiRoutes.TodoSubRoute.GET_ITEMS
         );
         

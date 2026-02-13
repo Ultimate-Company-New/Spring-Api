@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 /**
@@ -252,11 +251,16 @@ class TogglePromoTest extends PromoServiceTestBase {
     @DisplayName("togglePromo - Promo Not Found - Throws NotFoundException")
     void togglePromo_PromoNotFound_ThrowsNotFoundException() {
         // Arrange
-        stubPromoRepositoryFindByPromoIdAndClientId(TEST_PROMO_ID, TEST_CLIENT_ID, Optional.empty());
+        long missingPromoId = TEST_PROMO_ID;
+        stubPromoRepositoryFindByPromoIdAndClientId(missingPromoId, TEST_CLIENT_ID, Optional.empty());
 
         // Act & Assert
-        NotFoundException ex = assertThrows(NotFoundException.class, () -> promoService.togglePromo(TEST_PROMO_ID));
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> promoService.togglePromo(missingPromoId));
         assertEquals(ErrorMessages.PromoErrorMessages.INVALID_ID, ex.getMessage());
+        assertFalse(ex.getMessage().isBlank());
+        verify(promoRepository, times(1)).findByPromoIdAndClientId(missingPromoId, TEST_CLIENT_ID);
+        verify(promoRepository, never()).save(any(Promo.class));
+        verifyNoMoreInteractions(promoRepository);
     }
 
 

@@ -30,7 +30,7 @@ import static org.mockito.Mockito.lenient;
  * Contains common mocks, test data, and setup methods.
  */
 @ExtendWith(MockitoExtension.class)
-public abstract class UserLogServiceTestBase {
+abstract class UserLogServiceTestBase {
 
     @Mock
     protected UserLogRepository userLogRepository;

@@ -84,6 +84,10 @@ class CreatePromoTest extends PromoServiceTestBase {
     @DisplayName("createPromo - Future Start Date - Success")
     void createPromo_FutureStartDate_Success() {
         // Arrange
+        java.time.LocalDate startDate = java.time.LocalDate.now().plusDays(3);
+        java.time.LocalDate endDate = java.time.LocalDate.now().plusDays(10);
+        testPromoRequest.setStartDate(startDate);
+        testPromoRequest.setExpiryDate(endDate);
         stubPromoRepositoryFindOverlappingPromos(Collections.emptyList());
         stubPromoRepositorySave(testPromo);
 
@@ -92,6 +96,12 @@ class CreatePromoTest extends PromoServiceTestBase {
 
         // Assert
         verify(promoRepository, times(1)).save(any(Promo.class));
+        assertTrue(testPromoRequest.getStartDate().isAfter(java.time.LocalDate.now()));
+        assertTrue(testPromoRequest.getExpiryDate().isAfter(testPromoRequest.getStartDate()));
+        var promoCaptor = org.mockito.ArgumentCaptor.forClass(Promo.class);
+        verify(promoRepository, atLeastOnce()).save(promoCaptor.capture());
+        assertEquals(startDate, promoCaptor.getValue().getStartDate());
+        assertEquals(endDate, promoCaptor.getValue().getExpiryDate());
     }
 
 
