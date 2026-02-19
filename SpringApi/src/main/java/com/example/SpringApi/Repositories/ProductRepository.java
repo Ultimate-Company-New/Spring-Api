@@ -16,12 +16,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    @Query("SELECT DISTINCT p FROM Product p " +
-           "LEFT JOIN FETCH p.category " +
-           "LEFT JOIN FETCH p.createdByUser " +
-           "LEFT JOIN FETCH p.productPickupLocationMappings pplm " +
-           "LEFT JOIN FETCH pplm.pickupLocation pl " +
-           "LEFT JOIN FETCH pl.address " +
-           "WHERE p.productId = :id AND p.clientId = :clientId")
-    Product findByIdWithRelatedEntities(@Param("id") Long id, @Param("clientId") Long clientId);
+  @Query(
+      "SELECT DISTINCT p FROM Product p "
+          + "LEFT JOIN FETCH p.category "
+          + "LEFT JOIN FETCH p.createdByUser "
+          + "LEFT JOIN FETCH p.productPickupLocationMappings pplm "
+          + "LEFT JOIN FETCH pplm.pickupLocation pl "
+          + "LEFT JOIN FETCH pl.address "
+          + "WHERE p.productId = :id AND p.clientId = :clientId")
+  Product findByIdWithRelatedEntities(@Param("id") Long id, @Param("clientId") Long clientId);
 }

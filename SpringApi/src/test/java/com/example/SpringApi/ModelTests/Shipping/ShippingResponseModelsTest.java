@@ -1,5 +1,11 @@
 package com.example.SpringApi.ModelTests.Shipping;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.example.SpringApi.Models.ShippingResponseModel.AddPickupLocationResponseModel;
 import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketAwbResponseModel;
 import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketInvoiceResponseModel;
@@ -13,102 +19,98 @@ import com.example.SpringApi.Models.ShippingResponseModel.ShippingOptionsRespons
 import com.nimbusds.jose.shaded.gson.Gson;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 class ShippingResponseModelsTest {
 
-    private final Gson gson = new Gson();
+  private final Gson gson = new Gson();
 
-    // Total Tests: 11
-    @Test
-    void shipRocketOrderResponseModel_HelperMethods_ParseIdsSafely() {
-        ShipRocketOrderResponseModel model = new ShipRocketOrderResponseModel();
-        model.setOrderId(12345L);
-        model.setCourierCompanyId("  99 ");
+  // Total Tests: 11
+  @Test
+  void shipRocketOrderResponseModel_HelperMethods_ParseIdsSafely() {
+    ShipRocketOrderResponseModel model = new ShipRocketOrderResponseModel();
+    model.setOrderId(12345L);
+    model.setCourierCompanyId("  99 ");
 
-        assertEquals("12345", model.getOrderIdAsString());
-        assertEquals(99L, model.getCourierId());
+    assertEquals("12345", model.getOrderIdAsString());
+    assertEquals(99L, model.getCourierId());
 
-        model.setCourierCompanyId("abc");
-        assertNull(model.getCourierId());
-    }
+    model.setCourierCompanyId("abc");
+    assertNull(model.getCourierId());
+  }
 
-    @Test
-    void shipRocketReturnOrderResponseModel_HelperMethods_EvaluateSuccessAndId() {
-        ShipRocketReturnOrderResponseModel model = new ShipRocketReturnOrderResponseModel();
-        model.setOrderId(777L);
+  @Test
+  void shipRocketReturnOrderResponseModel_HelperMethods_EvaluateSuccessAndId() {
+    ShipRocketReturnOrderResponseModel model = new ShipRocketReturnOrderResponseModel();
+    model.setOrderId(777L);
 
-        assertTrue(model.isSuccess());
-        assertEquals("777", model.getOrderIdAsString());
+    assertTrue(model.isSuccess());
+    assertEquals("777", model.getOrderIdAsString());
 
-        model.setOrderId(0L);
-        assertFalse(model.isSuccess());
-    }
+    model.setOrderId(0L);
+    assertFalse(model.isSuccess());
+  }
 
-    @Test
-    void shipRocketAwbResponseModel_HelperMethods_ExtractNestedDataSafely() {
-        ShipRocketAwbResponseModel model = new ShipRocketAwbResponseModel();
-        model.setAwbAssignStatus(1);
+  @Test
+  void shipRocketAwbResponseModel_HelperMethods_ExtractNestedDataSafely() {
+    ShipRocketAwbResponseModel model = new ShipRocketAwbResponseModel();
+    model.setAwbAssignStatus(1);
 
-        ShipRocketAwbResponseModel.AwbData data = new ShipRocketAwbResponseModel.AwbData();
-        data.setAwbCode("AWB-123");
-        data.setShipmentId(456L);
-        ShipRocketAwbResponseModel.AwbResponse response = new ShipRocketAwbResponseModel.AwbResponse();
-        response.setData(data);
-        model.setResponse(response);
+    ShipRocketAwbResponseModel.AwbData data = new ShipRocketAwbResponseModel.AwbData();
+    data.setAwbCode("AWB-123");
+    data.setShipmentId(456L);
+    ShipRocketAwbResponseModel.AwbResponse response = new ShipRocketAwbResponseModel.AwbResponse();
+    response.setData(data);
+    model.setResponse(response);
 
-        assertTrue(model.isSuccess());
-        assertEquals("AWB-123", model.getAwbCode());
-        assertEquals(456L, model.getShipmentId());
-    }
+    assertTrue(model.isSuccess());
+    assertEquals("AWB-123", model.getAwbCode());
+    assertEquals(456L, model.getShipmentId());
+  }
 
-    @Test
-    void shipRocketAwbResponseModel_HelperMethods_ReturnNullWhenResponseMissing() {
-        ShipRocketAwbResponseModel model = new ShipRocketAwbResponseModel();
+  @Test
+  void shipRocketAwbResponseModel_HelperMethods_ReturnNullWhenResponseMissing() {
+    ShipRocketAwbResponseModel model = new ShipRocketAwbResponseModel();
 
-        assertNull(model.getAwbCode());
-        assertNull(model.getShipmentId());
-    }
+    assertNull(model.getAwbCode());
+    assertNull(model.getShipmentId());
+  }
 
-    @Test
-    void shipRocketGenericSuccessModels_EvaluateSuccessFlagsCorrectly() {
-        ShipRocketPickupResponseModel pickup = new ShipRocketPickupResponseModel();
-        pickup.setPickupStatus(1);
-        assertTrue(pickup.isSuccess());
+  @Test
+  void shipRocketGenericSuccessModels_EvaluateSuccessFlagsCorrectly() {
+    ShipRocketPickupResponseModel pickup = new ShipRocketPickupResponseModel();
+    pickup.setPickupStatus(1);
+    assertTrue(pickup.isSuccess());
 
-        ShipRocketManifestResponseModel manifest = new ShipRocketManifestResponseModel();
-        manifest.setStatus(1);
-        assertTrue(manifest.isSuccess());
+    ShipRocketManifestResponseModel manifest = new ShipRocketManifestResponseModel();
+    manifest.setStatus(1);
+    assertTrue(manifest.isSuccess());
 
-        ShipRocketLabelResponseModel label = new ShipRocketLabelResponseModel();
-        label.setLabelCreated(1);
-        assertTrue(label.isSuccess());
+    ShipRocketLabelResponseModel label = new ShipRocketLabelResponseModel();
+    label.setLabelCreated(1);
+    assertTrue(label.isSuccess());
 
-        ShipRocketInvoiceResponseModel invoice = new ShipRocketInvoiceResponseModel();
-        invoice.setIsInvoiceCreated(Boolean.TRUE);
-        assertTrue(invoice.isSuccess());
-    }
+    ShipRocketInvoiceResponseModel invoice = new ShipRocketInvoiceResponseModel();
+    invoice.setIsInvoiceCreated(Boolean.TRUE);
+    assertTrue(invoice.isSuccess());
+  }
 
-    @Test
-    void shipRocketTrackingResponseModel_IsSuccessDependsOnTrackStatusOne() {
-        ShipRocketTrackingResponseModel model = new ShipRocketTrackingResponseModel();
-        ShipRocketTrackingResponseModel.TrackingData trackingData = new ShipRocketTrackingResponseModel.TrackingData();
-        trackingData.setTrackStatus(1);
-        model.setTrackingData(trackingData);
+  @Test
+  void shipRocketTrackingResponseModel_IsSuccessDependsOnTrackStatusOne() {
+    ShipRocketTrackingResponseModel model = new ShipRocketTrackingResponseModel();
+    ShipRocketTrackingResponseModel.TrackingData trackingData =
+        new ShipRocketTrackingResponseModel.TrackingData();
+    trackingData.setTrackStatus(1);
+    model.setTrackingData(trackingData);
 
-        assertTrue(model.isSuccess());
+    assertTrue(model.isSuccess());
 
-        trackingData.setTrackStatus(0);
-        assertFalse(model.isSuccess());
-    }
+    trackingData.setTrackStatus(0);
+    assertFalse(model.isSuccess());
+  }
 
-    @Test
-    void shipRocketTrackingResponseModel_DeserializationMapsHyphenatedFields() {
-        String json = """
+  @Test
+  void shipRocketTrackingResponseModel_DeserializationMapsHyphenatedFields() {
+    String json =
+        """
                 {
                   "tracking_data":{
                     "track_status":1,
@@ -126,28 +128,33 @@ class ShippingResponseModelsTest {
                 }
                 """;
 
-        ShipRocketTrackingResponseModel parsed = gson.fromJson(json, ShipRocketTrackingResponseModel.class);
+    ShipRocketTrackingResponseModel parsed =
+        gson.fromJson(json, ShipRocketTrackingResponseModel.class);
 
-        assertTrue(parsed.isSuccess());
-        assertEquals("17", parsed.getTrackingData().getShipmentTrackActivities().getFirst().getSrStatus());
-        assertEquals("In Transit", parsed.getTrackingData().getShipmentTrackActivities().getFirst().getSrStatusLabel());
-    }
+    assertTrue(parsed.isSuccess());
+    assertEquals(
+        "17", parsed.getTrackingData().getShipmentTrackActivities().getFirst().getSrStatus());
+    assertEquals(
+        "In Transit",
+        parsed.getTrackingData().getShipmentTrackActivities().getFirst().getSrStatusLabel());
+  }
 
-    @Test
-    void addPickupLocationResponseModel_BackwardCompatibleAddressAccessors_WorkCorrectly() {
-        AddPickupLocationResponseModel model = new AddPickupLocationResponseModel();
-        AddPickupLocationResponseModel.Address address = new AddPickupLocationResponseModel.Address();
-        address.setAddressLine1("Warehouse Street");
+  @Test
+  void addPickupLocationResponseModel_BackwardCompatibleAddressAccessors_WorkCorrectly() {
+    AddPickupLocationResponseModel model = new AddPickupLocationResponseModel();
+    AddPickupLocationResponseModel.Address address = new AddPickupLocationResponseModel.Address();
+    address.setAddressLine1("Warehouse Street");
 
-        model.setAddress(address);
+    model.setAddress(address);
 
-        assertNotNull(model.getPickupAddress());
-        assertEquals("Warehouse Street", model.getAddress().getAddressLine1());
-    }
+    assertNotNull(model.getPickupAddress());
+    assertEquals("Warehouse Street", model.getAddress().getAddressLine1());
+  }
 
-    @Test
-    void addPickupLocationResponseModel_DeserializationMapsUnderscoreFields() {
-        String json = """
+  @Test
+  void addPickupLocationResponseModel_DeserializationMapsUnderscoreFields() {
+    String json =
+        """
                 {
                   "pickup_id": 101,
                   "company_name": "Test Company",
@@ -161,19 +168,21 @@ class ShippingResponseModelsTest {
                 }
                 """;
 
-        AddPickupLocationResponseModel parsed = gson.fromJson(json, AddPickupLocationResponseModel.class);
+    AddPickupLocationResponseModel parsed =
+        gson.fromJson(json, AddPickupLocationResponseModel.class);
 
-        assertEquals(101L, parsed.getPickupId());
-        assertEquals("Test Company", parsed.getCompanyName());
-        assertEquals("PK-101", parsed.getAddress().getPickupCode());
-        assertEquals("Street One", parsed.getAddress().getAddressLine1());
-        assertEquals("Building B", parsed.getAddress().getAddress2());
-        assertEquals("400001", parsed.getAddress().getPinCode());
-    }
+    assertEquals(101L, parsed.getPickupId());
+    assertEquals("Test Company", parsed.getCompanyName());
+    assertEquals("PK-101", parsed.getAddress().getPickupCode());
+    assertEquals("Street One", parsed.getAddress().getAddressLine1());
+    assertEquals("Building B", parsed.getAddress().getAddress2());
+    assertEquals("400001", parsed.getAddress().getPinCode());
+  }
 
-    @Test
-    void shippingOptionsResponseModel_DeserializationMapsNestedUnderscoreFields() {
-        String json = """
+  @Test
+  void shippingOptionsResponseModel_DeserializationMapsNestedUnderscoreFields() {
+    String json =
+        """
                 {
                   "company_auto_shipment_insurance_setting": true,
                   "currency": "INR",
@@ -190,19 +199,22 @@ class ShippingResponseModelsTest {
                 }
                 """;
 
-        ShippingOptionsResponseModel parsed = gson.fromJson(json, ShippingOptionsResponseModel.class);
+    ShippingOptionsResponseModel parsed = gson.fromJson(json, ShippingOptionsResponseModel.class);
 
-        assertTrue(parsed.isCompanyAutoShipmentInsuranceSetting());
-        assertEquals("INR", parsed.getCurrency());
-        assertEquals(1, parsed.getData().getAvailableCourierCompanies().size());
-        assertEquals(99, parsed.getData().getAvailableCourierCompanies().getFirst().getCourierCompanyId());
-        assertEquals("FastShip", parsed.getData().getAvailableCourierCompanies().getFirst().getCourierName());
-        assertEquals(99, parsed.getData().getRecommendedCourierCompanyId());
-    }
+    assertTrue(parsed.isCompanyAutoShipmentInsuranceSetting());
+    assertEquals("INR", parsed.getCurrency());
+    assertEquals(1, parsed.getData().getAvailableCourierCompanies().size());
+    assertEquals(
+        99, parsed.getData().getAvailableCourierCompanies().getFirst().getCourierCompanyId());
+    assertEquals(
+        "FastShip", parsed.getData().getAvailableCourierCompanies().getFirst().getCourierName());
+    assertEquals(99, parsed.getData().getRecommendedCourierCompanyId());
+  }
 
-    @Test
-    void shipRocketOrderResponseModel_DeserializationMapsUnderscoreFields() {
-        String json = """
+  @Test
+  void shipRocketOrderResponseModel_DeserializationMapsUnderscoreFields() {
+    String json =
+        """
                 {
                   "order_id": 5001,
                   "shipment_id": 7001,
@@ -212,12 +224,12 @@ class ShippingResponseModelsTest {
                 }
                 """;
 
-        ShipRocketOrderResponseModel parsed = gson.fromJson(json, ShipRocketOrderResponseModel.class);
+    ShipRocketOrderResponseModel parsed = gson.fromJson(json, ShipRocketOrderResponseModel.class);
 
-        assertEquals(5001L, parsed.getOrderId());
-        assertEquals(7001L, parsed.getShipmentId());
-        assertEquals("TRK-111", parsed.getTrackingId());
-        assertEquals(45L, parsed.getCourierId());
-        assertEquals("https://label.url", parsed.getLabelUrl());
-    }
+    assertEquals(5001L, parsed.getOrderId());
+    assertEquals(7001L, parsed.getShipmentId());
+    assertEquals("TRK-111", parsed.getTrackingId());
+    assertEquals(45L, parsed.getCourierId());
+    assertEquals("https://label.url", parsed.getLabelUrl());
+  }
 }
