@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.FilterQueryBuilder;
+package com.example.SpringApi.FilterQueryBuilder;
 
 import com.example.SpringApi.Models.DatabaseModels.Payment;
 import com.example.SpringApi.Models.DatabaseModels.PurchaseOrder;

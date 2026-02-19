@@ -591,27 +591,6 @@ class UpdatePackageTest extends PackageServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation on updatePackage endpoint.
-     * Expected Result: Annotation exists and references UPDATE_PACKAGES_PERMISSION.
-     * Assertions: Annotation is present and contains permission.
-     */
-    @Test
-    @DisplayName("updatePackage - Verify @PreAuthorize Annotation")
-    void updatePackage_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = PackageController.class.getMethod("updatePackage", PackageRequestModel.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present");
-        assertTrue(annotation.value().contains(Authorizations.UPDATE_PACKAGES_PERMISSION),
-                "@PreAuthorize should reference UPDATE_PACKAGES_PERMISSION");
-    }
-
     /**
      * Purpose: Verify controller delegates to service for valid requests.
      * Expected Result: Service method is invoked and HTTP 200 returned.

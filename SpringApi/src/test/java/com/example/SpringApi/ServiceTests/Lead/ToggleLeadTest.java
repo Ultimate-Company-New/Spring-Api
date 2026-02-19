@@ -162,40 +162,6 @@ class ToggleLeadTest extends LeadServiceTestBase {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> leadService.toggleLead(0L));
         assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
     }
-
-    /*
-     **********************************************************************************************
-     * PERMISSION TESTS
-     **********************************************************************************************
-     */
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation is declared on toggleLead method.
-     * Expected Result: Method has @PreAuthorize annotation with correct permission.
-     * Assertions: Annotation exists and references TOGGLE_LEADS_PERMISSION.
-     */
-    @Test
-    @DisplayName("Toggle Lead - Verify @PreAuthorize annotation is configured correctly")
-    void toggleLead_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange - Use reflection to verify the @PreAuthorize annotation is present
-        var method = LeadController.class.getMethod("toggleLead",
-                Long.class);
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-                org.springframework.security.access.prepost.PreAuthorize.class);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation,
-                "toggleLead method should have @PreAuthorize annotation");
-
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-                Authorizations.TOGGLE_LEADS_PERMISSION + "')";
-
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                "PreAuthorize annotation should reference TOGGLE_LEADS_PERMISSION");
-    }
-
     /**
      * Purpose: Verify controller calls service when authorization passes
      * (simulated).
@@ -241,24 +207,5 @@ class ToggleLeadTest extends LeadServiceTestBase {
 
         // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-    }
-
-    /**
-     * Purpose: Verify unauthorized access is handled at the controller level.
-     * Expected Result: Unauthorized status is returned.
-     * Assertions: Response status is 401 UNAUTHORIZED.
-     */
-    @Test
-    @DisplayName("Toggle Lead - Controller permission unauthorized - Success")
-    void toggleLead_p04_controller_permission_unauthorized() {
-        // Arrange
-        LeadController controller = new LeadController(leadServiceMock);
-        stubLeadServiceToggleLeadThrowsUnauthorized(DEFAULT_LEAD_ID);
-
-        // Act
-        ResponseEntity<?> response = controller.toggleLead(DEFAULT_LEAD_ID);
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 }

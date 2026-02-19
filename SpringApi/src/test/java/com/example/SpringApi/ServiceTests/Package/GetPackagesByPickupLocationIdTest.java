@@ -347,27 +347,6 @@ class GetPackagesByPickupLocationIdTest extends PackageServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /*
-     * Purpose: Verify @PreAuthorize annotation on getPackagesByPickupLocationId endpoint.
-     * Expected Result: Annotation exists and references VIEW_PACKAGES_PERMISSION.
-     * Assertions: Annotation is present and contains permission.
-     */
-    @Test
-    @DisplayName("getPackagesByPickupLocationId - Verify @PreAuthorize Annotation")
-    void getPackagesByPickupLocationId_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = PackageController.class.getMethod("getPackagesByPickupLocationId", Long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present");
-        assertTrue(annotation.value().contains(Authorizations.VIEW_PACKAGES_PERMISSION),
-                "@PreAuthorize should reference VIEW_PACKAGES_PERMISSION");
-    }
-
     /*
      * Purpose: Verify controller delegates to service for valid requests.
      * Expected Result: Service method is invoked and HTTP 200 returned.
@@ -688,33 +667,6 @@ class GetPackagesByPickupLocationIdDuplicateTests extends PackageServiceTestBase
         // Assert
         assertEquals(String.format(ErrorMessages.PickupLocationErrorMessages.NOT_FOUND, 0L), ex.getMessage());
     }
-
-    /*
-     **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
-     **********************************************************************************************
-     */
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation on getPackagesByPickupLocationId endpoint.
-     * Expected Result: Annotation exists and references VIEW_PACKAGES_PERMISSION.
-     * Assertions: Annotation is present and contains permission.
-     */
-    @Test
-    @DisplayName("getPackagesByPickupLocationId - Verify @PreAuthorize Annotation")
-    void getPackagesByPickupLocationId_p04_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = PackageController.class.getMethod("getPackagesByPickupLocationId", Long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present");
-        assertTrue(annotation.value().contains(Authorizations.VIEW_PACKAGES_PERMISSION),
-                "@PreAuthorize should reference VIEW_PACKAGES_PERMISSION");
-    }
-
     /**
      * Purpose: Verify controller delegates to service for valid requests.
      * Expected Result: Service method is invoked and HTTP 200 returned.

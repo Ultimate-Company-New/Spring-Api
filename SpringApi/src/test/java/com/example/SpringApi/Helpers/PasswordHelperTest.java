@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.Helpers;
+package com.example.SpringApi.Helpers;
 
 import com.example.SpringApi.Helpers.PasswordHelper;
 import org.junit.jupiter.api.DisplayName;

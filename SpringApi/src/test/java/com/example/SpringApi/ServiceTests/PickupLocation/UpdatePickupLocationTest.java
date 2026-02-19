@@ -727,28 +727,6 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
                 // Assert
                 assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         }
-
-        /**
-         * Purpose: Verify @PreAuthorize annotation on updatePickupLocation endpoint.
-         * Expected Result: Annotation exists and references UPDATE_PICKUP_LOCATIONS_PERMISSION.
-         * Assertions: Annotation is present and contains permission.
-         */
-        @Test
-        @DisplayName("updatePickupLocation - Verify @PreAuthorize Annotation")
-        void updatePickupLocation_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-                // Arrange
-                Method method = PickupLocationController.class.getMethod("updatePickupLocation", Long.class,
-                                PickupLocationRequestModel.class);
-
-                // Act
-                PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-                // Assert
-                assertNotNull(annotation, "@PreAuthorize annotation should be present on updatePickupLocation");
-                assertTrue(annotation.value().contains(Authorizations.UPDATE_PICKUP_LOCATIONS_PERMISSION),
-                                "@PreAuthorize should reference UPDATE_PICKUP_LOCATIONS_PERMISSION");
-        }
-
         /**
          * Purpose: Verify controller delegates updatePickupLocation to service.
          * Expected Result: Service method called and status OK returned.

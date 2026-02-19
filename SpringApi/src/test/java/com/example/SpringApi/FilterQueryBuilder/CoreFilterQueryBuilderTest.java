@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.FilterQueryBuilder;
+package com.example.SpringApi.FilterQueryBuilder;
 
 import com.example.SpringApi.FilterQueryBuilder.LeadFilterQueryBuilder;
 import com.example.SpringApi.FilterQueryBuilder.PickupLocationFilterQueryBuilder;
