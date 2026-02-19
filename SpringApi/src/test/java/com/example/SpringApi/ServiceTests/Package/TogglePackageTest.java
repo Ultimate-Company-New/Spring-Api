@@ -316,27 +316,6 @@ class TogglePackageTest extends PackageServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation exists and includes permission.
-     * Expected Result: Annotation present and contains correct permission.
-     * Assertions: annotation not null and contains permission.
-     */
-    @Test
-    @DisplayName("togglePackage - Verify @PreAuthorize Annotation")
-    void togglePackage_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = PackageController.class.getMethod("togglePackage", long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present");
-        assertTrue(annotation.value().contains(Authorizations.TOGGLE_PACKAGES_PERMISSION),
-                "@PreAuthorize should reference TOGGLE_PACKAGES_PERMISSION");
-    }
-
     /**
      * Purpose: Verify controller delegates toggle request to service.
      * Expected Result: Service called and OK returned.

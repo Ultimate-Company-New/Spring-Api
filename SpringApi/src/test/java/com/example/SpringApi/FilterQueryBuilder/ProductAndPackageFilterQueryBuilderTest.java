@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.FilterQueryBuilder;
+package com.example.SpringApi.FilterQueryBuilder;
 
 import com.example.SpringApi.FilterQueryBuilder.PackageFilterQueryBuilder;
 import com.example.SpringApi.FilterQueryBuilder.ProductFilterQueryBuilder;

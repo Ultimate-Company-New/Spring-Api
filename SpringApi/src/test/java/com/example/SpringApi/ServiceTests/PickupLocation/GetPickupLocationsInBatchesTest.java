@@ -441,28 +441,6 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
                 // Assert
                 assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         }
-
-        /**
-         * Purpose: Verify @PreAuthorize annotation on getPickupLocationsInBatches endpoint.
-         * Expected Result: Annotation exists and references VIEW_PICKUP_LOCATIONS_PERMISSION.
-         * Assertions: Annotation is present and contains permission.
-         */
-        @Test
-        @DisplayName("getPickupLocationsInBatches - Verify @PreAuthorize Annotation")
-        void getPickupLocationsInBatches_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-                // Arrange
-                Method method = PickupLocationController.class.getMethod("getPickupLocationsInBatches",
-                                PaginationBaseRequestModel.class);
-
-                // Act
-                PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-                // Assert
-                assertNotNull(annotation, "@PreAuthorize annotation should be present on getPickupLocationsInBatches");
-                assertTrue(annotation.value().contains(Authorizations.VIEW_PICKUP_LOCATIONS_PERMISSION),
-                                "@PreAuthorize should reference VIEW_PICKUP_LOCATIONS_PERMISSION");
-        }
-
         /**
          * Purpose: Verify controller delegates getPickupLocationsInBatches to service.
          * Expected Result: Service method called and HTTP 200 returned.

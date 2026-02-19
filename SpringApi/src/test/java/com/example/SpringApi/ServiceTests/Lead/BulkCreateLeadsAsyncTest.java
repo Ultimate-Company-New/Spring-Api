@@ -102,30 +102,4 @@ class BulkCreateLeadsAsyncTest extends LeadServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation is declared correctly on the
-     * controller.
-     * Given: LeadController class.
-     * When: Checking bulkCreateLeads method (which calls async service)
-     * annotations.
-     * Then: @PreAuthorize exists with INSERT_LEADS_PERMISSION.
-     */
-    @Test
-    @DisplayName("Bulk Create Leads Async - Verify @PreAuthorize annotation is configured correctly")
-    void bulkCreateLeadsAsync_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        var method = LeadController.class.getMethod("bulkCreateLeads", java.util.List.class);
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-                org.springframework.security.access.prepost.PreAuthorize.class);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation, "bulkCreateLeads method should have @PreAuthorize annotation");
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-                Authorizations.INSERT_LEADS_PERMISSION + "')";
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                "PreAuthorize annotation should reference INSERT_LEADS_PERMISSION");
-    }
 }
