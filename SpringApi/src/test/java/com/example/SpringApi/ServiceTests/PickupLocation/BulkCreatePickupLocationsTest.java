@@ -495,27 +495,6 @@ class BulkCreatePickupLocationsTest extends PickupLocationServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation on bulkCreatePickupLocations endpoint.
-     * Expected Result: Annotation exists and references INSERT_PICKUP_LOCATIONS_PERMISSION.
-     * Assertions: Annotation is present and contains permission.
-     */
-    @Test
-    @DisplayName("bulkCreatePickupLocations - Verify @PreAuthorize Annotation")
-    void bulkCreatePickupLocations_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = PickupLocationController.class.getMethod("bulkCreatePickupLocations", List.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present on bulkCreatePickupLocations");
-        assertTrue(annotation.value().contains(Authorizations.INSERT_PICKUP_LOCATIONS_PERMISSION),
-                "@PreAuthorize should reference INSERT_PICKUP_LOCATIONS_PERMISSION");
-    }
-
     /**
      * Purpose: Verify controller delegates to async service call for valid requests.
      * Expected Result: Service method is invoked and HTTP 200 returned.

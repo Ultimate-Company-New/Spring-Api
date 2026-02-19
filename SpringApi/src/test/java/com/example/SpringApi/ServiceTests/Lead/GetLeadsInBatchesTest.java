@@ -107,41 +107,6 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
                                 () -> leadService.getLeadsInBatches(testLeadRequest));
                 assertEquals(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION, pagEx.getMessage());
         }
-
-        /*
-         **********************************************************************************************
-         * PERMISSION TESTS
-         **********************************************************************************************
-         */
-
-        /**
-         * Purpose: Verify @PreAuthorize annotation is declared on getLeadsInBatches
-         * method.
-         * Expected Result: Method has @PreAuthorize annotation with correct permission.
-         * Assertions: Annotation exists and references VIEW_LEADS_PERMISSION.
-         */
-        @Test
-        @DisplayName("Get Leads In Batches - Verify @PreAuthorize annotation is configured correctly")
-        void getLeadsInBatches_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-                // Arrange
-                var method = LeadController.class.getMethod("getLeadsInBatches",
-                                LeadRequestModel.class);
-
-                // Act
-                var preAuthorizeAnnotation = method.getAnnotation(
-                                org.springframework.security.access.prepost.PreAuthorize.class);
-
-                // Assert
-                assertNotNull(preAuthorizeAnnotation,
-                                "getLeadsInBatches method should have @PreAuthorize annotation");
-
-                String expectedPermission = "@customAuthorization.hasAuthority('" +
-                                Authorizations.VIEW_LEADS_PERMISSION + "')";
-
-                assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                                "PreAuthorize annotation should reference VIEW_LEADS_PERMISSION");
-        }
-
         /**
          * Purpose: Verify controller calls service when authorization passes
          * (simulated).

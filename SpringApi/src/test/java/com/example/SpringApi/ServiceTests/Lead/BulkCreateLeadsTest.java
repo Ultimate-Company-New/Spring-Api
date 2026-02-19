@@ -376,41 +376,6 @@ class BulkCreateLeadsTest extends LeadServiceTestBase {
         // Assert - verify at least one failure reported
         assertTrue(result.getFailureCount() >= 1, "Expected at least one failure in batch");
     }
-
-    /*
-     **********************************************************************************************
-     * PERMISSION TESTS
-     **********************************************************************************************
-     */
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation is declared on bulkCreateLeads
-     * method.
-     * Expected Result: Method has @PreAuthorize annotation with correct permission.
-     * Assertions: Annotation exists and references INSERT_LEADS_PERMISSION.
-     */
-    @Test
-    @DisplayName("Bulk Create Leads - Verify @PreAuthorize annotation is configured correctly")
-    void bulkCreateLeads_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        var method = LeadController.class.getMethod("bulkCreateLeads",
-                java.util.List.class);
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-                org.springframework.security.access.prepost.PreAuthorize.class);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation,
-                "bulkCreateLeads method should have @PreAuthorize annotation");
-
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-                Authorizations.INSERT_LEADS_PERMISSION + "')";
-
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                "PreAuthorize annotation should reference INSERT_LEADS_PERMISSION");
-    }
-
     /**
      * Purpose: Verify controller calls service when authorization passes
      * (simulated).

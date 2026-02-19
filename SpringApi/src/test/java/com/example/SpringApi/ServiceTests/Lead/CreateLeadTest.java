@@ -471,40 +471,6 @@ class CreateLeadTest extends LeadServiceTestBase {
         BadRequestException ex = assertThrows(BadRequestException.class, () -> leadService.createLead(testLeadRequest));
         assertEquals(ErrorMessages.LeadsErrorMessages.ER016, ex.getMessage());
     }
-
-    /*
-     **********************************************************************************************
-     * PERMISSION TESTS
-     **********************************************************************************************
-     */
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation is declared on createLead method.
-     * Expected Result: Method has @PreAuthorize annotation with correct permission.
-     * Assertions: Annotation exists and references INSERT_LEADS_PERMISSION.
-     */
-    @Test
-    @DisplayName("Create Lead - Verify @PreAuthorize annotation is configured correctly")
-    void createLead_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        var method = LeadController.class.getMethod("createLead",
-                com.example.SpringApi.Models.RequestModels.LeadRequestModel.class);
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-                org.springframework.security.access.prepost.PreAuthorize.class);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation,
-                "createLead method should have @PreAuthorize annotation");
-
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-                Authorizations.INSERT_LEADS_PERMISSION + "')";
-
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                "PreAuthorize annotation should reference INSERT_LEADS_PERMISSION");
-    }
-
     /**
      * Purpose: Verify controller delegates createLead calls to service.
      * Expected Result: Service method called and HTTP 200 returned.

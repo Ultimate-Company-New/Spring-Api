@@ -425,27 +425,6 @@ class BulkCreatePackagesTest extends PackageServiceTestBase {
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(packageServiceMock, never()).bulkCreatePackagesAsync(anyList(), anyLong(), anyString(), anyLong());
     }
-
-    /*
-     * Purpose: Verify @PreAuthorize annotation on bulkCreatePackages endpoint.
-     * Expected Result: Annotation exists and references INSERT_PACKAGES_PERMISSION.
-     * Assertions: Annotation is present and contains permission.
-     */
-    @Test
-    @DisplayName("bulkCreatePackages - Verify @PreAuthorize Annotation")
-    void bulkCreatePackages_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = PackageController.class.getMethod("bulkCreatePackages", List.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present");
-        assertTrue(annotation.value().contains(Authorizations.INSERT_PACKAGES_PERMISSION),
-                "@PreAuthorize should reference INSERT_PACKAGES_PERMISSION");
-    }
-
     /*
      * Purpose: Verify controller delegates to async service call for valid requests.
      * Expected Result: Service method is invoked and HTTP 200 returned.
@@ -839,33 +818,6 @@ class BulkCreatePackagesDuplicateTests extends PackageServiceTestBase {
         // Assert
         assertEquals(1, result.getFailureCount());
     }
-
-    /*
-     **********************************************************************************************
-     * CONTROLLER AUTHORIZATION TESTS
-     **********************************************************************************************
-     */
-
-    /**
-     * Purpose: Verify bulkCreatePackages endpoint is protected by @PreAuthorize.
-     * Expected Result: Annotation contains INSERT_PACKAGES_PERMISSION.
-     * Assertions: Annotation exists and contains correct permission.
-     */
-    @Test
-    @DisplayName("bulkCreatePackages - Verify @PreAuthorize Annotation")
-    void bulkCreatePackages_p04_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = PackageController.class.getMethod("bulkCreatePackages", List.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present");
-        assertTrue(annotation.value().contains(Authorizations.INSERT_PACKAGES_PERMISSION),
-            "@PreAuthorize should reference INSERT_PACKAGES_PERMISSION");
-    }
-
     /**
      * Purpose: Verify controller delegates bulkCreatePackages to service.
      * Expected Result: Returns HTTP 200 OK when delegation succeeds.

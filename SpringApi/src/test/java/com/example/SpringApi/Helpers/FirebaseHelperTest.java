@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.Helpers;
+package com.example.SpringApi.Helpers;
 
 import com.example.SpringApi.Helpers.FirebaseHelper;
 import com.example.SpringApi.Models.DatabaseModels.GoogleCred;

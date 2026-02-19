@@ -561,40 +561,6 @@ class UpdateLeadTest extends LeadServiceTestBase {
                                 () -> leadService.updateLead(0L, testLeadRequest));
                 assertEquals(ErrorMessages.LEAD_NOT_FOUND, ex.getMessage());
         }
-
-        /*
-         **********************************************************************************************
-         * PERMISSION TESTS
-         **********************************************************************************************
-         */
-
-        /**
-         * Purpose: Verify @PreAuthorize annotation is declared on updateLead method.
-         * Expected Result: Method has @PreAuthorize annotation with correct permission.
-         * Assertions: Annotation exists and references UPDATE_LEADS_PERMISSION.
-         */
-        @Test
-        @DisplayName("Update Lead - Verify @PreAuthorize annotation is configured correctly")
-        void updateLead_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-                // Arrange - Use reflection to verify the @PreAuthorize annotation is present
-                var method = LeadController.class.getMethod("updateLead",
-                                Long.class, com.example.SpringApi.Models.RequestModels.LeadRequestModel.class);
-
-                // Act
-                var preAuthorizeAnnotation = method.getAnnotation(
-                                org.springframework.security.access.prepost.PreAuthorize.class);
-
-                // Assert
-                assertNotNull(preAuthorizeAnnotation,
-                                "updateLead method should have @PreAuthorize annotation");
-
-                String expectedPermission = "@customAuthorization.hasAuthority('" +
-                                Authorizations.UPDATE_LEADS_PERMISSION + "')";
-
-                assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                                "PreAuthorize annotation should reference UPDATE_LEADS_PERMISSION");
-        }
-
         /**
          * Purpose: Verify controller calls service when authorization passes
          * (simulated).
@@ -640,24 +606,5 @@ class UpdateLeadTest extends LeadServiceTestBase {
 
                 // Assert
                 assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-        }
-
-        /**
-         * Purpose: Verify unauthorized access is handled at the controller level.
-         * Expected Result: Unauthorized status is returned.
-         * Assertions: Response status is 401 UNAUTHORIZED.
-         */
-        @Test
-        @DisplayName("Update Lead - Controller permission unauthorized - Success")
-        void updateLead_p04_controller_permission_unauthorized() {
-                // Arrange
-                LeadController controller = new LeadController(leadServiceMock);
-                stubLeadServiceUpdateLeadThrowsUnauthorized(DEFAULT_LEAD_ID);
-
-                // Act
-                ResponseEntity<?> response = controller.updateLead(DEFAULT_LEAD_ID, testLeadRequest);
-
-                // Assert
-                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         }
 }

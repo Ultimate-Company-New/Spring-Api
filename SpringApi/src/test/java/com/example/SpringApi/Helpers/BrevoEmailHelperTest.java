@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.Helpers;
+package com.example.SpringApi.Helpers;
 
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;

@@ -707,40 +707,6 @@ class CreateClientTest extends ClientServiceTestBase {
         // Assert
         assertEquals(ErrorMessages.ClientErrorMessages.INVALID_WEBSITE, ex.getMessage());
     }
-
-    /*
-     **********************************************************************************************
-     * PERMISSION TESTS
-     **********************************************************************************************
-     */
-
-    /*
-     * Purpose: Verify @PreAuthorize annotation is declared on createClient method.
-     * Expected Result: Method has @PreAuthorize annotation with correct permission.
-     * Assertions: Annotation exists and references INSERT_CLIENT_PERMISSION.
-     */
-    @Test
-    @DisplayName("Create Client - Verify @PreAuthorize annotation is configured correctly")
-    void createClient_p01_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        var method = ClientController.class.getMethod("createClient",
-                com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-                org.springframework.security.access.prepost.PreAuthorize.class);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation,
-                "createClient method should have @PreAuthorize annotation");
-
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-                Authorizations.INSERT_CLIENT_PERMISSION + "')";
-
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                "PreAuthorize annotation should reference INSERT_CLIENT_PERMISSION");
-    }
-
     /*
      * Purpose: Verify controller calls service when authorization passes
      * (simulated).

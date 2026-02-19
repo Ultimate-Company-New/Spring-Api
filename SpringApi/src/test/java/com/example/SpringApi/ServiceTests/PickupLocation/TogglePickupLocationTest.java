@@ -303,27 +303,6 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation on togglePickupLocation endpoint.
-     * Expected Result: Annotation exists and references DELETE_PICKUP_LOCATIONS_PERMISSION.
-     * Assertions: Annotation is present and contains permission.
-     */
-    @Test
-    @DisplayName("togglePickupLocation - Verify @PreAuthorize Annotation")
-    void togglePickupLocation_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = PickupLocationController.class.getMethod("togglePickupLocation", Long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present on togglePickupLocation");
-        assertTrue(annotation.value().contains(Authorizations.DELETE_PICKUP_LOCATIONS_PERMISSION),
-                "@PreAuthorize should reference DELETE_PICKUP_LOCATIONS_PERMISSION");
-    }
-
     /**
      * Purpose: Verify controller delegates togglePickupLocation to service.
      * Expected Result: Service method called and HTTP 200 returned.

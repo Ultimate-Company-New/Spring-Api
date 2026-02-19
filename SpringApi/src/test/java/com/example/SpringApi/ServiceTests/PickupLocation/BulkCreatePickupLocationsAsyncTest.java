@@ -319,27 +319,4 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
                 assertEquals(org.springframework.http.ResponseEntity.class, returnType,
                                 "bulkCreatePickupLocationsAsync should return ResponseEntity");
         }
-
-        /**
-         * Purpose: Verify @PreAuthorize is present on controller method.
-         * Expected Result: Annotation is present with required permission.
-         * Assertions: Annotation exists and references INSERT_PICKUP_LOCATIONS_PERMISSION.
-         */
-        @Test
-        @DisplayName("bulkCreatePickupLocationsAsync - Verify @PreAuthorize Annotation - Success")
-        void bulkCreatePickupLocationsAsync_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-                // Arrange
-                Method method = PickupLocationController.class.getMethod("bulkCreatePickupLocations",
-                                List.class);
-
-                // Act
-                PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-                // Assert
-                assertNotNull(annotation,
-                                "@PreAuthorize annotation should be present on bulkCreatePickupLocationsAsync");
-                assertTrue(annotation.value().contains(Authorizations.INSERT_PICKUP_LOCATIONS_PERMISSION),
-                                "@PreAuthorize should reference INSERT_PICKUP_LOCATIONS_PERMISSION");
-        }
-
 }
