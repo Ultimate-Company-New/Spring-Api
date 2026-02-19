@@ -53,7 +53,7 @@ public class ShipRocketHelper {
     /**
      * Create an HttpClient with timeout configuration.
      */
-    private HttpClient createHttpClient() {
+    protected HttpClient createHttpClient() {
         return HttpClient.newBuilder()
                 .connectTimeout(HTTP_TIMEOUT)
                 .build();
@@ -67,7 +67,7 @@ public class ShipRocketHelper {
     /**
      * Creates a configured Gson instance for JSON serialization/deserialization.
      */
-    private Gson createGson() {
+    protected Gson createGson() {
         return new GsonBuilder()
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
                 .registerTypeAdapter(Date.class, new DateAdapter())
@@ -85,7 +85,7 @@ public class ShipRocketHelper {
      * @return Raw JSON response string
      * @throws BadRequestException if HTTP status is not 200 or on any error
      */
-    private String httpResponseRaw(
+    protected String httpResponseRaw(
             String token,
             String url,
             String methodType,

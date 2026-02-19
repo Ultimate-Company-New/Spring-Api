@@ -23,7 +23,7 @@ import com.example.SpringApi.Exceptions.UnauthorizedException;
 import com.example.SpringApi.Helpers.PasswordHelper;
 import com.example.SpringApi.Exceptions.ApplicationException;
 
-import org.apache.catalina.core.ApplicationContext;
+import org.springframework.context.ApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;

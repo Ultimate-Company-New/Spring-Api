@@ -71,8 +71,10 @@ public class QAService extends BaseService implements IQASubTranslator {
     private static final String PLAYWRIGHT_RELATIVE_ROOT = "../Spring-PlayWright-Automation/";
     private static final String PLAYWRIGHT_PROJECT_DIR = "Spring-PlayWright-Automation";
 
-    // Test source file path (relative to project root)
-    private static final String TEST_SOURCE_PATH = "src/test/java/com/example/SpringApi/Services/Tests";
+    // Test source file paths (relative to project root)
+    // Keep both paths for backward compatibility with older layouts.
+    private static final String TEST_SOURCE_PATH = "src/test/java/com/example/SpringApi/ServiceTests";
+    private static final String LEGACY_TEST_SOURCE_PATH = "src/test/java/com/example/SpringApi/Services/Tests";
 
     // Automated API tests path (relative - Spring-PlayWright-Automation project)
     private static final String AUTOMATED_API_TESTS_PATH = "src/test/java/com/ultimatecompany/tests/ApiTests";
@@ -434,20 +436,25 @@ public class QAService extends BaseService implements IQASubTranslator {
         // Try multiple possible paths for the test file
         List<Path> possiblePaths = new ArrayList<>();
 
-        // Current working directory based paths
-        possiblePaths.add(Paths.get(TEST_SOURCE_PATH, testClassName + JAVA_EXTENSION));
-        possiblePaths.add(Paths.get(SPRING_API_DIR, TEST_SOURCE_PATH, testClassName + JAVA_EXTENSION));
+        List<String> sourceRoots = List.of(TEST_SOURCE_PATH, LEGACY_TEST_SOURCE_PATH);
 
         // Try to find the project root by looking for pom.xml
         Path currentDir = Paths.get(System.getProperty(USER_DIR_PROPERTY));
-        possiblePaths.add(currentDir.resolve(TEST_SOURCE_PATH).resolve(testClassName + JAVA_EXTENSION));
-        possiblePaths.add(currentDir.resolve(SPRING_API_DIR).resolve(TEST_SOURCE_PATH).resolve(testClassName + JAVA_EXTENSION));
-
-        // Also check parent directories
         Path parent = currentDir.getParent();
-        if (parent != null) {
-            possiblePaths.add(parent.resolve(SPRING_API_DIR).resolve(TEST_SOURCE_PATH).resolve(testClassName + JAVA_EXTENSION));
-            possiblePaths.add(parent.resolve(TEST_SOURCE_PATH).resolve(testClassName + JAVA_EXTENSION));
+
+        for (String sourceRoot : sourceRoots) {
+            // Current working directory based paths
+            possiblePaths.add(Paths.get(sourceRoot, testClassName + JAVA_EXTENSION));
+            possiblePaths.add(Paths.get(SPRING_API_DIR, sourceRoot, testClassName + JAVA_EXTENSION));
+            possiblePaths.add(currentDir.resolve(sourceRoot).resolve(testClassName + JAVA_EXTENSION));
+            possiblePaths.add(currentDir.resolve(SPRING_API_DIR).resolve(sourceRoot)
+                    .resolve(testClassName + JAVA_EXTENSION));
+
+            // Also check parent directories
+            if (parent != null) {
+                possiblePaths.add(parent.resolve(SPRING_API_DIR).resolve(sourceRoot).resolve(testClassName + JAVA_EXTENSION));
+                possiblePaths.add(parent.resolve(sourceRoot).resolve(testClassName + JAVA_EXTENSION));
+            }
         }
 
         Path testFilePath = null;

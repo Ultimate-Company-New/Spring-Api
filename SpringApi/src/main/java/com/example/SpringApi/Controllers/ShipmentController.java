@@ -3,7 +3,7 @@ package com.example.SpringApi.Controllers;
 import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
 import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
 import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Services.Interface.IShipmentSubTranslator;
+import com.example.SpringApi.Services.Interface.IShippingSubTranslator;
 import com.example.SpringApi.Models.ApiRoutes;
 import com.example.SpringApi.Models.Authorizations;
 import com.example.SpringApi.Exceptions.BadRequestException;
@@ -31,10 +31,10 @@ import org.springframework.web.bind.annotation.*;
 public class ShipmentController {
     
     private static final ContextualLogger logger = ContextualLogger.getLogger(ShipmentController.class);
-    private final IShipmentSubTranslator shipmentService;
+    private final IShippingSubTranslator shippingService;
     
-    public ShipmentController(IShipmentSubTranslator shipmentService) {
-        this.shipmentService = shipmentService;
+    public ShipmentController(IShippingSubTranslator shippingService) {
+        this.shippingService = shippingService;
     }
     
     /**
@@ -52,7 +52,7 @@ public class ShipmentController {
     @PostMapping(ApiRoutes.ShipmentSubRoute.GET_SHIPMENTS_IN_BATCHES)
     public ResponseEntity<?> getShipmentsInBatches(@RequestBody PaginationBaseRequestModel paginationBaseRequestModel) {
         try {
-            return ResponseEntity.ok(shipmentService.getShipmentsInBatches(paginationBaseRequestModel));
+            return ResponseEntity.ok(shippingService.getShipmentsInBatches(paginationBaseRequestModel));
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));
@@ -78,7 +78,7 @@ public class ShipmentController {
     @GetMapping(ApiRoutes.ShipmentSubRoute.GET_SHIPMENT_BY_ID + "/{shipmentId}")
     public ResponseEntity<?> getShipmentById(@PathVariable Long shipmentId) {
         try {
-            return ResponseEntity.ok(shipmentService.getShipmentById(shipmentId));
+            return ResponseEntity.ok(shippingService.getShipmentById(shipmentId));
         } catch (BadRequestException bre) {
             logger.error(bre);
             return ResponseEntity.badRequest().body(new ErrorResponseModel(ErrorMessages.ERROR_BAD_REQUEST, bre.getMessage(), HttpStatus.BAD_REQUEST.value()));

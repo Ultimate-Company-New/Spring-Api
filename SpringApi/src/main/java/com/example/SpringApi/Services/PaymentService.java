@@ -159,7 +159,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             orderRequest.put(JSON_FIELD_NOTES, notes);
 
             Order razorpayOrder = razorpayClient.orders.create(orderRequest);
-            String razorpayOrderId = String.valueOf(razorpayOrder.get("id"));
+            String razorpayOrderId = razorpayOrder.get("id").toString();
 
             // Create Payment record to track this transaction
             Payment.PaymentOrderData paymentOrderData = new Payment.PaymentOrderData();
@@ -296,7 +296,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
             orderRequest.put(JSON_FIELD_NOTES, notes);
 
             Order razorpayOrder = razorpayClient.orders.create(orderRequest);
-            String razorpayOrderId = String.valueOf(razorpayOrder.get("id"));
+            String razorpayOrderId = razorpayOrder.get("id").toString();
 
             // Create Payment record to track this transaction
             Payment.PaymentOrderData paymentOrderData = new Payment.PaymentOrderData();
@@ -859,7 +859,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
                     refundRequest
             );
 
-            String refundId = String.valueOf(refund.get("id"));
+            String refundId = refund.get("id").toString();
             payment.recordRefund(refundId, amountInPaise, getUser());
             paymentRepository.save(payment);
 
