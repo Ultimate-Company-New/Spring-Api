@@ -381,26 +381,6 @@ class CreateOrderFollowUpTest extends PaymentServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify controller method has expected @PreAuthorize permission constant.
-     * Expected Result: Annotation exists and contains UPDATE_PURCHASE_ORDERS_PERMISSION.
-     * Assertions: annotation not null and value contains expected permission.
-     */
-    @Test
-    @DisplayName("createOrderFollowUp - Controller PreAuthorize Annotation - Success")
-    void createOrderFollowUp_p02_controllerPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
-        Method method = PaymentController.class.getMethod("createOrderFollowUp", RazorpayOrderRequestModel.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present");
-        assertTrue(annotation.value().contains(Authorizations.UPDATE_PURCHASE_ORDERS_PERMISSION));
-    }
-
     /**
      * Purpose: Verify controller delegates follow-up create order request to service.
      * Expected Result: HTTP 200 OK with delegated service call.

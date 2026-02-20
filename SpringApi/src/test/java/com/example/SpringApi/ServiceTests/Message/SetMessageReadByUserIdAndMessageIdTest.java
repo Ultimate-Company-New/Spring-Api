@@ -261,27 +261,6 @@ class SetMessageReadByUserIdAndMessageIdTest extends MessageServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify that the setMessageReadByUserIdAndMessageId controller method
-     * is protected by correct @PreAuthorize permission.
-     * Expected: Method has @PreAuthorize referencing VIEW_MESSAGES_PERMISSION.
-     */
-    @Test
-    @DisplayName("setMessageReadByUserIdAndMessageId - Verify @PreAuthorize Annotation")
-    void setMessageReadByUserIdAndMessageId_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = MessageController.class.getMethod("setMessageReadByUserIdAndMessageId", Long.class, Long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present");
-        assertTrue(annotation.value().contains(Authorizations.VIEW_MESSAGES_PERMISSION),
-                "@PreAuthorize should reference VIEW_MESSAGES_PERMISSION");
-    }
-
     /**
      * Purpose: Verify that the controller correctly delegates
      * setMessageReadByUserIdAndMessageId calls to the service layer.

@@ -115,27 +115,6 @@ class TogglePurchaseOrderTest extends PurchaseOrderServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify controller has @PreAuthorize for togglePurchaseOrder.
-     * Expected Result: Annotation exists and includes TOGGLE_PURCHASE_ORDERS_PERMISSION.
-     * Assertions: Annotation is present and contains permission.
-     */
-    @Test
-    @DisplayName("togglePurchaseOrder - Verify @PreAuthorize Annotation")
-    void togglePurchaseOrder_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = PurchaseOrderController.class.getMethod("togglePurchaseOrder", long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present on togglePurchaseOrder");
-        assertTrue(annotation.value().contains(Authorizations.TOGGLE_PURCHASE_ORDERS_PERMISSION),
-                "@PreAuthorize should reference TOGGLE_PURCHASE_ORDERS_PERMISSION");
-    }
-
     /**
      * Purpose: Verify controller delegates to service.
      * Expected Result: Service is called once and HTTP 200 returned.

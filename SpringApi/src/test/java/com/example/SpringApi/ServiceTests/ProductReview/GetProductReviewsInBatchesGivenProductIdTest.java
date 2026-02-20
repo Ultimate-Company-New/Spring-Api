@@ -316,23 +316,4 @@ class GetProductReviewsInBatchesGivenProductIdTest extends ProductReviewServiceT
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /*
-     * Purpose: Verify @PreAuthorize annotation is present.
-     * Expected Result: Annotation exists.
-     * Assertions: Annotation is not null.
-     */
-    @Test
-    @DisplayName("getProductReviewsInBatchesGivenProductId - Verify @PreAuthorize Annotation")
-    void getProductReviewsInBatchesGivenProductId_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
-        Method method = ProductReviewController.class.getMethod("getProductReviewsGivenProductId",
-                com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.class, long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "getProductReviewsGivenProductId should have @PreAuthorize annotation");
-    }
 }

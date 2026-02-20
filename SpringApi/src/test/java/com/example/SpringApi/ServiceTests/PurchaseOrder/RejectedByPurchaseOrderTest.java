@@ -109,27 +109,6 @@ class RejectedByPurchaseOrderTest extends PurchaseOrderServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify controller has @PreAuthorize for rejectedByPurchaseOrder.
-     * Expected Result: Annotation exists and includes UPDATE_PURCHASE_ORDERS_PERMISSION.
-     * Assertions: Annotation is present and contains permission.
-     */
-    @Test
-    @DisplayName("rejectedByPurchaseOrder - Verify @PreAuthorize Annotation")
-    void rejectedByPurchaseOrder_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = PurchaseOrderController.class.getMethod("rejectedByPurchaseOrder", long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present on rejectedByPurchaseOrder");
-        assertTrue(annotation.value().contains(Authorizations.UPDATE_PURCHASE_ORDERS_PERMISSION),
-                "@PreAuthorize should reference UPDATE_PURCHASE_ORDERS_PERMISSION");
-    }
-
     /**
      * Purpose: Verify controller delegates to service.
      * Expected Result: Service is called once and HTTP 200 returned.

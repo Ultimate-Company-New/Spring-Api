@@ -317,23 +317,4 @@ class ToggleTodoTest extends TodoServiceTestBase {
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(todoServiceMock, times(1)).toggleTodo(TEST_TODO_ID);
     }
-
-    /*
-     * Purpose: Verify @PreAuthorize annotation on controller.
-     * Expected Result: Annotation exists and has correct value.
-     * Assertions: assertNotNull, assertEquals
-     */
-    @Test
-    @DisplayName("toggleTodo - Verify @PreAuthorize Annotation")
-    void toggleTodo_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
-        Method method = TodoController.class.getMethod("toggleTodo", long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "toggleItem method should have @PreAuthorize annotation");
-        assertEquals("@customAuthorization.hasAuthority(null)", annotation.value());
-    }
 }

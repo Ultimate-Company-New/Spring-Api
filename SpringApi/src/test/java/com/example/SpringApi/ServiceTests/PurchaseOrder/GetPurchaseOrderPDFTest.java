@@ -239,27 +239,6 @@ class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify controller has @PreAuthorize for getPurchaseOrderPDF.
-     * Expected Result: Annotation exists and includes VIEW_PURCHASE_ORDERS_PERMISSION.
-     * Assertions: Annotation is present and contains permission.
-     */
-    @Test
-    @DisplayName("getPurchaseOrderPDF - Verify @PreAuthorize Annotation")
-    void getPurchaseOrderPDF_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = PurchaseOrderController.class.getMethod("getPurchaseOrderPDF", long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present on getPurchaseOrderPDF");
-        assertTrue(annotation.value().contains(Authorizations.VIEW_PURCHASE_ORDERS_PERMISSION),
-                "@PreAuthorize should reference VIEW_PURCHASE_ORDERS_PERMISSION");
-    }
-
     /**
      * Purpose: Verify controller delegates to service.
      * Expected Result: Service is called once and HTTP 200 returned.

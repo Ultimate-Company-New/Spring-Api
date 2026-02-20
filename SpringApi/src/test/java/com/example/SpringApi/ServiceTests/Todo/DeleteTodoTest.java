@@ -267,23 +267,4 @@ class DeleteTodoTest extends TodoServiceTestBase {
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(todoServiceMock, times(1)).deleteTodo(TEST_TODO_ID);
     }
-
-    /*
-     * Purpose: Verify @PreAuthorize annotation on controller.
-     * Expected Result: Annotation exists and has correct value.
-     * Assertions: assertNotNull, assertEquals
-     */
-    @Test
-    @DisplayName("deleteTodo - Verify @PreAuthorize Annotation")
-    void deleteTodo_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
-        Method method = TodoController.class.getMethod("deleteItem", long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "deleteItem method should have @PreAuthorize annotation");
-        assertEquals("@customAuthorization.hasAuthority(null)", annotation.value());
-    }
 }

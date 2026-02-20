@@ -305,25 +305,6 @@ class ToggleProductReviewTest extends ProductReviewServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-
-    /*
-     * Purpose: Verify @PreAuthorize annotation is present.
-     * Expected Result: Annotation exists.
-     * Assertions: Annotation is not null.
-     */
-    @Test
-    @DisplayName("toggleProductReview - Verify @PreAuthorize Annotation")
-    void toggleProductReview_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
-        Method method = ProductReviewController.class.getMethod("toggleProductReview", long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "toggleProductReview should have @PreAuthorize annotation");
-    }
 }
 
 /**

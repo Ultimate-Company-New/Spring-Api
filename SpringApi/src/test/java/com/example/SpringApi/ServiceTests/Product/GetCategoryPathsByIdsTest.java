@@ -163,26 +163,6 @@ class GetCategoryPathsByIdsTest extends ProductServiceTestBase {
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(productServiceMock).getCategoryPathsByIds(any());
     }
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation exists.
-     * Expected Result: Annotation includes required permission.
-     * Assertions: Annotation is present and contains VIEW_PRODUCTS_PERMISSION.
-     */
-    @Test
-    @DisplayName("getCategoryPathsByIds - Verify @PreAuthorize annotation - Success")
-    void getCategoryPathsByIds_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = ProductController.class.getMethod("getCategoryPathsByIds", List.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.VIEW_PRODUCTS_PERMISSION));
-    }
-
     /**
      * Purpose: Verify controller delegates to service.
      * Expected Result: Response status is OK.

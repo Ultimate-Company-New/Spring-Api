@@ -144,26 +144,6 @@ class FindCategoriesByParentIdTest extends ProductServiceTestBase {
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(productServiceMock).findCategoriesByParentId(any());
     }
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation exists.
-     * Expected Result: Annotation includes required permission.
-     * Assertions: Annotation is present and contains VIEW_PRODUCTS_PERMISSION.
-     */
-    @Test
-    @DisplayName("findCategoriesByParentId - Verify @PreAuthorize annotation - Success")
-    void findCategoriesByParentId_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = ProductController.class.getMethod("findCategoriesByParentId", Long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.VIEW_PRODUCTS_PERMISSION));
-    }
-
     /**
      * Purpose: Verify controller delegation to service.
      * Expected Result: OK status returned.

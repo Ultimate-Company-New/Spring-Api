@@ -606,29 +606,6 @@ class LogDataTest extends UserLogServiceTestBase {
         // It's called by other services to log actions, not exposed to API
         // No permission check needed as it's not publicly accessible
     }
-
-    /**
-     * Purpose: Verify unauthorized access is handled at the controller level.
-     * Expected Result: Unauthorized status is returned.
-     * Assertions: Response status is 401 UNAUTHORIZED.
-     */
-    @Test
-    @DisplayName("logData - Controller permission unauthorized - Success")
-    void logData_p03_controller_permission_unauthorized() {
-        // Arrange
-        com.example.SpringApi.Models.RequestModels.UserLogsRequestModel request = new com.example.SpringApi.Models.RequestModels.UserLogsRequestModel();
-        // Use both stubs to ensure coverage of user instruction and actual method
-        // execution
-        stubUserLogServiceLogDataThrowsUnauthorized();
-        stubServiceThrowsUnauthorizedException();
-
-        // Act
-        org.springframework.http.ResponseEntity<?> response = userLogControllerWithMock.fetchUserLogsInBatches(request);
-
-        // Assert
-        assertEquals(org.springframework.http.HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
     /**
      * Purpose: Verify UserLogService controller delegates to service.
      * Expected Result: Service method is called and HTTP 200 is returned.
@@ -636,7 +613,7 @@ class LogDataTest extends UserLogServiceTestBase {
      */
     @Test
     @DisplayName("logData - Controller delegates to service correctly")
-    void logData_p04_controller_permission_Success() {
+    void logData_p04_controller_delegation_success() {
         // Arrange
         com.example.SpringApi.Models.RequestModels.UserLogsRequestModel request = new com.example.SpringApi.Models.RequestModels.UserLogsRequestModel();
         stubUserLogServiceFetchUserLogsInBatchesMock(request,

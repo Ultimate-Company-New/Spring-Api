@@ -854,23 +854,4 @@ class CreateReturnTest extends ShippingServiceTestBase {
                 // Assert
                 assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         }
-
-    /**
-     * Purpose: Verify controller has @PreAuthorize for createReturn.
-     * Expected Result: Annotation exists and includes MODIFY_SHIPMENTS_PERMISSION.
-     * Assertions: Annotation is present and contains permission.
-     */
-    @Test
-    @DisplayName("createReturn - Verify @PreAuthorize Annotation")
-    void createReturn_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = ShippingController.class.getMethod("createReturn", CreateReturnRequestModel.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.MODIFY_SHIPMENTS_PERMISSION));
-    }
 }

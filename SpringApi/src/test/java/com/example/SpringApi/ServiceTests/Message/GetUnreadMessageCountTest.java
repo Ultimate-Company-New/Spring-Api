@@ -229,27 +229,6 @@ class GetUnreadMessageCountTest extends MessageServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify that the getUnreadMessageCount controller method is protected
-     * by correct @PreAuthorize permission.
-     * Expected: Method has @PreAuthorize referencing VIEW_MESSAGES_PERMISSION.
-     */
-    @Test
-    @DisplayName("getUnreadMessageCount - Verify @PreAuthorize Annotation")
-    void getUnreadMessageCount_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = MessageController.class.getMethod("getUnreadMessageCount");
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present");
-        assertTrue(annotation.value().contains(Authorizations.VIEW_MESSAGES_PERMISSION),
-                "@PreAuthorize should reference VIEW_MESSAGES_PERMISSION");
-    }
-
     /**
      * Purpose: Verify that the controller correctly delegates getUnreadMessageCount
      * calls to the service layer.

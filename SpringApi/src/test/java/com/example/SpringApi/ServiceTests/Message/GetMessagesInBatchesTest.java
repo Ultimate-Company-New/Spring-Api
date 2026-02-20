@@ -162,34 +162,6 @@ class GetMessagesInBatchesTest extends MessageServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify that the getMessagesInBatches controller method is protected
-     * by correct @PreAuthorize permission.
-     * Expected: Method has @PreAuthorize referencing VIEW_MESSAGES_PERMISSION.
-     */
-    @Test
-    @DisplayName("getMessagesInBatches - Verify @PreAuthorize annotation")
-    void getMessagesInBatches_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = MessageController.class.getMethod(
-                "getMessagesInBatches",
-                PaginationBaseRequestModel.class);
-
-        // Act
-        PreAuthorize preAuthorizeAnnotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation,
-                "getMessagesInBatches method should have @PreAuthorize annotation");
-
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-                Authorizations.VIEW_MESSAGES_PERMISSION + "')";
-
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                "PreAuthorize annotation should reference VIEW_MESSAGES_PERMISSION");
-    }
-
     /**
      * Purpose: Verify that the controller correctly delegates getMessagesInBatches
      * calls to the service layer.

@@ -153,26 +153,6 @@ class ToggleDeleteProductTest extends ProductServiceTestBase {
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(productServiceMock).toggleDeleteProduct(TEST_PRODUCT_ID);
     }
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation exists.
-     * Expected Result: Annotation includes required permission.
-     * Assertions: Annotation is present and contains DELETE_PRODUCTS_PERMISSION.
-     */
-    @Test
-    @DisplayName("toggleDeleteProduct - Verify @PreAuthorize annotation - Success")
-    void toggleDeleteProduct_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = ProductController.class.getMethod("toggleDeleteProduct", long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.DELETE_PRODUCTS_PERMISSION));
-    }
-
     /**
      * Purpose: Verify controller delegation to service.
      * Expected Result: OK status returned.

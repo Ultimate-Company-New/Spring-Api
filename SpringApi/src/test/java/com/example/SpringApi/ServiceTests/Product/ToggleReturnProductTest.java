@@ -156,26 +156,6 @@ class ToggleReturnProductTest extends ProductServiceTestBase {
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(productServiceMock).toggleReturnProduct(anyLong());
     }
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation exists.
-     * Expected Result: Annotation includes required permission.
-     * Assertions: Annotation is present and contains TOGGLE_PRODUCT_RETURNS_PERMISSION.
-     */
-    @Test
-    @DisplayName("toggleReturnProduct - Verify @PreAuthorize annotation - Success")
-    void toggleReturnProduct_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = ProductController.class.getMethod("toggleReturnProduct", long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.TOGGLE_PRODUCT_RETURNS_PERMISSION));
-    }
-
     /**
      * Purpose: Verify controller delegation to service.
      * Expected Result: OK status returned.

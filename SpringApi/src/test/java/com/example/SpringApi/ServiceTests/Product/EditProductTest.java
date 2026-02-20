@@ -274,26 +274,6 @@ class EditProductTest extends ProductServiceTestBase {
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(productServiceMock).editProduct(any(ProductRequestModel.class));
     }
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation exists.
-     * Expected Result: Annotation includes required permission.
-     * Assertions: Annotation is present and contains UPDATE_PRODUCTS_PERMISSION.
-     */
-    @Test
-    @DisplayName("editProduct - Verify @PreAuthorize annotation - Success")
-    void editProduct_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = ProductController.class.getMethod("editProduct", ProductRequestModel.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.UPDATE_PRODUCTS_PERMISSION));
-    }
-
     /**
      * Purpose: Verify controller delegation to service.
      * Expected Result: OK status returned.

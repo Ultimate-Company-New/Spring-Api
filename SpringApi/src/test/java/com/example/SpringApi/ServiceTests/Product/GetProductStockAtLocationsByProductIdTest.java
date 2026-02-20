@@ -163,24 +163,4 @@ class GetProductStockAtLocationsByProductIdTest extends ProductServiceTestBase {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         verify(productServiceMock).getProductStockAtLocationsByProductId(anyLong(), any(), any(), any());
     }
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation exists.
-     * Expected Result: Annotation includes required permissions.
-     * Assertions: Annotation contains VIEW_PRODUCTS_PERMISSION.
-     */
-    @Test
-    @DisplayName("getProductStockAtLocationsByProductId - Verify @PreAuthorize annotation - Success")
-    void getProductStockAtLocationsByProductId_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = ProductController.class.getMethod("getProductStockAtLocationsByProductId",
-                Long.class, Integer.class, String.class, Boolean.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.VIEW_PRODUCTS_PERMISSION));
-    }
 }

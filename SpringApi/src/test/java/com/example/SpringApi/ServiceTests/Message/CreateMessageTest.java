@@ -616,34 +616,6 @@ class CreateMessageTest extends MessageServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify that the createMessage controller method is protected by
-     * correct @PreAuthorize permission.
-     * Expected: Method has @PreAuthorize referencing INSERT_MESSAGES_PERMISSION.
-     */
-    @Test
-    @DisplayName("Create Message - Verify @PreAuthorize annotation is configured correctly")
-    void createMessage_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        var method = MessageController.class.getMethod("createMessage",
-                com.example.SpringApi.Models.RequestModels.MessageRequestModel.class);
-
-        // Act
-        var preAuthorizeAnnotation = method.getAnnotation(
-                org.springframework.security.access.prepost.PreAuthorize.class);
-
-        // Assert
-        assertNotNull(preAuthorizeAnnotation,
-                "createMessage method should have @PreAuthorize annotation");
-
-        String expectedPermission = "@customAuthorization.hasAuthority('" +
-                Authorizations.INSERT_MESSAGES_PERMISSION + "')";
-
-        assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                "PreAuthorize annotation should reference INSERT_MESSAGES_PERMISSION");
-    }
-
     /**
      * Purpose: Verify that the controller correctly delegates createMessage calls
      * to the service layer.

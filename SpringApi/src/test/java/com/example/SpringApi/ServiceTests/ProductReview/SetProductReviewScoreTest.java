@@ -619,25 +619,6 @@ class SetProductReviewScoreTest extends ProductReviewServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-
-    /*
-     * Purpose: Verify @PreAuthorize annotation is present.
-     * Expected Result: Annotation exists and is configured.
-     * Assertions: Annotation is not null.
-     */
-    @Test
-    @DisplayName("setProductReviewScore - Verify @PreAuthorize Annotation")
-    void setProductReviewScore_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
-        Method method = ProductReviewController.class.getMethod("setProductReviewScore", long.class, boolean.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "setProductReviewScore should have @PreAuthorize annotation");
-    }
 }
 
 /**

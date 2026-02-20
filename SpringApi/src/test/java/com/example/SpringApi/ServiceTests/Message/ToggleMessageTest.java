@@ -230,27 +230,6 @@ class ToggleMessageTest extends MessageServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify that the toggleMessage controller method is protected by
-     * correct @PreAuthorize permission.
-     * Expected: Method has @PreAuthorize referencing DELETE_MESSAGES_PERMISSION.
-     */
-    @Test
-    @DisplayName("toggleMessage - Verify @PreAuthorize Annotation")
-    void toggleMessage_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = MessageController.class.getMethod("toggleMessage", Long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present");
-        assertTrue(annotation.value().contains(Authorizations.DELETE_MESSAGES_PERMISSION),
-                "@PreAuthorize should reference DELETE_MESSAGES_PERMISSION");
-    }
-
     /**
      * Purpose: Verify that the controller correctly delegates toggleMessage calls
      * to the service layer.

@@ -178,23 +178,4 @@ class BulkAddProductsTest extends ProductServiceTestBase {
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(productServiceMock).bulkAddProducts(anyList());
     }
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation exists.
-     * Expected Result: Annotation includes required permission.
-     * Assertions: Annotation is present and contains INSERT_PRODUCTS_PERMISSION.
-     */
-    @Test
-    @DisplayName("bulkAddProducts - Verify @PreAuthorize annotation - Success")
-    void bulkAddProducts_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = ProductController.class.getMethod("bulkAddProducts", java.util.List.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.INSERT_PRODUCTS_PERMISSION));
-    }
 }

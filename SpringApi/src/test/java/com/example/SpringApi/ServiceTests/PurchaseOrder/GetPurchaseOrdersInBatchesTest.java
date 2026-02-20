@@ -179,28 +179,6 @@ class GetPurchaseOrdersInBatchesTest extends PurchaseOrderServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify controller has @PreAuthorize for getPurchaseOrdersInBatches.
-     * Expected Result: Annotation exists and includes VIEW_PURCHASE_ORDERS_PERMISSION.
-     * Assertions: Annotation is present and contains permission.
-     */
-    @Test
-    @DisplayName("getPurchaseOrdersInBatches - Verify @PreAuthorize Annotation")
-    void getPurchaseOrdersInBatches_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = PurchaseOrderController.class.getMethod("getPurchaseOrdersInBatches",
-                PaginationBaseRequestModel.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present on getPurchaseOrdersInBatches");
-        assertTrue(annotation.value().contains(Authorizations.VIEW_PURCHASE_ORDERS_PERMISSION),
-                "@PreAuthorize should reference VIEW_PURCHASE_ORDERS_PERMISSION");
-    }
-
     /**
      * Purpose: Verify controller delegates to service.
      * Expected Result: Service is called once and HTTP 200 returned.

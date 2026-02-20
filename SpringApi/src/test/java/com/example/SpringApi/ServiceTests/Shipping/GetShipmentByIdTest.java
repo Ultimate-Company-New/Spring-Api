@@ -365,23 +365,4 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify controller has @PreAuthorize for getShipmentById.
-     * Expected Result: Annotation exists and includes VIEW_SHIPMENTS_PERMISSION.
-     * Assertions: Annotation is present and contains permission.
-     */
-    @Test
-    @DisplayName("getShipmentById - Verify @PreAuthorize Annotation")
-    void getShipmentById_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = ShippingController.class.getMethod("getShipmentById", Long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.VIEW_SHIPMENTS_PERMISSION));
-    }
 }

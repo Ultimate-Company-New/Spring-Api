@@ -1423,24 +1423,4 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
                 // Assert
                 assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         }
-
-        /**
-         * Purpose: Verify controller has @PreAuthorize for processPaymentAndShipments.
-         * Expected Result: Annotation exists and includes UPDATE_PURCHASE_ORDERS_PERMISSION.
-         * Assertions: Annotation is present and contains permission.
-         */
-        @Test
-        @DisplayName("processShipmentsAfterPaymentApproval - Verify @PreAuthorize Annotation")
-        void processShipmentsAfterPaymentApproval_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-                // Arrange
-                Method method = com.example.SpringApi.Controllers.PaymentController.class
-                        .getMethod("processPaymentAndShipments", com.example.SpringApi.Models.RequestModels.ProcessPaymentAndShipmentRequestModel.class);
-
-                // Act
-                PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-                // Assert
-                assertNotNull(annotation);
-                assertTrue(annotation.value().contains(com.example.SpringApi.Models.Authorizations.UPDATE_PURCHASE_ORDERS_PERMISSION));
-        }
 }

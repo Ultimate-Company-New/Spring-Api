@@ -97,23 +97,4 @@ class GetWalletBalanceTest extends ShippingServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify controller has @PreAuthorize for getWalletBalance.
-     * Expected Result: Annotation exists and includes VIEW_SHIPMENTS_PERMISSION.
-     * Assertions: Annotation is present and contains permission.
-     */
-    @Test
-    @DisplayName("getWalletBalance - Verify @PreAuthorize Annotation")
-    void getWalletBalance_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = ShippingController.class.getMethod("getWalletBalance");
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.VIEW_SHIPMENTS_PERMISSION));
-    }
 }

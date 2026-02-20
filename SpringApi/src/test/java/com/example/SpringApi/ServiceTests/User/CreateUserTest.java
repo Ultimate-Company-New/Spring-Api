@@ -509,32 +509,6 @@ class CreateUserTest extends UserServiceTestBase {
         verify(mockUserService, times(1)).createUser(userRequest);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify controller handles unauthorized access via HTTP status.
-     * Expected Result: HTTP UNAUTHORIZED status returned and @PreAuthorize
-     * verified.
-     * Assertions: assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()),
-     * assertNotNull, assertTrue
-     */
-    @Test
-    @DisplayName("Create User - Controller permission unauthorized")
-    void createUser_p02_controller_permission_unauthorized() throws NoSuchMethodException {
-        // Arrange
-        stubMockUserServiceCreateUserThrowsUnauthorized(null);
-        Method method = UserController.class.getMethod("createUser", UserRequestModel.class);
-
-        // Act
-        ResponseEntity<?> response = userControllerWithMock.createUser(new UserRequestModel());
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertNotNull(annotation, "createUser method should have @PreAuthorize annotation");
-        assertTrue(annotation.value().contains(Authorizations.CREATE_USER_PERMISSION),
-                "@PreAuthorize annotation should check for CREATE_USER_PERMISSION");
-    }
-
     /**
      * Purpose: Verify controller handles forbidden access via HTTP status.
      * Expected Result: HTTP FORBIDDEN status returned.

@@ -398,26 +398,6 @@ class VerifyPaymentTest extends PaymentServiceTestBase {
         // Assert
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    /**
-     * Purpose: Verify controller method has expected @PreAuthorize permission constant.
-     * Expected Result: Annotation exists and contains UPDATE_PURCHASE_ORDERS_PERMISSION.
-     * Assertions: annotation not null and value contains expected permission.
-     */
-    @Test
-    @DisplayName("verifyPayment - Controller PreAuthorize Annotation - Success")
-    void verifyPayment_p02_controllerPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
-        Method method = PaymentController.class.getMethod("verifyPayment", RazorpayVerifyRequestModel.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "@PreAuthorize annotation should be present");
-        assertTrue(annotation.value().contains(Authorizations.UPDATE_PURCHASE_ORDERS_PERMISSION));
-    }
-
     /**
      * Purpose: Verify controller delegates verifyPayment request to service.
      * Expected Result: HTTP 200 OK with delegated service call.

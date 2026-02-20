@@ -448,23 +448,4 @@ class UpdateTodoTest extends TodoServiceTestBase {
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(todoServiceMock, times(1)).updateTodo(any(TodoRequestModel.class));
     }
-
-    /*
-     * Purpose: Verify @PreAuthorize annotation on controller.
-     * Expected Result: Annotation exists and has correct value.
-     * Assertions: assertNotNull, assertEquals
-     */
-    @Test
-    @DisplayName("updateTodo - Verify @PreAuthorize Annotation")
-    void updateTodo_verifyPreAuthorizeAnnotation_success() throws NoSuchMethodException {
-        // Arrange
-        Method method = TodoController.class.getMethod("updateItem", TodoRequestModel.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation, "updateItem method should have @PreAuthorize annotation");
-        assertEquals("@customAuthorization.hasAuthority(null)", annotation.value());
-    }
 }

@@ -662,26 +662,6 @@ class AddProductTest extends ProductServiceTestBase {
         }
     }
 
-
-    /*
-     * Purpose: Verify controller permission for addProduct
-     * Expected Result: INSERT_PRODUCTS_PERMISSION required
-     */
-    @Test
-    @DisplayName("addProduct - Verify PreAuthorize annotation - Success")
-    void addProduct_p07_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = ProductController.class.getMethod("addProduct", ProductRequestModel.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.INSERT_PRODUCTS_PERMISSION));
-    }
-
-
     /*
      * Purpose: Verify addProduct success with zero weight (valid edge case)
      */

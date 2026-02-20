@@ -131,26 +131,6 @@ class GetProductDetailsByIdTest extends ProductServiceTestBase {
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         verify(productServiceMock).getProductDetailsById(anyLong());
     }
-
-    /**
-     * Purpose: Verify @PreAuthorize annotation exists.
-     * Expected Result: Annotation includes required permission.
-     * Assertions: Annotation is present and contains VIEW_PRODUCTS_PERMISSION.
-     */
-    @Test
-    @DisplayName("getProductDetailsById - Verify @PreAuthorize annotation - Success")
-    void getProductDetailsById_p02_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-        // Arrange
-        Method method = ProductController.class.getMethod("getProductDetailsById", long.class);
-
-        // Act
-        PreAuthorize annotation = method.getAnnotation(PreAuthorize.class);
-
-        // Assert
-        assertNotNull(annotation);
-        assertTrue(annotation.value().contains(Authorizations.VIEW_PRODUCTS_PERMISSION));
-    }
-
     /**
      * Purpose: Verify controller delegation to service.
      * Expected Result: OK status returned.

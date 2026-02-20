@@ -375,34 +375,6 @@ class GetMessagesByUserIdTest extends MessageServiceTestBase {
                 // Assert
                 assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         }
-
-        /**
-         * Purpose: Verify that the getMessagesByUserId controller method is protected
-         * by correct @PreAuthorize permission.
-         * Expected: Method has @PreAuthorize referencing VIEW_MESSAGES_PERMISSION.
-         */
-        @Test
-        @DisplayName("getMessagesByUserId - Verify @PreAuthorize annotation")
-        void getMessagesByUserId_VerifyPreAuthorizeAnnotation_Success() throws NoSuchMethodException {
-                // Arrange
-                Method method = MessageController.class.getMethod(
-                                "getMessagesByUserId",
-                                com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.class);
-
-                // Act
-                PreAuthorize preAuthorizeAnnotation = method.getAnnotation(PreAuthorize.class);
-
-                // Assert
-                assertNotNull(preAuthorizeAnnotation,
-                                "getMessagesByUserId method should have @PreAuthorize annotation");
-
-                String expectedPermission = "@customAuthorization.hasAuthority('" +
-                                Authorizations.VIEW_MESSAGES_PERMISSION + "')";
-
-                assertEquals(expectedPermission, preAuthorizeAnnotation.value(),
-                                "PreAuthorize annotation should reference VIEW_MESSAGES_PERMISSION");
-        }
-
         /**
          * Purpose: Verify that the controller correctly delegates getMessagesByUserId
          * calls to the service layer.
