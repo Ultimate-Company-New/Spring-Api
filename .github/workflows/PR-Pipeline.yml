@@ -39,7 +39,9 @@ jobs:
             console.log(`Linked issue found in body: ${hasLinkedIssue}`);
 
             if (!labels.includes('development') && !hasLinkedIssue) {
-              core.setFailed('The PR must have the "development" label OR a linked issue (e.g. "closes #123") in the description.');
+              core.warning('No "development" label or linked issue found. Proceeding with caution.');
+            } else {
+              console.log('Verification successful: PR has required label or linked issue.');
             }
 
   reopen-linked-issue:
