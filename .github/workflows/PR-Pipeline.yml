@@ -8,6 +8,9 @@ on:
 jobs:
   auto-assign:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
     steps:
       - name: Ensure nahushr is assigned
         uses: actions-ecosystem/action-add-assignees@v1
