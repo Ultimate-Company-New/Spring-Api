@@ -1,0 +1,14 @@
+# Labels based on modified file paths
+
+backend:
+  - "SpringApi/src/main/java/**/*"
+
+tests:
+  - "SpringApi/src/test/**/*"
+
+config:
+  - "SpringApi/pom.xml"
+  - "SpringApi/src/main/resources/**/*"
+
+workflows:
+  - ".github/workflows/**/*"
