@@ -3,7 +3,6 @@ package com.example.SpringApi.Services;
 import com.example.SpringApi.Authentication.JwtTokenProvider;
 import com.example.SpringApi.ErrorMessages;
 import com.example.SpringApi.Exceptions.BadRequestException;
-import jakarta.servlet.http.HttpServletRequest;
 import com.example.SpringApi.Exceptions.NotFoundException;
 import com.example.SpringApi.FilterQueryBuilder.PromoFilterQueryBuilder;
 import com.example.SpringApi.Helpers.BulkInsertHelper;
@@ -17,16 +16,17 @@ import com.example.SpringApi.Models.ResponseModels.PromoResponseModel;
 import com.example.SpringApi.Repositories.PromoRepository;
 import com.example.SpringApi.Services.Interface.IPromoSubTranslator;
 import com.example.SpringApi.SuccessMessages;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,9 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Service implementation for Promo operations.
  *
- * <p>
- * This service handles all business logic related to promotional codes
- * including CRUD
+ * <p>This service handles all business logic related to promotional codes including CRUD
  * operations, batch processing, and promo code validation.
  *
  * @author SpringApi Team
@@ -82,24 +80,41 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
     }
 
     // Valid columns for filtering
-    Set<String> validColumns = new HashSet<>(Arrays.asList("promoId", "promoCode", "description", "discountValue",
-        "isPercent", "isDeleted", "createdUser", "modifiedUser", "createdAt", "updatedAt", "notes", "startDate", "expiryDate"));
+    Set<String> validColumns =
+        new HashSet<>(
+            Arrays.asList(
+                "promoId",
+                "promoCode",
+                "description",
+                "discountValue",
+                "isPercent",
+                "isDeleted",
+                "createdUser",
+                "modifiedUser",
+                "createdAt",
+                "updatedAt",
+                "notes",
+                "startDate",
+                "expiryDate"));
 
     // Validate filter conditions if provided (do this FIRST before pagination validation)
-    if (paginationBaseRequestModel.getFilters() != null && !paginationBaseRequestModel.getFilters().isEmpty()) {
-      for (PaginationBaseRequestModel.FilterCondition filter : paginationBaseRequestModel.getFilters()) {
+    if (paginationBaseRequestModel.getFilters() != null
+        && !paginationBaseRequestModel.getFilters().isEmpty()) {
+      for (PaginationBaseRequestModel.FilterCondition filter :
+          paginationBaseRequestModel.getFilters()) {
         // Validate column name
         if (filter.getColumn() != null && !validColumns.contains(filter.getColumn())) {
           throw new BadRequestException(
-              String.format(ErrorMessages.CommonErrorMessages.INVALID_COLUMN_NAME, filter.getColumn()));
+              String.format(
+                  ErrorMessages.CommonErrorMessages.INVALID_COLUMN_NAME, filter.getColumn()));
         }
 
         // Validate operator (FilterCondition.setOperator auto-normalizes symbols to
         // words)
         if (!filter.isValidOperator()) {
-          throw new BadRequestException(String.format(
-              ErrorMessages.PromoErrorMessages.INVALID_OPERATOR_FORMAT,
-              filter.getOperator()));
+          throw new BadRequestException(
+              String.format(
+                  ErrorMessages.PromoErrorMessages.INVALID_OPERATOR_FORMAT, filter.getOperator()));
         }
 
         // Validate column type matches operator - this throws IllegalArgumentException
@@ -116,7 +131,8 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
     int end = paginationBaseRequestModel.getEnd();
 
     if (start < 0) {
-      throw new BadRequestException(ErrorMessages.CommonErrorMessages.START_INDEX_CANNOT_BE_NEGATIVE);
+      throw new BadRequestException(
+          ErrorMessages.CommonErrorMessages.START_INDEX_CANNOT_BE_NEGATIVE);
     }
     int pageSize = end - start;
 
@@ -126,21 +142,25 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
     }
 
     // Create custom Pageable with proper offset handling
-    org.springframework.data.domain.Pageable pageable = new PageRequest(0, pageSize, Sort.by("promoId").descending()) {
-      @Override
-      public long getOffset() {
-        return start;
-      }
-    };
+    org.springframework.data.domain.Pageable pageable =
+        new PageRequest(0, pageSize, Sort.by("promoId").descending()) {
+          @Override
+          public long getOffset() {
+            return start;
+          }
+        };
 
     // Use filter query builder for dynamic filtering
-    Page<Promo> page = promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
-        getClientId(),
-        paginationBaseRequestModel.getSelectedIds(),
-        paginationBaseRequestModel.getLogicOperator() != null ? paginationBaseRequestModel.getLogicOperator() : "AND",
-        paginationBaseRequestModel.getFilters(),
-        paginationBaseRequestModel.isIncludeDeleted(),
-        pageable);
+    Page<Promo> page =
+        promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
+            getClientId(),
+            paginationBaseRequestModel.getSelectedIds(),
+            paginationBaseRequestModel.getLogicOperator() != null
+                ? paginationBaseRequestModel.getLogicOperator()
+                : "AND",
+            paginationBaseRequestModel.getFilters(),
+            paginationBaseRequestModel.isIncludeDeleted(),
+            pageable);
 
     PaginationBaseResponseModel<Promo> response = new PaginationBaseResponseModel<>();
     response.setData(page.getContent());
@@ -153,7 +173,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
    * Creates a new promo.
    *
    * @param promoRequestModel The promo request model containing promo data
-   * @throws NotFoundException   if required dependencies are not found
+   * @throws NotFoundException if required dependencies are not found
    * @throws BadRequestException if promo code already exists
    */
   @Override
@@ -171,9 +191,10 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   @Override
   @Transactional(readOnly = true)
   public PromoResponseModel getPromoDetailsById(long id) {
-    Promo promo = promoRepository
-        .findByPromoIdAndClientId(id, getClientId())
-        .orElseThrow(() -> new NotFoundException(ErrorMessages.PromoErrorMessages.INVALID_ID));
+    Promo promo =
+        promoRepository
+            .findByPromoIdAndClientId(id, getClientId())
+            .orElseThrow(() -> new NotFoundException(ErrorMessages.PromoErrorMessages.INVALID_ID));
     return new PromoResponseModel(promo);
   }
 
@@ -186,9 +207,10 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   @Override
   @Transactional
   public void togglePromo(long id) {
-    Promo promo = promoRepository
-        .findByPromoIdAndClientId(id, getClientId())
-        .orElseThrow(() -> new NotFoundException(ErrorMessages.PromoErrorMessages.INVALID_ID));
+    Promo promo =
+        promoRepository
+            .findByPromoIdAndClientId(id, getClientId())
+            .orElseThrow(() -> new NotFoundException(ErrorMessages.PromoErrorMessages.INVALID_ID));
 
     // Toggle the isDeleted flag
     promo.setIsDeleted(!promo.getIsDeleted());
@@ -205,13 +227,13 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   }
 
   /**
-   * Retrieves promo details by promo code.
-   * Promo code lookup is case-insensitive (converted to uppercase).
+   * Retrieves promo details by promo code. Promo code lookup is case-insensitive (converted to
+   * uppercase).
    *
    * @param promoCode The promo code to search for
    * @return The promo details as response model
    * @throws BadRequestException if promo code is null or empty
-   * @throws NotFoundException   if promo code is not found
+   * @throws NotFoundException if promo code is not found
    */
   @Override
   @Transactional(readOnly = true)
@@ -222,45 +244,44 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
     }
 
     // Convert to uppercase for case-insensitive lookup
-    Promo promo = promoRepository
-        .findByPromoCodeAndClientId(promoCode.toUpperCase(), getClientId())
-        .orElseThrow(
-            () -> new NotFoundException(ErrorMessages.PromoErrorMessages.INVALID_NAME));
+    Promo promo =
+        promoRepository
+            .findByPromoCodeAndClientId(promoCode.toUpperCase(), getClientId())
+            .orElseThrow(
+                () -> new NotFoundException(ErrorMessages.PromoErrorMessages.INVALID_NAME));
     return new PromoResponseModel(promo);
   }
 
   /**
-   * Creates multiple promos asynchronously in the system with partial success
-   * support.
-   * 
-   * This method processes promos in a background thread with the following
-   * characteristics:
-   * - Supports partial success: if some promos fail validation, others still
-   * succeed
-   * - Sends detailed results to user via message notification after processing
-   * completes
-   * - NOT_SUPPORTED: Runs without a transaction to avoid rollback-only issues
-   * when individual promo creations fail
-   * 
-   * @param promos                  List of PromoRequestModel containing the promo
-   *                                data to create
-   * @param requestingUserId        The ID of the user making the request
-   *                                (captured from security context)
-   * @param requestingUserLoginName The loginName of the user making the request
-   *                                (captured from security context)
-   * @param requestingClientId      The client ID of the user making the request
-   *                                (captured from security context)
-  */
+   * Creates multiple promos asynchronously in the system with partial success support.
+   *
+   * <p>This method processes promos in a background thread with the following characteristics: -
+   * Supports partial success: if some promos fail validation, others still succeed - Sends detailed
+   * results to user via message notification after processing completes - NOT_SUPPORTED: Runs
+   * without a transaction to avoid rollback-only issues when individual promo creations fail
+   *
+   * @param promos List of PromoRequestModel containing the promo data to create
+   * @param requestingUserId The ID of the user making the request (captured from security context)
+   * @param requestingUserLoginName The loginName of the user making the request (captured from
+   *     security context)
+   * @param requestingClientId The client ID of the user making the request (captured from security
+   *     context)
+   */
   @Override
   @Async
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public void bulkCreatePromosAsync(List<PromoRequestModel> promos, Long requestingUserId,
-      String requestingUserLoginName, Long requestingClientId) {
+  public void bulkCreatePromosAsync(
+      List<PromoRequestModel> promos,
+      Long requestingUserId,
+      String requestingUserLoginName,
+      Long requestingClientId) {
     try {
       // Validate input
       if (promos == null || promos.isEmpty()) {
         throw new BadRequestException(
-            String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, PROMO_ENTITY_LABEL));
+            String.format(
+                ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY,
+                PROMO_ENTITY_LABEL));
       }
 
       BulkInsertResponseModel<Long> response = new BulkInsertResponseModel<>();
@@ -278,8 +299,9 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
 
           // If we get here, promo was created successfully
           // Fetch the created promo to get the promoId
-          Optional<Promo> createdPromo = promoRepository.findByPromoCodeAndClientId(
-              promoRequest.getPromoCode().toUpperCase(), requestingClientId);
+          Optional<Promo> createdPromo =
+              promoRepository.findByPromoCodeAndClientId(
+                  promoRequest.getPromoCode().toUpperCase(), requestingClientId);
           if (createdPromo.isPresent()) {
             response.addSuccess(promoRequest.getPromoCode(), createdPromo.get().getPromoId());
             successCount++;
@@ -305,7 +327,11 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
           requestingUserId,
           requestingUserLoginName,
           requestingClientId,
-          SuccessMessages.PromoSuccessMessages.CREATE_PROMO + " (Bulk: " + successCount + " succeeded, " + failureCount
+          SuccessMessages.PromoSuccessMessages.CREATE_PROMO
+              + " (Bulk: "
+              + successCount
+              + " succeeded, "
+              + failureCount
               + " failed)",
           ApiRoutes.PromosSubRoute.BULK_CREATE_PROMO);
 
@@ -316,12 +342,10 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
       // captured context)
       BulkInsertHelper.createDetailedBulkInsertResultMessage(
           response,
-          new BulkInsertHelper.BulkMessageTemplate(PROMO_ENTITY_LABEL, "Promos", "Promo Code", "Promo ID"),
+          new BulkInsertHelper.BulkMessageTemplate(
+              PROMO_ENTITY_LABEL, "Promos", "Promo Code", "Promo ID"),
           new BulkInsertHelper.NotificationContext(
-              messageService,
-              requestingUserId,
-              requestingUserLoginName,
-              requestingClientId));
+              messageService, requestingUserId, requestingUserLoginName, requestingClientId));
 
     } catch (Exception e) {
       // Still send a message to user about the failure (using captured userId)
@@ -332,31 +356,27 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
       errorResponse.addFailure("bulk_import", "Critical error: " + e.getMessage());
       BulkInsertHelper.createDetailedBulkInsertResultMessage(
           errorResponse,
-          new BulkInsertHelper.BulkMessageTemplate(PROMO_ENTITY_LABEL, "Promos", "Promo Code", "Promo ID"),
+          new BulkInsertHelper.BulkMessageTemplate(
+              PROMO_ENTITY_LABEL, "Promos", "Promo Code", "Promo ID"),
           new BulkInsertHelper.NotificationContext(
-              messageService,
-              requestingUserId,
-              requestingUserLoginName,
-              requestingClientId));
+              messageService, requestingUserId, requestingUserLoginName, requestingClientId));
     }
   }
 
   // ==================== HELPER METHODS ====================
 
   /**
-   * Creates a new promo with explicit createdUser.
-   * This variant is used for async operations where security context is not
-   * available.
-   * 
+   * Creates a new promo with explicit createdUser. This variant is used for async operations where
+   * security context is not available.
+   *
    * @param promoRequestModel The promo data to create
-   * @param createdUser       The loginName of the user creating this promo (for
-   *                          async operations)
-   * @param shouldLog         Whether to log this individual promo creation (false
-   *                          for bulk operations)
+   * @param createdUser The loginName of the user creating this promo (for async operations)
+   * @param shouldLog Whether to log this individual promo creation (false for bulk operations)
    * @throws BadRequestException if promo code already exists
    */
   @Transactional
-  protected void createPromo(PromoRequestModel promoRequestModel, String createdUser, boolean shouldLog) {
+  protected void createPromo(
+      PromoRequestModel promoRequestModel, String createdUser, boolean shouldLog) {
     // Get security context
     Long currentClientId = getClientId();
     Long currentUserId = getUserId();
@@ -367,21 +387,24 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
     }
 
     // Validate promo code is not null or empty
-    if (promoRequestModel.getPromoCode() == null || promoRequestModel.getPromoCode().trim().isEmpty()) {
+    if (promoRequestModel.getPromoCode() == null
+        || promoRequestModel.getPromoCode().trim().isEmpty()) {
       throw new BadRequestException(ErrorMessages.PromoErrorMessages.INVALID_PROMO_CODE);
     }
 
     // Client ID consistency check (Service level responsibility)
-    if (promoRequestModel.getClientId() != null && !promoRequestModel.getClientId().equals(currentClientId)) {
+    if (promoRequestModel.getClientId() != null
+        && !promoRequestModel.getClientId().equals(currentClientId)) {
       throw new BadRequestException(ErrorMessages.PromoErrorMessages.CLIENT_ID_MISMATCH);
     }
 
     // Check for overlapping promo codes in the same date range
-    java.util.List<Promo> overlappingPromos = promoRepository.findOverlappingPromos(
-        promoRequestModel.getPromoCode().toUpperCase(),
-        currentClientId,
-        promoRequestModel.getStartDate(),
-        promoRequestModel.getExpiryDate());
+    java.util.List<Promo> overlappingPromos =
+        promoRepository.findOverlappingPromos(
+            promoRequestModel.getPromoCode().toUpperCase(),
+            currentClientId,
+            promoRequestModel.getStartDate(),
+            promoRequestModel.getExpiryDate());
 
     if (!overlappingPromos.isEmpty()) {
       throw new BadRequestException(ErrorMessages.PromoErrorMessages.OVERLAPPING_PROMO_CODE);

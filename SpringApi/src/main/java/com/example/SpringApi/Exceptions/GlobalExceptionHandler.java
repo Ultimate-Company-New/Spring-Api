@@ -8,30 +8,28 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
- * Global exception handler for the Spring API.
- * Catches exceptions that are not handled by individual controllers
- * and returns appropriate HTTP responses.
+ * Global exception handler for the Spring API. Catches exceptions that are not handled by
+ * individual controllers and returns appropriate HTTP responses.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final ContextualLogger logger = ContextualLogger.getLogger(GlobalExceptionHandler.class);
+  private static final ContextualLogger logger =
+      ContextualLogger.getLogger(GlobalExceptionHandler.class);
 
-    /**
-     * Handles PermissionException thrown when a user lacks required permissions.
-     * Returns HTTP 403 Forbidden with an error message.
-     *
-     * @param ex The PermissionException
-     * @return ResponseEntity with 403 status and error details
-     */
-    @ExceptionHandler(PermissionException.class)
-    public ResponseEntity<ErrorResponseModel> handlePermissionException(PermissionException ex) {
-        logger.error(ex);
-        ErrorResponseModel errorResponse = new ErrorResponseModel(
-            "Forbidden",
-            "Access Denied: " + ex.getMessage(),
-            HttpStatus.FORBIDDEN.value()
-        );
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
-    }
+  /**
+   * Handles PermissionException thrown when a user lacks required permissions. Returns HTTP 403
+   * Forbidden with an error message.
+   *
+   * @param ex The PermissionException
+   * @return ResponseEntity with 403 status and error details
+   */
+  @ExceptionHandler(PermissionException.class)
+  public ResponseEntity<ErrorResponseModel> handlePermissionException(PermissionException ex) {
+    logger.error(ex);
+    ErrorResponseModel errorResponse =
+        new ErrorResponseModel(
+            "Forbidden", "Access Denied: " + ex.getMessage(), HttpStatus.FORBIDDEN.value());
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+  }
 }
