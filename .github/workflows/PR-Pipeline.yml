@@ -3,7 +3,7 @@ name: Java CI Pipeline
 on:
   pull_request:
     branches: ["main"]
-    types: [opened, edited, reopened, synchronize]
+    types: [opened, edited, reopened, synchronize, labeled]
 
 jobs:
   auto-assign:
@@ -25,7 +25,8 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const labels = context.payload.pull_request.labels.map(label => label.name);
+            const labels = context.payload.pull_request.labels.map(label => label.name.toLowerCase());
+            console.log(`Labels found on PR: ${labels.join(', ')}`);
             if (!labels.includes('development')) {
               core.setFailed('The "development" label is missing. Please add it to the PR.');
             }
