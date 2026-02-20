@@ -25,10 +25,15 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const labels = context.payload.pull_request.labels.map(label => label.name.toLowerCase());
+            const { data: prLabels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number
+            });
+            const labels = prLabels.map(label => label.name.toLowerCase());
             console.log(`Labels found on PR: ${labels.join(', ')}`);
             if (!labels.includes('development')) {
-              core.setFailed('The "development" label is missing. Please add it to the PR.');
+              core.setFailed('The "development" label is missing. Please add it to THE PULL REQUEST (not the linked issue).');
             }
 
   reopen-linked-issue:
