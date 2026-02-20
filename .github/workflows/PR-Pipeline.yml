@@ -22,12 +22,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check for development label
-        uses: actions-ecosystem/action-check-labels@v1
+        uses: actions/github-script@v7
         with:
-          labels: development
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const labels = context.payload.pull_request.labels.map(label => label.name);
+            if (!labels.includes('development')) {
+              core.setFailed('The "development" label is missing. Please add it to the PR.');
+            }
 
   build:
+    needs: check-label
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
