@@ -1,100 +1,94 @@
 package com.example.SpringApi.ServiceTests.Shipping;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.example.SpringApi.Controllers.ShippingController;
 import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.Authorizations;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 
-import java.lang.reflect.Method;
-
-import static org.junit.jupiter.api.Assertions.*;
-
-/**
- * Tests for ShippingService.getWalletBalance().
- */
+/** Tests for ShippingService.getWalletBalance(). */
 @DisplayName("GetWalletBalance Tests")
 class GetWalletBalanceTest extends ShippingServiceTestBase {
 
+  // Total Tests: 4
+  /*
+   **********************************************************************************************
+   * SUCCESS TESTS
+   **********************************************************************************************
+   */
 
-    // Total Tests: 4
-    /*
-     **********************************************************************************************
-     * SUCCESS TESTS
-     **********************************************************************************************
-     */
+  /**
+   * Purpose: Verify wallet balance returns value. Expected Result: Balance returned. Assertions:
+   * Balance equals expected.
+   */
+  @Test
+  @DisplayName("getWalletBalance - Success")
+  void getWalletBalance_Success_Success() {
+    // Arrange
+    stubClientServiceGetClientById(testClientResponse);
+    stubShipRocketHelperGetWalletBalance(123.45);
 
-    /**
-     * Purpose: Verify wallet balance returns value.
-     * Expected Result: Balance returned.
-     * Assertions: Balance equals expected.
-     */
-    @Test
-    @DisplayName("getWalletBalance - Success")
-    void getWalletBalance_Success_Success() {
-        // Arrange
-        stubClientServiceGetClientById(testClientResponse);
-        stubShipRocketHelperGetWalletBalance(123.45);
+    // Act
+    Double result = shippingService.getWalletBalance();
 
-        // Act
-        Double result = shippingService.getWalletBalance();
+    // Assert
+    assertEquals(123.45, result);
+  }
 
-        // Assert
-        assertEquals(123.45, result);
-    }
+  /*
+   **********************************************************************************************
+   * FAILURE TESTS
+   **********************************************************************************************
+   */
 
-    /*
-     **********************************************************************************************
-     * FAILURE TESTS
-     **********************************************************************************************
-     */
+  /**
+   * Purpose: Verify missing credentials throws BadRequestException. Expected Result:
+   * BadRequestException with ShipRocketCredentialsNotConfigured message. Assertions: Exception type
+   * and message.
+   */
+  @Test
+  @DisplayName("getWalletBalance - Credentials Missing - Throws BadRequestException")
+  void getWalletBalance_CredentialsMissing_ThrowsBadRequestException() {
+    // Arrange
+    testClientResponse.setShipRocketPassword(null);
+    stubClientServiceGetClientById(testClientResponse);
 
-    /**
-     * Purpose: Verify missing credentials throws BadRequestException.
-     * Expected Result: BadRequestException with ShipRocketCredentialsNotConfigured message.
-     * Assertions: Exception type and message.
-     */
-    @Test
-    @DisplayName("getWalletBalance - Credentials Missing - Throws BadRequestException")
-    void getWalletBalance_CredentialsMissing_ThrowsBadRequestException() {
-        // Arrange
-        testClientResponse.setShipRocketPassword(null);
-        stubClientServiceGetClientById(testClientResponse);
+    // Act
+    com.example.SpringApi.Exceptions.BadRequestException ex =
+        assertThrows(
+            com.example.SpringApi.Exceptions.BadRequestException.class,
+            () -> shippingService.getWalletBalance());
 
-        // Act
-        com.example.SpringApi.Exceptions.BadRequestException ex = assertThrows(
-                com.example.SpringApi.Exceptions.BadRequestException.class,
-                () -> shippingService.getWalletBalance());
+    // Assert
+    assertEquals(
+        ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_CREDENTIALS_NOT_CONFIGURED,
+        ex.getMessage());
+  }
 
-        // Assert
-        assertEquals(ErrorMessages.ShippingErrorMessages.SHIP_ROCKET_CREDENTIALS_NOT_CONFIGURED, ex.getMessage());
-    }
+  /*
+   **********************************************************************************************
+   * PERMISSION TESTS
+   **********************************************************************************************
+   */
 
-    /*
-     **********************************************************************************************
-     * PERMISSION TESTS
-     **********************************************************************************************
-     */
+  /**
+   * Purpose: Verify unauthorized access is blocked at the controller level. Expected Result:
+   * Unauthorized status is returned. Assertions: Response status is 401 UNAUTHORIZED.
+   */
+  @Test
+  @DisplayName("getWalletBalance - Controller Permission - Unauthorized")
+  void getWalletBalance_controller_permission_unauthorized() {
+    // Arrange
+    ShippingController controller = new ShippingController(shippingServiceMock);
+    stubShippingServiceMockGetWalletBalanceUnauthorized();
 
-        /**
-         * Purpose: Verify unauthorized access is blocked at the controller level.
-         * Expected Result: Unauthorized status is returned.
-         * Assertions: Response status is 401 UNAUTHORIZED.
-         */
-    @Test
-    @DisplayName("getWalletBalance - Controller Permission - Unauthorized")
-    void getWalletBalance_controller_permission_unauthorized() {
-        // Arrange
-        ShippingController controller = new ShippingController(shippingServiceMock);
-        stubShippingServiceMockGetWalletBalanceUnauthorized();
+    // Act
+    ResponseEntity<?> response = controller.getWalletBalance();
 
-        // Act
-        ResponseEntity<?> response = controller.getWalletBalance();
-
-        // Assert
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
+    // Assert
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+  }
 }
