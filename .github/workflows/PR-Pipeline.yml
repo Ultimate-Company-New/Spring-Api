@@ -31,9 +31,15 @@ jobs:
               issue_number: context.payload.pull_request.number
             });
             const labels = prLabels.map(label => label.name.toLowerCase());
-            console.log(`Labels found on PR: ${labels.join(', ')}`);
-            if (!labels.includes('development')) {
-              core.setFailed('The "development" label is missing. Please add it to THE PULL REQUEST (not the linked issue).');
+
+            const body = context.payload.pull_request.body || "";
+            const hasLinkedIssue = /(?:closes|fixes|resolves)\s*#(\d+)/i.test(body);
+
+            console.log(`Labels found: ${labels.join(', ')}`);
+            console.log(`Linked issue found in body: ${hasLinkedIssue}`);
+
+            if (!labels.includes('development') && !hasLinkedIssue) {
+              core.setFailed('The PR must have the "development" label OR a linked issue (e.g. "closes #123") in the description.');
             }
 
   reopen-linked-issue:
