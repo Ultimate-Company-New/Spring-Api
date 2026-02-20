@@ -1,21 +1,21 @@
 package com.example.SpringApi.Models.DatabaseModels;
 
+import com.example.SpringApi.ErrorMessages;
+import com.example.SpringApi.Exceptions.BadRequestException;
+import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.ErrorMessages;
-import java.time.LocalDateTime;
 
 /**
  * JPA Entity for the PickupLocation table.
- * 
- * This entity represents pickup locations where packages can be collected.
- * It includes address information, client association, and ShipRocket integration.
- * 
+ *
+ * <p>This entity represents pickup locations where packages can be collected. It includes address
+ * information, client association, and ShipRocket integration.
+ *
  * @author SpringApi Team
  * @version 1.0
  * @since 2024-01-15
@@ -25,154 +25,169 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "`PickupLocation`")
 public class PickupLocation {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "pickupLocationId", nullable = false)
-    private Long pickupLocationId;
-    
-    @Column(name = "addressNickName", nullable = false, length = 36)
-    private String addressNickName;
-    
-    @Column(name = "isDeleted", nullable = false)
-    private Boolean isDeleted = false;
-    
-    @Column(name = "clientId", nullable = false)
-    private Long clientId;
-    
-    @Column(name = "pickupLocationAddressId", nullable = false)
-    private Long pickupLocationAddressId;
-    
-    @Column(name = "shipRocketPickupLocationId")
-    private Long shipRocketPickupLocationId;
-    
-    // Audit fields
-    @CreationTimestamp
-    @Column(name = "createdAt", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-    
-    @Column(name = "createdBy", nullable = false, length = 255)
-    private String createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "createdBy", referencedColumnName = "loginName", insertable = false, updatable = false)
-    private User createdByUser;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "pickupLocationId", nullable = false)
+  private Long pickupLocationId;
 
-    @UpdateTimestamp
-    @Column(name = "updatedAt", nullable = false)
-    private LocalDateTime updatedAt;
+  @Column(name = "addressNickName", nullable = false, length = 36)
+  private String addressNickName;
 
-    @Column(name = "modifiedBy", nullable = false, length = 255)
-    private String modifiedBy;
+  @Column(name = "isDeleted", nullable = false)
+  private Boolean isDeleted = false;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "modifiedBy", referencedColumnName = "loginName", insertable = false, updatable = false)
-    private User modifiedByUser;    
-    
-    @Column(name = "notes", columnDefinition = "TEXT")
-    private String notes;
-    
-    // Relations
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "clientId", insertable = false, updatable = false)
-    private Client client;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pickupLocationAddressId", insertable = false, updatable = false)
-    private Address address;
-    
-    public PickupLocation() {}
-    
-    /**
-     * Constructor for creating a new pickup location.
-     * 
-     * @param request The PickupLocationRequestModel containing pickup location data
-     * @param createdBy The username of the user creating this record
-     */
-    public PickupLocation(PickupLocationRequestModel request, String createdBy, Long clientId) {
-        validateRequest(request);
-        validateUser(createdBy);
-        
-        setFieldsFromRequest(request);
-        this.createdBy = createdBy;
-        this.modifiedBy = createdBy;  // When creating, modified user is same as created user
-        this.clientId = clientId;
+  @Column(name = "clientId", nullable = false)
+  private Long clientId;
+
+  @Column(name = "pickupLocationAddressId", nullable = false)
+  private Long pickupLocationAddressId;
+
+  @Column(name = "shipRocketPickupLocationId")
+  private Long shipRocketPickupLocationId;
+
+  // Audit fields
+  @CreationTimestamp
+  @Column(name = "createdAt", nullable = false, updatable = false)
+  private LocalDateTime createdAt;
+
+  @Column(name = "createdBy", nullable = false, length = 255)
+  private String createdBy;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "createdBy",
+      referencedColumnName = "loginName",
+      insertable = false,
+      updatable = false)
+  private User createdByUser;
+
+  @UpdateTimestamp
+  @Column(name = "updatedAt", nullable = false)
+  private LocalDateTime updatedAt;
+
+  @Column(name = "modifiedBy", nullable = false, length = 255)
+  private String modifiedBy;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "modifiedBy",
+      referencedColumnName = "loginName",
+      insertable = false,
+      updatable = false)
+  private User modifiedByUser;
+
+  @Column(name = "notes", columnDefinition = "TEXT")
+  private String notes;
+
+  // Relations
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "clientId", insertable = false, updatable = false)
+  private Client client;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "pickupLocationAddressId", insertable = false, updatable = false)
+  private Address address;
+
+  public PickupLocation() {}
+
+  /**
+   * Constructor for creating a new pickup location.
+   *
+   * @param request The PickupLocationRequestModel containing pickup location data
+   * @param createdBy The username of the user creating this record
+   */
+  public PickupLocation(PickupLocationRequestModel request, String createdBy, Long clientId) {
+    validateRequest(request);
+    validateUser(createdBy);
+
+    setFieldsFromRequest(request);
+    this.createdBy = createdBy;
+    this.modifiedBy = createdBy; // When creating, modified user is same as created user
+    this.clientId = clientId;
+  }
+
+  /**
+   * Constructor for updating an existing pickup location.
+   *
+   * @param request The PickupLocationRequestModel containing updated pickup location data
+   * @param modifiedBy The username of the user modifying this record
+   * @param existingPickupLocation The existing pickup location entity to be updated
+   */
+  public PickupLocation(
+      PickupLocationRequestModel request,
+      String modifiedBy,
+      PickupLocation existingPickupLocation) {
+    validateRequest(request);
+    validateUser(modifiedBy);
+
+    // Copy existing fields
+    this.pickupLocationId = existingPickupLocation.getPickupLocationId();
+    this.createdAt = existingPickupLocation.getCreatedAt();
+    this.createdBy = existingPickupLocation.getCreatedBy();
+    this.clientId = existingPickupLocation.getClientId();
+
+    // Update with new values
+    setFieldsFromRequest(request);
+    this.modifiedBy = modifiedBy;
+  }
+
+  /**
+   * Validates the request model for required fields and constraints.
+   *
+   * @param request The PickupLocationRequestModel to validate
+   * @throws BadRequestException if validation fails
+   */
+  private void validateRequest(PickupLocationRequestModel request) {
+    if (request == null) {
+      throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.INVALID_REQUEST);
     }
-    
-    /**
-     * Constructor for updating an existing pickup location.
-     * 
-     * @param request The PickupLocationRequestModel containing updated pickup location data
-     * @param modifiedBy The username of the user modifying this record
-     * @param existingPickupLocation The existing pickup location entity to be updated
-     */
-    public PickupLocation(PickupLocationRequestModel request, String modifiedBy, PickupLocation existingPickupLocation) {
-        validateRequest(request);
-        validateUser(modifiedBy);
-        
-        // Copy existing fields
-        this.pickupLocationId = existingPickupLocation.getPickupLocationId();
-        this.createdAt = existingPickupLocation.getCreatedAt();
-        this.createdBy = existingPickupLocation.getCreatedBy();
-        this.clientId = existingPickupLocation.getClientId();
-        
-        // Update with new values
-        setFieldsFromRequest(request);
-        this.modifiedBy = modifiedBy;
+
+    // Validate address nickname (required, length > 0, max 36 chars - Shiprocket API limit)
+    if (request.getAddressNickName() == null || request.getAddressNickName().trim().isEmpty()) {
+      throw new BadRequestException(
+          ErrorMessages.PickupLocationErrorMessages.INVALID_ADDRESS_NICK_NAME);
     }
-    
-    /**
-     * Validates the request model for required fields and constraints.
-     * 
-     * @param request The PickupLocationRequestModel to validate
-     * @throws BadRequestException if validation fails
-     */
-    private void validateRequest(PickupLocationRequestModel request) {
-        if (request == null) {
-            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.INVALID_REQUEST);
-        }
-        
-        // Validate address nickname (required, length > 0, max 36 chars - Shiprocket API limit)
-        if (request.getAddressNickName() == null || request.getAddressNickName().trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.INVALID_ADDRESS_NICK_NAME);
-        }
-        if (request.getAddressNickName().trim().length() > 36) {
-            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.LOCATION_NAME_TOO_LONG);
-        }
-        
-        // Validate pickup location address ID (required, > 0)
-        if (request.getPickupLocationAddressId() == null || request.getPickupLocationAddressId() <= 0) {
-            throw new BadRequestException(ErrorMessages.AddressErrorMessages.INVALID_ID);
-        }
-        
-        // Validate ShipRocket pickup location ID (if provided, > 0)
-        if (request.getShipRocketPickupLocationId() != null && request.getShipRocketPickupLocationId() <= 0) {
-            throw new BadRequestException(ErrorMessages.PickupLocationErrorMessages.INVALID_SHIP_ROCKET_ID);
-        }
+    if (request.getAddressNickName().trim().length() > 36) {
+      throw new BadRequestException(
+          ErrorMessages.PickupLocationErrorMessages.LOCATION_NAME_TOO_LONG);
     }
-    
-    /**
-     * Validates the user parameter for audit fields.
-     * 
-     * @param user The username to validate
-     * @throws BadRequestException if validation fails
-     */
-    private void validateUser(String user) {
-        if (user == null || user.trim().isEmpty()) {
-            throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
-        }
+
+    // Validate pickup location address ID (required, > 0)
+    if (request.getPickupLocationAddressId() == null || request.getPickupLocationAddressId() <= 0) {
+      throw new BadRequestException(ErrorMessages.AddressErrorMessages.INVALID_ID);
     }
-    
-    /**
-     * Sets fields from the request model.
-     * 
-     * @param request The PickupLocationRequestModel to extract fields from
-     */
-    private void setFieldsFromRequest(PickupLocationRequestModel request) {
-        this.addressNickName = request.getAddressNickName().trim();
-        this.isDeleted = Boolean.TRUE.equals(request.getIsDeleted());
-        this.pickupLocationAddressId = request.getPickupLocationAddressId();
-        this.shipRocketPickupLocationId = request.getShipRocketPickupLocationId();
-        this.notes = request.getNotes() != null ? request.getNotes().trim() : null;
+
+    // Validate ShipRocket pickup location ID (if provided, > 0)
+    if (request.getShipRocketPickupLocationId() != null
+        && request.getShipRocketPickupLocationId() <= 0) {
+      throw new BadRequestException(
+          ErrorMessages.PickupLocationErrorMessages.INVALID_SHIP_ROCKET_ID);
     }
+  }
+
+  /**
+   * Validates the user parameter for audit fields.
+   *
+   * @param user The username to validate
+   * @throws BadRequestException if validation fails
+   */
+  private void validateUser(String user) {
+    if (user == null || user.trim().isEmpty()) {
+      throw new BadRequestException(ErrorMessages.UserErrorMessages.INVALID_USER);
+    }
+  }
+
+  /**
+   * Sets fields from the request model.
+   *
+   * @param request The PickupLocationRequestModel to extract fields from
+   */
+  private void setFieldsFromRequest(PickupLocationRequestModel request) {
+    this.addressNickName = request.getAddressNickName().trim();
+    this.isDeleted = Boolean.TRUE.equals(request.getIsDeleted());
+    this.pickupLocationAddressId = request.getPickupLocationAddressId();
+    this.shipRocketPickupLocationId = request.getShipRocketPickupLocationId();
+    this.notes = request.getNotes() != null ? request.getNotes().trim() : null;
+  }
 }

@@ -1,17 +1,16 @@
 package com.example.SpringApi.Models.DatabaseModels;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
-
 /**
- * JPA Entity for the MessageUserMap table.
- * Maps messages to individual users with recipient type information.
- * 
+ * JPA Entity for the MessageUserMap table. Maps messages to individual users with recipient type
+ * information.
+ *
  * @author SpringApi Team
  * @version 1.0
  * @since 2024-01-15
@@ -21,77 +20,83 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "`MessageUserMap`")
 public class MessageUserMap {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "mappingId", nullable = false)
-    private Long mappingId;
-    
-    @Column(name = "messageId", nullable = false)
-    private Long messageId;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "messageId", insertable = false, updatable = false)
-    private Message message;
-    
-    @Column(name = "userId", nullable = false)
-    private Long userId;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId", insertable = false, updatable = false)
-    private User user;
-    
-    @Column(name = "recipientType", nullable = false, length = 20)
-    private String recipientType;
-    
-    @Column(name = "createdUser", nullable = false)
-    private String createdUser;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "createdUser", referencedColumnName = "loginName", insertable = false, updatable = false)
-    private User createdByUser;
-    
-    @Column(name = "modifiedUser", nullable = false)
-    private String modifiedUser;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "modifiedUser", referencedColumnName = "loginName", insertable = false, updatable = false)
-    private User modifiedByUser;
-    
-    @CreationTimestamp
-    @Column(name = "createdAt", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-    
-    @UpdateTimestamp
-    @Column(name = "updatedAt", nullable = false)
-    private LocalDateTime updatedAt;
-    
-    @Column(name = "notes", columnDefinition = "TEXT")
-    private String notes;
-    
-    /**
-     * Default no-argument constructor required by JPA/Hibernate.
-     */
-    public MessageUserMap() {
-        // Default constructor for JPA
-    }
-    
-    /**
-     * Constructor for creating a new MessageUserMap.
-     * 
-     * @param messageId The message ID
-     * @param userId The user ID
-     * @param recipientType The recipient type (TO, CC, BCC)
-     * @param createdUser The username creating this record
-     * @param notes Optional notes
-     */
-    public MessageUserMap(Long messageId, Long userId, String recipientType, String createdUser, String notes) {
-        this.messageId = messageId;
-        this.userId = userId;
-        this.recipientType = recipientType;
-        this.createdUser = createdUser;
-        this.modifiedUser = createdUser;
-        this.notes = notes;
-    }
-}
 
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "mappingId", nullable = false)
+  private Long mappingId;
+
+  @Column(name = "messageId", nullable = false)
+  private Long messageId;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "messageId", insertable = false, updatable = false)
+  private Message message;
+
+  @Column(name = "userId", nullable = false)
+  private Long userId;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "userId", insertable = false, updatable = false)
+  private User user;
+
+  @Column(name = "recipientType", nullable = false, length = 20)
+  private String recipientType;
+
+  @Column(name = "createdUser", nullable = false)
+  private String createdUser;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "createdUser",
+      referencedColumnName = "loginName",
+      insertable = false,
+      updatable = false)
+  private User createdByUser;
+
+  @Column(name = "modifiedUser", nullable = false)
+  private String modifiedUser;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "modifiedUser",
+      referencedColumnName = "loginName",
+      insertable = false,
+      updatable = false)
+  private User modifiedByUser;
+
+  @CreationTimestamp
+  @Column(name = "createdAt", nullable = false, updatable = false)
+  private LocalDateTime createdAt;
+
+  @UpdateTimestamp
+  @Column(name = "updatedAt", nullable = false)
+  private LocalDateTime updatedAt;
+
+  @Column(name = "notes", columnDefinition = "TEXT")
+  private String notes;
+
+  /** Default no-argument constructor required by JPA/Hibernate. */
+  public MessageUserMap() {
+    // Default constructor for JPA
+  }
+
+  /**
+   * Constructor for creating a new MessageUserMap.
+   *
+   * @param messageId The message ID
+   * @param userId The user ID
+   * @param recipientType The recipient type (TO, CC, BCC)
+   * @param createdUser The username creating this record
+   * @param notes Optional notes
+   */
+  public MessageUserMap(
+      Long messageId, Long userId, String recipientType, String createdUser, String notes) {
+    this.messageId = messageId;
+    this.userId = userId;
+    this.recipientType = recipientType;
+    this.createdUser = createdUser;
+    this.modifiedUser = createdUser;
+    this.notes = notes;
+  }
+}

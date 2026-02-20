@@ -6,5 +6,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UpdatePickupLocationResponseModel {
-    private String message;
+  private String message;
 }
