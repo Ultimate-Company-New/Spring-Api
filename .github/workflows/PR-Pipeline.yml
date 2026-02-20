@@ -3,8 +3,27 @@ name: Java CI Pipeline
 on:
   pull_request:
     branches: ["main"]
+    types: [opened, edited, reopened, synchronize]
 
 jobs:
+  auto-assign:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure nahushr is assigned
+        uses: actions-ecosystem/action-add-assignees@v1
+        with:
+          assignees: nahushr
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  check-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for development label
+        uses: actions-ecosystem/action-check-labels@v1
+        with:
+          labels: development
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
   build:
     runs-on: ubuntu-latest
     steps:
