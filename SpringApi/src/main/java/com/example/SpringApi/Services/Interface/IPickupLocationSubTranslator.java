@@ -110,3 +110,4 @@ public interface IPickupLocationSubTranslator {
   BulkInsertResponseModel<Long> bulkCreatePickupLocations(
       List<PickupLocationRequestModel> pickupLocations);
 }
+

@@ -77,3 +77,4 @@ public class ProductRequestModel {
   private String additionalImage2;
   private String additionalImage3;
 }
+

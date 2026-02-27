@@ -40,3 +40,4 @@ public interface PickupLocationRepository extends JpaRepository<PickupLocation, 
   List<PickupLocation> findAllWithAddressesByClientId(
       @Param("clientId") Long clientId, @Param("includeDeleted") boolean includeDeleted);
 }
+

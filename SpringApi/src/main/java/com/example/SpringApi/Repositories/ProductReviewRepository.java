@@ -60,3 +60,4 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, Lo
       "UPDATE ProductReview pr SET pr.isDeleted = true, pr.modifiedUser = :user WHERE pr.reviewId = :reviewId OR pr.parentId = :reviewId")
   int markAllDescendantsAsDeleted(@Param("reviewId") Long reviewId, @Param("user") String user);
 }
+

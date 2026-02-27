@@ -36,3 +36,4 @@ public class PackageRequestModel {
    */
   private Map<Long, PackagePickupLocationMappingRequestModel> pickupLocationQuantities;
 }
+

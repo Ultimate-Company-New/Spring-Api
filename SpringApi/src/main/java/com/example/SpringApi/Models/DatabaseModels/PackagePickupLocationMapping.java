@@ -96,3 +96,4 @@ public class PackagePickupLocationMapping {
     this.modifiedUser = modifiedUser;
   }
 }
+

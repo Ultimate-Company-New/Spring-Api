@@ -70,3 +70,4 @@ public interface IProductReviewSubTranslator {
    */
   void setProductReviewScore(long id, boolean increaseScore);
 }
+

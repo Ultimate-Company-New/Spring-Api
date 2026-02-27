@@ -492,3 +492,4 @@ public class Shipment {
     this.shipRocketLabelUrl = response.getLabelUrl();
   }
 }
+

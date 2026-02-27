@@ -220,3 +220,4 @@ class ShipRocketReturnOrderRequestModelContractTest {
     }
   }
 }
+

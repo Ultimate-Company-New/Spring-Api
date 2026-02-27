@@ -310,3 +310,4 @@ class GetTokenTest extends LoginServiceTestBase {
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 }
+

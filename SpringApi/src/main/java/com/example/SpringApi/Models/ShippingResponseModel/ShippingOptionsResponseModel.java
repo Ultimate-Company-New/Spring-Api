@@ -338,3 +338,4 @@ public class ShippingOptionsResponseModel {
     private String title;
   }
 }
+

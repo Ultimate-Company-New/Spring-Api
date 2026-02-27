@@ -26,3 +26,4 @@ public class AddressRequestModel {
   private Boolean isPrimary;
   private Boolean isDeleted;
 }
+

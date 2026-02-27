@@ -119,3 +119,4 @@ public class UserLog {
   /** Default constructor required by JPA. */
   public UserLog() {}
 }
+

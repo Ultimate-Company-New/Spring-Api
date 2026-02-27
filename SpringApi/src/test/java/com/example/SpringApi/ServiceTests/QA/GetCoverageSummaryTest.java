@@ -401,3 +401,4 @@ class GetCoverageSummaryTest extends QAServiceTestBase {
         org.springframework.http.HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 }
+

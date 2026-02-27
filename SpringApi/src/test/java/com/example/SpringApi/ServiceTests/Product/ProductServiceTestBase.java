@@ -604,3 +604,4 @@ abstract class ProductServiceTestBase {
         .thenReturn(emptyPage);
   }
 }
+

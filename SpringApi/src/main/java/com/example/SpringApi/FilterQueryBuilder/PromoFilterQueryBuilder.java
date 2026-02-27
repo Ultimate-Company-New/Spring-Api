@@ -196,3 +196,4 @@ public class PromoFilterQueryBuilder extends BaseFilterQueryBuilder {
     return new PageImpl<>(promos, pageable, totalCount);
   }
 }
+

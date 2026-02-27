@@ -24,3 +24,4 @@ public class ShipRocketManifestResponseModel {
     return status != null && status == 1;
   }
 }
+

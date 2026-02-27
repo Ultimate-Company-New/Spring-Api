@@ -259,3 +259,4 @@ class GetUserByEmailTest extends UserServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
+

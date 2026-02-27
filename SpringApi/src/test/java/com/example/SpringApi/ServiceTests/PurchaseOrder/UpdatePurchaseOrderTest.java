@@ -181,3 +181,4 @@ class UpdatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
+

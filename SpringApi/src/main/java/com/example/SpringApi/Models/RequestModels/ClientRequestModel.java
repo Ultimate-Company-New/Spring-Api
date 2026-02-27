@@ -40,3 +40,4 @@ public class ClientRequestModel {
   private String notes;
   private String logoBase64;
 }
+

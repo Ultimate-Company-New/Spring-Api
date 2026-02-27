@@ -271,3 +271,4 @@ class FetchUserGroupsInClientInBatchesTest extends UserGroupServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
+

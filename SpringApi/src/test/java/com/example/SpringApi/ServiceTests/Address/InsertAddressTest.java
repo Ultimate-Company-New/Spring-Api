@@ -1272,3 +1272,4 @@ class InsertAddressTest extends AddressServiceTestBase {
         "Should return HTTP 201 Created on successful insertion");
   }
 }
+

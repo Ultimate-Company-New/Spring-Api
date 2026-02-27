@@ -39,3 +39,4 @@ public class ProcessPaymentAndShipmentRequestModel {
     this.cashPayment = cashPayment;
   }
 }
+

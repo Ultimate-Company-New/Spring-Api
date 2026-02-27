@@ -150,3 +150,4 @@ class GetLeadsInBatchesTest extends LeadServiceTestBase {
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 }
+

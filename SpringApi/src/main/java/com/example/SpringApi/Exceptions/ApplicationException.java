@@ -13,3 +13,4 @@ public class ApplicationException extends RuntimeException {
     super(message, cause);
   }
 }
+

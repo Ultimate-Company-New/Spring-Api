@@ -32,3 +32,4 @@ public class ProductPickupLocationItem {
     this.availableStock = availableStock;
   }
 }
+

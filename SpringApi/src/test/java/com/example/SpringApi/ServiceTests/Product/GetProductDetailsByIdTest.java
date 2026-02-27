@@ -145,3 +145,4 @@ class GetProductDetailsByIdTest extends ProductServiceTestBase {
     verify(productServiceMock).getProductDetailsById(anyLong());
   }
 }
+

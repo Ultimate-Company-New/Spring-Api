@@ -43,3 +43,4 @@ public interface UserGroupUserMapRepository extends JpaRepository<UserGroupUserM
   @Query("DELETE FROM UserGroupUserMap ugm WHERE ugm.userId = :userId")
   void deleteByUserId(@Param("userId") Long userId);
 }
+

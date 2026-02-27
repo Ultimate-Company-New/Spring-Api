@@ -211,3 +211,4 @@ class CancelShipmentTest extends ShippingServiceTestBase {
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 }
+

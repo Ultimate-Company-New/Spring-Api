@@ -3177,3 +3177,4 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     return 0;
   }
 }
+

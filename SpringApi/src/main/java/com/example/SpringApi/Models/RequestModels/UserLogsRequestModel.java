@@ -13,3 +13,4 @@ public class UserLogsRequestModel extends PaginationBaseRequestModel {
   private long userId;
   private long carrierId;
 }
+

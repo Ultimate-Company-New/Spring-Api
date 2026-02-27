@@ -23,3 +23,4 @@ public interface ShipmentPackageProductRepository
   List<ShipmentPackageProduct> findByShipmentPackageIdInWithProduct(
       @Param("shipmentPackageIds") List<Long> shipmentPackageIds);
 }
+

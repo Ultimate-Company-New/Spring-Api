@@ -199,3 +199,4 @@ class ToggleLeadTest extends LeadServiceTestBase {
     assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
   }
 }
+

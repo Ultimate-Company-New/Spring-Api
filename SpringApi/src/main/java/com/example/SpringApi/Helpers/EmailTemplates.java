@@ -524,3 +524,4 @@ public class EmailTemplates {
     return emailHelper.sendEmail(sendEmailRequest);
   }
 }
+
