@@ -41,7 +41,7 @@ jobs:
             console.log(`Linked issue found in body: ${hasLinkedIssue}`);
 
             if (!labels.includes('development') && !hasLinkedIssue) {
-              core.warning('No "development" label or linked issue found. Proceeding with caution.');
+              core.setFailed('PR validation failed: No "development" label or linked issue (e.g., "Fixes #123") was found. This is required to proceed.');
             } else {
               console.log('Verification successful: PR has required label or linked issue.');
             }
@@ -79,7 +79,7 @@ jobs:
                 });
                 console.log(`Successfully reopened issue #${issueNumber}`);
               } catch (error) {
-                console.error(`Failed to reopen issue #${issueNumber}: ${error.message}`);
+                core.setFailed(`Failed to reopen linked issue #${issueNumber}: ${error.message}`);
               }
             }
 
