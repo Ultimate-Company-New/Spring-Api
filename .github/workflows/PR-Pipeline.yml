@@ -204,50 +204,48 @@ jobs:
 
             console.log(`Processing Snyk results for PR #${prNumber} at SHA ${headSha}`);
 
-            const { data: existingComments } = await github.rest.pulls.listReviewComments({
+            const prFilesData = await github.paginate(github.rest.pulls.listFiles, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: prNumber,
             });
-
-            const { data: files } = await github.rest.pulls.listFiles({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber,
-            });
-            const prFiles = files.map(f => f.filename);
+            const prFiles = prFilesData.map(f => f.filename);
 
             for (const res of results.slice(0, 50)) {
               const path = res.locations[0].physicalLocation.artifactLocation.uri;
               const fullPath = path.startsWith('SpringApi/') ? path : `SpringApi/${path}`;
               const line = res.locations[0].physicalLocation.region.startLine || 1;
-              const message = `⚡ [Snyk: ${res.ruleId}] ${res.message.text}`;
+              const message = `⚡ **Snyk Finding:** [${res.ruleId}] ${res.message.text}`;
 
-              // ONLY post if the file is in the PR diff
-              if (!prFiles.includes(fullPath)) {
-                 console.log(`Skipping snyk finding for ${fullPath} - not in PR diff.`);
-                 continue;
-              }
+              if (!prFiles.includes(fullPath)) continue;
 
-              if (existingComments.some(c => c.path === fullPath && c.line === line && c.body.includes(`[Snyk: ${res.ruleId}]`))) {
-                console.log(`Duplicate found for ${fullPath}:${line}, skipping.`);
+              if (existingComments.some(c => c.path === fullPath && c.body.includes(`[${res.ruleId}]`) && (c.line === line || c.subject_type === 'file'))) {
                 continue;
               }
 
               try {
+                // Attempt line comment
                 await github.rest.pulls.createReviewComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   pull_number: prNumber,
-                  body: `⚡ **Snyk Finding:** ${message}`,
+                  body: message,
                   commit_id: headSha,
                   path: fullPath,
                   line: line,
                   side: 'RIGHT'
                 });
-                console.log(`Successfully posted review comment for ${fullPath}:${line}`);
               } catch (e) {
-                console.log(`Error posting comment: ${e.message}`);
+                // Fallback to File Header comment if line isn't in diff
+                await github.rest.pulls.createReviewComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: prNumber,
+                  body: `📌 **Note on ${fullPath}:${line}**\n${message}`,
+                  commit_id: headSha,
+                  path: fullPath,
+                  subject_type: 'file'
+                });
               }
             }
       - name: Upload result to GitHub Code Scanning
@@ -276,41 +274,43 @@ jobs:
               state: 'open'
             });
 
-            const { data: existingComments } = await github.rest.pulls.listReviewComments({
+            const prFilesData = await github.paginate(github.rest.pulls.listFiles, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: prNumber,
             });
-
-            const { data: files } = await github.rest.pulls.listFiles({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber,
-            });
-            const prFiles = files.map(f => f.filename);
+            const prFiles = prFilesData.map(f => f.filename);
 
             for (const alert of alerts.slice(0, 50)) {
               const path = alert.most_recent_instance.location.path;
               const line = alert.most_recent_instance.location.start_line;
-              const message = `🛡️ [CodeQL: ${alert.rule.id}] ${alert.rule.description}`;
+              const message = `🛡️ **CodeQL Finding:** [${alert.rule.id}] ${alert.rule.description}`;
 
               if (!prFiles.includes(path)) continue;
 
-              if (existingComments.some(c => c.path === path && c.line === line && c.body.includes(`[CodeQL: ${alert.rule.id}]`))) continue;
+              if (existingComments.some(c => c.path === path && c.body.includes(`[${alert.rule.id}]`) && (c.line === line || c.subject_type === 'file'))) continue;
 
               try {
                 await github.rest.pulls.createReviewComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   pull_number: prNumber,
-                  body: `🛡️ **CodeQL Finding:** ${message}`,
+                  body: message,
                   commit_id: headSha,
                   path: path,
                   line: line,
                   side: 'RIGHT'
                 });
               } catch (e) {
-                console.log(`Error posting CodeQL comment: ${e.message}`);
+                await github.rest.pulls.createReviewComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: prNumber,
+                  body: `📌 **Note on ${path}:${line}**\n${message}`,
+                  commit_id: headSha,
+                  path: path,
+                  subject_type: 'file'
+                });
               }
             }
 
@@ -510,12 +510,12 @@ jobs:
               pull_number: context.payload.pull_request.number,
             });
 
-            const { data: files } = await github.rest.pulls.listFiles({
+            const prFilesData = await github.paginate(github.rest.pulls.listFiles, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.payload.pull_request.number,
             });
-            const prFiles = files.map(f => f.filename);
+            const prFiles = prFilesData.map(f => f.filename);
 
             let commentsPosted = 0;
             for (const issue of issues) {
@@ -526,24 +526,18 @@ jobs:
               const fullPath = path.startsWith('SpringApi/') ? path : `SpringApi/${path}`;
               const line = issue.line || 1;
               const rule = issue.rule;
-              const message = `📡 [Sonar: ${rule}] ${issue.message}`;
+              const message = `📡 **SonarCloud Finding:** [${rule}] ${issue.message}`;
 
               if (!prFiles.includes(fullPath)) continue;
 
-              const alreadyExists = existingComments.some(c => 
-                c.path === fullPath && 
-                c.line === line && 
-                c.body.includes(`[Sonar: ${rule}]`)
-              );
-
-              if (alreadyExists) continue;
+              if (existingComments.some(c => c.path === fullPath && c.body.includes(`[${rule}]`) && (c.line === line || c.subject_type === 'file'))) continue;
 
               try {
                 await github.rest.pulls.createReviewComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   pull_number: context.payload.pull_request.number,
-                  body: `📡 **SonarCloud Finding:** ${message}`,
+                  body: message,
                   commit_id: context.payload.pull_request.head.sha,
                   path: fullPath,
                   line: line,
@@ -551,7 +545,16 @@ jobs:
                 });
                 commentsPosted++;
               } catch (e) {
-                console.log(`Error posting Sonar comment: ${e.message}`);
+                await github.rest.pulls.createReviewComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.payload.pull_request.number,
+                  body: `📌 **Note on ${fullPath}:${line}**\n${message}`,
+                  commit_id: context.payload.pull_request.head.sha,
+                  path: fullPath,
+                  subject_type: 'file'
+                });
+                commentsPosted++;
               }
             }
             console.log(`Successfully processed Sonar findings.`);
