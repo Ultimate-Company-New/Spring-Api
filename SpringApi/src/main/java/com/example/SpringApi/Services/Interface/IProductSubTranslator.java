@@ -157,4 +157,3 @@ public interface IProductSubTranslator {
    */
   java.util.Map<Long, String> getCategoryPathsByIds(List<Long> categoryIds);
 }
-

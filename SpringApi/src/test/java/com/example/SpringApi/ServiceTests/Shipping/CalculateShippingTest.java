@@ -304,4 +304,3 @@ class CalculateShippingTest extends ShippingServiceTestBase {
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 }
-

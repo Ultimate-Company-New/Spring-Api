@@ -235,4 +235,3 @@ class GetPaymentByIdTest extends PaymentServiceTestBase {
     assertTrue(annotation.value().contains(Authorizations.VIEW_PURCHASE_ORDERS_PERMISSION));
   }
 }
-

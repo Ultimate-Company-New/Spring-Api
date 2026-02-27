@@ -94,4 +94,3 @@ public class MessageUserGroupMap {
     this.notes = notes;
   }
 }
-

@@ -50,4 +50,3 @@ public class HTMLHelper {
     return htmlContent.trim();
   }
 }
-

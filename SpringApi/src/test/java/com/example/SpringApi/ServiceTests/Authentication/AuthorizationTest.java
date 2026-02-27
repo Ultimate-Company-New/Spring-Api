@@ -196,4 +196,3 @@ class AuthorizationTest {
         .thenReturn(List.of(mapping));
   }
 }
-

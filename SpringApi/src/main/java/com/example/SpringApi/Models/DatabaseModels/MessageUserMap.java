@@ -100,4 +100,3 @@ public class MessageUserMap {
     this.notes = notes;
   }
 }
-

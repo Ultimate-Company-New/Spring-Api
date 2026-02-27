@@ -240,4 +240,3 @@ class ToggleMessageTest extends MessageServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

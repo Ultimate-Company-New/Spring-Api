@@ -88,4 +88,3 @@ public class AddPickupLocationResponseModel {
     private long id;
   }
 }
-

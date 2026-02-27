@@ -1638,4 +1638,3 @@ public class QAService extends BaseService implements IQASubTranslator {
     return value;
   }
 }
-

@@ -229,4 +229,3 @@ class PasswordHelperTest {
     assertEquals(8, PasswordHelper.PasswordOptions.REQUIRED_LENGTH);
   }
 }
-

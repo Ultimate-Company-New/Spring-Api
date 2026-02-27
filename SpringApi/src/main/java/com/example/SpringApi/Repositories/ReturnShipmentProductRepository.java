@@ -15,4 +15,3 @@ public interface ReturnShipmentProductRepository
 
   List<ReturnShipmentProduct> findByReturnShipmentIdAndIsDeletedFalse(Long returnShipmentId);
 }
-

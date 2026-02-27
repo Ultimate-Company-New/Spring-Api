@@ -491,4 +491,3 @@ public class OrderSummary {
     this.pendingAmount = this.grandTotal.subtract(paidAmount);
   }
 }
-

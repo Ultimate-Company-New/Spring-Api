@@ -18,4 +18,3 @@ public class UserGroupRequestModel extends PaginationBaseRequestModel {
   private List<Long> userIds;
   private List<Long> selectedGroupIds;
 }
-

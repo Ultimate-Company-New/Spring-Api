@@ -6,4 +6,3 @@ public class PermissionException extends RuntimeException {
     super(message);
   }
 }
-

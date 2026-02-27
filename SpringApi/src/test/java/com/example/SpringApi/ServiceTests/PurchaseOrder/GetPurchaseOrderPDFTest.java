@@ -260,4 +260,3 @@ class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

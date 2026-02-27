@@ -224,4 +224,3 @@ public class BrevoEmailHelper implements IEmailHelper {
     }
   }
 }
-

@@ -241,4 +241,3 @@ public class ShipmentFilterQueryBuilder extends BaseFilterQueryBuilder {
     return new PageImpl<>(shipments, pageable, totalCount);
   }
 }
-

@@ -448,4 +448,3 @@ class RecordCashPaymentTest extends PaymentServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

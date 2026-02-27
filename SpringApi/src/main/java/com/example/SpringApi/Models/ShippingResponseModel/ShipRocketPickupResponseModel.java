@@ -59,4 +59,3 @@ public class ShipRocketPickupResponseModel {
     private String timezone;
   }
 }
-

@@ -396,4 +396,3 @@ abstract class PromoServiceTestBase {
         .getUserId();
   }
 }
-

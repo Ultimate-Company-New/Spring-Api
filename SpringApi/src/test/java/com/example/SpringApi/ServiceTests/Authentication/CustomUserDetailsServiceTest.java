@@ -100,4 +100,3 @@ class CustomUserDetailsServiceTest {
     assertEquals("User not found with username: missing", exception.getMessage());
   }
 }
-

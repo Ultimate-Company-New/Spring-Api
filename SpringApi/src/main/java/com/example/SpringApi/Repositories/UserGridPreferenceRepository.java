@@ -8,4 +8,3 @@ import org.springframework.stereotype.Repository;
 public interface UserGridPreferenceRepository extends JpaRepository<UserGridPreference, Long> {
   UserGridPreference findUserGridPreferenceByUserIdAndGridName(long userId, String gridName);
 }
-

@@ -18,4 +18,3 @@ public interface ShipmentProductRepository extends JpaRepository<ShipmentProduct
       "SELECT sp FROM ShipmentProduct sp JOIN FETCH sp.product WHERE sp.shipmentId IN :shipmentIds")
   List<ShipmentProduct> findByShipmentIdInWithProduct(@Param("shipmentIds") List<Long> shipmentIds);
 }
-

@@ -127,4 +127,3 @@ public class Authorizations {
   public static final String DELETE_TICKETS_PERMISSION = "DeleteTickets";
   public static final String EDIT_TICKETS_PERMISSION = "EditTickets";
 }
-

@@ -676,4 +676,3 @@ abstract class PurchaseOrderServiceTestBase {
     assertEquals(expectedMessage, ex.getMessage());
   }
 }
-

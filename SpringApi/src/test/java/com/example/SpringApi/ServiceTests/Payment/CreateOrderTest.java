@@ -419,4 +419,3 @@ class CreateOrderTest extends PaymentServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

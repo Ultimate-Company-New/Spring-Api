@@ -196,4 +196,3 @@ class ConfirmEmailTest extends LoginServiceTestBase {
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 }
-

@@ -32,4 +32,3 @@ public final class EntityType {
   /** Entity type for other/miscellaneous resources */
   public static final String OTHER = "Other";
 }
-

@@ -9,4 +9,3 @@ import org.springframework.stereotype.Repository;
 public interface TodoRepository extends JpaRepository<Todo, Long> {
   List<Todo> findAllByUserIdOrderByTodoIdDesc(Long userId);
 }
-

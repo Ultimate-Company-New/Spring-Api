@@ -20,4 +20,3 @@ public class ProductCategoryRequestModel {
   private Boolean isEnd;
   private String notes;
 }
-

@@ -569,4 +569,3 @@ public class LeadService extends BaseService implements ILeadSubTranslator {
     }
   }
 }
-

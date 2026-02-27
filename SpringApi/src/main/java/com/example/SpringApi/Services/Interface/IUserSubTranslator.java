@@ -139,4 +139,3 @@ public interface IUserSubTranslator {
       String requestingUserLoginName,
       Long requestingClientId);
 }
-

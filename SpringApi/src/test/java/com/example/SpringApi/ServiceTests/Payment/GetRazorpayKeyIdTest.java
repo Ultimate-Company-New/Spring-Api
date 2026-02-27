@@ -188,4 +188,3 @@ class GetRazorpayKeyIdTest extends PaymentServiceTestBase {
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
   }
 }
-

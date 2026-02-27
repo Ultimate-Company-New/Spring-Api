@@ -191,4 +191,3 @@ public class PickupLocation {
     this.notes = request.getNotes() != null ? request.getNotes().trim() : null;
   }
 }
-

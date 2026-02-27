@@ -158,4 +158,3 @@ class GetProductStockAtLocationsByProductIdTest extends ProductServiceTestBase {
         .getProductStockAtLocationsByProductId(anyLong(), any(), any(), any());
   }
 }
-

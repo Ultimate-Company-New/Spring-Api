@@ -323,4 +323,3 @@ class GetPackageByIdTest extends PackageServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

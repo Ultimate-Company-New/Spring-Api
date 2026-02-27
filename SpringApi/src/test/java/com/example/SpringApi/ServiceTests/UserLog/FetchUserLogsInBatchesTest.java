@@ -504,4 +504,3 @@ class FetchUserLogsInBatchesTest extends UserLogServiceTestBase {
     return request;
   }
 }
-
