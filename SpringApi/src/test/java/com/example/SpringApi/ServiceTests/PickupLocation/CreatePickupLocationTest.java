@@ -1,17 +1,17 @@
-package com.example.SpringApi.ServiceTests.PickupLocation;
+package com.example.springapi.ServiceTests.PickupLocation;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.PickupLocationController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Helpers.ShipRocketHelper;
-import com.example.SpringApi.Models.RequestModels.PackagePickupLocationMappingRequestModel;
-import com.example.SpringApi.Models.RequestModels.ProductPickupLocationMappingRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
-import com.example.SpringApi.Models.ShippingResponseModel.AddPickupLocationResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.PickupLocationController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.helpers.ShipRocketHelper;
+import com.example.springapi.models.requestmodels.PackagePickupLocationMappingRequestModel;
+import com.example.springapi.models.requestmodels.ProductPickupLocationMappingRequestModel;
+import com.example.springapi.models.responsemodels.ClientResponseModel;
+import com.example.springapi.models.shippingresponsemodel.AddPickupLocationResponseModel;
 import java.lang.reflect.Method;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

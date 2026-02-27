@@ -1,11 +1,11 @@
-package com.example.SpringApi.Models.RequestModels;
+package com.example.springapi.models.requestmodels;
 
 import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Model to represent a product item in a purchase order request. Contains product ID, price per
+ * Model to represent a product item in a purchase order request. Contains product ID, price per.
  * unit, and quantity.
  *
  * @author SpringApi Team

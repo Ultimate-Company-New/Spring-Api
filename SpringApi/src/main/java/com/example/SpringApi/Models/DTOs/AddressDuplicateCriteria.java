@@ -1,8 +1,11 @@
-package com.example.SpringApi.Models.DTOs;
+package com.example.springapi.models.dtos;
 
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Represents the address duplicate criteria component.
+ */
 @Getter
 @Setter
 public class AddressDuplicateCriteria {

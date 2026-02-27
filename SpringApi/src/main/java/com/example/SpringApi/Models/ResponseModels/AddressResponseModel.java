@@ -1,10 +1,13 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.DatabaseModels.Address;
+import com.example.springapi.models.databasemodels.Address;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Represents the address response model component.
+ */
 @Getter
 @Setter
 public class AddressResponseModel {
@@ -35,6 +38,9 @@ public class AddressResponseModel {
   public AddressResponseModel() {}
 
   // Constructor that takes Address entity and populates response fields
+  /**
+   * Executes address response model.
+   */
   public AddressResponseModel(Address address) {
     if (address != null) {
       this.addressId = address.getAddressId();

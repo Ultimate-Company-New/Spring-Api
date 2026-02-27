@@ -1,27 +1,32 @@
-package com.example.SpringApi.Controllers;
+package com.example.springapi.controllers;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.Logging.ContextualLogger;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.RequestModels.CreateReturnRequestModel;
-import com.example.SpringApi.Models.RequestModels.OrderOptimizationRequestModel;
-import com.example.SpringApi.Models.RequestModels.ShippingCalculationRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
-import com.example.SpringApi.Models.ResponseModels.OrderOptimizationResponseModel;
-import com.example.SpringApi.Models.ResponseModels.ReturnShipmentResponseModel;
-import com.example.SpringApi.Models.ResponseModels.ShippingCalculationResponseModel;
-import com.example.SpringApi.Services.Interface.IShippingSubTranslator;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.logging.ContextualLogger;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.requestmodels.CreateReturnRequestModel;
+import com.example.springapi.models.requestmodels.OrderOptimizationRequestModel;
+import com.example.springapi.models.requestmodels.ShippingCalculationRequestModel;
+import com.example.springapi.models.responsemodels.ErrorResponseModel;
+import com.example.springapi.models.responsemodels.OrderOptimizationResponseModel;
+import com.example.springapi.models.responsemodels.ReturnShipmentResponseModel;
+import com.example.springapi.models.responsemodels.ShippingCalculationResponseModel;
+import com.example.springapi.services.interfaces.ShippingSubTranslator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST Controller for Shipping operations.
@@ -42,15 +47,15 @@ public class ShippingController {
       ContextualLogger.getLogger(ShippingController.class);
   private static final Logger logger = LoggerFactory.getLogger(ShippingController.class);
 
-  private final IShippingSubTranslator shippingService;
+  private final ShippingSubTranslator shippingService;
 
   @Autowired
-  public ShippingController(IShippingSubTranslator shippingService) {
+  public ShippingController(ShippingSubTranslator shippingService) {
     this.shippingService = shippingService;
   }
 
   /**
-   * Calculate shipping options for an order. Groups products by pickup location and returns
+   * Calculate shipping options for an order. Groups products by pickup location and returns.
    * available couriers for each location. Requires VIEW_PURCHASE_ORDERS_PERMISSION to access.
    *
    * @param request Contains delivery postcode, COD flag, and list of pickup locations with weights
@@ -165,7 +170,7 @@ public class ShippingController {
   }
 
   /**
-   * Cancel a shipment. Cancels the shipment in ShipRocket and updates the local shipment status to
+   * Cancel a shipment. Cancels the shipment in ShipRocket and updates the local shipment status to.
    * CANCELLED. Requires MODIFY_SHIPMENTS_PERMISSION to access.
    *
    * @param shipmentId The local shipment ID to cancel
@@ -212,7 +217,7 @@ public class ShippingController {
   }
 
   /**
-   * Create a return order for a shipment. Creates a return shipment in ShipRocket and stores the
+   * Create a return order for a shipment. Creates a return shipment in ShipRocket and stores the.
    * return details locally. Requires MODIFY_SHIPMENTS_PERMISSION to access.
    *
    * @param request The return request containing shipment ID and products to return
@@ -306,7 +311,7 @@ public class ShippingController {
   }
 
   /**
-   * Get the ShipRocket wallet balance. Returns the current wallet balance for the client's
+   * Get the ShipRocket wallet balance. Returns the current wallet balance for the client's.
    * ShipRocket account. Requires VIEW_SHIPMENTS permission to access.
    *
    * @return ResponseEntity containing the wallet balance as a Double
@@ -366,7 +371,7 @@ public class ShippingController {
   @PostMapping(ApiRoutes.ShipmentSubRoute.GET_SHIPMENTS_IN_BATCHES)
   public ResponseEntity<?> getShipmentsInBatches(
       @RequestBody
-          com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel
+          com.example.springapi.models.requestmodels.PaginationBaseRequestModel
               paginationBaseRequestModel) {
     try {
       return ResponseEntity.ok(shippingService.getShipmentsInBatches(paginationBaseRequestModel));

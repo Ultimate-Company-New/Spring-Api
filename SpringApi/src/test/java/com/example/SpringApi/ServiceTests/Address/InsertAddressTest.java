@@ -1,15 +1,15 @@
-package com.example.SpringApi.ServiceTests.Address;
+package com.example.springapi.ServiceTests.Address;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.AddressController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.DatabaseModels.Address;
-import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.AddressController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.databasemodels.Address;
+import com.example.springapi.models.requestmodels.AddressRequestModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -416,8 +416,8 @@ class InsertAddressTest extends AddressServiceTestBase {
     verify(userLogService)
         .logData(
             eq(DEFAULT_USER_ID),
-            contains(com.example.SpringApi.SuccessMessages.AddressSuccessMessages.INSERT_ADDRESS),
-            eq(com.example.SpringApi.Models.ApiRoutes.AddressSubRoute.INSERT_ADDRESS));
+            contains(com.example.springapi.SuccessMessages.AddressSuccessMessages.INSERT_ADDRESS),
+            eq(com.example.springapi.models.ApiRoutes.AddressSubRoute.INSERT_ADDRESS));
   }
 
   /**
@@ -1247,7 +1247,7 @@ class InsertAddressTest extends AddressServiceTestBase {
     // Arrange
     var method =
         AddressController.class.getMethod(
-            "createAddress", com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
+            "createAddress", com.example.springapi.models.requestmodels.AddressRequestModel.class);
     stubServiceInsertAddressDoNothing();
 
     // Act

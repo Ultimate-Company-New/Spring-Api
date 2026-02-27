@@ -1,12 +1,12 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Models.RequestModels.OrderOptimizationRequestModel;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.ShippingCalculationRequestModel;
-import com.example.SpringApi.Models.ResponseModels.OrderOptimizationResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.ShipmentResponseModel;
-import com.example.SpringApi.Models.ResponseModels.ShippingCalculationResponseModel;
+import com.example.springapi.models.requestmodels.OrderOptimizationRequestModel;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.ShippingCalculationRequestModel;
+import com.example.springapi.models.responsemodels.OrderOptimizationResponseModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.ShipmentResponseModel;
+import com.example.springapi.models.responsemodels.ShippingCalculationResponseModel;
 
 /**
  * Interface for shipping-related operations.
@@ -19,7 +19,7 @@ import com.example.SpringApi.Models.ResponseModels.ShippingCalculationResponseMo
  * @version 1.0
  * @since 2024-01-15
  */
-public interface IShippingSubTranslator {
+public interface ShippingSubTranslator {
 
   // ============================================================================
   // SHIPMENT OPERATIONS
@@ -51,7 +51,7 @@ public interface IShippingSubTranslator {
   // ============================================================================
 
   /**
-   * Calculate shipping options for an order. Groups products by pickup location and returns
+   * Calculate shipping options for an order. Groups products by pickup location and returns.
    * available couriers for each location.
    *
    * @param request Contains delivery postcode, COD flag, and list of pickup locations with weights
@@ -60,7 +60,7 @@ public interface IShippingSubTranslator {
   ShippingCalculationResponseModel calculateShipping(ShippingCalculationRequestModel request);
 
   /**
-   * Optimize order fulfillment across multiple pickup locations. Finds the optimal allocation of
+   * Optimize order fulfillment across multiple pickup locations. Finds the optimal allocation of.
    * products to pickup locations that minimizes total cost (shipping + packaging), considering: -
    * Product availability at each location - Packaging capacity and costs at each location -
    * Shipping rates (tiered/slab-based) from each location to delivery address - Consolidation
@@ -76,7 +76,7 @@ public interface IShippingSubTranslator {
   // ============================================================================
 
   /**
-   * Cancel a shipment. Cancels the shipment in ShipRocket and updates the local shipment status to
+   * Cancel a shipment. Cancels the shipment in ShipRocket and updates the local shipment status to.
    * CANCELLED.
    *
    * @param shipmentId The local shipment ID to cancel
@@ -85,18 +85,18 @@ public interface IShippingSubTranslator {
   void cancelShipment(Long shipmentId);
 
   /**
-   * Create a return order for a shipment. Creates a return shipment in ShipRocket and stores the
+   * Create a return order for a shipment. Creates a return shipment in ShipRocket and stores the.
    * return details locally.
    *
    * @param request The return request containing shipment ID and products to return
    * @return ReturnShipmentResponseModel with the created return details
    * @throws BadRequestException if the return cannot be created
    */
-  com.example.SpringApi.Models.ResponseModels.ReturnShipmentResponseModel createReturn(
-      com.example.SpringApi.Models.RequestModels.CreateReturnRequestModel request);
+  com.example.springapi.models.responsemodels.ReturnShipmentResponseModel createReturn(
+      com.example.springapi.models.requestmodels.CreateReturnRequestModel request);
 
   /**
-   * Cancel a return shipment. Cancels the return order in ShipRocket and updates the local return
+   * Cancel a return shipment. Cancels the return order in ShipRocket and updates the local return.
    * shipment status to RETURN_CANCELLED.
    *
    * @param returnShipmentId The local return shipment ID to cancel

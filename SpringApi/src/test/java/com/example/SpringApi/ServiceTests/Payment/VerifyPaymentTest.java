@@ -1,17 +1,17 @@
-package com.example.SpringApi.ServiceTests.Payment;
+package com.example.springapi.ServiceTests.Payment;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Models.DatabaseModels.OrderSummary;
-import com.example.SpringApi.Models.DatabaseModels.Payment;
-import com.example.SpringApi.Models.DatabaseModels.PurchaseOrder;
-import com.example.SpringApi.Models.ResponseModels.PaymentVerificationResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.models.databasemodels.OrderSummary;
+import com.example.springapi.models.databasemodels.Payment;
+import com.example.springapi.models.databasemodels.PurchaseOrder;
+import com.example.springapi.models.responsemodels.PaymentVerificationResponseModel;
 import java.math.BigDecimal;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;

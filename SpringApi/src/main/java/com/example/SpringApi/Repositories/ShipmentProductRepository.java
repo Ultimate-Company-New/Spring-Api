@@ -1,12 +1,15 @@
-package com.example.SpringApi.Repositories;
+package com.example.springapi.repositories;
 
-import com.example.SpringApi.Models.DatabaseModels.ShipmentProduct;
+import com.example.springapi.models.databasemodels.ShipmentProduct;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Defines the shipment product repository contract.
+ */
 @Repository
 public interface ShipmentProductRepository extends JpaRepository<ShipmentProduct, Long> {
   List<ShipmentProduct> findByShipmentId(Long shipmentId);

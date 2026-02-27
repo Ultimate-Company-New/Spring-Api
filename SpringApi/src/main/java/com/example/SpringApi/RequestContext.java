@@ -1,8 +1,11 @@
-package com.example.SpringApi;
+package com.example.springapi;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents the request context component.
+ */
 public class RequestContext {
   private RequestContext() {}
 

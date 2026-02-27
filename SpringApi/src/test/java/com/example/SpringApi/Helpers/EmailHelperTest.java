@@ -1,4 +1,4 @@
-package com.example.SpringApi.Helpers;
+package com.example.springapi.helpers;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -9,9 +9,9 @@ import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.RequestModels.SendEmailRequest;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.requestmodels.SendEmailRequest;
 import com.sendgrid.Request;
 import com.sendgrid.SendGrid;
 import com.sendgrid.helpers.mail.objects.Attachments;

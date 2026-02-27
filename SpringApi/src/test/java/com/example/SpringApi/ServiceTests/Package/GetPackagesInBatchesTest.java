@@ -1,14 +1,14 @@
-package com.example.SpringApi.ServiceTests.Package;
+package com.example.springapi.ServiceTests.Package;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 
-import com.example.SpringApi.Controllers.PackageController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.ResponseModels.PackageResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.PackageController;
+import com.example.springapi.models.responsemodels.PackageResponseModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -44,7 +44,7 @@ class GetPackagesInBatchesTest extends PackageServiceTestBase {
     testPaginationRequest.setStart(0);
     testPaginationRequest.setEnd(1);
     testPaginationRequest.setFilters(null);
-    Page<com.example.SpringApi.Models.DatabaseModels.Package> page =
+    Page<com.example.springapi.models.databasemodels.Package> page =
         new PageImpl<>(Arrays.asList(testPackage));
     stubPackageFilterQueryBuilderFindPaginatedEntities(page);
 
@@ -68,11 +68,11 @@ class GetPackagesInBatchesTest extends PackageServiceTestBase {
     testPaginationRequest.setStart(0);
     testPaginationRequest.setEnd(1500);
     testPaginationRequest.setFilters(null);
-    List<com.example.SpringApi.Models.DatabaseModels.Package> largeList = new ArrayList<>();
+    List<com.example.springapi.models.databasemodels.Package> largeList = new ArrayList<>();
     for (int i = 0; i < 100; i++) {
       largeList.add(testPackage);
     }
-    Page<com.example.SpringApi.Models.DatabaseModels.Package> page = new PageImpl<>(largeList);
+    Page<com.example.springapi.models.databasemodels.Package> page = new PageImpl<>(largeList);
     stubPackageFilterQueryBuilderFindPaginatedEntities(page);
 
     // Act
@@ -96,7 +96,7 @@ class GetPackagesInBatchesTest extends PackageServiceTestBase {
     testPaginationRequest.setStart(0);
     testPaginationRequest.setEnd(Integer.MAX_VALUE - 1);
     testPaginationRequest.setFilters(null);
-    Page<com.example.SpringApi.Models.DatabaseModels.Package> page =
+    Page<com.example.springapi.models.databasemodels.Package> page =
         new PageImpl<>(Arrays.asList(testPackage));
     stubPackageFilterQueryBuilderFindPaginatedEntities(page);
 
@@ -120,7 +120,7 @@ class GetPackagesInBatchesTest extends PackageServiceTestBase {
     testPaginationRequest.setStart(0);
     testPaginationRequest.setEnd(10);
     testPaginationRequest.setFilters(null);
-    Page<com.example.SpringApi.Models.DatabaseModels.Package> page =
+    Page<com.example.springapi.models.databasemodels.Package> page =
         new PageImpl<>(Arrays.asList(testPackage));
     stubPackageFilterQueryBuilderFindPaginatedEntities(page);
 

@@ -1,6 +1,15 @@
-package com.example.SpringApi.Models.DatabaseModels;
+package com.example.springapi.models.databasemodels;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Getter;
@@ -35,6 +44,9 @@ import org.hibernate.annotations.UpdateTimestamp;
       @Index(name = "idx_payment_created_at", columnList = "createdAt")
     })
 public class Payment {
+  /**
+   * Represents the payment order data component.
+   */
   @Getter
   @Setter
   public static class PaymentOrderData {
@@ -49,6 +61,9 @@ public class Payment {
     private String createdUser;
   }
 
+  /**
+   * Represents the manual payment data component.
+   */
   @Getter
   @Setter
   public static class ManualPaymentData {
@@ -71,7 +86,7 @@ public class Payment {
   // ENUMS
   // ========================================================================
 
-  /** Payment status enum matching Razorpay statuses */
+  /** Payment status enum matching Razorpay statuses. */
   public enum PaymentStatus {
     CREATED("CREATED"), // Order created, awaiting payment
     AUTHORIZED("AUTHORIZED"), // Payment authorized but not captured
@@ -92,16 +107,23 @@ public class Payment {
       return value;
     }
 
+    /**
+     * Checks whether valid.
+     */
     public static boolean isValid(String value) {
-      if (value == null) return false;
+      if (value == null) {
+        return false;
+      }
       for (PaymentStatus status : values()) {
-        if (status.value.equals(value)) return true;
+        if (status.value.equals(value)) {
+          return true;
+        }
       }
       return false;
     }
   }
 
-  /** Payment method enum */
+  /** Payment method enum. */
   public enum PaymentMethod {
     CARD("CARD"),
     UPI("UPI"),
@@ -124,7 +146,7 @@ public class Payment {
     }
   }
 
-  /** Payment gateway enum */
+  /** Payment gateway enum. */
   public enum PaymentGateway {
     RAZORPAY("RAZORPAY"),
     STRIPE("STRIPE"),
@@ -144,7 +166,7 @@ public class Payment {
     }
   }
 
-  /** Entity type for polymorphic association */
+  /** Entity type for polymorphic association. */
   public enum EntityType {
     PURCHASE_ORDER("PURCHASE_ORDER"),
     SALES_ORDER("SALES_ORDER"),
@@ -185,27 +207,27 @@ public class Payment {
   // RAZORPAY ORDER DETAILS (Pre-payment)
   // ========================================================================
 
-  /** Razorpay Order ID (created before payment) */
+  /** Razorpay Order ID (created before payment). */
   @Column(name = "razorpayOrderId", length = 100)
   private String razorpayOrderId;
 
-  /** Receipt/reference number sent to Razorpay */
+  /** Receipt/reference number sent to Razorpay. */
   @Column(name = "razorpayReceipt", length = 200)
   private String razorpayReceipt;
 
-  /** Order amount in paise (smallest currency unit) */
+  /** Order amount in paise (smallest currency unit). */
   @Column(name = "orderAmountPaise")
   private Long orderAmountPaise;
 
-  /** Order currency (INR, USD, etc.) */
+  /** Order currency (INR, USD, etc.). */
   @Column(name = "currency", length = 10)
   private String currency;
 
-  /** Order creation timestamp from Razorpay */
+  /** Order creation timestamp from Razorpay. */
   @Column(name = "orderCreatedAt")
   private LocalDateTime orderCreatedAt;
 
-  /** Order expiry timestamp */
+  /** Order expiry timestamp. */
   @Column(name = "orderExpiresAt")
   private LocalDateTime orderExpiresAt;
 
@@ -213,55 +235,55 @@ public class Payment {
   // RAZORPAY PAYMENT DETAILS (Post-payment)
   // ========================================================================
 
-  /** Razorpay Payment ID (after successful payment) */
+  /** Razorpay Payment ID (after successful payment). */
   @Column(name = "razorpayPaymentId", length = 100)
   private String razorpayPaymentId;
 
-  /** Razorpay signature for verification */
+  /** Razorpay signature for verification. */
   @Column(name = "razorpaySignature", length = 500)
   private String razorpaySignature;
 
-  /** Payment method used (card, upi, netbanking, wallet, etc.) */
+  /** Payment method used (card, upi, netbanking, wallet, etc.). */
   @Column(name = "paymentMethod", length = 50)
   private String paymentMethod;
 
-  /** Payment gateway used */
+  /** Payment gateway used. */
   @Column(name = "paymentGateway", nullable = false, length = 50)
   private String paymentGateway;
 
-  /** Current payment status */
+  /** Current payment status. */
   @Column(name = "paymentStatus", nullable = false, length = 50)
   private String paymentStatus;
 
-  /** Amount paid in paise */
+  /** Amount paid in paise. */
   @Column(name = "amountPaidPaise")
   private Long amountPaidPaise;
 
-  /** Amount paid in INR (for display) */
+  /** Amount paid in INR (for display). */
   @Column(name = "amountPaid", precision = 15, scale = 2)
   private BigDecimal amountPaid;
 
-  /** Razorpay fee charged in paise */
+  /** Razorpay fee charged in paise. */
   @Column(name = "razorpayFeePaise")
   private Long razorpayFeePaise;
 
-  /** Razorpay fee in INR */
+  /** Razorpay fee in INR. */
   @Column(name = "razorpayFee", precision = 15, scale = 2)
   private BigDecimal razorpayFee;
 
-  /** GST on Razorpay fee in paise */
+  /** GST on Razorpay fee in paise. */
   @Column(name = "razorpayTaxPaise")
   private Long razorpayTaxPaise;
 
-  /** GST on Razorpay fee in INR */
+  /** GST on Razorpay fee in INR. */
   @Column(name = "razorpayTax", precision = 15, scale = 2)
   private BigDecimal razorpayTax;
 
-  /** Payment timestamp */
+  /** Payment timestamp. */
   @Column(name = "paymentDate")
   private LocalDateTime paymentDate;
 
-  /** Payment captured timestamp (for auth + capture flow) */
+  /** Payment captured timestamp (for auth + capture flow). */
   @Column(name = "capturedAt")
   private LocalDateTime capturedAt;
 
@@ -269,27 +291,27 @@ public class Payment {
   // CARD DETAILS (if paid by card)
   // ========================================================================
 
-  /** Card last 4 digits */
+  /** Card last 4 digits. */
   @Column(name = "cardLast4", length = 4)
   private String cardLast4;
 
-  /** Card network (Visa, Mastercard, etc.) */
+  /** Card network (Visa, Mastercard, etc.). */
   @Column(name = "cardNetwork", length = 50)
   private String cardNetwork;
 
-  /** Card type (credit, debit, prepaid) */
+  /** Card type (credit, debit, prepaid). */
   @Column(name = "cardType", length = 20)
   private String cardType;
 
-  /** Card issuing bank */
+  /** Card issuing bank. */
   @Column(name = "cardIssuer", length = 100)
   private String cardIssuer;
 
-  /** Whether card is international */
+  /** Whether card is international. */
   @Column(name = "cardInternational")
   private Boolean cardInternational;
 
-  /** EMI tenure in months (if EMI) */
+  /** EMI tenure in months (if EMI). */
   @Column(name = "emiTenure")
   private Integer emiTenure;
 
@@ -297,11 +319,11 @@ public class Payment {
   // UPI DETAILS (if paid by UPI)
   // ========================================================================
 
-  /** UPI VPA (Virtual Payment Address) */
+  /** UPI VPA (Virtual Payment Address). */
   @Column(name = "upiVpa", length = 100)
   private String upiVpa;
 
-  /** UPI transaction reference */
+  /** UPI transaction reference. */
   @Column(name = "upiTransactionId", length = 100)
   private String upiTransactionId;
 
@@ -309,11 +331,11 @@ public class Payment {
   // NET BANKING DETAILS (if paid by netbanking)
   // ========================================================================
 
-  /** Bank code */
+  /** Bank code. */
   @Column(name = "bankCode", length = 20)
   private String bankCode;
 
-  /** Bank name */
+  /** Bank name. */
   @Column(name = "bankName", length = 100)
   private String bankName;
 
@@ -321,7 +343,7 @@ public class Payment {
   // WALLET DETAILS (if paid by wallet)
   // ========================================================================
 
-  /** Wallet name (Paytm, PhonePe, etc.) */
+  /** Wallet name (Paytm, PhonePe, etc.). */
   @Column(name = "walletName", length = 50)
   private String walletName;
 
@@ -329,27 +351,27 @@ public class Payment {
   // REFUND DETAILS
   // ========================================================================
 
-  /** Total amount refunded in paise */
+  /** Total amount refunded in paise. */
   @Column(name = "amountRefundedPaise")
   private Long amountRefundedPaise;
 
-  /** Total amount refunded in INR */
+  /** Total amount refunded in INR. */
   @Column(name = "amountRefunded", precision = 15, scale = 2)
   private BigDecimal amountRefunded;
 
-  /** Number of refunds processed */
+  /** Number of refunds processed. */
   @Column(name = "refundCount")
   private Integer refundCount;
 
-  /** Last refund ID */
+  /** Last refund ID. */
   @Column(name = "lastRefundId", length = 100)
   private String lastRefundId;
 
-  /** Last refund timestamp */
+  /** Last refund timestamp. */
   @Column(name = "lastRefundAt")
   private LocalDateTime lastRefundAt;
 
-  /** Refund status (none, partial, full) */
+  /** Refund status (none, partial, full). */
   @Column(name = "refundStatus", length = 20)
   private String refundStatus;
 
@@ -357,15 +379,15 @@ public class Payment {
   // SETTLEMENT DETAILS
   // ========================================================================
 
-  /** Settlement ID from Razorpay */
+  /** Settlement ID from Razorpay. */
   @Column(name = "settlementId", length = 100)
   private String settlementId;
 
-  /** Settlement status */
+  /** Settlement status. */
   @Column(name = "settlementStatus", length = 50)
   private String settlementStatus;
 
-  /** Settlement timestamp */
+  /** Settlement timestamp. */
   @Column(name = "settledAt")
   private LocalDateTime settledAt;
 
@@ -373,19 +395,19 @@ public class Payment {
   // ERROR DETAILS (if failed)
   // ========================================================================
 
-  /** Error code from Razorpay */
+  /** Error code from Razorpay. */
   @Column(name = "errorCode", length = 100)
   private String errorCode;
 
-  /** Error description */
+  /** Error description. */
   @Column(name = "errorDescription", length = 500)
   private String errorDescription;
 
-  /** Error source (gateway, bank, customer) */
+  /** Error source (gateway, bank, customer). */
   @Column(name = "errorSource", length = 50)
   private String errorSource;
 
-  /** Error reason */
+  /** Error reason. */
   @Column(name = "errorReason", length = 200)
   private String errorReason;
 
@@ -393,19 +415,19 @@ public class Payment {
   // CUSTOMER DETAILS
   // ========================================================================
 
-  /** Customer email */
+  /** Customer email. */
   @Column(name = "customerEmail", length = 255)
   private String customerEmail;
 
-  /** Customer phone */
+  /** Customer phone. */
   @Column(name = "customerPhone", length = 20)
   private String customerPhone;
 
-  /** Customer name */
+  /** Customer name. */
   @Column(name = "customerName", length = 200)
   private String customerName;
 
-  /** Razorpay customer ID (if saved) */
+  /** Razorpay customer ID (if saved). */
   @Column(name = "razorpayCustomerId", length = 100)
   private String razorpayCustomerId;
 
@@ -413,27 +435,27 @@ public class Payment {
   // ADDITIONAL DETAILS
   // ========================================================================
 
-  /** Invoice ID (if linked to invoice) */
+  /** Invoice ID (if linked to invoice). */
   @Column(name = "invoiceId", length = 100)
   private String invoiceId;
 
-  /** Payment description */
+  /** Payment description. */
   @Column(name = "description", length = 500)
   private String description;
 
-  /** Additional notes (JSON) */
+  /** Additional notes (JSON). */
   @Column(name = "notes", columnDefinition = "TEXT")
   private String notes;
 
-  /** IP address of payer */
+  /** IP address of payer. */
   @Column(name = "payerIpAddress", length = 50)
   private String payerIpAddress;
 
-  /** User agent of payer */
+  /** User agent of payer. */
   @Column(name = "payerUserAgent", length = 500)
   private String payerUserAgent;
 
-  /** Whether this is a test payment */
+  /** Whether this is a test payment. */
   @Column(name = "isTestPayment")
   private Boolean isTestPayment;
 
@@ -482,10 +504,10 @@ public class Payment {
   // CONSTRUCTORS
   // ========================================================================
 
-  /** Default constructor */
+  /** Default constructor. */
   public Payment() {}
 
-  /** Constructor for creating a new payment order (before payment) */
+  /** Constructor for creating a new payment order (before payment). */
   public Payment(PaymentOrderData data) {
     this.entityType = data.entityType;
     this.entityId = data.entityId;
@@ -504,7 +526,7 @@ public class Payment {
     this.amountRefunded = BigDecimal.ZERO;
   }
 
-  /** Constructor for creating a cash/manual payment (immediately captured) */
+  /** Constructor for creating a cash/manual payment (immediately captured). */
   public Payment(ManualPaymentData data) {
     this.entityType = data.entityType;
     this.entityId = data.entityId;
@@ -536,7 +558,7 @@ public class Payment {
   // HELPER METHODS
   // ========================================================================
 
-  /** Marks payment as captured/successful */
+  /** Marks payment as captured/successful. */
   public void markAsCaptured(
       String razorpayPaymentId,
       String razorpaySignature,
@@ -554,7 +576,7 @@ public class Payment {
     this.modifiedUser = modifiedUser;
   }
 
-  /** Marks payment as failed */
+  /** Marks payment as failed. */
   public void markAsFailed(
       String errorCode,
       String errorDescription,
@@ -569,7 +591,7 @@ public class Payment {
     this.modifiedUser = modifiedUser;
   }
 
-  /** Records a refund */
+  /** Records a refund. */
   public void recordRefund(String refundId, Long refundAmountPaise, String modifiedUser) {
     this.lastRefundId = refundId;
     this.lastRefundAt = LocalDateTime.now();
@@ -592,7 +614,7 @@ public class Payment {
     this.modifiedUser = modifiedUser;
   }
 
-  /** Sets card details */
+  /** Sets card details. */
   public void setCardDetails(
       String last4,
       String network,
@@ -608,19 +630,19 @@ public class Payment {
     this.emiTenure = emiTenure;
   }
 
-  /** Sets UPI details */
+  /** Sets UPI details. */
   public void setUpiDetails(String vpa, String transactionId) {
     this.upiVpa = vpa;
     this.upiTransactionId = transactionId;
   }
 
-  /** Sets net banking details */
+  /** Sets net banking details. */
   public void setNetBankingDetails(String bankCode, String bankName) {
     this.bankCode = bankCode;
     this.bankName = bankName;
   }
 
-  /** Sets Razorpay fee details */
+  /** Sets Razorpay fee details. */
   public void setRazorpayFeeDetails(Long feePaise, Long taxPaise) {
     this.razorpayFeePaise = feePaise;
     this.razorpayFee = BigDecimal.valueOf(feePaise).divide(BigDecimal.valueOf(100));
@@ -628,23 +650,27 @@ public class Payment {
     this.razorpayTax = BigDecimal.valueOf(taxPaise).divide(BigDecimal.valueOf(100));
   }
 
-  /** Check if payment is successful */
+  /** Check if payment is successful. */
   public boolean isSuccessful() {
     return PaymentStatus.CAPTURED.getValue().equals(this.paymentStatus)
         || PaymentStatus.PARTIALLY_REFUNDED.getValue().equals(this.paymentStatus);
   }
 
-  /** Check if payment can be refunded */
+  /** Check if payment can be refunded. */
   public boolean canBeRefunded() {
-    if (!isSuccessful()) return false;
+    if (!isSuccessful()) {
+      return false;
+    }
     long paid = this.amountPaidPaise != null ? this.amountPaidPaise : 0L;
     long refunded = this.amountRefundedPaise != null ? this.amountRefundedPaise : 0L;
     return paid > refunded;
   }
 
-  /** Get remaining refundable amount in paise */
+  /** Get remaining refundable amount in paise. */
   public long getRefundableAmountPaise() {
-    if (!canBeRefunded()) return 0L;
+    if (!canBeRefunded()) {
+      return 0L;
+    }
     long paid = this.amountPaidPaise != null ? this.amountPaidPaise : 0L;
     long refunded = this.amountRefundedPaise != null ? this.amountRefundedPaise : 0L;
     return paid - refunded;

@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.ShippingResponseModel;
+package com.example.springapi.ModelTests.ShippingResponseModel;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,13 +49,13 @@ class UpdatePickupLocationResponseModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.ShippingResponseModel.UpdatePickupLocationResponseModel
+        com.example.springapi.models.shippingresponsemodel.UpdatePickupLocationResponseModel
             .class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.ShippingResponseModel
+                  com.example.springapi.models.shippingresponsemodel
                       .UpdatePickupLocationResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
@@ -66,7 +66,7 @@ class UpdatePickupLocationResponseModelContractTest {
   void UpdatePickupLocationResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.ShippingResponseModel.UpdatePickupLocationResponseModel.class
+        com.example.springapi.models.shippingresponsemodel.UpdatePickupLocationResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -84,11 +84,11 @@ class UpdatePickupLocationResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.ShippingResponseModel.UpdatePickupLocationResponseModel
+  private com.example.springapi.models.shippingresponsemodel.UpdatePickupLocationResponseModel
       createInstance() {
-    return (com.example.SpringApi.Models.ShippingResponseModel.UpdatePickupLocationResponseModel)
+    return (com.example.springapi.models.shippingresponsemodel.UpdatePickupLocationResponseModel)
         instantiate(
-            com.example.SpringApi.Models.ShippingResponseModel.UpdatePickupLocationResponseModel
+            com.example.springapi.models.shippingresponsemodel.UpdatePickupLocationResponseModel
                 .class);
   }
 

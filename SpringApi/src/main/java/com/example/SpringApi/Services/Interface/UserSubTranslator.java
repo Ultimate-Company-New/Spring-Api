@@ -1,11 +1,11 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Models.RequestModels.UserRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PermissionResponseModel;
-import com.example.SpringApi.Models.ResponseModels.UserResponseModel;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.models.requestmodels.UserRequestModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.PermissionResponseModel;
+import com.example.springapi.models.responsemodels.UserResponseModel;
 import java.util.List;
 
 /**
@@ -19,7 +19,7 @@ import java.util.List;
  * @version 1.0
  * @since 2024-01-15
  */
-public interface IUserSubTranslator {
+public interface UserSubTranslator {
 
   /**
    * Toggles the deletion status of a user by its ID.
@@ -114,7 +114,7 @@ public interface IUserSubTranslator {
   List<PermissionResponseModel> getAllPermissions();
 
   /**
-   * Confirms a user's email address using the verification token. This is a public endpoint (no
+   * Confirms a user's email address using the verification token. This is a public endpoint (no.
    * authentication required) as users haven't logged in yet.
    *
    * <p>The method: 1. Validates that the user exists 2. Verifies the provided token matches the

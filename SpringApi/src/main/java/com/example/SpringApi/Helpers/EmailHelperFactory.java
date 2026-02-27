@@ -1,9 +1,9 @@
-package com.example.SpringApi.Helpers;
+package com.example.springapi.helpers;
 
 import org.springframework.core.env.Environment;
 
 /**
- * Factory for creating the appropriate email helper based on configuration. Uses email.service
+ * Factory for creating the appropriate email helper based on configuration. Uses email.service.
  * property (brevo or sendgrid); defaults to sendgrid when not set.
  */
 public final class EmailHelperFactory {
@@ -13,7 +13,10 @@ public final class EmailHelperFactory {
 
   private EmailHelperFactory() {}
 
-  public static IEmailHelper create(
+  /**
+   * Executes create.
+   */
+  public static EmailHelperContract create(
       String fromAddress, String senderName, String apiKey, Environment environment) {
     String emailService =
         environment != null

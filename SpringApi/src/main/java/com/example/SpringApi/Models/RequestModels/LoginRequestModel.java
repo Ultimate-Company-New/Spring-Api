@@ -1,8 +1,11 @@
-package com.example.SpringApi.Models.RequestModels;
+package com.example.springapi.models.requestmodels;
 
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Represents the login request model component.
+ */
 @Setter
 @Getter
 public class LoginRequestModel {

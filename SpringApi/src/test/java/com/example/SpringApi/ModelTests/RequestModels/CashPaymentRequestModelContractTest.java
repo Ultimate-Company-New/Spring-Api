@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.RequestModels;
+package com.example.springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class CashPaymentRequestModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.RequestModels.CashPaymentRequestModel.class)) {
+        com.example.springapi.models.requestmodels.CashPaymentRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.RequestModels.CashPaymentRequestModel.class);
+                  com.example.springapi.models.requestmodels.CashPaymentRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +64,7 @@ class CashPaymentRequestModelContractTest {
   void CashPaymentRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.RequestModels.CashPaymentRequestModel.class
+        com.example.springapi.models.requestmodels.CashPaymentRequestModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,9 +82,9 @@ class CashPaymentRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.RequestModels.CashPaymentRequestModel createInstance() {
-    return (com.example.SpringApi.Models.RequestModels.CashPaymentRequestModel)
-        instantiate(com.example.SpringApi.Models.RequestModels.CashPaymentRequestModel.class);
+  private com.example.springapi.models.requestmodels.CashPaymentRequestModel createInstance() {
+    return (com.example.springapi.models.requestmodels.CashPaymentRequestModel)
+        instantiate(com.example.springapi.models.requestmodels.CashPaymentRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

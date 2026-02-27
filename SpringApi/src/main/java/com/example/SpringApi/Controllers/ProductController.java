@@ -1,21 +1,29 @@
-package com.example.SpringApi.Controllers;
+package com.example.springapi.controllers;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.Logging.ContextualLogger;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.ProductRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
-import com.example.SpringApi.Services.Interface.IProductSubTranslator;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.logging.ContextualLogger;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.ProductRequestModel;
+import com.example.springapi.models.responsemodels.ErrorResponseModel;
+import com.example.springapi.services.interfaces.ProductSubTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST Controller for Product operations.
@@ -34,10 +42,10 @@ public class ProductController {
 
   private static final ContextualLogger logger =
       ContextualLogger.getLogger(ProductController.class);
-  private final IProductSubTranslator productService;
+  private final ProductSubTranslator productService;
 
   @Autowired
-  public ProductController(IProductSubTranslator productService) {
+  public ProductController(ProductSubTranslator productService) {
     this.productService = productService;
   }
 
@@ -90,6 +98,9 @@ public class ProductController {
     }
   }
 
+  /**
+   * Executes bulk add products.
+   */
   @PreAuthorize(
       "@customAuthorization.hasAuthority('" + Authorizations.INSERT_PRODUCTS_PERMISSION + "')")
   @PutMapping("/" + ApiRoutes.ProductsSubRoute.BULK_ADD_PRODUCT)
@@ -97,8 +108,8 @@ public class ProductController {
       @RequestBody java.util.List<ProductRequestModel> products) {
     try {
       // Cast to ProductService to access BaseService methods
-      com.example.SpringApi.Services.ProductService service =
-          (com.example.SpringApi.Services.ProductService) productService;
+      com.example.springapi.services.ProductService service =
+          (com.example.springapi.services.ProductService) productService;
       Long userId = service.getUserId();
       String loginName = service.getUser();
       Long clientId = service.getClientId();
@@ -492,7 +503,7 @@ public class ProductController {
   }
 
   /**
-   * Gets product stock information across all pickup locations for a specific product. Returns
+   * Gets product stock information across all pickup locations for a specific product. Returns.
    * stock availability with pickup location address details for distance calculation. Requires
    * VIEW_PRODUCTS_PERMISSION to access.
    *
@@ -519,8 +530,8 @@ public class ProductController {
       @PathVariable String deliveryPostcode,
       @PathVariable Boolean isCod) {
     try {
-      com.example.SpringApi.Services.ProductService service =
-          (com.example.SpringApi.Services.ProductService) productService;
+      com.example.springapi.services.ProductService service =
+          (com.example.springapi.services.ProductService) productService;
       // Handle "0" or empty delivery postcode as null
       String effectivePostcode =
           (deliveryPostcode == null || deliveryPostcode.equals("0") || deliveryPostcode.isEmpty())

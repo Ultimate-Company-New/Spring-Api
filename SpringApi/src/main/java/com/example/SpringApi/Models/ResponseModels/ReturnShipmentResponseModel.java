@@ -1,7 +1,7 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.DatabaseModels.ReturnShipment;
-import com.example.SpringApi.Models.DatabaseModels.ReturnShipmentProduct;
+import com.example.springapi.models.databasemodels.ReturnShipment;
+import com.example.springapi.models.databasemodels.ReturnShipmentProduct;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,7 +11,7 @@ import lombok.Setter;
 import org.hibernate.Hibernate;
 
 /**
- * Response model for ReturnShipment data. Used to return return shipment information in API
+ * Response model for ReturnShipment data. Used to return return shipment information in API.
  * responses.
  */
 @Getter
@@ -44,12 +44,12 @@ public class ReturnShipmentResponseModel {
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 
-  /** Default constructor */
+  /** Default constructor. */
   public ReturnShipmentResponseModel() {
     this.products = new ArrayList<>();
   }
 
-  /** Constructor from entity */
+  /** Constructor from entity. */
   public ReturnShipmentResponseModel(ReturnShipment returnShipment) {
     this.returnShipmentId = returnShipment.getReturnShipmentId();
     this.shipmentId = returnShipment.getShipmentId();
@@ -84,7 +84,7 @@ public class ReturnShipmentResponseModel {
     }
   }
 
-  /** Inner class for return product details */
+  /** Inner class for return product details. */
   @Getter
   @Setter
   public static class ReturnProductResponseModel {
@@ -99,6 +99,9 @@ public class ReturnShipmentResponseModel {
 
     public ReturnProductResponseModel() {}
 
+    /**
+     * Executes return product response model.
+     */
     public ReturnProductResponseModel(ReturnShipmentProduct rsp) {
       this.returnShipmentProductId = rsp.getReturnShipmentProductId();
       this.productId = rsp.getProductId();

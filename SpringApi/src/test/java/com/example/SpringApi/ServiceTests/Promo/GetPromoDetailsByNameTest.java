@@ -1,13 +1,13 @@
-package com.example.SpringApi.ServiceTests.Promo;
+package com.example.springapi.ServiceTests.Promo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Models.ResponseModels.PromoResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.models.responsemodels.PromoResponseModel;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -138,9 +138,9 @@ class GetPromoDetailsByNameTest extends PromoServiceTestBase {
     // Arrange
 
     // Act & Assert
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> promoService.getPromoDetailsByName(""));
     assertEquals(ErrorMessages.PromoErrorMessages.INVALID_PROMO_CODE, ex.getMessage());
   }
@@ -166,9 +166,9 @@ class GetPromoDetailsByNameTest extends PromoServiceTestBase {
     // Arrange
 
     // Act & Assert
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> promoService.getPromoDetailsByName(null));
     assertEquals(ErrorMessages.PromoErrorMessages.INVALID_PROMO_CODE, ex.getMessage());
   }
@@ -210,9 +210,9 @@ class GetPromoDetailsByNameTest extends PromoServiceTestBase {
     // Arrange
 
     // Act & Assert
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> promoService.getPromoDetailsByName("\t"));
     assertEquals(ErrorMessages.PromoErrorMessages.INVALID_PROMO_CODE, ex.getMessage());
   }
@@ -224,9 +224,9 @@ class GetPromoDetailsByNameTest extends PromoServiceTestBase {
     // Arrange
 
     // Act & Assert
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> promoService.getPromoDetailsByName("   "));
     assertEquals(ErrorMessages.PromoErrorMessages.INVALID_PROMO_CODE, ex.getMessage());
   }

@@ -1,6 +1,6 @@
-package com.example.SpringApi.Repositories;
+package com.example.springapi.repositories;
 
-import com.example.SpringApi.Models.DatabaseModels.UserClientMapping;
+import com.example.springapi.models.databasemodels.UserClientMapping;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,6 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Defines the user client mapping repository contract.
+ */
 @Repository
 public interface UserClientMappingRepository extends JpaRepository<UserClientMapping, Long> {
 

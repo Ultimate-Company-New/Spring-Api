@@ -1,23 +1,23 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Logging.ContextualLogger;
-import com.example.SpringApi.Models.DatabaseModels.LatestTestResult;
-import com.example.SpringApi.Models.DatabaseModels.TestRun;
-import com.example.SpringApi.Models.DatabaseModels.TestRunResult;
-import com.example.SpringApi.Models.RequestModels.TestExecutionRequestModel;
-import com.example.SpringApi.Models.RequestModels.TestRunRequestModel;
-import com.example.SpringApi.Models.ResponseModels.LatestTestResultResponseModel;
-import com.example.SpringApi.Models.ResponseModels.QADashboardResponseModel;
-import com.example.SpringApi.Models.ResponseModels.QAResponseModel;
-import com.example.SpringApi.Models.ResponseModels.TestExecutionStatusModel;
-import com.example.SpringApi.Models.ResponseModels.TestRunResponseModel;
-import com.example.SpringApi.Repositories.LatestTestResultRepository;
-import com.example.SpringApi.Repositories.TestRunRepository;
-import com.example.SpringApi.Services.Interface.IQASubTranslator;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.logging.ContextualLogger;
+import com.example.springapi.models.databasemodels.LatestTestResult;
+import com.example.springapi.models.databasemodels.TestRun;
+import com.example.springapi.models.databasemodels.TestRunResult;
+import com.example.springapi.models.requestmodels.TestExecutionRequestModel;
+import com.example.springapi.models.requestmodels.TestRunRequestModel;
+import com.example.springapi.models.responsemodels.LatestTestResultResponseModel;
+import com.example.springapi.models.responsemodels.QaDashboardResponseModel;
+import com.example.springapi.models.responsemodels.QaResponseModel;
+import com.example.springapi.models.responsemodels.TestExecutionStatusModel;
+import com.example.springapi.models.responsemodels.TestRunResponseModel;
+import com.example.springapi.repositories.LatestTestResultRepository;
+import com.example.springapi.repositories.TestRunRepository;
+import com.example.springapi.services.interfaces.QaSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,7 +29,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,10 +68,10 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 2024-01-15
  */
 @Service
-public class QAService extends BaseService implements IQASubTranslator {
+public class QaService extends BaseService implements QaSubTranslator {
 
   // Package paths for scanning
-  private static final String SERVICES_PACKAGE = "com.example.SpringApi.Services";
+  private static final String SERVICES_PACKAGE = "com.example.springapi.services";
   private static final String SERVICE_SUFFIX = "Service";
   private static final String JAVA_EXTENSION = ".java";
   private static final String SPRING_API_DIR = "SpringApi";
@@ -142,7 +155,7 @@ public class QAService extends BaseService implements IQASubTranslator {
         new ServiceControllerMapping(
             "ProductReviewController", "/api/ProductReview", "ProductReviewServiceTest"));
     SERVICE_MAPPINGS.put(
-        "QAService", new ServiceControllerMapping("QAController", "/api/QA", "QAServiceTest"));
+        "QaService", new ServiceControllerMapping("QaController", "/api/QA", "QAServiceTest"));
     SERVICE_MAPPINGS.put(
         "PromoService",
         new ServiceControllerMapping("PromoController", "/api/Promo", "PromoServiceTest"));
@@ -177,13 +190,16 @@ public class QAService extends BaseService implements IQASubTranslator {
 
   // ==================== REPOSITORIES ====================
 
-  private static final ContextualLogger logger = ContextualLogger.getLogger(QAService.class);
+  private static final ContextualLogger logger = ContextualLogger.getLogger(QaService.class);
 
   private final TestRunRepository testRunRepository;
   private final LatestTestResultRepository latestTestResultRepository;
 
+  /**
+   * Executes qa service.
+   */
   @Autowired
-  public QAService(
+  public QaService(
       TestRunRepository testRunRepository,
       LatestTestResultRepository latestTestResultRepository,
       JwtTokenProvider jwtTokenProvider,
@@ -220,7 +236,7 @@ public class QAService extends BaseService implements IQASubTranslator {
   }
 
   /**
-   * Tracks a class scope while parsing Java source so we can map @Test methods to their declaring
+   * Tracks a class scope while parsing Java source so we can map @Test methods to their declaring.
    * class (including @Nested inner classes).
    */
   private static class ClassScope {
@@ -234,29 +250,29 @@ public class QAService extends BaseService implements IQASubTranslator {
   }
 
   /**
-   * Returns all QA dashboard data in a single response. Includes services with methods/tests,
+   * Returns all QA dashboard data in a single response. Includes services with methods/tests,.
    * coverage summary, and available services.
    *
-   * @return QADashboardResponseModel with all dashboard data
+   * @return QaDashboardResponseModel with all dashboard data
    */
   @Override
-  public QADashboardResponseModel getDashboardData() {
+  public QaDashboardResponseModel getDashboardData() {
     // Get all services with their methods, tests, and last run info
-    List<QAResponseModel> services = getAllEndpointsWithTests();
+    List<QaResponseModel> services = getAllEndpointsWithTests();
 
     // Calculate coverage summary
     int totalMethods = 0;
     int totalMethodsWithCoverage = 0;
     int totalTests = 0;
-    List<QADashboardResponseModel.ServiceBreakdownData> serviceBreakdown = new ArrayList<>();
+    List<QaDashboardResponseModel.ServiceBreakdownData> serviceBreakdown = new ArrayList<>();
 
-    for (QAResponseModel service : services) {
+    for (QaResponseModel service : services) {
       totalMethods += service.getTotalMethods();
       totalMethodsWithCoverage += service.getMethodsWithCoverage();
       totalTests += service.getTotalTests();
 
       serviceBreakdown.add(
-          new QADashboardResponseModel.ServiceBreakdownData(
+          new QaDashboardResponseModel.ServiceBreakdownData(
               service.getServiceName(),
               service.getTotalMethods(),
               service.getMethodsWithCoverage(),
@@ -268,8 +284,8 @@ public class QAService extends BaseService implements IQASubTranslator {
         totalMethods > 0
             ? Math.round(((double) totalMethodsWithCoverage / totalMethods) * 100.0 * 100.0) / 100.0
             : 0.0;
-    QADashboardResponseModel.CoverageSummaryData coverageSummary =
-        new QADashboardResponseModel.CoverageSummaryData(
+    QaDashboardResponseModel.CoverageSummaryData coverageSummary =
+        new QaDashboardResponseModel.CoverageSummaryData(
             services.size(),
             totalMethods,
             totalMethodsWithCoverage,
@@ -281,27 +297,27 @@ public class QAService extends BaseService implements IQASubTranslator {
     List<String> availableServices = new ArrayList<>(SERVICE_MAPPINGS.keySet());
 
     // Get automated API tests (separate section from unit tests)
-    QADashboardResponseModel.AutomatedApiTestsData automatedApiTests = getAutomatedApiTests();
+    QaDashboardResponseModel.AutomatedApiTestsData automatedApiTests = getAutomatedApiTests();
 
-    return new QADashboardResponseModel(
+    return new QaDashboardResponseModel(
         services, coverageSummary, availableServices, automatedApiTests);
   }
 
   /**
-   * Returns a comprehensive list of all services with their public methods and associated unit
+   * Returns a comprehensive list of all services with their public methods and associated unit.
    * tests.
    *
-   * @return List of QAResponseModel with full endpoint-to-test mapping
+   * @return List of QaResponseModel with full endpoint-to-test mapping
    */
   @Override
-  public List<QAResponseModel> getAllEndpointsWithTests() {
-    List<QAResponseModel> serviceInfoList = new ArrayList<>();
+  public List<QaResponseModel> getAllEndpointsWithTests() {
+    List<QaResponseModel> serviceInfoList = new ArrayList<>();
 
     for (Map.Entry<String, ServiceControllerMapping> entry : SERVICE_MAPPINGS.entrySet()) {
       String serviceName = entry.getKey();
       ServiceControllerMapping mapping = entry.getValue();
 
-      QAResponseModel serviceInfo = buildServiceInfo(serviceName, mapping);
+      QaResponseModel serviceInfo = buildServiceInfo(serviceName, mapping);
       if (serviceInfo != null) {
         serviceInfoList.add(serviceInfo);
       }
@@ -315,19 +331,22 @@ public class QAService extends BaseService implements IQASubTranslator {
    *
    * @param serviceName The name of the service (e.g., "AddressService", "UserService", or just
    *     "Address")
-   * @return QAResponseModel for the specified service
+   * @return QaResponseModel for the specified service
    * @throws NotFoundException if the service is not found
    */
   @Override
-  public QAResponseModel getEndpointsWithTestsByService(String serviceName) {
+  public QaResponseModel getEndpointsWithTestsByService(String serviceName) {
     if (serviceName == null) {
-      throw new NullPointerException(ErrorMessages.QAErrorMessages.SERVICE_NAME_NULL);
+      throw new NullPointerException(ErrorMessages.QaErrorMessages.SERVICE_NAME_NULL);
     }
 
     String trimmedServiceName = serviceName.trim();
     // Normalize service name (add "Service" suffix if not present)
     String normalizedServiceName = trimmedServiceName;
-    if (!trimmedServiceName.endsWith(SERVICE_SUFFIX)) {
+    if ("qa".equalsIgnoreCase(trimmedServiceName)
+        || ("qa" + SERVICE_SUFFIX).equalsIgnoreCase(trimmedServiceName)) {
+      normalizedServiceName = "QaService";
+    } else if (!trimmedServiceName.endsWith(SERVICE_SUFFIX)) {
       normalizedServiceName = trimmedServiceName + SERVICE_SUFFIX;
     }
 
@@ -335,16 +354,16 @@ public class QAService extends BaseService implements IQASubTranslator {
     if (mapping == null) {
       throw new NotFoundException(
           String.format(
-              ErrorMessages.QAErrorMessages.SERVICE_NOT_FOUND_FORMAT,
+              ErrorMessages.QaErrorMessages.SERVICE_NOT_FOUND_FORMAT,
               trimmedServiceName,
               String.join(", ", SERVICE_MAPPINGS.keySet())));
     }
 
-    QAResponseModel serviceInfo = buildServiceInfo(normalizedServiceName, mapping);
+    QaResponseModel serviceInfo = buildServiceInfo(normalizedServiceName, mapping);
     if (serviceInfo == null) {
       throw new NotFoundException(
           String.format(
-              ErrorMessages.QAErrorMessages.COULD_NOT_LOAD_SERVICE_CLASS_FORMAT,
+              ErrorMessages.QaErrorMessages.COULD_NOT_LOAD_SERVICE_CLASS_FORMAT,
               normalizedServiceName));
     }
 
@@ -358,7 +377,7 @@ public class QAService extends BaseService implements IQASubTranslator {
    */
   @Override
   public Map<String, Object> getCoverageSummary() {
-    List<QAResponseModel> serviceInfoList = new ArrayList<>();
+    List<QaResponseModel> serviceInfoList = new ArrayList<>();
     int totalMethods = 0;
     int totalMethodsWithCoverage = 0;
     int totalTests = 0;
@@ -367,7 +386,7 @@ public class QAService extends BaseService implements IQASubTranslator {
       String serviceName = entry.getKey();
       ServiceControllerMapping mapping = entry.getValue();
 
-      QAResponseModel serviceInfo = buildServiceInfo(serviceName, mapping);
+      QaResponseModel serviceInfo = buildServiceInfo(serviceName, mapping);
       if (serviceInfo != null) {
         serviceInfoList.add(serviceInfo);
         totalMethods += serviceInfo.getTotalMethods();
@@ -389,7 +408,7 @@ public class QAService extends BaseService implements IQASubTranslator {
 
     // Add per-service breakdown
     List<Map<String, Object>> serviceBreakdown = new ArrayList<>();
-    for (QAResponseModel service : serviceInfoList) {
+    for (QaResponseModel service : serviceInfoList) {
       Map<String, Object> serviceStats = new LinkedHashMap<>();
       serviceStats.put("serviceName", service.getServiceName());
       serviceStats.put("totalMethods", service.getTotalMethods());
@@ -415,14 +434,14 @@ public class QAService extends BaseService implements IQASubTranslator {
   }
 
   /**
-   * Builds a QAResponseModel for a given service using reflection for service class and filesystem
+   * Builds a QaResponseModel for a given service using reflection for service class and filesystem.
    * scanning for test files.
    *
    * @param serviceName The name of the service class
    * @param mapping The controller mapping information
-   * @return QAResponseModel with method and test information, or null if class not found
+   * @return QaResponseModel with method and test information, or null if class not found
    */
-  private QAResponseModel buildServiceInfo(String serviceName, ServiceControllerMapping mapping) {
+  private QaResponseModel buildServiceInfo(String serviceName, ServiceControllerMapping mapping) {
     try {
       Class<?> serviceClass = Class.forName(SERVICES_PACKAGE + "." + serviceName);
       List<TestMethodInfo> allTestMethods = readTestMethodsFromFile(mapping.testClassName);
@@ -442,20 +461,20 @@ public class QAService extends BaseService implements IQASubTranslator {
         // If we can't get latest results (e.g., unauthenticated), continue without them
       }
 
-      QAResponseModel serviceInfo =
-          new QAResponseModel(
+      QaResponseModel serviceInfo =
+          new QaResponseModel(
               serviceName, mapping.controllerName, mapping.basePath, mapping.testClassName);
 
       for (Method method : serviceClass.getDeclaredMethods()) {
         if (Modifier.isPublic(method.getModifiers())
             && !EXCLUDED_METHODS.contains(method.getName())) {
-          QAResponseModel.MethodInfo methodInfo =
-              new QAResponseModel.MethodInfo(
+          QaResponseModel.MethodInfo methodInfo =
+              new QaResponseModel.MethodInfo(
                   method.getName(),
                   mapping.basePath + "/" + method.getName(),
                   extractMethodDescription(method));
 
-          List<QAResponseModel.TestInfo> associatedTests =
+          List<QaResponseModel.TestInfo> associatedTests =
               findAssociatedTests(method.getName(), allTestMethods, latestResultsMap);
           methodInfo.addUnitTests(associatedTests);
 
@@ -470,7 +489,7 @@ public class QAService extends BaseService implements IQASubTranslator {
   }
 
   /**
-   * Reads test methods from a test source file by parsing the Java source code. This method scans
+   * Reads test methods from a test source file by parsing the Java source code. This method scans.
    * the filesystem for the test file and extracts @Test methods along with their @DisplayName
    * annotations.
    *
@@ -668,7 +687,7 @@ public class QAService extends BaseService implements IQASubTranslator {
   }
 
   /**
-   * Parses a @ValueSource annotation string and returns how many values it contains. Supports the
+   * Parses a @ValueSource annotation string and returns how many values it contains. Supports the.
    * common pattern: @ValueSource(strings = {"a","b"}) and similar.
    */
   private int parseValueSourceCount(String valueSourceAnnotation) {
@@ -705,7 +724,7 @@ public class QAService extends BaseService implements IQASubTranslator {
   }
 
   /**
-   * Converts a Java parameter list (e.g. "String invalidPostalCode") into the Surefire-reported
+   * Converts a Java parameter list (e.g. "String invalidPostalCode") into the Surefire-reported.
    * type list used for parameterized test case names (e.g. "String").
    */
   private String extractParameterTypesForSurefireName(String paramList) {
@@ -757,7 +776,7 @@ public class QAService extends BaseService implements IQASubTranslator {
   }
 
   /**
-   * Builds a Maven/Surefire-friendly test class selector for the current parsing scope. Example:
+   * Builds a Maven/Surefire-friendly test class selector for the current parsing scope. Example:.
    * "AddressServiceTest$GetAddressByIdTests"
    */
   private String buildDeclaringTestClassName(
@@ -791,7 +810,7 @@ public class QAService extends BaseService implements IQASubTranslator {
   }
 
   /**
-   * Finds unit test methods that are associated with a given service method. Tests are matched
+   * Finds unit test methods that are associated with a given service method. Tests are matched.
    * based on naming convention: methodName_Result_Outcome
    *
    * @param methodName The service method name to find tests for
@@ -799,19 +818,19 @@ public class QAService extends BaseService implements IQASubTranslator {
    * @param latestResultsMap Map of test method name to latest test result
    * @return List of TestInfo that are associated with the service method
    */
-  private List<QAResponseModel.TestInfo> findAssociatedTests(
+  private List<QaResponseModel.TestInfo> findAssociatedTests(
       String methodName,
       List<TestMethodInfo> allTestMethods,
       Map<String, LatestTestResult> latestResultsMap) {
-    List<QAResponseModel.TestInfo> associatedTests = new ArrayList<>();
+    List<QaResponseModel.TestInfo> associatedTests = new ArrayList<>();
 
     for (TestMethodInfo testInfo : allTestMethods) {
       String testName = testInfo.methodName;
 
       // Primary pattern: methodName_Result_Outcome (underscore-separated)
       if (testName.startsWith(methodName + "_")) {
-        QAResponseModel.TestInfo qaTestInfo =
-            new QAResponseModel.TestInfo(
+        QaResponseModel.TestInfo qaTestInfo =
+            new QaResponseModel.TestInfo(
                 testName, testInfo.displayName, testInfo.declaringTestClassName);
         if (latestResultsMap.containsKey(testName)) {
           qaTestInfo.populateFromLatestResult(latestResultsMap.get(testName));
@@ -824,8 +843,8 @@ public class QAService extends BaseService implements IQASubTranslator {
       if (testName.startsWith(methodName) && testName.length() > methodName.length()) {
         char nextChar = testName.charAt(methodName.length());
         if (Character.isUpperCase(nextChar)) {
-          QAResponseModel.TestInfo qaTestInfo =
-              new QAResponseModel.TestInfo(
+          QaResponseModel.TestInfo qaTestInfo =
+              new QaResponseModel.TestInfo(
                   testName, testInfo.displayName, testInfo.declaringTestClassName);
           if (latestResultsMap.containsKey(testName)) {
             qaTestInfo.populateFromLatestResult(latestResultsMap.get(testName));
@@ -864,7 +883,7 @@ public class QAService extends BaseService implements IQASubTranslator {
   }
 
   /**
-   * Saves a test run with its individual results. Also updates the LatestTestResult table for each
+   * Saves a test run with its individual results. Also updates the LatestTestResult table for each.
    * test.
    *
    * @param request The test run request containing service info and results
@@ -875,14 +894,14 @@ public class QAService extends BaseService implements IQASubTranslator {
   public TestRunResponseModel saveTestRun(TestRunRequestModel request) {
     // Validate request
     if (request == null) {
-      throw new BadRequestException(ErrorMessages.QAErrorMessages.TEST_RUN_REQUEST_CANNOT_BE_NULL);
+      throw new BadRequestException(ErrorMessages.QaErrorMessages.TEST_RUN_REQUEST_CANNOT_BE_NULL);
     }
     if (request.getServiceName() == null || request.getServiceName().trim().isEmpty()) {
-      throw new BadRequestException(ErrorMessages.QAErrorMessages.SERVICE_NAME_REQUIRED);
+      throw new BadRequestException(ErrorMessages.QaErrorMessages.SERVICE_NAME_REQUIRED);
     }
     if (request.getResults() == null || request.getResults().isEmpty()) {
       throw new BadRequestException(
-          ErrorMessages.QAErrorMessages.AT_LEAST_ONE_TEST_RESULT_REQUIRED);
+          ErrorMessages.QaErrorMessages.AT_LEAST_ONE_TEST_RESULT_REQUIRED);
     }
 
     Long clientId = getClientId();
@@ -1012,7 +1031,7 @@ public class QAService extends BaseService implements IQASubTranslator {
     // Validate request
     if (request == null) {
       throw new BadRequestException(
-          ErrorMessages.QAErrorMessages.TEST_EXECUTION_REQUEST_CANNOT_BE_NULL);
+          ErrorMessages.QaErrorMessages.TEST_EXECUTION_REQUEST_CANNOT_BE_NULL);
     }
 
     // Generate unique execution ID
@@ -1030,7 +1049,7 @@ public class QAService extends BaseService implements IQASubTranslator {
       // Run specific test methods
       testClassName = request.getTestClassName();
       if (testClassName == null || testClassName.isEmpty()) {
-        throw new BadRequestException(ErrorMessages.QAErrorMessages.TEST_CLASS_NAME_REQUIRED);
+        throw new BadRequestException(ErrorMessages.QaErrorMessages.TEST_CLASS_NAME_REQUIRED);
       }
 
       // Surefire cannot select an individual parameterized invocation (e.g.
@@ -1080,20 +1099,20 @@ public class QAService extends BaseService implements IQASubTranslator {
         serviceName = normalizedServiceName;
       } else {
         throw new BadRequestException(
-            ErrorMessages.QAErrorMessages.MUST_SPECIFY_SERVICE_NAME_OR_TEST_CLASS_NAME);
+            ErrorMessages.QaErrorMessages.MUST_SPECIFY_SERVICE_NAME_OR_TEST_CLASS_NAME);
       }
 
       String methodName = request.getMethodName();
 
       // 2. Resolve associated unit tests
       List<TestMethodInfo> allTestMethods = readTestMethodsFromFile(testClassName);
-      List<QAResponseModel.TestInfo> associatedTests =
+      List<QaResponseModel.TestInfo> associatedTests =
           findAssociatedTests(methodName, allTestMethods, Collections.emptyMap());
 
       if (associatedTests.isEmpty()) {
         throw new BadRequestException(
             String.format(
-                ErrorMessages.QAErrorMessages.NO_TESTS_FOUND_FOR_METHOD_FORMAT,
+                ErrorMessages.QaErrorMessages.NO_TESTS_FOUND_FOR_METHOD_FORMAT,
                 methodName,
                 testClassName));
       }
@@ -1102,7 +1121,7 @@ public class QAService extends BaseService implements IQASubTranslator {
       // Strip parameterized suffixes and get unique test names
       List<String> executableTestNames =
           associatedTests.stream()
-              .map(QAResponseModel.TestInfo::getTestMethodName)
+              .map(QaResponseModel.TestInfo::getTestMethodName)
               .map(this::stripParameterizedSuffix)
               .distinct()
               .collect(Collectors.toCollection(ArrayList::new));
@@ -1111,7 +1130,7 @@ public class QAService extends BaseService implements IQASubTranslator {
       // Check if we have a single nested class for all tests
       String declaringClass =
           associatedTests.stream()
-              .map(QAResponseModel.TestInfo::getDeclaringTestClassName)
+              .map(QaResponseModel.TestInfo::getDeclaringTestClassName)
               .filter(dcn -> dcn != null && dcn.contains("$"))
               .findFirst()
               .orElse(null);
@@ -1133,7 +1152,7 @@ public class QAService extends BaseService implements IQASubTranslator {
       testMethodFilter = String.join("+", executableTestNames);
     } else {
       throw new BadRequestException(
-          ErrorMessages.QAErrorMessages.MUST_SPECIFY_RUN_ALL_OR_TEST_NAMES_OR_METHOD);
+          ErrorMessages.QaErrorMessages.MUST_SPECIFY_RUN_ALL_OR_TEST_NAMES_OR_METHOD);
     }
 
     // Calculate expected test count for progress tracking
@@ -1155,7 +1174,7 @@ public class QAService extends BaseService implements IQASubTranslator {
   }
 
   /**
-   * Resolves the declaring test class selector for a specific test method name. For @Nested tests,
+   * Resolves the declaring test class selector for a specific test method name. For @Nested tests,.
    * this returns "OuterTest$NestedClass".
    */
   private String resolveDeclaringTestClassForTestMethod(
@@ -1182,7 +1201,7 @@ public class QAService extends BaseService implements IQASubTranslator {
   }
 
   /**
-   * Strips the Surefire parameterized suffix from a test case name. Example: "foo(String)[2]" ->
+   * Strips the Surefire parameterized suffix from a test case name. Example: "foo(String)[2]" ->.
    * "foo"
    */
   private String stripParameterizedSuffix(String testName) {
@@ -1202,18 +1221,18 @@ public class QAService extends BaseService implements IQASubTranslator {
 
     // Try to get from dashboard data (which scans test files)
     try {
-      QADashboardResponseModel dashboard = getDashboardData();
+      QaDashboardResponseModel dashboard = getDashboardData();
 
       if ("ALL".equals(serviceName)) {
         // Count all tests across all services
         return dashboard.getServices().stream()
             .flatMap(s -> s.getMethods().stream())
-            .mapToInt(QAResponseModel.MethodInfo::getTestCount)
+            .mapToInt(QaResponseModel.MethodInfo::getTestCount)
             .sum();
       }
 
       // Find the specific service
-      QAResponseModel service =
+      QaResponseModel service =
           dashboard.getServices().stream()
               .filter(s -> s.getServiceName().equals(serviceName))
               .findFirst()
@@ -1224,12 +1243,12 @@ public class QAService extends BaseService implements IQASubTranslator {
           // Count tests for specific method
           return service.getMethods().stream()
               .filter(m -> m.getMethodName().equals(methodName))
-              .mapToInt(QAResponseModel.MethodInfo::getTestCount)
+              .mapToInt(QaResponseModel.MethodInfo::getTestCount)
               .sum();
         } else {
           // Count all tests for the service
           return service.getMethods().stream()
-              .mapToInt(QAResponseModel.MethodInfo::getTestCount)
+              .mapToInt(QaResponseModel.MethodInfo::getTestCount)
               .sum();
         }
       }
@@ -1247,13 +1266,13 @@ public class QAService extends BaseService implements IQASubTranslator {
     if (executionId == null) {
       throw new NotFoundException(
           String.format(
-              ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, executionId));
+              ErrorMessages.QaErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, executionId));
     }
     TestExecutionStatusModel status = getStatus(executionId);
     if (status == null) {
       throw new NotFoundException(
           String.format(
-              ErrorMessages.QAErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, executionId));
+              ErrorMessages.QaErrorMessages.TEST_EXECUTION_NOT_FOUND_FORMAT, executionId));
     }
     return status;
   }
@@ -1267,7 +1286,7 @@ public class QAService extends BaseService implements IQASubTranslator {
   }
 
   /**
-   * Gets the current status for an execution. For RUNNING status, returns a snapshot with
+   * Gets the current status for an execution. For RUNNING status, returns a snapshot with.
    * time-based progress estimation.
    */
   private TestExecutionStatusModel getStatus(String executionId) {
@@ -1337,7 +1356,7 @@ public class QAService extends BaseService implements IQASubTranslator {
         }
       }
 
-      int exitCode = process.waitFor();
+      final int exitCode = process.waitFor();
       runningProcesses.remove(executionId);
 
       parseSurefireReports(status, projectDir, testClassName);
@@ -1360,7 +1379,7 @@ public class QAService extends BaseService implements IQASubTranslator {
           String.format(
               ErrorMessages.TestExecutorErrorMessages.IO_ERROR_DURING_EXECUTION_FORMAT,
               e.getMessage()));
-      throw new com.example.SpringApi.Exceptions.ApplicationException(
+      throw new com.example.springapi.exceptions.ApplicationException(
           ErrorMessages.TestExecutorErrorMessages.IO_FAILED, e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -1370,7 +1389,7 @@ public class QAService extends BaseService implements IQASubTranslator {
           startTime,
           String.format(
               ErrorMessages.TestExecutorErrorMessages.INTERRUPTED_FORMAT, e.getMessage()));
-      throw new com.example.SpringApi.Exceptions.ApplicationException(
+      throw new com.example.springapi.exceptions.ApplicationException(
           ErrorMessages.TestExecutorErrorMessages.INTERRUPTED, e);
     } catch (Exception e) {
       markExecutionFailed(
@@ -1379,7 +1398,7 @@ public class QAService extends BaseService implements IQASubTranslator {
           startTime,
           String.format(
               ErrorMessages.TestExecutorErrorMessages.EXECUTION_FAILED_FORMAT, e.getMessage()));
-      throw new com.example.SpringApi.Exceptions.ApplicationException(
+      throw new com.example.springapi.exceptions.ApplicationException(
           ErrorMessages.TestExecutorErrorMessages.EXECUTION_FAILED, e);
     }
   }
@@ -1410,8 +1429,8 @@ public class QAService extends BaseService implements IQASubTranslator {
   }
 
   /**
-   * Locates the Spring API project directory (containing pom.xml and src/test/java). Checks current
-   * dir, SpringApi subdir, and parent directories.
+   * Locates the Spring API project directory (containing pom.xml and src/test/java). Checks
+   * current. dir, SpringApi subdir, and parent directories.
    */
   private Path findProjectDirectory() {
     Path currentDir = Paths.get(System.getProperty(USER_DIR_PROPERTY));
@@ -1477,7 +1496,7 @@ public class QAService extends BaseService implements IQASubTranslator {
           .filter(p -> testClassName == null || p.getFileName().toString().contains(testClassName))
           .forEach(xmlFile -> parseXmlReport(xmlFile, status));
     } catch (IOException e) {
-      throw new com.example.SpringApi.Exceptions.ApplicationException(
+      throw new com.example.springapi.exceptions.ApplicationException(
           ErrorMessages.TestExecutorErrorMessages.FAILED_TO_LIST_SUREFIRE_REPORTS, e);
     }
   }
@@ -1489,14 +1508,15 @@ public class QAService extends BaseService implements IQASubTranslator {
 
       Pattern testcasePattern =
           Pattern.compile(
-              "<testcase\\s+name=\"([^\"]+)\"[^>]*classname=\"([^\"]+)\"[^>]*time=\"([^\"]+)\"[^>]*(?:/>|>([\\s\\S]*?)</testcase>)",
+              "<testcase\\s+name=\"([^\"]+)\"[^>]*classname=\"([^\"]+)\"[^>"
+                  + "]*time=\"([^\"]+)\"[^>]*(?:/>|>([\\s\\S]*?)</testcase>)",
               Pattern.MULTILINE);
 
       Matcher matcher = testcasePattern.matcher(content);
       while (matcher.find()) {
         String testName = matcher.group(1);
         double timeSeconds = Double.parseDouble(matcher.group(3));
-        String innerContent = matcher.group(4);
+        final String innerContent = matcher.group(4);
 
         TestExecutionStatusModel.TestResultInfo result =
             new TestExecutionStatusModel.TestResultInfo();
@@ -1536,7 +1556,7 @@ public class QAService extends BaseService implements IQASubTranslator {
       status.updateTotalsFromResults();
 
     } catch (IOException e) {
-      throw new com.example.SpringApi.Exceptions.ApplicationException(
+      throw new com.example.springapi.exceptions.ApplicationException(
           String.format(
               ErrorMessages.TestExecutorErrorMessages.FAILED_TO_PARSE_SUREFIRE_REPORT_FORMAT,
               xmlFile.getFileName()),
@@ -1546,14 +1566,14 @@ public class QAService extends BaseService implements IQASubTranslator {
 
   // ==================== PRIVATE HELPER METHODS ====================
 
-  private QADashboardResponseModel.AutomatedApiTestsData getAutomatedApiTests() {
+  private QaDashboardResponseModel.AutomatedApiTestsData getAutomatedApiTests() {
     Path apiTestsDir = resolveAutomatedApiTestsPath();
     if (apiTestsDir == null || !Files.isDirectory(apiTestsDir)) {
-      return new QADashboardResponseModel.AutomatedApiTestsData(
+      return new QaDashboardResponseModel.AutomatedApiTestsData(
           PLAYWRIGHT_RELATIVE_ROOT + AUTOMATED_API_TESTS_PATH, 0, new ArrayList<>());
     }
 
-    List<QADashboardResponseModel.AutomatedApiTestCategory> categories = new ArrayList<>();
+    List<QaDashboardResponseModel.AutomatedApiTestCategory> categories = new ArrayList<>();
     int totalTests = 0;
 
     try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(apiTestsDir)) {
@@ -1565,7 +1585,7 @@ public class QAService extends BaseService implements IQASubTranslator {
         if (Files.isDirectory(entry)) {
           String categoryName = entry.getFileName().toString();
           if (!categoryName.startsWith(".")) {
-            List<QADashboardResponseModel.AutomatedApiTestInfo> tests = new ArrayList<>();
+            List<QaDashboardResponseModel.AutomatedApiTestInfo> tests = new ArrayList<>();
             try (DirectoryStream<Path> fileStream = Files.newDirectoryStream(entry, "*.java")) {
               for (Path file : fileStream) {
                 String fileName = file.getFileName().toString();
@@ -1573,26 +1593,26 @@ public class QAService extends BaseService implements IQASubTranslator {
                   String testClass = fileName.substring(0, fileName.length() - 5);
                   String relativePath = Path.of(categoryName, fileName).toString();
                   tests.add(
-                      new QADashboardResponseModel.AutomatedApiTestInfo(testClass, relativePath));
+                      new QaDashboardResponseModel.AutomatedApiTestInfo(testClass, relativePath));
                   totalTests++;
                 }
               }
             }
             tests.sort(
-                Comparator.comparing(QADashboardResponseModel.AutomatedApiTestInfo::getTestClass));
+                Comparator.comparing(QaDashboardResponseModel.AutomatedApiTestInfo::getTestClass));
             categories.add(
-                new QADashboardResponseModel.AutomatedApiTestCategory(
+                new QaDashboardResponseModel.AutomatedApiTestCategory(
                     categoryName, categoryName, tests));
           }
         }
       }
     } catch (IOException e) {
       logger.error(e);
-      return new QADashboardResponseModel.AutomatedApiTestsData(
+      return new QaDashboardResponseModel.AutomatedApiTestsData(
           PLAYWRIGHT_RELATIVE_ROOT + AUTOMATED_API_TESTS_PATH, 0, new ArrayList<>());
     }
 
-    return new QADashboardResponseModel.AutomatedApiTestsData(
+    return new QaDashboardResponseModel.AutomatedApiTestsData(
         PLAYWRIGHT_RELATIVE_ROOT + AUTOMATED_API_TESTS_PATH, totalTests, categories);
   }
 

@@ -1,24 +1,31 @@
-package com.example.SpringApi.Controllers;
+package com.example.springapi.controllers;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.Logging.ContextualLogger;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
-import com.example.SpringApi.Services.Interface.ILeadSubTranslator;
-import com.example.SpringApi.Services.LeadService;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.logging.ContextualLogger;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.requestmodels.LeadRequestModel;
+import com.example.springapi.models.responsemodels.ErrorResponseModel;
+import com.example.springapi.services.LeadService;
+import com.example.springapi.services.interfaces.LeadSubTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST Controller for Lead management operations. Handles all lead-related HTTP requests including
+ * REST Controller for Lead management operations. Handles all lead-related HTTP requests including.
  * CRUD operations, batch processing, and specialized queries for sales and marketing.
  *
  * @author SpringApi Team
@@ -29,15 +36,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/" + ApiRoutes.ApiControllerNames.LEAD)
 public class LeadController {
   private static final ContextualLogger logger = ContextualLogger.getLogger(LeadController.class);
-  private final ILeadSubTranslator leadService;
+  private final LeadSubTranslator leadService;
 
   @Autowired
-  public LeadController(ILeadSubTranslator leadService) {
+  public LeadController(LeadSubTranslator leadService) {
     this.leadService = leadService;
   }
 
   /**
-   * Retrieves leads in paginated batches with optional filtering and sorting. Supports pagination,
+   * Retrieves leads in paginated batches with optional filtering and sorting. Supports pagination,.
    * sorting by multiple fields, and filtering capabilities.
    *
    * @param leadRequestModel The request model containing pagination and filter parameters
@@ -80,7 +87,7 @@ public class LeadController {
   }
 
   /**
-   * Retrieves detailed information for a specific lead by ID. Returns complete lead information
+   * Retrieves detailed information for a specific lead by ID. Returns complete lead information.
    * including all associated data.
    *
    * @param leadId The unique identifier of the lead
@@ -123,7 +130,7 @@ public class LeadController {
   }
 
   /**
-   * Retrieves detailed information for a specific lead by email address. Returns complete lead
+   * Retrieves detailed information for a specific lead by email address. Returns complete lead.
    * information for the specified email.
    *
    * @param email The email address of the lead
@@ -204,7 +211,7 @@ public class LeadController {
   }
 
   /**
-   * Creates multiple leads asynchronously in a single operation. Processing happens in background
+   * Creates multiple leads asynchronously in a single operation. Processing happens in background.
    * thread; results sent via message notification.
    *
    * @param leads List of LeadRequestModel containing the lead data to insert
@@ -253,7 +260,7 @@ public class LeadController {
   }
 
   /**
-   * Updates an existing lead with new information. Validates updated data and modifies the lead
+   * Updates an existing lead with new information. Validates updated data and modifies the lead.
    * record.
    *
    * @param leadId The unique identifier of the lead to update
@@ -288,7 +295,7 @@ public class LeadController {
                   ErrorMessages.ERROR_UNAUTHORIZED,
                   e.getMessage(),
                   HttpStatus.UNAUTHORIZED.value()));
-    } catch (com.example.SpringApi.Exceptions.PermissionException e) {
+    } catch (com.example.springapi.exceptions.PermissionException e) {
       logger.error(e);
       return ResponseEntity.status(HttpStatus.FORBIDDEN)
           .body(new ErrorResponseModel("Forbidden", e.getMessage(), HttpStatus.FORBIDDEN.value()));
@@ -304,7 +311,7 @@ public class LeadController {
   }
 
   /**
-   * Toggles the active status of a lead. Switches between active and inactive states for the
+   * Toggles the active status of a lead. Switches between active and inactive states for the.
    * specified lead.
    *
    * @param leadId The unique identifier of the lead to toggle
@@ -337,7 +344,7 @@ public class LeadController {
                   ErrorMessages.ERROR_UNAUTHORIZED,
                   e.getMessage(),
                   HttpStatus.UNAUTHORIZED.value()));
-    } catch (com.example.SpringApi.Exceptions.PermissionException e) {
+    } catch (com.example.springapi.exceptions.PermissionException e) {
       logger.error(e);
       return ResponseEntity.status(HttpStatus.FORBIDDEN)
           .body(new ErrorResponseModel("Forbidden", e.getMessage(), HttpStatus.FORBIDDEN.value()));

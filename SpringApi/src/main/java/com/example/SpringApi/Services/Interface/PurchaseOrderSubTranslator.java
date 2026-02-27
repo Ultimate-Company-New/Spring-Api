@@ -1,9 +1,9 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PurchaseOrderResponseModel;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.PurchaseOrderRequestModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.PurchaseOrderResponseModel;
 import freemarker.template.TemplateException;
 import java.io.IOException;
 
@@ -17,7 +17,7 @@ import java.io.IOException;
  * @version 1.0
  * @since 2024-01-15
  */
-public interface IPurchaseOrderSubTranslator {
+public interface PurchaseOrderSubTranslator {
 
   /**
    * Retrieves purchase orders in batches with pagination support.
@@ -121,7 +121,7 @@ public interface IPurchaseOrderSubTranslator {
    * @throws IOException if PDF generation fails
    * @throws com.itextpdf.text.DocumentException if PDF document creation fails
    */
-  byte[] getPurchaseOrderPDF(long id)
+  byte[] getPurchaseOrderPdf(long id)
       throws TemplateException, IOException, com.itextpdf.text.DocumentException;
 
   /**

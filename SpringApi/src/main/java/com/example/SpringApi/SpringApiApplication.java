@@ -1,4 +1,4 @@
-package com.example.SpringApi;
+package com.example.springapi;
 
 import java.util.concurrent.Executor;
 import org.springframework.boot.SpringApplication;
@@ -9,43 +9,49 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+/**
+ * Stores base packages.
+ */
 @SpringBootApplication
 @ComponentScan(
     basePackages = {
       // beans from authentication
-      "com.example.SpringApi.Authentication",
+      "com.example.springapi.authentication",
 
       // scan the models and subpackages
-      "com.example.SpringApi.Models",
+      "com.example.springapi.models",
 
       // scan the repositories
-      "com.example.SpringApi.Repositories",
+      "com.example.springapi.repositories",
 
       // scan the filter query builders
-      "com.example.SpringApi.FilterQueryBuilder",
+      "com.example.springapi.filterquerybuilder",
 
       // scan the controllers
-      "com.example.SpringApi.Controllers",
+      "com.example.springapi.controllers",
 
       // scan the services and subpackages
-      "com.example.SpringApi.Services",
+      "com.example.springapi.services",
 
       // scan the helpers
-      "com.example.SpringApi.Helpers",
+      "com.example.springapi.helpers",
 
       // scan the datasource beans
-      "com.example.SpringApi.DataSource",
+      "com.example.springapi.datasource",
 
       // scan the exception handlers
-      "com.example.SpringApi.Exceptions",
+      "com.example.springapi.exceptions",
     })
-@EntityScan(basePackages = {"com.example.SpringApi.Models.DatabaseModels"})
+@EntityScan(basePackages = {"com.example.springapi.models.databasemodels"})
 @EnableAsync
 public class SpringApiApplication {
   public static void main(String[] args) {
     SpringApplication.run(SpringApiApplication.class, args);
   }
 
+  /**
+   * Executes async executor.
+   */
   @Bean(name = "asyncExecutor")
   public Executor asyncExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

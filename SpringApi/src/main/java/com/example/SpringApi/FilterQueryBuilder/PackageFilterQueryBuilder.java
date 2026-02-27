@@ -1,7 +1,7 @@
-package com.example.SpringApi.FilterQueryBuilder;
+package com.example.springapi.filterquerybuilder;
 
-import com.example.SpringApi.Models.DatabaseModels.Package;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
+import com.example.springapi.models.databasemodels.Package;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.util.Arrays;
@@ -105,7 +105,7 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
   }
 
   /**
-   * Gets the column type for validation purposes
+   * Gets the column type for validation purposes.
    *
    * @param column The column name
    * @return "string", "number", "date", or "boolean"
@@ -125,8 +125,8 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
   // ==================== Query Execution Method ====================
 
   /**
-   * Finds paginated packages with multiple filter conditions combined with AND/OR logic. Builds the
-   * WHERE clause dynamically and executes the query.
+   * Finds paginated packages with multiple filter conditions combined with AND/OR logic. Builds
+   * the. WHERE clause dynamically and executes the query.
    *
    * <p>When filtering by pickupLocationId, only packages with that pickup location are returned.
    *
@@ -234,7 +234,7 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
       countTypedQuery.setParameter(entry.getKey(), entry.getValue());
     }
 
-    Long totalCount = countTypedQuery.getSingleResult();
+    final Long totalCount = countTypedQuery.getSingleResult();
 
     // Execute main query with pagination
     TypedQuery<Package> mainQuery = entityManager.createQuery(baseQuery, Package.class);
@@ -259,7 +259,7 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
   }
 
   /**
-   * Gets the extracted pickupLocationId filter value if present. This is used by the service to
+   * Gets the extracted pickupLocationId filter value if present. This is used by the service to.
    * filter the pickup location mappings in the response.
    *
    * @param filters List of filter conditions

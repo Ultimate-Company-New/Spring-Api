@@ -1,11 +1,11 @@
-package com.example.SpringApi.ServiceTests.PickupLocation;
+package com.example.springapi.ServiceTests.PickupLocation;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.PickupLocationController;
-import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
+import com.example.springapi.controllers.PickupLocationController;
+import com.example.springapi.models.requestmodels.PickupLocationRequestModel;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;

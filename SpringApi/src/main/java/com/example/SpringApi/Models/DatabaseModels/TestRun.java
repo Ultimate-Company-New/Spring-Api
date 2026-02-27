@@ -1,6 +1,15 @@
-package com.example.SpringApi.Models.DatabaseModels;
+package com.example.springapi.models.databasemodels;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +46,7 @@ public class TestRun {
   // ENUMS
   // ========================================================================
 
-  /** Run type enum */
+  /** Run type enum. */
   public enum RunType {
     SINGLE_METHOD("SINGLE_METHOD"),
     SERVICE("SERVICE"),
@@ -53,16 +62,23 @@ public class TestRun {
       return value;
     }
 
+    /**
+     * Checks whether valid.
+     */
     public static boolean isValid(String value) {
-      if (value == null) return false;
+      if (value == null) {
+        return false;
+      }
       for (RunType type : values()) {
-        if (type.value.equals(value)) return true;
+        if (type.value.equals(value)) {
+          return true;
+        }
       }
       return false;
     }
   }
 
-  /** Test run status enum */
+  /** Test run status enum. */
   public enum TestRunStatus {
     RUNNING("RUNNING"),
     COMPLETED("COMPLETED"),
@@ -79,10 +95,17 @@ public class TestRun {
       return value;
     }
 
+    /**
+     * Checks whether valid.
+     */
     public static boolean isValid(String value) {
-      if (value == null) return false;
+      if (value == null) {
+        return false;
+      }
       for (TestRunStatus status : values()) {
-        if (status.value.equals(value)) return true;
+        if (status.value.equals(value)) {
+          return true;
+        }
       }
       return false;
     }
@@ -157,6 +180,9 @@ public class TestRun {
 
   public TestRun() {}
 
+  /**
+   * Executes test run.
+   */
   public TestRun(String serviceName, String runType, Long userId, String userName, Long clientId) {
     this.serviceName = serviceName;
     this.runType = runType;

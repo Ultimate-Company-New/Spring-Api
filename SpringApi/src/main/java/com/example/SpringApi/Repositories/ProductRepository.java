@@ -1,6 +1,6 @@
-package com.example.SpringApi.Repositories;
+package com.example.springapi.repositories;
 
-import com.example.SpringApi.Models.DatabaseModels.Product;
+import com.example.springapi.models.databasemodels.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.Lead;
+package com.example.springapi.ServiceTests.Lead;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -8,18 +8,18 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.FilterQueryBuilder.LeadFilterQueryBuilder;
-import com.example.SpringApi.Models.DatabaseModels.Address;
-import com.example.SpringApi.Models.DatabaseModels.Lead;
-import com.example.SpringApi.Models.DatabaseModels.User;
-import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
-import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
-import com.example.SpringApi.Repositories.AddressRepository;
-import com.example.SpringApi.Repositories.LeadRepository;
-import com.example.SpringApi.Services.LeadService;
-import com.example.SpringApi.Services.MessageService;
-import com.example.SpringApi.Services.UserLogService;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.filterquerybuilder.LeadFilterQueryBuilder;
+import com.example.springapi.models.databasemodels.Address;
+import com.example.springapi.models.databasemodels.Lead;
+import com.example.springapi.models.databasemodels.User;
+import com.example.springapi.models.requestmodels.AddressRequestModel;
+import com.example.springapi.models.requestmodels.LeadRequestModel;
+import com.example.springapi.repositories.AddressRepository;
+import com.example.springapi.repositories.LeadRepository;
+import com.example.springapi.services.LeadService;
+import com.example.springapi.services.MessageService;
+import com.example.springapi.services.UserLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -191,7 +191,7 @@ abstract class LeadServiceTestBase {
                 anyString(),
                 org.mockito.ArgumentMatchers
                     .<List<
-                            com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel
+                            com.example.springapi.models.requestmodels.PaginationBaseRequestModel
                                 .FilterCondition>>
                         any(),
                 anyBoolean(),
@@ -302,20 +302,20 @@ abstract class LeadServiceTestBase {
 
   /** Stub controller service call for getLeadDetailsByEmail. */
   protected void stubLeadServiceGetLeadDetailsByEmail(
-      String email, com.example.SpringApi.Models.ResponseModels.LeadResponseModel response) {
+      String email, com.example.springapi.models.responsemodels.LeadResponseModel response) {
     lenient().when(leadServiceMock.getLeadDetailsByEmail(email)).thenReturn(response);
   }
 
   /** Stub controller service call for getLeadDetailsById. */
   protected void stubLeadServiceGetLeadDetailsById(
-      Long id, com.example.SpringApi.Models.ResponseModels.LeadResponseModel response) {
+      Long id, com.example.springapi.models.responsemodels.LeadResponseModel response) {
     lenient().when(leadServiceMock.getLeadDetailsById(id)).thenReturn(response);
   }
 
   /** Stub controller service call for getLeadsInBatches. */
   protected void stubLeadServiceGetLeadsInBatches(
-      com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel<
-              com.example.SpringApi.Models.ResponseModels.LeadResponseModel>
+      com.example.springapi.models.responsemodels.PaginationBaseResponseModel<
+              com.example.springapi.models.responsemodels.LeadResponseModel>
           response) {
     lenient()
         .when(leadServiceMock.getLeadsInBatches(any(LeadRequestModel.class)))
@@ -327,7 +327,7 @@ abstract class LeadServiceTestBase {
   protected void stubLeadServiceGetLeadsInBatchesThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
+            new com.example.springapi.exceptions.UnauthorizedException(
                 ErrorMessages.ERROR_UNAUTHORIZED))
         .when(leadServiceMock)
         .getLeadsInBatches(any(LeadRequestModel.class));
@@ -336,7 +336,7 @@ abstract class LeadServiceTestBase {
   protected void stubLeadServiceCreateLeadThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
+            new com.example.springapi.exceptions.UnauthorizedException(
                 ErrorMessages.ERROR_UNAUTHORIZED))
         .when(leadServiceMock)
         .createLead(any(LeadRequestModel.class));
@@ -345,7 +345,7 @@ abstract class LeadServiceTestBase {
   protected void stubLeadServiceUpdateLeadThrowsUnauthorized(Long leadId) {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
+            new com.example.springapi.exceptions.UnauthorizedException(
                 ErrorMessages.ERROR_UNAUTHORIZED))
         .when(leadServiceMock)
         .updateLead(eq(leadId), any());
@@ -353,7 +353,7 @@ abstract class LeadServiceTestBase {
 
   protected void stubLeadServiceUpdateLeadThrowsForbidden(Long leadId) {
     lenient()
-        .doThrow(new com.example.SpringApi.Exceptions.PermissionException("Forbidden"))
+        .doThrow(new com.example.springapi.exceptions.PermissionException("Forbidden"))
         .when(leadServiceMock)
         .updateLead(eq(leadId), any());
   }
@@ -361,7 +361,7 @@ abstract class LeadServiceTestBase {
   protected void stubLeadServiceToggleLeadThrowsUnauthorized(Long leadId) {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
+            new com.example.springapi.exceptions.UnauthorizedException(
                 ErrorMessages.ERROR_UNAUTHORIZED))
         .when(leadServiceMock)
         .toggleLead(leadId);
@@ -369,7 +369,7 @@ abstract class LeadServiceTestBase {
 
   protected void stubLeadServiceToggleLeadThrowsForbidden(Long leadId) {
     lenient()
-        .doThrow(new com.example.SpringApi.Exceptions.PermissionException("Forbidden"))
+        .doThrow(new com.example.springapi.exceptions.PermissionException("Forbidden"))
         .when(leadServiceMock)
         .toggleLead(leadId);
   }
@@ -377,7 +377,7 @@ abstract class LeadServiceTestBase {
   protected void stubLeadServiceBulkCreateLeadsAsyncThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
+            new com.example.springapi.exceptions.UnauthorizedException(
                 ErrorMessages.ERROR_UNAUTHORIZED))
         .when(leadServiceMock)
         .bulkCreateLeadsAsync(anyList(), anyLong(), anyString(), anyLong());

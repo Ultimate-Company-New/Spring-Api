@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.ResponseModels;
+package com.example.springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,13 +49,13 @@ class PackagePickupLocationMappingResponseModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.ResponseModels.PackagePickupLocationMappingResponseModel
+        com.example.springapi.models.responsemodels.PackagePickupLocationMappingResponseModel
             .class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.ResponseModels
+                  com.example.springapi.models.responsemodels
                       .PackagePickupLocationMappingResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
@@ -66,7 +66,7 @@ class PackagePickupLocationMappingResponseModelContractTest {
   void PackagePickupLocationMappingResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.ResponseModels.PackagePickupLocationMappingResponseModel.class
+        com.example.springapi.models.responsemodels.PackagePickupLocationMappingResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -84,11 +84,11 @@ class PackagePickupLocationMappingResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.ResponseModels.PackagePickupLocationMappingResponseModel
+  private com.example.springapi.models.responsemodels.PackagePickupLocationMappingResponseModel
       createInstance() {
-    return (com.example.SpringApi.Models.ResponseModels.PackagePickupLocationMappingResponseModel)
+    return (com.example.springapi.models.responsemodels.PackagePickupLocationMappingResponseModel)
         instantiate(
-            com.example.SpringApi.Models.ResponseModels.PackagePickupLocationMappingResponseModel
+            com.example.springapi.models.responsemodels.PackagePickupLocationMappingResponseModel
                 .class);
   }
 

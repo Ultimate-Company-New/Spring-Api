@@ -1,4 +1,4 @@
-package com.example.SpringApi.Deserializers;
+package com.example.springapi.deserializers;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -89,7 +89,8 @@ public class FlexibleLocalDateTimeDeserializer extends JsonDeserializer<LocalDat
       throw new IOException(
           "Cannot parse date/datetime: '"
               + dateString
-              + "'. Expected formats: 'yyyy-MM-dd', 'yyyy-MM-dd'T'HH:mm:ss', or ISO 8601 with timezone (e.g., '2026-03-01T17:00:00.000Z')",
+              + "'. Expected formats: 'yyyy-MM-dd', 'yyyy-MM-dd'T'HH:mm:ss', or ISO "
+              + "8601 with timezone (e.g., '2026-03-01T17:00:00.000Z')",
           e);
     }
   }

@@ -1,14 +1,14 @@
-package com.example.SpringApi.ServiceTests.Lead;
+package com.example.springapi.ServiceTests.Lead;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.LeadController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.ResponseModels.LeadResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.LeadController;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.responsemodels.LeadResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;

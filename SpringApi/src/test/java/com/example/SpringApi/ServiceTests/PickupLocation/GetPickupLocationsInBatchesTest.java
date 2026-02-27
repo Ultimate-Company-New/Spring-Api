@@ -1,15 +1,15 @@
-package com.example.SpringApi.ServiceTests.PickupLocation;
+package com.example.springapi.ServiceTests.PickupLocation;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.PickupLocationController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PickupLocationResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.PickupLocationController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.PickupLocationResponseModel;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -47,7 +47,7 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
     testPaginationRequest.setEnd(10);
     testPaginationRequest.setFilters(null);
 
-    Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult =
+    Page<com.example.springapi.models.databasemodels.PickupLocation> pageResult =
         new PageImpl<>(Collections.singletonList(testPickupLocation));
 
     stubPickupLocationFilterQueryBuilderFindPaginatedEntities(pageResult);
@@ -78,7 +78,7 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
     testPaginationRequest.setStart(0);
     testPaginationRequest.setEnd(10);
 
-    Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult =
+    Page<com.example.springapi.models.databasemodels.PickupLocation> pageResult =
         new PageImpl<>(Collections.emptyList());
 
     stubPickupLocationFilterQueryBuilderFindPaginatedEntities(pageResult);
@@ -124,7 +124,7 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
     testPaginationRequest.setEnd(10);
     testPaginationRequest.setIncludeDeleted(true);
 
-    Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult =
+    Page<com.example.springapi.models.databasemodels.PickupLocation> pageResult =
         new PageImpl<>(Collections.singletonList(testPickupLocation));
 
     stubPickupLocationFilterQueryBuilderFindPaginatedEntities(pageResult);
@@ -151,7 +151,7 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
     testPaginationRequest.setStart(0);
     testPaginationRequest.setEnd(1000);
 
-    Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult =
+    Page<com.example.springapi.models.databasemodels.PickupLocation> pageResult =
         new PageImpl<>(Collections.singletonList(testPickupLocation));
 
     stubPickupLocationFilterQueryBuilderFindPaginatedEntities(pageResult);
@@ -175,7 +175,7 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
     testPaginationRequest.setStart(0);
     testPaginationRequest.setEnd(1);
 
-    Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult =
+    Page<com.example.springapi.models.databasemodels.PickupLocation> pageResult =
         new PageImpl<>(Collections.emptyList());
 
     stubPickupLocationFilterQueryBuilderFindPaginatedEntities(pageResult);
@@ -200,11 +200,11 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
     testPaginationRequest.setStart(0);
     testPaginationRequest.setEnd(10);
 
-    com.example.SpringApi.Models.DatabaseModels.PickupLocation location2 =
-        new com.example.SpringApi.Models.DatabaseModels.PickupLocation();
+    com.example.springapi.models.databasemodels.PickupLocation location2 =
+        new com.example.springapi.models.databasemodels.PickupLocation();
     location2.setPickupLocationId(2L);
 
-    Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult =
+    Page<com.example.springapi.models.databasemodels.PickupLocation> pageResult =
         new PageImpl<>(java.util.Arrays.asList(testPickupLocation, location2));
 
     stubPickupLocationFilterQueryBuilderFindPaginatedEntities(pageResult);
@@ -411,7 +411,7 @@ class GetPickupLocationsInBatchesTest extends PickupLocationServiceTestBase {
     // Arrange
     testPaginationRequest.setStart(0);
     testPaginationRequest.setEnd(10);
-    Page<com.example.SpringApi.Models.DatabaseModels.PickupLocation> pageResult =
+    Page<com.example.springapi.models.databasemodels.PickupLocation> pageResult =
         new PageImpl<>(Collections.singletonList(testPickupLocation));
     stubPickupLocationFilterQueryBuilderFindPaginatedEntities(pageResult);
     stubProductMappingRepositoryCountByPickupLocationIds(

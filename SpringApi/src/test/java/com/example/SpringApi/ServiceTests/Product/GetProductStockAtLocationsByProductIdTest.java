@@ -1,14 +1,14 @@
-package com.example.SpringApi.ServiceTests.Product;
+package com.example.springapi.ServiceTests.Product;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 
-import com.example.SpringApi.Controllers.ProductController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping;
-import com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.ProductController;
+import com.example.springapi.models.databasemodels.ProductPickupLocationMapping;
+import com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;

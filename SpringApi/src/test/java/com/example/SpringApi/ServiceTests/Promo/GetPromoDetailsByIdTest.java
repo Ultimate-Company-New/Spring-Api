@@ -1,10 +1,10 @@
-package com.example.SpringApi.ServiceTests.Promo;
+package com.example.springapi.ServiceTests.Promo;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Models.ResponseModels.PromoResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.models.responsemodels.PromoResponseModel;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

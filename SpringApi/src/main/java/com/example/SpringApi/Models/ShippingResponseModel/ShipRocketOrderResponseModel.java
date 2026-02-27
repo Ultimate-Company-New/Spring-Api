@@ -1,11 +1,11 @@
-package com.example.SpringApi.Models.ShippingResponseModel;
+package com.example.springapi.models.shippingresponsemodel;
 
 import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Response model for ShipRocket create custom order API. ShipRocket returns a flat structure with
+ * Response model for ShipRocket create custom order API. ShipRocket returns a flat structure with.
  * order fields at root level.
  */
 @Getter

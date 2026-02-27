@@ -1,14 +1,14 @@
-package com.example.SpringApi.ServiceTests.Shipping;
+package com.example.springapi.ServiceTests.Shipping;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.SpringApi.Controllers.ShippingController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.DatabaseModels.ReturnShipment;
-import com.example.SpringApi.Models.DatabaseModels.ReturnShipmentProduct;
-import com.example.SpringApi.Models.DatabaseModels.Shipment;
-import com.example.SpringApi.Models.DatabaseModels.ShipmentPackageProduct;
-import com.example.SpringApi.Models.ResponseModels.ShipmentResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.ShippingController;
+import com.example.springapi.models.databasemodels.ReturnShipment;
+import com.example.springapi.models.databasemodels.ReturnShipmentProduct;
+import com.example.springapi.models.databasemodels.Shipment;
+import com.example.springapi.models.databasemodels.ShipmentPackageProduct;
+import com.example.springapi.models.responsemodels.ShipmentResponseModel;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -134,9 +134,9 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
     stubShipmentRepositoryFindById(shipment);
 
     // Act
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
+            com.example.springapi.exceptions.NotFoundException.class,
             () -> shippingService.getShipmentById(TEST_SHIPMENT_ID));
 
     // Assert
@@ -156,9 +156,9 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
     stubShipmentRepositoryFindById(null);
 
     // Act
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
+            com.example.springapi.exceptions.NotFoundException.class,
             () -> shippingService.getShipmentById(Long.MAX_VALUE));
 
     // Assert
@@ -180,13 +180,13 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
     Long shipmentId2 = 0L;
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex1 =
+    com.example.springapi.exceptions.BadRequestException ex1 =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.getShipmentById(shipmentId1));
-    com.example.SpringApi.Exceptions.BadRequestException ex2 =
+    com.example.springapi.exceptions.BadRequestException ex2 =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.getShipmentById(shipmentId2));
 
     // Assert
@@ -205,9 +205,9 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
     Long shipmentId = -1L;
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.getShipmentById(shipmentId));
 
     // Assert
@@ -225,9 +225,9 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
     stubShipmentRepositoryFindById(null);
 
     // Act
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
+            com.example.springapi.exceptions.NotFoundException.class,
             () -> shippingService.getShipmentById(TEST_SHIPMENT_ID));
 
     // Assert
@@ -247,9 +247,9 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
     Long shipmentId = null;
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.getShipmentById(shipmentId));
 
     // Assert
@@ -268,9 +268,9 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
     stubShipmentRepositoryFindById(testShipment);
 
     // Act
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
+            com.example.springapi.exceptions.NotFoundException.class,
             () -> shippingService.getShipmentById(TEST_SHIPMENT_ID));
 
     // Assert
@@ -291,9 +291,9 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
     stubShipmentRepositoryFindById(testShipment);
 
     // Act
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
+            com.example.springapi.exceptions.NotFoundException.class,
             () -> shippingService.getShipmentById(TEST_SHIPMENT_ID));
 
     // Assert
@@ -314,9 +314,9 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
     stubShipmentRepositoryFindById(testShipment);
 
     // Act
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
+            com.example.springapi.exceptions.NotFoundException.class,
             () -> shippingService.getShipmentById(TEST_SHIPMENT_ID));
 
     // Assert
@@ -336,9 +336,9 @@ class GetShipmentByIdTest extends ShippingServiceTestBase {
     Long shipmentId = 0L;
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.getShipmentById(shipmentId));
 
     // Assert

@@ -1,8 +1,8 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Models.RequestModels.UserLogsRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.UserLogsResponseModel;
+import com.example.springapi.models.requestmodels.UserLogsRequestModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.UserLogsResponseModel;
 
 /**
  * Interface for User Log-related business operations.
@@ -15,7 +15,7 @@ import com.example.SpringApi.Models.ResponseModels.UserLogsResponseModel;
  * @version 1.0
  * @since 2024-01-15
  */
-public interface IUserLogSubTranslator {
+public interface UserLogSubTranslator {
 
   /**
    * Logs user data with full change details.

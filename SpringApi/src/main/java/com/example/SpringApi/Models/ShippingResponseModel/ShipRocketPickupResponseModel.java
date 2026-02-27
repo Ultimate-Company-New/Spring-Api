@@ -1,10 +1,10 @@
-package com.example.SpringApi.Models.ShippingResponseModel;
+package com.example.springapi.models.shippingresponsemodel;
 
 import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import lombok.Getter;
 import lombok.Setter;
 
-/** Response model for ShipRocket pickup generation API. POST /courier/generate/pickup */
+/** Response model for ShipRocket pickup generation API. POST /courier/generate/pickup. */
 @Getter
 @Setter
 public class ShipRocketPickupResponseModel {
@@ -24,6 +24,9 @@ public class ShipRocketPickupResponseModel {
     return pickupStatus != null && pickupStatus == 1;
   }
 
+  /**
+   * Represents the pickup response component.
+   */
   @Getter
   @Setter
   public static class PickupResponse {
@@ -46,6 +49,9 @@ public class ShipRocketPickupResponseModel {
     private String data;
   }
 
+  /**
+   * Represents the pickup generated date component.
+   */
   @Getter
   @Setter
   public static class PickupGeneratedDate {

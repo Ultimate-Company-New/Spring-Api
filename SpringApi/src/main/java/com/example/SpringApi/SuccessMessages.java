@@ -1,10 +1,16 @@
-package com.example.SpringApi;
+package com.example.springapi;
 
+/**
+ * Represents the success messages component.
+ */
 public class SuccessMessages {
   private SuccessMessages() {}
 
   public static final String SUCCESS = "Success.";
 
+  /**
+   * Represents the event success messages component.
+   */
   public static class EventSuccessMessages {
     private EventSuccessMessages() {}
 
@@ -16,6 +22,9 @@ public class SuccessMessages {
     public static final String TOGGLE_EVENT = "Successfully toggled event.";
   }
 
+  /**
+   * Represents the carrier success messages component.
+   */
   public static class CarrierSuccessMessages {
     private CarrierSuccessMessages() {}
 
@@ -24,6 +33,9 @@ public class SuccessMessages {
     public static final String UPDATED_CARRIER = "Successfully updated carrier details.";
   }
 
+  /**
+   * Represents the login success messages component.
+   */
   public static class LoginSuccessMessages {
     private LoginSuccessMessages() {}
 
@@ -34,6 +46,9 @@ public class SuccessMessages {
     public static final String SUCCESS_SIGNED_UP = "Successfully signed up.";
   }
 
+  /**
+   * Represents the address success messages component.
+   */
   public static class AddressSuccessMessages {
     private AddressSuccessMessages() {}
 
@@ -44,6 +59,9 @@ public class SuccessMessages {
     public static final String GET_ADDRESS = "Successfully got address details.";
   }
 
+  /**
+   * Represents the client success messages component.
+   */
   public static class ClientSuccessMessages {
     private ClientSuccessMessages() {}
 
@@ -56,6 +74,9 @@ public class SuccessMessages {
     public static final String GET_CLIENTS = "Successfully got clients.";
   }
 
+  /**
+   * Represents the user group success messages component.
+   */
   public static class UserGroupSuccessMessages {
     private UserGroupSuccessMessages() {}
 
@@ -70,6 +91,9 @@ public class SuccessMessages {
     public static final String SUCC001 = "Successfully got user's from the from the given groupid.";
   }
 
+  /**
+   * Represents the todo success messages component.
+   */
   public static class TodoSuccessMessages {
     private TodoSuccessMessages() {}
 
@@ -81,6 +105,9 @@ public class SuccessMessages {
     public static final String TOGGLE_TODO = "Successfully toggled todo.";
   }
 
+  /**
+   * Represents the messages success messages component.
+   */
   public static class MessagesSuccessMessages {
     private MessagesSuccessMessages() {}
 
@@ -93,6 +120,9 @@ public class SuccessMessages {
     public static final String SET_MESSAGE_READ = "Successfully marked message as read.";
   }
 
+  /**
+   * Represents the web templates success messages component.
+   */
   public static class WebTemplatesSuccessMessages {
     private WebTemplatesSuccessMessages() {}
 
@@ -106,6 +136,9 @@ public class SuccessMessages {
     public static final String UPDATE_USER_LIKED_ITEMS = "Successfully updated user liked items.";
   }
 
+  /**
+   * Represents the pickup location success messages component.
+   */
   public static class PickupLocationSuccessMessages {
     private PickupLocationSuccessMessages() {}
 
@@ -116,6 +149,9 @@ public class SuccessMessages {
     public static final String TOGGLE_PICKUP_LOCATION = "Successfully toggled pickup location.";
   }
 
+  /**
+   * Represents the promo success messages component.
+   */
   public static class PromoSuccessMessages {
     private PromoSuccessMessages() {}
 
@@ -128,6 +164,9 @@ public class SuccessMessages {
     public static final String TOGGLED_PROMO = "Successfully toggled promo ";
   }
 
+  /**
+   * Represents the product category success messages component.
+   */
   public static class ProductCategorySuccessMessages {
     private ProductCategorySuccessMessages() {}
 
@@ -135,6 +174,9 @@ public class SuccessMessages {
     public static final String GET_PRODUCT_CATEGORIES = "Successfully got product categories";
   }
 
+  /**
+   * Represents the products success messages component.
+   */
   public static class ProductsSuccessMessages {
     private ProductsSuccessMessages() {}
 
@@ -146,6 +188,9 @@ public class SuccessMessages {
     public static final String TOGGLE_RETURN_PRODUCT = "Successfully toggled product return.";
   }
 
+  /**
+   * Represents the lead success messages component.
+   */
   public static class LeadSuccessMessages {
     private LeadSuccessMessages() {}
 
@@ -156,6 +201,9 @@ public class SuccessMessages {
     public static final String TOGGLE_LEAD = "Successfully toggled lead.";
   }
 
+  /**
+   * Represents the purchase order success messages component.
+   */
   public static class PurchaseOrderSuccessMessages {
     private PurchaseOrderSuccessMessages() {}
 
@@ -173,6 +221,9 @@ public class SuccessMessages {
         "Successfully retrieved purchase order pdf.";
   }
 
+  /**
+   * Represents the product review success messages component.
+   */
   public static class ProductReviewSuccessMessages {
     private ProductReviewSuccessMessages() {}
 
@@ -184,6 +235,9 @@ public class SuccessMessages {
     public static final String DELETE_PRODUCT_REVIEW = "Successfully deleted the product review.";
   }
 
+  /**
+   * Represents the packages success messages component.
+   */
   public static class PackagesSuccessMessages {
     private PackagesSuccessMessages() {}
 
@@ -194,6 +248,9 @@ public class SuccessMessages {
     public static final String TOGGLE_PACKAGE = "Successfully toggled package status.";
   }
 
+  /**
+   * Represents the support success messages component.
+   */
   public static class SupportSuccessMessages {
     private SupportSuccessMessages() {}
 
@@ -202,6 +259,9 @@ public class SuccessMessages {
     public static final String CREATE_TICKET = "Successfully created ticket.";
   }
 
+  /**
+   * Represents the user success messages component.
+   */
   public static class UserSuccessMessages {
     private UserSuccessMessages() {}
 
@@ -214,6 +274,9 @@ public class SuccessMessages {
     public static final String EMAIL_CONFIRMED = "Successfully confirmed email.";
   }
 
+  /**
+   * Represents the user grid preference success messages component.
+   */
   public static class UserGridPreferenceSuccessMessages {
     private UserGridPreferenceSuccessMessages() {}
 

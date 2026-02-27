@@ -1,6 +1,6 @@
-package com.example.SpringApi.FilterQueryBuilder;
+package com.example.springapi.filterquerybuilder;
 
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -8,17 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Helper class to build dynamic filter queries for JPA repositories. This class generates WHERE
- * clause conditions based on FilterCondition objects.
- *
- * <p>Usage: 1. Create a subclass for each entity (UserFilterQueryBuilder, LeadFilterQueryBuilder,
- * etc.) 2. Implement the abstract methods for column mappings 3. Call buildFilterConditions() to
- * get the WHERE clause and parameters 4. Use the generated query string in @Query annotation with
- * native query or JPQL
- *
- * <p>Example: ```java UserFilterQueryBuilder builder = new UserFilterQueryBuilder(); QueryResult
- * result = builder.buildFilterConditions(filters, "AND"); String whereClause =
- * result.getWhereClause(); Map<String, Object> params = result.getParameters(); ```
+ * Represents the base filter query builder component.
  */
 public abstract class BaseFilterQueryBuilder {
   private static final String OP_EQUALS = "equals";
@@ -29,22 +19,22 @@ public abstract class BaseFilterQueryBuilder {
   private static final String DATE_PREFIX = "DATE(";
 
   /**
-   * Maps frontend column names to database field paths. Example: "firstName" -> "u.first_name" or
+   * Maps frontend column names to database field paths. Example: "firstName" -> "u.first_name" or.
    * "u.firstName" depending on your entity mapping
    */
   protected abstract String mapColumnToField(String column);
 
-  /** Returns list of date column names */
+  /** Returns list of date column names. */
   protected abstract List<String> getDateColumns();
 
-  /** Returns list of boolean column names */
+  /** Returns list of boolean column names. */
   protected abstract List<String> getBooleanColumns();
 
-  /** Returns list of number column names */
+  /** Returns list of number column names. */
   protected abstract List<String> getNumberColumns();
 
   /**
-   * Builds filter conditions for a list of FilterCondition objects. Returns a QueryResult
+   * Builds filter conditions for a list of FilterCondition objects. Returns a QueryResult.
    * containing the WHERE clause and parameter map.
    *
    * @param filters List of filter conditions
@@ -92,7 +82,7 @@ public abstract class BaseFilterQueryBuilder {
     return new QueryResult(whereClause.toString(), parameters);
   }
 
-  /** Builds a string filter condition */
+  /** Builds a string filter condition. */
   private String buildStringCondition(
       String fieldPath,
       String operator,
@@ -128,8 +118,8 @@ public abstract class BaseFilterQueryBuilder {
   }
 
   /**
-   * Builds "is one of" or "is not one of" condition for semicolon-separated values Example: value =
-   * "A;B;C" becomes: field IN ('A', 'B', 'C') or field NOT IN ('A', 'B', 'C')
+   * Builds "is one of" or "is not one of" condition for semicolon-separated values Example: value
+   * =. "A;B;C" becomes: field IN ('A', 'B', 'C') or field NOT IN ('A', 'B', 'C')
    */
   private String buildIsOneOfCondition(
       String fieldPath,
@@ -168,7 +158,7 @@ public abstract class BaseFilterQueryBuilder {
   }
 
   /**
-   * Builds "contains one of" condition for semicolon-separated values Example: value = "A;B;C"
+   * Builds "contains one of" condition for semicolon-separated values Example: value = "A;B;C".
    * becomes: (field LIKE '%A%' OR field LIKE '%B%' OR field LIKE '%C%')
    */
   private String buildContainsOneOfCondition(
@@ -217,7 +207,7 @@ public abstract class BaseFilterQueryBuilder {
   }
 
   /**
-   * Builds a number filter condition. Accepts both symbol operators (=, !=, etc.) and word
+   * Builds a number filter condition. Accepts both symbol operators (=, !=, etc.) and word.
    * operators (equals, notEquals, etc.) for backwards compatibility, though word format is
    * preferred.
    */
@@ -263,7 +253,7 @@ public abstract class BaseFilterQueryBuilder {
   }
 
   /**
-   * Builds "is one of" or "is not one of" condition for semicolon or comma-separated numeric
+   * Builds "is one of" or "is not one of" condition for semicolon or comma-separated numeric.
    * values. Example: value = "1,2,3" or "1;2;3" becomes: field IN (1, 2, 3) or field NOT IN (1, 2,
    * 3)
    */
@@ -309,7 +299,7 @@ public abstract class BaseFilterQueryBuilder {
   }
 
   /**
-   * Parses a value to a numeric type (Long or Double). If already a number, returns as-is. If a
+   * Parses a value to a numeric type (Long or Double). If already a number, returns as-is. If a.
    * string, attempts to parse.
    */
   private Object parseNumericValue(Object value) {
@@ -336,7 +326,7 @@ public abstract class BaseFilterQueryBuilder {
   }
 
   /**
-   * Builds a date filter condition. Supports both date-specific operators (is, isNot, etc.) and
+   * Builds a date filter condition. Supports both date-specific operators (is, isNot, etc.) and.
    * number-style operators (equals, greaterThan, etc.)
    */
   private String buildDateCondition(
@@ -388,7 +378,7 @@ public abstract class BaseFilterQueryBuilder {
     }
   }
 
-  /** Builds a boolean filter condition */
+  /** Builds a boolean filter condition. */
   private String buildBooleanCondition(
       String fieldPath,
       String operator,
@@ -408,7 +398,7 @@ public abstract class BaseFilterQueryBuilder {
     return "1=1";
   }
 
-  /** Result class containing the WHERE clause and parameters */
+  /** Result class containing the WHERE clause and parameters. */
   public static class QueryResult {
     private final String whereClause;
     private final Map<String, Object> parameters;

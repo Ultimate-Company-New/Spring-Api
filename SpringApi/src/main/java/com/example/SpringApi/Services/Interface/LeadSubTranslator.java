@@ -1,21 +1,21 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
-import com.example.SpringApi.Models.ResponseModels.LeadResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.springapi.models.requestmodels.LeadRequestModel;
+import com.example.springapi.models.responsemodels.LeadResponseModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
 
 /**
- * Interface for Lead operations and business logic. Provides methods for managing leads including
+ * Interface for Lead operations and business logic. Provides methods for managing leads including.
  * CRUD operations, batch processing, and specialized queries.
  *
  * @author SpringApi Team
  * @version 1.0
  * @since 2024-01-15
  */
-public interface ILeadSubTranslator {
+public interface LeadSubTranslator {
 
   /**
-   * Retrieves leads in paginated batches with optional filtering and sorting. Supports pagination,
+   * Retrieves leads in paginated batches with optional filtering and sorting. Supports pagination,.
    * sorting by multiple fields, and filtering capabilities.
    *
    * @param leadRequestModel The request model containing pagination and filter parameters
@@ -41,27 +41,17 @@ public interface ILeadSubTranslator {
   LeadResponseModel getLeadDetailsByEmail(String email);
 
   /**
-   * Creates a new lead in the system.
-   *
-   * @param leadRequestModel The lead data to create
-   * @return The created Lead entity
+   * Creates lead.
    */
   void createLead(LeadRequestModel leadRequestModel);
 
   /**
-   * Updates an existing lead with new information.
-   *
-   * @param leadId The unique identifier of the lead to update
-   * @param leadRequestModel The updated lead data
-   * @return The updated Lead entity
+   * Updates lead.
    */
   void updateLead(Long leadId, LeadRequestModel leadRequestModel);
 
   /**
-   * Toggles the active status of a lead.
-   *
-   * @param leadId The unique identifier of the lead to toggle
-   * @return The updated Lead entity
+   * Toggles lead.
    */
   void toggleLead(Long leadId);
 
@@ -87,12 +77,12 @@ public interface ILeadSubTranslator {
       Long requestingClientId);
 
   /**
-   * Creates multiple leads synchronously in a single operation (for testing). This is a synchronous
-   * wrapper that processes leads immediately and returns results.
+   * Creates multiple leads synchronously in a single operation (for testing). This is a
+   * synchronous. wrapper that processes leads immediately and returns results.
    *
    * @param leads List of LeadRequestModel containing the lead data to create
    * @return BulkInsertResponseModel containing success/failure details for each lead
    */
-  com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateLeads(
+  com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkCreateLeads(
       java.util.List<LeadRequestModel> leads);
 }

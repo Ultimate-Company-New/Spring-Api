@@ -1,11 +1,14 @@
-package com.example.SpringApi.Repositories;
+package com.example.springapi.repositories;
 
-import com.example.SpringApi.Models.DatabaseModels.UserGroup;
+import com.example.springapi.models.databasemodels.UserGroup;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Defines the user group repository contract.
+ */
 @Repository
 public interface UserGroupRepository extends JpaRepository<UserGroup, Long> {
 
@@ -18,7 +21,7 @@ public interface UserGroupRepository extends JpaRepository<UserGroup, Long> {
   UserGroup findByGroupName(String groupName);
 
   /**
-   * Finds a user group by ID with all user mappings and users loaded in a single query. This uses
+   * Finds a user group by ID with all user mappings and users loaded in a single query. This uses.
    * JOIN FETCH to eagerly load all related data to avoid N+1 query problem.
    *
    * @param groupId The unique identifier of the user group

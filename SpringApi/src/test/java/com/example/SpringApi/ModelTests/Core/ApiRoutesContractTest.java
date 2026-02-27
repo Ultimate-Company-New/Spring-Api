@@ -1,10 +1,10 @@
-package com.example.SpringApi.ModelTests.Core;
+package com.example.springapi.ModelTests.Core;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.example.SpringApi.Models.ApiRoutes;
+import com.example.springapi.models.ApiRoutes;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;

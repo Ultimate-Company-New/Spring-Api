@@ -1,20 +1,26 @@
-package com.example.SpringApi.Controllers;
+package com.example.springapi.controllers;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.Logging.ContextualLogger;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.ProductReviewRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
-import com.example.SpringApi.Services.Interface.IProductReviewSubTranslator;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.logging.ContextualLogger;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.ProductReviewRequestModel;
+import com.example.springapi.models.responsemodels.ErrorResponseModel;
+import com.example.springapi.services.interfaces.ProductReviewSubTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST Controller for ProductReview operations.
@@ -33,10 +39,10 @@ public class ProductReviewController {
 
   private static final ContextualLogger logger =
       ContextualLogger.getLogger(ProductReviewController.class);
-  private final IProductReviewSubTranslator productReviewService;
+  private final ProductReviewSubTranslator productReviewService;
 
   @Autowired
-  public ProductReviewController(IProductReviewSubTranslator productReviewService) {
+  public ProductReviewController(ProductReviewSubTranslator productReviewService) {
     this.productReviewService = productReviewService;
   }
 

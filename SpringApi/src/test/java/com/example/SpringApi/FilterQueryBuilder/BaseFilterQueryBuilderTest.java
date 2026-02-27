@@ -1,4 +1,4 @@
-package com.example.SpringApi.FilterQueryBuilder;
+package com.example.springapi.filterquerybuilder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.example.SpringApi.FilterQueryBuilder.BaseFilterQueryBuilder.QueryResult;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
+import com.example.springapi.filterquerybuilder.BaseFilterQueryBuilder.QueryResult;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;

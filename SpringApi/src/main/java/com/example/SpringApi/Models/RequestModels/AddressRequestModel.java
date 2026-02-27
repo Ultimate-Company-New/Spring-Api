@@ -1,8 +1,11 @@
-package com.example.SpringApi.Models.RequestModels;
+package com.example.springapi.models.requestmodels;
 
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Represents the address request model component.
+ */
 @Getter
 @Setter
 public class AddressRequestModel {

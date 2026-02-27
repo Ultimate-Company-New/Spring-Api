@@ -1,12 +1,12 @@
-package com.example.SpringApi.ServiceTests.Shipping;
+package com.example.springapi.ServiceTests.Shipping;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
-import com.example.SpringApi.Controllers.ShippingController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.DatabaseModels.ReturnShipment;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.ShippingController;
+import com.example.springapi.models.databasemodels.ReturnShipment;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -84,9 +84,9 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
     stubReturnShipmentRepositoryFindByReturnShipmentIdAndClientId(testReturnShipment);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
 
     // Assert
@@ -106,9 +106,9 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
     stubShipRocketHelperCancelOrdersThrows(new RuntimeException(ErrorMessages.OPERATION_FAILED));
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
 
     // Assert
@@ -131,9 +131,9 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
     stubReturnShipmentRepositoryFindByReturnShipmentIdAndClientId(testReturnShipment);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
 
     // Assert
@@ -155,9 +155,9 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
     stubClientServiceGetClientById(testClientResponse);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
 
     // Assert
@@ -179,9 +179,9 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
     stubClientServiceGetClientById(testClientResponse);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
 
     // Assert
@@ -201,9 +201,9 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
     stubReturnShipmentRepositoryFindByReturnShipmentIdAndClientId(null);
 
     // Act
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
+            com.example.springapi.exceptions.NotFoundException.class,
             () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
 
     // Assert

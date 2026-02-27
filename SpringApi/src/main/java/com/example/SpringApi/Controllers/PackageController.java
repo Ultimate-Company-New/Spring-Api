@@ -1,27 +1,34 @@
-package com.example.SpringApi.Controllers;
+package com.example.springapi.controllers;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.Logging.ContextualLogger;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PackageResponseModel;
-import com.example.SpringApi.Services.Interface.IPackageSubTranslator;
-import com.example.SpringApi.Services.PackageService;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.logging.ContextualLogger;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.requestmodels.PackageRequestModel;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.responsemodels.ErrorResponseModel;
+import com.example.springapi.models.responsemodels.PackageResponseModel;
+import com.example.springapi.services.PackageService;
+import com.example.springapi.services.interfaces.PackageSubTranslator;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST Controller for Package management operations. Handles all package-related HTTP requests
+ * REST Controller for Package management operations. Handles all package-related HTTP requests.
  * including CRUD operations, batch processing, and specialized queries for package management.
  *
  * @author SpringApi Team
@@ -33,17 +40,17 @@ import org.springframework.web.bind.annotation.*;
 public class PackageController {
   private static final ContextualLogger logger =
       ContextualLogger.getLogger(PackageController.class);
-  private final IPackageSubTranslator packageService;
+  private final PackageSubTranslator packageService;
   private final PackageService concreteService;
 
   @Autowired
-  public PackageController(IPackageSubTranslator packageService, PackageService concreteService) {
+  public PackageController(PackageSubTranslator packageService, PackageService concreteService) {
     this.packageService = packageService;
     this.concreteService = concreteService;
   }
 
   /**
-   * Retrieves packages in paginated batches with optional filtering and sorting. Supports
+   * Retrieves packages in paginated batches with optional filtering and sorting. Supports.
    * pagination, sorting by multiple fields, and filtering capabilities.
    *
    * @param paginationBaseRequestModel The request model containing pagination and filter parameters
@@ -309,7 +316,7 @@ public class PackageController {
   }
 
   /**
-   * Creates multiple packages asynchronously in a single operation. Results will be sent via
+   * Creates multiple packages asynchronously in a single operation. Results will be sent via.
    * message notification after processing completes.
    *
    * @param packages List of PackageRequestModel containing the package data to insert

@@ -1,22 +1,29 @@
-package com.example.SpringApi.Controllers;
+package com.example.springapi.controllers;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.Logging.ContextualLogger;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
-import com.example.SpringApi.Services.Interface.IPickupLocationSubTranslator;
-import com.example.SpringApi.Services.PickupLocationService;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.logging.ContextualLogger;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.PickupLocationRequestModel;
+import com.example.springapi.models.responsemodels.ErrorResponseModel;
+import com.example.springapi.services.PickupLocationService;
+import com.example.springapi.services.interfaces.PickupLocationSubTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST Controller for PickupLocation management operations.
@@ -36,10 +43,10 @@ public class PickupLocationController {
   private static final ContextualLogger logger =
       ContextualLogger.getLogger(PickupLocationController.class);
 
-  private final IPickupLocationSubTranslator pickupLocationService;
+  private final PickupLocationSubTranslator pickupLocationService;
 
   @Autowired
-  public PickupLocationController(IPickupLocationSubTranslator pickupLocationService) {
+  public PickupLocationController(PickupLocationSubTranslator pickupLocationService) {
     this.pickupLocationService = pickupLocationService;
   }
 
@@ -291,7 +298,7 @@ public class PickupLocationController {
   }
 
   /**
-   * Creates multiple pickup locations asynchronously in a single operation. Processing happens in
+   * Creates multiple pickup locations asynchronously in a single operation. Processing happens in.
    * background thread; results sent via message notification.
    *
    * @param pickupLocations List of PickupLocationRequestModel containing the pickup location data

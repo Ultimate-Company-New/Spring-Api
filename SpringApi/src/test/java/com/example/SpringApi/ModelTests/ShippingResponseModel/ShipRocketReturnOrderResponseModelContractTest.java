@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.ShippingResponseModel;
+package com.example.springapi.ModelTests.ShippingResponseModel;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,13 +49,13 @@ class ShipRocketReturnOrderResponseModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.ShippingResponseModel.ShipRocketReturnOrderResponseModel
+        com.example.springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel
             .class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.ShippingResponseModel
+                  com.example.springapi.models.shippingresponsemodel
                       .ShipRocketReturnOrderResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
@@ -66,7 +66,7 @@ class ShipRocketReturnOrderResponseModelContractTest {
   void ShipRocketReturnOrderResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.ShippingResponseModel.ShipRocketReturnOrderResponseModel.class
+        com.example.springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -84,11 +84,11 @@ class ShipRocketReturnOrderResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.ShippingResponseModel.ShipRocketReturnOrderResponseModel
+  private com.example.springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel
       createInstance() {
-    return (com.example.SpringApi.Models.ShippingResponseModel.ShipRocketReturnOrderResponseModel)
+    return (com.example.springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel)
         instantiate(
-            com.example.SpringApi.Models.ShippingResponseModel.ShipRocketReturnOrderResponseModel
+            com.example.springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel
                 .class);
   }
 

@@ -1,10 +1,10 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.ProductRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.ProductCategoryWithPathResponseModel;
-import com.example.SpringApi.Models.ResponseModels.ProductResponseModel;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.ProductRequestModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.ProductCategoryWithPathResponseModel;
+import com.example.springapi.models.responsemodels.ProductResponseModel;
 import java.util.List;
 
 /**
@@ -17,7 +17,7 @@ import java.util.List;
  * @version 1.0
  * @since 2024-01-15
  */
-public interface IProductSubTranslator {
+public interface ProductSubTranslator {
 
   /**
    * Adds a new product.
@@ -128,7 +128,7 @@ public interface IProductSubTranslator {
    * @param products List of ProductRequestModel containing the product data to insert
    * @return BulkInsertResponseModel containing success/failure details for each product
    */
-  com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkAddProducts(
+  com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkAddProducts(
       java.util.List<ProductRequestModel> products);
 
   /**

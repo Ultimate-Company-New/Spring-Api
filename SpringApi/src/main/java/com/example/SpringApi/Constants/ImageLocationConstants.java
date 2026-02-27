@@ -1,4 +1,4 @@
-package com.example.SpringApi.Constants;
+package com.example.springapi.constants;
 
 /**
  * Constants for image storage locations.

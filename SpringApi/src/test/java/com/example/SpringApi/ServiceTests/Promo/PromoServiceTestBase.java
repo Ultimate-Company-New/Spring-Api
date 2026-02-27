@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.Promo;
+package com.example.springapi.ServiceTests.Promo;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
@@ -6,15 +6,15 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 
-import com.example.SpringApi.Controllers.PromoController;
-import com.example.SpringApi.FilterQueryBuilder.PromoFilterQueryBuilder;
-import com.example.SpringApi.Models.DatabaseModels.Promo;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.PromoRequestModel;
-import com.example.SpringApi.Repositories.PromoRepository;
-import com.example.SpringApi.Services.MessageService;
-import com.example.SpringApi.Services.PromoService;
-import com.example.SpringApi.Services.UserLogService;
+import com.example.springapi.controllers.PromoController;
+import com.example.springapi.filterquerybuilder.PromoFilterQueryBuilder;
+import com.example.springapi.models.databasemodels.Promo;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.PromoRequestModel;
+import com.example.springapi.repositories.PromoRepository;
+import com.example.springapi.services.MessageService;
+import com.example.springapi.services.PromoService;
+import com.example.springapi.services.UserLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -141,38 +141,38 @@ abstract class PromoServiceTestBase {
   protected void stubServiceThrowsUnauthorizedException() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(promoService)
         .createPromo(any());
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(promoService)
         .togglePromo(anyLong());
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(promoService)
         .getPromoDetailsById(anyLong());
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(promoService)
         .getPromoDetailsByName(anyString());
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(promoService)
         .getPromosInBatches(any());
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(promoService)
         .bulkCreatePromosAsync(any(), anyLong(), anyString(), anyLong());
   }
@@ -286,22 +286,22 @@ abstract class PromoServiceTestBase {
   }
 
   protected void stubServiceGetPromoDetailsByIdReturns(
-      com.example.SpringApi.Models.ResponseModels.PromoResponseModel result) {
+      com.example.springapi.models.responsemodels.PromoResponseModel result) {
     doReturn(result).when(promoService).getPromoDetailsById(anyLong());
   }
 
   protected void stubServiceGetPromoDetailsByNameReturns(
-      com.example.SpringApi.Models.ResponseModels.PromoResponseModel result) {
+      com.example.springapi.models.responsemodels.PromoResponseModel result) {
     doReturn(result).when(promoService).getPromoDetailsByName(anyString());
   }
 
   protected void stubServiceGetPromosInBatchesReturns(
-      com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel<?> result) {
+      com.example.springapi.models.responsemodels.PaginationBaseResponseModel<?> result) {
     doReturn(result).when(promoService).getPromosInBatches(any(PaginationBaseRequestModel.class));
   }
 
   protected void stubServiceCreatePromoThrowsBadRequest(String message) {
-    doThrow(new com.example.SpringApi.Exceptions.BadRequestException(message))
+    doThrow(new com.example.springapi.exceptions.BadRequestException(message))
         .when(promoService)
         .createPromo(any(PromoRequestModel.class));
   }
@@ -313,7 +313,7 @@ abstract class PromoServiceTestBase {
   }
 
   protected void stubServiceTogglePromoThrowsNotFound(String message) {
-    doThrow(new com.example.SpringApi.Exceptions.NotFoundException(message))
+    doThrow(new com.example.springapi.exceptions.NotFoundException(message))
         .when(promoService)
         .togglePromo(anyLong());
   }
@@ -323,13 +323,13 @@ abstract class PromoServiceTestBase {
   }
 
   protected void stubServiceGetPromoDetailsByIdThrowsNotFound(String message) {
-    doThrow(new com.example.SpringApi.Exceptions.NotFoundException(message))
+    doThrow(new com.example.springapi.exceptions.NotFoundException(message))
         .when(promoService)
         .getPromoDetailsById(anyLong());
   }
 
   protected void stubServiceGetPromoDetailsByIdThrowsBadRequest(String message) {
-    doThrow(new com.example.SpringApi.Exceptions.BadRequestException(message))
+    doThrow(new com.example.springapi.exceptions.BadRequestException(message))
         .when(promoService)
         .getPromoDetailsById(anyLong());
   }
@@ -339,19 +339,19 @@ abstract class PromoServiceTestBase {
   }
 
   protected void stubServiceGetPromoDetailsByNameThrowsNotFound(String message) {
-    doThrow(new com.example.SpringApi.Exceptions.NotFoundException(message))
+    doThrow(new com.example.springapi.exceptions.NotFoundException(message))
         .when(promoService)
         .getPromoDetailsByName(anyString());
   }
 
   protected void stubServiceGetPromoDetailsByNameThrowsBadRequest(String message) {
-    doThrow(new com.example.SpringApi.Exceptions.BadRequestException(message))
+    doThrow(new com.example.springapi.exceptions.BadRequestException(message))
         .when(promoService)
         .getPromoDetailsByName(anyString());
   }
 
   protected void stubServiceGetPromoDetailsByNameThrowsUnauthorized(String message) {
-    doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(message))
+    doThrow(new com.example.springapi.exceptions.UnauthorizedException(message))
         .when(promoService)
         .getClientId();
   }
@@ -361,7 +361,7 @@ abstract class PromoServiceTestBase {
   }
 
   protected void stubServiceGetPromosInBatchesThrowsBadRequest(String message) {
-    doThrow(new com.example.SpringApi.Exceptions.BadRequestException(message))
+    doThrow(new com.example.springapi.exceptions.BadRequestException(message))
         .when(promoService)
         .getPromosInBatches(any(PaginationBaseRequestModel.class));
   }
@@ -379,7 +379,7 @@ abstract class PromoServiceTestBase {
   }
 
   protected void stubServiceBulkCreatePromosAsyncThrowsBadRequest(String message) {
-    doThrow(new com.example.SpringApi.Exceptions.BadRequestException(message))
+    doThrow(new com.example.springapi.exceptions.BadRequestException(message))
         .when(promoService)
         .bulkCreatePromosAsync(any(), anyLong(), anyString(), anyLong());
   }
@@ -391,7 +391,7 @@ abstract class PromoServiceTestBase {
   }
 
   protected void stubServiceGetUserIdThrowsUnauthorized(String message) {
-    doThrow(new com.example.SpringApi.Exceptions.UnauthorizedException(message))
+    doThrow(new com.example.springapi.exceptions.UnauthorizedException(message))
         .when(promoService)
         .getUserId();
   }

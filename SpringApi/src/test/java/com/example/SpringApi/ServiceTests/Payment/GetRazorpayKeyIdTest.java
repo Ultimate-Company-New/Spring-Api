@@ -1,14 +1,14 @@
-package com.example.SpringApi.ServiceTests.Payment;
+package com.example.springapi.ServiceTests.Payment;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.example.SpringApi.Controllers.PaymentController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.PaymentController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
 import java.lang.reflect.Method;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;

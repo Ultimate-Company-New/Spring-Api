@@ -1,17 +1,22 @@
-package com.example.SpringApi.Helpers;
+package com.example.springapi.helpers;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Component;
 
 /**
- * Helper class for calculating optimal package allocation based on product dimensions. Uses a
+ * Helper class for calculating optimal package allocation based on product dimensions. Uses a.
  * bin-packing algorithm (First Fit Decreasing) to minimize packaging costs.
  */
 @Component
 public class PackagingHelper {
 
-  /** Product dimension info for packaging calculation */
+  /** Product dimension info for packaging calculation. */
   public static class ProductDimension {
     private final BigDecimal length;
     private final BigDecimal breadth;
@@ -19,6 +24,9 @@ public class PackagingHelper {
     private final BigDecimal weightKgs;
     private final int quantity;
 
+    /**
+     * Initializes ProductDimension.
+     */
     public ProductDimension(
         BigDecimal length,
         BigDecimal breadth,
@@ -45,13 +53,19 @@ public class PackagingHelper {
     }
   }
 
-  /** Package dimension info for packaging calculation */
+  /** Package dimension info for packaging calculation. */
   public static class PackageDimension {
+    /**
+     * Represents the package size component.
+     */
     public static class PackageSize {
       private final int length;
       private final int breadth;
       private final int height;
 
+      /**
+       * Initializes PackageSize.
+       */
       public PackageSize(int length, int breadth, int height) {
         this.length = length;
         this.breadth = breadth;
@@ -69,6 +83,9 @@ public class PackagingHelper {
     private final BigDecimal pricePerUnit;
     private int availableQuantity;
 
+    /**
+     * Executes package dimension.
+     */
     public PackageDimension(
         Long packageId,
         String packageName,
@@ -121,7 +138,7 @@ public class PackagingHelper {
     }
   }
 
-  /** Result of packaging calculation - how many of each package type are used */
+  /** Result of packaging calculation - how many of each package type are used. */
   public static class PackageUsageResult {
     private final Long packageId;
     private final String packageName;
@@ -130,6 +147,9 @@ public class PackagingHelper {
     private final BigDecimal pricePerUnit;
     private final BigDecimal totalCost;
 
+    /**
+     * Initializes PackageUsageResult.
+     */
     public PackageUsageResult(
         Long packageId,
         String packageName,
@@ -169,7 +189,7 @@ public class PackagingHelper {
     }
   }
 
-  /** Complete packaging estimate result */
+  /** Complete packaging estimate result. */
   public static class PackagingEstimateResult {
     private final List<PackageUsageResult> packagesUsed;
     private final BigDecimal totalPackagingCost;
@@ -178,6 +198,9 @@ public class PackagingHelper {
     private final boolean canPackAllItems;
     private final String errorMessage;
 
+    /**
+     * Initializes PackagingEstimateResult.
+     */
     public PackagingEstimateResult(
         List<PackageUsageResult> packagesUsed, int requestedItems, int packedItems) {
       this.packagesUsed = packagesUsed;
@@ -224,7 +247,7 @@ public class PackagingHelper {
     }
   }
 
-  /** Internal class to track used packages and their remaining volume */
+  /** Internal class to track used packages and their remaining volume. */
   private static class UsedPackage {
     final PackageDimension packageDim;
     double usedVolume;
@@ -255,8 +278,8 @@ public class PackagingHelper {
   }
 
   /**
-   * Calculate optimal packaging for given product quantity using available packages. Uses First Fit
-   * Decreasing bin-packing algorithm optimized for cost.
+   * Calculate optimal packaging for given product quantity using available packages. Uses First
+   * Fit. Decreasing bin-packing algorithm optimized for cost.
    *
    * @param product Product dimensions
    * @param availablePackages List of available packages at the location
@@ -366,7 +389,7 @@ public class PackagingHelper {
   }
 
   /**
-   * Find the next suitable package that can fit the product. Prioritizes cost-efficient packages
+   * Find the next suitable package that can fit the product. Prioritizes cost-efficient packages.
    * that are still available.
    */
   private PackageDimension getNextSuitablePackage(
@@ -396,12 +419,15 @@ public class PackagingHelper {
   // Multi-Product Packaging Optimization
   // ============================================================================
 
-  /** Represents a single product item to be packed (one unit of a product) */
+  /** Represents a single product item to be packed (one unit of a product). */
   public static class ProductItem {
     private final Long productId;
     private final double volume;
     private final double weight;
 
+    /**
+     * Initializes ProductItem.
+     */
     public ProductItem(Long productId, double volume, double weight) {
       this.productId = productId;
       this.volume = volume;
@@ -421,7 +447,7 @@ public class PackagingHelper {
     }
   }
 
-  /** Tracks which products are in a used package */
+  /** Tracks which products are in a used package. */
   public static class MultiProductUsedPackage {
     final PackageDimension packageDim;
     double usedVolume;
@@ -461,7 +487,7 @@ public class PackagingHelper {
     }
   }
 
-  /** Result of multi-product packaging - includes which products are in each package */
+  /** Result of multi-product packaging - includes which products are in each package. */
   public static class MultiProductPackageUsageResult {
     private final Long packageId;
     private final String packageName;
@@ -472,6 +498,9 @@ public class PackagingHelper {
     private final Map<Long, Integer>
         productQuantities; // productId -> quantity in this package type
 
+    /**
+     * Initializes MultiProductPackageUsageResult.
+     */
     public MultiProductPackageUsageResult(
         Long packageId,
         String packageName,
@@ -517,7 +546,7 @@ public class PackagingHelper {
     }
   }
 
-  /** Complete multi-product packaging estimate result */
+  /** Complete multi-product packaging estimate result. */
   public static class MultiProductPackagingResult {
     private final List<MultiProductPackageUsageResult> packagesUsed;
     private final BigDecimal totalPackagingCost;
@@ -526,6 +555,9 @@ public class PackagingHelper {
     private final boolean canPackAllItems;
     private final String errorMessage;
 
+    /**
+     * Initializes MultiProductPackagingResult.
+     */
     public MultiProductPackagingResult(
         List<MultiProductPackageUsageResult> packagesUsed,
         Map<Long, Integer> requestedItemsByProduct,
@@ -580,7 +612,7 @@ public class PackagingHelper {
   }
 
   /**
-   * Calculate optimal packaging for multiple products together. Uses First Fit Decreasing
+   * Calculate optimal packaging for multiple products together. Uses First Fit Decreasing.
    * bin-packing algorithm optimized for cost. Different products can share the same package if they
    * fit.
    *
@@ -659,8 +691,12 @@ public class PackagingHelper {
             double remainingA = a.getRemainingVolume() - item.getVolume();
             double remainingB = b.getRemainingVolume() - item.getVolume();
             // If item doesn't fit, push to end
-            if (remainingA < 0) remainingA = Double.MAX_VALUE;
-            if (remainingB < 0) remainingB = Double.MAX_VALUE;
+            if (remainingA < 0) {
+              remainingA = Double.MAX_VALUE;
+            }
+            if (remainingB < 0) {
+              remainingB = Double.MAX_VALUE;
+            }
             return Double.compare(remainingA, remainingB);
           });
 

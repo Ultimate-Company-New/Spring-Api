@@ -1,16 +1,16 @@
-package com.example.SpringApi.FilterQueryBuilder;
+package com.example.springapi.filterquerybuilder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.example.SpringApi.Models.DTOs.PurchaseOrderWithDetails;
-import com.example.SpringApi.Models.DatabaseModels.OrderSummary;
-import com.example.SpringApi.Models.DatabaseModels.Payment;
-import com.example.SpringApi.Models.DatabaseModels.PurchaseOrder;
-import com.example.SpringApi.Models.DatabaseModels.Resources;
-import com.example.SpringApi.Models.DatabaseModels.Shipment;
-import com.example.SpringApi.Models.DatabaseModels.ShipmentPackage;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
+import com.example.springapi.models.databasemodels.OrderSummary;
+import com.example.springapi.models.databasemodels.Payment;
+import com.example.springapi.models.databasemodels.PurchaseOrder;
+import com.example.springapi.models.databasemodels.Resources;
+import com.example.springapi.models.databasemodels.Shipment;
+import com.example.springapi.models.databasemodels.ShipmentPackage;
+import com.example.springapi.models.dtos.PurchaseOrderWithDetails;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

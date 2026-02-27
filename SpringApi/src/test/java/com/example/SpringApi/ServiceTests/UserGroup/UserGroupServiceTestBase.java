@@ -1,25 +1,25 @@
-package com.example.SpringApi.ServiceTests.UserGroup;
+package com.example.springapi.ServiceTests.UserGroup;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 
-import com.example.SpringApi.Controllers.UserGroupController;
-import com.example.SpringApi.FilterQueryBuilder.UserGroupFilterQueryBuilder;
-import com.example.SpringApi.Models.DatabaseModels.User;
-import com.example.SpringApi.Models.DatabaseModels.UserGroup;
-import com.example.SpringApi.Models.DatabaseModels.UserGroupUserMap;
-import com.example.SpringApi.Models.RequestModels.UserGroupRequestModel;
-import com.example.SpringApi.Models.RequestModels.UserRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.UserGroupResponseModel;
-import com.example.SpringApi.Repositories.UserGroupRepository;
-import com.example.SpringApi.Repositories.UserGroupUserMapRepository;
-import com.example.SpringApi.Repositories.UserRepository;
-import com.example.SpringApi.Services.MessageService;
-import com.example.SpringApi.Services.UserGroupService;
-import com.example.SpringApi.Services.UserLogService;
+import com.example.springapi.controllers.UserGroupController;
+import com.example.springapi.filterquerybuilder.UserGroupFilterQueryBuilder;
+import com.example.springapi.models.databasemodels.User;
+import com.example.springapi.models.databasemodels.UserGroup;
+import com.example.springapi.models.databasemodels.UserGroupUserMap;
+import com.example.springapi.models.requestmodels.UserGroupRequestModel;
+import com.example.springapi.models.requestmodels.UserRequestModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.UserGroupResponseModel;
+import com.example.springapi.repositories.UserGroupRepository;
+import com.example.springapi.repositories.UserGroupUserMapRepository;
+import com.example.springapi.repositories.UserRepository;
+import com.example.springapi.services.MessageService;
+import com.example.springapi.services.UserGroupService;
+import com.example.springapi.services.UserLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -297,37 +297,37 @@ abstract class UserGroupServiceTestBase {
   protected void stubServiceThrowsUnauthorizedException() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(mockUserGroupService)
         .bulkCreateUserGroupsAsync(anyList(), anyLong(), anyString(), anyLong());
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(mockUserGroupService)
         .createUserGroup(any());
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(mockUserGroupService)
         .updateUserGroup(any());
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(mockUserGroupService)
         .toggleUserGroup(anyLong());
     lenient()
         .when(mockUserGroupService.getUserGroupDetailsById(anyLong()))
         .thenThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED));
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED));
     lenient()
         .when(mockUserGroupService.fetchUserGroupsInClientInBatches(any()))
         .thenThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED));
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED));
   }
 }

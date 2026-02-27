@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.ResponseModels;
+package com.example.springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class ProductCategoryWithPathResponseModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.ResponseModels.ProductCategoryWithPathResponseModel.class)) {
+        com.example.springapi.models.responsemodels.ProductCategoryWithPathResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.ResponseModels.ProductCategoryWithPathResponseModel
+                  com.example.springapi.models.responsemodels.ProductCategoryWithPathResponseModel
                       .class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
@@ -65,7 +65,7 @@ class ProductCategoryWithPathResponseModelContractTest {
   void ProductCategoryWithPathResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.ResponseModels.ProductCategoryWithPathResponseModel.class
+        com.example.springapi.models.responsemodels.ProductCategoryWithPathResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -83,11 +83,11 @@ class ProductCategoryWithPathResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.ResponseModels.ProductCategoryWithPathResponseModel
+  private com.example.springapi.models.responsemodels.ProductCategoryWithPathResponseModel
       createInstance() {
-    return (com.example.SpringApi.Models.ResponseModels.ProductCategoryWithPathResponseModel)
+    return (com.example.springapi.models.responsemodels.ProductCategoryWithPathResponseModel)
         instantiate(
-            com.example.SpringApi.Models.ResponseModels.ProductCategoryWithPathResponseModel.class);
+            com.example.springapi.models.responsemodels.ProductCategoryWithPathResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

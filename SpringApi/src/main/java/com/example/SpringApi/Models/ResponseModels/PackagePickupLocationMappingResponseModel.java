@@ -1,6 +1,6 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
+import com.example.springapi.models.databasemodels.PackagePickupLocationMapping;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,13 +29,13 @@ public class PackagePickupLocationMappingResponseModel {
   private Integer reorderLevel;
 
   /**
-   * Maximum stock level to maintain at this location. Maps to the maxStockLevel column (default
+   * Maximum stock level to maintain at this location. Maps to the maxStockLevel column (default.
    * 1000).
    */
   private Integer maxStockLevel;
 
   /**
-   * When packages were last restocked at this location. Maps to the lastRestockDate column
+   * When packages were last restocked at this location. Maps to the lastRestockDate column.
    * (nullable).
    */
   private LocalDateTime lastRestockDate;
@@ -67,7 +67,7 @@ public class PackagePickupLocationMappingResponseModel {
   public PackagePickupLocationMappingResponseModel() {}
 
   /**
-   * Constructor with essential inventory fields (for backward compatibility). Used when only
+   * Constructor with essential inventory fields (for backward compatibility). Used when only.
    * inventory data is needed without full audit info.
    *
    * @param quantity Available quantity of packages
@@ -87,8 +87,8 @@ public class PackagePickupLocationMappingResponseModel {
   }
 
   /**
-   * Constructor that creates a response model from a PackagePickupLocationMapping entity. Populates
-   * all fields including audit fields.
+   * Constructor that creates a response model from a PackagePickupLocationMapping entity.
+   * Populates. all fields including audit fields.
    *
    * @param mapping The PackagePickupLocationMapping entity to convert
    */

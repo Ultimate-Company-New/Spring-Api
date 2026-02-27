@@ -1,21 +1,21 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.FilterQueryBuilder.PromoFilterQueryBuilder;
-import com.example.SpringApi.Helpers.BulkInsertHelper;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.DatabaseModels.Promo;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.PromoRequestModel;
-import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PromoResponseModel;
-import com.example.SpringApi.Repositories.PromoRepository;
-import com.example.SpringApi.Services.Interface.IPromoSubTranslator;
-import com.example.SpringApi.SuccessMessages;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.SuccessMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.filterquerybuilder.PromoFilterQueryBuilder;
+import com.example.springapi.helpers.BulkInsertHelper;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.databasemodels.Promo;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.PromoRequestModel;
+import com.example.springapi.models.responsemodels.BulkInsertResponseModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.PromoResponseModel;
+import com.example.springapi.repositories.PromoRepository;
+import com.example.springapi.services.interfaces.PromoSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -42,7 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 2024-01-15
  */
 @Service
-public class PromoService extends BaseService implements IPromoSubTranslator {
+public class PromoService extends BaseService implements PromoSubTranslator {
   private static final String PROMO_ENTITY_LABEL = "Promo";
 
   private final PromoRepository promoRepository;
@@ -50,6 +50,9 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   private final PromoFilterQueryBuilder promoFilterQueryBuilder;
   private final MessageService messageService;
 
+  /**
+   * Initializes PromoService.
+   */
   @Autowired
   public PromoService(
       PromoRepository promoRepository,
@@ -179,7 +182,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   @Override
   @Transactional
   public void createPromo(PromoRequestModel promoRequestModel) {
-    createPromo(promoRequestModel, getUser(), true);
+    createPromoInternal(promoRequestModel, getUser(), true);
   }
 
   /**
@@ -227,7 +230,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   }
 
   /**
-   * Retrieves promo details by promo code. Promo code lookup is case-insensitive (converted to
+   * Retrieves promo details by promo code. Promo code lookup is case-insensitive (converted to.
    * uppercase).
    *
    * @param promoCode The promo code to search for
@@ -295,7 +298,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
         try {
           // Call createPromo with explicit createdUser and shouldLog = false (bulk logs
           // collectively)
-          createPromo(promoRequest, requestingUserLoginName, false);
+          createPromoInternal(promoRequest, requestingUserLoginName, false);
 
           // If we get here, promo was created successfully
           // Fetch the created promo to get the promoId
@@ -366,7 +369,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
   // ==================== HELPER METHODS ====================
 
   /**
-   * Creates a new promo with explicit createdUser. This variant is used for async operations where
+   * Creates a new promo with explicit createdUser. This variant is used for async operations where.
    * security context is not available.
    *
    * @param promoRequestModel The promo data to create
@@ -375,7 +378,7 @@ public class PromoService extends BaseService implements IPromoSubTranslator {
    * @throws BadRequestException if promo code already exists
    */
   @Transactional
-  protected void createPromo(
+  protected void createPromoInternal(
       PromoRequestModel promoRequestModel, String createdUser, boolean shouldLog) {
     // Get security context
     Long currentClientId = getClientId();

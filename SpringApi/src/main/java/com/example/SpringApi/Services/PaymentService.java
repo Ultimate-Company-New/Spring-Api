@@ -1,26 +1,26 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Helpers.HTMLHelper;
-import com.example.SpringApi.Helpers.PDFHelper;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.DatabaseModels.OrderSummary;
-import com.example.SpringApi.Models.DatabaseModels.Payment;
-import com.example.SpringApi.Models.DatabaseModels.PurchaseOrder;
-import com.example.SpringApi.Models.RequestModels.CashPaymentRequestModel;
-import com.example.SpringApi.Models.RequestModels.RazorpayOrderRequestModel;
-import com.example.SpringApi.Models.RequestModels.RazorpayVerifyRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaymentVerificationResponseModel;
-import com.example.SpringApi.Models.ResponseModels.RazorpayOrderResponseModel;
-import com.example.SpringApi.Repositories.ClientRepository;
-import com.example.SpringApi.Repositories.OrderSummaryRepository;
-import com.example.SpringApi.Repositories.PaymentRepository;
-import com.example.SpringApi.Repositories.PurchaseOrderRepository;
-import com.example.SpringApi.Services.Interface.IPaymentSubTranslator;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.helpers.HtmlHelper;
+import com.example.springapi.helpers.PdfHelper;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.databasemodels.Client;
+import com.example.springapi.models.databasemodels.OrderSummary;
+import com.example.springapi.models.databasemodels.Payment;
+import com.example.springapi.models.databasemodels.PurchaseOrder;
+import com.example.springapi.models.requestmodels.CashPaymentRequestModel;
+import com.example.springapi.models.requestmodels.RazorpayOrderRequestModel;
+import com.example.springapi.models.requestmodels.RazorpayVerifyRequestModel;
+import com.example.springapi.models.responsemodels.PaymentVerificationResponseModel;
+import com.example.springapi.models.responsemodels.RazorpayOrderResponseModel;
+import com.example.springapi.repositories.ClientRepository;
+import com.example.springapi.repositories.OrderSummaryRepository;
+import com.example.springapi.repositories.PaymentRepository;
+import com.example.springapi.repositories.PurchaseOrderRepository;
+import com.example.springapi.services.interfaces.PaymentSubTranslator;
 import com.itextpdf.text.DocumentException;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
@@ -48,7 +48,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service for handling Razorpay payment operations. Manages order creation, payment verification,
+ * Service for handling Razorpay payment operations. Manages order creation, payment verification,.
  * refunds, and purchase order status updates.
  *
  * <p>Each client has their own Razorpay API credentials stored in the Client table. All payment
@@ -59,7 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 2024-01-15
  */
 @Service
-public class PaymentService extends BaseService implements IPaymentSubTranslator {
+public class PaymentService extends BaseService implements PaymentSubTranslator {
 
   private final PurchaseOrderRepository purchaseOrderRepository;
   private final OrderSummaryRepository orderSummaryRepository;
@@ -73,6 +73,9 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
   private static final String JSON_FIELD_CURRENCY = "currency";
   private static final String JSON_FIELD_NOTES = "notes";
 
+  /**
+   * Initializes PaymentService.
+   */
   @Autowired
   public PaymentService(
       PurchaseOrderRepository purchaseOrderRepository,
@@ -97,7 +100,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
   // ========================================================================
 
   /**
-   * Creates a Razorpay order for a purchase order. Also creates a Payment record to track the
+   * Creates a Razorpay order for a purchase order. Also creates a Payment record to track the.
    * transaction.
    *
    * @param request The order request containing purchaseOrderId and amount
@@ -147,7 +150,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
 
     try {
       // Create Razorpay client for this client
-      RazorpayClient razorpayClient = createRazorpayClient(client);
+      final RazorpayClient razorpayClient = createRazorpayClient(client);
 
       // Create Razorpay order
       JSONObject orderRequest = new JSONObject();
@@ -238,7 +241,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
   }
 
   /**
-   * Creates a Razorpay order for a follow-up payment (order already approved/partially paid). This
+   * Creates a Razorpay order for a follow-up payment (order already approved/partially paid). This.
    * method allows orders with APPROVED or APPROVED_WITH_PARTIAL_PAYMENT status.
    *
    * @param request The order request containing purchaseOrderId and amount
@@ -295,7 +298,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
 
     try {
       // Create Razorpay client for this client
-      RazorpayClient razorpayClient = createRazorpayClient(client);
+      final RazorpayClient razorpayClient = createRazorpayClient(client);
 
       // Create Razorpay order
       JSONObject orderRequest = new JSONObject();
@@ -390,7 +393,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
   // ========================================================================
 
   /**
-   * Verifies a Razorpay payment and updates the purchase order status. Updates the Payment record
+   * Verifies a Razorpay payment and updates the purchase order status. Updates the Payment record.
    * with transaction details.
    *
    * @param request The verification request with payment details
@@ -480,7 +483,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
   }
 
   /**
-   * Records a cash/manual payment for a purchase order. Creates a Payment record with CASH payment
+   * Records a cash/manual payment for a purchase order. Creates a Payment record with CASH payment.
    * method and MANUAL gateway. Updates the purchase order status to APPROVED.
    *
    * @param request The cash payment request containing payment details
@@ -920,7 +923,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
     }
 
     try {
-      RazorpayClient razorpayClient = createRazorpayClient(client);
+      final RazorpayClient razorpayClient = createRazorpayClient(client);
 
       JSONObject refundRequest = new JSONObject();
       refundRequest.put(RAZORPAY_JSON_FIELD_AMOUNT, amountInPaise);
@@ -976,7 +979,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
   // ========================================================================
 
   /**
-   * Gets the Razorpay Key ID for the current client. Safe to expose publicly as this is the public
+   * Gets the Razorpay Key ID for the current client. Safe to expose publicly as this is the public.
    * key.
    */
   @Override
@@ -1003,7 +1006,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
    */
   @Override
   @Transactional
-  public byte[] generatePaymentReceiptPDF(Long paymentId)
+  public byte[] generatePaymentReceiptPdf(Long paymentId)
       throws TemplateException, IOException, DocumentException {
     // Fetch payment
     Payment payment =
@@ -1033,16 +1036,16 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
     String htmlContent = formPaymentReceiptHtml(client, payment, purchaseOrder);
 
     // Replace br tags for PDF compatibility
-    htmlContent = HTMLHelper.replaceBrTags(htmlContent);
+    htmlContent = HtmlHelper.replaceBrTags(htmlContent);
 
     // Convert HTML to PDF
-    byte[] pdfBytes = PDFHelper.convertHtmlToPdf(htmlContent);
+    byte[] pdfBytes = PdfHelper.convertHtmlToPdf(htmlContent);
 
     // Log the PDF generation
     userLogService.logData(
         getUserId(),
         "Payment receipt PDF generated for Payment ID: " + paymentId,
-        "Payment/generatePaymentReceiptPDF");
+        "Payment/generatePaymentReceiptPdf");
 
     return pdfBytes;
   }
@@ -1087,8 +1090,8 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
   }
 
   /**
-   * Calculates total paid amount for a purchase order and updates status accordingly. Sets APPROVED
-   * if fully paid, APPROVED_WITH_PARTIAL_PAYMENT if partially paid.
+   * Calculates total paid amount for a purchase order and updates status accordingly. Sets
+   * APPROVED. if fully paid, APPROVED_WITH_PARTIAL_PAYMENT if partially paid.
    */
   private void updatePurchaseOrderStatusBasedOnPayment(PurchaseOrder purchaseOrder) {
     Long totalPaidPaise =
@@ -1173,7 +1176,7 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
     cfg.setClassLoaderForTemplateLoading(
         Thread.currentThread().getContextClassLoader(), "InvoiceTemplates");
 
-    Template template = cfg.getTemplate("PaymentReceipt.ftl");
+    final Template template = cfg.getTemplate("PaymentReceipt.ftl");
 
     Map<String, Object> templateData = new HashMap<>();
     templateData.put("companyName", client.getName());

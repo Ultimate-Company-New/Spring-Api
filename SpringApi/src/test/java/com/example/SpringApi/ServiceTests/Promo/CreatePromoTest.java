@@ -1,13 +1,13 @@
-package com.example.SpringApi.ServiceTests.Promo;
+package com.example.springapi.ServiceTests.Promo;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.DatabaseModels.Promo;
-import com.example.SpringApi.Models.RequestModels.PromoRequestModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.databasemodels.Promo;
+import com.example.springapi.models.requestmodels.PromoRequestModel;
 import java.util.Collections;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

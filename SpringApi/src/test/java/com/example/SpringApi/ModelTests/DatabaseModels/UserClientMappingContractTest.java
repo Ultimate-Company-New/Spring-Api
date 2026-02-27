@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.DatabaseModels;
+package com.example.springapi.ModelTests.DatabaseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class UserClientMappingContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.SpringApi.Models.DatabaseModels.UserClientMapping.class)) {
+    if (hasNoArgConstructor(com.example.springapi.models.databasemodels.UserClientMapping.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.SpringApi.Models.DatabaseModels.UserClientMapping.class);
+              .constructType(com.example.springapi.models.databasemodels.UserClientMapping.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +62,7 @@ class UserClientMappingContractTest {
   void UserClientMapping_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.DatabaseModels.UserClientMapping.class
+        com.example.springapi.models.databasemodels.UserClientMapping.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -80,9 +80,9 @@ class UserClientMappingContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.DatabaseModels.UserClientMapping createInstance() {
-    return (com.example.SpringApi.Models.DatabaseModels.UserClientMapping)
-        instantiate(com.example.SpringApi.Models.DatabaseModels.UserClientMapping.class);
+  private com.example.springapi.models.databasemodels.UserClientMapping createInstance() {
+    return (com.example.springapi.models.databasemodels.UserClientMapping)
+        instantiate(com.example.springapi.models.databasemodels.UserClientMapping.class);
   }
 
   private Object instantiate(Class<?> clazz) {

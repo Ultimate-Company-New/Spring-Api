@@ -1,11 +1,11 @@
-package com.example.SpringApi.ModelTests.Address;
+package com.example.springapi.ModelTests.Address;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
+import com.example.springapi.models.requestmodels.AddressRequestModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 

@@ -1,6 +1,6 @@
-package com.example.SpringApi.Repositories;
+package com.example.springapi.repositories;
 
-import com.example.SpringApi.Models.DatabaseModels.ProductReview;
+import com.example.springapi.models.databasemodels.ProductReview;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,12 +9,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Defines the product review repository contract.
+ */
 @Repository
 public interface ProductReviewRepository extends JpaRepository<ProductReview, Long> {
 
   @Query(
       "SELECT pr FROM ProductReview pr "
-          + "WHERE pr.productId IN (SELECT p.productId FROM Product p WHERE p.clientId = :clientId) "
+          + "WHERE pr.productId IN (SELECT p.productId FROM Product p WHERE "
+          + "p.clientId = :clientId) "
           + "AND (:includeDeleted = true OR pr.isDeleted = false) "
           + "AND (COALESCE(:filterExpr, '') = '' OR "
           + "(CASE :columnName "
@@ -57,6 +61,7 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, Lo
 
   @Modifying
   @Query(
-      "UPDATE ProductReview pr SET pr.isDeleted = true, pr.modifiedUser = :user WHERE pr.reviewId = :reviewId OR pr.parentId = :reviewId")
+      "UPDATE ProductReview pr SET pr.isDeleted = true, pr.modifiedUser = :"
+          + "user WHERE pr.reviewId = :reviewId OR pr.parentId = :reviewId")
   int markAllDescendantsAsDeleted(@Param("reviewId") Long reviewId, @Param("user") String user);
 }

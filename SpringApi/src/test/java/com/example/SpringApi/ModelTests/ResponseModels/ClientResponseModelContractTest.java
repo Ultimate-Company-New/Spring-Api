@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.ResponseModels;
+package com.example.springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,11 +49,11 @@ class ClientResponseModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.ResponseModels.ClientResponseModel.class)) {
+        com.example.springapi.models.responsemodels.ClientResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.SpringApi.Models.ResponseModels.ClientResponseModel.class);
+              .constructType(com.example.springapi.models.responsemodels.ClientResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -63,7 +63,7 @@ class ClientResponseModelContractTest {
   void ClientResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.ResponseModels.ClientResponseModel.class
+        com.example.springapi.models.responsemodels.ClientResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -81,9 +81,9 @@ class ClientResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.ResponseModels.ClientResponseModel createInstance() {
-    return (com.example.SpringApi.Models.ResponseModels.ClientResponseModel)
-        instantiate(com.example.SpringApi.Models.ResponseModels.ClientResponseModel.class);
+  private com.example.springapi.models.responsemodels.ClientResponseModel createInstance() {
+    return (com.example.springapi.models.responsemodels.ClientResponseModel)
+        instantiate(com.example.springapi.models.responsemodels.ClientResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

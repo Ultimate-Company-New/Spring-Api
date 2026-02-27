@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.ResponseModels;
+package com.example.springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class TodoResponseModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.SpringApi.Models.ResponseModels.TodoResponseModel.class)) {
+    if (hasNoArgConstructor(com.example.springapi.models.responsemodels.TodoResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.SpringApi.Models.ResponseModels.TodoResponseModel.class);
+              .constructType(com.example.springapi.models.responsemodels.TodoResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +62,7 @@ class TodoResponseModelContractTest {
   void TodoResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.ResponseModels.TodoResponseModel.class
+        com.example.springapi.models.responsemodels.TodoResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -80,9 +80,9 @@ class TodoResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.ResponseModels.TodoResponseModel createInstance() {
-    return (com.example.SpringApi.Models.ResponseModels.TodoResponseModel)
-        instantiate(com.example.SpringApi.Models.ResponseModels.TodoResponseModel.class);
+  private com.example.springapi.models.responsemodels.TodoResponseModel createInstance() {
+    return (com.example.springapi.models.responsemodels.TodoResponseModel)
+        instantiate(com.example.springapi.models.responsemodels.TodoResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

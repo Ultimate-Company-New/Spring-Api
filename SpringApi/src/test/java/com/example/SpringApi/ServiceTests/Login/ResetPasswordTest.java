@@ -1,13 +1,13 @@
-package com.example.SpringApi.ServiceTests.Login;
+package com.example.springapi.ServiceTests.Login;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Helpers.EmailTemplates;
-import com.example.SpringApi.Helpers.PasswordHelper;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.helpers.EmailTemplates;
+import com.example.springapi.helpers.PasswordHelper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
@@ -104,7 +104,7 @@ class ResetPasswordTest extends LoginServiceTestBase {
         assertThrows(BadRequestException.class, () -> loginService.resetPassword(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER003, exception.getMessage());
+        com.example.springapi.ErrorMessages.LoginErrorMessages.ER003, exception.getMessage());
   }
 
   /**
@@ -144,7 +144,7 @@ class ResetPasswordTest extends LoginServiceTestBase {
         assertThrows(BadRequestException.class, () -> loginService.resetPassword(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER014, exception.getMessage());
+        com.example.springapi.ErrorMessages.LoginErrorMessages.ER014, exception.getMessage());
   }
 
   /**
@@ -246,7 +246,7 @@ class ResetPasswordTest extends LoginServiceTestBase {
         assertThrows(BadRequestException.class, () -> loginService.resetPassword(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER003, exception.getMessage());
+        com.example.springapi.ErrorMessages.LoginErrorMessages.ER003, exception.getMessage());
   }
 
   /**
@@ -264,7 +264,7 @@ class ResetPasswordTest extends LoginServiceTestBase {
         assertThrows(BadRequestException.class, () -> loginService.resetPassword(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER014, exception.getMessage());
+        com.example.springapi.ErrorMessages.LoginErrorMessages.ER014, exception.getMessage());
   }
 
   /**
@@ -297,7 +297,7 @@ class ResetPasswordTest extends LoginServiceTestBase {
         assertThrows(NotFoundException.class, () -> loginService.resetPassword(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_EMAIL,
+        com.example.springapi.ErrorMessages.LoginErrorMessages.INVALID_EMAIL,
         exception.getMessage());
   }
 
@@ -316,7 +316,7 @@ class ResetPasswordTest extends LoginServiceTestBase {
         assertThrows(BadRequestException.class, () -> loginService.resetPassword(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER014, exception.getMessage());
+        com.example.springapi.ErrorMessages.LoginErrorMessages.ER014, exception.getMessage());
   }
 
   /*

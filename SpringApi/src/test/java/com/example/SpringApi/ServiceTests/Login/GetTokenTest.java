@@ -1,14 +1,14 @@
-package com.example.SpringApi.ServiceTests.Login;
+package com.example.springapi.ServiceTests.Login;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.Models.DatabaseModels.User;
-import com.example.SpringApi.Models.DatabaseModels.UserClientMapping;
-import com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.models.databasemodels.User;
+import com.example.springapi.models.databasemodels.UserClientMapping;
+import com.example.springapi.models.databasemodels.UserClientPermissionMapping;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -152,7 +152,7 @@ class GetTokenTest extends LoginServiceTestBase {
         assertThrows(UnauthorizedException.class, () -> loginService.getToken(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS,
+        com.example.springapi.ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS,
         exception.getMessage());
   }
 
@@ -172,7 +172,7 @@ class GetTokenTest extends LoginServiceTestBase {
         assertThrows(UnauthorizedException.class, () -> loginService.getToken(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS,
+        com.example.springapi.ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS,
         exception.getMessage());
   }
 
@@ -192,7 +192,7 @@ class GetTokenTest extends LoginServiceTestBase {
         assertThrows(UnauthorizedException.class, () -> loginService.getToken(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS,
+        com.example.springapi.ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS,
         exception.getMessage());
   }
 
@@ -211,7 +211,7 @@ class GetTokenTest extends LoginServiceTestBase {
         assertThrows(BadRequestException.class, () -> loginService.getToken(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER015, exception.getMessage());
+        com.example.springapi.ErrorMessages.LoginErrorMessages.ER015, exception.getMessage());
   }
 
   /**
@@ -229,7 +229,7 @@ class GetTokenTest extends LoginServiceTestBase {
         assertThrows(BadRequestException.class, () -> loginService.getToken(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER015, exception.getMessage());
+        com.example.springapi.ErrorMessages.LoginErrorMessages.ER015, exception.getMessage());
   }
 
   /**
@@ -247,7 +247,7 @@ class GetTokenTest extends LoginServiceTestBase {
         assertThrows(BadRequestException.class, () -> loginService.getToken(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER015, exception.getMessage());
+        com.example.springapi.ErrorMessages.LoginErrorMessages.ER015, exception.getMessage());
   }
 
   /**
@@ -265,7 +265,7 @@ class GetTokenTest extends LoginServiceTestBase {
         assertThrows(BadRequestException.class, () -> loginService.getToken(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.ER015, exception.getMessage());
+        com.example.springapi.ErrorMessages.LoginErrorMessages.ER015, exception.getMessage());
   }
 
   /**
@@ -283,7 +283,7 @@ class GetTokenTest extends LoginServiceTestBase {
         assertThrows(UnauthorizedException.class, () -> loginService.getToken(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS,
+        com.example.springapi.ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS,
         exception.getMessage());
   }
 

@@ -1,11 +1,11 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
 import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Model to represent a product item in a purchase order response. Contains product details, price
+ * Model to represent a product item in a purchase order response. Contains product details, price.
  * per unit, and quantity.
  *
  * @author SpringApi Team

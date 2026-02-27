@@ -1,7 +1,7 @@
-package com.example.SpringApi.Constants;
+package com.example.springapi.constants;
 
 /**
- * Enum representing the different user roles in the system. These roles must match the database
+ * Enum representing the different user roles in the system. These roles must match the database.
  * constraint: chk_user_role
  */
 public enum UserRole {
@@ -23,7 +23,7 @@ public enum UserRole {
   }
 
   /**
-   * Convert string to UserRole enum (case-insensitive)
+   * Convert string to UserRole enum (case-insensitive).
    *
    * @param role The role string to convert
    * @return UserRole enum or null if invalid
@@ -43,7 +43,7 @@ public enum UserRole {
   }
 
   /**
-   * Check if a string is a valid role
+   * Check if a string is a valid role.
    *
    * @param role The role string to validate
    * @return true if valid, false otherwise

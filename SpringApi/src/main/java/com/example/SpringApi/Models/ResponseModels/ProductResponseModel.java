@@ -1,8 +1,8 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.DatabaseModels.Product;
-import com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping;
-import com.example.SpringApi.Models.DatabaseModels.User;
+import com.example.springapi.models.databasemodels.Product;
+import com.example.springapi.models.databasemodels.ProductPickupLocationMapping;
+import com.example.springapi.models.databasemodels.User;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -87,7 +87,7 @@ public class ProductResponseModel {
   private BigDecimal allocatedPrice;
 
   /**
-   * Inner class to hold created by user information. Contains essential user details for display
+   * Inner class to hold created by user information. Contains essential user details for display.
    * purposes.
    */
   @Getter
@@ -100,6 +100,9 @@ public class ProductResponseModel {
 
     public CreatedByUserInfo() {}
 
+    /**
+     * Creates d by user info.
+     */
     public CreatedByUserInfo(User user) {
       if (user != null) {
         this.userId = user.getUserId();
@@ -214,7 +217,7 @@ public class ProductResponseModel {
   }
 
   /**
-   * Constructor that populates fields from a Product entity and ShipmentProduct entity. Used when
+   * Constructor that populates fields from a Product entity and ShipmentProduct entity. Used when.
    * product is part of a shipment to include allocated quantity and price.
    *
    * @param product The Product entity to populate from
@@ -222,7 +225,7 @@ public class ProductResponseModel {
    */
   public ProductResponseModel(
       Product product,
-      com.example.SpringApi.Models.DatabaseModels.ShipmentProduct shipmentProduct) {
+      com.example.springapi.models.databasemodels.ShipmentProduct shipmentProduct) {
     // First populate from Product
     this(product);
 
@@ -234,8 +237,8 @@ public class ProductResponseModel {
   }
 
   /**
-   * Sets the full path on the category response model. Should be called after construction with the
-   * pre-computed full path.
+   * Sets the full path on the category response model. Should be called after construction with
+   * the. pre-computed full path.
    *
    * @param fullPath The full hierarchical path (e.g., "Electronics > Computers > Laptops")
    */

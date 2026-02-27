@@ -1,6 +1,6 @@
-package com.example.SpringApi.Repositories;
+package com.example.springapi.repositories;
 
-import com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping;
+import com.example.springapi.models.databasemodels.UserClientPermissionMapping;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -9,6 +9,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Defines the user client permission mapping repository contract.
+ */
 @Repository
 public interface UserClientPermissionMappingRepository
     extends JpaRepository<UserClientPermissionMapping, Long> {
@@ -35,6 +38,7 @@ public interface UserClientPermissionMappingRepository
   @Modifying
   @Transactional
   @Query(
-      "DELETE FROM UserClientPermissionMapping uc WHERE uc.userId = :userId AND uc.clientId = :clientId")
+      "DELETE FROM UserClientPermissionMapping uc WHERE uc.userId = :"
+          + "userId AND uc.clientId = :clientId")
   void deleteByUserIdAndClientId(@Param("userId") Long userId, @Param("clientId") Long clientId);
 }

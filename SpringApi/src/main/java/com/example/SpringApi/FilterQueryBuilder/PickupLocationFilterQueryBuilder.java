@@ -1,7 +1,7 @@
-package com.example.SpringApi.FilterQueryBuilder;
+package com.example.springapi.filterquerybuilder;
 
-import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
+import com.example.springapi.models.databasemodels.PickupLocation;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.util.Arrays;
@@ -62,7 +62,8 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
         return "pl.updatedAt";
         // Special case for address - concatenated field from joined table
       case "address":
-        return "CONCAT(a.streetAddress, ' ', a.streetAddress2, ' ', a.city, ' ', a.state, ' ', a.postalCode)";
+        return "CONCAT(a.streetAddress, ' ', a.streetAddress2, ' ', a.city, ' ', "
+            + "a.state, ' ', a.postalCode)";
       default:
         return "pl." + column;
     }
@@ -85,7 +86,7 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
   }
 
   /**
-   * Gets the column type for validation purposes
+   * Gets the column type for validation purposes.
    *
    * @param column The column name
    * @return "string", "number", "date", or "boolean"
@@ -188,7 +189,7 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
       countTypedQuery.setParameter(entry.getKey(), entry.getValue());
     }
 
-    Long totalCount = countTypedQuery.getSingleResult();
+    final Long totalCount = countTypedQuery.getSingleResult();
 
     // Execute main query with pagination
     TypedQuery<PickupLocation> mainQuery =

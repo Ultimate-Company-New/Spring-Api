@@ -1,6 +1,6 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.DatabaseModels.Payment;
+import com.example.springapi.models.databasemodels.Payment;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Getter;
@@ -81,6 +81,9 @@ public class PaymentResponseModel {
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 
+  /**
+   * Initializes PaymentResponseModel.
+   */
   public PaymentResponseModel(Payment payment) {
     if (payment != null) {
       this.paymentId = payment.getPaymentId();

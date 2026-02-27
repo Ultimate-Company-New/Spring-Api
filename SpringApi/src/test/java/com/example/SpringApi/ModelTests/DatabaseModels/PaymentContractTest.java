@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.DatabaseModels;
+package com.example.springapi.ModelTests.DatabaseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class PaymentContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.SpringApi.Models.DatabaseModels.Payment.class)) {
+    if (hasNoArgConstructor(com.example.springapi.models.databasemodels.Payment.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.SpringApi.Models.DatabaseModels.Payment.class);
+              .constructType(com.example.springapi.models.databasemodels.Payment.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +62,7 @@ class PaymentContractTest {
   void Payment_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.DatabaseModels.Payment.class.getDeclaredConstructors()) {
+        com.example.springapi.models.databasemodels.Payment.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -79,9 +79,9 @@ class PaymentContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.DatabaseModels.Payment createInstance() {
-    return (com.example.SpringApi.Models.DatabaseModels.Payment)
-        instantiate(com.example.SpringApi.Models.DatabaseModels.Payment.class);
+  private com.example.springapi.models.databasemodels.Payment createInstance() {
+    return (com.example.springapi.models.databasemodels.Payment)
+        instantiate(com.example.springapi.models.databasemodels.Payment.class);
   }
 
   private Object instantiate(Class<?> clazz) {

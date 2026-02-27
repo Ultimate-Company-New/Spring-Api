@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.DatabaseModels;
+package com.example.springapi.ModelTests.DatabaseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class ShipmentPackageProductContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.DatabaseModels.ShipmentPackageProduct.class)) {
+        com.example.springapi.models.databasemodels.ShipmentPackageProduct.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.DatabaseModels.ShipmentPackageProduct.class);
+                  com.example.springapi.models.databasemodels.ShipmentPackageProduct.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +64,7 @@ class ShipmentPackageProductContractTest {
   void ShipmentPackageProduct_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.DatabaseModels.ShipmentPackageProduct.class
+        com.example.springapi.models.databasemodels.ShipmentPackageProduct.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,9 +82,9 @@ class ShipmentPackageProductContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.DatabaseModels.ShipmentPackageProduct createInstance() {
-    return (com.example.SpringApi.Models.DatabaseModels.ShipmentPackageProduct)
-        instantiate(com.example.SpringApi.Models.DatabaseModels.ShipmentPackageProduct.class);
+  private com.example.springapi.models.databasemodels.ShipmentPackageProduct createInstance() {
+    return (com.example.springapi.models.databasemodels.ShipmentPackageProduct)
+        instantiate(com.example.springapi.models.databasemodels.ShipmentPackageProduct.class);
   }
 
   private Object instantiate(Class<?> clazz) {

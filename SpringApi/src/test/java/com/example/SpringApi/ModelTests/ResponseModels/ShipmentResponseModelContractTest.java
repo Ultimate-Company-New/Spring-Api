@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.ResponseModels;
+package com.example.springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class ShipmentResponseModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.ResponseModels.ShipmentResponseModel.class)) {
+        com.example.springapi.models.responsemodels.ShipmentResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.ResponseModels.ShipmentResponseModel.class);
+                  com.example.springapi.models.responsemodels.ShipmentResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +64,7 @@ class ShipmentResponseModelContractTest {
   void ShipmentResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.ResponseModels.ShipmentResponseModel.class
+        com.example.springapi.models.responsemodels.ShipmentResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,9 +82,9 @@ class ShipmentResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.ResponseModels.ShipmentResponseModel createInstance() {
-    return (com.example.SpringApi.Models.ResponseModels.ShipmentResponseModel)
-        instantiate(com.example.SpringApi.Models.ResponseModels.ShipmentResponseModel.class);
+  private com.example.springapi.models.responsemodels.ShipmentResponseModel createInstance() {
+    return (com.example.springapi.models.responsemodels.ShipmentResponseModel)
+        instantiate(com.example.springapi.models.responsemodels.ShipmentResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

@@ -1,4 +1,4 @@
-package com.example.SpringApi.DataSource;
+package com.example.springapi.datasource;
 
 import jakarta.persistence.EntityManagerFactory;
 import java.util.HashMap;
@@ -18,12 +18,15 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+/**
+ * Stores entity manager factory ref.
+ */
 @Configuration
 @EnableTransactionManagement
-@EntityScan("com.example.SpringApi.Models.DatabaseModels")
+@EntityScan("com.example.springapi.models.databasemodels")
 @EnableJpaRepositories(
     entityManagerFactoryRef = "entityManagerFactory",
-    basePackages = {"com.example.SpringApi.Repositories"})
+    basePackages = {"com.example.springapi.repositories"})
 public class DatabaseConfig {
   private static final String MYSQL_DRIVER_CLASS = "com.mysql.cj.jdbc.Driver";
 
@@ -32,6 +35,9 @@ public class DatabaseConfig {
     return new EntityManagerFactoryBuilder(new HibernateJpaVendorAdapter(), new HashMap<>(), null);
   }
 
+  /**
+   * Executes data source.
+   */
   @Primary
   @Bean(name = "dataSource")
   public DataSource dataSource(Environment environment) {
@@ -81,6 +87,9 @@ public class DatabaseConfig {
     }
   }
 
+  /**
+   * Executes qualifier.
+   */
   @Primary
   @Bean(name = "entityManagerFactory")
   public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(
@@ -97,7 +106,7 @@ public class DatabaseConfig {
     return builder
         .dataSource(dataSource)
         .properties(properties)
-        .packages("com.example.SpringApi.Models.DatabaseModels")
+        .packages("com.example.springapi.models.databasemodels")
         .build();
   }
 

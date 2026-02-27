@@ -1,25 +1,25 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.FilterQueryBuilder.PackageFilterQueryBuilder;
-import com.example.SpringApi.Helpers.BulkInsertHelper;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.DatabaseModels.Package;
-import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
-import com.example.SpringApi.Models.RequestModels.PackagePickupLocationMappingRequestModel;
-import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PackagePickupLocationMappingResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PackageResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository;
-import com.example.SpringApi.Repositories.PackageRepository;
-import com.example.SpringApi.Services.Interface.IPackageSubTranslator;
-import com.example.SpringApi.SuccessMessages;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.SuccessMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.filterquerybuilder.PackageFilterQueryBuilder;
+import com.example.springapi.helpers.BulkInsertHelper;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.databasemodels.Package;
+import com.example.springapi.models.databasemodels.PackagePickupLocationMapping;
+import com.example.springapi.models.requestmodels.PackagePickupLocationMappingRequestModel;
+import com.example.springapi.models.requestmodels.PackageRequestModel;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.responsemodels.BulkInsertResponseModel;
+import com.example.springapi.models.responsemodels.PackagePickupLocationMappingResponseModel;
+import com.example.springapi.models.responsemodels.PackageResponseModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.repositories.PackagePickupLocationMappingRepository;
+import com.example.springapi.repositories.PackageRepository;
+import com.example.springapi.services.interfaces.PackageSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,7 +38,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service implementation for Package operations and business logic. Handles all package-related
+ * Service implementation for Package operations and business logic. Handles all package-related.
  * business operations including CRUD operations, batch processing, validation, and specialized
  * queries.
  *
@@ -47,20 +47,23 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 2024-01-15
  */
 @Service
-public class PackageService extends BaseService implements IPackageSubTranslator {
+public class PackageService extends BaseService implements PackageSubTranslator {
   private final PackageRepository packageRepository;
   private final PackagePickupLocationMappingRepository packagePickupLocationMappingRepository;
-  private final com.example.SpringApi.Repositories.PickupLocationRepository
+  private final com.example.springapi.repositories.PickupLocationRepository
       pickupLocationRepository;
   private final UserLogService userLogService;
   private final PackageFilterQueryBuilder packageFilterQueryBuilder;
   private final MessageService messageService;
 
+  /**
+   * Initializes PackageService.
+   */
   @Autowired
   public PackageService(
       PackageRepository packageRepository,
       PackagePickupLocationMappingRepository packagePickupLocationMappingRepository,
-      com.example.SpringApi.Repositories.PickupLocationRepository pickupLocationRepository,
+      com.example.springapi.repositories.PickupLocationRepository pickupLocationRepository,
       UserLogService userLogService,
       PackageFilterQueryBuilder packageFilterQueryBuilder,
       MessageService messageService,
@@ -76,7 +79,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
   }
 
   /**
-   * Retrieves packages in paginated batches with optional filtering and sorting. Supports
+   * Retrieves packages in paginated batches with optional filtering and sorting. Supports.
    * pagination, sorting by multiple fields, and filtering capabilities.
    *
    * @param paginationBaseRequestModel The request model containing pagination and filter parameters
@@ -325,7 +328,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
   @Override
   @Transactional
   public void createPackage(PackageRequestModel packageRequest) {
-    createPackage(packageRequest, getUser(), getClientId(), getUserId(), true);
+    createPackageInternal(packageRequest, getUser(), getClientId(), getUserId(), true);
   }
 
   /**
@@ -354,7 +357,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
   }
 
   /**
-   * Creates multiple packages asynchronously in the system with partial success support. This
+   * Creates multiple packages asynchronously in the system with partial success support. This.
    * method processes packages in a background thread with the following characteristics: - Supports
    * partial success: if some packages fail validation, others still succeed - Sends detailed
    * results to user via message notification after processing completes - NOT_SUPPORTED: Runs
@@ -396,7 +399,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
         try {
           // Call createPackage with explicit createdUser, clientId, and shouldLog = false (bulk
           // logs collectively)
-          createPackage(
+          createPackageInternal(
               packageRequest, requestingUserLoginName, requestingClientId, requestingUserId, false);
 
           // If we get here, package was created successfully
@@ -468,7 +471,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
   }
 
   /**
-   * Creates multiple packages synchronously in a single operation (for testing). This is a
+   * Creates multiple packages synchronously in a single operation (for testing). This is a.
    * synchronous wrapper that processes packages immediately and returns results.
    *
    * @param packages List of PackageRequestModel containing the package data to create
@@ -495,7 +498,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
     for (PackageRequestModel packageRequest : packages) {
       try {
         // Call createPackage with current user, clientId, userId and shouldLog = false
-        createPackage(packageRequest, getUser(), getClientId(), getUserId(), false);
+        createPackageInternal(packageRequest, getUser(), getClientId(), getUserId(), false);
 
         // If we get here, package was created successfully
         response.addSuccess(packageRequest.getPackageName(), packageRequest.getPackageId());
@@ -541,7 +544,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
   // ==================== HELPER METHODS ====================
 
   /**
-   * Creates a new package in the system with explicit createdUser and clientId. This variant is
+   * Creates a new package in the system with explicit createdUser and clientId. This variant is.
    * used for async operations where security context is not available.
    *
    * @param packageRequest The package data to create
@@ -552,7 +555,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
    * @throws BadRequestException if the package data is invalid or incomplete
    */
   @Transactional
-  protected void createPackage(
+  protected void createPackageInternal(
       PackageRequestModel packageRequest,
       String createdUser,
       Long clientId,
@@ -598,8 +601,8 @@ public class PackageService extends BaseService implements IPackageSubTranslator
   }
 
   /**
-   * Creates pickup location mappings for a new package. Sets lastRestockDate to UTC now for all new
-   * mappings. Uses batch insert for optimized database performance.
+   * Creates pickup location mappings for a new package. Sets lastRestockDate to UTC now for all
+   * new. mappings. Uses batch insert for optimized database performance.
    *
    * @param packageId The package ID
    * @param pickupLocationQuantities Map of pickup location ID to
@@ -616,7 +619,7 @@ public class PackageService extends BaseService implements IPackageSubTranslator
   }
 
   /**
-   * Creates or updates pickup location mappings for a package. When updating, only sets
+   * Creates or updates pickup location mappings for a package. When updating, only sets.
    * lastRestockDate to UTC now if quantity increased. Uses batch insert for optimized database
    * performance.
    *

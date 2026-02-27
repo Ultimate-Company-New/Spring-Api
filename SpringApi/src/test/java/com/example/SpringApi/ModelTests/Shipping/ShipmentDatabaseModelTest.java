@@ -1,15 +1,15 @@
-package com.example.SpringApi.ModelTests.Shipping;
+package com.example.springapi.ModelTests.Shipping;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.DatabaseModels.Shipment;
-import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
-import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.databasemodels.Shipment;
+import com.example.springapi.models.requestmodels.PurchaseOrderRequestModel;
+import com.example.springapi.models.shippingresponsemodel.ShipRocketOrderResponseModel;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;

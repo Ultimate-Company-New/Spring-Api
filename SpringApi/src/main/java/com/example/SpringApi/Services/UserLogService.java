@@ -1,16 +1,16 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.FilterQueryBuilder.UserLogFilterQueryBuilder;
-import com.example.SpringApi.Models.DatabaseModels.UserLog;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
-import com.example.SpringApi.Models.RequestModels.UserLogsRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.UserLogsResponseModel;
-import com.example.SpringApi.Repositories.UserLogRepository;
-import com.example.SpringApi.Services.Interface.IUserLogSubTranslator;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.filterquerybuilder.UserLogFilterQueryBuilder;
+import com.example.springapi.models.databasemodels.UserLog;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
+import com.example.springapi.models.requestmodels.UserLogsRequestModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.UserLogsResponseModel;
+import com.example.springapi.repositories.UserLogRepository;
+import com.example.springapi.services.interfaces.UserLogSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -22,11 +22,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+/**
+ * Represents the user log service component.
+ */
 @Service
-public class UserLogService extends BaseService implements IUserLogSubTranslator {
+public class UserLogService extends BaseService implements UserLogSubTranslator {
   private final UserLogRepository userLogRepository;
   private final UserLogFilterQueryBuilder userLogFilterQueryBuilder;
 
+  /**
+   * Initializes UserLogService.
+   */
   @Autowired
   public UserLogService(
       UserLogRepository userLogRepository,
@@ -57,9 +63,9 @@ public class UserLogService extends BaseService implements IUserLogSubTranslator
   }
 
   /**
-   * Logs user activity data with endpoint and description information. Creates a log entry with the
-   * endpoint as the action and the provided value as description. Automatically includes client
-   * context and audit user information.
+   * Logs user activity data with endpoint and description information. Creates a log entry with
+   * the. endpoint as the action and the provided value as description. Automatically includes
+   * client context and audit user information.
    *
    * @param userId The ID of the user performing the action
    * @param newValue The description or new value to be logged
@@ -81,7 +87,7 @@ public class UserLogService extends BaseService implements IUserLogSubTranslator
   }
 
   /**
-   * Logs user activity data with explicit context values (for async operations). Creates a log
+   * Logs user activity data with explicit context values (for async operations). Creates a log.
    * entry with the endpoint as the action and the provided value as description. This variant is
    * used when the security context is not available (e.g., async methods).
    *
@@ -106,7 +112,7 @@ public class UserLogService extends BaseService implements IUserLogSubTranslator
   }
 
   /**
-   * Retrieves user logs based on provided filtering criteria. Supports multi-filter with AND/OR
+   * Retrieves user logs based on provided filtering criteria. Supports multi-filter with AND/OR.
    * logic for advanced filtering.
    *
    * <p>Valid columns for filtering: "logId", "userId", "clientId", "action", "description",

@@ -1,4 +1,4 @@
-package com.example.SpringApi.Helpers;
+package com.example.springapi.helpers;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;

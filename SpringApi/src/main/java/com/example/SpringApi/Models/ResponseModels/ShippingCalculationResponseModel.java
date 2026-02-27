@@ -1,6 +1,6 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.ShippingResponseModel.ShippingOptionsResponseModel;
+import com.example.springapi.models.shippingresponsemodel.ShippingOptionsResponseModel;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,50 +8,56 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Response model for shipping calculation at the order level. Returns shipping options grouped by
+ * Response model for shipping calculation at the order level. Returns shipping options grouped by.
  * pickup location.
  */
 @Getter
 @Setter
 public class ShippingCalculationResponseModel {
 
-  /** List of pickup locations with their available shipping options */
+  /** List of pickup locations with their available shipping options. */
   private List<LocationShippingOptions> locationOptions = new ArrayList<>();
 
-  /** Total shipping cost for all locations (sum of selected couriers) */
+  /** Total shipping cost for all locations (sum of selected couriers). */
   private BigDecimal totalShippingCost = BigDecimal.ZERO;
 
+  /**
+   * Represents the location shipping options component.
+   */
   @Getter
   @Setter
   public static class LocationShippingOptions {
-    /** Pickup location ID */
+    /** Pickup location ID. */
     private Long pickupLocationId;
 
-    /** Pickup location name */
+    /** Pickup location name. */
     private String locationName;
 
-    /** Pickup location postal code */
+    /** Pickup location postal code. */
     private String pickupPostcode;
 
-    /** Total weight being shipped from this location */
+    /** Total weight being shipped from this location. */
     private BigDecimal totalWeightKgs;
 
-    /** Total quantity of items from this location */
+    /** Total quantity of items from this location. */
     private Integer totalQuantity;
 
-    /** List of product IDs being shipped from this location */
+    /** List of product IDs being shipped from this location. */
     private List<Long> productIds;
 
-    /** Available courier options for this location, sorted by rate (lowest first) */
+    /** Available courier options for this location, sorted by rate (lowest first). */
     private List<CourierOption> availableCouriers = new ArrayList<>();
 
-    /** The selected/recommended courier (cheapest by default) */
+    /** The selected/recommended courier (cheapest by default). */
     private CourierOption selectedCourier;
 
     public LocationShippingOptions() {
       // Required for JSON serialization/deserialization.
     }
 
+    /**
+     * Executes location shipping options.
+     */
     public LocationShippingOptions(
         Long pickupLocationId,
         String locationName,
@@ -68,6 +74,9 @@ public class ShippingCalculationResponseModel {
     }
   }
 
+  /**
+   * Represents the courier option component.
+   */
   @Getter
   @Setter
   public static class CourierOption {

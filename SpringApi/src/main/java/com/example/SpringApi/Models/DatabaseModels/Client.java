@@ -1,9 +1,19 @@
-package com.example.SpringApi.Models.DatabaseModels;
+package com.example.springapi.models.databasemodels;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.RequestModels.ClientRequestModel;
-import jakarta.persistence.*;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.requestmodels.ClientRequestModel;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Getter;
@@ -239,7 +249,7 @@ public class Client {
   }
 
   /**
-   * Validates the request model for creating a new client. All required fields must be present for
+   * Validates the request model for creating a new client. All required fields must be present for.
    * creation.
    *
    * @param request The ClientRequestModel to validate
@@ -264,7 +274,7 @@ public class Client {
   }
 
   /**
-   * Validates the request model for updating an existing client. Core fields (name, description,
+   * Validates the request model for updating an existing client. Core fields (name, description,.
    * supportEmail, website) are required. Other fields like sendgridSenderName and googleCredId are
    * optional (preserved from existing if not provided).
    *

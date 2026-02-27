@@ -1,12 +1,20 @@
-package com.example.SpringApi.Models.DatabaseModels;
+package com.example.springapi.models.databasemodels;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+/**
+ * Represents the user log component.
+ */
 @Getter
 @Setter
 @Entity
@@ -97,6 +105,9 @@ public class UserLog {
     this.newValue = newValue;
   }
 
+  /**
+   * Executes user log.
+   */
   public UserLog(
       long userId,
       Long clientId,

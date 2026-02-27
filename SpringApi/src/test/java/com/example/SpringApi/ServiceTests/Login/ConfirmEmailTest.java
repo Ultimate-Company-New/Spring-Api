@@ -1,13 +1,13 @@
-package com.example.SpringApi.ServiceTests.Login;
+package com.example.springapi.ServiceTests.Login;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.Models.DatabaseModels.User;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.models.databasemodels.User;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -87,7 +87,7 @@ class ConfirmEmailTest extends LoginServiceTestBase {
         assertThrows(NotFoundException.class, () -> loginService.confirmEmail(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_TOKEN,
+        com.example.springapi.ErrorMessages.LoginErrorMessages.INVALID_TOKEN,
         exception.getMessage());
   }
 
@@ -109,7 +109,7 @@ class ConfirmEmailTest extends LoginServiceTestBase {
             UnauthorizedException.class, () -> loginService.confirmEmail(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_TOKEN,
+        com.example.springapi.ErrorMessages.LoginErrorMessages.INVALID_TOKEN,
         exception.getMessage());
     verify(userRepository, times(1)).findById(TEST_USER_ID);
     verify(userRepository, never()).save(any(User.class));
@@ -131,7 +131,7 @@ class ConfirmEmailTest extends LoginServiceTestBase {
         assertThrows(NotFoundException.class, () -> loginService.confirmEmail(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_TOKEN,
+        com.example.springapi.ErrorMessages.LoginErrorMessages.INVALID_TOKEN,
         exception.getMessage());
   }
 
@@ -150,7 +150,7 @@ class ConfirmEmailTest extends LoginServiceTestBase {
         assertThrows(BadRequestException.class, () -> loginService.confirmEmail(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_ID, exception.getMessage());
+        com.example.springapi.ErrorMessages.LoginErrorMessages.INVALID_ID, exception.getMessage());
   }
 
   /**
@@ -168,7 +168,7 @@ class ConfirmEmailTest extends LoginServiceTestBase {
         assertThrows(NotFoundException.class, () -> loginService.confirmEmail(testLoginRequest));
 
     assertEquals(
-        com.example.SpringApi.ErrorMessages.LoginErrorMessages.INVALID_ID, exception.getMessage());
+        com.example.springapi.ErrorMessages.LoginErrorMessages.INVALID_ID, exception.getMessage());
     verify(userRepository, times(1)).findById(TEST_USER_ID);
     verify(userRepository, never()).save(any(User.class));
   }

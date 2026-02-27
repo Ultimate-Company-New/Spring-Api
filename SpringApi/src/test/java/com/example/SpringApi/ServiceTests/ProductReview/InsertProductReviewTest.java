@@ -1,14 +1,14 @@
-package com.example.SpringApi.ServiceTests.ProductReview;
+package com.example.springapi.ServiceTests.ProductReview;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.ProductReviewController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.DatabaseModels.ProductReview;
-import com.example.SpringApi.Models.RequestModels.ProductReviewRequestModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.ProductReviewController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.databasemodels.ProductReview;
+import com.example.springapi.models.requestmodels.ProductReviewRequestModel;
 import java.math.BigDecimal;
 import java.util.function.Consumer;
 import java.util.stream.Stream;

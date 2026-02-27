@@ -1,6 +1,6 @@
-package com.example.SpringApi.Repositories;
+package com.example.springapi.repositories;
 
-import com.example.SpringApi.Models.DatabaseModels.PurchaseOrder;
+import com.example.springapi.models.databasemodels.PurchaseOrder;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -19,7 +19,8 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
    * @return Optional containing the purchase order if found
    */
   @Query(
-      "SELECT po FROM PurchaseOrder po WHERE po.purchaseOrderId = :purchaseOrderId AND po.clientId = :clientId")
+      "SELECT po FROM PurchaseOrder po WHERE po.purchaseOrderId = :"
+          + "purchaseOrderId AND po.clientId = :clientId")
   Optional<PurchaseOrder> findByPurchaseOrderIdAndClientId(
       @Param("purchaseOrderId") Long purchaseOrderId, @Param("clientId") Long clientId);
 

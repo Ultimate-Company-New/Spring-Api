@@ -1,6 +1,6 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
+import com.example.springapi.models.databasemodels.PickupLocation;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;

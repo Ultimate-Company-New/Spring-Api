@@ -1,15 +1,15 @@
-package com.example.SpringApi.ServiceTests.Product;
+package com.example.springapi.ServiceTests.Product;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.ProductController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Helpers.ImgbbHelper;
-import com.example.SpringApi.Models.DatabaseModels.Product;
-import com.example.SpringApi.Models.RequestModels.ProductRequestModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.ProductController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.helpers.ImgbbHelper;
+import com.example.springapi.models.databasemodels.Product;
+import com.example.springapi.models.requestmodels.ProductRequestModel;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

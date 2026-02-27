@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.RequestModels;
+package com.example.springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,13 +49,13 @@ class PackagePickupLocationMappingRequestModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.RequestModels.PackagePickupLocationMappingRequestModel
+        com.example.springapi.models.requestmodels.PackagePickupLocationMappingRequestModel
             .class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.RequestModels
+                  com.example.springapi.models.requestmodels
                       .PackagePickupLocationMappingRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
@@ -66,7 +66,7 @@ class PackagePickupLocationMappingRequestModelContractTest {
   void PackagePickupLocationMappingRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.RequestModels.PackagePickupLocationMappingRequestModel.class
+        com.example.springapi.models.requestmodels.PackagePickupLocationMappingRequestModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -84,11 +84,11 @@ class PackagePickupLocationMappingRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.RequestModels.PackagePickupLocationMappingRequestModel
+  private com.example.springapi.models.requestmodels.PackagePickupLocationMappingRequestModel
       createInstance() {
-    return (com.example.SpringApi.Models.RequestModels.PackagePickupLocationMappingRequestModel)
+    return (com.example.springapi.models.requestmodels.PackagePickupLocationMappingRequestModel)
         instantiate(
-            com.example.SpringApi.Models.RequestModels.PackagePickupLocationMappingRequestModel
+            com.example.springapi.models.requestmodels.PackagePickupLocationMappingRequestModel
                 .class);
   }
 

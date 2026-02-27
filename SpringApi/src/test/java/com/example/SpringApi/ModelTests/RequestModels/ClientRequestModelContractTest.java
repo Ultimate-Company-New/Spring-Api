@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.RequestModels;
+package com.example.springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class ClientRequestModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.SpringApi.Models.RequestModels.ClientRequestModel.class)) {
+    if (hasNoArgConstructor(com.example.springapi.models.requestmodels.ClientRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
+              .constructType(com.example.springapi.models.requestmodels.ClientRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +62,7 @@ class ClientRequestModelContractTest {
   void ClientRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.RequestModels.ClientRequestModel.class
+        com.example.springapi.models.requestmodels.ClientRequestModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -80,9 +80,9 @@ class ClientRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.RequestModels.ClientRequestModel createInstance() {
-    return (com.example.SpringApi.Models.RequestModels.ClientRequestModel)
-        instantiate(com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
+  private com.example.springapi.models.requestmodels.ClientRequestModel createInstance() {
+    return (com.example.springapi.models.requestmodels.ClientRequestModel)
+        instantiate(com.example.springapi.models.requestmodels.ClientRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

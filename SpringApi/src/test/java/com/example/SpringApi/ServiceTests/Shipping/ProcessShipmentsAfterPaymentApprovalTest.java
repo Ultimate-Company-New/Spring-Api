@@ -1,17 +1,17 @@
-package com.example.SpringApi.ServiceTests.Shipping;
+package com.example.springapi.ServiceTests.Shipping;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
-import com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping;
-import com.example.SpringApi.Models.DatabaseModels.PurchaseOrder;
-import com.example.SpringApi.Models.DatabaseModels.Shipment;
-import com.example.SpringApi.Models.RequestModels.ShipRocketOrderRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaymentVerificationResponseModel;
-import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.models.databasemodels.PackagePickupLocationMapping;
+import com.example.springapi.models.databasemodels.ProductPickupLocationMapping;
+import com.example.springapi.models.databasemodels.PurchaseOrder;
+import com.example.springapi.models.databasemodels.Shipment;
+import com.example.springapi.models.requestmodels.ShipRocketOrderRequestModel;
+import com.example.springapi.models.responsemodels.PaymentVerificationResponseModel;
+import com.example.springapi.models.shippingresponsemodel.ShipRocketOrderResponseModel;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -173,9 +173,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubPurchaseOrderRepositoryFindById(testPurchaseOrder);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -213,9 +213,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubClientRepositoryFindById(testClient);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -254,9 +254,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubClientRepositoryFindById(testClient);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -278,9 +278,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(null);
 
     // Act
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
+            com.example.springapi.exceptions.NotFoundException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -310,9 +310,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubPackagePickupLocationMappingRepositoryFindByPackageIdAndPickupLocationId(null);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -350,9 +350,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubPackagePickupLocationMappingRepositoryFindByPackageIdAndPickupLocationId(packageMapping);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -392,9 +392,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubPaymentServiceVerifyPayment(PaymentVerificationResponseModel.failure("fail"));
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -436,9 +436,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubPickupLocationRepositoryFindById(null);
 
     // Act
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
+            com.example.springapi.exceptions.NotFoundException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -460,9 +460,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubPurchaseOrderRepositoryFindById(null);
 
     // Act
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
+            com.example.springapi.exceptions.NotFoundException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -488,9 +488,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubProductPickupLocationMappingRepositoryFindByProductIdAndPickupLocationId(null);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -519,9 +519,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubShipmentRepositoryFindByOrderSummaryId(List.of());
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -560,9 +560,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubShipRocketHelperCreateCustomOrder(response);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -618,9 +618,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubShipRocketHelperCreateCustomOrder(response);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -666,9 +666,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubShipRocketHelperCreateCustomOrder(response);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -712,9 +712,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubShipRocketHelperCreateCustomOrder(response);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -759,9 +759,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubShipRocketHelperCreateCustomOrder(response);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -804,9 +804,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubShipRocketHelperCreateCustomOrder(null);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -832,9 +832,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubPurchaseOrderRepositoryFindById(testPurchaseOrder);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -964,9 +964,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubPaymentServiceRecordCashPayment(PaymentVerificationResponseModel.failure("cash-failed"));
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, cashPaymentRequest));
@@ -1010,9 +1010,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubShipmentRepositorySave(testShipment);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -1054,9 +1054,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubPickupLocationRepositoryFindById(testPickupLocation);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -1096,9 +1096,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubPickupLocationRepositoryFindById(testPickupLocation);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -1140,9 +1140,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubShipRocketHelperAssignAwbAsJsonThrows(new RuntimeException("awb-error"));
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -1214,9 +1214,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubPurchaseOrderRepositoryFindById(null);
 
     // Act
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
+            com.example.springapi.exceptions.NotFoundException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, cashPaymentRequest));
@@ -1238,9 +1238,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubPurchaseOrderRepositoryFindById(testPurchaseOrder);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, cashPaymentRequest));
@@ -1263,9 +1263,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubPurchaseOrderRepositoryFindById(testPurchaseOrder);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, cashPaymentRequest));
@@ -1288,9 +1288,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(null);
 
     // Act
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
+            com.example.springapi.exceptions.NotFoundException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, cashPaymentRequest));
@@ -1313,9 +1313,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubShipmentRepositoryFindByOrderSummaryId(List.of());
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, cashPaymentRequest));
@@ -1344,9 +1344,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubProductPickupLocationMappingRepositoryFindByProductIdAndPickupLocationId(productMapping);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -1375,9 +1375,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubClientRepositoryFindById(null);
 
     // Act
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
+            com.example.springapi.exceptions.NotFoundException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -1399,9 +1399,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubPackageRepositoryFindById(null);
 
     // Act
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
+            com.example.springapi.exceptions.NotFoundException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -1454,9 +1454,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     testDeliveryAddress.setPhoneOnAddress(null);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -1540,9 +1540,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubShipRocketHelperGeneratePickupAsJsonThrows(new RuntimeException("pickup-error"));
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -1568,9 +1568,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubShipRocketHelperGenerateManifestThrows(new RuntimeException("manifest-error"));
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -1597,9 +1597,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubShipRocketHelperGenerateLabelThrows(new RuntimeException("label-error"));
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -1625,9 +1625,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubShipRocketHelperGenerateInvoiceThrows(new RuntimeException("invoice-error"));
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -1652,9 +1652,9 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
     stubShipRocketHelperGetTrackingAsJsonThrows(new RuntimeException("tracking-error"));
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () ->
                 shippingService.processShipmentsAfterPaymentApproval(
                     TEST_PURCHASE_ORDER_ID, razorpayRequest));
@@ -1710,12 +1710,12 @@ class ProcessShipmentsAfterPaymentApprovalTest extends ShippingServiceTestBase {
   void processShipmentsAfterPaymentApproval_controller_permission_unauthorized() {
     // Arrange
     razorpayRequest.setPurchaseOrderId(1L); // Set purchase order ID so stub can match
-    com.example.SpringApi.Models.RequestModels.ProcessPaymentAndShipmentRequestModel request =
-        new com.example.SpringApi.Models.RequestModels.ProcessPaymentAndShipmentRequestModel();
+    com.example.springapi.models.requestmodels.ProcessPaymentAndShipmentRequestModel request =
+        new com.example.springapi.models.requestmodels.ProcessPaymentAndShipmentRequestModel();
     request.setIsCashPayment(false);
     request.setOnlinePaymentRequest(razorpayRequest);
-    com.example.SpringApi.Controllers.PaymentController controller =
-        new com.example.SpringApi.Controllers.PaymentController(
+    com.example.springapi.controllers.PaymentController controller =
+        new com.example.springapi.controllers.PaymentController(
             paymentService, shippingServiceControllerMock);
     stubShippingServiceProcessShipmentsAfterPaymentApprovalUnauthorizedOnline();
 

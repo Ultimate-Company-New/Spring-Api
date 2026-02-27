@@ -1,21 +1,28 @@
-package com.example.SpringApi.Controllers;
+package com.example.springapi.controllers;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.Logging.ContextualLogger;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.RequestModels.MessageRequestModel;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
-import com.example.SpringApi.Services.Interface.IMessageSubTranslator;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.logging.ContextualLogger;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.requestmodels.MessageRequestModel;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.responsemodels.ErrorResponseModel;
+import com.example.springapi.services.interfaces.MessageSubTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST Controller for Message operations.
@@ -34,10 +41,10 @@ public class MessageController {
 
   private static final ContextualLogger logger =
       ContextualLogger.getLogger(MessageController.class);
-  private final IMessageSubTranslator messageService;
+  private final MessageSubTranslator messageService;
 
   @Autowired
-  public MessageController(IMessageSubTranslator messageService) {
+  public MessageController(MessageSubTranslator messageService) {
     this.messageService = messageService;
   }
 
@@ -190,13 +197,7 @@ public class MessageController {
   }
 
   /**
-   * Toggles the status of a message (soft delete/restore).
-   *
-   * <p>This endpoint toggles the isDeleted flag of a message, effectively archiving or restoring
-   * the message without permanent deletion. Requires DELETE_MESSAGES_PERMISSION to access.
-   *
-   * @param paginationBaseRequestModel The request containing message ID
-   * @return ResponseEntity containing success status or error
+   * Toggles message.
    */
   @DeleteMapping("/" + ApiRoutes.MessagesSubRoute.TOGGLE_MESSAGE + "/{id}")
   @PreAuthorize(
@@ -339,14 +340,7 @@ public class MessageController {
   }
 
   /**
-   * Marks a message as read for a specific user.
-   *
-   * <p>This endpoint records that a user has read a message, updating the read status for tracking
-   * purposes and potentially affecting message visibility. Requires VIEW_MESSAGES_PERMISSION to
-   * access.
-   *
-   * @param messageRequestModel The request containing userId and messageId
-   * @return ResponseEntity containing success status or error
+   * Documents this member.
    */
   @PostMapping(
       "/"

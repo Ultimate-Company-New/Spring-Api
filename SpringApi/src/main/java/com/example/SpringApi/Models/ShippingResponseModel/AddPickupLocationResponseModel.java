@@ -1,9 +1,12 @@
-package com.example.SpringApi.Models.ShippingResponseModel;
+package com.example.springapi.models.shippingresponsemodel;
 
 import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Represents the add pickup location response model component.
+ */
 @Getter
 @Setter
 public class AddPickupLocationResponseModel {
@@ -30,6 +33,9 @@ public class AddPickupLocationResponseModel {
     this.pickupAddress = address;
   }
 
+  /**
+   * Represents the address component.
+   */
   @Getter
   @Setter
   public static class Address {

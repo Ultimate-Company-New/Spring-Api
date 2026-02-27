@@ -1,10 +1,10 @@
-package com.example.SpringApi.ServiceTests.PurchaseOrder;
+package com.example.springapi.ServiceTests.PurchaseOrder;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.SpringApi.Controllers.PurchaseOrderController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.ResponseModels.PurchaseOrderResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.PurchaseOrderController;
+import com.example.springapi.models.responsemodels.PurchaseOrderResponseModel;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

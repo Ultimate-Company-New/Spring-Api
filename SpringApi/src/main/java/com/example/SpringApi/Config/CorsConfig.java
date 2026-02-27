@@ -1,4 +1,4 @@
-package com.example.SpringApi.Config;
+package com.example.springapi.config;
 
 import java.util.Arrays;
 import java.util.List;
@@ -9,12 +9,15 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
- * CORS Configuration for Spring API Allows frontend applications to access the API from different
+ * CORS Configuration for Spring API Allows frontend applications to access the API from different.
  * origins
  */
 @Configuration
 public class CorsConfig {
 
+  /**
+   * Executes cors configuration source.
+   */
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();

@@ -1,4 +1,4 @@
-package com.example.SpringApi.Helpers;
+package com.example.springapi.helpers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -8,8 +8,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.RequestModels.SendEmailRequest;
+import com.example.springapi.models.databasemodels.Client;
+import com.example.springapi.models.requestmodels.SendEmailRequest;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,7 +34,7 @@ class EmailTemplatesTest {
   @DisplayName("sendImportBulkDataResults - No Errors Status - Success")
   void sendImportBulkDataResults_s01_noErrorsStatus_success() {
     // Arrange
-    IEmailHelper emailHelper = mock(IEmailHelper.class);
+    EmailHelperContract emailHelper = mock(EmailHelperContract.class);
     when(emailHelper.sendEmail(any(SendEmailRequest.class))).thenReturn(true);
 
     Environment environment = mock(Environment.class);
@@ -64,7 +64,7 @@ class EmailTemplatesTest {
   @DisplayName("sendImportBulkDataResults - Partial And Failure Status Branches - Success")
   void sendImportBulkDataResults_s02_partialAndFailureStatusBranches_success() {
     // Arrange
-    IEmailHelper emailHelper = mock(IEmailHelper.class);
+    EmailHelperContract emailHelper = mock(EmailHelperContract.class);
     when(emailHelper.sendEmail(any(SendEmailRequest.class))).thenReturn(true);
 
     Environment environment = mock(Environment.class);
@@ -103,7 +103,7 @@ class EmailTemplatesTest {
   @DisplayName("sendNewUserAccountConfirmation - Encoded Frontend Link And Password - Success")
   void sendNewUserAccountConfirmation_s03_encodedFrontendLinkAndPassword_success() {
     // Arrange
-    IEmailHelper emailHelper = mock(IEmailHelper.class);
+    EmailHelperContract emailHelper = mock(EmailHelperContract.class);
     when(emailHelper.sendEmail(any(SendEmailRequest.class))).thenReturn(true);
 
     Environment environment = mock(Environment.class);
@@ -141,7 +141,7 @@ class EmailTemplatesTest {
   @DisplayName("sendMessageEmail - Scheduled Send Fields - Success")
   void sendMessageEmail_s04_scheduledSendFields_success() {
     // Arrange
-    IEmailHelper emailHelper = mock(IEmailHelper.class);
+    EmailHelperContract emailHelper = mock(EmailHelperContract.class);
     when(emailHelper.sendEmail(any(SendEmailRequest.class))).thenReturn(true);
 
     Environment environment = mock(Environment.class);
@@ -179,7 +179,7 @@ class EmailTemplatesTest {
   @DisplayName("sendResetPasswordEmail - Blank Password Throws IllegalArgumentException - Success")
   void sendResetPasswordEmail_s05_blankPasswordThrowsIllegalArgumentException_success() {
     // Arrange
-    IEmailHelper emailHelper = mock(IEmailHelper.class);
+    EmailHelperContract emailHelper = mock(EmailHelperContract.class);
     Environment environment = mock(Environment.class);
     Client client = createClient("Ultimate Co", "support@ultimate.co", "https://logo.cdn/logo.png");
     EmailTemplates templates = createTemplates(emailHelper, environment, client);
@@ -203,7 +203,7 @@ class EmailTemplatesTest {
   @DisplayName("sendResetPasswordEmail - Includes Password And Sends Email - Success")
   void sendResetPasswordEmail_s06_includesPasswordAndSendsEmail_success() {
     // Arrange
-    IEmailHelper emailHelper = mock(IEmailHelper.class);
+    EmailHelperContract emailHelper = mock(EmailHelperContract.class);
     when(emailHelper.sendEmail(any(SendEmailRequest.class))).thenReturn(true);
 
     Environment environment = mock(Environment.class);
@@ -226,7 +226,7 @@ class EmailTemplatesTest {
   }
 
   private EmailTemplates createTemplates(
-      IEmailHelper emailHelper, Environment environment, Client client) {
+      EmailHelperContract emailHelper, Environment environment, Client client) {
     try (MockedStatic<EmailHelperFactory> factoryMock =
         org.mockito.Mockito.mockStatic(EmailHelperFactory.class)) {
       factoryMock

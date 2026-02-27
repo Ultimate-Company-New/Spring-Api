@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.Authentication;
+package com.example.springapi.ServiceTests.Authentication;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -8,8 +8,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.SpringApi.Authentication.JwtAuthenticationFilter;
-import com.example.SpringApi.Authentication.JwtTokenProvider;
+import com.example.springapi.authentication.JwtAuthenticationFilter;
+import com.example.springapi.authentication.JwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

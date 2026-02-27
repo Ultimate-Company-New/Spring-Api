@@ -1,15 +1,15 @@
-package com.example.SpringApi.ServiceTests.Shipping;
+package com.example.springapi.ServiceTests.Shipping;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.SpringApi.Controllers.ShippingController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.DatabaseModels.Product;
-import com.example.SpringApi.Models.DatabaseModels.ReturnShipmentProduct;
-import com.example.SpringApi.Models.DatabaseModels.ShipmentProduct;
-import com.example.SpringApi.Models.RequestModels.CreateReturnRequestModel;
-import com.example.SpringApi.Models.RequestModels.ShipRocketReturnOrderRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ReturnShipmentResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.ShippingController;
+import com.example.springapi.models.databasemodels.Product;
+import com.example.springapi.models.databasemodels.ReturnShipmentProduct;
+import com.example.springapi.models.databasemodels.ShipmentProduct;
+import com.example.springapi.models.requestmodels.CreateReturnRequestModel;
+import com.example.springapi.models.requestmodels.ShipRocketReturnOrderRequestModel;
+import com.example.springapi.models.responsemodels.ReturnShipmentResponseModel;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -292,9 +292,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubClientServiceGetClientById(testClientResponse);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -316,9 +316,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubShipmentRepositoryFindByShipmentIdAndClientId(testShipment);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -345,9 +345,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubProductRepositoryFindById(testProduct);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -375,9 +375,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubClientServiceGetClientById(testClientResponse);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -399,9 +399,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubProductRepositoryFindById(null);
 
     // Act
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
+            com.example.springapi.exceptions.NotFoundException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -425,9 +425,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubClientServiceGetClientById(testClientResponse);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -453,9 +453,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubProductRepositoryFindById(testProduct);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -478,9 +478,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     createReturnRequest.setProducts(List.of());
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -500,9 +500,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     createReturnRequest.setProducts(null);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -526,9 +526,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubClientServiceGetClientById(testClientResponse);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -557,9 +557,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubClientServiceGetClientById(testClientResponse);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -583,9 +583,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubClientServiceGetClientById(testClientResponse);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -609,9 +609,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubClientServiceGetClientById(testClientResponse);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -635,9 +635,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubClientServiceGetClientById(testClientResponse);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -660,9 +660,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubClientServiceGetClientById(testClientResponse);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -686,9 +686,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubProductRepositoryFindById(testProduct);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -720,9 +720,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubProductRepositoryFindById(testProduct);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -750,9 +750,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubProductRepositoryFindById(testProduct);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -781,9 +781,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubProductRepositoryFindById(testProduct);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -801,9 +801,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     createReturnRequest.setShipmentId(null);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -821,9 +821,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubShipmentRepositoryFindByShipmentIdAndClientId(null);
 
     // Act
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
+            com.example.springapi.exceptions.NotFoundException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -846,9 +846,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
     stubClientServiceGetClientById(testClientResponse);
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert
@@ -876,9 +876,9 @@ class CreateReturnTest extends ShippingServiceTestBase {
         new RuntimeException(ErrorMessages.OPERATION_FAILED));
 
     // Act
-    com.example.SpringApi.Exceptions.BadRequestException ex =
+    com.example.springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.BadRequestException.class,
+            com.example.springapi.exceptions.BadRequestException.class,
             () -> shippingService.createReturn(createReturnRequest));
 
     // Assert

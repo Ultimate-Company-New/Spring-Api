@@ -1,4 +1,4 @@
-package com.example.SpringApi.Models.RequestModels;
+package com.example.springapi.models.requestmodels;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

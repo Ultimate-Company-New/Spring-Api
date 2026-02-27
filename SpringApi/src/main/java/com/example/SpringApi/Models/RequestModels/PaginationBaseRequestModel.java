@@ -1,9 +1,12 @@
-package com.example.SpringApi.Models.RequestModels;
+package com.example.springapi.models.requestmodels;
 
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Represents the pagination base request model component.
+ */
 @Getter
 @Setter
 public class PaginationBaseRequestModel {
@@ -66,7 +69,7 @@ public class PaginationBaseRequestModel {
   private String logicOperator; // "AND" or "OR"
   private List<FilterCondition> filters;
 
-  /** Validates the logic operator */
+  /** Validates the logic operator. */
   public boolean isValidLogicOperator() {
     if (logicOperator == null) {
       return true; // Optional field
@@ -74,12 +77,12 @@ public class PaginationBaseRequestModel {
     return "AND".equalsIgnoreCase(logicOperator) || "OR".equalsIgnoreCase(logicOperator);
   }
 
-  /** Checks if multi-filter mode is enabled */
+  /** Checks if multi-filter mode is enabled. */
   public boolean hasMultipleFilters() {
     return filters != null && !filters.isEmpty();
   }
 
-  /** Inner class representing a single filter condition */
+  /** Inner class representing a single filter condition. */
   @Getter
   public static class FilterCondition {
     private String column;
@@ -145,8 +148,8 @@ public class PaginationBaseRequestModel {
     }
 
     /**
-     * Sets the operator and normalizes symbol operators to word format. This ensures query builders
-     * always receive word format operators.
+     * Sets the operator and normalizes symbol operators to word format. This ensures query
+     * builders. always receive word format operators.
      */
     public void setOperator(String operator) {
       this.operator = normalizeOperator(operator);
@@ -174,7 +177,7 @@ public class PaginationBaseRequestModel {
     }
 
     /**
-     * Validates if the operator is valid for any column type. Accepts both symbol and word format
+     * Validates if the operator is valid for any column type. Accepts both symbol and word format.
      * operators.
      */
     public boolean isValidOperator() {
@@ -191,7 +194,7 @@ public class PaginationBaseRequestModel {
     }
 
     /**
-     * Validates if the operator is valid for a specific column type
+     * Validates if the operator is valid for a specific column type.
      *
      * @param columnType "string", "number", "date", or "boolean"
      * @return true if operator is valid for the column type
@@ -216,7 +219,7 @@ public class PaginationBaseRequestModel {
     }
 
     /**
-     * Validates that the operator matches the column type and throws exception if invalid
+     * Validates that the operator matches the column type and throws exception if invalid.
      *
      * @param columnType "string", "number", "date", or "boolean"
      * @param columnName Name of the column for error message
@@ -250,7 +253,7 @@ public class PaginationBaseRequestModel {
     }
 
     /**
-     * Validates that a value is provided when required by the operator
+     * Validates that a value is provided when required by the operator.
      *
      * @throws IllegalArgumentException if value is missing when required
      */

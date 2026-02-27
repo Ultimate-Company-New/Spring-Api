@@ -1,19 +1,25 @@
-package com.example.SpringApi.Controllers;
+package com.example.springapi.controllers;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.Logging.ContextualLogger;
-import com.example.SpringApi.Models.RequestModels.TestExecutionRequestModel;
-import com.example.SpringApi.Models.RequestModels.TestRunRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
-import com.example.SpringApi.Models.ResponseModels.TestExecutionStatusModel;
-import com.example.SpringApi.Services.Interface.IQASubTranslator;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.logging.ContextualLogger;
+import com.example.springapi.models.requestmodels.TestExecutionRequestModel;
+import com.example.springapi.models.requestmodels.TestRunRequestModel;
+import com.example.springapi.models.responsemodels.ErrorResponseModel;
+import com.example.springapi.models.responsemodels.TestExecutionStatusModel;
+import com.example.springapi.services.interfaces.QaSubTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST Controller for Quality Assurance endpoint-to-test mapping.
@@ -28,21 +34,21 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api/QA")
-public class QAController {
-  private static final ContextualLogger logger = ContextualLogger.getLogger(QAController.class);
-  private final IQASubTranslator qaService;
+public class QaController {
+  private static final ContextualLogger logger = ContextualLogger.getLogger(QaController.class);
+  private final QaSubTranslator qaService;
 
   @Autowired
-  public QAController(IQASubTranslator qaService) {
+  public QaController(QaSubTranslator qaService) {
     this.qaService = qaService;
   }
 
   /**
-   * Returns all QA dashboard data in a single response. Includes: - List of all services with their
-   * methods, tests, and last run information - Coverage summary statistics - List of available
-   * service names
+   * Returns all QA dashboard data in a single response. Includes: - List of all services with
+   * their. methods, tests, and last run information - Coverage summary statistics - List of
+   * available service names
    *
-   * @return ResponseEntity containing QADashboardResponseModel with all dashboard data
+   * @return ResponseEntity containing QaDashboardResponseModel with all dashboard data
    */
   @GetMapping("/getDashboardData")
   public ResponseEntity<?> getDashboardData() {
@@ -82,10 +88,10 @@ public class QAController {
   }
 
   /**
-   * Returns a comprehensive list of all services with their public methods and associated unit
+   * Returns a comprehensive list of all services with their public methods and associated unit.
    * tests.
    *
-   * @return ResponseEntity containing list of QAResponseModel with full endpoint-to-test mapping
+   * @return ResponseEntity containing list of QaResponseModel with full endpoint-to-test mapping
    */
   @GetMapping("/getAllEndpointsWithTests")
   public ResponseEntity<?> getAllEndpointsWithTests() {
@@ -129,7 +135,7 @@ public class QAController {
    *
    * @param serviceName The name of the service (e.g., "AddressService", "UserService", or just
    *     "Address")
-   * @return ResponseEntity containing QAResponseModel for the specified service
+   * @return ResponseEntity containing QaResponseModel for the specified service
    */
   @GetMapping("/getEndpointsWithTestsByService")
   public ResponseEntity<?> getEndpointsWithTestsByService(@RequestParam String serviceName) {
@@ -297,7 +303,7 @@ public class QAController {
   }
 
   /**
-   * Saves a test run with its individual results. Also updates the LatestTestResult table for each
+   * Saves a test run with its individual results. Also updates the LatestTestResult table for each.
    * test.
    *
    * @param request The test run request containing service info and results

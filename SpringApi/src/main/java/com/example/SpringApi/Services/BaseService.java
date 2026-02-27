@@ -1,9 +1,9 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.DatabaseModels.User;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.databasemodels.User;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,6 +11,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+/**
+ * Represents the base service component.
+ */
 public class BaseService {
   protected JwtTokenProvider jwtTokenProvider;
   protected static final String CURRENT_ENVIRONMENT = "Local";
@@ -25,6 +28,9 @@ public class BaseService {
     this.request = request;
   }
 
+  /**
+   * Returns user.
+   */
   public String getUser() {
     // Try Spring Security first
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -63,6 +69,9 @@ public class BaseService {
     return DEFAULT_TEST_USER;
   }
 
+  /**
+   * Returns user id.
+   */
   public Long getUserId() {
     // Try Spring Security first
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -94,7 +103,7 @@ public class BaseService {
   }
 
   /**
-   * Gets the primary (first) clientId for backward compatibility. Note: Users can belong to
+   * Gets the primary (first) clientId for backward compatibility. Note: Users can belong to.
    * multiple clients. This returns the first clientId. For multi-client operations, use
    * getClientIds() or getClientPermissionMap().
    *

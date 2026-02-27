@@ -1,12 +1,12 @@
-package com.example.SpringApi.ServiceTests.User;
+package com.example.springapi.ServiceTests.User;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.UserController;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.DatabaseModels.Permission;
-import com.example.SpringApi.Models.ResponseModels.PermissionResponseModel;
+import com.example.springapi.controllers.UserController;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.databasemodels.Permission;
+import com.example.springapi.models.responsemodels.PermissionResponseModel;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;

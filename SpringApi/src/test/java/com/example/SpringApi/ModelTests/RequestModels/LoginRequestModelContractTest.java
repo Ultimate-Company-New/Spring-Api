@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.RequestModels;
+package com.example.springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class LoginRequestModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.SpringApi.Models.RequestModels.LoginRequestModel.class)) {
+    if (hasNoArgConstructor(com.example.springapi.models.requestmodels.LoginRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.SpringApi.Models.RequestModels.LoginRequestModel.class);
+              .constructType(com.example.springapi.models.requestmodels.LoginRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +62,7 @@ class LoginRequestModelContractTest {
   void LoginRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.RequestModels.LoginRequestModel.class
+        com.example.springapi.models.requestmodels.LoginRequestModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -80,9 +80,9 @@ class LoginRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.RequestModels.LoginRequestModel createInstance() {
-    return (com.example.SpringApi.Models.RequestModels.LoginRequestModel)
-        instantiate(com.example.SpringApi.Models.RequestModels.LoginRequestModel.class);
+  private com.example.springapi.models.requestmodels.LoginRequestModel createInstance() {
+    return (com.example.springapi.models.requestmodels.LoginRequestModel)
+        instantiate(com.example.springapi.models.requestmodels.LoginRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

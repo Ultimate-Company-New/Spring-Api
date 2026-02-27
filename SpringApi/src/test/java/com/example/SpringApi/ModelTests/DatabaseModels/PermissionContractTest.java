@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.DatabaseModels;
+package com.example.springapi.ModelTests.DatabaseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class PermissionContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.SpringApi.Models.DatabaseModels.Permission.class)) {
+    if (hasNoArgConstructor(com.example.springapi.models.databasemodels.Permission.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.SpringApi.Models.DatabaseModels.Permission.class);
+              .constructType(com.example.springapi.models.databasemodels.Permission.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +62,7 @@ class PermissionContractTest {
   void Permission_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.DatabaseModels.Permission.class.getDeclaredConstructors()) {
+        com.example.springapi.models.databasemodels.Permission.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -79,9 +79,9 @@ class PermissionContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.DatabaseModels.Permission createInstance() {
-    return (com.example.SpringApi.Models.DatabaseModels.Permission)
-        instantiate(com.example.SpringApi.Models.DatabaseModels.Permission.class);
+  private com.example.springapi.models.databasemodels.Permission createInstance() {
+    return (com.example.springapi.models.databasemodels.Permission)
+        instantiate(com.example.springapi.models.databasemodels.Permission.class);
   }
 
   private Object instantiate(Class<?> clazz) {

@@ -1,23 +1,23 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PackageResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.springapi.models.requestmodels.PackageRequestModel;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.responsemodels.PackageResponseModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
 import java.util.List;
 
 /**
- * Interface for Package operations and business logic. Provides methods for managing packages
+ * Interface for Package operations and business logic. Provides methods for managing packages.
  * including CRUD operations, batch processing, and specialized queries.
  *
  * @author SpringApi Team
  * @version 1.0
  * @since 2024-01-15
  */
-public interface IPackageSubTranslator {
+public interface PackageSubTranslator {
 
   /**
-   * Retrieves packages in paginated batches with optional filtering and sorting. Supports
+   * Retrieves packages in paginated batches with optional filtering and sorting. Supports.
    * pagination, sorting by multiple fields, and filtering capabilities.
    *
    * @param paginationBaseRequestModel The request model containing pagination and filter parameters
@@ -84,12 +84,12 @@ public interface IPackageSubTranslator {
       Long requestingClientId);
 
   /**
-   * Creates multiple packages synchronously in a single operation (for testing). This is a
+   * Creates multiple packages synchronously in a single operation (for testing). This is a.
    * synchronous wrapper that processes packages immediately and returns results.
    *
    * @param packages List of PackageRequestModel containing the package data to insert
    * @return BulkInsertResponseModel containing success/failure details for each package
    */
-  com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreatePackages(
+  com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkCreatePackages(
       java.util.List<PackageRequestModel> packages);
 }

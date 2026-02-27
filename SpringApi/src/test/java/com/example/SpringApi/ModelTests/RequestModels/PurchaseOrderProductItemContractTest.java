@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.RequestModels;
+package com.example.springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class PurchaseOrderProductItemContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem.class)) {
+        com.example.springapi.models.requestmodels.PurchaseOrderProductItem.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem.class);
+                  com.example.springapi.models.requestmodels.PurchaseOrderProductItem.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +64,7 @@ class PurchaseOrderProductItemContractTest {
   void PurchaseOrderProductItem_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem.class
+        com.example.springapi.models.requestmodels.PurchaseOrderProductItem.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,9 +82,9 @@ class PurchaseOrderProductItemContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem createInstance() {
-    return (com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem)
-        instantiate(com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem.class);
+  private com.example.springapi.models.requestmodels.PurchaseOrderProductItem createInstance() {
+    return (com.example.springapi.models.requestmodels.PurchaseOrderProductItem)
+        instantiate(com.example.springapi.models.requestmodels.PurchaseOrderProductItem.class);
   }
 
   private Object instantiate(Class<?> clazz) {

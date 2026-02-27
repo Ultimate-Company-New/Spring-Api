@@ -1,4 +1,4 @@
-package com.example.SpringApi.Helpers;
+package com.example.springapi.helpers;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,6 +13,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.stream.Collectors;
 
+/**
+ * Represents the imgbb helper component.
+ */
 public class ImgbbHelper {
   // --- Configuration ---
   private final String imgbbApiKey;
@@ -31,13 +34,7 @@ public class ImgbbHelper {
   }
 
   /**
-   * Generates a custom filename for client logo ImgBB uploads. Format:
-   * <environment>-<clientName>-<date>-Logo Note: Extension is NOT included as ImgBB adds it
-   * automatically based on image type
-   *
-   * @param environment The environment name (e.g., "localhost", "production")
-   * @param clientName The client name (spaces replaced with underscores)
-   * @return The formatted filename (without extension)
+   * Executes generate custom file name for client logo.
    */
   public static String generateCustomFileNameForClientLogo(String environment, String clientName) {
     // Replace spaces with underscores in client name
@@ -52,15 +49,7 @@ public class ImgbbHelper {
   }
 
   /**
-   * Generates a custom filename for user profile picture ImgBB uploads. Format:
-   * <environment>-<clientName><userId>_<timestamp>-UserProfile Example:
-   * localhost-My_Company_123_11_01_2024_03_45_30_PM-UserProfile Note: Extension is NOT included as
-   * ImgBB adds it automatically based on image type
-   *
-   * @param environment The environment name (e.g., "localhost", "production")
-   * @param clientName The client name (spaces replaced with underscores)
-   * @param userId The user ID
-   * @return The formatted filename (without extension)
+   * Executes generate custom file name for user profile.
    */
   public static String generateCustomFileNameForUserProfile(
       String environment, String clientName, Long userId) {
@@ -76,17 +65,7 @@ public class ImgbbHelper {
   }
 
   /**
-   * Generates a custom filename for product image ImgBB uploads. Format:
-   * <environment>-<clientName><productId>_<timestamp>-<imageName> Example:
-   * localhost-My_Company_456_11_01_2024_03_45_30_PM-main Note: Extension is NOT included as ImgBB
-   * adds it automatically based on image type
-   *
-   * @param environment The environment name (e.g., "localhost", "production")
-   * @param clientName The client name (spaces replaced with underscores)
-   * @param productId The product ID
-   * @param imageName The image name - use constants from {@link
-   *     com.example.SpringApi.Constants.ProductImageConstants}
-   * @return The formatted filename (without extension)
+   * Executes generate custom file name for product image.
    */
   public static String generateCustomFileNameForProductImage(
       String environment, String clientName, Long productId, String imageName) {
@@ -102,16 +81,7 @@ public class ImgbbHelper {
   }
 
   /**
-   * Generates a custom filename for purchase order attachment ImgBB uploads. Format:
-   * <environment>-<clientName><purchaseOrderId>_<timestamp>-<attachmentName> Example:
-   * localhost-My_Company_789_11_01_2024_03_45_30_PM-Invoice_Document Note: Extension is NOT
-   * included as ImgBB adds it automatically based on file type
-   *
-   * @param environment The environment name (e.g., "localhost", "production")
-   * @param clientName The client name (spaces replaced with underscores)
-   * @param purchaseOrderId The purchase order ID
-   * @param attachmentName The attachment name (from fileName field, sanitized)
-   * @return The formatted filename (without extension)
+   * Executes generate custom file name for purchase order attachment.
    */
   public static String generateCustomFileNameForPurchaseOrderAttachment(
       String environment, String clientName, Long purchaseOrderId, String attachmentName) {
@@ -257,14 +227,14 @@ public class ImgbbHelper {
   }
 
   /**
-   * Attempts to download the file contents as a raw byte array from the public URL. NOTE: ImgBB
+   * Attempts to download the file contents as a raw byte array from the public URL. NOTE: ImgBB.
    * does not offer a direct API endpoint to get the image contents, so we download directly from
    * the public URL.
    *
    * @param publicUrl The public URL of the image hosted on ImgBB.
    * @return The image data as a byte array, or null on failure.
    */
-  public byte[] downloadFileAsBytesFromImgBB(String publicUrl) {
+  public byte[] downloadFileAsBytesFromImgbb(String publicUrl) {
     try {
       URL url = java.net.URI.create(publicUrl).toURL();
       HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -286,7 +256,7 @@ public class ImgbbHelper {
   }
 
   /**
-   * Checks if a file exists on ImgBB by checking the image info endpoint. This requires the ImgBB
+   * Checks if a file exists on ImgBB by checking the image info endpoint. This requires the ImgBB.
    * image ID, which must be extracted from the public URL or stored during the upload.
    *
    * @param imageId The ImgBB image ID (e.g., "2ndCYJK" from ibb.co/2ndCYJK).
@@ -312,7 +282,9 @@ public class ImgbbHelper {
 
   /** Helper method to read the content of an InputStream into a String. */
   private String getResponseContent(InputStream inputStream) throws IOException {
-    if (inputStream == null) return "No content";
+    if (inputStream == null) {
+      return "No content";
+    }
     try (BufferedReader reader =
         new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
       return reader.lines().collect(Collectors.joining("\n"));
@@ -320,7 +292,7 @@ public class ImgbbHelper {
   }
 
   /**
-   * Simple (and brittle) method to extract the display URL from the ImgBB JSON response. A robust
+   * Simple (and brittle) method to extract the display URL from the ImgBB JSON response. A robust.
    * solution should use a JSON parsing library (like Gson or Jackson).
    */
   private String extractUrlFromJson(String json) {
@@ -339,7 +311,7 @@ public class ImgbbHelper {
   }
 
   /**
-   * Extracts the delete hash from the ImgBB JSON response. The delete hash is used to delete the
+   * Extracts the delete hash from the ImgBB JSON response. The delete hash is used to delete the.
    * image later.
    */
   private String extractDeleteHashFromJson(String json) {
@@ -369,6 +341,9 @@ public class ImgbbHelper {
     private final String base64Data;
     private final String notes;
 
+    /**
+     * Initializes AttachmentUploadRequest.
+     */
     public AttachmentUploadRequest(String fileName, String base64Data, String notes) {
       this.fileName = fileName;
       this.base64Data = base64Data;
@@ -394,6 +369,9 @@ public class ImgbbHelper {
     private final String deleteHash;
     private final String notes;
 
+    /**
+     * Initializes AttachmentUploadResult.
+     */
     public AttachmentUploadResult(String url, String deleteHash, String notes) {
       this.url = url;
       this.deleteHash = deleteHash;
@@ -455,7 +433,7 @@ public class ImgbbHelper {
   }
 
   /**
-   * Deletes multiple images from ImgBB using their delete hashes. Continues even if some deletions
+   * Deletes multiple images from ImgBB using their delete hashes. Continues even if some deletions.
    * fail.
    *
    * @param deleteHashes List of delete hashes to remove from ImgBB

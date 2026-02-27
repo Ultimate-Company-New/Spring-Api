@@ -1,7 +1,7 @@
-package com.example.SpringApi.FilterQueryBuilder;
+package com.example.springapi.filterquerybuilder;
 
-import com.example.SpringApi.Models.DatabaseModels.UserLog;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
+import com.example.springapi.models.databasemodels.UserLog;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.util.Arrays;
@@ -95,7 +95,7 @@ public class UserLogFilterQueryBuilder extends BaseFilterQueryBuilder {
   }
 
   /**
-   * Gets the column type for validation purposes
+   * Gets the column type for validation purposes.
    *
    * @param column The column name
    * @return "string", "number", "date", or "boolean"
@@ -115,7 +115,7 @@ public class UserLogFilterQueryBuilder extends BaseFilterQueryBuilder {
   // ==================== Query Execution Method ====================
 
   /**
-   * Finds paginated user logs with multiple filter conditions combined with AND/OR logic. Builds
+   * Finds paginated user logs with multiple filter conditions combined with AND/OR logic. Builds.
    * the WHERE clause dynamically and executes the query.
    *
    * @param userId The user ID to filter logs by
@@ -176,7 +176,7 @@ public class UserLogFilterQueryBuilder extends BaseFilterQueryBuilder {
       countTypedQuery.setParameter(entry.getKey(), entry.getValue());
     }
 
-    Long totalCount = countTypedQuery.getSingleResult();
+    final Long totalCount = countTypedQuery.getSingleResult();
 
     // Execute main query with pagination
     TypedQuery<UserLog> mainQuery = entityManager.createQuery(baseQuery, UserLog.class);

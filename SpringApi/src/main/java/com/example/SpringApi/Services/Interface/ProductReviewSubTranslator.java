@@ -1,9 +1,9 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.ProductReviewRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.ProductReviewResponseModel;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.ProductReviewRequestModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.ProductReviewResponseModel;
 
 /**
  * Interface for ProductReview operations and data access.
@@ -15,7 +15,7 @@ import com.example.SpringApi.Models.ResponseModels.ProductReviewResponseModel;
  * @version 1.0
  * @since 2024-01-15
  */
-public interface IProductReviewSubTranslator {
+public interface ProductReviewSubTranslator {
 
   /**
    * Inserts a new product review.

@@ -1,4 +1,4 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -7,8 +7,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Response model for order-level shipping optimization. Returns the cheapest allocation option with
- * detailed breakdown of products, packaging, and shipping per location.
+ * Response model for order-level shipping optimization. Returns the cheapest allocation option
+ * with. detailed breakdown of products, packaging, and shipping per location.
  *
  * <p>Reuses existing response models (ProductResponseModel, PickupLocationResponseModel,
  * PackageResponseModel, ShippingCalculationResponseModel.CourierOption) so frontend can extract
@@ -19,7 +19,7 @@ import lombok.Setter;
 public class OrderOptimizationResponseModel {
 
   /**
-   * Human-readable description of the allocation. Example: "All from Bangalore Warehouse" or
+   * Human-readable description of the allocation. Example: "All from Bangalore Warehouse" or.
    * "Split: Mumbai + Bangalore"
    */
   private String description;
@@ -81,8 +81,8 @@ public class OrderOptimizationResponseModel {
   public static class Shipment {
 
     /**
-     * Full pickup location details using existing PickupLocationResponseModel. Frontend can access:
-     * pickupLocationId, addressNickName, address (with all address fields), etc.
+     * Full pickup location details using existing PickupLocationResponseModel. Frontend can
+     * access:. pickupLocationId, addressNickName, address (with all address fields), etc.
      */
     private PickupLocationResponseModel pickupLocation;
 
@@ -108,9 +108,9 @@ public class OrderOptimizationResponseModel {
     private BigDecimal totalCost = BigDecimal.ZERO;
 
     /**
-     * Available courier options for this location (sorted by rate, cheapest first). Frontend should
-     * select from this list. Uses existing ShippingCalculationResponseModel.CourierOption. Note:
-     * hasCouriersAvailable can be derived from availableCouriers.isEmpty()
+     * Available courier options for this location (sorted by rate, cheapest first). Frontend
+     * should. select from this list. Uses existing ShippingCalculationResponseModel.CourierOption.
+     * Note: hasCouriersAvailable can be derived from availableCouriers.isEmpty()
      */
     private List<ShippingCalculationResponseModel.CourierOption> availableCouriers =
         new ArrayList<>();
@@ -122,7 +122,7 @@ public class OrderOptimizationResponseModel {
   public static class ProductAllocation {
 
     /**
-     * Full product details using existing ProductResponseModel. Frontend can access: productId,
+     * Full product details using existing ProductResponseModel. Frontend can access: productId,.
      * title, weightKgs, length, breadth, height, mainImageUrl, price, discount, category, etc.
      */
     private ProductResponseModel product;
@@ -140,7 +140,7 @@ public class OrderOptimizationResponseModel {
   public static class PackageUsage {
 
     /**
-     * Full package details using existing PackageResponseModel. Frontend can access: packageId,
+     * Full package details using existing PackageResponseModel. Frontend can access: packageId,.
      * packageName, packageType, length, breadth, height, maxWeight, pricePerUnit, etc.
      */
     private PackageResponseModel packageInfo;
@@ -155,14 +155,14 @@ public class OrderOptimizationResponseModel {
     private List<Long> productIds = new ArrayList<>();
 
     /**
-     * Detailed breakdown of products and quantities in these packages. Maps productId -> quantity
+     * Detailed breakdown of products and quantities in these packages. Maps productId -> quantity.
      * packed in this package type.
      */
     private List<PackageProductDetail> productDetails = new ArrayList<>();
   }
 
   /**
-   * Detail of a product packed in a package. Only includes productId - full product details are in
+   * Detail of a product packed in a package. Only includes productId - full product details are in.
    * Shipment.products list.
    */
   @Getter

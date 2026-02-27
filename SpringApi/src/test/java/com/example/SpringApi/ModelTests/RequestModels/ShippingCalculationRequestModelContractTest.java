@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.RequestModels;
+package com.example.springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class ShippingCalculationRequestModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.RequestModels.ShippingCalculationRequestModel.class)) {
+        com.example.springapi.models.requestmodels.ShippingCalculationRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.RequestModels.ShippingCalculationRequestModel.class);
+                  com.example.springapi.models.requestmodels.ShippingCalculationRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +64,7 @@ class ShippingCalculationRequestModelContractTest {
   void ShippingCalculationRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.RequestModels.ShippingCalculationRequestModel.class
+        com.example.springapi.models.requestmodels.ShippingCalculationRequestModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,11 +82,11 @@ class ShippingCalculationRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.RequestModels.ShippingCalculationRequestModel
+  private com.example.springapi.models.requestmodels.ShippingCalculationRequestModel
       createInstance() {
-    return (com.example.SpringApi.Models.RequestModels.ShippingCalculationRequestModel)
+    return (com.example.springapi.models.requestmodels.ShippingCalculationRequestModel)
         instantiate(
-            com.example.SpringApi.Models.RequestModels.ShippingCalculationRequestModel.class);
+            com.example.springapi.models.requestmodels.ShippingCalculationRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

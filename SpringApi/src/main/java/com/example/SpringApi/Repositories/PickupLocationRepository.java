@@ -1,6 +1,6 @@
-package com.example.SpringApi.Repositories;
+package com.example.springapi.repositories;
 
-import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
+import com.example.springapi.models.databasemodels.PickupLocation;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,22 +21,27 @@ import org.springframework.stereotype.Repository;
 public interface PickupLocationRepository extends JpaRepository<PickupLocation, Long> {
 
   @Query(
-      "SELECT p FROM PickupLocation p JOIN FETCH p.address WHERE p.addressNickName = :addressNickName AND p.clientId = :clientId")
+      "SELECT p FROM PickupLocation p JOIN FETCH p.address WHERE "
+          + "p.addressNickName = :addressNickName AND p.clientId = :clientId")
   PickupLocation findByAddressNickNameAndClientId(
       @Param("addressNickName") String addressNickName, @Param("clientId") Long clientId);
 
   @Query(
-      "SELECT p FROM PickupLocation p JOIN FETCH p.address WHERE p.pickupLocationId = :pickupLocationId AND p.clientId = :clientId")
+      "SELECT p FROM PickupLocation p JOIN FETCH p.address WHERE "
+          + "p.pickupLocationId = :pickupLocationId AND p.clientId = :clientId")
   PickupLocation findPickupLocationByIdAndClientId(
       @Param("pickupLocationId") Long pickupLocationId, @Param("clientId") Long clientId);
 
   @Query(
-      "SELECT COUNT(p.pickupLocationId) FROM PickupLocation p WHERE p.pickupLocationId = :pickupLocationId AND p.clientId = :clientId")
+      "SELECT COUNT(p.pickupLocationId) FROM PickupLocation p WHERE "
+          + "p.pickupLocationId = :pickupLocationId AND p.clientId = :clientId")
   long countByPickupLocationIdAndClientId(
       @Param("pickupLocationId") Long pickupLocationId, @Param("clientId") Long clientId);
 
   @Query(
-      "SELECT p FROM PickupLocation p JOIN FETCH p.address WHERE p.clientId = :clientId AND (:includeDeleted = true OR p.isDeleted = false)")
+      "SELECT p FROM PickupLocation p JOIN FETCH p.address WHERE "
+          + "p.clientId = :clientId AND (:includeDeleted = true OR p.isDeleted = "
+          + "false)")
   List<PickupLocation> findAllWithAddressesByClientId(
       @Param("clientId") Long clientId, @Param("includeDeleted") boolean includeDeleted);
 }

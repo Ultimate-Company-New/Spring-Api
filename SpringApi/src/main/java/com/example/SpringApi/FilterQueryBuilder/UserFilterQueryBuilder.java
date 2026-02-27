@@ -1,7 +1,7 @@
-package com.example.SpringApi.FilterQueryBuilder;
+package com.example.springapi.filterquerybuilder;
 
-import com.example.SpringApi.Models.DatabaseModels.User;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
+import com.example.springapi.models.databasemodels.User;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.util.Arrays;
@@ -88,7 +88,8 @@ public class UserFilterQueryBuilder extends BaseFilterQueryBuilder {
       case "address":
         return "CONCAT(COALESCE(a.streetAddress, ''), ' ', COALESCE(a.streetAddress2, ''), ' ', "
             + "COALESCE(a.streetAddress3, ''), ' ', COALESCE(a.city, ''), ' ', "
-            + "COALESCE(a.state, ''), ' ', COALESCE(a.postalCode, ''), ' ', COALESCE(a.country, ''))";
+            + "COALESCE(a.state, ''), ' ', COALESCE(a.postalCode, ''), ' ', "
+            + "COALESCE(a.country, ''))";
       default:
         return "u." + column;
     }
@@ -110,7 +111,7 @@ public class UserFilterQueryBuilder extends BaseFilterQueryBuilder {
   }
 
   /**
-   * Gets the column type for validation purposes
+   * Gets the column type for validation purposes.
    *
    * @param column The column name
    * @return "string", "number", "date", or "boolean"
@@ -130,7 +131,7 @@ public class UserFilterQueryBuilder extends BaseFilterQueryBuilder {
   // ==================== Query Execution Method ====================
 
   /**
-   * Finds paginated users with multiple filter conditions combined with AND/OR logic. Builds the
+   * Finds paginated users with multiple filter conditions combined with AND/OR logic. Builds the.
    * WHERE clause dynamically and executes the query.
    *
    * @param clientId The client ID to filter users by
@@ -212,7 +213,7 @@ public class UserFilterQueryBuilder extends BaseFilterQueryBuilder {
       countTypedQuery.setParameter(entry.getKey(), entry.getValue());
     }
 
-    Long totalCount = countTypedQuery.getSingleResult();
+    final Long totalCount = countTypedQuery.getSingleResult();
 
     // Execute main query with pagination
     TypedQuery<User> mainQuery = entityManager.createQuery(baseQuery, User.class);

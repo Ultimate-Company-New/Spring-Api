@@ -1,11 +1,11 @@
-package com.example.SpringApi.ServiceTests.UserGroup;
+package com.example.springapi.ServiceTests.UserGroup;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.UserGroupController;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.RequestModels.UserGroupRequestModel;
+import com.example.springapi.controllers.UserGroupController;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.requestmodels.UserGroupRequestModel;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;

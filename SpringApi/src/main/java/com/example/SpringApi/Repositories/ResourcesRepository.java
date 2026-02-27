@@ -1,6 +1,6 @@
-package com.example.SpringApi.Repositories;
+package com.example.springapi.repositories;
 
-import com.example.SpringApi.Models.DatabaseModels.Resources;
+import com.example.springapi.models.databasemodels.Resources;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -36,7 +36,8 @@ public interface ResourcesRepository extends JpaRepository<Resources, Long> {
    * @return List of resources for the entity
    */
   @Query(
-      "SELECT r FROM Resources r WHERE r.entityId = :entityId AND r.entityType = :entityType ORDER BY r.createdAt DESC")
+      "SELECT r FROM Resources r WHERE r.entityId = :entityId AND "
+          + "r.entityType = :entityType ORDER BY r.createdAt DESC")
   List<Resources> findByEntityIdAndEntityType(
       @Param("entityId") Long entityId, @Param("entityType") String entityType);
 
@@ -48,7 +49,8 @@ public interface ResourcesRepository extends JpaRepository<Resources, Long> {
    * @return List of resources for the entities
    */
   @Query(
-      "SELECT r FROM Resources r WHERE r.entityId IN :entityIds AND r.entityType = :entityType ORDER BY r.entityId, r.createdAt DESC")
+      "SELECT r FROM Resources r WHERE r.entityId IN :entityIds AND "
+          + "r.entityType = :entityType ORDER BY r.entityId, r.createdAt DESC")
   List<Resources> findByEntityIdInAndEntityType(
       @Param("entityIds") List<Long> entityIds, @Param("entityType") String entityType);
 

@@ -1,20 +1,20 @@
-package com.example.SpringApi.Controllers;
+package com.example.springapi.controllers;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.Logging.ContextualLogger;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.RequestModels.CashPaymentRequestModel;
-import com.example.SpringApi.Models.RequestModels.ProcessPaymentAndShipmentRequestModel;
-import com.example.SpringApi.Models.RequestModels.RazorpayOrderRequestModel;
-import com.example.SpringApi.Models.RequestModels.RazorpayVerifyRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PaymentVerificationResponseModel;
-import com.example.SpringApi.Models.ResponseModels.RazorpayOrderResponseModel;
-import com.example.SpringApi.Services.Interface.IPaymentSubTranslator;
-import com.example.SpringApi.Services.ShippingService;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.logging.ContextualLogger;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.requestmodels.CashPaymentRequestModel;
+import com.example.springapi.models.requestmodels.ProcessPaymentAndShipmentRequestModel;
+import com.example.springapi.models.requestmodels.RazorpayOrderRequestModel;
+import com.example.springapi.models.requestmodels.RazorpayVerifyRequestModel;
+import com.example.springapi.models.responsemodels.ErrorResponseModel;
+import com.example.springapi.models.responsemodels.PaymentVerificationResponseModel;
+import com.example.springapi.models.responsemodels.RazorpayOrderResponseModel;
+import com.example.springapi.services.ShippingService;
+import com.example.springapi.services.interfaces.PaymentSubTranslator;
 import com.itextpdf.text.DocumentException;
 import freemarker.template.TemplateException;
 import java.io.IOException;
@@ -24,7 +24,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST Controller for Payment operations.
@@ -41,11 +46,11 @@ public class PaymentController {
 
   private static final ContextualLogger logger =
       ContextualLogger.getLogger(PaymentController.class);
-  private final IPaymentSubTranslator paymentService;
+  private final PaymentSubTranslator paymentService;
   private final ShippingService shippingService;
 
   @Autowired
-  public PaymentController(IPaymentSubTranslator paymentService, ShippingService shippingService) {
+  public PaymentController(PaymentSubTranslator paymentService, ShippingService shippingService) {
     this.paymentService = paymentService;
     this.shippingService = shippingService;
   }
@@ -102,7 +107,7 @@ public class PaymentController {
   }
 
   /**
-   * Creates a Razorpay order for a follow-up payment (order already approved/partially paid). This
+   * Creates a Razorpay order for a follow-up payment (order already approved/partially paid). This.
    * endpoint allows orders with APPROVED or APPROVED_WITH_PARTIAL_PAYMENT status.
    *
    * @param request The order request containing purchaseOrderId and optional amount
@@ -482,7 +487,7 @@ public class PaymentController {
   @GetMapping("/downloadPaymentReceipt/{paymentId}")
   public ResponseEntity<?> downloadPaymentReceipt(@PathVariable Long paymentId) {
     try {
-      byte[] pdfBytes = paymentService.generatePaymentReceiptPDF(paymentId);
+      byte[] pdfBytes = paymentService.generatePaymentReceiptPdf(paymentId);
 
       HttpHeaders headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_PDF);

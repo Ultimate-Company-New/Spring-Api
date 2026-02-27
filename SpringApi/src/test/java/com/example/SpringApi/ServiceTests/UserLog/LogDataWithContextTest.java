@@ -1,11 +1,11 @@
-package com.example.SpringApi.ServiceTests.UserLog;
+package com.example.springapi.ServiceTests.UserLog;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.DatabaseModels.UserLog;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.models.databasemodels.UserLog;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -497,13 +497,13 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
   @DisplayName("logDataWithContext - Controller permission forbidden")
   void logDataWithContext_controller_permission_forbidden() throws NoSuchMethodException {
     // Arrange
-    com.example.SpringApi.Models.RequestModels.UserLogsRequestModel request =
-        new com.example.SpringApi.Models.RequestModels.UserLogsRequestModel();
+    com.example.springapi.models.requestmodels.UserLogsRequestModel request =
+        new com.example.springapi.models.requestmodels.UserLogsRequestModel();
     stubServiceThrowsUnauthorizedException();
     java.lang.reflect.Method method =
-        com.example.SpringApi.Controllers.UserLogController.class.getMethod(
+        com.example.springapi.controllers.UserLogController.class.getMethod(
             "fetchUserLogsInBatches",
-            com.example.SpringApi.Models.RequestModels.UserLogsRequestModel.class);
+            com.example.springapi.models.requestmodels.UserLogsRequestModel.class);
 
     // Act
     org.springframework.http.ResponseEntity<?> response =
@@ -518,7 +518,7 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
     assertTrue(
         annotation
             .value()
-            .contains(com.example.SpringApi.Models.Authorizations.VIEW_USER_PERMISSION),
+            .contains(com.example.springapi.models.Authorizations.VIEW_USER_PERMISSION),
         "@PreAuthorize annotation should check for VIEW_USER_PERMISSION");
   }
 
@@ -558,10 +558,10 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
   @DisplayName("logDataWithContext - Service controller delegates properly")
   void logDataWithContext_serviceControllerDelegatesProperly_success() {
     // Arrange
-    com.example.SpringApi.Models.RequestModels.UserLogsRequestModel request =
-        new com.example.SpringApi.Models.RequestModels.UserLogsRequestModel();
+    com.example.springapi.models.requestmodels.UserLogsRequestModel request =
+        new com.example.springapi.models.requestmodels.UserLogsRequestModel();
     stubUserLogServiceFetchUserLogsInBatchesMock(
-        request, new com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel<>());
+        request, new com.example.springapi.models.responsemodels.PaginationBaseResponseModel<>());
 
     // Act
     org.springframework.http.ResponseEntity<?> response =

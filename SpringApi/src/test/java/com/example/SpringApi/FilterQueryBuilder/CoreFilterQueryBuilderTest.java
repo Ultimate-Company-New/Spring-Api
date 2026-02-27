@@ -1,17 +1,17 @@
-package com.example.SpringApi.FilterQueryBuilder;
+package com.example.springapi.filterquerybuilder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.example.SpringApi.Models.DatabaseModels.Lead;
-import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
-import com.example.SpringApi.Models.DatabaseModels.ProductReview;
-import com.example.SpringApi.Models.DatabaseModels.Promo;
-import com.example.SpringApi.Models.DatabaseModels.Shipment;
-import com.example.SpringApi.Models.DatabaseModels.User;
-import com.example.SpringApi.Models.DatabaseModels.UserGroup;
-import com.example.SpringApi.Models.DatabaseModels.UserLog;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
+import com.example.springapi.models.databasemodels.Lead;
+import com.example.springapi.models.databasemodels.PickupLocation;
+import com.example.springapi.models.databasemodels.ProductReview;
+import com.example.springapi.models.databasemodels.Promo;
+import com.example.springapi.models.databasemodels.Shipment;
+import com.example.springapi.models.databasemodels.User;
+import com.example.springapi.models.databasemodels.UserGroup;
+import com.example.springapi.models.databasemodels.UserLog;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

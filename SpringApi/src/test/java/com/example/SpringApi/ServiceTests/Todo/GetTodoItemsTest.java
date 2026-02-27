@@ -1,12 +1,12 @@
-package com.example.SpringApi.ServiceTests.Todo;
+package com.example.springapi.ServiceTests.Todo;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.DatabaseModels.Todo;
-import com.example.SpringApi.Models.ResponseModels.TodoResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.databasemodels.Todo;
+import com.example.springapi.models.responsemodels.TodoResponseModel;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

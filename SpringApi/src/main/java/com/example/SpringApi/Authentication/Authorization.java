@@ -1,19 +1,25 @@
-package com.example.SpringApi.Authentication;
+package com.example.springapi.authentication;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.PermissionException;
-import com.example.SpringApi.Logging.ContextualLogger;
-import com.example.SpringApi.Models.DatabaseModels.Permission;
-import com.example.SpringApi.Models.DatabaseModels.UserClientMapping;
-import com.example.SpringApi.Repositories.PermissionRepository;
-import com.example.SpringApi.Repositories.UserClientMappingRepository;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.PermissionException;
+import com.example.springapi.logging.ContextualLogger;
+import com.example.springapi.models.databasemodels.Permission;
+import com.example.springapi.models.databasemodels.UserClientMapping;
+import com.example.springapi.repositories.PermissionRepository;
+import com.example.springapi.repositories.UserClientMappingRepository;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+/**
+ * Represents the authorization component.
+ */
 @Service("customAuthorization")
 public class Authorization {
   private static final ContextualLogger logger = ContextualLogger.getLogger(Authorization.class);
@@ -23,6 +29,9 @@ public class Authorization {
   private final PermissionRepository permissionRepository;
   private final UserClientMappingRepository userClientMappingRepository;
 
+  /**
+   * Initializes Authorization.
+   */
   @Autowired
   public Authorization(
       HttpServletRequest request,
@@ -64,6 +73,9 @@ public class Authorization {
     }
   }
 
+  /**
+   * Checks whether it has authority.
+   */
   public boolean hasAuthority(String userPermission) {
     validateToken();
     if (userPermission == null || userPermission.isEmpty()) {
@@ -78,6 +90,9 @@ public class Authorization {
     return true;
   }
 
+  /**
+   * Checks whether allowed.
+   */
   public boolean isAllowed(String userPermission, List<Long> permissionIds) {
     if (permissionIds != null && !permissionIds.isEmpty()) {
       List<Permission> permissions = permissionRepository.findAllById(permissionIds);

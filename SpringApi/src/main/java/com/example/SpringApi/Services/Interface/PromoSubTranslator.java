@@ -1,10 +1,10 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Models.DatabaseModels.Promo;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.PromoRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PromoResponseModel;
+import com.example.springapi.models.databasemodels.Promo;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.PromoRequestModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.PromoResponseModel;
 
 /**
  * Interface for Promo operations and data access.
@@ -16,7 +16,7 @@ import com.example.SpringApi.Models.ResponseModels.PromoResponseModel;
  * @version 1.0
  * @since 2024-01-15
  */
-public interface IPromoSubTranslator {
+public interface PromoSubTranslator {
 
   /**
    * Retrieves promos in batches with pagination support.

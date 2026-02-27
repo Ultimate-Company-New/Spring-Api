@@ -1,10 +1,19 @@
-package com.example.SpringApi.Models.DatabaseModels;
+package com.example.springapi.models.databasemodels;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem;
-import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
-import jakarta.persistence.*;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.requestmodels.PurchaseOrderProductItem;
+import com.example.springapi.models.requestmodels.PurchaseOrderRequestModel;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -307,8 +316,8 @@ public class PurchaseOrder {
   }
 
   /**
-   * Sets the approval fields for this purchase order. Also clears rejection fields since a PO can't
-   * be both approved and rejected.
+   * Sets the approval fields for this purchase order. Also clears rejection fields since a PO
+   * can't. be both approved and rejected.
    *
    * @param modifiedByUser The user performing the approval
    * @param approvedByUserId The ID of the user approving the purchase order
@@ -326,8 +335,8 @@ public class PurchaseOrder {
   }
 
   /**
-   * Sets the rejection fields for this purchase order. Also clears approval fields since a PO can't
-   * be both approved and rejected.
+   * Sets the rejection fields for this purchase order. Also clears approval fields since a PO
+   * can't. be both approved and rejected.
    *
    * @param modifiedByUser The user performing the rejection
    * @param rejectedByUserId The ID of the user rejecting the purchase order

@@ -1,7 +1,7 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.DatabaseModels.Package;
-import com.example.SpringApi.Models.DatabaseModels.ShipmentPackageProduct;
+import com.example.springapi.models.databasemodels.Package;
+import com.example.springapi.models.databasemodels.ShipmentPackageProduct;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -42,7 +42,7 @@ public class PackageResponseModel {
   private String notes;
 
   /**
-   * Map of pickup location ID to pickup location inventory data. Shows package inventory at each
+   * Map of pickup location ID to pickup location inventory data. Shows package inventory at each.
    * pickup location with full audit information. Uses PackagePickupLocationMappingResponseModel for
    * complete mapping details.
    */
@@ -91,7 +91,7 @@ public class PackageResponseModel {
    */
   public PackageResponseModel(
       Package packageEntity,
-      com.example.SpringApi.Models.DatabaseModels.ShipmentPackage shipmentPackage) {
+      com.example.springapi.models.databasemodels.ShipmentPackage shipmentPackage) {
     // First populate from Package
     this(packageEntity);
 

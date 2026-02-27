@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.RequestModels;
+package com.example.springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class AddressRequestModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.SpringApi.Models.RequestModels.AddressRequestModel.class)) {
+    if (hasNoArgConstructor(com.example.springapi.models.requestmodels.AddressRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
+              .constructType(com.example.springapi.models.requestmodels.AddressRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +62,7 @@ class AddressRequestModelContractTest {
   void AddressRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.RequestModels.AddressRequestModel.class
+        com.example.springapi.models.requestmodels.AddressRequestModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -80,9 +80,9 @@ class AddressRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.RequestModels.AddressRequestModel createInstance() {
-    return (com.example.SpringApi.Models.RequestModels.AddressRequestModel)
-        instantiate(com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
+  private com.example.springapi.models.requestmodels.AddressRequestModel createInstance() {
+    return (com.example.springapi.models.requestmodels.AddressRequestModel)
+        instantiate(com.example.springapi.models.requestmodels.AddressRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

@@ -1,11 +1,11 @@
-package com.example.SpringApi.Models.ShippingResponseModel;
+package com.example.springapi.models.shippingresponsemodel;
 
 import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
-/** Response model for ShipRocket label generation API. POST /courier/generate/label */
+/** Response model for ShipRocket label generation API. POST /courier/generate/label. */
 @Getter
 @Setter
 public class ShipRocketLabelResponseModel {

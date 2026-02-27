@@ -1,11 +1,11 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Combined response model for QA Dashboard. Contains all data needed for the QA Dashboard in a
+ * Combined response model for QA Dashboard. Contains all data needed for the QA Dashboard in a.
  * single response.
  *
  * @author SpringApi Team
@@ -14,31 +14,34 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class QADashboardResponseModel {
+public class QaDashboardResponseModel {
 
-  /** List of all services with their methods, tests, and last run information */
-  private List<QAResponseModel> services;
+  /** List of all services with their methods, tests, and last run information. */
+  private List<QaResponseModel> services;
 
-  /** Coverage summary statistics */
+  /** Coverage summary statistics. */
   private CoverageSummaryData coverageSummary;
 
-  /** List of available service names */
+  /** List of available service names. */
   private List<String> availableServices;
 
-  /** Automated API tests (Playwright/API integration tests) - separate from unit tests */
+  /** Automated API tests (Playwright/API integration tests) - separate from unit tests. */
   private AutomatedApiTestsData automatedApiTests;
 
-  public QADashboardResponseModel() {}
+  public QaDashboardResponseModel() {}
 
-  public QADashboardResponseModel(
-      List<QAResponseModel> services,
+  public QaDashboardResponseModel(
+      List<QaResponseModel> services,
       CoverageSummaryData coverageSummary,
       List<String> availableServices) {
     this(services, coverageSummary, availableServices, null);
   }
 
-  public QADashboardResponseModel(
-      List<QAResponseModel> services,
+  /**
+   * Executes qa dashboard response model.
+   */
+  public QaDashboardResponseModel(
+      List<QaResponseModel> services,
       CoverageSummaryData coverageSummary,
       List<String> availableServices,
       AutomatedApiTestsData automatedApiTests) {
@@ -48,7 +51,7 @@ public class QADashboardResponseModel {
     this.automatedApiTests = automatedApiTests;
   }
 
-  /** Coverage summary data */
+  /** Coverage summary data. */
   @Getter
   @Setter
   public static class CoverageSummaryData {
@@ -61,6 +64,9 @@ public class QADashboardResponseModel {
 
     public CoverageSummaryData() {}
 
+    /**
+     * Executes coverage summary data.
+     */
     public CoverageSummaryData(
         int totalServices,
         int totalMethods,
@@ -77,7 +83,7 @@ public class QADashboardResponseModel {
     }
   }
 
-  /** Per-service breakdown in coverage summary */
+  /** Per-service breakdown in coverage summary. */
   @Getter
   @Setter
   public static class ServiceBreakdownData {
@@ -89,6 +95,9 @@ public class QADashboardResponseModel {
 
     public ServiceBreakdownData() {}
 
+    /**
+     * Executes service breakdown data.
+     */
     public ServiceBreakdownData(
         String serviceName,
         int totalMethods,
@@ -104,26 +113,29 @@ public class QADashboardResponseModel {
   }
 
   /**
-   * Automated API tests section (Playwright/API integration tests). Separate from unit tests -
+   * Automated API tests section (Playwright/API integration tests). Separate from unit tests -.
    * located in Spring-PlayWright-Automation project.
    */
   @Getter
   @Setter
   public static class AutomatedApiTestsData {
     /**
-     * Relative path to the ApiTests folder (e.g.,
+     * Relative path to the ApiTests folder (e.g.,.
      * "../Spring-PlayWright-Automation/src/test/java/com/ultimatecompany/tests/ApiTests")
      */
     private String basePath;
 
-    /** Total count of automated API test classes */
+    /** Total count of automated API test classes. */
     private int totalTests;
 
-    /** Tests grouped by category (Address, Client, Lead, etc.) */
+    /** Tests grouped by category (Address, Client, Lead, etc.). */
     private List<AutomatedApiTestCategory> categories;
 
     public AutomatedApiTestsData() {}
 
+    /**
+     * Executes automated api tests data.
+     */
     public AutomatedApiTestsData(
         String basePath, int totalTests, List<AutomatedApiTestCategory> categories) {
       this.basePath = basePath;
@@ -132,19 +144,22 @@ public class QADashboardResponseModel {
     }
   }
 
-  /** A category of automated API tests (e.g., Address, Client, Lead) */
+  /** A category of automated API tests (e.g., Address, Client, Lead). */
   @Getter
   @Setter
   public static class AutomatedApiTestCategory {
     private String categoryName;
 
-    /** Relative path within ApiTests (e.g., "Address") */
+    /** Relative path within ApiTests (e.g., "Address"). */
     private String relativePath;
 
     private List<AutomatedApiTestInfo> tests;
 
     public AutomatedApiTestCategory() {}
 
+    /**
+     * Executes automated api test category.
+     */
     public AutomatedApiTestCategory(
         String categoryName, String relativePath, List<AutomatedApiTestInfo> tests) {
       this.categoryName = categoryName;
@@ -153,14 +168,14 @@ public class QADashboardResponseModel {
     }
   }
 
-  /** A single automated API test class */
+  /** A single automated API test class. */
   @Getter
   @Setter
   public static class AutomatedApiTestInfo {
-    /** Test class name (e.g., "GetAddressByClientIdTest") */
+    /** Test class name (e.g., "GetAddressByClientIdTest"). */
     private String testClass;
 
-    /** Relative path from ApiTests folder (e.g., "Address/GetAddressByClientIdTest.java") */
+    /** Relative path from ApiTests folder (e.g., "Address/GetAddressByClientIdTest.java"). */
     private String relativePath;
 
     public AutomatedApiTestInfo() {}

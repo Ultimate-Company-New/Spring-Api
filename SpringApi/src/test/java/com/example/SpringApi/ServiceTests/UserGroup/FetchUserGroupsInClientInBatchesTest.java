@@ -1,18 +1,18 @@
-package com.example.SpringApi.ServiceTests.UserGroup;
+package com.example.springapi.ServiceTests.UserGroup;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.UserGroupController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.DatabaseModels.UserGroup;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.UserGroupRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.UserGroupResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.UserGroupController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.databasemodels.UserGroup;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.UserGroupRequestModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.UserGroupResponseModel;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import org.junit.jupiter.api.DisplayName;

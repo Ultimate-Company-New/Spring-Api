@@ -1,17 +1,17 @@
-package com.example.SpringApi.ServiceTests.UserLog;
+package com.example.springapi.ServiceTests.UserLog;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.UserLogController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.DatabaseModels.UserLog;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.UserLogsRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.UserLogsResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.UserLogController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.databasemodels.UserLog;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.UserLogsRequestModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.UserLogsResponseModel;
 import java.lang.reflect.Method;
 import java.util.*;
 import org.junit.jupiter.api.DisplayName;

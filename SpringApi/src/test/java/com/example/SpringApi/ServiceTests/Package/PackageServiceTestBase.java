@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.Package;
+package com.example.springapi.ServiceTests.Package;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -11,20 +11,20 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-import com.example.SpringApi.Authentication.Authorization;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.FilterQueryBuilder.PackageFilterQueryBuilder;
-import com.example.SpringApi.Models.DatabaseModels.Package;
-import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
-import com.example.SpringApi.Models.RequestModels.PackageRequestModel;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository;
-import com.example.SpringApi.Repositories.PackageRepository;
-import com.example.SpringApi.Repositories.PickupLocationRepository;
-import com.example.SpringApi.Services.Interface.IPackageSubTranslator;
-import com.example.SpringApi.Services.PackageService;
-import com.example.SpringApi.Services.UserLogService;
+import com.example.springapi.authentication.Authorization;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.filterquerybuilder.PackageFilterQueryBuilder;
+import com.example.springapi.models.databasemodels.Package;
+import com.example.springapi.models.databasemodels.PackagePickupLocationMapping;
+import com.example.springapi.models.requestmodels.PackageRequestModel;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.repositories.PackagePickupLocationMappingRepository;
+import com.example.springapi.repositories.PackageRepository;
+import com.example.springapi.repositories.PickupLocationRepository;
+import com.example.springapi.services.PackageService;
+import com.example.springapi.services.UserLogService;
+import com.example.springapi.services.interfaces.PackageSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -68,7 +68,7 @@ abstract class PackageServiceTestBase {
 
   @Mock protected Authorization authorization;
 
-  @Mock IPackageSubTranslator packageServiceMock;
+  @Mock PackageSubTranslator packageServiceMock;
 
   @Mock protected PackageService concretePackageServiceMock;
 
@@ -178,7 +178,7 @@ abstract class PackageServiceTestBase {
   }
 
   protected void stubPackageFilterQueryBuilderFindPaginatedEntities(
-      org.springframework.data.domain.Page<com.example.SpringApi.Models.DatabaseModels.Package>
+      org.springframework.data.domain.Page<com.example.springapi.models.databasemodels.Package>
           result) {
     lenient()
         .when(
@@ -247,18 +247,18 @@ abstract class PackageServiceTestBase {
   }
 
   protected void stubPackageServiceGetPackagesByPickupLocationIdReturns(
-      List<com.example.SpringApi.Models.ResponseModels.PackageResponseModel> result) {
+      List<com.example.springapi.models.responsemodels.PackageResponseModel> result) {
     lenient().when(packageServiceMock.getPackagesByPickupLocationId(anyLong())).thenReturn(result);
   }
 
   protected void stubPackageServiceGetPackageByIdReturns(
-      com.example.SpringApi.Models.ResponseModels.PackageResponseModel result) {
+      com.example.springapi.models.responsemodels.PackageResponseModel result) {
     lenient().when(packageServiceMock.getPackageById(anyLong())).thenReturn(result);
   }
 
   protected void stubPackageServiceGetPackagesInBatchesReturns(
-      com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel<
-              com.example.SpringApi.Models.ResponseModels.PackageResponseModel>
+      com.example.springapi.models.responsemodels.PaginationBaseResponseModel<
+              com.example.springapi.models.responsemodels.PackageResponseModel>
           result) {
     lenient()
         .when(packageServiceMock.getPackagesInBatches(any(PaginationBaseRequestModel.class)))
@@ -268,38 +268,38 @@ abstract class PackageServiceTestBase {
   protected void stubPackageServiceThrowsUnauthorizedException() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(packageServiceMock)
         .togglePackage(anyLong());
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(packageServiceMock)
         .getPackagesByPickupLocationId(anyLong());
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(packageServiceMock)
         .updatePackage(any(PackageRequestModel.class));
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(packageServiceMock)
         .createPackage(any(PackageRequestModel.class));
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(packageServiceMock)
         .getPackageById(anyLong());
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(packageServiceMock)
         .getPackagesInBatches(any(PaginationBaseRequestModel.class));
   }
@@ -315,8 +315,8 @@ abstract class PackageServiceTestBase {
     lenient()
         .when(concretePackageServiceMock.getUserId())
         .thenThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED));
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED));
   }
 
   // ==================== FACTORY METHODS ====================

@@ -1,10 +1,10 @@
-package com.example.SpringApi.Models.ShippingResponseModel;
+package com.example.springapi.models.shippingresponsemodel;
 
 import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import lombok.Getter;
 import lombok.Setter;
 
-/** Response model for ShipRocket return order creation API. POST /orders/create/return */
+/** Response model for ShipRocket return order creation API. POST /orders/create/return. */
 @Getter
 @Setter
 public class ShipRocketReturnOrderResponseModel {

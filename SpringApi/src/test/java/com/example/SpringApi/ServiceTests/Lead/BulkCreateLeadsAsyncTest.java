@@ -1,11 +1,11 @@
-package com.example.SpringApi.ServiceTests.Lead;
+package com.example.springapi.ServiceTests.Lead;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.LeadController;
-import com.example.SpringApi.Models.RequestModels.LeadRequestModel;
+import com.example.springapi.controllers.LeadController;
+import com.example.springapi.models.requestmodels.LeadRequestModel;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

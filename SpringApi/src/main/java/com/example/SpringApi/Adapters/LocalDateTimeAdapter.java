@@ -1,10 +1,19 @@
-package com.example.SpringApi.Adapters;
+package com.example.springapi.adapters;
 
-import com.nimbusds.jose.shaded.gson.*;
+import com.nimbusds.jose.shaded.gson.JsonDeserializationContext;
+import com.nimbusds.jose.shaded.gson.JsonDeserializer;
+import com.nimbusds.jose.shaded.gson.JsonElement;
+import com.nimbusds.jose.shaded.gson.JsonParseException;
+import com.nimbusds.jose.shaded.gson.JsonPrimitive;
+import com.nimbusds.jose.shaded.gson.JsonSerializationContext;
+import com.nimbusds.jose.shaded.gson.JsonSerializer;
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Represents the local date time adapter component.
+ */
 public class LocalDateTimeAdapter
     implements JsonSerializer<LocalDateTime>, JsonDeserializer<LocalDateTime> {
   @Override

@@ -1,15 +1,15 @@
-package com.example.SpringApi.ServiceTests.Client;
+package com.example.springapi.ServiceTests.Client;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.ClientController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.DatabaseModels.Client;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.ClientController;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.databasemodels.Client;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

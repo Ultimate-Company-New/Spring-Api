@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.Authentication;
+package com.example.springapi.ServiceTests.Authentication;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -7,9 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import com.example.SpringApi.Authentication.CustomUserDetailsService;
-import com.example.SpringApi.Models.DatabaseModels.User;
-import com.example.SpringApi.Repositories.UserRepository;
+import com.example.springapi.authentication.CustomUserDetailsService;
+import com.example.springapi.models.databasemodels.User;
+import com.example.springapi.repositories.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

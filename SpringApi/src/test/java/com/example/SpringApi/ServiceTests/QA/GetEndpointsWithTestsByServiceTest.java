@@ -1,11 +1,11 @@
-package com.example.SpringApi.ServiceTests.QA;
+package com.example.springapi.ServiceTests.QA;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.SpringApi.Controllers.QAController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Models.ResponseModels.QAResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.QaController;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.models.responsemodels.QaResponseModel;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 /**
- * Unit tests for QAService.getEndpointsWithTestsByService() method.
+ * Unit tests for QaService.getEndpointsWithTestsByService() method.
  *
  * <p>Test Coverage: - Success scenarios (5 tests) - Failure tests (8 tests) - Edge cases (7 tests)
  */
@@ -36,14 +36,14 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
   @Test
   void getEndpointsWithTestsByService_s01_ValidService_Success() {
     // Arrange
-    String serviceName = "QAService";
+    String serviceName = "QaService";
 
     // Act
-    QAResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
+    QaResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
 
     // Assert
     assertNotNull(result);
-    assertEquals("QAService", result.getServiceName());
+    assertEquals("QaService", result.getServiceName());
     assertEquals("/api/QA", result.getBasePath());
   }
 
@@ -57,11 +57,11 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
     String serviceName = "QA";
 
     // Act
-    QAResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
+    QaResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
 
     // Assert
     assertNotNull(result);
-    assertEquals("QAService", result.getServiceName());
+    assertEquals("QaService", result.getServiceName());
   }
 
   /**
@@ -71,10 +71,10 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
   @Test
   void getEndpointsWithTestsByService_s03_serviceWithSuffix_returnsCorrectly() {
     // Arrange
-    String serviceName = "QAService";
+    String serviceName = "QaService";
 
     // Act
-    QAResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
+    QaResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
 
     // Assert
     assertNotNull(result);
@@ -96,7 +96,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
     // Act & Assert
     // May throw NotFoundException if case-sensitive
     try {
-      QAResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
+      QaResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
       assertNotNull(result);
       assertEquals("qaservice", result.getServiceName().toLowerCase());
     } catch (NotFoundException e) {
@@ -112,15 +112,15 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
   @Test
   void getEndpointsWithTestsByService_s05_knownService_returnsAllMethods() {
     // Arrange
-    String serviceName = "QAService";
+    String serviceName = "QaService";
 
     // Act
-    QAResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
+    QaResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
 
     // Assert
     assertNotNull(result);
     assertNotNull(result.getMethods());
-    assertEquals("QAService", result.getServiceName());
+    assertEquals("QaService", result.getServiceName());
     assertTrue(result.getTotalMethods() >= result.getMethods().size());
   }
 
@@ -144,7 +144,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
         assertThrows(
             NullPointerException.class,
             () -> qaService.getEndpointsWithTestsByService(serviceName));
-    assertEquals(ErrorMessages.QAErrorMessages.SERVICE_NAME_NULL, ex.getMessage());
+    assertEquals(ErrorMessages.QaErrorMessages.SERVICE_NAME_NULL, ex.getMessage());
   }
 
   /**
@@ -272,10 +272,10 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
   @Test
   void getEndpointsWithTestsByService_f09_serviceWithNoMethods_returnsEmptyMethodsList() {
     // Arrange
-    String serviceName = "QAService";
+    String serviceName = "QaService";
 
     // Act
-    QAResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
+    QaResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
 
     // Assert
     assertNotNull(result);
@@ -291,10 +291,10 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
   @Test
   void getEndpointsWithTestsByService_f10_serviceWithNoTests_returnsZeroCoverage() {
     // Arrange
-    String serviceName = "QAService";
+    String serviceName = "QaService";
 
     // Act
-    QAResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
+    QaResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
 
     // Assert
     assertNotNull(result);
@@ -310,11 +310,11 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
   @Test
   void getEndpointsWithTestsByService_f11_multipleCallsSameService_returnsSameData() {
     // Arrange
-    String serviceName = "QAService";
+    String serviceName = "QaService";
 
     // Act
-    QAResponseModel result1 = qaService.getEndpointsWithTestsByService(serviceName);
-    QAResponseModel result2 = qaService.getEndpointsWithTestsByService(serviceName);
+    QaResponseModel result1 = qaService.getEndpointsWithTestsByService(serviceName);
+    QaResponseModel result2 = qaService.getEndpointsWithTestsByService(serviceName);
 
     // Assert
     assertNotNull(result1);
@@ -330,14 +330,14 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
   @Test
   void getEndpointsWithTestsByService_f12_differentServices_returnsDifferentData() {
     // Arrange
-    String service1 = "QAService";
+    String service1 = "QaService";
 
     // Act
-    QAResponseModel result1 = qaService.getEndpointsWithTestsByService(service1);
+    QaResponseModel result1 = qaService.getEndpointsWithTestsByService(service1);
 
     // Assert
     assertNotNull(result1);
-    assertEquals("QAService", result1.getServiceName());
+    assertEquals("QaService", result1.getServiceName());
   }
 
   /**
@@ -347,14 +347,14 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
   @Test
   void getEndpointsWithTestsByService_f13_serviceNameWithSpaces_trimsAndNormalizes() {
     // Arrange
-    String serviceName = "  QAService  ";
+    String serviceName = "  QaService  ";
 
     // Act
-    QAResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
+    QaResponseModel result = qaService.getEndpointsWithTestsByService(serviceName);
 
     // Assert
     assertNotNull(result);
-    assertEquals("QAService", result.getServiceName());
+    assertEquals("QaService", result.getServiceName());
   }
 
   /**
@@ -388,7 +388,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
         assertThrows(
             NotFoundException.class, () -> qaService.getEndpointsWithTestsByService(serviceName));
     assertEquals(expectedServiceNotFoundMessage(serviceName), ex.getMessage());
-    assertTrue(ex.getMessage().contains("QAService"));
+    assertTrue(ex.getMessage().contains("QaService"));
   }
 
   /**
@@ -415,7 +415,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
       // Assert
       assertEquals(
           String.format(
-              ErrorMessages.QAErrorMessages.COULD_NOT_LOAD_SERVICE_CLASS_FORMAT,
+              ErrorMessages.QaErrorMessages.COULD_NOT_LOAD_SERVICE_CLASS_FORMAT,
               missingServiceName),
           ex.getMessage());
     } finally {
@@ -437,11 +437,11 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
   @DisplayName("Get Endpoints With Tests By Service - Controller permission unauthorized - Success")
   void getEndpointsWithTestsByService_controller_permission_unauthorized() {
     // Arrange
-    QAController controller = new QAController(qaSubTranslator);
+    QaController controller = new QaController(qaSubTranslator);
     stubQaTranslatorGetEndpointsWithTestsByServiceThrowsUnauthorized();
 
     // Act
-    ResponseEntity<?> response = controller.getEndpointsWithTestsByService("QAService");
+    ResponseEntity<?> response = controller.getEndpointsWithTestsByService("QaService");
 
     // Assert
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -449,7 +449,7 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
 
   private String expectedServiceNotFoundMessage(String serviceName) {
     return String.format(
-        ErrorMessages.QAErrorMessages.SERVICE_NOT_FOUND_FORMAT,
+        ErrorMessages.QaErrorMessages.SERVICE_NOT_FOUND_FORMAT,
         serviceName.trim(),
         String.join(", ", getServiceMappings().keySet()));
   }

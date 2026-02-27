@@ -1,8 +1,20 @@
-package com.example.SpringApi.Models.DatabaseModels;
+package com.example.springapi.models.databasemodels;
 
-import com.example.SpringApi.Models.RequestModels.CreateReturnRequestModel;
-import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketReturnOrderResponseModel;
-import jakarta.persistence.*;
+import com.example.springapi.models.requestmodels.CreateReturnRequestModel;
+import com.example.springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,7 +41,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Table(name = "ReturnShipment")
 public class ReturnShipment {
 
-  /** Enum for return type */
+  /** Enum for return type. */
   public enum ReturnType {
     FULL_RETURN("FULL_RETURN"),
     PARTIAL_RETURN("PARTIAL_RETURN");
@@ -66,8 +78,13 @@ public class ReturnShipment {
       return value;
     }
 
+    /**
+     * Checks whether valid.
+     */
     public static boolean isValid(String status) {
-      if (status == null) return true;
+      if (status == null) {
+        return true;
+      }
       for (ReturnStatus s : values()) {
         if (s.value.equalsIgnoreCase(status)) {
           return true;

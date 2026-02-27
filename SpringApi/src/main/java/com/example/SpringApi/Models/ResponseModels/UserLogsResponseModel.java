@@ -1,4 +1,4 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
 import java.time.LocalDateTime;
 import lombok.Getter;
@@ -43,7 +43,7 @@ public class UserLogsResponseModel {
    *
    * @param userLog The UserLog entity to copy data from
    */
-  public UserLogsResponseModel(com.example.SpringApi.Models.DatabaseModels.UserLog userLog) {
+  public UserLogsResponseModel(com.example.springapi.models.databasemodels.UserLog userLog) {
     this.logId = userLog.getLogId();
     this.userId = userLog.getUserId();
     this.clientId = userLog.getClientId();

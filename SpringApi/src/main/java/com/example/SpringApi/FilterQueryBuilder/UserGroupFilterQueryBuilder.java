@@ -1,7 +1,7 @@
-package com.example.SpringApi.FilterQueryBuilder;
+package com.example.springapi.filterquerybuilder;
 
-import com.example.SpringApi.Models.DatabaseModels.UserGroup;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
+import com.example.springapi.models.databasemodels.UserGroup;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.util.Arrays;
@@ -82,7 +82,7 @@ public class UserGroupFilterQueryBuilder extends BaseFilterQueryBuilder {
   }
 
   /**
-   * Gets the column type for validation purposes
+   * Gets the column type for validation purposes.
    *
    * @param column The column name
    * @return "string", "number", "date", or "boolean"
@@ -102,7 +102,7 @@ public class UserGroupFilterQueryBuilder extends BaseFilterQueryBuilder {
   // ==================== Query Execution Method ====================
 
   /**
-   * Finds paginated user groups with multiple filter conditions combined with AND/OR logic. Builds
+   * Finds paginated user groups with multiple filter conditions combined with AND/OR logic. Builds.
    * the WHERE clause dynamically and executes the query.
    *
    * @param clientId The client ID to filter user groups by
@@ -182,7 +182,7 @@ public class UserGroupFilterQueryBuilder extends BaseFilterQueryBuilder {
       countTypedQuery.setParameter(entry.getKey(), entry.getValue());
     }
 
-    Long totalCount = countTypedQuery.getSingleResult();
+    final Long totalCount = countTypedQuery.getSingleResult();
 
     // Execute main query with pagination
     TypedQuery<UserGroup> mainQuery = entityManager.createQuery(baseQuery, UserGroup.class);

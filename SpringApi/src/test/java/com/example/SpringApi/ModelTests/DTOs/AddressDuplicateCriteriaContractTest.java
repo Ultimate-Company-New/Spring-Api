@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.DTOs;
+package com.example.springapi.ModelTests.DTOs;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class AddressDuplicateCriteriaContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.SpringApi.Models.DTOs.AddressDuplicateCriteria.class)) {
+    if (hasNoArgConstructor(com.example.springapi.models.dtos.AddressDuplicateCriteria.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.SpringApi.Models.DTOs.AddressDuplicateCriteria.class);
+              .constructType(com.example.springapi.models.dtos.AddressDuplicateCriteria.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +62,7 @@ class AddressDuplicateCriteriaContractTest {
   void AddressDuplicateCriteria_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.DTOs.AddressDuplicateCriteria.class
+        com.example.springapi.models.dtos.AddressDuplicateCriteria.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -80,9 +80,9 @@ class AddressDuplicateCriteriaContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.DTOs.AddressDuplicateCriteria createInstance() {
-    return (com.example.SpringApi.Models.DTOs.AddressDuplicateCriteria)
-        instantiate(com.example.SpringApi.Models.DTOs.AddressDuplicateCriteria.class);
+  private com.example.springapi.models.dtos.AddressDuplicateCriteria createInstance() {
+    return (com.example.springapi.models.dtos.AddressDuplicateCriteria)
+        instantiate(com.example.springapi.models.dtos.AddressDuplicateCriteria.class);
   }
 
   private Object instantiate(Class<?> clazz) {

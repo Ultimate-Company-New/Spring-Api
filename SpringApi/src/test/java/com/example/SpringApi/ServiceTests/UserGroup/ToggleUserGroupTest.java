@@ -1,14 +1,14 @@
-package com.example.SpringApi.ServiceTests.UserGroup;
+package com.example.springapi.ServiceTests.UserGroup;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.UserGroupController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.DatabaseModels.UserGroup;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.UserGroupController;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.databasemodels.UserGroup;
 import java.lang.reflect.Method;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;

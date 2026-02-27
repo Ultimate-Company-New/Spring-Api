@@ -1,12 +1,12 @@
-package com.example.SpringApi.ServiceTests.Promo;
+package com.example.springapi.ServiceTests.Promo;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.DatabaseModels.Promo;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PromoResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.databasemodels.Promo;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.PromoResponseModel;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

@@ -1,6 +1,6 @@
-package com.example.SpringApi.Models.RequestModels;
+package com.example.springapi.models.requestmodels;
 
-import com.example.SpringApi.Deserializers.FlexibleLocalDateTimeDeserializer;
+import com.example.springapi.deserializers.FlexibleLocalDateTimeDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -107,7 +107,7 @@ public class PurchaseOrderRequestModel {
   }
 
   /**
-   * Courier selection data containing selected courier details and metadata. All fields are
+   * Courier selection data containing selected courier details and metadata. All fields are.
    * required for shipment creation.
    */
   @Getter

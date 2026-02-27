@@ -1,4 +1,4 @@
-package com.example.SpringApi.Constants;
+package com.example.springapi.constants;
 
 /**
  * Constants for entity types used in the Resources table.
@@ -17,18 +17,18 @@ public final class EntityType {
     throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
   }
 
-  /** Entity type for Purchase Order resources */
+  /** Entity type for Purchase Order resources. */
   public static final String PURCHASE_ORDER = "PurchaseOrder";
 
-  /** Entity type for Lead resources */
+  /** Entity type for Lead resources. */
   public static final String LEAD = "Lead";
 
-  /** Entity type for User resources */
+  /** Entity type for User resources. */
   public static final String USER = "User";
 
-  /** Entity type for Product resources */
+  /** Entity type for Product resources. */
   public static final String PRODUCT = "Product";
 
-  /** Entity type for other/miscellaneous resources */
+  /** Entity type for other/miscellaneous resources. */
   public static final String OTHER = "Other";
 }

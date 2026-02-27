@@ -1,22 +1,22 @@
-package com.example.SpringApi.ServiceTests.QA;
+package com.example.springapi.ServiceTests.QA;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.Models.DatabaseModels.LatestTestResult;
-import com.example.SpringApi.Models.DatabaseModels.TestRun;
-import com.example.SpringApi.Models.DatabaseModels.TestRunResult;
-import com.example.SpringApi.Models.RequestModels.TestExecutionRequestModel;
-import com.example.SpringApi.Models.RequestModels.TestRunRequestModel;
-import com.example.SpringApi.Repositories.LatestTestResultRepository;
-import com.example.SpringApi.Repositories.TestRunRepository;
-import com.example.SpringApi.Services.Interface.IQASubTranslator;
-import com.example.SpringApi.Services.QAService;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.models.databasemodels.LatestTestResult;
+import com.example.springapi.models.databasemodels.TestRun;
+import com.example.springapi.models.databasemodels.TestRunResult;
+import com.example.springapi.models.requestmodels.TestExecutionRequestModel;
+import com.example.springapi.models.requestmodels.TestRunRequestModel;
+import com.example.springapi.repositories.LatestTestResultRepository;
+import com.example.springapi.repositories.TestRunRepository;
+import com.example.springapi.services.QaService;
+import com.example.springapi.services.interfaces.QaSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -47,20 +47,20 @@ abstract class QAServiceTestBase {
 
   @Mock protected LatestTestResultRepository latestTestResultRepository;
 
-  @Mock protected IQASubTranslator qaSubTranslator;
+  @Mock protected QaSubTranslator qaSubTranslator;
 
   @Mock protected JwtTokenProvider jwtTokenProvider;
 
   @Mock protected HttpServletRequest request;
 
-  protected QAService qaService;
+  protected QaService qaService;
 
   @BeforeEach
   public void setUp() {
     // Create a subclass that overrides the async execution method to prevent
     // actual Maven process execution during unit tests.
-    QAService realService =
-        new QAService(testRunRepository, latestTestResultRepository, jwtTokenProvider, request) {
+    QaService realService =
+        new QaService(testRunRepository, latestTestResultRepository, jwtTokenProvider, request) {
           @Override
           protected void executeTestsAsync(
               String executionId,
@@ -101,10 +101,10 @@ abstract class QAServiceTestBase {
         .findByClientIdOrderByServiceNameAscTestMethodNameAsc(anyLong());
   }
 
-  /** Access the QAService SERVICE_MAPPINGS map via reflection for test manipulation. */
+  /** Access the QaService SERVICE_MAPPINGS map via reflection for test manipulation. */
   protected Map<String, Object> getServiceMappings() {
     try {
-      Field field = QAService.class.getDeclaredField("SERVICE_MAPPINGS");
+      Field field = QaService.class.getDeclaredField("SERVICE_MAPPINGS");
       field.setAccessible(true);
       return (Map<String, Object>) field.get(null);
     } catch (Exception e) {
@@ -123,11 +123,11 @@ abstract class QAServiceTestBase {
         testClassName);
   }
 
-  /** Creates an instance of a private QAService inner class via reflection. */
+  /** Creates an instance of a private QaService inner class via reflection. */
   protected Object createQaPrivateInnerInstance(
       String innerSimpleName, Class<?>[] parameterTypes, Object... args) {
     try {
-      Class<?> innerClass = Class.forName(QAService.class.getName() + "$" + innerSimpleName);
+      Class<?> innerClass = Class.forName(QaService.class.getName() + "$" + innerSimpleName);
       java.lang.reflect.Constructor<?> ctor = innerClass.getDeclaredConstructor(parameterTypes);
       ctor.setAccessible(true);
       return ctor.newInstance(args);
@@ -136,9 +136,9 @@ abstract class QAServiceTestBase {
     }
   }
 
-  /** Creates a real QAService instance (without overriding executeTestsAsync). */
-  protected QAService createRealQAService() {
-    return new QAService(testRunRepository, latestTestResultRepository, jwtTokenProvider, request);
+  /** Creates a real QaService instance (without overriding executeTestsAsync). */
+  protected QaService createRealQAService() {
+    return new QaService(testRunRepository, latestTestResultRepository, jwtTokenProvider, request);
   }
 
   /** Invokes a private/protected method using reflection. */
@@ -186,14 +186,14 @@ abstract class QAServiceTestBase {
     }
   }
 
-  /** Clears QAService execution tracking static maps between tests. */
+  /** Clears QaService execution tracking static maps between tests. */
   protected void clearExecutionTrackingState() {
-    Object activeExecutions = getPrivateStaticFieldValue(QAService.class, "activeExecutions");
+    Object activeExecutions = getPrivateStaticFieldValue(QaService.class, "activeExecutions");
     if (activeExecutions instanceof Map<?, ?> map) {
       map.clear();
     }
 
-    Object runningProcesses = getPrivateStaticFieldValue(QAService.class, "runningProcesses");
+    Object runningProcesses = getPrivateStaticFieldValue(QaService.class, "runningProcesses");
     if (runningProcesses instanceof Map<?, ?> map) {
       map.clear();
     }

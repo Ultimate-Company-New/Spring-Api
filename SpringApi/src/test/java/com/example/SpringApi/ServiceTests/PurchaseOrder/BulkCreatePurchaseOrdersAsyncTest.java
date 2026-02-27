@@ -1,11 +1,11 @@
-package com.example.SpringApi.ServiceTests.PurchaseOrder;
+package com.example.springapi.ServiceTests.PurchaseOrder;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-import com.example.SpringApi.Controllers.PurchaseOrderController;
-import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
+import com.example.springapi.controllers.PurchaseOrderController;
+import com.example.springapi.models.requestmodels.PurchaseOrderRequestModel;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

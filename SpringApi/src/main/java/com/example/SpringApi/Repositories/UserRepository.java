@@ -1,6 +1,6 @@
-package com.example.SpringApi.Repositories;
+package com.example.springapi.repositories;
 
-import com.example.SpringApi.Models.DatabaseModels.User;
+import com.example.springapi.models.databasemodels.User;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,7 +19,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
   User findByLoginName(String loginName);
 
   /**
-   * Optimized query to fetch user with client-specific data by userId. Filters permissions and
+   * Optimized query to fetch user with client-specific data by userId. Filters permissions and.
    * usergroups by clientId. Addresses are user-specific (not filtered by client).
    */
   @Query(
@@ -37,7 +37,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
   User findByIdWithAllRelations(@Param("userId") Long userId, @Param("clientId") Long clientId);
 
   /**
-   * SUPER OPTIMIZED: Fetches user by email with client-specific data. Filters permissions and
+   * SUPER OPTIMIZED: Fetches user by email with client-specific data. Filters permissions and.
    * usergroups by clientId in ONE query.
    */
   @Query(

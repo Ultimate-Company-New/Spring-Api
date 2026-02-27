@@ -1,25 +1,25 @@
-package com.example.SpringApi.ServiceTests.User;
+package com.example.springapi.ServiceTests.User;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.lenient;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.PermissionException;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.FilterQueryBuilder.UserFilterQueryBuilder;
-import com.example.SpringApi.Helpers.PasswordHelper;
-import com.example.SpringApi.Models.DatabaseModels.*;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.UserRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PermissionResponseModel;
-import com.example.SpringApi.Models.ResponseModels.UserResponseModel;
-import com.example.SpringApi.Repositories.*;
-import com.example.SpringApi.Services.ClientService;
-import com.example.SpringApi.Services.UserLogService;
-import com.example.SpringApi.Services.UserService;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.PermissionException;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.filterquerybuilder.UserFilterQueryBuilder;
+import com.example.springapi.helpers.PasswordHelper;
+import com.example.springapi.models.databasemodels.*;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.UserRequestModel;
+import com.example.springapi.models.responsemodels.ClientResponseModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.PermissionResponseModel;
+import com.example.springapi.models.responsemodels.UserResponseModel;
+import com.example.springapi.repositories.*;
+import com.example.springapi.services.ClientService;
+import com.example.springapi.services.UserLogService;
+import com.example.springapi.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.*;
@@ -72,8 +72,8 @@ abstract class UserServiceTestBase {
 
   @Mock protected UserService mockUserService;
 
-  protected com.example.SpringApi.Controllers.UserController userController;
-  protected com.example.SpringApi.Controllers.UserController userControllerWithMock;
+  protected com.example.springapi.controllers.UserController userController;
+  protected com.example.springapi.controllers.UserController userControllerWithMock;
 
   protected User testUser;
   protected UserRequestModel testUserRequest;
@@ -107,8 +107,8 @@ abstract class UserServiceTestBase {
     testUser.setUserClientPermissionMappings(new HashSet<>());
     testUser.setUserGroupMappings(new HashSet<>());
 
-    userController = new com.example.SpringApi.Controllers.UserController(userService);
-    userControllerWithMock = new com.example.SpringApi.Controllers.UserController(mockUserService);
+    userController = new com.example.springapi.controllers.UserController(userService);
+    userControllerWithMock = new com.example.springapi.controllers.UserController(mockUserService);
 
     stubEnvironmentActiveProfiles(new String[] {"localhost"});
     stubEnvironmentImageLocation("firebase");
@@ -314,9 +314,9 @@ abstract class UserServiceTestBase {
 
   // Static and Construction Mocks
   protected MockedStatic<PasswordHelper> mockedPasswordHelper;
-  protected MockedConstruction<com.example.SpringApi.Helpers.EmailTemplates> mockedEmailTemplates;
-  protected MockedConstruction<com.example.SpringApi.Helpers.FirebaseHelper> mockedFirebaseHelper;
-  protected MockedConstruction<com.example.SpringApi.Helpers.ImgbbHelper> mockedImgbbHelper;
+  protected MockedConstruction<com.example.springapi.helpers.EmailTemplates> mockedEmailTemplates;
+  protected MockedConstruction<com.example.springapi.helpers.FirebaseHelper> mockedFirebaseHelper;
+  protected MockedConstruction<com.example.springapi.helpers.ImgbbHelper> mockedImgbbHelper;
 
   @org.junit.jupiter.api.AfterEach
   void tearDown() {
@@ -364,7 +364,7 @@ abstract class UserServiceTestBase {
     }
     mockedEmailTemplates =
         org.mockito.Mockito.mockConstruction(
-            com.example.SpringApi.Helpers.EmailTemplates.class,
+            com.example.springapi.helpers.EmailTemplates.class,
             (mock, context) -> {
               lenient()
                   .when(
@@ -380,7 +380,7 @@ abstract class UserServiceTestBase {
     }
     mockedFirebaseHelper =
         org.mockito.Mockito.mockConstruction(
-            com.example.SpringApi.Helpers.FirebaseHelper.class,
+            com.example.springapi.helpers.FirebaseHelper.class,
             (mock, context) -> {
               lenient().when(mock.uploadFileToFirebase(anyString(), anyString())).thenReturn(true);
             });
@@ -392,7 +392,7 @@ abstract class UserServiceTestBase {
     }
     mockedImgbbHelper =
         org.mockito.Mockito.mockConstruction(
-            com.example.SpringApi.Helpers.ImgbbHelper.class,
+            com.example.springapi.helpers.ImgbbHelper.class,
             (mock, context) -> {
               lenient().when(mock.deleteImage(anyString())).thenReturn(true);
             });

@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.DatabaseModels;
+package com.example.springapi.ModelTests.DatabaseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class ReturnShipmentProductContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.DatabaseModels.ReturnShipmentProduct.class)) {
+        com.example.springapi.models.databasemodels.ReturnShipmentProduct.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.DatabaseModels.ReturnShipmentProduct.class);
+                  com.example.springapi.models.databasemodels.ReturnShipmentProduct.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +64,7 @@ class ReturnShipmentProductContractTest {
   void ReturnShipmentProduct_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.DatabaseModels.ReturnShipmentProduct.class
+        com.example.springapi.models.databasemodels.ReturnShipmentProduct.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,9 +82,9 @@ class ReturnShipmentProductContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.DatabaseModels.ReturnShipmentProduct createInstance() {
-    return (com.example.SpringApi.Models.DatabaseModels.ReturnShipmentProduct)
-        instantiate(com.example.SpringApi.Models.DatabaseModels.ReturnShipmentProduct.class);
+  private com.example.springapi.models.databasemodels.ReturnShipmentProduct createInstance() {
+    return (com.example.springapi.models.databasemodels.ReturnShipmentProduct)
+        instantiate(com.example.springapi.models.databasemodels.ReturnShipmentProduct.class);
   }
 
   private Object instantiate(Class<?> clazz) {

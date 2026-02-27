@@ -1,9 +1,9 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Models.RequestModels.MessageRequestModel;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.ResponseModels.MessageResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
+import com.example.springapi.models.requestmodels.MessageRequestModel;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.responsemodels.MessageResponseModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
 
 /**
  * Interface for Message operations and data access.
@@ -15,7 +15,7 @@ import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
  * @version 1.0
  * @since 2024-01-15
  */
-public interface IMessageSubTranslator {
+public interface MessageSubTranslator {
 
   /**
    * Retrieves messages in batches with pagination support.

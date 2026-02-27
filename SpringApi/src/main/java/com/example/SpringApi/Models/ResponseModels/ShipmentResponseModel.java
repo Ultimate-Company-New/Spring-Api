@@ -1,10 +1,10 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.DatabaseModels.ReturnShipment;
-import com.example.SpringApi.Models.DatabaseModels.Shipment;
-import com.example.SpringApi.Models.DatabaseModels.ShipmentPackage;
-import com.example.SpringApi.Models.DatabaseModels.ShipmentPackageProduct;
-import com.example.SpringApi.Models.DatabaseModels.ShipmentProduct;
+import com.example.springapi.models.databasemodels.ReturnShipment;
+import com.example.springapi.models.databasemodels.Shipment;
+import com.example.springapi.models.databasemodels.ShipmentPackage;
+import com.example.springapi.models.databasemodels.ShipmentPackageProduct;
+import com.example.springapi.models.databasemodels.ShipmentProduct;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -186,13 +186,13 @@ public class ShipmentResponseModel {
 
     // Extract purchase order ID and delivery address from OrderSummary
     if (Hibernate.isInitialized(shipment.getOrderSummary()) && shipment.getOrderSummary() != null) {
-      com.example.SpringApi.Models.DatabaseModels.OrderSummary orderSummary =
+      com.example.springapi.models.databasemodels.OrderSummary orderSummary =
           shipment.getOrderSummary();
       if (orderSummary.getEntityType() != null
           && orderSummary
               .getEntityType()
               .equals(
-                  com.example.SpringApi.Models.DatabaseModels.OrderSummary.EntityType.PURCHASE_ORDER
+                  com.example.springapi.models.databasemodels.OrderSummary.EntityType.PURCHASE_ORDER
                       .getValue())
           && orderSummary.getEntityId() != null) {
         this.purchaseOrderId = orderSummary.getEntityId();
@@ -217,13 +217,13 @@ public class ShipmentResponseModel {
   }
 
   /**
-   * Sets purchase order ID from the order summary's related purchase order. This should be called
+   * Sets purchase order ID from the order summary's related purchase order. This should be called.
    * after the entity is fetched with the PO data.
    *
    * @param po The purchase order to extract ID from
    */
   public void setPurchaseOrderFromEntity(
-      com.example.SpringApi.Models.DatabaseModels.PurchaseOrder po) {
+      com.example.springapi.models.databasemodels.PurchaseOrder po) {
     if (po != null) {
       this.purchaseOrderId = po.getPurchaseOrderId();
     }
@@ -240,6 +240,9 @@ public class ShipmentResponseModel {
 
     public PackageProductResponseData() {}
 
+    /**
+     * Executes package product response data.
+     */
     public PackageProductResponseData(ShipmentPackageProduct packageProduct) {
       if (packageProduct != null) {
         this.shipmentPackageProductId = packageProduct.getShipmentPackageProductId();

@@ -1,19 +1,63 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.FilterQueryBuilder.ShipmentFilterQueryBuilder;
-import com.example.SpringApi.Helpers.PackagingHelper;
-import com.example.SpringApi.Helpers.ShipRocketHelper;
-import com.example.SpringApi.Models.DatabaseModels.*;
-import com.example.SpringApi.Models.RequestModels.*;
-import com.example.SpringApi.Models.ResponseModels.*;
-import com.example.SpringApi.Models.ShippingResponseModel.*;
-import com.example.SpringApi.Repositories.*;
-import com.example.SpringApi.Services.Interface.IPaymentSubTranslator;
-import com.example.SpringApi.Services.Interface.IShippingSubTranslator;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.filterquerybuilder.ShipmentFilterQueryBuilder;
+import com.example.springapi.helpers.PackagingHelper;
+import com.example.springapi.helpers.ShipRocketHelper;
+import com.example.springapi.models.databasemodels.Address;
+import com.example.springapi.models.databasemodels.Client;
+import com.example.springapi.models.databasemodels.OrderSummary;
+import com.example.springapi.models.databasemodels.PackagePickupLocationMapping;
+import com.example.springapi.models.databasemodels.PickupLocation;
+import com.example.springapi.models.databasemodels.Product;
+import com.example.springapi.models.databasemodels.ProductPickupLocationMapping;
+import com.example.springapi.models.databasemodels.PurchaseOrder;
+import com.example.springapi.models.databasemodels.ReturnShipment;
+import com.example.springapi.models.databasemodels.ReturnShipmentProduct;
+import com.example.springapi.models.databasemodels.Shipment;
+import com.example.springapi.models.databasemodels.ShipmentPackage;
+import com.example.springapi.models.databasemodels.ShipmentProduct;
+import com.example.springapi.models.requestmodels.CashPaymentRequestModel;
+import com.example.springapi.models.requestmodels.CreateReturnRequestModel;
+import com.example.springapi.models.requestmodels.OrderOptimizationRequestModel;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.RazorpayVerifyRequestModel;
+import com.example.springapi.models.requestmodels.ShipRocketOrderRequestModel;
+import com.example.springapi.models.requestmodels.ShipRocketReturnOrderRequestModel;
+import com.example.springapi.models.requestmodels.ShippingCalculationRequestModel;
+import com.example.springapi.models.responsemodels.ClientResponseModel;
+import com.example.springapi.models.responsemodels.OrderOptimizationResponseModel;
+import com.example.springapi.models.responsemodels.PackageResponseModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.PaymentVerificationResponseModel;
+import com.example.springapi.models.responsemodels.PickupLocationResponseModel;
+import com.example.springapi.models.responsemodels.ProductResponseModel;
+import com.example.springapi.models.responsemodels.ReturnShipmentResponseModel;
+import com.example.springapi.models.responsemodels.ShipmentResponseModel;
+import com.example.springapi.models.responsemodels.ShippingCalculationResponseModel;
+import com.example.springapi.models.shippingresponsemodel.ShipRocketAwbResponseModel;
+import com.example.springapi.models.shippingresponsemodel.ShipRocketOrderResponseModel;
+import com.example.springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel;
+import com.example.springapi.models.shippingresponsemodel.ShippingOptionsResponseModel;
+import com.example.springapi.repositories.ClientRepository;
+import com.example.springapi.repositories.OrderSummaryRepository;
+import com.example.springapi.repositories.PackagePickupLocationMappingRepository;
+import com.example.springapi.repositories.PackageRepository;
+import com.example.springapi.repositories.PickupLocationRepository;
+import com.example.springapi.repositories.ProductPickupLocationMappingRepository;
+import com.example.springapi.repositories.ProductRepository;
+import com.example.springapi.repositories.PurchaseOrderRepository;
+import com.example.springapi.repositories.ReturnShipmentProductRepository;
+import com.example.springapi.repositories.ReturnShipmentRepository;
+import com.example.springapi.repositories.ShipmentPackageProductRepository;
+import com.example.springapi.repositories.ShipmentPackageRepository;
+import com.example.springapi.repositories.ShipmentProductRepository;
+import com.example.springapi.repositories.ShipmentRepository;
+import com.example.springapi.services.interfaces.PaymentSubTranslator;
+import com.example.springapi.services.interfaces.ShippingSubTranslator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.shaded.gson.Gson;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,7 +65,15 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +88,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Helper class for shipping-related operations. Consolidates functionality from
+ * Helper class for shipping-related operations. Consolidates functionality from.
  * ShipmentProcessingService, ShipmentService, and ShippingService.
  *
  * @author SpringApi Team
@@ -44,7 +96,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 2024-01-15
  */
 @Service
-public class ShippingService extends BaseService implements IShippingSubTranslator {
+public class ShippingService extends BaseService implements ShippingSubTranslator {
   private static final String PRODUCT_ERROR_PREFIX = "Product '";
   private static final String UNKNOWN_LOCATION_NAME = "Unknown";
 
@@ -92,13 +144,16 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
   private final ShipmentPackageRepository shipmentPackageRepository;
   private final PurchaseOrderRepository purchaseOrderRepository;
   private final OrderSummaryRepository orderSummaryRepository;
-  private final IPaymentSubTranslator paymentService;
+  private final PaymentSubTranslator paymentService;
   private final PickupLocationRepository pickupLocationRepository;
   private final PackageRepository packageRepository;
   private final ClientRepository clientRepository;
   private final UserLogService userLogService;
   private final ShipmentFilterQueryBuilder shipmentFilterQueryBuilder;
 
+  /**
+   * Initializes ShippingService.
+   */
   @Autowired
   public ShippingService(
       ClientService clientService,
@@ -114,7 +169,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
       ShipmentPackageProductRepository shipmentPackageProductRepository,
       PurchaseOrderRepository purchaseOrderRepository,
       OrderSummaryRepository orderSummaryRepository,
-      IPaymentSubTranslator paymentService,
+      PaymentSubTranslator paymentService,
       PickupLocationRepository pickupLocationRepository,
       PackageRepository packageRepository,
       ClientRepository clientRepository,
@@ -295,8 +350,8 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
       Long purchaseOrderId, CashPaymentRequestModel cashPaymentRequest) {
 
     Long clientId = getClientId();
-    Long userId = getUserId();
-    String userName = getUser();
+    final Long userId = getUserId();
+    final String userName = getUser();
 
     PurchaseOrder purchaseOrder =
         purchaseOrderRepository
@@ -365,8 +420,8 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
       Long purchaseOrderId, RazorpayVerifyRequestModel razorpayVerifyRequest) {
 
     Long clientId = getClientId();
-    Long userId = getUserId();
-    String userName = getUser();
+    final Long userId = getUserId();
+    final String userName = getUser();
 
     PurchaseOrder purchaseOrder =
         purchaseOrderRepository
@@ -598,7 +653,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
     ShipRocketOrderRequestModel request = new ShipRocketOrderRequestModel();
 
-    Client client =
+    final Client client =
         clientRepository
             .findById(clientId)
             .orElseThrow(() -> new NotFoundException(ErrorMessages.ClientErrorMessages.INVALID_ID));
@@ -688,7 +743,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     List<ShipmentPackage> shipmentPackages =
         shipmentPackageRepository.findByShipmentId(shipment.getShipmentId());
     for (ShipmentPackage shipmentPackage : shipmentPackages) {
-      com.example.SpringApi.Models.DatabaseModels.Package packageEntity =
+      com.example.springapi.models.databasemodels.Package packageEntity =
           packageRepository
               .findById(shipmentPackage.getPackageId())
               .orElseThrow(
@@ -887,10 +942,10 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         shipment.setShipRocketAwbMetadata(awbMetadataJson);
 
         Gson gson = new Gson();
-        com.example.SpringApi.Models.ShippingResponseModel.ShipRocketAwbResponseModel awbResponse =
+        com.example.springapi.models.shippingresponsemodel.ShipRocketAwbResponseModel awbResponse =
             gson.fromJson(
                 awbMetadataJson,
-                com.example.SpringApi.Models.ShippingResponseModel.ShipRocketAwbResponseModel
+                com.example.springapi.models.shippingresponsemodel.ShipRocketAwbResponseModel
                     .class);
 
         if (awbResponse != null && awbResponse.isSuccess() && awbResponse.getAwbCode() != null) {
@@ -1108,7 +1163,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
   }
 
   /**
-   * Optimizes order fulfillment by finding the cheapest allocation of products across pickup
+   * Optimizes order fulfillment by finding the cheapest allocation of products across pickup.
    * locations.
    */
   @Override
@@ -1249,7 +1304,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     String locationName;
     String postalCode;
     List<PackagingHelper.PackageDimension> packageDimensions = new ArrayList<>();
-    Map<Long, com.example.SpringApi.Models.DatabaseModels.Package> packageEntities =
+    Map<Long, com.example.springapi.models.databasemodels.Package> packageEntities =
         new HashMap<>();
   }
 
@@ -1299,7 +1354,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
   @Transactional
   public void cancelShipment(Long shipmentId) {
     Long clientId = getClientId();
-    String userName = getUser();
+    final String userName = getUser();
 
     Shipment shipment = shipmentRepository.findByShipmentIdAndClientId(shipmentId, clientId);
     if (shipment == null) {
@@ -1352,7 +1407,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
   @Transactional
   public ReturnShipmentResponseModel createReturn(CreateReturnRequestModel request) {
     Long clientId = getClientId();
-    String currentUser = getUser();
+    final String currentUser = getUser();
 
     if (request.getShipmentId() == null) {
       throw new BadRequestException(ErrorMessages.ReturnShipmentErrorMessages.SHIPMENT_ID_REQUIRED);
@@ -1473,14 +1528,14 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     }
 
     boolean isFullReturn = (totalQuantity >= totalReturnableQuantity);
-    ReturnShipment.ReturnType returnType =
+    final ReturnShipment.ReturnType returnType =
         isFullReturn
             ? ReturnShipment.ReturnType.FULL_RETURN
             : ReturnShipment.ReturnType.PARTIAL_RETURN;
 
     org.hibernate.Hibernate.initialize(shipment.getOrderSummary());
     org.hibernate.Hibernate.initialize(shipment.getOrderSummary().getEntityAddress());
-    Address customerAddress = shipment.getOrderSummary().getEntityAddress();
+    final Address customerAddress = shipment.getOrderSummary().getEntityAddress();
 
     org.hibernate.Hibernate.initialize(shipment.getPickupLocation());
     org.hibernate.Hibernate.initialize(shipment.getPickupLocation().getAddress());
@@ -1635,7 +1690,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
   @Transactional
   public void cancelReturnShipment(Long returnShipmentId) {
     Long clientId = getClientId();
-    String userName = getUser();
+    final String userName = getUser();
 
     ReturnShipment returnShipment =
         returnShipmentRepository.findByReturnShipmentIdAndClientId(returnShipmentId, clientId);
@@ -1711,8 +1766,8 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
   // ============================================================================
 
   /**
-   * Fetches product entities and builds ProductLocationInfo map with dimensions and weight for each
-   * product.
+   * Fetches product entities and builds ProductLocationInfo map with dimensions and weight for
+   * each. product.
    */
   private Map<Long, ProductLocationInfo> fetchProductData(Map<Long, Integer> productQuantities) {
     Map<Long, ProductLocationInfo> result = new HashMap<>();
@@ -1736,7 +1791,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
   }
 
   /**
-   * Fetches stock mappings, package availability per location, and computes max packable items per
+   * Fetches stock mappings, package availability per location, and computes max packable items per.
    * product.
    */
   private Map<Long, LocationInfo> fetchLocationData(Map<Long, ProductLocationInfo> productInfoMap) {
@@ -1877,7 +1932,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
   }
 
   /**
-   * Validates that requested quantities can be fulfilled from available stock and packaging at
+   * Validates that requested quantities can be fulfilled from available stock and packaging at.
    * locations.
    */
   private String checkFeasibility(
@@ -1886,7 +1941,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
       Map<Long, LocationInfo> locationInfoMap) {
     for (Map.Entry<Long, Integer> entry : productQuantities.entrySet()) {
       Long productId = entry.getKey();
-      int requestedQty = entry.getValue();
+      final int requestedQty = entry.getValue();
 
       ProductLocationInfo info = productInfoMap.get(productId);
       if (info == null) {
@@ -1896,7 +1951,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
       int totalStock = info.stockByLocation.values().stream().mapToInt(s -> s.availableStock).sum();
 
-      int totalPackable =
+      final int totalPackable =
           info.stockByLocation.values().stream()
               .mapToInt(s -> Math.min(s.availableStock, s.maxItemsPackable))
               .sum();
@@ -1960,7 +2015,9 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
                   .anyMatch(
                       locationId -> {
                         LocationInfo locInfo = locationInfoMap.get(locationId);
-                        if (locInfo == null || locInfo.packageDimensions == null) return false;
+                        if (locInfo == null || locInfo.packageDimensions == null) {
+                          return false;
+                        }
                         return locInfo.packageDimensions.stream()
                             .anyMatch(
                                 pkg ->
@@ -2030,7 +2087,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     return null;
   }
 
-  /** Generate candidate allocation strategies */
+  /** Generate candidate allocation strategies. */
   private List<AllocationCandidate> generateCandidates(
       Map<Long, ProductLocationInfo> productInfoMap,
       Map<Long, LocationInfo> locationInfoMap,
@@ -2078,13 +2135,19 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
       int requestedQty = entry.getValue();
 
       ProductLocationInfo info = productInfoMap.get(productId);
-      if (info == null) return false;
+      if (info == null) {
+        return false;
+      }
 
       LocationStock stock = info.stockByLocation.get(locationId);
-      if (stock == null) return false;
+      if (stock == null) {
+        return false;
+      }
 
       int available = Math.min(stock.availableStock, stock.maxItemsPackable);
-      if (available < requestedQty) return false;
+      if (available < requestedQty) {
+        return false;
+      }
     }
     return true;
   }
@@ -2294,7 +2357,9 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
       int remaining = entry.getValue();
 
       ProductLocationInfo info = productInfoMap.get(productId);
-      if (info == null) continue;
+      if (info == null) {
+        continue;
+      }
 
       List<Long> sortedLocs =
           info.stockByLocation.entrySet().stream()
@@ -2315,7 +2380,9 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
               .collect(Collectors.toCollection(ArrayList::new));
 
       for (Long locationId : sortedLocs) {
-        if (remaining <= 0) break;
+        if (remaining <= 0) {
+          break;
+        }
 
         LocationStock stock = info.stockByLocation.get(locationId);
         int available = Math.min(stock.availableStock, stock.maxItemsPackable);
@@ -2358,7 +2425,9 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
 
   private boolean hasRemainingProducts(List<ProductAllocationTracker> trackers) {
     for (ProductAllocationTracker tracker : trackers) {
-      if (tracker.remainingQty > 0) return true;
+      if (tracker.remainingQty > 0) {
+        return true;
+      }
     }
     return false;
   }
@@ -2405,7 +2474,9 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
       int qtyToReallocate = prodEntry.getValue();
 
       ProductLocationInfo productInfo = productInfoMap.get(productId);
-      if (productInfo == null) continue;
+      if (productInfo == null) {
+        continue;
+      }
 
       List<Long> sortedServiceableLocations =
           serviceableLocationIds.stream()
@@ -2429,7 +2500,9 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
               .collect(Collectors.toCollection(ArrayList::new));
 
       for (Long locationId : sortedServiceableLocations) {
-        if (qtyToReallocate <= 0) break;
+        if (qtyToReallocate <= 0) {
+          break;
+        }
 
         LocationStock stock = productInfo.stockByLocation.get(locationId);
         int totalAvailable = Math.min(stock.availableStock, stock.maxItemsPackable);
@@ -2529,7 +2602,9 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
     Set<Long> unserviceableLocationIds = new HashSet<>();
     for (Long locationId : usedLocationIds) {
       LocationInfo locInfo = locationInfoMap.get(locationId);
-      if (locInfo == null) continue;
+      if (locInfo == null) {
+        continue;
+      }
 
       String pickupPostcode = locInfo.postalCode;
       BigDecimal routeMaxWeight =
@@ -2578,7 +2653,9 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             hasUnserviceableRoute = true;
             String locationName =
                 locInfo.locationName != null ? locInfo.locationName : UNKNOWN_LOCATION_NAME;
-            if (!routeErrors.isEmpty()) routeErrors.append("; ");
+            if (!routeErrors.isEmpty()) {
+              routeErrors.append("; ");
+            }
             routeErrors
                 .append("No courier options available between pickup location ")
                 .append(locationName)
@@ -2907,7 +2984,9 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
         distributePackages(packageUsages, shipmentProducts, numShipments);
 
     for (int i = 0; i < numShipments; i++) {
-      if (shipmentProducts.get(i).isEmpty()) continue;
+      if (shipmentProducts.get(i).isEmpty()) {
+        continue;
+      }
 
       int shipmentQty =
           shipmentProducts.get(i).stream()
@@ -2949,7 +3028,9 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
             .collect(Collectors.toCollection(ArrayList::new));
 
     int totalQty = shipmentQuantities.stream().mapToInt(Integer::intValue).sum();
-    if (totalQty == 0) return result;
+    if (totalQty == 0) {
+      return result;
+    }
 
     for (OrderOptimizationResponseModel.PackageUsage pkg : totalPackages) {
       int remainingPackages = pkg.getQuantityUsed();
@@ -3037,7 +3118,9 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
       int qty = entry.getValue();
 
       ProductLocationInfo info = productInfoMap.get(productId);
-      if (info == null) continue;
+      if (info == null) {
+        continue;
+      }
 
       productDimensions.put(
           productId,
@@ -3057,7 +3140,7 @@ public class ShippingService extends BaseService implements IShippingSubTranslat
       OrderOptimizationResponseModel.PackageUsage pkgUsage =
           new OrderOptimizationResponseModel.PackageUsage();
 
-      com.example.SpringApi.Models.DatabaseModels.Package pkgEntity =
+      com.example.springapi.models.databasemodels.Package pkgEntity =
           locInfo.packageEntities.get(usage.getPackageId());
       if (pkgEntity != null) {
         pkgUsage.setPackageInfo(new PackageResponseModel(pkgEntity));

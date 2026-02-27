@@ -1,16 +1,16 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.DatabaseModels.Todo;
-import com.example.SpringApi.Models.RequestModels.TodoRequestModel;
-import com.example.SpringApi.Models.ResponseModels.TodoResponseModel;
-import com.example.SpringApi.Repositories.TodoRepository;
-import com.example.SpringApi.Services.Interface.ITodoSubTranslator;
-import com.example.SpringApi.SuccessMessages;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.SuccessMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.databasemodels.Todo;
+import com.example.springapi.models.requestmodels.TodoRequestModel;
+import com.example.springapi.models.responsemodels.TodoResponseModel;
+import com.example.springapi.repositories.TodoRepository;
+import com.example.springapi.services.interfaces.TodoSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,12 +18,18 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * Represents the todo service component.
+ */
 @Service
-public class TodoService extends BaseService implements ITodoSubTranslator {
+public class TodoService extends BaseService implements TodoSubTranslator {
 
   private final TodoRepository todoRepository;
   private final UserLogService userLogService;
 
+  /**
+   * Initializes TodoService.
+   */
   @Autowired
   public TodoService(
       TodoRepository todoRepository,

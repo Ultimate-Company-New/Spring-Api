@@ -1,12 +1,12 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Models.RequestModels.TestExecutionRequestModel;
-import com.example.SpringApi.Models.RequestModels.TestRunRequestModel;
-import com.example.SpringApi.Models.ResponseModels.LatestTestResultResponseModel;
-import com.example.SpringApi.Models.ResponseModels.QADashboardResponseModel;
-import com.example.SpringApi.Models.ResponseModels.QAResponseModel;
-import com.example.SpringApi.Models.ResponseModels.TestExecutionStatusModel;
-import com.example.SpringApi.Models.ResponseModels.TestRunResponseModel;
+import com.example.springapi.models.requestmodels.TestExecutionRequestModel;
+import com.example.springapi.models.requestmodels.TestRunRequestModel;
+import com.example.springapi.models.responsemodels.LatestTestResultResponseModel;
+import com.example.springapi.models.responsemodels.QaDashboardResponseModel;
+import com.example.springapi.models.responsemodels.QaResponseModel;
+import com.example.springapi.models.responsemodels.TestExecutionStatusModel;
+import com.example.springapi.models.responsemodels.TestRunResponseModel;
 import java.util.List;
 import java.util.Map;
 
@@ -20,31 +20,31 @@ import java.util.Map;
  * @version 1.0
  * @since 2024-01-15
  */
-public interface IQASubTranslator {
+public interface QaSubTranslator {
 
   /**
-   * Returns all QA dashboard data in a single response. Includes services with methods/tests,
+   * Returns all QA dashboard data in a single response. Includes services with methods/tests,.
    * coverage summary, and available services.
    *
-   * @return QADashboardResponseModel with all dashboard data
+   * @return QaDashboardResponseModel with all dashboard data
    */
-  QADashboardResponseModel getDashboardData();
+  QaDashboardResponseModel getDashboardData();
 
   /**
-   * Returns a comprehensive list of all services with their public methods and associated unit
+   * Returns a comprehensive list of all services with their public methods and associated unit.
    * tests.
    *
-   * @return List of QAResponseModel with full endpoint-to-test mapping
+   * @return List of QaResponseModel with full endpoint-to-test mapping
    */
-  List<QAResponseModel> getAllEndpointsWithTests();
+  List<QaResponseModel> getAllEndpointsWithTests();
 
   /**
    * Returns endpoint-to-test mapping for a specific service.
    *
    * @param serviceName The name of the service (e.g., "AddressService", "UserService")
-   * @return QAResponseModel for the specified service
+   * @return QaResponseModel for the specified service
    */
-  QAResponseModel getEndpointsWithTestsByService(String serviceName);
+  QaResponseModel getEndpointsWithTestsByService(String serviceName);
 
   /**
    * Returns a summary of test coverage across all services.
@@ -62,7 +62,7 @@ public interface IQASubTranslator {
   List<String> getAvailableServices();
 
   /**
-   * Saves a test run with its individual results. Also updates the LatestTestResult table for each
+   * Saves a test run with its individual results. Also updates the LatestTestResult table for each.
    * test.
    *
    * @param request The test run request containing service info and results
@@ -81,7 +81,7 @@ public interface IQASubTranslator {
   // ==================== TEST EXECUTION METHODS ====================
 
   /**
-   * Starts an async test execution. Returns immediately with status object containing executionId
+   * Starts an async test execution. Returns immediately with status object containing executionId.
    * for polling.
    *
    * @param request The test execution request (determines scope: all, service, method, or specific

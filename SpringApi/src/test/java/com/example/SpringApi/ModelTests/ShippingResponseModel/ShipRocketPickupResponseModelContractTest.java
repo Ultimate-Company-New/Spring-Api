@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.ShippingResponseModel;
+package com.example.springapi.ModelTests.ShippingResponseModel;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class ShipRocketPickupResponseModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.ShippingResponseModel.ShipRocketPickupResponseModel.class)) {
+        com.example.springapi.models.shippingresponsemodel.ShipRocketPickupResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.ShippingResponseModel.ShipRocketPickupResponseModel
+                  com.example.springapi.models.shippingresponsemodel.ShipRocketPickupResponseModel
                       .class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
@@ -65,7 +65,7 @@ class ShipRocketPickupResponseModelContractTest {
   void ShipRocketPickupResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.ShippingResponseModel.ShipRocketPickupResponseModel.class
+        com.example.springapi.models.shippingresponsemodel.ShipRocketPickupResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -83,11 +83,11 @@ class ShipRocketPickupResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.ShippingResponseModel.ShipRocketPickupResponseModel
+  private com.example.springapi.models.shippingresponsemodel.ShipRocketPickupResponseModel
       createInstance() {
-    return (com.example.SpringApi.Models.ShippingResponseModel.ShipRocketPickupResponseModel)
+    return (com.example.springapi.models.shippingresponsemodel.ShipRocketPickupResponseModel)
         instantiate(
-            com.example.SpringApi.Models.ShippingResponseModel.ShipRocketPickupResponseModel.class);
+            com.example.springapi.models.shippingresponsemodel.ShipRocketPickupResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

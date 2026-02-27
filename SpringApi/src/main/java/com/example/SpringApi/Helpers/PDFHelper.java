@@ -1,4 +1,4 @@
-package com.example.SpringApi.Helpers;
+package com.example.springapi.helpers;
 
 import com.itextpdf.text.DocumentException;
 import java.io.ByteArrayOutputStream;
@@ -16,8 +16,8 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
  * @version 1.0
  * @since 2024-01-15
  */
-public class PDFHelper {
-  private PDFHelper() {}
+public class PdfHelper {
+  private PdfHelper() {}
 
   /**
    * Converts HTML content to PDF bytes.

@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.RequestModels;
+package com.example.springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class ShipRocketReturnOrderRequestModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.RequestModels.ShipRocketReturnOrderRequestModel.class)) {
+        com.example.springapi.models.requestmodels.ShipRocketReturnOrderRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.RequestModels.ShipRocketReturnOrderRequestModel
+                  com.example.springapi.models.requestmodels.ShipRocketReturnOrderRequestModel
                       .class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
@@ -65,7 +65,7 @@ class ShipRocketReturnOrderRequestModelContractTest {
   void ShipRocketReturnOrderRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.RequestModels.ShipRocketReturnOrderRequestModel.class
+        com.example.springapi.models.requestmodels.ShipRocketReturnOrderRequestModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -83,11 +83,11 @@ class ShipRocketReturnOrderRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.RequestModels.ShipRocketReturnOrderRequestModel
+  private com.example.springapi.models.requestmodels.ShipRocketReturnOrderRequestModel
       createInstance() {
-    return (com.example.SpringApi.Models.RequestModels.ShipRocketReturnOrderRequestModel)
+    return (com.example.springapi.models.requestmodels.ShipRocketReturnOrderRequestModel)
         instantiate(
-            com.example.SpringApi.Models.RequestModels.ShipRocketReturnOrderRequestModel.class);
+            com.example.springapi.models.requestmodels.ShipRocketReturnOrderRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

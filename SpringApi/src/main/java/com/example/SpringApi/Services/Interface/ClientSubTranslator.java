@@ -1,7 +1,7 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Models.RequestModels.ClientRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
+import com.example.springapi.models.requestmodels.ClientRequestModel;
+import com.example.springapi.models.responsemodels.ClientResponseModel;
 import java.util.List;
 
 /**
@@ -15,7 +15,7 @@ import java.util.List;
  * @version 1.0
  * @since 2024-01-15
  */
-public interface IClientSubTranslator {
+public interface ClientSubTranslator {
 
   /**
    * Toggles the deletion status of a client by its ID.

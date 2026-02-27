@@ -1,16 +1,16 @@
-package com.example.SpringApi.ServiceTests.Client;
+package com.example.springapi.ServiceTests.Client;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.ClientController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Helpers.FirebaseHelper;
-import com.example.SpringApi.Helpers.ImgbbHelper;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.DatabaseModels.Client;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.ClientController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.helpers.FirebaseHelper;
+import com.example.springapi.helpers.ImgbbHelper;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.databasemodels.Client;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -760,7 +760,7 @@ class CreateClientTest extends ClientServiceTestBase {
     // Arrange
     var method =
         ClientController.class.getMethod(
-            "createClient", com.example.SpringApi.Models.RequestModels.ClientRequestModel.class);
+            "createClient", com.example.springapi.models.requestmodels.ClientRequestModel.class);
     stubServiceCreateClientDoNothing();
 
     // Act

@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.DatabaseModels;
+package com.example.springapi.ModelTests.DatabaseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class AddressContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.SpringApi.Models.DatabaseModels.Address.class)) {
+    if (hasNoArgConstructor(com.example.springapi.models.databasemodels.Address.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.SpringApi.Models.DatabaseModels.Address.class);
+              .constructType(com.example.springapi.models.databasemodels.Address.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +62,7 @@ class AddressContractTest {
   void Address_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.DatabaseModels.Address.class.getDeclaredConstructors()) {
+        com.example.springapi.models.databasemodels.Address.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -79,9 +79,9 @@ class AddressContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.DatabaseModels.Address createInstance() {
-    return (com.example.SpringApi.Models.DatabaseModels.Address)
-        instantiate(com.example.SpringApi.Models.DatabaseModels.Address.class);
+  private com.example.springapi.models.databasemodels.Address createInstance() {
+    return (com.example.springapi.models.databasemodels.Address)
+        instantiate(com.example.springapi.models.databasemodels.Address.class);
   }
 
   private Object instantiate(Class<?> clazz) {

@@ -1,7 +1,7 @@
-package com.example.SpringApi.FilterQueryBuilder;
+package com.example.springapi.filterquerybuilder;
 
-import com.example.SpringApi.Models.DatabaseModels.ProductReview;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
+import com.example.springapi.models.databasemodels.ProductReview;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.util.Arrays;
@@ -69,7 +69,7 @@ public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
   }
 
   /**
-   * Finds paginated product reviews with multiple filter conditions. Filters by clientId (via
+   * Finds paginated product reviews with multiple filter conditions. Filters by clientId (via.
    * Product) and optionally by productId.
    *
    * @param clientId The client ID to filter by (via Product)
@@ -92,7 +92,8 @@ public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     String baseQuery =
         "SELECT pr FROM ProductReview pr "
-            + "WHERE pr.productId IN (SELECT p.productId FROM Product p WHERE p.clientId = :clientId) ";
+            + "WHERE pr.productId IN (SELECT p.productId FROM Product p WHERE "
+            + "p.clientId = :clientId) ";
 
     if (productId != null) {
       baseQuery += "AND pr.productId = " + PRODUCT_ID_PARAM + " ";
@@ -116,7 +117,8 @@ public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     String countQuery =
         "SELECT COUNT(pr) FROM ProductReview pr "
-            + "WHERE pr.productId IN (SELECT p.productId FROM Product p WHERE p.clientId = :clientId) ";
+            + "WHERE pr.productId IN (SELECT p.productId FROM Product p WHERE "
+            + "p.clientId = :clientId) ";
 
     if (productId != null) {
       countQuery += "AND pr.productId = " + PRODUCT_ID_PARAM + " ";
@@ -146,7 +148,7 @@ public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
       countTypedQuery.setParameter(entry.getKey(), entry.getValue());
     }
 
-    Long totalCount = countTypedQuery.getSingleResult();
+    final Long totalCount = countTypedQuery.getSingleResult();
 
     TypedQuery<ProductReview> mainQuery = entityManager.createQuery(baseQuery, ProductReview.class);
     mainQuery.setParameter("clientId", clientId);

@@ -1,6 +1,6 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.DatabaseModels.Lead;
+import com.example.springapi.models.databasemodels.Lead;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
@@ -56,7 +56,7 @@ public class LeadResponseModel {
   private String companySizeDisplay;
 
   /**
-   * Minimal constructor for Purchase Order responses. Only includes leadId, firstName, lastName,
+   * Minimal constructor for Purchase Order responses. Only includes leadId, firstName, lastName,.
    * and email.
    *
    * @param lead The Lead entity
@@ -158,7 +158,9 @@ public class LeadResponseModel {
    * @return Color code string
    */
   private String getStatusColor() {
-    if (this.leadStatus == null) return "gray";
+    if (this.leadStatus == null) {
+      return "gray";
+    }
 
     switch (this.leadStatus) {
       case "Contacted", "Re Qualified":

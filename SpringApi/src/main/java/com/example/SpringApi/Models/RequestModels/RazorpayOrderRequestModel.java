@@ -1,4 +1,4 @@
-package com.example.SpringApi.Models.RequestModels;
+package com.example.springapi.models.requestmodels;
 
 import java.math.BigDecimal;
 import lombok.Getter;
@@ -10,18 +10,18 @@ import lombok.Setter;
 @Getter
 @Setter
 public class RazorpayOrderRequestModel {
-  /** The purchase order ID to create payment for */
+  /** The purchase order ID to create payment for. */
   private Long purchaseOrderId;
 
-  /** Amount to be paid in INR (will be converted to paise for Razorpay) */
+  /** Amount to be paid in INR (will be converted to paise for Razorpay). */
   private BigDecimal amount;
 
-  /** Optional: Customer name for Razorpay prefill */
+  /** Optional: Customer name for Razorpay prefill. */
   private String customerName;
 
-  /** Optional: Customer email for Razorpay prefill */
+  /** Optional: Customer email for Razorpay prefill. */
   private String customerEmail;
 
-  /** Optional: Customer phone for Razorpay prefill */
+  /** Optional: Customer phone for Razorpay prefill. */
   private String customerPhone;
 }

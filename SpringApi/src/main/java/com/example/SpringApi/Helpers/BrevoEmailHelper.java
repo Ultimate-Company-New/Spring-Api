@@ -1,8 +1,8 @@
-package com.example.SpringApi.Helpers;
+package com.example.springapi.helpers;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.RequestModels.SendEmailRequest;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.requestmodels.SendEmailRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sendgrid.helpers.mail.objects.Attachments;
 import java.net.URI;
@@ -20,7 +20,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class BrevoEmailHelper implements IEmailHelper {
+/**
+ * Represents the brevo email helper component.
+ */
+public class BrevoEmailHelper implements EmailHelperContract {
   private static final String BREVO_API_BASE = "https://api.brevo.com/v3";
   private static final String APPLICATION_JSON = "application/json";
   private static final DateTimeFormatter ISO_UTC_FORMATTER =
@@ -30,6 +33,9 @@ public class BrevoEmailHelper implements IEmailHelper {
   private final String senderName;
   private final String sendGridApiKey; // Stores Brevo API key (passed from DB as sendgridApiKey)
 
+  /**
+   * Initializes BrevoEmailHelper.
+   */
   public BrevoEmailHelper(String fromAddress, String senderName, String sendgridApiKey) {
     this.fromAddress = fromAddress;
     this.senderName = senderName;
@@ -79,7 +85,8 @@ public class BrevoEmailHelper implements IEmailHelper {
         + String.format("SUMMARY:%s%n", subject)
         + String.format("ORGANIZER;CN=\"%s\":MAILTO:%s%n", from, from)
         + String.format(
-            "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;CN=\"%s\";RSVP=TRUE:mailto:%s%n",
+            "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;"
+                + "PARTSTAT=NEEDS-ACTION;CN=\"%s\";RSVP=TRUE:mailto:%s%n",
             String.join(",", toUsers), String.join(",", toUsers))
         + "BEGIN:VALARM"
         + lineSeparator
@@ -97,6 +104,9 @@ public class BrevoEmailHelper implements IEmailHelper {
         + lineSeparator;
   }
 
+  /**
+   * Executes send email.
+   */
   public boolean sendEmail(SendEmailRequest request) {
     try {
       Map<String, Object> body = new java.util.HashMap<>();
@@ -179,7 +189,7 @@ public class BrevoEmailHelper implements IEmailHelper {
   }
 
   /**
-   * Generates a batch ID for Brevo scheduled batch sends. Brevo recommends using UUIDv4 for batch
+   * Generates a batch ID for Brevo scheduled batch sends. Brevo recommends using UUIDv4 for batch.
    * identification (client-generated).
    *
    * @return A string representing the generated batch ID (UUID).

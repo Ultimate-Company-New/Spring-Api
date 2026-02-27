@@ -1,4 +1,4 @@
-package com.example.SpringApi.Authentication;
+package com.example.springapi.authentication;
 
 import java.util.Arrays;
 import java.util.List;
@@ -14,38 +14,37 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+/**
+ * Configures application security and CORS behavior.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
+  /**
+   * Builds the HTTP security filter chain used by the application.
+   */
   @Bean
   public SecurityFilterChain filterChain(
       HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
     http.csrf(csrf -> csrf.disable())
-        // Enable CORS with our configuration
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             auth ->
                 auth
-                    // Allow all OPTIONS requests (CORS preflight)
                     .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**")
                     .permitAll()
-                    // Whitelist Swagger paths
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                     .permitAll()
-                    // Allow unauthenticated access to the root path (optional)
                     .requestMatchers("/")
                     .permitAll()
-                    // Allow unauthenticated access to login endpoints
                     .requestMatchers("/api/Login/**")
                     .permitAll()
-                    // Allow unauthenticated access to email confirmation endpoint
                     .requestMatchers("/api/User/confirmEmail/**")
                     .permitAll()
-                    // All other requests must be authenticated
                     .anyRequest()
                     .authenticated())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -53,6 +52,9 @@ public class SecurityConfig {
     return http.build();
   }
 
+  /**
+   * Provides the CORS configuration source for allowed origins and methods.
+   */
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();

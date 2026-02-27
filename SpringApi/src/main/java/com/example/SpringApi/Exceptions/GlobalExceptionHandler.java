@@ -1,14 +1,14 @@
-package com.example.SpringApi.Exceptions;
+package com.example.springapi.exceptions;
 
-import com.example.SpringApi.Logging.ContextualLogger;
-import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
+import com.example.springapi.logging.ContextualLogger;
+import com.example.springapi.models.responsemodels.ErrorResponseModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
- * Global exception handler for the Spring API. Catches exceptions that are not handled by
+ * Global exception handler for the Spring API. Catches exceptions that are not handled by.
  * individual controllers and returns appropriate HTTP responses.
  */
 @RestControllerAdvice
@@ -18,7 +18,7 @@ public class GlobalExceptionHandler {
       ContextualLogger.getLogger(GlobalExceptionHandler.class);
 
   /**
-   * Handles PermissionException thrown when a user lacks required permissions. Returns HTTP 403
+   * Handles PermissionException thrown when a user lacks required permissions. Returns HTTP 403.
    * Forbidden with an error message.
    *
    * @param ex The PermissionException

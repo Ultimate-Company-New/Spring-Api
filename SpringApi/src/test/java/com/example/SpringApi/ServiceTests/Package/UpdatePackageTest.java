@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.Package;
+package com.example.springapi.ServiceTests.Package;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -10,12 +10,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.example.SpringApi.Controllers.PackageController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
-import com.example.SpringApi.Models.RequestModels.PackagePickupLocationMappingRequestModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.PackageController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.models.databasemodels.PackagePickupLocationMapping;
+import com.example.springapi.models.requestmodels.PackagePickupLocationMappingRequestModel;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;

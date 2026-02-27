@@ -1,4 +1,4 @@
-package com.example.SpringApi.Models.ShippingResponseModel;
+package com.example.springapi.models.shippingresponsemodel;
 
 import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import java.util.List;
@@ -6,8 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Response model for Shiprocket courier serviceability API. Variable names use underscores to match
- * Shiprocket API response format.
+ * Response model for Shiprocket courier serviceability API. Variable names use underscores to
+ * match. Shiprocket API response format.
  */
 @Getter
 @Setter
@@ -60,6 +60,9 @@ public class ShippingOptionsResponseModel {
   @SerializedName("user_insurance_manadatory")
   private boolean userInsuranceManadatory;
 
+  /**
+   * Represents the available courier company component.
+   */
   @Getter
   @Setter
   public static class AvailableCourierCompany {
@@ -259,6 +262,9 @@ public class ShippingOptionsResponseModel {
     private String zone;
   }
 
+  /**
+   * Represents the suppression dates component.
+   */
   @Getter
   @Setter
   public static class SuppressionDates {
@@ -293,6 +299,9 @@ public class ShippingOptionsResponseModel {
     private String pickupDelayTo;
   }
 
+  /**
+   * Represents the covid zones component.
+   */
   @Getter
   @Setter
   public static class CovidZones {
@@ -303,6 +312,9 @@ public class ShippingOptionsResponseModel {
     private Object pickupZone;
   }
 
+  /**
+   * Represents the data component.
+   */
   @Getter
   @Setter
   public static class Data {
@@ -328,6 +340,9 @@ public class ShippingOptionsResponseModel {
     private int shiprocketRecommendedCourierId;
   }
 
+  /**
+   * Represents the recommended by component.
+   */
   @Getter
   @Setter
   public static class RecommendedBy {

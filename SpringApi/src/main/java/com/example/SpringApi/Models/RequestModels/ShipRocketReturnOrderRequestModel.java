@@ -1,4 +1,4 @@
-package com.example.SpringApi.Models.RequestModels;
+package com.example.springapi.models.requestmodels;
 
 import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import java.math.BigDecimal;
@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Request model for creating a return order in ShipRocket. POST /orders/create/return
+ * Request model for creating a return order in ShipRocket. POST /orders/create/return.
  *
  * <p>Note: For returns, the pickup location is where the customer is (delivery address of original
  * order) and the shipping location is where the product should be returned to (original pickup
@@ -124,7 +124,7 @@ public class ShipRocketReturnOrderRequestModel {
   @SerializedName("weight")
   private BigDecimal weight;
 
-  /** Inner class for order items in return request */
+  /** Inner class for order items in return request. */
   @Getter
   @Setter
   public static class ReturnOrderItem {

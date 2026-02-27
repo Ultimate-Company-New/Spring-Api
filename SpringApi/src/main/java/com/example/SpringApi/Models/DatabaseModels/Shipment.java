@@ -1,8 +1,18 @@
-package com.example.SpringApi.Models.DatabaseModels;
+package com.example.springapi.models.databasemodels;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import jakarta.persistence.*;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,8 +39,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 public class Shipment {
 
   /**
-   * Enum for ShipRocket order status values. These values must match the database CHECK constraint:
-   * chk_shipment_shiprocket_status
+   * Enum for ShipRocket order status values. These values must match the database CHECK
+   * constraint:. chk_shipment_shiprocket_status
    */
   public enum ShipRocketStatus {
     NEW("NEW"),
@@ -174,7 +184,7 @@ public class Shipment {
   private String shipRocketStatus;
 
   /**
-   * Sets the ShipRocket status with validation. Validates that the status is one of the allowed
+   * Sets the ShipRocket status with validation. Validates that the status is one of the allowed.
    * ShipRocket status values.
    *
    * @param status The ShipRocket status string to set
@@ -303,7 +313,7 @@ public class Shipment {
    */
   public Shipment(
       Long orderSummaryId,
-      com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel.ShipmentData
+      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.ShipmentData
           shipmentData,
       Long clientId,
       String createdUser) {
@@ -334,7 +344,7 @@ public class Shipment {
    */
   public Shipment(
       Long orderSummaryId,
-      com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel.ShipmentData
+      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.ShipmentData
           shipmentData,
       String modifiedUser,
       Shipment existingShipment) {
@@ -374,7 +384,7 @@ public class Shipment {
    */
   private void validateRequest(
       Long orderSummaryId,
-      com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel.ShipmentData
+      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.ShipmentData
           shipmentData,
       Long clientId,
       String user) {
@@ -433,7 +443,7 @@ public class Shipment {
 
   /** Sets courier selection details from CourierSelectionData. All courier fields are required. */
   public void setCourierSelection(
-      com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel.CourierSelectionData
+      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.CourierSelectionData
           courierData) {
     if (courierData == null) {
       throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.COURIER_SELECTION_REQUIRED);
@@ -472,13 +482,13 @@ public class Shipment {
   }
 
   /**
-   * Populates ShipRocket order details from the order creation response. Called after successfully
+   * Populates ShipRocket order details from the order creation response. Called after successfully.
    * creating an order in ShipRocket.
    *
    * @param response The ShipRocket order creation response
    */
   public void populateFromShipRocketOrderResponse(
-      com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderResponseModel response) {
+      com.example.springapi.models.shippingresponsemodel.ShipRocketOrderResponseModel response) {
     if (response == null) {
       return;
     }

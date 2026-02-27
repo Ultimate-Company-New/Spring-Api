@@ -1,14 +1,14 @@
-package com.example.SpringApi.ServiceTests.Product;
+package com.example.springapi.ServiceTests.Product;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.ProductController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Helpers.ImgbbHelper;
-import com.example.SpringApi.Models.RequestModels.ProductRequestModel;
-import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.ProductController;
+import com.example.springapi.helpers.ImgbbHelper;
+import com.example.springapi.models.requestmodels.ProductRequestModel;
+import com.example.springapi.models.responsemodels.BulkInsertResponseModel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

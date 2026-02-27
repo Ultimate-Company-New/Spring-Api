@@ -1,10 +1,10 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
-import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PickupLocationResponseModel;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.PickupLocationRequestModel;
+import com.example.springapi.models.responsemodels.BulkInsertResponseModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.PickupLocationResponseModel;
 import java.util.List;
 
 /**
@@ -18,7 +18,7 @@ import java.util.List;
  * @version 1.0
  * @since 2024-01-15
  */
-public interface IPickupLocationSubTranslator {
+public interface PickupLocationSubTranslator {
 
   /**
    * Retrieves pickup locations in paginated batches based on filter criteria.
@@ -82,7 +82,7 @@ public interface IPickupLocationSubTranslator {
   void togglePickupLocation(long pickupLocationId);
 
   /**
-   * Creates multiple pickup locations asynchronously in a single operation. Processing happens in
+   * Creates multiple pickup locations asynchronously in a single operation. Processing happens in.
    * background thread; results sent via message notification.
    *
    * @param pickupLocations List of PickupLocationRequestModel containing the pickup location data
@@ -100,7 +100,7 @@ public interface IPickupLocationSubTranslator {
       Long requestingClientId);
 
   /**
-   * Creates multiple pickup locations synchronously in a single operation (for testing). This is a
+   * Creates multiple pickup locations synchronously in a single operation (for testing). This is a.
    * synchronous wrapper that processes pickup locations immediately and returns results.
    *
    * @param pickupLocations List of PickupLocationRequestModel containing the pickup location data

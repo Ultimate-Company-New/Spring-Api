@@ -1,12 +1,12 @@
-package com.example.SpringApi.ServiceTests.Message;
+package com.example.springapi.ServiceTests.Message;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.MessageController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.DatabaseModels.MessageUserReadMap;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.MessageController;
+import com.example.springapi.models.databasemodels.MessageUserReadMap;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,6 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.DatabaseModels.ProductCategory;
+import com.example.springapi.models.databasemodels.ProductCategory;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,7 +29,7 @@ public class ProductCategoryResponseModel {
   private String fullPath; // Full hierarchical path e.g., "Electronics > Computers > Laptops"
 
   /**
-   * Constructor that creates a response model from a ProductCategory entity. The fullPath will be
+   * Constructor that creates a response model from a ProductCategory entity. The fullPath will be.
    * set to just the category name - use setFullPath() to set the complete path.
    *
    * @param category The ProductCategory entity to convert

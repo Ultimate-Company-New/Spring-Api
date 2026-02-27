@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.RequestModels;
+package com.example.springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class LeadRequestModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.SpringApi.Models.RequestModels.LeadRequestModel.class)) {
+    if (hasNoArgConstructor(com.example.springapi.models.requestmodels.LeadRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.SpringApi.Models.RequestModels.LeadRequestModel.class);
+              .constructType(com.example.springapi.models.requestmodels.LeadRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +62,7 @@ class LeadRequestModelContractTest {
   void LeadRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.RequestModels.LeadRequestModel.class
+        com.example.springapi.models.requestmodels.LeadRequestModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -80,9 +80,9 @@ class LeadRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.RequestModels.LeadRequestModel createInstance() {
-    return (com.example.SpringApi.Models.RequestModels.LeadRequestModel)
-        instantiate(com.example.SpringApi.Models.RequestModels.LeadRequestModel.class);
+  private com.example.springapi.models.requestmodels.LeadRequestModel createInstance() {
+    return (com.example.springapi.models.requestmodels.LeadRequestModel)
+        instantiate(com.example.springapi.models.requestmodels.LeadRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

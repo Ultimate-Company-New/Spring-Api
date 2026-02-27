@@ -1,7 +1,7 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Models.RequestModels.TodoRequestModel;
-import com.example.SpringApi.Models.ResponseModels.TodoResponseModel;
+import com.example.springapi.models.requestmodels.TodoRequestModel;
+import com.example.springapi.models.responsemodels.TodoResponseModel;
 import java.util.List;
 
 /**
@@ -14,7 +14,7 @@ import java.util.List;
  * @version 1.0
  * @since 2024-01-15
  */
-public interface ITodoSubTranslator {
+public interface TodoSubTranslator {
 
   /**
    * Adds a new task item.

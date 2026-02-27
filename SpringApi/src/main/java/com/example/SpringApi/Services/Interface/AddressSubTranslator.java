@@ -1,7 +1,7 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
-import com.example.SpringApi.Models.ResponseModels.AddressResponseModel;
+import com.example.springapi.models.requestmodels.AddressRequestModel;
+import com.example.springapi.models.responsemodels.AddressResponseModel;
 import java.util.List;
 
 /**
@@ -15,7 +15,7 @@ import java.util.List;
  * @version 1.0
  * @since 2024-01-15
  */
-public interface IAddressSubTranslator {
+public interface AddressSubTranslator {
 
   /**
    * Toggles the deletion status of an address by its ID.

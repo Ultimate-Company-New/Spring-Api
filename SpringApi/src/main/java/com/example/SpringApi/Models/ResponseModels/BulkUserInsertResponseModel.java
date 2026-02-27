@@ -1,4 +1,4 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
 import java.util.ArrayList;
 import java.util.List;

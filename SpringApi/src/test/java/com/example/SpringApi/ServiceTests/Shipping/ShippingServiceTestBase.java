@@ -1,28 +1,28 @@
-package com.example.SpringApi.ServiceTests.Shipping;
+package com.example.springapi.ServiceTests.Shipping;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.lenient;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.FilterQueryBuilder.ShipmentFilterQueryBuilder;
-import com.example.SpringApi.Helpers.PackagingHelper;
-import com.example.SpringApi.Helpers.ShipRocketHelper;
-import com.example.SpringApi.Models.DatabaseModels.*;
-import com.example.SpringApi.Models.RequestModels.*;
-import com.example.SpringApi.Models.ResponseModels.*;
-import com.example.SpringApi.Models.ShippingResponseModel.*;
-import com.example.SpringApi.Repositories.*;
-import com.example.SpringApi.Services.ClientService;
-import com.example.SpringApi.Services.Interface.IPaymentSubTranslator;
-import com.example.SpringApi.Services.Interface.IShippingSubTranslator;
-import com.example.SpringApi.Services.ShippingService;
-import com.example.SpringApi.Services.UserLogService;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.filterquerybuilder.ShipmentFilterQueryBuilder;
+import com.example.springapi.helpers.PackagingHelper;
+import com.example.springapi.helpers.ShipRocketHelper;
+import com.example.springapi.models.databasemodels.*;
+import com.example.springapi.models.requestmodels.*;
+import com.example.springapi.models.responsemodels.*;
+import com.example.springapi.models.shippingresponsemodel.*;
+import com.example.springapi.repositories.*;
+import com.example.springapi.services.ClientService;
+import com.example.springapi.services.ShippingService;
+import com.example.springapi.services.UserLogService;
+import com.example.springapi.services.interfaces.PaymentSubTranslator;
+import com.example.springapi.services.interfaces.ShippingSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -77,7 +77,7 @@ abstract class ShippingServiceTestBase {
 
   @Mock protected OrderSummaryRepository orderSummaryRepository;
 
-  @Mock protected IPaymentSubTranslator paymentService;
+  @Mock protected PaymentSubTranslator paymentService;
 
   @Mock protected PickupLocationRepository pickupLocationRepository;
 
@@ -95,7 +95,7 @@ abstract class ShippingServiceTestBase {
 
   @Mock protected JwtTokenProvider jwtTokenProvider;
 
-  @Mock protected IShippingSubTranslator shippingServiceMock;
+  @Mock protected ShippingSubTranslator shippingServiceMock;
 
   @Mock protected ShippingService shippingServiceControllerMock;
 
@@ -113,7 +113,7 @@ abstract class ShippingServiceTestBase {
   protected ShipmentProduct testShipmentProduct;
   protected ShipmentPackage testShipmentPackage;
   protected Product testProduct;
-  protected com.example.SpringApi.Models.DatabaseModels.Package testPackage;
+  protected com.example.springapi.models.databasemodels.Package testPackage;
   protected Client testClient;
   protected ClientResponseModel testClientResponse;
   protected PickupLocation testPickupLocation;
@@ -210,7 +210,7 @@ abstract class ShippingServiceTestBase {
     testShipmentPackage.setPackageId(TEST_PACKAGE_ID);
     testShipmentPackage.setQuantityUsed(1);
 
-    testPackage = new com.example.SpringApi.Models.DatabaseModels.Package();
+    testPackage = new com.example.springapi.models.databasemodels.Package();
     testPackage.setPackageId(TEST_PACKAGE_ID);
     testPackage.setLength(10);
     testPackage.setBreadth(10);
@@ -335,7 +335,7 @@ abstract class ShippingServiceTestBase {
   }
 
   protected void stubPackageRepositoryFindById(
-      com.example.SpringApi.Models.DatabaseModels.Package pkg) {
+      com.example.springapi.models.databasemodels.Package pkg) {
     lenient()
         .when(packageRepository.findById(anyLong()))
         .thenReturn(pkg != null ? Optional.of(pkg) : Optional.empty());
@@ -714,7 +714,7 @@ abstract class ShippingServiceTestBase {
                 anyString(),
                 org.mockito.ArgumentMatchers
                     .<List<
-                            com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel
+                            com.example.springapi.models.requestmodels.PaginationBaseRequestModel
                                 .FilterCondition>>
                         any(),
                 any(Pageable.class)))
@@ -731,7 +731,7 @@ abstract class ShippingServiceTestBase {
                 anyString(),
                 org.mockito.ArgumentMatchers
                     .<List<
-                            com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel
+                            com.example.springapi.models.requestmodels.PaginationBaseRequestModel
                                 .FilterCondition>>
                         any(),
                 any(Pageable.class)))
@@ -767,8 +767,8 @@ abstract class ShippingServiceTestBase {
     mapping.setPackageId(packageId);
     mapping.setPickupLocationId(locationId);
     mapping.setAvailableQuantity(qty);
-    com.example.SpringApi.Models.DatabaseModels.Package pkg =
-        new com.example.SpringApi.Models.DatabaseModels.Package();
+    com.example.springapi.models.databasemodels.Package pkg =
+        new com.example.springapi.models.databasemodels.Package();
     pkg.setPackageId(packageId);
     pkg.setPackageName("PKG");
     pkg.setPackageType("BOX");

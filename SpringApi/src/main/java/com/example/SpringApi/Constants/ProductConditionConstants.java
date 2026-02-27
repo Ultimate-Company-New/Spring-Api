@@ -1,4 +1,4 @@
-package com.example.SpringApi.Constants;
+package com.example.springapi.constants;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,7 +26,7 @@ public final class ProductConditionConstants {
   public static final String PRE_OWNED = "PRE_OWNED";
   public static final String PRE_OWNED_WITH_DEFECTS = "PRE_OWNED_WITH_DEFECTS";
 
-  /** All valid product condition values (uppercase for storage/comparison) */
+  /** All valid product condition values (uppercase for storage/comparison). */
   private static final List<String> VALID_CONDITIONS =
       Collections.unmodifiableList(
           Arrays.asList(

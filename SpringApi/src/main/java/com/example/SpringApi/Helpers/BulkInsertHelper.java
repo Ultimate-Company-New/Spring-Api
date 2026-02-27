@@ -1,14 +1,14 @@
-package com.example.SpringApi.Helpers;
+package com.example.springapi.helpers;
 
-import com.example.SpringApi.Models.RequestModels.MessageRequestModel;
-import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
-import com.example.SpringApi.Models.ResponseModels.BulkUserInsertResponseModel;
-import com.example.SpringApi.Services.MessageService;
+import com.example.springapi.models.requestmodels.MessageRequestModel;
+import com.example.springapi.models.responsemodels.BulkInsertResponseModel;
+import com.example.springapi.models.responsemodels.BulkUserInsertResponseModel;
+import com.example.springapi.services.MessageService;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Helper class for bulk insert operations. Provides common functionality for creating result
+ * Helper class for bulk insert operations. Provides common functionality for creating result.
  * messages.
  *
  * @author SpringApi Team
@@ -18,10 +18,12 @@ import java.util.List;
 public class BulkInsertHelper {
   private static final String DIV_END = "</div>";
   private static final String SUMMARY_CARD_START =
-      "<div style='background: white; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>";
+      "<div style='background: white; padding: 20px; border-radius: 8px; "
+          + "text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>";
   private static final String PERCENTAGE_FORMAT = "%.1f%%";
   private static final String RESULTS_TABLE_START =
-      "<table style='width: 100%; border-collapse: collapse; margin-top: 15px; table-layout: fixed;'>";
+      "<table style='width: 100%; border-collapse: collapse; margin-top: "
+          + "15px; table-layout: fixed;'>";
   private static final String TABLE_HEADER_END = "</tr></thead><tbody>";
   private static final String TABLE_ROW_START = "<tr style='border-bottom: 1px solid #e5e7eb;'>";
   private static final String WRAPPED_CELL_START =
@@ -33,12 +35,18 @@ public class BulkInsertHelper {
 
   private BulkInsertHelper() {}
 
+  /**
+   * Represents the bulk message template component.
+   */
   public static class BulkMessageTemplate {
     private final String entityType;
     private final String entityTypePlural;
     private final String identifierColumnName;
     private final String entityIdColumnName;
 
+    /**
+     * Initializes BulkMessageTemplate.
+     */
     public BulkMessageTemplate(
         String entityType,
         String entityTypePlural,
@@ -67,12 +75,18 @@ public class BulkInsertHelper {
     }
   }
 
+  /**
+   * Represents the notification context component.
+   */
   public static class NotificationContext {
     private final MessageService messageService;
     private final Long userId;
     private final String userLoginName;
     private final Long clientId;
 
+    /**
+     * Initializes NotificationContext.
+     */
     public NotificationContext(
         MessageService messageService, Long userId, String userLoginName, Long clientId) {
       this.messageService = messageService;
@@ -99,7 +113,7 @@ public class BulkInsertHelper {
   }
 
   /**
-   * Creates a beautiful HTML message summarizing bulk insert results with detailed tables. This is
+   * Creates a beautiful HTML message summarizing bulk insert results with detailed tables. This is.
    * a unified template function that works for any entity type.
    *
    * @param response The bulk insert response model
@@ -123,7 +137,9 @@ public class BulkInsertHelper {
 
       // Header
       htmlContent.append(
-          "<div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;'>");
+          "<div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 "
+              + "100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; "
+              + "text-align: center;'>");
       htmlContent
           .append("<h1 style='margin: 0; font-size: 28px;'>📊 Bulk ")
           .append(entityType)
@@ -135,7 +151,8 @@ public class BulkInsertHelper {
           "<div style='background: #f8f9fa; padding: 25px; border-left: 5px solid #667eea;'>");
       htmlContent.append("<h2 style='color: #333; margin-top: 0;'>Summary</h2>");
       htmlContent.append(
-          "<div style='display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px;'>");
+          "<div style='display: grid; grid-template-columns: repeat(3, 1fr); "
+              + "gap: 15px; margin-top: 20px;'>");
 
       // Total
       htmlContent.append(SUMMARY_CARD_START);
@@ -180,10 +197,12 @@ public class BulkInsertHelper {
             .append("</strong>")
             .append(DIV_END);
         htmlContent.append(
-            "<div style='background: #e5e7eb; height: 30px; border-radius: 15px; overflow: hidden;'>");
+            "<div style='background: #e5e7eb; height: 30px; border-radius: 15px; "
+                + "overflow: hidden;'>");
         htmlContent
             .append(
-                "<div style='background: linear-gradient(90deg, #10b981 0%, #059669 100%); height: 100%; width: ")
+                "<div style='background: linear-gradient(90deg, #10b981 0%, #059669 "
+                    + "100%); height: 100%; width: ")
             .append(String.format(PERCENTAGE_FORMAT, successRate))
             .append("; transition: width 0.3s ease;'>")
             .append(DIV_END);
@@ -206,19 +225,22 @@ public class BulkInsertHelper {
           htmlContent.append("<div style='margin-bottom: 30px;'>");
           htmlContent
               .append(
-                  "<h3 style='color: #10b981; border-bottom: 2px solid #10b981; padding-bottom: 10px;'>✅ Successfully Created ")
+                  "<h3 style='color: #10b981; border-bottom: 2px solid #10b981; "
+                      + "padding-bottom: 10px;'>✅ Successfully Created ")
               .append(entityTypePlural)
               .append("</h3>");
           htmlContent.append(RESULTS_TABLE_START);
           htmlContent.append("<thead><tr style='background: #f0fdf4;'>");
           htmlContent
               .append(
-                  "<th style='padding: 12px; text-align: left; border-bottom: 2px solid #10b981; width: 70%;'>")
+                  "<th style='padding: 12px; text-align: left; border-bottom: 2px "
+                      + "solid #10b981; width: 70%;'>")
               .append(identifierColumnName)
               .append(TH_END);
           htmlContent
               .append(
-                  "<th style='padding: 12px; text-align: left; border-bottom: 2px solid #10b981; width: 30%;'>")
+                  "<th style='padding: 12px; text-align: left; border-bottom: 2px "
+                      + "solid #10b981; width: 30%;'>")
               .append(entityIdColumnName)
               .append(TH_END);
           htmlContent.append(TABLE_HEADER_END);
@@ -245,19 +267,22 @@ public class BulkInsertHelper {
           htmlContent.append("<div>");
           htmlContent
               .append(
-                  "<h3 style='color: #ef4444; border-bottom: 2px solid #ef4444; padding-bottom: 10px;'>❌ Failed ")
+                  "<h3 style='color: #ef4444; border-bottom: 2px solid #ef4444; "
+                      + "padding-bottom: 10px;'>❌ Failed ")
               .append(entityTypePlural)
               .append("</h3>");
           htmlContent.append(RESULTS_TABLE_START);
           htmlContent.append("<thead><tr style='background: #fef2f2;'>");
           htmlContent
               .append(
-                  "<th style='padding: 12px; text-align: left; border-bottom: 2px solid #ef4444; width: 35%;'>")
+                  "<th style='padding: 12px; text-align: left; border-bottom: 2px "
+                      + "solid #ef4444; width: 35%;'>")
               .append(identifierColumnName)
               .append(TH_END);
           htmlContent
               .append(
-                  "<th style='padding: 12px; text-align: left; border-bottom: 2px solid #ef4444; width: 65%;'>Error Message")
+                  "<th style='padding: 12px; text-align: left; border-bottom: 2px "
+                      + "solid #ef4444; width: 65%;'>Error Message")
               .append(TH_END);
           htmlContent.append(TABLE_HEADER_END);
 
@@ -266,7 +291,8 @@ public class BulkInsertHelper {
             htmlContent.append(WRAPPED_CELL_START).append(result.getIdentifier()).append(TD_END);
             htmlContent
                 .append(
-                    "<td style='padding: 12px; color: #ef4444; word-wrap: break-word; overflow-wrap: break-word;'>")
+                    "<td style='padding: 12px; color: #ef4444; word-wrap: break-word; "
+                        + "overflow-wrap: break-word;'>")
                 .append(result.getErrorMessage())
                 .append(TD_END);
             htmlContent.append(TR_END);
@@ -281,7 +307,8 @@ public class BulkInsertHelper {
 
       // Footer
       htmlContent.append(
-          "<div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; color: #666;'>");
+          "<div style='background: #f8f9fa; padding: 20px; text-align: center; "
+              + "border-radius: 0 0 10px 10px; color: #666;'>");
       htmlContent
           .append("<p style='margin: 0;'>Bulk ")
           .append(entityType.toLowerCase())
@@ -323,7 +350,7 @@ public class BulkInsertHelper {
   }
 
   /**
-   * Creates a beautiful HTML message for bulk user group insert results. Convenience method that
+   * Creates a beautiful HTML message for bulk user group insert results. Convenience method that.
    * calls createDetailedBulkInsertResultMessage with user group parameters.
    */
   public static void createBulkUserGroupInsertResultMessage(
@@ -363,7 +390,9 @@ public class BulkInsertHelper {
 
       // Header
       htmlContent.append(
-          "<div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;'>");
+          "<div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 "
+              + "100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; "
+              + "text-align: center;'>");
       htmlContent.append(
           "<h1 style='margin: 0; font-size: 28px;'>📊 Bulk User Import Results</h1>");
       htmlContent.append(DIV_END);
@@ -373,7 +402,8 @@ public class BulkInsertHelper {
           "<div style='background: #f8f9fa; padding: 25px; border-left: 5px solid #667eea;'>");
       htmlContent.append("<h2 style='color: #333; margin-top: 0;'>Summary</h2>");
       htmlContent.append(
-          "<div style='display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px;'>");
+          "<div style='display: grid; grid-template-columns: repeat(3, 1fr); "
+              + "gap: 15px; margin-top: 20px;'>");
 
       // Total
       htmlContent.append(SUMMARY_CARD_START);
@@ -418,10 +448,12 @@ public class BulkInsertHelper {
             .append("</strong>")
             .append(DIV_END);
         htmlContent.append(
-            "<div style='background: #e5e7eb; height: 30px; border-radius: 15px; overflow: hidden;'>");
+            "<div style='background: #e5e7eb; height: 30px; border-radius: 15px; "
+                + "overflow: hidden;'>");
         htmlContent
             .append(
-                "<div style='background: linear-gradient(90deg, #10b981 0%, #059669 100%); height: 100%; width: ")
+                "<div style='background: linear-gradient(90deg, #10b981 0%, #059669 "
+                    + "100%); height: 100%; width: ")
             .append(String.format(PERCENTAGE_FORMAT, successRate))
             .append("; transition: width 0.3s ease;'>")
             .append(DIV_END);
@@ -443,16 +475,19 @@ public class BulkInsertHelper {
         if (!successResults.isEmpty()) {
           htmlContent.append("<div style='margin-bottom: 30px;'>");
           htmlContent.append(
-              "<h3 style='color: #10b981; border-bottom: 2px solid #10b981; padding-bottom: 10px;'>✅ Successfully Created Users</h3>");
+              "<h3 style='color: #10b981; border-bottom: 2px solid #10b981; "
+                  + "padding-bottom: 10px;'>✅ Successfully Created Users</h3>");
           htmlContent.append(RESULTS_TABLE_START);
           htmlContent.append("<thead><tr style='background: #f0fdf4;'>");
           htmlContent
               .append(
-                  "<th style='padding: 12px; text-align: left; border-bottom: 2px solid #10b981; width: 70%;'>Email")
+                  "<th style='padding: 12px; text-align: left; border-bottom: 2px "
+                      + "solid #10b981; width: 70%;'>Email")
               .append(TH_END);
           htmlContent
               .append(
-                  "<th style='padding: 12px; text-align: left; border-bottom: 2px solid #10b981; width: 30%;'>User ID")
+                  "<th style='padding: 12px; text-align: left; border-bottom: 2px "
+                      + "solid #10b981; width: 30%;'>User ID")
               .append(TH_END);
           htmlContent.append(TABLE_HEADER_END);
 
@@ -477,16 +512,19 @@ public class BulkInsertHelper {
         if (!failureResults.isEmpty()) {
           htmlContent.append("<div>");
           htmlContent.append(
-              "<h3 style='color: #ef4444; border-bottom: 2px solid #ef4444; padding-bottom: 10px;'>❌ Failed Users</h3>");
+              "<h3 style='color: #ef4444; border-bottom: 2px solid #ef4444; "
+                  + "padding-bottom: 10px;'>❌ Failed Users</h3>");
           htmlContent.append(RESULTS_TABLE_START);
           htmlContent.append("<thead><tr style='background: #fef2f2;'>");
           htmlContent
               .append(
-                  "<th style='padding: 12px; text-align: left; border-bottom: 2px solid #ef4444; width: 35%;'>Email")
+                  "<th style='padding: 12px; text-align: left; border-bottom: 2px "
+                      + "solid #ef4444; width: 35%;'>Email")
               .append(TH_END);
           htmlContent
               .append(
-                  "<th style='padding: 12px; text-align: left; border-bottom: 2px solid #ef4444; width: 65%;'>Error Message")
+                  "<th style='padding: 12px; text-align: left; border-bottom: 2px "
+                      + "solid #ef4444; width: 65%;'>Error Message")
               .append(TH_END);
           htmlContent.append(TABLE_HEADER_END);
 
@@ -495,7 +533,8 @@ public class BulkInsertHelper {
             htmlContent.append(WRAPPED_CELL_START).append(result.getEmail()).append(TD_END);
             htmlContent
                 .append(
-                    "<td style='padding: 12px; color: #ef4444; word-wrap: break-word; overflow-wrap: break-word;'>")
+                    "<td style='padding: 12px; color: #ef4444; word-wrap: break-word; "
+                        + "overflow-wrap: break-word;'>")
                 .append(result.getErrorMessage())
                 .append(TD_END);
             htmlContent.append(TR_END);
@@ -510,7 +549,8 @@ public class BulkInsertHelper {
 
       // Footer
       htmlContent.append(
-          "<div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; color: #666;'>");
+          "<div style='background: #f8f9fa; padding: 20px; text-align: center; "
+              + "border-radius: 0 0 10px 10px; color: #666;'>");
       htmlContent.append(
           "<p style='margin: 0;'>Bulk user import completed at "
               + java.time.LocalDateTime.now()

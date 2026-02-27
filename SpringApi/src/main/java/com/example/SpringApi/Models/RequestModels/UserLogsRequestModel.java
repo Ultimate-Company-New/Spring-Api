@@ -1,10 +1,10 @@
-package com.example.SpringApi.Models.RequestModels;
+package com.example.springapi.models.requestmodels;
 
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Request model for fetching user logs in batches. Extends PaginationBaseRequestModel to include
+ * Request model for fetching user logs in batches. Extends PaginationBaseRequestModel to include.
  * pagination parameters.
  */
 @Getter

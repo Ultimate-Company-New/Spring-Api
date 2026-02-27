@@ -1,24 +1,24 @@
-package com.example.SpringApi.ServiceTests.Product;
+package com.example.springapi.ServiceTests.Product;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.Constants.ProductConditionConstants;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.FilterQueryBuilder.ProductFilterQueryBuilder;
-import com.example.SpringApi.Helpers.ImgbbHelper;
-import com.example.SpringApi.Models.DatabaseModels.*;
-import com.example.SpringApi.Models.RequestModels.ProductRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
-import com.example.SpringApi.Repositories.*;
-import com.example.SpringApi.Services.ClientService;
-import com.example.SpringApi.Services.MessageService;
-import com.example.SpringApi.Services.ProductService;
-import com.example.SpringApi.Services.UserLogService;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.constants.ProductConditionConstants;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.filterquerybuilder.ProductFilterQueryBuilder;
+import com.example.springapi.helpers.ImgbbHelper;
+import com.example.springapi.models.databasemodels.*;
+import com.example.springapi.models.requestmodels.ProductRequestModel;
+import com.example.springapi.models.responsemodels.ClientResponseModel;
+import com.example.springapi.repositories.*;
+import com.example.springapi.services.ClientService;
+import com.example.springapi.services.MessageService;
+import com.example.springapi.services.ProductService;
+import com.example.springapi.services.UserLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -54,7 +54,7 @@ abstract class ProductServiceTestBase {
   @Mock protected ProductPickupLocationMappingRepository productPickupLocationMappingRepository;
 
   @Mock
-  protected com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository
+  protected com.example.springapi.repositories.PackagePickupLocationMappingRepository
       packagePickupLocationMappingRepository;
 
   @Mock protected UserLogService userLogService;
@@ -113,7 +113,7 @@ abstract class ProductServiceTestBase {
     productRepository = mock(ProductRepository.class);
     productPickupLocationMappingRepository = mock(ProductPickupLocationMappingRepository.class);
     packagePickupLocationMappingRepository =
-        mock(com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository.class);
+        mock(com.example.springapi.repositories.PackagePickupLocationMappingRepository.class);
     userLogService = mock(UserLogService.class);
     productCategoryRepository = mock(ProductCategoryRepository.class);
     googleCredRepository = mock(GoogleCredRepository.class);
@@ -179,7 +179,7 @@ abstract class ProductServiceTestBase {
   }
 
   protected void stubProductCategoryRepositoryFindAll(
-      java.util.List<com.example.SpringApi.Models.DatabaseModels.ProductCategory> categories) {
+      java.util.List<com.example.springapi.models.databasemodels.ProductCategory> categories) {
     lenient().when(productCategoryRepository.findAll()).thenReturn(categories);
   }
 
@@ -218,10 +218,10 @@ abstract class ProductServiceTestBase {
     lenient().when(clientRepository.findById(clientId)).thenReturn(Optional.ofNullable(client));
   }
 
-  protected com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel
+  protected com.example.springapi.models.requestmodels.PaginationBaseRequestModel
       createValidPaginationRequest() {
-    com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel paginationRequest =
-        new com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel();
+    com.example.springapi.models.requestmodels.PaginationBaseRequestModel paginationRequest =
+        new com.example.springapi.models.requestmodels.PaginationBaseRequestModel();
     paginationRequest.setStart(0);
     paginationRequest.setEnd(10);
     paginationRequest.setFilters(new java.util.ArrayList<>());
@@ -273,7 +273,7 @@ abstract class ProductServiceTestBase {
 
   protected void stubPackagePickupLocationMappingRepositoryFindByPickupLocationIdsWithPackages(
       java.util.List<Long> pickupLocationIds,
-      java.util.List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping>
+      java.util.List<com.example.springapi.models.databasemodels.PackagePickupLocationMapping>
           mappings) {
     lenient()
         .when(
@@ -303,8 +303,8 @@ abstract class ProductServiceTestBase {
   protected void stubProductServiceAddProductThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(productServiceMock)
         .addProduct(any(ProductRequestModel.class));
   }
@@ -316,8 +316,8 @@ abstract class ProductServiceTestBase {
   protected void stubProductServiceEditProductThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(productServiceMock)
         .editProduct(any(ProductRequestModel.class));
   }
@@ -329,8 +329,8 @@ abstract class ProductServiceTestBase {
   protected void stubProductServiceToggleDeleteProductThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(productServiceMock)
         .toggleDeleteProduct(anyLong());
   }
@@ -342,8 +342,8 @@ abstract class ProductServiceTestBase {
   protected void stubProductServiceToggleReturnProductThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(productServiceMock)
         .toggleReturnProduct(anyLong());
   }
@@ -355,8 +355,8 @@ abstract class ProductServiceTestBase {
   protected void stubProductServiceBulkAddProductsThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(productServiceMock)
         .bulkAddProducts(anyList());
   }
@@ -371,50 +371,50 @@ abstract class ProductServiceTestBase {
   protected void stubProductServiceBulkAddProductsAsyncThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(productServiceMock)
         .bulkAddProductsAsync(anyList(), anyLong(), anyString(), anyLong());
   }
 
   protected void stubProductServiceGetProductDetailsByIdReturns(
-      com.example.SpringApi.Models.ResponseModels.ProductResponseModel response) {
+      com.example.springapi.models.responsemodels.ProductResponseModel response) {
     lenient().when(productServiceMock.getProductDetailsById(anyLong())).thenReturn(response);
   }
 
   protected void stubProductServiceGetProductDetailsByIdThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(productServiceMock)
         .getProductDetailsById(anyLong());
   }
 
   protected void stubProductServiceGetProductInBatchesReturns(
-      com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel<
-              com.example.SpringApi.Models.ResponseModels.ProductResponseModel>
+      com.example.springapi.models.responsemodels.PaginationBaseResponseModel<
+              com.example.springapi.models.responsemodels.ProductResponseModel>
           response) {
     lenient()
         .when(
             productServiceMock.getProductInBatches(
-                any(com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.class)))
+                any(com.example.springapi.models.requestmodels.PaginationBaseRequestModel.class)))
         .thenReturn(response);
   }
 
   protected void stubProductServiceGetProductInBatchesThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(productServiceMock)
         .getProductInBatches(
-            any(com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.class));
+            any(com.example.springapi.models.requestmodels.PaginationBaseRequestModel.class));
   }
 
   protected void stubProductServiceGetProductStockAtLocationsByProductIdReturns(
       java.util.List<
-              com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel>
+              com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel>
           response) {
     lenient()
         .when(
@@ -426,8 +426,8 @@ abstract class ProductServiceTestBase {
   protected void stubProductServiceGetProductStockAtLocationsByProductIdThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(productServiceMock)
         .getProductStockAtLocationsByProductId(anyLong(), any(), any(), any());
   }
@@ -439,15 +439,15 @@ abstract class ProductServiceTestBase {
   protected void stubProductServiceGetCategoryPathsByIdsThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(productServiceMock)
         .getCategoryPathsByIds(any());
   }
 
   protected void stubProductServiceFindCategoriesByParentIdReturns(
       java.util.List<
-              com.example.SpringApi.Models.ResponseModels.ProductCategoryWithPathResponseModel>
+              com.example.springapi.models.responsemodels.ProductCategoryWithPathResponseModel>
           categories) {
     lenient().when(productServiceMock.findCategoriesByParentId(any())).thenReturn(categories);
   }
@@ -455,8 +455,8 @@ abstract class ProductServiceTestBase {
   protected void stubProductServiceFindCategoriesByParentIdThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
-                com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new com.example.springapi.exceptions.UnauthorizedException(
+                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(productServiceMock)
         .findCategoriesByParentId(any());
   }

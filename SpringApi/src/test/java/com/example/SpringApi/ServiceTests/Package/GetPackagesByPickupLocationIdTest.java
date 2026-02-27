@@ -1,12 +1,12 @@
-package com.example.SpringApi.ServiceTests.Package;
+package com.example.springapi.ServiceTests.Package;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 
-import com.example.SpringApi.Controllers.PackageController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Models.ResponseModels.PackageResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.PackageController;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.models.responsemodels.PackageResponseModel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,7 +38,7 @@ class GetPackagesByPickupLocationIdTest extends PackageServiceTestBase {
     stubPickupLocationRepositoryCountByPickupLocationIdAndClientId(
         TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID, 1L);
 
-    List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping>
+    List<com.example.springapi.models.databasemodels.PackagePickupLocationMapping>
         identicalMappings = new ArrayList<>();
     for (int i = 0; i < 5; i++) {
       identicalMappings.add(testMapping);
@@ -92,7 +92,7 @@ class GetPackagesByPickupLocationIdTest extends PackageServiceTestBase {
     stubPickupLocationRepositoryCountByPickupLocationIdAndClientId(
         TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID, 1L);
 
-    List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping> manyMappings =
+    List<com.example.springapi.models.databasemodels.PackagePickupLocationMapping> manyMappings =
         new ArrayList<>();
     for (int i = 0; i < 1000; i++) {
       manyMappings.add(testMapping);
@@ -145,10 +145,10 @@ class GetPackagesByPickupLocationIdTest extends PackageServiceTestBase {
     stubPickupLocationRepositoryCountByPickupLocationIdAndClientId(
         TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID, 1L);
 
-    List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping> manyMappings =
+    List<com.example.springapi.models.databasemodels.PackagePickupLocationMapping> manyMappings =
         new ArrayList<>();
     for (int i = 0; i < 15; i++) {
-      com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping mapping =
+      com.example.springapi.models.databasemodels.PackagePickupLocationMapping mapping =
           createTestPackagePickupLocationMapping();
       mapping.setPackageId((long) i);
       manyMappings.add(mapping);
@@ -421,7 +421,7 @@ class GetPackagesByPickupLocationIdDuplicateTests extends PackageServiceTestBase
     // Arrange
     stubPickupLocationRepositoryCountByPickupLocationIdAndClientId(
         TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID, 1L);
-    List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping>
+    List<com.example.springapi.models.databasemodels.PackagePickupLocationMapping>
         identicalMappings = new ArrayList<>();
     for (int i = 0; i < 5; i++) {
       identicalMappings.add(testMapping);
@@ -473,7 +473,7 @@ class GetPackagesByPickupLocationIdDuplicateTests extends PackageServiceTestBase
     // Arrange
     stubPickupLocationRepositoryCountByPickupLocationIdAndClientId(
         TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID, 1L);
-    List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping> manyMappings =
+    List<com.example.springapi.models.databasemodels.PackagePickupLocationMapping> manyMappings =
         new ArrayList<>();
     for (int i = 0; i < 1000; i++) {
       manyMappings.add(testMapping);
@@ -524,10 +524,10 @@ class GetPackagesByPickupLocationIdDuplicateTests extends PackageServiceTestBase
     // Arrange
     stubPickupLocationRepositoryCountByPickupLocationIdAndClientId(
         TEST_PICKUP_LOCATION_ID, TEST_CLIENT_ID, 1L);
-    List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping> manyMappings =
+    List<com.example.springapi.models.databasemodels.PackagePickupLocationMapping> manyMappings =
         new ArrayList<>();
     for (int i = 0; i < 15; i++) {
-      com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping mapping =
+      com.example.springapi.models.databasemodels.PackagePickupLocationMapping mapping =
           createTestPackagePickupLocationMapping();
       mapping.setPackageId((long) i);
       manyMappings.add(mapping);

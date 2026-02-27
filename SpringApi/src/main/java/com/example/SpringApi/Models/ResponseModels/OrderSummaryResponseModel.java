@@ -1,6 +1,6 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.DatabaseModels.OrderSummary;
+import com.example.springapi.models.databasemodels.OrderSummary;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Getter;

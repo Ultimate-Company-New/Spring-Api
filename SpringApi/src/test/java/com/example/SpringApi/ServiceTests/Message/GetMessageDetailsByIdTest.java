@@ -1,12 +1,12 @@
-package com.example.SpringApi.ServiceTests.Message;
+package com.example.springapi.ServiceTests.Message;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.MessageController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.ResponseModels.MessageResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.MessageController;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.responsemodels.MessageResponseModel;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,15 +1,15 @@
-package com.example.SpringApi.ServiceTests.PurchaseOrder;
+package com.example.springapi.ServiceTests.PurchaseOrder;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.SpringApi.Controllers.PurchaseOrderController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.DatabaseModels.GoogleCred;
-import com.example.SpringApi.Models.DatabaseModels.Lead;
-import com.example.SpringApi.Models.DatabaseModels.Shipment;
-import com.example.SpringApi.Models.DatabaseModels.ShipmentProduct;
-import com.example.SpringApi.Models.DatabaseModels.User;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.PurchaseOrderController;
+import com.example.springapi.models.databasemodels.Client;
+import com.example.springapi.models.databasemodels.GoogleCred;
+import com.example.springapi.models.databasemodels.Lead;
+import com.example.springapi.models.databasemodels.Shipment;
+import com.example.springapi.models.databasemodels.ShipmentProduct;
+import com.example.springapi.models.databasemodels.User;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -18,7 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 /**
- * Test class for PurchaseOrderService.getPurchaseOrderPDF method.
+ * Test class for PurchaseOrderService.getPurchaseOrderPdf method.
  *
  * <p>Test count: 11 tests
  */
@@ -66,12 +66,12 @@ class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
 
     byte[] pdfBytes = new byte[] {1, 2, 3};
 
-    try (org.mockito.MockedStatic<com.example.SpringApi.Helpers.HTMLHelper> htmlMock =
+    try (org.mockito.MockedStatic<com.example.springapi.helpers.HtmlHelper> htmlMock =
             stubHtmlHelperReplaceBrTags("<html>ok</html>");
-        org.mockito.MockedStatic<com.example.SpringApi.Helpers.PDFHelper> pdfMock =
+        org.mockito.MockedStatic<com.example.springapi.helpers.PdfHelper> pdfMock =
             stubPdfHelperConvertPurchaseOrderHtmlToPdf(pdfBytes)) {
       // Act
-      byte[] result = purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID);
+      byte[] result = purchaseOrderService.getPurchaseOrderPdf(TEST_PO_ID);
 
       // Assert
       assertNotNull(result);
@@ -99,7 +99,7 @@ class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
     // Act & Assert
     assertThrowsNotFound(
         ErrorMessages.AddressErrorMessages.INVALID_ID,
-        () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
+        () -> purchaseOrderService.getPurchaseOrderPdf(TEST_PO_ID));
   }
 
   /**
@@ -119,7 +119,7 @@ class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
     // Act & Assert
     assertThrowsNotFound(
         ErrorMessages.UserErrorMessages.INVALID_ID,
-        () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
+        () -> purchaseOrderService.getPurchaseOrderPdf(TEST_PO_ID));
   }
 
   /**
@@ -140,7 +140,7 @@ class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
     // Act & Assert
     assertThrowsNotFound(
         ErrorMessages.ClientErrorMessages.INVALID_ID,
-        () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
+        () -> purchaseOrderService.getPurchaseOrderPdf(TEST_PO_ID));
   }
 
   /**
@@ -159,7 +159,7 @@ class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
     // Act & Assert
     assertThrowsNotFound(
         ErrorMessages.UserErrorMessages.INVALID_ID,
-        () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
+        () -> purchaseOrderService.getPurchaseOrderPdf(TEST_PO_ID));
   }
 
   /**
@@ -179,7 +179,7 @@ class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
     // Act & Assert
     assertThrowsNotFound(
         ErrorMessages.LeadsErrorMessages.INVALID_ID,
-        () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
+        () -> purchaseOrderService.getPurchaseOrderPdf(TEST_PO_ID));
   }
 
   /**
@@ -194,10 +194,10 @@ class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
     stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(Optional.empty());
 
     // Act & Assert
-    com.example.SpringApi.Exceptions.NotFoundException ex =
+    com.example.springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.SpringApi.Exceptions.NotFoundException.class,
-            () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
+            com.example.springapi.exceptions.NotFoundException.class,
+            () -> purchaseOrderService.getPurchaseOrderPdf(TEST_PO_ID));
     assertEquals(
         ErrorMessages.OrderSummaryNotFoundMessage.PURCHASE_ORDER_NOT_FOUND, ex.getMessage());
   }
@@ -215,7 +215,7 @@ class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
     // Act & Assert
     assertThrowsNotFound(
         ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID,
-        () -> purchaseOrderService.getPurchaseOrderPDF(TEST_PO_ID));
+        () -> purchaseOrderService.getPurchaseOrderPdf(TEST_PO_ID));
   }
 
   /*
@@ -229,14 +229,14 @@ class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
    * Unauthorized status is returned. Assertions: Response status is 401 UNAUTHORIZED.
    */
   @Test
-  @DisplayName("getPurchaseOrderPDF - Controller Permission - Unauthorized")
+  @DisplayName("getPurchaseOrderPdf - Controller Permission - Unauthorized")
   void getPurchaseOrderPDF_controller_permission_unauthorized() throws Exception {
     // Arrange
     PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderServiceMock);
     stubPurchaseOrderServiceThrowsUnauthorizedOnGetPdf();
 
     // Act
-    ResponseEntity<?> response = controller.getPurchaseOrderPDF(TEST_PO_ID);
+    ResponseEntity<?> response = controller.getPurchaseOrderPdf(TEST_PO_ID);
 
     // Assert
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -247,14 +247,14 @@ class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
    * HTTP 200 returned. Assertions: Delegation and response status are correct.
    */
   @Test
-  @DisplayName("getPurchaseOrderPDF - Controller delegates to service")
+  @DisplayName("getPurchaseOrderPdf - Controller delegates to service")
   void getPurchaseOrderPDF_WithValidId_DelegatesToService() throws Exception {
     // Arrange
     PurchaseOrderController controller = new PurchaseOrderController(purchaseOrderServiceMock);
     stubPurchaseOrderServiceGetPurchaseOrderPdf(new byte[] {1});
 
     // Act
-    ResponseEntity<?> response = controller.getPurchaseOrderPDF(TEST_PO_ID);
+    ResponseEntity<?> response = controller.getPurchaseOrderPdf(TEST_PO_ID);
 
     // Assert
     assertEquals(HttpStatus.OK, response.getStatusCode());

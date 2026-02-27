@@ -1,15 +1,15 @@
-package com.example.SpringApi.ServiceTests.Todo;
+package com.example.springapi.ServiceTests.Todo;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.DatabaseModels.Todo;
-import com.example.SpringApi.Models.RequestModels.TodoRequestModel;
-import com.example.SpringApi.SuccessMessages;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.SuccessMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.databasemodels.Todo;
+import com.example.springapi.models.requestmodels.TodoRequestModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;

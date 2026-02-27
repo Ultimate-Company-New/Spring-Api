@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.RequestModels;
+package com.example.springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class TestExecutionRequestModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.RequestModels.TestExecutionRequestModel.class)) {
+        com.example.springapi.models.requestmodels.TestExecutionRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.RequestModels.TestExecutionRequestModel.class);
+                  com.example.springapi.models.requestmodels.TestExecutionRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +64,7 @@ class TestExecutionRequestModelContractTest {
   void TestExecutionRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.RequestModels.TestExecutionRequestModel.class
+        com.example.springapi.models.requestmodels.TestExecutionRequestModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,9 +82,9 @@ class TestExecutionRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.RequestModels.TestExecutionRequestModel createInstance() {
-    return (com.example.SpringApi.Models.RequestModels.TestExecutionRequestModel)
-        instantiate(com.example.SpringApi.Models.RequestModels.TestExecutionRequestModel.class);
+  private com.example.springapi.models.requestmodels.TestExecutionRequestModel createInstance() {
+    return (com.example.springapi.models.requestmodels.TestExecutionRequestModel)
+        instantiate(com.example.springapi.models.requestmodels.TestExecutionRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

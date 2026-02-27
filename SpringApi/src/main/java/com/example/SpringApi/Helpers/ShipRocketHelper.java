@@ -1,20 +1,20 @@
-package com.example.SpringApi.Helpers;
+package com.example.springapi.helpers;
 
-import com.example.SpringApi.Adapters.DateAdapter;
-import com.example.SpringApi.Adapters.LocalDateTimeAdapter;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
-import com.example.SpringApi.Models.ShippingResponseModel.AddPickupLocationResponseModel;
-import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketAwbResponseModel;
-import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketInvoiceResponseModel;
-import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketLabelResponseModel;
-import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketManifestResponseModel;
-import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderResponseModel;
-import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketPickupResponseModel;
-import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketReturnOrderResponseModel;
-import com.example.SpringApi.Models.ShippingResponseModel.ShipRocketTrackingResponseModel;
-import com.example.SpringApi.Models.ShippingResponseModel.ShippingOptionsResponseModel;
-import com.example.SpringApi.Models.ShippingResponseModel.TokenResponseModel;
+import com.example.springapi.adapters.DateAdapter;
+import com.example.springapi.adapters.LocalDateTimeAdapter;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.databasemodels.PickupLocation;
+import com.example.springapi.models.shippingresponsemodel.AddPickupLocationResponseModel;
+import com.example.springapi.models.shippingresponsemodel.ShipRocketAwbResponseModel;
+import com.example.springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel;
+import com.example.springapi.models.shippingresponsemodel.ShipRocketLabelResponseModel;
+import com.example.springapi.models.shippingresponsemodel.ShipRocketManifestResponseModel;
+import com.example.springapi.models.shippingresponsemodel.ShipRocketOrderResponseModel;
+import com.example.springapi.models.shippingresponsemodel.ShipRocketPickupResponseModel;
+import com.example.springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel;
+import com.example.springapi.models.shippingresponsemodel.ShipRocketTrackingResponseModel;
+import com.example.springapi.models.shippingresponsemodel.ShippingOptionsResponseModel;
+import com.example.springapi.models.shippingresponsemodel.TokenResponseModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.shaded.gson.Gson;
 import com.nimbusds.jose.shaded.gson.GsonBuilder;
@@ -27,8 +27,12 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
 
+/**
+ * Represents the ship rocket helper component.
+ */
 public class ShipRocketHelper {
   private static final String API_URL = "https://apiv2.shiprocket.in/v1/external";
   private static final String SHIPMENT_ID_KEY = "shipment_id";
@@ -36,14 +40,14 @@ public class ShipRocketHelper {
   private final String password;
 
   /**
-   * Timeout for HTTP requests to Shiprocket API (5 seconds). Prevents hanging if the API is slow or
-   * unresponsive.
+   * Timeout for HTTP requests to Shiprocket API (5 seconds). Prevents hanging if the API is slow
+   * or. unresponsive.
    */
   private static final Duration HTTP_TIMEOUT = Duration.ofSeconds(5);
 
   /**
-   * Cached token and its expiration time. Shiprocket tokens typically expire after some time, so we
-   * cache and reuse.
+   * Cached token and its expiration time. Shiprocket tokens typically expire after some time, so
+   * we. cache and reuse.
    */
   private String cachedToken = null;
 
@@ -70,7 +74,7 @@ public class ShipRocketHelper {
   }
 
   /**
-   * Base HTTP method that returns raw JSON response string. All other HTTP methods should use this
+   * Base HTTP method that returns raw JSON response string. All other HTTP methods should use this.
    * to avoid duplicating HTTP logic.
    *
    * @param token Authorization token (can be null for unauthenticated requests)
@@ -117,8 +121,8 @@ public class ShipRocketHelper {
   }
 
   /**
-   * HTTP method that deserializes the response into a typed object. Uses httpResponseRaw internally
-   * for the actual HTTP call.
+   * HTTP method that deserializes the response into a typed object. Uses httpResponseRaw
+   * internally. for the actual HTTP call.
    *
    * @param token Authorization token
    * @param url Full URL to call
@@ -140,8 +144,8 @@ public class ShipRocketHelper {
   }
 
   /**
-   * Get authentication token from Shiprocket API. Uses cached token if available and not expired to
-   * avoid excessive API calls.
+   * Get authentication token from Shiprocket API. Uses cached token if available and not expired
+   * to. avoid excessive API calls.
    *
    * @return Authentication token
    */
@@ -209,15 +213,19 @@ public class ShipRocketHelper {
               || className.contains("Timeout")
               || className.contains("Connect"))) {
         throw new BadRequestException(
-            "Authentication token request failed due to network timeout. Please check network connectivity or Shiprocket API status.");
+            "Authentication token request failed due to network timeout. Please "
+                + "check network connectivity or Shiprocket API status.");
       }
       throw new BadRequestException(
           "Exception occurred while getting auth token: " + e.getMessage());
     }
   }
 
+  /**
+   * Executes add pickup location.
+   */
   public AddPickupLocationResponseModel addPickupLocation(PickupLocation pickupLocation) {
-    String token = getToken();
+    final String token = getToken();
     HashMap<String, Object> jsonBody = new HashMap<>();
 
     String pickupLocationName = pickupLocation.getAddressNickName();
@@ -254,7 +262,7 @@ public class ShipRocketHelper {
   }
 
   /**
-   * Get available shipping options/courier companies for a shipment
+   * Get available shipping options/courier companies for a shipment.
    *
    * @param pickupPostcode Pickup location postal code
    * @param deliveryPostcode Delivery location postal code
@@ -264,7 +272,7 @@ public class ShipRocketHelper {
    */
   public ShippingOptionsResponseModel getAvailableShippingOptions(
       String pickupPostcode, String deliveryPostcode, boolean isCod, String weightInKgs) {
-    String token = getToken();
+    final String token = getToken();
 
     HashMap<String, Object> jsonBody = new HashMap<>();
     jsonBody.put("pickup_postcode", pickupPostcode);
@@ -630,14 +638,7 @@ public class ShipRocketHelper {
   }
 
   /**
-   * This method returns the raw JSON response for storing as metadata.
-   *
-   * <p>Note: ShipRocket can return HTTP 200 with error data in the response body. This method
-   * validates that the response contains valid order data.
-   *
-   * @param shipRocketOrderId The ShipRocket order ID to fetch details for
-   * @return Raw JSON string of the order details response
-   * @throws BadRequestException if the response doesn't contain valid order data
+   * Returns order details as json.
    */
   public String getOrderDetailsAsJson(String shipRocketOrderId) {
     if (shipRocketOrderId == null || shipRocketOrderId.trim().isEmpty()) {
@@ -651,12 +652,12 @@ public class ShipRocketHelper {
         httpResponseRaw(token, API_URL + "/orders/show/" + shipRocketOrderId.trim(), "GET", null);
 
     // Validate response content - HTTP 200 doesn't guarantee success
-    com.example.SpringApi.Models.ShippingResponseModel.ShipRocketOrderDetailsResponseModel
+    com.example.springapi.models.shippingresponsemodel.ShipRocketOrderDetailsResponseModel
         orderDetails =
             createGson()
                 .fromJson(
                     responseBody,
-                    com.example.SpringApi.Models.ShippingResponseModel
+                    com.example.springapi.models.shippingresponsemodel
                         .ShipRocketOrderDetailsResponseModel.class);
 
     if (orderDetails == null) {

@@ -1,11 +1,11 @@
-package com.example.SpringApi.ServiceTests.Message;
+package com.example.springapi.ServiceTests.Message;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.MessageController;
-import com.example.SpringApi.ErrorMessages;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.MessageController;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,7 +42,7 @@ class ToggleMessageTest extends MessageServiceTestBase {
     verify(messageRepository)
         .save(
             argThat(
-                msg -> ((com.example.SpringApi.Models.DatabaseModels.Message) msg).getIsDeleted()));
+                msg -> ((com.example.springapi.models.databasemodels.Message) msg).getIsDeleted()));
   }
 
   /**
@@ -65,7 +65,7 @@ class ToggleMessageTest extends MessageServiceTestBase {
         .save(
             argThat(
                 msg ->
-                    !((com.example.SpringApi.Models.DatabaseModels.Message) msg).getIsDeleted()));
+                    !((com.example.springapi.models.databasemodels.Message) msg).getIsDeleted()));
   }
 
   /**

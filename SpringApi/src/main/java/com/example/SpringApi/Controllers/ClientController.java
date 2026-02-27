@@ -1,19 +1,26 @@
-package com.example.SpringApi.Controllers;
+package com.example.springapi.controllers;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Logging.ContextualLogger;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.RequestModels.ClientRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
-import com.example.SpringApi.Services.Interface.IClientSubTranslator;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.logging.ContextualLogger;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.requestmodels.ClientRequestModel;
+import com.example.springapi.models.responsemodels.ErrorResponseModel;
+import com.example.springapi.services.interfaces.ClientSubTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST Controller for managing Client-related operations.
@@ -30,10 +37,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/" + ApiRoutes.ApiControllerNames.CLIENT)
 public class ClientController {
   private static final ContextualLogger logger = ContextualLogger.getLogger(ClientController.class);
-  private final IClientSubTranslator clientService;
+  private final ClientSubTranslator clientService;
 
   @Autowired
-  public ClientController(IClientSubTranslator clientService) {
+  public ClientController(ClientSubTranslator clientService) {
     this.clientService = clientService;
   }
 
@@ -79,14 +86,7 @@ public class ClientController {
   }
 
   /**
-   * Retrieves all clients mapped to the current user.
-   *
-   * <p>This endpoint fetches all clients where the current user has a mapping in the
-   * UserClientMapping table. The response contains a list of ClientResponseModel objects, each with
-   * complete client information. Returns an empty list if no clients are mapped to the user.
-   * Requires VIEW_CLIENT_PERMISSION.
-   *
-   * @return ResponseEntity containing List<ClientResponseModel> or ErrorResponseModel
+   * Returns clients by user.
    */
   @PreAuthorize(
       "@customAuthorization.hasAuthority('" + Authorizations.VIEW_CLIENT_PERMISSION + "')")

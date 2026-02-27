@@ -1,11 +1,11 @@
-package com.example.SpringApi.Models.ShippingResponseModel;
+package com.example.springapi.models.shippingresponsemodel;
 
 import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
-/** Response model for ShipRocket tracking API. GET /courier/track/awb/{awb_code} */
+/** Response model for ShipRocket tracking API. GET /courier/track/awb/{awb_code}. */
 @Getter
 @Setter
 public class ShipRocketTrackingResponseModel {
@@ -24,6 +24,9 @@ public class ShipRocketTrackingResponseModel {
         && trackingData.getTrackStatus() == 1;
   }
 
+  /**
+   * Represents the tracking data component.
+   */
   @Getter
   @Setter
   public static class TrackingData {
@@ -49,6 +52,9 @@ public class ShipRocketTrackingResponseModel {
     private QcResponse qcResponse;
   }
 
+  /**
+   * Represents the shipment track component.
+   */
   @Getter
   @Setter
   public static class ShipmentTrack {
@@ -110,6 +116,9 @@ public class ShipRocketTrackingResponseModel {
     private String podStatus;
   }
 
+  /**
+   * Represents the track activity component.
+   */
   @Getter
   @Setter
   public static class TrackActivity {
@@ -132,6 +141,9 @@ public class ShipRocketTrackingResponseModel {
     private String srStatusLabel;
   }
 
+  /**
+   * Represents the qc response component.
+   */
   @Getter
   @Setter
   public static class QcResponse {

@@ -1,4 +1,4 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
 import lombok.Getter;
 import lombok.Setter;

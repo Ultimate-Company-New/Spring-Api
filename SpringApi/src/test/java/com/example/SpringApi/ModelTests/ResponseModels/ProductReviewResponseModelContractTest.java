@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.ResponseModels;
+package com.example.springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class ProductReviewResponseModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.ResponseModels.ProductReviewResponseModel.class)) {
+        com.example.springapi.models.responsemodels.ProductReviewResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.ResponseModels.ProductReviewResponseModel.class);
+                  com.example.springapi.models.responsemodels.ProductReviewResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +64,7 @@ class ProductReviewResponseModelContractTest {
   void ProductReviewResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.ResponseModels.ProductReviewResponseModel.class
+        com.example.springapi.models.responsemodels.ProductReviewResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,9 +82,9 @@ class ProductReviewResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.ResponseModels.ProductReviewResponseModel createInstance() {
-    return (com.example.SpringApi.Models.ResponseModels.ProductReviewResponseModel)
-        instantiate(com.example.SpringApi.Models.ResponseModels.ProductReviewResponseModel.class);
+  private com.example.springapi.models.responsemodels.ProductReviewResponseModel createInstance() {
+    return (com.example.springapi.models.responsemodels.ProductReviewResponseModel)
+        instantiate(com.example.springapi.models.responsemodels.ProductReviewResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

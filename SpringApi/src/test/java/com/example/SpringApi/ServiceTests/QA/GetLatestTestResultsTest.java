@@ -1,11 +1,11 @@
-package com.example.SpringApi.ServiceTests.QA;
+package com.example.springapi.ServiceTests.QA;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.DatabaseModels.LatestTestResult;
-import com.example.SpringApi.Models.ResponseModels.LatestTestResultResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.models.databasemodels.LatestTestResult;
+import com.example.springapi.models.responsemodels.LatestTestResultResponseModel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Unit tests for QAService.getLatestTestResults() method.
+ * Unit tests for QaService.getLatestTestResults() method.
  *
  * <p>Test Coverage: - Success scenarios (5 tests) - Validation tests (5 tests) - Edge cases (5
  * tests)
@@ -371,8 +371,8 @@ class GetLatestTestResultsTest extends QAServiceTestBase {
   @Test
   void getLatestTestResults_controller_permission_unauthorized() {
     // Arrange
-    com.example.SpringApi.Controllers.QAController controller =
-        new com.example.SpringApi.Controllers.QAController(qaSubTranslator);
+    com.example.springapi.controllers.QaController controller =
+        new com.example.springapi.controllers.QaController(qaSubTranslator);
     stubQaTranslatorGetLatestTestResultsThrowsUnauthorized();
 
     // Act

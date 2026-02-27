@@ -1,13 +1,13 @@
-package com.example.SpringApi.ServiceTests.ProductReview;
+package com.example.springapi.ServiceTests.ProductReview;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.SpringApi.Controllers.ProductReviewController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.DatabaseModels.ProductReview;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.ProductReviewResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.ProductReviewController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.databasemodels.ProductReview;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.ProductReviewResponseModel;
 import java.util.Arrays;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

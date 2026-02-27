@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.ResponseModels;
+package com.example.springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class TestExecutionStatusModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.ResponseModels.TestExecutionStatusModel.class)) {
+        com.example.springapi.models.responsemodels.TestExecutionStatusModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.ResponseModels.TestExecutionStatusModel.class);
+                  com.example.springapi.models.responsemodels.TestExecutionStatusModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +64,7 @@ class TestExecutionStatusModelContractTest {
   void TestExecutionStatusModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.ResponseModels.TestExecutionStatusModel.class
+        com.example.springapi.models.responsemodels.TestExecutionStatusModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,9 +82,9 @@ class TestExecutionStatusModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.ResponseModels.TestExecutionStatusModel createInstance() {
-    return (com.example.SpringApi.Models.ResponseModels.TestExecutionStatusModel)
-        instantiate(com.example.SpringApi.Models.ResponseModels.TestExecutionStatusModel.class);
+  private com.example.springapi.models.responsemodels.TestExecutionStatusModel createInstance() {
+    return (com.example.springapi.models.responsemodels.TestExecutionStatusModel)
+        instantiate(com.example.springapi.models.responsemodels.TestExecutionStatusModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

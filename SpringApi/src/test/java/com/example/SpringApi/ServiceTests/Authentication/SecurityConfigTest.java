@@ -1,10 +1,10 @@
-package com.example.SpringApi.ServiceTests.Authentication;
+package com.example.springapi.ServiceTests.Authentication;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.example.SpringApi.Authentication.SecurityConfig;
+import com.example.springapi.authentication.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;

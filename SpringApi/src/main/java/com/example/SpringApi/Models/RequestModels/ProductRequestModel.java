@@ -1,4 +1,4 @@
-package com.example.SpringApi.Models.RequestModels;
+package com.example.springapi.models.requestmodels;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -46,7 +46,7 @@ public class ProductRequestModel {
   private Long clientId;
 
   /**
-   * Map of pickup location ID to available quantity at that location. Key: pickupLocationId Value:
+   * Map of pickup location ID to available quantity at that location. Key: pickupLocationId Value:.
    * availableStock (quantity available at that pickup location)
    *
    * <p>A product can be available at multiple pickup locations with different quantities.

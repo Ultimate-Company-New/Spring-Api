@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.PurchaseOrder;
+package com.example.springapi.ServiceTests.PurchaseOrder;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,12 +11,12 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-import com.example.SpringApi.Controllers.PurchaseOrderController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Helpers.ImgbbHelper;
-import com.example.SpringApi.Models.DatabaseModels.Resources;
-import com.example.SpringApi.Models.DatabaseModels.ShipmentProduct;
-import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.PurchaseOrderController;
+import com.example.springapi.helpers.ImgbbHelper;
+import com.example.springapi.models.databasemodels.Resources;
+import com.example.springapi.models.databasemodels.ShipmentProduct;
+import com.example.springapi.models.requestmodels.PurchaseOrderRequestModel;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -351,9 +351,9 @@ class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
     // Arrange
     testPurchaseOrderRequest.setProducts(
         List.of(
-            new com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem(
+            new com.example.springapi.models.requestmodels.PurchaseOrderProductItem(
                 TEST_PRODUCT_ID, new java.math.BigDecimal("10"), 1),
-            new com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem(
+            new com.example.springapi.models.requestmodels.PurchaseOrderProductItem(
                 TEST_PRODUCT_ID, new java.math.BigDecimal("20"), 1)));
     stubSuccessfulPurchaseOrderCreate();
 

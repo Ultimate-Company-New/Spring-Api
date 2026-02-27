@@ -1,20 +1,20 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.DatabaseModels.Address;
-import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.DatabaseModels.User;
-import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
-import com.example.SpringApi.Models.ResponseModels.AddressResponseModel;
-import com.example.SpringApi.Repositories.AddressRepository;
-import com.example.SpringApi.Repositories.ClientRepository;
-import com.example.SpringApi.Repositories.UserRepository;
-import com.example.SpringApi.Services.Interface.IAddressSubTranslator;
-import com.example.SpringApi.SuccessMessages;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.SuccessMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.databasemodels.Address;
+import com.example.springapi.models.databasemodels.Client;
+import com.example.springapi.models.databasemodels.User;
+import com.example.springapi.models.requestmodels.AddressRequestModel;
+import com.example.springapi.models.responsemodels.AddressResponseModel;
+import com.example.springapi.repositories.AddressRepository;
+import com.example.springapi.repositories.ClientRepository;
+import com.example.springapi.repositories.UserRepository;
+import com.example.springapi.services.interfaces.AddressSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Service class for managing Address-related business operations.
  *
- * <p>This service implements the IAddressSubTranslator interface and provides comprehensive address
+ * <p>This service implements the AddressSubTranslator interface and provides comprehensive address
  * management functionality including CRUD operations, user/client address retrieval, and address
  * status management. The service handles validation, error handling, audit logging, and database
  * persistence.
@@ -36,12 +36,15 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 2024-01-15
  */
 @Service
-public class AddressService extends BaseService implements IAddressSubTranslator {
+public class AddressService extends BaseService implements AddressSubTranslator {
   private final AddressRepository addressRepository;
   private final ClientRepository clientRepository;
   private final UserRepository userRepository;
   private final UserLogService userLogService;
 
+  /**
+   * Initializes AddressService.
+   */
   @Autowired
   public AddressService(
       AddressRepository addressRepository,

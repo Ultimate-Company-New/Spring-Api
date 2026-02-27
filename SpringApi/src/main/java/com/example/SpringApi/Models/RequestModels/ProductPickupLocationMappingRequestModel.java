@@ -1,11 +1,11 @@
-package com.example.SpringApi.Models.RequestModels;
+package com.example.springapi.models.requestmodels;
 
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Request model for ProductPickupLocationMapping. Used when creating/updating pickup locations with
- * product inventory.
+ * Request model for ProductPickupLocationMapping. Used when creating/updating pickup locations
+ * with. product inventory.
  */
 @Getter
 @Setter

@@ -1,20 +1,20 @@
-package com.example.SpringApi.ServiceTests.Client;
+package com.example.springapi.ServiceTests.Client;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.lenient;
 
-import com.example.SpringApi.Controllers.ClientController;
-import com.example.SpringApi.Helpers.FirebaseHelper;
-import com.example.SpringApi.Helpers.ImgbbHelper;
-import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.DatabaseModels.GoogleCred;
-import com.example.SpringApi.Models.RequestModels.ClientRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
-import com.example.SpringApi.Repositories.ClientRepository;
-import com.example.SpringApi.Repositories.GoogleCredRepository;
-import com.example.SpringApi.Services.ClientService;
-import com.example.SpringApi.Services.UserLogService;
+import com.example.springapi.controllers.ClientController;
+import com.example.springapi.helpers.FirebaseHelper;
+import com.example.springapi.helpers.ImgbbHelper;
+import com.example.springapi.models.databasemodels.Client;
+import com.example.springapi.models.databasemodels.GoogleCred;
+import com.example.springapi.models.requestmodels.ClientRequestModel;
+import com.example.springapi.models.responsemodels.ClientResponseModel;
+import com.example.springapi.repositories.ClientRepository;
+import com.example.springapi.repositories.GoogleCredRepository;
+import com.example.springapi.services.ClientService;
+import com.example.springapi.services.UserLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Optional;

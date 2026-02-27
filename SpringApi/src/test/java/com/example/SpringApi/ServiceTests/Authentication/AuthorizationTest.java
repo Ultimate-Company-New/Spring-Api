@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.Authentication;
+package com.example.springapi.ServiceTests.Authentication;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -7,14 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import com.example.SpringApi.Authentication.Authorization;
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.PermissionException;
-import com.example.SpringApi.Models.DatabaseModels.Permission;
-import com.example.SpringApi.Models.DatabaseModels.UserClientMapping;
-import com.example.SpringApi.Repositories.PermissionRepository;
-import com.example.SpringApi.Repositories.UserClientMappingRepository;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.authentication.Authorization;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.PermissionException;
+import com.example.springapi.models.databasemodels.Permission;
+import com.example.springapi.models.databasemodels.UserClientMapping;
+import com.example.springapi.repositories.PermissionRepository;
+import com.example.springapi.repositories.UserClientMappingRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

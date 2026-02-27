@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.RequestModels;
+package com.example.springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class MessageRequestModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.SpringApi.Models.RequestModels.MessageRequestModel.class)) {
+    if (hasNoArgConstructor(com.example.springapi.models.requestmodels.MessageRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.SpringApi.Models.RequestModels.MessageRequestModel.class);
+              .constructType(com.example.springapi.models.requestmodels.MessageRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +62,7 @@ class MessageRequestModelContractTest {
   void MessageRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.RequestModels.MessageRequestModel.class
+        com.example.springapi.models.requestmodels.MessageRequestModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -80,9 +80,9 @@ class MessageRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.RequestModels.MessageRequestModel createInstance() {
-    return (com.example.SpringApi.Models.RequestModels.MessageRequestModel)
-        instantiate(com.example.SpringApi.Models.RequestModels.MessageRequestModel.class);
+  private com.example.springapi.models.requestmodels.MessageRequestModel createInstance() {
+    return (com.example.springapi.models.requestmodels.MessageRequestModel)
+        instantiate(com.example.springapi.models.requestmodels.MessageRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

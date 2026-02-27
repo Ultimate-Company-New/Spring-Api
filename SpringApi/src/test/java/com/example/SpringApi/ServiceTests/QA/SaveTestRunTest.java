@@ -1,15 +1,15 @@
-package com.example.SpringApi.ServiceTests.QA;
+package com.example.springapi.ServiceTests.QA;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 
-import com.example.SpringApi.Controllers.QAController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.DatabaseModels.LatestTestResult;
-import com.example.SpringApi.Models.DatabaseModels.TestRun;
-import com.example.SpringApi.Models.RequestModels.TestRunRequestModel;
-import com.example.SpringApi.Models.ResponseModels.TestRunResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.QaController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.databasemodels.LatestTestResult;
+import com.example.springapi.models.databasemodels.TestRun;
+import com.example.springapi.models.requestmodels.TestRunRequestModel;
+import com.example.springapi.models.responsemodels.TestRunResponseModel;
 import java.util.ArrayList;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 /**
- * Unit tests for QAService.saveTestRun() method.
+ * Unit tests for QaService.saveTestRun() method.
  *
  * <p>Test Coverage: - Success scenarios (6 tests) - Validation failures (12 tests) - Edge cases (7
  * tests)
@@ -166,16 +166,16 @@ class SaveTestRunTest extends QAServiceTestBase {
   @Test
   void saveTestRun_s07_existingLatestResult_updatesExistingRecord() {
     // Arrange
-    TestRunRequestModel request = createValidTestRunRequest("QAService", 1);
+    TestRunRequestModel request = createValidTestRunRequest("QaService", 1);
     request.getResults().get(0).setTestMethodName("saveTestRun_s01_ValidRequest_Success");
-    TestRun savedTestRun = createTestRun(10L, "QAService");
+    TestRun savedTestRun = createTestRun(10L, "QaService");
     stubTestRunRepositorySave(savedTestRun);
 
     LatestTestResult existingLatest =
-        createLatestTestResult(77L, "QAService", "saveTestRun_s01_ValidRequest_Success");
+        createLatestTestResult(77L, "QaService", "saveTestRun_s01_ValidRequest_Success");
     existingLatest.setTestClassName("QAServiceTest");
     stubLatestTestResultRepositoryFindByClientIdAndServiceNameAndTestMethodName(
-        "QAService", "QAServiceTest", "saveTestRun_s01_ValidRequest_Success", existingLatest);
+        "QaService", "QAServiceTest", "saveTestRun_s01_ValidRequest_Success", existingLatest);
 
     // Act
     TestRunResponseModel result = qaService.saveTestRun(request);
@@ -208,7 +208,7 @@ class SaveTestRunTest extends QAServiceTestBase {
               qaService.saveTestRun(request);
             });
     assertEquals(
-        ErrorMessages.QAErrorMessages.TEST_RUN_REQUEST_CANNOT_BE_NULL, exception.getMessage());
+        ErrorMessages.QaErrorMessages.TEST_RUN_REQUEST_CANNOT_BE_NULL, exception.getMessage());
   }
 
   /**
@@ -228,7 +228,7 @@ class SaveTestRunTest extends QAServiceTestBase {
             () -> {
               qaService.saveTestRun(request);
             });
-    assertEquals(ErrorMessages.QAErrorMessages.SERVICE_NAME_REQUIRED, exception.getMessage());
+    assertEquals(ErrorMessages.QaErrorMessages.SERVICE_NAME_REQUIRED, exception.getMessage());
     assertNull(request.getServiceName());
   }
 
@@ -249,7 +249,7 @@ class SaveTestRunTest extends QAServiceTestBase {
             () -> {
               qaService.saveTestRun(request);
             });
-    assertEquals(ErrorMessages.QAErrorMessages.SERVICE_NAME_REQUIRED, exception.getMessage());
+    assertEquals(ErrorMessages.QaErrorMessages.SERVICE_NAME_REQUIRED, exception.getMessage());
     assertTrue(request.getServiceName().isEmpty());
   }
 
@@ -270,7 +270,7 @@ class SaveTestRunTest extends QAServiceTestBase {
             () -> {
               qaService.saveTestRun(request);
             });
-    assertEquals(ErrorMessages.QAErrorMessages.SERVICE_NAME_REQUIRED, exception.getMessage());
+    assertEquals(ErrorMessages.QaErrorMessages.SERVICE_NAME_REQUIRED, exception.getMessage());
     assertTrue(request.getServiceName().isBlank());
   }
 
@@ -292,7 +292,7 @@ class SaveTestRunTest extends QAServiceTestBase {
               qaService.saveTestRun(request);
             });
     assertEquals(
-        ErrorMessages.QAErrorMessages.AT_LEAST_ONE_TEST_RESULT_REQUIRED, exception.getMessage());
+        ErrorMessages.QaErrorMessages.AT_LEAST_ONE_TEST_RESULT_REQUIRED, exception.getMessage());
   }
 
   /**
@@ -313,7 +313,7 @@ class SaveTestRunTest extends QAServiceTestBase {
               qaService.saveTestRun(request);
             });
     assertEquals(
-        ErrorMessages.QAErrorMessages.AT_LEAST_ONE_TEST_RESULT_REQUIRED, exception.getMessage());
+        ErrorMessages.QaErrorMessages.AT_LEAST_ONE_TEST_RESULT_REQUIRED, exception.getMessage());
   }
 
   /**
@@ -428,7 +428,7 @@ class SaveTestRunTest extends QAServiceTestBase {
 
     // Verify the exception message comes from ErrorMessages constants
     assertEquals(
-        ErrorMessages.QAErrorMessages.TEST_RUN_REQUEST_CANNOT_BE_NULL, exception.getMessage());
+        ErrorMessages.QaErrorMessages.TEST_RUN_REQUEST_CANNOT_BE_NULL, exception.getMessage());
   }
 
   /*
@@ -584,7 +584,7 @@ class SaveTestRunTest extends QAServiceTestBase {
   @DisplayName("Save Test Run - Controller permission unauthorized - Success")
   void saveTestRun_controller_permission_unauthorized() {
     // Arrange
-    QAController controller = new QAController(qaSubTranslator);
+    QaController controller = new QaController(qaSubTranslator);
     stubQaTranslatorSaveTestRunThrowsUnauthorized();
 
     // Act

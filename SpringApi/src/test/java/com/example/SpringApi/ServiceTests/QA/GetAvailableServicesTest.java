@@ -1,9 +1,9 @@
-package com.example.SpringApi.ServiceTests.QA;
+package com.example.springapi.ServiceTests.QA;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.SpringApi.Controllers.QAController;
-import com.example.SpringApi.ErrorMessages;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.QaController;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,7 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 /**
- * Unit tests for QAService.getAvailableServices() method.
+ * Unit tests for QaService.getAvailableServices() method.
  *
  * <p>Test Coverage: - Success scenarios (3 tests) - Validation tests (4 tests) - Edge cases (3
  * tests)
@@ -241,7 +241,7 @@ class GetAvailableServicesTest extends QAServiceTestBase {
   @DisplayName("Get Available Services - Controller permission unauthorized - Success")
   void getAvailableServices_controller_permission_unauthorized() {
     // Arrange
-    QAController controller = new QAController(qaSubTranslator);
+    QaController controller = new QaController(qaSubTranslator);
     stubQaTranslatorGetAvailableServicesThrowsUnauthorized();
 
     // Act

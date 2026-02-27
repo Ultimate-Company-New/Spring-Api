@@ -1,11 +1,11 @@
-package com.example.SpringApi.Models.ShippingResponseModel;
+package com.example.springapi.models.shippingresponsemodel;
 
 import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
-/** Response model for ShipRocket invoice generation API. POST /orders/print/invoice */
+/** Response model for ShipRocket invoice generation API. POST /orders/print/invoice. */
 @Getter
 @Setter
 public class ShipRocketInvoiceResponseModel {

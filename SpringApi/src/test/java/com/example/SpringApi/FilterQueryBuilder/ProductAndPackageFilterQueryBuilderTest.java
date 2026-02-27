@@ -1,12 +1,12 @@
-package com.example.SpringApi.FilterQueryBuilder;
+package com.example.springapi.filterquerybuilder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.example.SpringApi.Models.DatabaseModels.Product;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
+import com.example.springapi.models.databasemodels.Product;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -121,19 +121,19 @@ class ProductAndPackageFilterQueryBuilderTest extends FilterQueryBuilderTestBase
   void packageFilterQueryBuilder_s04_pickupEqualsValidUsesInnerJoin_success() {
     // Arrange
     PackageFilterQueryBuilder builder = new PackageFilterQueryBuilder(entityManager);
-    com.example.SpringApi.Models.DatabaseModels.Package packageModel =
-        new com.example.SpringApi.Models.DatabaseModels.Package();
+    com.example.springapi.models.databasemodels.Package packageModel =
+        new com.example.springapi.models.databasemodels.Package();
     packageModel.setPackageId(18L);
-    QueryFixture<com.example.SpringApi.Models.DatabaseModels.Package> fixture =
+    QueryFixture<com.example.springapi.models.databasemodels.Package> fixture =
         stubPagedQueries(
-            com.example.SpringApi.Models.DatabaseModels.Package.class, List.of(packageModel), 21L);
+            com.example.springapi.models.databasemodels.Package.class, List.of(packageModel), 21L);
     List<FilterCondition> filters =
         List.of(
             createFilter("pickupLocationId", "equals", "22"),
             createFilter("packageName", "contains", "Crate"));
 
     // Act
-    Page<com.example.SpringApi.Models.DatabaseModels.Package> page =
+    Page<com.example.springapi.models.databasemodels.Package> page =
         builder.findPaginatedEntitiesWithMultipleFilters(
             1L, List.of(18L), "AND", filters, false, createPageable(0, 10));
 
@@ -166,8 +166,8 @@ class ProductAndPackageFilterQueryBuilderTest extends FilterQueryBuilderTestBase
   void packageFilterQueryBuilder_s05_pickupExtractionInvalidReturnsNull_success() {
     // Arrange
     PackageFilterQueryBuilder builder = new PackageFilterQueryBuilder(entityManager);
-    QueryFixture<com.example.SpringApi.Models.DatabaseModels.Package> fixture =
-        stubPagedQueries(com.example.SpringApi.Models.DatabaseModels.Package.class, List.of(), 0L);
+    QueryFixture<com.example.springapi.models.databasemodels.Package> fixture =
+        stubPagedQueries(com.example.springapi.models.databasemodels.Package.class, List.of(), 0L);
     List<FilterCondition> filters = List.of(createFilter("pickupLocationId", "equals", "NaN"));
 
     // Act

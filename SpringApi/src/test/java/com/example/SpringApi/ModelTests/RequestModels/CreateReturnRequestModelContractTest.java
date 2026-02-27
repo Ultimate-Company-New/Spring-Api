@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.RequestModels;
+package com.example.springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class CreateReturnRequestModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.RequestModels.CreateReturnRequestModel.class)) {
+        com.example.springapi.models.requestmodels.CreateReturnRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.RequestModels.CreateReturnRequestModel.class);
+                  com.example.springapi.models.requestmodels.CreateReturnRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +64,7 @@ class CreateReturnRequestModelContractTest {
   void CreateReturnRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.RequestModels.CreateReturnRequestModel.class
+        com.example.springapi.models.requestmodels.CreateReturnRequestModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,9 +82,9 @@ class CreateReturnRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.RequestModels.CreateReturnRequestModel createInstance() {
-    return (com.example.SpringApi.Models.RequestModels.CreateReturnRequestModel)
-        instantiate(com.example.SpringApi.Models.RequestModels.CreateReturnRequestModel.class);
+  private com.example.springapi.models.requestmodels.CreateReturnRequestModel createInstance() {
+    return (com.example.springapi.models.requestmodels.CreateReturnRequestModel)
+        instantiate(com.example.springapi.models.requestmodels.CreateReturnRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

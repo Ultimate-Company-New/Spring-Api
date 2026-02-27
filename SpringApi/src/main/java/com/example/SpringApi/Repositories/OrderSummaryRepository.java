@@ -1,6 +1,6 @@
-package com.example.SpringApi.Repositories;
+package com.example.springapi.repositories;
 
-import com.example.SpringApi.Models.DatabaseModels.OrderSummary;
+import com.example.springapi.models.databasemodels.OrderSummary;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,6 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Defines the order summary repository contract.
+ */
 @Repository
 public interface OrderSummaryRepository extends JpaRepository<OrderSummary, Long> {
   Optional<OrderSummary> findByEntityTypeAndEntityId(String entityType, Long entityId);
@@ -16,13 +19,14 @@ public interface OrderSummaryRepository extends JpaRepository<OrderSummary, Long
 
   /** Batch fetch order summaries for multiple entity IDs with address and promo eagerly loaded. */
   @Query(
-      "SELECT DISTINCT os FROM OrderSummary os LEFT JOIN FETCH os.entityAddress LEFT JOIN FETCH os.promo "
+      "SELECT DISTINCT os FROM OrderSummary os LEFT JOIN FETCH "
+          + "os.entityAddress LEFT JOIN FETCH os.promo "
           + "WHERE os.entityType = :entityType AND os.entityId IN :entityIds")
   List<OrderSummary> findByEntityTypeAndEntityIdInWithAddressAndPromo(
       @Param("entityType") String entityType, @Param("entityIds") List<Long> entityIds);
 
   /**
-   * Find order summary by purchase order ID. Convenience method that uses
+   * Find order summary by purchase order ID. Convenience method that uses.
    * entityType='PURCHASE_ORDER' and entityId=purchaseOrderId.
    */
   default Optional<OrderSummary> findByPurchaseOrderId(Long purchaseOrderId) {

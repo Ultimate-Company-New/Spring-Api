@@ -1,10 +1,10 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Model to represent a pickup location with its available stock for a product. Contains pickup
+ * Model to represent a pickup location with its available stock for a product. Contains pickup.
  * location details and available stock quantity.
  *
  * @author SpringApi Team

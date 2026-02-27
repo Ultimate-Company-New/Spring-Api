@@ -1,19 +1,26 @@
-package com.example.SpringApi.Controllers;
+package com.example.springapi.controllers;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Logging.ContextualLogger;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
-import com.example.SpringApi.Services.Interface.IAddressSubTranslator;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.logging.ContextualLogger;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.requestmodels.AddressRequestModel;
+import com.example.springapi.models.responsemodels.ErrorResponseModel;
+import com.example.springapi.services.interfaces.AddressSubTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST Controller for managing Address-related operations.
@@ -32,10 +39,10 @@ import org.springframework.web.bind.annotation.*;
 public class AddressController {
   private static final ContextualLogger logger =
       ContextualLogger.getLogger(AddressController.class);
-  private final IAddressSubTranslator addressService;
+  private final AddressSubTranslator addressService;
 
   @Autowired
-  public AddressController(IAddressSubTranslator addressService) {
+  public AddressController(AddressSubTranslator addressService) {
     this.addressService = addressService;
   }
 
@@ -81,14 +88,7 @@ public class AddressController {
   }
 
   /**
-   * Retrieves all addresses associated with a specific user.
-   *
-   * <p>This endpoint fetches all addresses where the userId matches the provided parameter. The
-   * response contains a list of AddressResponseModel objects, each with complete address
-   * information. Returns an empty list if no addresses are found. Requires VIEW_ADDRESS_PERMISSION.
-   *
-   * @param userId The unique identifier of the user
-   * @return ResponseEntity containing List<AddressResponseModel> or ErrorResponseModel
+   * Returns mapping.
    */
   @PreAuthorize(
       "@customAuthorization.hasAuthority('" + Authorizations.VIEW_ADDRESS_PERMISSION + "')")
@@ -122,14 +122,7 @@ public class AddressController {
   }
 
   /**
-   * Retrieves all addresses associated with a specific client.
-   *
-   * <p>This endpoint fetches all addresses where the clientId matches the provided parameter. The
-   * response contains a list of AddressResponseModel objects, each with complete address
-   * information. Returns an empty list if no addresses are found. Requires VIEW_ADDRESS_PERMISSION.
-   *
-   * @param clientId The unique identifier of the client
-   * @return ResponseEntity containing List<AddressResponseModel> or ErrorResponseModel
+   * Returns mapping.
    */
   @PreAuthorize(
       "@customAuthorization.hasAuthority('" + Authorizations.VIEW_ADDRESS_PERMISSION + "')")

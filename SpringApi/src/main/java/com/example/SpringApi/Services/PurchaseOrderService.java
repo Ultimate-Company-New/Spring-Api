@@ -1,51 +1,51 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.Constants.EntityType;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.FilterQueryBuilder.PurchaseOrderFilterQueryBuilder;
-import com.example.SpringApi.Helpers.BulkInsertHelper;
-import com.example.SpringApi.Helpers.HTMLHelper;
-import com.example.SpringApi.Helpers.ImgbbHelper;
-import com.example.SpringApi.Helpers.PDFHelper;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.DTOs.AddressDuplicateCriteria;
-import com.example.SpringApi.Models.DTOs.PurchaseOrderWithDetails;
-import com.example.SpringApi.Models.DatabaseModels.Address;
-import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.DatabaseModels.Lead;
-import com.example.SpringApi.Models.DatabaseModels.OrderSummary;
-import com.example.SpringApi.Models.DatabaseModels.Payment;
-import com.example.SpringApi.Models.DatabaseModels.Product;
-import com.example.SpringApi.Models.DatabaseModels.PurchaseOrder;
-import com.example.SpringApi.Models.DatabaseModels.Resources;
-import com.example.SpringApi.Models.DatabaseModels.Shipment;
-import com.example.SpringApi.Models.DatabaseModels.ShipmentPackage;
-import com.example.SpringApi.Models.DatabaseModels.ShipmentPackageProduct;
-import com.example.SpringApi.Models.DatabaseModels.ShipmentProduct;
-import com.example.SpringApi.Models.DatabaseModels.User;
-import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.PurchaseOrderProductItem;
-import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PurchaseOrderResponseModel;
-import com.example.SpringApi.Repositories.AddressRepository;
-import com.example.SpringApi.Repositories.ClientRepository;
-import com.example.SpringApi.Repositories.LeadRepository;
-import com.example.SpringApi.Repositories.OrderSummaryRepository;
-import com.example.SpringApi.Repositories.PaymentRepository;
-import com.example.SpringApi.Repositories.PurchaseOrderRepository;
-import com.example.SpringApi.Repositories.ResourcesRepository;
-import com.example.SpringApi.Repositories.ShipmentPackageProductRepository;
-import com.example.SpringApi.Repositories.ShipmentPackageRepository;
-import com.example.SpringApi.Repositories.ShipmentProductRepository;
-import com.example.SpringApi.Repositories.ShipmentRepository;
-import com.example.SpringApi.Repositories.UserRepository;
-import com.example.SpringApi.Services.Interface.IPurchaseOrderSubTranslator;
-import com.example.SpringApi.SuccessMessages;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.SuccessMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.constants.EntityType;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.filterquerybuilder.PurchaseOrderFilterQueryBuilder;
+import com.example.springapi.helpers.BulkInsertHelper;
+import com.example.springapi.helpers.HtmlHelper;
+import com.example.springapi.helpers.ImgbbHelper;
+import com.example.springapi.helpers.PdfHelper;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.databasemodels.Address;
+import com.example.springapi.models.databasemodels.Client;
+import com.example.springapi.models.databasemodels.Lead;
+import com.example.springapi.models.databasemodels.OrderSummary;
+import com.example.springapi.models.databasemodels.Payment;
+import com.example.springapi.models.databasemodels.Product;
+import com.example.springapi.models.databasemodels.PurchaseOrder;
+import com.example.springapi.models.databasemodels.Resources;
+import com.example.springapi.models.databasemodels.Shipment;
+import com.example.springapi.models.databasemodels.ShipmentPackage;
+import com.example.springapi.models.databasemodels.ShipmentPackageProduct;
+import com.example.springapi.models.databasemodels.ShipmentProduct;
+import com.example.springapi.models.databasemodels.User;
+import com.example.springapi.models.dtos.AddressDuplicateCriteria;
+import com.example.springapi.models.dtos.PurchaseOrderWithDetails;
+import com.example.springapi.models.requestmodels.AddressRequestModel;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.PurchaseOrderProductItem;
+import com.example.springapi.models.requestmodels.PurchaseOrderRequestModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.PurchaseOrderResponseModel;
+import com.example.springapi.repositories.AddressRepository;
+import com.example.springapi.repositories.ClientRepository;
+import com.example.springapi.repositories.LeadRepository;
+import com.example.springapi.repositories.OrderSummaryRepository;
+import com.example.springapi.repositories.PaymentRepository;
+import com.example.springapi.repositories.PurchaseOrderRepository;
+import com.example.springapi.repositories.ResourcesRepository;
+import com.example.springapi.repositories.ShipmentPackageProductRepository;
+import com.example.springapi.repositories.ShipmentPackageRepository;
+import com.example.springapi.repositories.ShipmentProductRepository;
+import com.example.springapi.repositories.ShipmentRepository;
+import com.example.springapi.repositories.UserRepository;
+import com.example.springapi.services.interfaces.PurchaseOrderSubTranslator;
 import com.itextpdf.text.DocumentException;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -84,7 +84,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 2024-01-15
  */
 @Service
-public class PurchaseOrderService extends BaseService implements IPurchaseOrderSubTranslator {
+public class PurchaseOrderService extends BaseService implements PurchaseOrderSubTranslator {
 
   private final PurchaseOrderRepository purchaseOrderRepository;
   private final AddressRepository addressRepository;
@@ -103,6 +103,9 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
   private final PurchaseOrderFilterQueryBuilder purchaseOrderFilterQueryBuilder;
   private final MessageService messageService;
 
+  /**
+   * Initializes PurchaseOrderService.
+   */
   @Autowired
   public PurchaseOrderService(
       PurchaseOrderRepository purchaseOrderRepository,
@@ -263,25 +266,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
   }
 
   /**
-   * Creates a new purchase order.
-   *
-   * <p>This method creates a new purchase order with the provided details including supplier
-   * information, OrderSummary (financial breakdown and fulfillment details), and Shipment data
-   * (products, packages, courier selections). All validations are performed in the entity
-   * constructors.
-   *
-   * <p>Flow: 1. Create Address (if address data provided) or use existing entityAddressId from
-   * OrderSummary 2. Create PurchaseOrder entity 3. Save PurchaseOrder to get purchaseOrderId 4.
-   * Create OrderSummary entity (linked to PurchaseOrder via entityType + entityId) 5. Save
-   * OrderSummary to get orderSummaryId 6. Create Shipments with ShipmentProducts, ShipmentPackages,
-   * and ShipmentPackageProducts 7. Handle attachments if provided
-   *
-   * @param purchaseOrderRequestModel The purchase order to create
-   * @throws BadRequestException if validation fails
-   * @throws UnauthorizedException if user is not authorized
-   */
-  /**
-   * Finds an existing address or creates a new one. Delegates to findOrCreateAddressWithContext
+   * Finds an existing address or creates a new one. Delegates to findOrCreateAddressWithContext.
    * using current security context.
    *
    * @param addressRequest The address request model
@@ -301,7 +286,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         getClientId(),
         getUserId(),
         true // shouldLog = true for singular operations
-        );
+    );
   }
 
   /**
@@ -610,7 +595,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
       for (Payment payment : payments) {
         responseModel
             .getPayments()
-            .add(new com.example.SpringApi.Models.ResponseModels.PaymentResponseModel(payment));
+            .add(new com.example.springapi.models.responsemodels.PaymentResponseModel(payment));
       }
     }
 
@@ -760,7 +745,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
    */
   @Override
   @Transactional
-  public byte[] getPurchaseOrderPDF(long id)
+  public byte[] getPurchaseOrderPdf(long id)
       throws TemplateException, IOException, DocumentException {
     // Fetch purchase order with all relationships
     Optional<PurchaseOrder> purchaseOrderOptional =
@@ -789,7 +774,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
       throw new NotFoundException(ErrorMessages.AddressErrorMessages.INVALID_ID);
     }
 
-    Address shippingAddress = shippingAddressOptional.get();
+    final Address shippingAddress = shippingAddressOptional.get();
 
     // Fetch created by user
     Optional<User> purchaseOrderCreatedByOptional =
@@ -799,7 +784,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
       throw new NotFoundException(ErrorMessages.UserErrorMessages.INVALID_ID);
     }
 
-    User purchaseOrderCreatedBy = purchaseOrderCreatedByOptional.get();
+    final User purchaseOrderCreatedBy = purchaseOrderCreatedByOptional.get();
 
     // Fetch approved by user (if approved)
     User purchaseOrderApprovedBy = null;
@@ -848,10 +833,10 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
             productQuantityMap);
 
     // Replace br tags for PDF compatibility
-    htmlContent = HTMLHelper.replaceBrTags(htmlContent);
+    htmlContent = HtmlHelper.replaceBrTags(htmlContent);
 
     // Convert HTML to PDF
-    byte[] pdfBytes = PDFHelper.convertPurchaseOrderHtmlToPdf(htmlContent);
+    byte[] pdfBytes = PdfHelper.convertPurchaseOrderHtmlToPdf(htmlContent);
 
     // Log the PDF generation
     userLogService.logData(
@@ -894,7 +879,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
         Thread.currentThread().getContextClassLoader(), "InvoiceTemplates");
 
     // Load template
-    Template template = cfg.getTemplate("PurchaseOrder.ftl");
+    final Template template = cfg.getTemplate("PurchaseOrder.ftl");
 
     // Prepare template data
     Map<String, Object> templateData = new HashMap<>();
@@ -947,7 +932,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
   }
 
   /**
-   * Retrieves the product to quantity mapping for a purchase order. Gets products from
+   * Retrieves the product to quantity mapping for a purchase order. Gets products from.
    * ShipmentProduct via OrderSummary.
    *
    * @param purchaseOrder The purchase order entity
@@ -990,7 +975,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
   }
 
   /**
-   * Helper method to upload purchase order attachments to ImgBB. Delegates to
+   * Helper method to upload purchase order attachments to ImgBB. Delegates to.
    * uploadPurchaseOrderAttachmentsWithContext using current security context.
    *
    * @param attachments Map of attachments (key: fileName, value: base64 data)
@@ -1077,8 +1062,8 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
                 ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Purchase order"));
       }
 
-      com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response =
-          new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+      com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
+          new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
       response.setTotalRequested(purchaseOrders.size());
 
       int successCount = 0;
@@ -1140,8 +1125,8 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
 
     } catch (Exception e) {
       // Still send a message to user about the failure (using captured userId)
-      com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> errorResponse =
-          new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+      com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> errorResponse =
+          new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
       errorResponse.setTotalRequested(purchaseOrders != null ? purchaseOrders.size() : 0);
       errorResponse.setSuccessCount(0);
       errorResponse.setFailureCount(purchaseOrders != null ? purchaseOrders.size() : 0);
@@ -1156,7 +1141,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
   }
 
   /**
-   * Creates a purchase order with explicit security context parameters. This is the common method
+   * Creates a purchase order with explicit security context parameters. This is the common method.
    * called by both singular and bulk insert operations. Used by async bulk import where security
    * context is not available in the worker thread.
    *
@@ -1365,7 +1350,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
   }
 
   /**
-   * Finds an existing address or creates a new one with explicit security context. Used by async
+   * Finds an existing address or creates a new one with explicit security context. Used by async.
    * bulk import where security context is not available.
    *
    * @param addressRequest The address request model
@@ -1417,7 +1402,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
   }
 
   /**
-   * Helper method to upload purchase order attachments to ImgBB with explicit context. Used by
+   * Helper method to upload purchase order attachments to ImgBB with explicit context. Used by.
    * async bulk import where security context is not available.
    *
    * @param attachments Map of attachments (key: fileName, value: base64 data)
@@ -1433,7 +1418,7 @@ public class PurchaseOrderService extends BaseService implements IPurchaseOrderS
 
     // Check image location from application properties
     String imageLocation = environment.getProperty("imageLocation");
-    boolean isImgbbConfigured = "imgbb".equalsIgnoreCase(imageLocation);
+    final boolean isImgbbConfigured = "imgbb".equalsIgnoreCase(imageLocation);
 
     // Prepare attachments for processing
     List<Map.Entry<String, String>> newAttachments = new ArrayList<>();

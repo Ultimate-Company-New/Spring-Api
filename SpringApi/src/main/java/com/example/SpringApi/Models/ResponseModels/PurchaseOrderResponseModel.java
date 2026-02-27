@@ -1,9 +1,9 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.DatabaseModels.OrderSummary;
-import com.example.SpringApi.Models.DatabaseModels.PurchaseOrder;
-import com.example.SpringApi.Models.DatabaseModels.Resources;
-import com.example.SpringApi.Models.DatabaseModels.Shipment;
+import com.example.springapi.models.databasemodels.OrderSummary;
+import com.example.springapi.models.databasemodels.PurchaseOrder;
+import com.example.springapi.models.databasemodels.Resources;
+import com.example.springapi.models.databasemodels.Shipment;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -70,7 +70,7 @@ public class PurchaseOrderResponseModel {
   private List<PaymentResponseModel> payments = new ArrayList<>();
 
   /**
-   * Constructor that creates a response model from a PurchaseOrder entity. Extracts and maps all
+   * Constructor that creates a response model from a PurchaseOrder entity. Extracts and maps all.
    * related entities including: - OrderSummary (financial breakdown and fulfillment details) -
    * Shipments (with products, packages, and courier selections) - Address (delivery/shipping
    * address from OrderSummary) - Created By User (user who created the purchase order) - Modified
@@ -217,6 +217,9 @@ public class PurchaseOrderResponseModel {
     private BigDecimal courierMinWeight; // Courier minimum weight in kg
     private String courierMetadata; // Full CourierOption JSON as string
 
+    /**
+     * Initializes CourierSelectionResponseData.
+     */
     public CourierSelectionResponseData(Shipment shipment) {
       if (shipment != null) {
         this.courierCompanyId = shipment.getSelectedCourierCompanyId();

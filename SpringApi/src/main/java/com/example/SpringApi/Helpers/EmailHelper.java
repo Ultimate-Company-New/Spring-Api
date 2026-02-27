@@ -1,8 +1,8 @@
-package com.example.SpringApi.Helpers;
+package com.example.springapi.helpers;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.RequestModels.SendEmailRequest;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.requestmodels.SendEmailRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sendgrid.Method;
 import com.sendgrid.Request;
@@ -20,11 +20,17 @@ import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.Collection;
 
-public class EmailHelper implements IEmailHelper {
+/**
+ * Represents the email helper component.
+ */
+public class EmailHelper implements EmailHelperContract {
   private final String fromAddress;
   private final String senderName;
   private final String sendGridApiKey;
 
+  /**
+   * Initializes EmailHelper.
+   */
   public EmailHelper(String fromAddress, String senderName, String sendgridApiKey) {
     this.fromAddress = fromAddress;
     this.senderName = senderName;
@@ -74,7 +80,8 @@ public class EmailHelper implements IEmailHelper {
         + String.format("SUMMARY:%s%n", subject)
         + String.format("ORGANIZER;CN=\"%s\":MAILTO:%s%n", from, from)
         + String.format(
-            "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;CN=\"%s\";RSVP=TRUE:mailto:%s%n",
+            "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;"
+                + "PARTSTAT=NEEDS-ACTION;CN=\"%s\";RSVP=TRUE:mailto:%s%n",
             String.join(",", toUsers), String.join(",", toUsers))
         + "BEGIN:VALARM"
         + lineSeparator
@@ -92,6 +99,9 @@ public class EmailHelper implements IEmailHelper {
         + lineSeparator;
   }
 
+  /**
+   * Executes send email.
+   */
   public boolean sendEmail(SendEmailRequest request) {
     SendGrid sendGridClient = new SendGrid(sendGridApiKey);
 
@@ -198,10 +208,7 @@ public class EmailHelper implements IEmailHelper {
   }
 
   /**
-   * Cancels a scheduled email batch using the SendGrid API.
-   *
-   * @param batchId The ID of the email batch to cancel.
-   * @return True if the cancellation request is successful; otherwise, false.
+   * Checks whether it can cel email.
    */
   public void cancelEmail(String batchId) {
     SendGrid sendGridClient = new SendGrid(this.sendGridApiKey);

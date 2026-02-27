@@ -1,30 +1,30 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.Constants.ProductImageConstants;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.FilterQueryBuilder.ProductFilterQueryBuilder;
-import com.example.SpringApi.Helpers.BulkInsertHelper;
-import com.example.SpringApi.Helpers.ImgbbHelper;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.DatabaseModels.Product;
-import com.example.SpringApi.Models.DatabaseModels.ProductCategory;
-import com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.ProductRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.ProductCategoryWithPathResponseModel;
-import com.example.SpringApi.Models.ResponseModels.ProductResponseModel;
-import com.example.SpringApi.Repositories.ClientRepository;
-import com.example.SpringApi.Repositories.ProductCategoryRepository;
-import com.example.SpringApi.Repositories.ProductPickupLocationMappingRepository;
-import com.example.SpringApi.Repositories.ProductRepository;
-import com.example.SpringApi.Services.Interface.IProductSubTranslator;
-import com.example.SpringApi.SuccessMessages;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.SuccessMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.constants.ProductImageConstants;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.filterquerybuilder.ProductFilterQueryBuilder;
+import com.example.springapi.helpers.BulkInsertHelper;
+import com.example.springapi.helpers.ImgbbHelper;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.databasemodels.Client;
+import com.example.springapi.models.databasemodels.Product;
+import com.example.springapi.models.databasemodels.ProductCategory;
+import com.example.springapi.models.databasemodels.ProductPickupLocationMapping;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.ProductRequestModel;
+import com.example.springapi.models.responsemodels.ClientResponseModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.ProductCategoryWithPathResponseModel;
+import com.example.springapi.models.responsemodels.ProductResponseModel;
+import com.example.springapi.repositories.ClientRepository;
+import com.example.springapi.repositories.ProductCategoryRepository;
+import com.example.springapi.repositories.ProductPickupLocationMappingRepository;
+import com.example.springapi.repositories.ProductRepository;
+import com.example.springapi.services.interfaces.ProductSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -59,15 +59,16 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service implementation for Product operations. This service handles all business logic related to
- * product management including CRUD operations, product availability, and public product access.
+ * Service implementation for Product operations. This service handles all business logic related
+ * to. product management including CRUD operations, product availability, and public product
+ * access.
  *
  * @author SpringApi Team
  * @version 1.0
  * @since 2024-01-15
  */
 @Service
-public class ProductService extends BaseService implements IProductSubTranslator {
+public class ProductService extends BaseService implements ProductSubTranslator {
   private static final String PRODUCT_ENTITY_LABEL = "Product";
   private static final String UNKNOWN_TITLE = "unknown";
 
@@ -75,7 +76,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
 
   private final ProductRepository productRepository;
   private final ProductPickupLocationMappingRepository productPickupLocationMappingRepository;
-  private final com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository
+  private final com.example.springapi.repositories.PackagePickupLocationMappingRepository
       packagePickupLocationMappingRepository;
   private final ProductCategoryRepository productCategoryRepository;
   private final ClientRepository clientRepository;
@@ -88,11 +89,14 @@ public class ProductService extends BaseService implements IProductSubTranslator
   @Value("${imageLocation:firebase}")
   private String imageLocation;
 
+  /**
+   * Executes product service.
+   */
   @Autowired
   public ProductService(
       ProductRepository productRepository,
       ProductPickupLocationMappingRepository productPickupLocationMappingRepository,
-      com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository
+      com.example.springapi.repositories.PackagePickupLocationMappingRepository
           packagePickupLocationMappingRepository,
       ProductCategoryRepository productCategoryRepository,
       ClientRepository clientRepository,
@@ -118,7 +122,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
   }
 
   /**
-   * Adds a new product. This method creates a new product with the provided details including
+   * Adds a new product. This method creates a new product with the provided details including.
    * title, description, pricing, category, and other product attributes. It validates the category
    * existence, saves the product first to get the ID, then handles multiple product images by
    * processing URLs to base64 and uploading them to ImgBB storage. Finally, it creates pickup
@@ -193,7 +197,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
   }
 
   /**
-   * Toggles the deleted status of a product (soft delete/restore). This method toggles the deleted
+   * Toggles the deleted status of a product (soft delete/restore). This method toggles the deleted.
    * flag of a product without permanently removing it from the database. Deleted products are
    * hidden from standard queries.
    *
@@ -225,7 +229,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
   }
 
   /**
-   * Toggles the return eligibility status of a product. This method toggles whether a product can
+   * Toggles the return eligibility status of a product. This method toggles whether a product can.
    * be returned by customers. This affects the return policy displayed to customers during
    * checkout. If returnWindowDays is 0 (no returns), it sets it to 30 days (default). If
    * returnWindowDays is > 0 (returns allowed), it sets it to 0 (no returns).
@@ -265,7 +269,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
   }
 
   /**
-   * Retrieves detailed information about a specific product by ID. This method returns
+   * Retrieves detailed information about a specific product by ID. This method returns.
    * comprehensive product details including title, description, pricing, images, category, and
    * availability information.
    *
@@ -296,7 +300,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
   }
 
   /**
-   * Retrieves products in batches with pagination support. This method returns a paginated list of
+   * Retrieves products in batches with pagination support. This method returns a paginated list of.
    * products based on the provided pagination parameters. It supports filtering and sorting
    * options.
    *
@@ -455,8 +459,8 @@ public class ProductService extends BaseService implements IProductSubTranslator
                 PRODUCT_ENTITY_LABEL));
       }
 
-      com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response =
-          new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+      com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
+          new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
       response.setTotalRequested(products.size());
 
       int successCount = 0;
@@ -519,8 +523,8 @@ public class ProductService extends BaseService implements IProductSubTranslator
 
     } catch (Exception e) {
       // Still send a message to user about the failure (using captured userId)
-      com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> errorResponse =
-          new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+      com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> errorResponse =
+          new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
       errorResponse.setTotalRequested(products != null ? products.size() : 0);
       errorResponse.setSuccessCount(0);
       errorResponse.setFailureCount(products != null ? products.size() : 0);
@@ -535,7 +539,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
   }
 
   /**
-   * Creates multiple products synchronously in a single operation (for testing). This is a
+   * Creates multiple products synchronously in a single operation (for testing). This is a.
    * synchronous wrapper that processes products immediately and returns results.
    *
    * @param products List of ProductRequestModel containing the product data to insert
@@ -543,7 +547,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
    */
   @Override
   @Transactional
-  public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkAddProducts(
+  public com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkAddProducts(
       java.util.List<ProductRequestModel> products) {
     // Validate input
     if (products == null || products.isEmpty()) {
@@ -553,8 +557,8 @@ public class ProductService extends BaseService implements IProductSubTranslator
               PRODUCT_ENTITY_LABEL));
     }
 
-    com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response =
-        new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+    com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
+        new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
     response.setTotalRequested(products.size());
 
     int successCount = 0;
@@ -686,7 +690,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
   // ==================== HELPER METHODS ====================
 
   /**
-   * Processes and uploads product images to ImgBB storage. This method handles multiple product
+   * Processes and uploads product images to ImgBB storage. This method handles multiple product.
    * images including required images (main, top, bottom, front, back, right, left, details) and
    * optional images (defect, additional_1, additional_2, additional_3). It converts URLs to base64
    * format and uploads them to ImgBB with structured filenames using the saved product ID.
@@ -997,7 +1001,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
   }
 
   /**
-   * Converts a URL or base64 string to base64 format. Strips the data:image/png;base64, prefix if
+   * Converts a URL or base64 string to base64 format. Strips the data:image/png;base64, prefix if.
    * present. If the input is a URL, fetches the image and converts it to base64.
    *
    * @param imageData The image data (URL or base64 string)
@@ -1061,7 +1065,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
   }
 
   /**
-   * Creates pickup location mappings for a product. Uses batch insert for optimized database
+   * Creates pickup location mappings for a product. Uses batch insert for optimized database.
    * performance.
    *
    * @param productId The product ID
@@ -1081,7 +1085,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
   }
 
   /**
-   * Persists a product to the database. This helper method is used by both single and bulk product
+   * Persists a product to the database. This helper method is used by both single and bulk product.
    * creation.
    *
    * @param productRequestModel The product to create
@@ -1120,7 +1124,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
       throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_CATEGORY_ID);
     }
 
-    Optional<com.example.SpringApi.Models.DatabaseModels.ProductCategory> categoryOpt =
+    Optional<com.example.springapi.models.databasemodels.ProductCategory> categoryOpt =
         productCategoryRepository.findById(productRequestModel.getCategoryId());
     if (categoryOpt.isEmpty()) {
       throw new NotFoundException(
@@ -1170,8 +1174,8 @@ public class ProductService extends BaseService implements IProductSubTranslator
   }
 
   /**
-   * Builds the full hierarchical path for a category by traversing parent categories. Uses " > " as
-   * the separator between category names.
+   * Builds the full hierarchical path for a category by traversing parent categories. Uses " > "
+   * as. the separator between category names.
    *
    * @param categoryId The ID of the category to build the path for
    * @return The full path string (e.g., "Electronics > Computers > Laptops")
@@ -1233,7 +1237,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
   }
 
   /**
-   * Gets product stock information across all pickup locations for a specific product. Returns
+   * Gets product stock information across all pickup locations for a specific product. Returns.
    * stock availability with pickup location address details for distance calculation. Also includes
    * package availability information for each location.
    *
@@ -1242,7 +1246,7 @@ public class ProductService extends BaseService implements IProductSubTranslator
    */
   @Transactional(readOnly = true)
   public java.util.List<
-          com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel>
+          com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel>
       getProductStockAtLocationsByProductId(
           Long productId, Integer requestedQuantity, String deliveryPostcode, Boolean isCod) {
     // Fetch product to get its dimensions
@@ -1259,7 +1263,8 @@ public class ProductService extends BaseService implements IProductSubTranslator
       if (mappings.isEmpty()) {
         logger.info(
             "No active ProductPickupLocationMapping found for productId: {}. "
-                + "This could mean: 1) No stock mappings exist, 2) All mappings are inactive (isActive=false), "
+                + "This could mean: 1) No stock mappings exist, 2) All mappings are "
+                + "inactive (isActive=false), "
                 + "or 3) All pickup locations are deleted (isDeleted=true).",
             productId);
       } else {
@@ -1296,7 +1301,8 @@ public class ProductService extends BaseService implements IProductSubTranslator
     } catch (Exception e) {
       // Catch any other exceptions and log them
       logger.error(
-          "Error fetching ProductPickupLocationMapping for productId: {}. Returning empty stock list.",
+          "Error fetching ProductPickupLocationMapping for productId: {}. "
+              + "Returning empty stock list.",
           productId,
           e);
       mappings = new java.util.ArrayList<>();
@@ -1312,16 +1318,16 @@ public class ProductService extends BaseService implements IProductSubTranslator
     java.util.Map<
             Long,
             java.util.List<
-                com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping>>
+                com.example.springapi.models.databasemodels.PackagePickupLocationMapping>>
         packagesByLocation = new java.util.HashMap<>();
 
     if (!pickupLocationIds.isEmpty()) {
-      java.util.List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping>
+      java.util.List<com.example.springapi.models.databasemodels.PackagePickupLocationMapping>
           packageMappings =
               packagePickupLocationMappingRepository.findByPickupLocationIdsWithPackages(
                   pickupLocationIds);
 
-      for (com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping pm :
+      for (com.example.springapi.models.databasemodels.PackagePickupLocationMapping pm :
           packageMappings) {
         packagesByLocation
             .computeIfAbsent(pm.getPickupLocationId(), k -> new java.util.ArrayList<>())
@@ -1330,8 +1336,8 @@ public class ProductService extends BaseService implements IProductSubTranslator
     }
 
     // Create PackagingHelper for calculations
-    com.example.SpringApi.Helpers.PackagingHelper packagingHelper =
-        new com.example.SpringApi.Helpers.PackagingHelper();
+    com.example.springapi.helpers.PackagingHelper packagingHelper =
+        new com.example.springapi.helpers.PackagingHelper();
 
     // Note: Shipping options are now calculated at the order level via
     // ShippingController
@@ -1339,26 +1345,26 @@ public class ProductService extends BaseService implements IProductSubTranslator
     // accurate shipping costs
 
     // Build response list
-    java.util.List<com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel>
+    java.util.List<com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel>
         responseList = new java.util.ArrayList<>();
 
-    for (com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping mapping :
+    for (com.example.springapi.models.databasemodels.ProductPickupLocationMapping mapping :
         mappings) {
-      com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel response =
-          new com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel(
+      com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel response =
+          new com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel(
               mapping);
 
       // Set product dimensions
       setProductDimensions(response, product);
 
       // Get packages for this location
-      java.util.List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping>
+      java.util.List<com.example.springapi.models.databasemodels.PackagePickupLocationMapping>
           locationPackages =
               packagesByLocation.getOrDefault(
                   mapping.getPickupLocationId(), java.util.Collections.emptyList());
 
       // Add package info and get dimensions for packaging calculation
-      java.util.List<com.example.SpringApi.Helpers.PackagingHelper.PackageDimension>
+      java.util.List<com.example.springapi.helpers.PackagingHelper.PackageDimension>
           packageDimensions = addPackageInfoToResponse(response, locationPackages);
 
       // Calculate packaging estimate
@@ -1382,8 +1388,8 @@ public class ProductService extends BaseService implements IProductSubTranslator
   }
 
   private void setProductDimensions(
-      com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel response,
-      com.example.SpringApi.Models.DatabaseModels.Product product) {
+      com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel response,
+      com.example.springapi.models.databasemodels.Product product) {
     if (product != null) {
       response.setProductLength(product.getLength());
       response.setProductBreadth(product.getBreadth());
@@ -1392,25 +1398,27 @@ public class ProductService extends BaseService implements IProductSubTranslator
     }
   }
 
-  private java.util.List<com.example.SpringApi.Helpers.PackagingHelper.PackageDimension>
+  private java.util.List<com.example.springapi.helpers.PackagingHelper.PackageDimension>
       addPackageInfoToResponse(
-          com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel response,
-          java.util.List<com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping>
+          com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel response,
+          java.util.List<com.example.springapi.models.databasemodels.PackagePickupLocationMapping>
               locationPackages) {
 
-    java.util.List<com.example.SpringApi.Helpers.PackagingHelper.PackageDimension>
+    java.util.List<com.example.springapi.helpers.PackagingHelper.PackageDimension>
         packageDimensions = new java.util.ArrayList<>();
 
-    for (com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping pm :
+    for (com.example.springapi.models.databasemodels.PackagePickupLocationMapping pm :
         locationPackages) {
-      com.example.SpringApi.Models.DatabaseModels.Package pkg = pm.getPackageEntity();
-      if (pkg == null) continue;
+      com.example.springapi.models.databasemodels.Package pkg = pm.getPackageEntity();
+      if (pkg == null) {
+        continue;
+      }
 
       // Add to response
-      com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel
+      com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel
               .PackageInfoModel
           packageInfo =
-              new com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel
+              new com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel
                   .PackageInfoModel();
       packageInfo.setPackageId(pkg.getPackageId());
       packageInfo.setPackageName(pkg.getPackageName());
@@ -1425,11 +1433,11 @@ public class ProductService extends BaseService implements IProductSubTranslator
 
       // Add to packaging calculation list
       packageDimensions.add(
-          new com.example.SpringApi.Helpers.PackagingHelper.PackageDimension(
+          new com.example.springapi.helpers.PackagingHelper.PackageDimension(
               pkg.getPackageId(),
               pkg.getPackageName(),
               pkg.getPackageType(),
-              new com.example.SpringApi.Helpers.PackagingHelper.PackageDimension.PackageSize(
+              new com.example.springapi.helpers.PackagingHelper.PackageDimension.PackageSize(
                   pkg.getLength(), pkg.getBreadth(), pkg.getHeight()),
               pkg.getMaxWeight(),
               pkg.getPricePerUnit(),
@@ -1440,35 +1448,37 @@ public class ProductService extends BaseService implements IProductSubTranslator
   }
 
   private void calculatePackagingEstimate(
-      com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel response,
-      com.example.SpringApi.Models.DatabaseModels.Product product,
+      com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel response,
+      com.example.springapi.models.databasemodels.Product product,
       Integer requestedQuantity,
       int availableStock,
-      java.util.List<com.example.SpringApi.Helpers.PackagingHelper.PackageDimension>
+      java.util.List<com.example.springapi.helpers.PackagingHelper.PackageDimension>
           packageDimensions,
-      com.example.SpringApi.Helpers.PackagingHelper packagingHelper) {
+      com.example.springapi.helpers.PackagingHelper packagingHelper) {
 
-    if (product == null || requestedQuantity == null || requestedQuantity <= 0) return;
+    if (product == null || requestedQuantity == null || requestedQuantity <= 0) {
+      return;
+    }
 
     int quantityToPackage = Math.min(requestedQuantity, availableStock);
 
-    com.example.SpringApi.Helpers.PackagingHelper.ProductDimension productDim =
-        new com.example.SpringApi.Helpers.PackagingHelper.ProductDimension(
+    com.example.springapi.helpers.PackagingHelper.ProductDimension productDim =
+        new com.example.springapi.helpers.PackagingHelper.ProductDimension(
             product.getLength(),
             product.getBreadth(),
             product.getHeight(),
             product.getWeightKgs(),
             quantityToPackage);
 
-    com.example.SpringApi.Helpers.PackagingHelper.PackagingEstimateResult estimate =
+    com.example.springapi.helpers.PackagingHelper.PackagingEstimateResult estimate =
         packagingHelper.calculatePackaging(productDim, packageDimensions);
 
-    for (com.example.SpringApi.Helpers.PackagingHelper.PackageUsageResult usage :
+    for (com.example.springapi.helpers.PackagingHelper.PackageUsageResult usage :
         estimate.getPackagesUsed()) {
       response
           .getPackagingEstimate()
           .add(
-              new com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel
+              new com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel
                   .PackageUsageModel(
                   usage.getPackageId(),
                   usage.getPackageName(),

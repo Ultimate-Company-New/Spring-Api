@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.ResponseModels;
+package com.example.springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class PaymentResponseModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.ResponseModels.PaymentResponseModel.class)) {
+        com.example.springapi.models.responsemodels.PaymentResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.ResponseModels.PaymentResponseModel.class);
+                  com.example.springapi.models.responsemodels.PaymentResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +64,7 @@ class PaymentResponseModelContractTest {
   void PaymentResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.ResponseModels.PaymentResponseModel.class
+        com.example.springapi.models.responsemodels.PaymentResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,9 +82,9 @@ class PaymentResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.ResponseModels.PaymentResponseModel createInstance() {
-    return (com.example.SpringApi.Models.ResponseModels.PaymentResponseModel)
-        instantiate(com.example.SpringApi.Models.ResponseModels.PaymentResponseModel.class);
+  private com.example.springapi.models.responsemodels.PaymentResponseModel createInstance() {
+    return (com.example.springapi.models.responsemodels.PaymentResponseModel)
+        instantiate(com.example.springapi.models.responsemodels.PaymentResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

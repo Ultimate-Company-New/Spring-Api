@@ -1,16 +1,16 @@
-package com.example.SpringApi.ServiceTests.Message;
+package com.example.springapi.ServiceTests.Message;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.MessageController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Helpers.EmailHelper;
-import com.example.SpringApi.Helpers.EmailTemplates;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.DatabaseModels.MessageUserMap;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.MessageController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.helpers.EmailHelper;
+import com.example.springapi.helpers.EmailTemplates;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.databasemodels.MessageUserMap;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -79,8 +79,8 @@ class UpdateMessageTest extends MessageServiceTestBase {
     messageService.updateMessage(validRequest);
 
     // Assert
-    ArgumentCaptor<com.example.SpringApi.Models.DatabaseModels.Message> captor =
-        ArgumentCaptor.forClass(com.example.SpringApi.Models.DatabaseModels.Message.class);
+    ArgumentCaptor<com.example.springapi.models.databasemodels.Message> captor =
+        ArgumentCaptor.forClass(com.example.springapi.models.databasemodels.Message.class);
     verify(messageRepository).save(captor.capture());
     assertEquals("Updated Notes", captor.getValue().getNotes());
   }
@@ -102,8 +102,8 @@ class UpdateMessageTest extends MessageServiceTestBase {
     messageService.updateMessage(validRequest);
 
     // Assert
-    ArgumentCaptor<com.example.SpringApi.Models.DatabaseModels.Message> captor =
-        ArgumentCaptor.forClass(com.example.SpringApi.Models.DatabaseModels.Message.class);
+    ArgumentCaptor<com.example.springapi.models.databasemodels.Message> captor =
+        ArgumentCaptor.forClass(com.example.springapi.models.databasemodels.Message.class);
     verify(messageRepository).save(captor.capture());
     assertEquals("New Title", captor.getValue().getTitle());
   }
@@ -150,8 +150,8 @@ class UpdateMessageTest extends MessageServiceTestBase {
     try (MockedConstruction<EmailHelper> emailHelperMock =
         stubEmailHelperGenerateBatchId("BATCH-NEW")) {
       messageService.updateMessage(validRequest);
-      ArgumentCaptor<com.example.SpringApi.Models.DatabaseModels.Message> captor =
-          ArgumentCaptor.forClass(com.example.SpringApi.Models.DatabaseModels.Message.class);
+      ArgumentCaptor<com.example.springapi.models.databasemodels.Message> captor =
+          ArgumentCaptor.forClass(com.example.springapi.models.databasemodels.Message.class);
       verify(messageRepository).save(captor.capture());
       assertEquals("BATCH-NEW", captor.getValue().getSendgridEmailBatchId());
     }
@@ -175,8 +175,8 @@ class UpdateMessageTest extends MessageServiceTestBase {
     messageService.updateMessage(validRequest);
 
     // Assert
-    ArgumentCaptor<com.example.SpringApi.Models.DatabaseModels.Message> captor =
-        ArgumentCaptor.forClass(com.example.SpringApi.Models.DatabaseModels.Message.class);
+    ArgumentCaptor<com.example.springapi.models.databasemodels.Message> captor =
+        ArgumentCaptor.forClass(com.example.springapi.models.databasemodels.Message.class);
     verify(messageRepository).save(captor.capture());
     assertNull(captor.getValue().getSendgridEmailBatchId());
   }
@@ -229,8 +229,8 @@ class UpdateMessageTest extends MessageServiceTestBase {
     // Act & Assert
     try (MockedConstruction<EmailHelper> emailHelperMock = stubEmailHelperGenerateBatchId("OLD")) {
       assertDoesNotThrow(() -> messageService.updateMessage(validRequest));
-      ArgumentCaptor<com.example.SpringApi.Models.DatabaseModels.Message> captor =
-          ArgumentCaptor.forClass(com.example.SpringApi.Models.DatabaseModels.Message.class);
+      ArgumentCaptor<com.example.springapi.models.databasemodels.Message> captor =
+          ArgumentCaptor.forClass(com.example.springapi.models.databasemodels.Message.class);
       verify(messageRepository).save(captor.capture());
       assertEquals("OLD", captor.getValue().getSendgridEmailBatchId());
     }

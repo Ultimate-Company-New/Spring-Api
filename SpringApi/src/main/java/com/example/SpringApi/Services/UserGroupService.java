@@ -1,25 +1,30 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.FilterQueryBuilder.UserGroupFilterQueryBuilder;
-import com.example.SpringApi.Helpers.BulkInsertHelper;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.DatabaseModels.UserGroup;
-import com.example.SpringApi.Models.DatabaseModels.UserGroupUserMap;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
-import com.example.SpringApi.Models.RequestModels.UserGroupRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.UserGroupResponseModel;
-import com.example.SpringApi.Repositories.UserGroupRepository;
-import com.example.SpringApi.Repositories.UserGroupUserMapRepository;
-import com.example.SpringApi.Repositories.UserRepository;
-import com.example.SpringApi.Services.Interface.IUserGroupSubTranslator;
-import com.example.SpringApi.SuccessMessages;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.SuccessMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.filterquerybuilder.UserGroupFilterQueryBuilder;
+import com.example.springapi.helpers.BulkInsertHelper;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.databasemodels.UserGroup;
+import com.example.springapi.models.databasemodels.UserGroupUserMap;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
+import com.example.springapi.models.requestmodels.UserGroupRequestModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.UserGroupResponseModel;
+import com.example.springapi.repositories.UserGroupRepository;
+import com.example.springapi.repositories.UserGroupUserMapRepository;
+import com.example.springapi.repositories.UserRepository;
+import com.example.springapi.services.interfaces.UserGroupSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -40,7 +45,7 @@ import org.springframework.stereotype.Service;
  * @since 2024-01-15
  */
 @Service
-public class UserGroupService extends BaseService implements IUserGroupSubTranslator {
+public class UserGroupService extends BaseService implements UserGroupSubTranslator {
   private static final String UNKNOWN_GROUP_NAME = "unknown";
 
   private final UserGroupRepository userGroupRepository;
@@ -49,6 +54,9 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
   private final UserGroupFilterQueryBuilder userGroupFilterQueryBuilder;
   private final MessageService messageService;
 
+  /**
+   * Initializes UserGroupService.
+   */
   @Autowired
   public UserGroupService(
       UserLogService userLogService,
@@ -131,7 +139,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
    */
   @Override
   public void createUserGroup(UserGroupRequestModel userGroupRequest) {
-    createUserGroup(userGroupRequest, getUser(), true);
+    createUserGroupInternal(userGroupRequest, getUser(), true);
   }
 
   /**
@@ -329,8 +337,8 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
                 ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "User group"));
       }
 
-      com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response =
-          new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+      com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
+          new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
       response.setTotalRequested(userGroups.size());
 
       int successCount = 0;
@@ -341,7 +349,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
         try {
           // Call createUserGroup with explicit createdUser and shouldLog = false (bulk logs
           // collectively)
-          createUserGroup(groupRequest, requestingUserLoginName, false);
+          createUserGroupInternal(groupRequest, requestingUserLoginName, false);
 
           // If we get here, group was created successfully
           // Fetch the created group to get the groupId
@@ -391,8 +399,8 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
 
     } catch (Exception e) {
       // Still send a message to user about the failure (using captured userId)
-      com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> errorResponse =
-          new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+      com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> errorResponse =
+          new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
       errorResponse.setTotalRequested(userGroups != null ? userGroups.size() : 0);
       errorResponse.setSuccessCount(0);
       errorResponse.setFailureCount(userGroups != null ? userGroups.size() : 0);
@@ -407,7 +415,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
   }
 
   /**
-   * Creates multiple user groups synchronously in a single operation (for testing). This is a
+   * Creates multiple user groups synchronously in a single operation (for testing). This is a.
    * synchronous wrapper that processes user groups immediately and returns results.
    *
    * @param userGroups List of UserGroupRequestModel containing the user group data to create
@@ -415,7 +423,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
    */
   @Override
   @org.springframework.transaction.annotation.Transactional
-  public com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long>
+  public com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long>
       bulkCreateUserGroups(List<UserGroupRequestModel> userGroups) {
     // Validate input
     if (userGroups == null || userGroups.isEmpty()) {
@@ -424,8 +432,8 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
               ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "User group"));
     }
 
-    com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> response =
-        new com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<>();
+    com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
+        new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
     response.setTotalRequested(userGroups.size());
 
     int successCount = 0;
@@ -435,7 +443,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
     for (UserGroupRequestModel groupRequest : userGroups) {
       try {
         // Call createUserGroup with current user and shouldLog = false
-        createUserGroup(groupRequest, getUser(), false);
+        createUserGroupInternal(groupRequest, getUser(), false);
 
         // If we get here, group was created successfully
         // Fetch the created group to get the groupId
@@ -478,7 +486,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
   // ==================== HELPER METHODS ====================
 
   /**
-   * Creates a new user group in the system with explicit createdUser. This variant is used for
+   * Creates a new user group in the system with explicit createdUser. This variant is used for.
    * async operations where security context is not available.
    *
    * @param userGroupRequest The UserGroupRequestModel containing the group data to insert
@@ -487,7 +495,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
    * @throws BadRequestException if the user group data is invalid or incomplete
    */
   @org.springframework.transaction.annotation.Transactional
-  private void createUserGroup(
+  private void createUserGroupInternal(
       UserGroupRequestModel userGroupRequest, String createdUser, boolean shouldLog) {
     // Validate that at least one user is provided
     if (userGroupRequest.getUserIds() == null || userGroupRequest.getUserIds().isEmpty()) {
@@ -537,7 +545,7 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
   }
 
   /**
-   * Updates user-group mappings for an existing user group. Deletes all existing mappings and
+   * Updates user-group mappings for an existing user group. Deletes all existing mappings and.
    * creates new ones.
    *
    * @param userGroupRequest The user group request containing user IDs

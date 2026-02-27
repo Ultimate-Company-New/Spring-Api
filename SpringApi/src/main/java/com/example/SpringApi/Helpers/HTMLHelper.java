@@ -1,4 +1,4 @@
-package com.example.SpringApi.Helpers;
+package com.example.springapi.helpers;
 
 /**
  * Helper class for HTML manipulation and formatting.
@@ -10,12 +10,12 @@ package com.example.SpringApi.Helpers;
  * @version 1.0
  * @since 2024-01-15
  */
-public class HTMLHelper {
-  private HTMLHelper() {}
+public class HtmlHelper {
+  private HtmlHelper() {}
 
   /**
    * Replaces <br>
-   * tags with proper line breaks for PDF generation.
+   * . tags with proper line breaks for PDF generation.
    *
    * <p>This method converts various forms of HTML line breaks to a format that is compatible with
    * PDF generation libraries.

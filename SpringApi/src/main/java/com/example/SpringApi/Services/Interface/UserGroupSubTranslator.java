@@ -1,10 +1,10 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Models.RequestModels.UserGroupRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.UserGroupResponseModel;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.models.requestmodels.UserGroupRequestModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.UserGroupResponseModel;
 
 /**
  * Interface for UserGroup-related business operations.
@@ -17,7 +17,7 @@ import com.example.SpringApi.Models.ResponseModels.UserGroupResponseModel;
  * @version 1.0
  * @since 2024-01-15
  */
-public interface IUserGroupSubTranslator {
+public interface UserGroupSubTranslator {
 
   /**
    * Toggles the deletion status of a user group by its ID.
@@ -114,12 +114,12 @@ public interface IUserGroupSubTranslator {
       Long requestingClientId);
 
   /**
-   * Creates multiple user groups synchronously in a single operation (for testing). This is a
+   * Creates multiple user groups synchronously in a single operation (for testing). This is a.
    * synchronous wrapper that processes user groups immediately and returns results.
    *
    * @param userGroups List of UserGroupRequestModel containing the user group data to create
    * @return BulkInsertResponseModel containing success/failure details for each user group
    */
-  com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateUserGroups(
+  com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkCreateUserGroups(
       java.util.List<UserGroupRequestModel> userGroups);
 }

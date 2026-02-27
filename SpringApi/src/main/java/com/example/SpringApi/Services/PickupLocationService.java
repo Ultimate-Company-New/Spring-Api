@@ -1,33 +1,33 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.FilterQueryBuilder.PickupLocationFilterQueryBuilder;
-import com.example.SpringApi.Helpers.BulkInsertHelper;
-import com.example.SpringApi.Helpers.ShipRocketHelper;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.DatabaseModels.Address;
-import com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping;
-import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
-import com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping;
-import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
-import com.example.SpringApi.Models.RequestModels.PackagePickupLocationMappingRequestModel;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.PickupLocationRequestModel;
-import com.example.SpringApi.Models.RequestModels.ProductPickupLocationMappingRequestModel;
-import com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel;
-import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PickupLocationResponseModel;
-import com.example.SpringApi.Models.ShippingResponseModel.AddPickupLocationResponseModel;
-import com.example.SpringApi.Repositories.AddressRepository;
-import com.example.SpringApi.Repositories.PackagePickupLocationMappingRepository;
-import com.example.SpringApi.Repositories.PickupLocationRepository;
-import com.example.SpringApi.Repositories.ProductPickupLocationMappingRepository;
-import com.example.SpringApi.Services.Interface.IPickupLocationSubTranslator;
-import com.example.SpringApi.SuccessMessages;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.SuccessMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.filterquerybuilder.PickupLocationFilterQueryBuilder;
+import com.example.springapi.helpers.BulkInsertHelper;
+import com.example.springapi.helpers.ShipRocketHelper;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.databasemodels.Address;
+import com.example.springapi.models.databasemodels.PackagePickupLocationMapping;
+import com.example.springapi.models.databasemodels.PickupLocation;
+import com.example.springapi.models.databasemodels.ProductPickupLocationMapping;
+import com.example.springapi.models.requestmodels.AddressRequestModel;
+import com.example.springapi.models.requestmodels.PackagePickupLocationMappingRequestModel;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.PickupLocationRequestModel;
+import com.example.springapi.models.requestmodels.ProductPickupLocationMappingRequestModel;
+import com.example.springapi.models.responsemodels.BulkInsertResponseModel;
+import com.example.springapi.models.responsemodels.ClientResponseModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.PickupLocationResponseModel;
+import com.example.springapi.models.shippingresponsemodel.AddPickupLocationResponseModel;
+import com.example.springapi.repositories.AddressRepository;
+import com.example.springapi.repositories.PackagePickupLocationMappingRepository;
+import com.example.springapi.repositories.PickupLocationRepository;
+import com.example.springapi.repositories.ProductPickupLocationMappingRepository;
+import com.example.springapi.services.interfaces.PickupLocationSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -51,7 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Service implementation for PickupLocation-related business operations.
  *
- * <p>This service implements the contract defined in IPickupLocationSubTranslator for pickup
+ * <p>This service implements the contract defined in PickupLocationSubTranslator for pickup
  * location management operations including CRUD operations, batch retrieval, and status management.
  *
  * @author SpringApi Team
@@ -59,7 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 2024-01-15
  */
 @Service
-public class PickupLocationService extends BaseService implements IPickupLocationSubTranslator {
+public class PickupLocationService extends BaseService implements PickupLocationSubTranslator {
 
   private final PickupLocationRepository pickupLocationRepository;
   private final AddressRepository addressRepository;
@@ -72,6 +72,9 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
   private final MessageService messageService;
   private static final String UNKNOWN_NAME = "unknown";
 
+  /**
+   * Initializes PickupLocationService.
+   */
   @Autowired
   public PickupLocationService(
       PickupLocationRepository pickupLocationRepository,
@@ -380,7 +383,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
 
     // Check if physical address fields have changed (requires new Shiprocket
     // location)
-    boolean addressFieldsChanged =
+    final boolean addressFieldsChanged =
         hasAddressFieldsChanged(existingAddress, pickupLocationRequestModel.getAddress());
 
     // Update the address if provided
@@ -486,7 +489,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
   }
 
   /**
-   * Creates multiple pickup locations asynchronously in a single operation. Processing happens in
+   * Creates multiple pickup locations asynchronously in a single operation. Processing happens in.
    * background thread; results sent via message notification.
    *
    * <p>Uses @Async for non-blocking processing and: - NOT_SUPPORTED: Runs without a transaction to
@@ -596,7 +599,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
   }
 
   /**
-   * Creates multiple pickup locations synchronously in a single operation (for testing). This is a
+   * Creates multiple pickup locations synchronously in a single operation (for testing). This is a.
    * synchronous wrapper that processes pickup locations immediately and returns results.
    *
    * @param pickupLocations List of PickupLocationRequestModel containing the pickup location data
@@ -673,7 +676,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
   // ============================================================================
 
   /**
-   * Creates a ShipRocketHelper instance initialized with the current client's ShipRocket
+   * Creates a ShipRocketHelper instance initialized with the current client's ShipRocket.
    * credentials. For testing, returns the injected mock if available.
    *
    * @return ShipRocketHelper instance with client credentials
@@ -687,7 +690,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
   }
 
   /**
-   * Creates a ShipRocketHelper instance initialized with a specific client's ShipRocket
+   * Creates a ShipRocketHelper instance initialized with a specific client's ShipRocket.
    * credentials. Used for bulk operations where clientId is passed explicitly.
    *
    * @param clientId The client ID to get credentials for
@@ -702,7 +705,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
   }
 
   /**
-   * Checks if physical address fields have changed between existing and new address. Only compares
+   * Checks if physical address fields have changed between existing and new address. Only compares.
    * fields that require a new Shiprocket pickup location: streetAddress, streetAddress2,
    * streetAddress3, city, state, country, postalCode
    *
@@ -718,8 +721,12 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
     // Helper to safely compare strings (null-safe)
     java.util.function.BiPredicate<String, String> isDifferent =
         (existing, updated) -> {
-          if (existing == null && updated == null) return false;
-          if (existing == null || updated == null) return true;
+          if (existing == null && updated == null) {
+            return false;
+          }
+          if (existing == null || updated == null) {
+            return true;
+          }
           return !existing.equals(updated);
         };
 
@@ -734,7 +741,7 @@ public class PickupLocationService extends BaseService implements IPickupLocatio
   }
 
   /**
-   * Internal method to create a pickup location with explicit user and client context. Used for
+   * Internal method to create a pickup location with explicit user and client context. Used for.
    * bulk operations where security context may not be available.
    *
    * @param pickupLocationRequestModel The pickup location data to create

@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.DatabaseModels;
+package com.example.springapi.ModelTests.DatabaseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class UserGroupUserMapContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.SpringApi.Models.DatabaseModels.UserGroupUserMap.class)) {
+    if (hasNoArgConstructor(com.example.springapi.models.databasemodels.UserGroupUserMap.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.SpringApi.Models.DatabaseModels.UserGroupUserMap.class);
+              .constructType(com.example.springapi.models.databasemodels.UserGroupUserMap.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +62,7 @@ class UserGroupUserMapContractTest {
   void UserGroupUserMap_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.DatabaseModels.UserGroupUserMap.class
+        com.example.springapi.models.databasemodels.UserGroupUserMap.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -80,9 +80,9 @@ class UserGroupUserMapContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.DatabaseModels.UserGroupUserMap createInstance() {
-    return (com.example.SpringApi.Models.DatabaseModels.UserGroupUserMap)
-        instantiate(com.example.SpringApi.Models.DatabaseModels.UserGroupUserMap.class);
+  private com.example.springapi.models.databasemodels.UserGroupUserMap createInstance() {
+    return (com.example.springapi.models.databasemodels.UserGroupUserMap)
+        instantiate(com.example.springapi.models.databasemodels.UserGroupUserMap.class);
   }
 
   private Object instantiate(Class<?> clazz) {

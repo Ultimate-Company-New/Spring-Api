@@ -1,6 +1,6 @@
-package com.example.SpringApi.Repositories;
+package com.example.springapi.repositories;
 
-import com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping;
+import com.example.springapi.models.databasemodels.ProductPickupLocationMapping;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -54,7 +54,8 @@ public interface ProductPickupLocationMappingRepository
    */
   @Modifying
   @Query(
-      "DELETE FROM ProductPickupLocationMapping pplm WHERE pplm.pickupLocationId = :pickupLocationId")
+      "DELETE FROM ProductPickupLocationMapping pplm WHERE "
+          + "pplm.pickupLocationId = :pickupLocationId")
   void deleteByPickupLocationId(@Param("pickupLocationId") Long pickupLocationId);
 
   /**
@@ -64,11 +65,12 @@ public interface ProductPickupLocationMappingRepository
    * @return The count of mappings
    */
   @Query(
-      "SELECT COUNT(pplm) FROM ProductPickupLocationMapping pplm WHERE pplm.pickupLocationId = :pickupLocationId")
+      "SELECT COUNT(pplm) FROM ProductPickupLocationMapping pplm WHERE "
+          + "pplm.pickupLocationId = :pickupLocationId")
   Integer countByPickupLocationId(@Param("pickupLocationId") Long pickupLocationId);
 
   /**
-   * Get counts of ProductPickupLocationMappings grouped by pickup location ID for multiple
+   * Get counts of ProductPickupLocationMappings grouped by pickup location ID for multiple.
    * locations. Returns a list of Object arrays where [0] is pickupLocationId and [1] is the count.
    *
    * @param pickupLocationIds List of pickup location IDs
@@ -104,7 +106,8 @@ public interface ProductPickupLocationMappingRepository
    */
   @Query(
       "SELECT pplm FROM ProductPickupLocationMapping pplm "
-          + "WHERE pplm.productId = :productId AND pplm.pickupLocationId = :pickupLocationId AND pplm.isActive = true")
+          + "WHERE pplm.productId = :productId AND pplm.pickupLocationId = :"
+          + "pickupLocationId AND pplm.isActive = true")
   Optional<ProductPickupLocationMapping> findByProductIdAndPickupLocationId(
       @Param("productId") Long productId, @Param("pickupLocationId") Long pickupLocationId);
 }

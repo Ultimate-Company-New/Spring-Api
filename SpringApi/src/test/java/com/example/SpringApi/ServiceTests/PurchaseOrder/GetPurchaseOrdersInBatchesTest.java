@@ -1,14 +1,14 @@
-package com.example.SpringApi.ServiceTests.PurchaseOrder;
+package com.example.springapi.ServiceTests.PurchaseOrder;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.SpringApi.Controllers.PurchaseOrderController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.DTOs.PurchaseOrderWithDetails;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PurchaseOrderResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.PurchaseOrderController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.dtos.PurchaseOrderWithDetails;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.PurchaseOrderResponseModel;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

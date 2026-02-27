@@ -1,25 +1,27 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.ApplicationException;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.Helpers.EmailTemplates;
-import com.example.SpringApi.Helpers.PasswordHelper;
-import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.DatabaseModels.User;
-import com.example.SpringApi.Models.DatabaseModels.UserClientMapping;
-import com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping;
-import com.example.SpringApi.Models.RequestModels.LoginRequestModel;
-import com.example.SpringApi.Repositories.ClientRepository;
-import com.example.SpringApi.Repositories.UserClientMappingRepository;
-import com.example.SpringApi.Repositories.UserClientPermissionMappingRepository;
-import com.example.SpringApi.Repositories.UserRepository;
-import com.example.SpringApi.Services.Interface.ILoginSubTranslator;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.ApplicationException;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.helpers.EmailTemplates;
+import com.example.springapi.helpers.PasswordHelper;
+import com.example.springapi.models.databasemodels.Client;
+import com.example.springapi.models.databasemodels.User;
+import com.example.springapi.models.databasemodels.UserClientMapping;
+import com.example.springapi.models.databasemodels.UserClientPermissionMapping;
+import com.example.springapi.models.requestmodels.LoginRequestModel;
+import com.example.springapi.repositories.ClientRepository;
+import com.example.springapi.repositories.UserClientMappingRepository;
+import com.example.springapi.repositories.UserClientPermissionMappingRepository;
+import com.example.springapi.repositories.UserRepository;
+import com.example.springapi.services.interfaces.LoginSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
@@ -30,21 +32,24 @@ import org.springframework.util.StringUtils;
 /**
  * Service class for authentication and login-related business operations.
  *
- * <p>This service implements the ILoginSubTranslator interface and provides authentication
- * workflows including email confirmation, sign-in, password reset, and token generation.
+ * <p>This service implements the LoginSubTranslator interface and provides authentication workflows
+ * including email confirmation, sign-in, password reset, and token generation.
  *
  * @author SpringApi Team
  * @version 1.0
  * @since 2024-01-15
  */
 @Service
-public class LoginService extends BaseService implements ILoginSubTranslator {
+public class LoginService extends BaseService implements LoginSubTranslator {
   private final UserRepository userRepository;
   private final UserClientMappingRepository userClientMappingRepository;
   private final UserClientPermissionMappingRepository userClientPermissionMappingRepository;
   private final ClientRepository clientRepository;
   private final Environment environment;
 
+  /**
+   * Initializes LoginService.
+   */
   @Autowired
   public LoginService(
       UserRepository userRepository,
@@ -65,7 +70,7 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
   }
 
   /**
-   * Confirms the user's email address using the provided user ID and token. This method verifies
+   * Confirms the user's email address using the provided user ID and token. This method verifies.
    * that the token matches the user's stored token and marks the email as confirmed. After
    * successful confirmation, the token is cleared from the database to prevent reuse. If the token
    * is invalid, expired, or the user is not found, appropriate exceptions are thrown.
@@ -107,7 +112,7 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
   }
 
   /**
-   * Authenticates a user by verifying their login name and password. Performs several checks:
+   * Authenticates a user by verifying their login name and password. Performs several checks:.
    * validates input, checks if user exists, email is confirmed, account is not locked, password is
    * set, and password matches. On successful authentication, returns a list of clients the user has
    * access to. On failed attempts, decrements locked attempts and locks the account if attempts
@@ -123,7 +128,7 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
    */
   @Override
   @Transactional
-  public List<com.example.SpringApi.Models.ResponseModels.ClientResponseModel> signIn(
+  public List<com.example.springapi.models.responsemodels.ClientResponseModel> signIn(
       LoginRequestModel loginRequestModel) {
     User user = userRepository.findByLoginName(loginRequestModel.getLoginName());
 
@@ -166,7 +171,7 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
 
       // Build a list of ClientResponseModel with only logo, name, clientId, and
       // apiKey
-      List<com.example.SpringApi.Models.ResponseModels.ClientResponseModel> clientResponseList =
+      List<com.example.springapi.models.responsemodels.ClientResponseModel> clientResponseList =
           new ArrayList<>();
 
       for (UserClientMapping mapping : userClientMappings) {
@@ -176,8 +181,8 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
           Client client = clientOpt.get();
 
           // Create a minimal ClientResponseModel with only required fields
-          com.example.SpringApi.Models.ResponseModels.ClientResponseModel clientResponse =
-              new com.example.SpringApi.Models.ResponseModels.ClientResponseModel();
+          com.example.springapi.models.responsemodels.ClientResponseModel clientResponse =
+              new com.example.springapi.models.responsemodels.ClientResponseModel();
           clientResponse.setClientId(client.getClientId());
           clientResponse.setName(client.getName());
           clientResponse.setLogoUrl(client.getLogoUrl());
@@ -206,7 +211,7 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
   }
 
   /**
-   * Resets the password for an existing user. Validates the login name, checks if the user exists
+   * Resets the password for an existing user. Validates the login name, checks if the user exists.
    * and has a password set. Generates a new random password, hashes it, updates the user record,
    * unlocks the account, resets login attempts to 5, sends a reset password email, and logs the
    * action. The client is determined dynamically (currently hardcoded to the first client).

@@ -1,7 +1,7 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.DatabaseModels.Message;
-import com.example.SpringApi.Models.DatabaseModels.User;
+import com.example.springapi.models.databasemodels.Message;
+import com.example.springapi.models.databasemodels.User;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,20 +38,23 @@ public class MessageResponseModel {
   private Long auditUserId;
 
   // Related entities (simplified to avoid circular references)
-  private SimpleUserDTO createdByUser;
-  private SimpleUserDTO auditUser;
+  private SimpleUserDto createdByUser;
+  private SimpleUserDto auditUser;
 
-  /** Simple DTO for user information to avoid circular references */
+  /** Simple DTO for user information to avoid circular references. */
   @Getter
   @Setter
-  public static class SimpleUserDTO {
+  public static class SimpleUserDto {
     private Long userId;
     private String firstName;
     private String lastName;
     private String email;
     private String loginName;
 
-    public SimpleUserDTO(User user) {
+    /**
+     * Initializes SimpleUserDto.
+     */
+    public SimpleUserDto(User user) {
       if (user != null) {
         this.userId = user.getUserId();
         this.firstName = user.getFirstName();
@@ -98,7 +101,7 @@ public class MessageResponseModel {
 
       // Set related entities (using simplified DTO to avoid circular references)
       if (message.getCreatedByUser() != null) {
-        this.createdByUser = new SimpleUserDTO(message.getCreatedByUser());
+        this.createdByUser = new SimpleUserDto(message.getCreatedByUser());
       }
 
       // Extract user IDs from MessageUserMap collection

@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.DatabaseModels;
+package com.example.springapi.ModelTests.DatabaseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class ReturnShipmentContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.SpringApi.Models.DatabaseModels.ReturnShipment.class)) {
+    if (hasNoArgConstructor(com.example.springapi.models.databasemodels.ReturnShipment.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.SpringApi.Models.DatabaseModels.ReturnShipment.class);
+              .constructType(com.example.springapi.models.databasemodels.ReturnShipment.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +62,7 @@ class ReturnShipmentContractTest {
   void ReturnShipment_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.DatabaseModels.ReturnShipment.class
+        com.example.springapi.models.databasemodels.ReturnShipment.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -80,9 +80,9 @@ class ReturnShipmentContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.DatabaseModels.ReturnShipment createInstance() {
-    return (com.example.SpringApi.Models.DatabaseModels.ReturnShipment)
-        instantiate(com.example.SpringApi.Models.DatabaseModels.ReturnShipment.class);
+  private com.example.springapi.models.databasemodels.ReturnShipment createInstance() {
+    return (com.example.springapi.models.databasemodels.ReturnShipment)
+        instantiate(com.example.springapi.models.databasemodels.ReturnShipment.class);
   }
 
   private Object instantiate(Class<?> clazz) {

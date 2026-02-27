@@ -1,4 +1,4 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Response model for payment verification. Indicates whether the payment was successfully verified
+ * Response model for payment verification. Indicates whether the payment was successfully verified.
  * and processed.
  */
 @Getter
@@ -14,22 +14,22 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentVerificationResponseModel {
-  /** Whether the payment was successfully verified */
+  /** Whether the payment was successfully verified. */
   private boolean success;
 
-  /** Human-readable message */
+  /** Human-readable message. */
   private String message;
 
-  /** The Razorpay payment ID */
+  /** The Razorpay payment ID. */
   private String paymentId;
 
-  /** The purchase order ID that was paid */
+  /** The purchase order ID that was paid. */
   private Long purchaseOrderId;
 
-  /** The new status of the purchase order */
+  /** The new status of the purchase order. */
   private String purchaseOrderStatus;
 
-  /** Static factory for success response */
+  /** Static factory for success response. */
   public static PaymentVerificationResponseModel success(
       String paymentId, Long purchaseOrderId, String status) {
     return new PaymentVerificationResponseModel(
@@ -40,7 +40,7 @@ public class PaymentVerificationResponseModel {
         status);
   }
 
-  /** Static factory for failure response */
+  /** Static factory for failure response. */
   public static PaymentVerificationResponseModel failure(String message) {
     return new PaymentVerificationResponseModel(false, message, null, null, null);
   }

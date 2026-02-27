@@ -1,16 +1,16 @@
-package com.example.SpringApi.Controllers;
+package com.example.springapi.controllers;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.Logging.ContextualLogger;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ErrorResponseModel;
-import com.example.SpringApi.Services.Interface.IPurchaseOrderSubTranslator;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.logging.ContextualLogger;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.PurchaseOrderRequestModel;
+import com.example.springapi.models.responsemodels.ErrorResponseModel;
+import com.example.springapi.services.interfaces.PurchaseOrderSubTranslator;
 import freemarker.template.TemplateException;
 import java.io.IOException;
 import org.springframework.http.ContentDisposition;
@@ -19,7 +19,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST Controller for PurchaseOrder operations.
@@ -37,9 +44,9 @@ public class PurchaseOrderController {
 
   private static final ContextualLogger logger =
       ContextualLogger.getLogger(PurchaseOrderController.class);
-  private final IPurchaseOrderSubTranslator purchaseOrderService;
+  private final PurchaseOrderSubTranslator purchaseOrderService;
 
-  public PurchaseOrderController(IPurchaseOrderSubTranslator purchaseOrderService) {
+  public PurchaseOrderController(PurchaseOrderSubTranslator purchaseOrderService) {
     this.purchaseOrderService = purchaseOrderService;
   }
 
@@ -157,8 +164,8 @@ public class PurchaseOrderController {
       @RequestBody java.util.List<PurchaseOrderRequestModel> purchaseOrders) {
     try {
       // Cast to PurchaseOrderService to access BaseService methods
-      com.example.SpringApi.Services.PurchaseOrderService service =
-          (com.example.SpringApi.Services.PurchaseOrderService) purchaseOrderService;
+      com.example.springapi.services.PurchaseOrderService service =
+          (com.example.springapi.services.PurchaseOrderService) purchaseOrderService;
       Long userId = service.getUserId();
       String loginName = service.getUser();
       Long clientId = service.getClientId();
@@ -475,10 +482,10 @@ public class PurchaseOrderController {
   @PreAuthorize(
       "@customAuthorization.hasAuthority('" + Authorizations.VIEW_PURCHASE_ORDERS_PERMISSION + "')")
   @GetMapping(ApiRoutes.PurchaseOrderSubRoute.GET_PURCHASE_ORDER_PDF + "/{id}")
-  public ResponseEntity<?> getPurchaseOrderPDF(@PathVariable long id)
+  public ResponseEntity<?> getPurchaseOrderPdf(@PathVariable long id)
       throws TemplateException, IOException, com.itextpdf.text.DocumentException {
     try {
-      byte[] pdfBytes = purchaseOrderService.getPurchaseOrderPDF(id);
+      byte[] pdfBytes = purchaseOrderService.getPurchaseOrderPdf(id);
 
       // Set headers for PDF download
       HttpHeaders headers = new HttpHeaders();

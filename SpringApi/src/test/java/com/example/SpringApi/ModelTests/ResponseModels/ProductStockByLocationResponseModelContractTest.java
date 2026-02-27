@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.ResponseModels;
+package com.example.springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class ProductStockByLocationResponseModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel.class)) {
+        com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel
+                  com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel
                       .class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
@@ -65,7 +65,7 @@ class ProductStockByLocationResponseModelContractTest {
   void ProductStockByLocationResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel.class
+        com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -83,11 +83,11 @@ class ProductStockByLocationResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel
+  private com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel
       createInstance() {
-    return (com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel)
+    return (com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel)
         instantiate(
-            com.example.SpringApi.Models.ResponseModels.ProductStockByLocationResponseModel.class);
+            com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

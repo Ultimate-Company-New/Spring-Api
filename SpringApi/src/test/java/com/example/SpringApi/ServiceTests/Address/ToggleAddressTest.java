@@ -1,13 +1,13 @@
-package com.example.SpringApi.ServiceTests.Address;
+package com.example.springapi.ServiceTests.Address;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.AddressController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.DatabaseModels.Address;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.AddressController;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.databasemodels.Address;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;

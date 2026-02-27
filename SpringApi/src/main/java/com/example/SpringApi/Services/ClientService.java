@@ -1,21 +1,21 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.Constants.ImageLocationConstants;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Helpers.FirebaseHelper;
-import com.example.SpringApi.Helpers.ImgbbHelper;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.DatabaseModels.GoogleCred;
-import com.example.SpringApi.Models.RequestModels.ClientRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
-import com.example.SpringApi.Repositories.ClientRepository;
-import com.example.SpringApi.Repositories.GoogleCredRepository;
-import com.example.SpringApi.Services.Interface.IClientSubTranslator;
-import com.example.SpringApi.SuccessMessages;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.SuccessMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.constants.ImageLocationConstants;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.helpers.FirebaseHelper;
+import com.example.springapi.helpers.ImgbbHelper;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.databasemodels.Client;
+import com.example.springapi.models.databasemodels.GoogleCred;
+import com.example.springapi.models.requestmodels.ClientRequestModel;
+import com.example.springapi.models.responsemodels.ClientResponseModel;
+import com.example.springapi.repositories.ClientRepository;
+import com.example.springapi.repositories.GoogleCredRepository;
+import com.example.springapi.services.interfaces.ClientSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Service class for managing Client-related business operations.
  *
- * <p>This service implements the IClientSubTranslator interface and provides comprehensive client
+ * <p>This service implements the ClientSubTranslator interface and provides comprehensive client
  * management functionality including CRUD operations, client retrieval, and client status
  * management. The service handles validation, error handling, audit logging, and database
  * persistence.
@@ -39,7 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 2024-01-15
  */
 @Service
-public class ClientService extends BaseService implements IClientSubTranslator {
+public class ClientService extends BaseService implements ClientSubTranslator {
   private final ClientRepository clientRepository;
   private final GoogleCredRepository googleCredRepository;
   private final UserLogService userLogService;
@@ -48,6 +48,9 @@ public class ClientService extends BaseService implements IClientSubTranslator {
   @Value("${imageLocation:firebase}")
   private String imageLocation;
 
+  /**
+   * Executes client service.
+   */
   @Autowired
   public ClientService(
       ClientRepository clientRepository,

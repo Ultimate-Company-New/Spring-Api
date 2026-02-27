@@ -1,17 +1,17 @@
-package com.example.SpringApi.Services.Interface;
+package com.example.springapi.services.interfaces;
 
-import com.example.SpringApi.Models.RequestModels.LoginRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
+import com.example.springapi.models.requestmodels.LoginRequestModel;
+import com.example.springapi.models.responsemodels.ClientResponseModel;
 import java.util.List;
 
 /**
- * Interface for login-related operations, defining the contract for user authentication and
+ * Interface for login-related operations, defining the contract for user authentication and.
  * management services. Implementations handle sign-in, password reset, email confirmation, and
  * token generation.
  */
-public interface ILoginSubTranslator {
+public interface LoginSubTranslator {
   /**
-   * Confirms the user's email address using the provided user ID and token. This method verifies
+   * Confirms the user's email address using the provided user ID and token. This method verifies.
    * that the token matches the user's stored token and marks the email as confirmed. If the token
    * is invalid or the user is not found, appropriate exceptions are thrown.
    *
@@ -23,7 +23,7 @@ public interface ILoginSubTranslator {
   void confirmEmail(LoginRequestModel loginRequestModel);
 
   /**
-   * Authenticates a user by verifying their login name and password. Performs several checks:
+   * Authenticates a user by verifying their login name and password. Performs several checks:.
    * validates input, checks if user exists, email is confirmed, account is not locked, password is
    * set, and password matches. On successful authentication, returns a list of clients the user has
    * access to. On failed attempts, decrements locked attempts and locks the account if attempts
@@ -40,7 +40,7 @@ public interface ILoginSubTranslator {
   List<ClientResponseModel> signIn(LoginRequestModel loginRequestModel);
 
   /**
-   * Resets the password for an existing user. Validates the login name, checks if the user exists
+   * Resets the password for an existing user. Validates the login name, checks if the user exists.
    * and has a password set. Generates a new random password, hashes it, updates the user record,
    * resets locked attempts and unlocks the account, sends a reset password email, and logs the
    * action. The client is determined dynamically (currently hardcoded to the first client).
@@ -54,7 +54,7 @@ public interface ILoginSubTranslator {
   Boolean resetPassword(LoginRequestModel loginRequestModel);
 
   /**
-   * Generates a JWT token for an authenticated user based on their API key. Validates the login
+   * Generates a JWT token for an authenticated user based on their API key. Validates the login.
    * name and API key, retrieves the user, verifies the API key matches, fetches the user's client
    * permissions, and generates a token with the permissions. Logs the token generation action.
    *

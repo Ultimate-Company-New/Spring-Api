@@ -1,9 +1,10 @@
-package com.example.SpringApi.Authentication;
+package com.example.springapi.authentication;
 
-import static io.jsonwebtoken.Jwts.*;
+import static io.jsonwebtoken.Jwts.builder;
+import static io.jsonwebtoken.Jwts.parser;
 
-import com.example.SpringApi.Helpers.PasswordHelper;
-import com.example.SpringApi.Models.DatabaseModels.User;
+import com.example.springapi.helpers.PasswordHelper;
+import com.example.springapi.models.databasemodels.User;
 import io.jsonwebtoken.Claims;
 import java.util.Date;
 import java.util.List;
@@ -11,6 +12,9 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Represents the jwt token provider component.
+ */
 @Component
 public class JwtTokenProvider {
   @Value("${JWT_TOKEN}")
@@ -20,7 +24,7 @@ public class JwtTokenProvider {
   private String issuerUrl;
 
   /**
-   * Generates a JWT token for a user with their client-permission mappings. * @param user The user
+   * Generates a JWT token for a user with their client-permission mappings. * @param user The user.
    * entity
    *
    * @param permissionIds List of permissionIds for the client
@@ -49,6 +53,9 @@ public class JwtTokenProvider {
         .compact();
   }
 
+  /**
+   * Returns user name from token.
+   */
   public String getUserNameFromToken(String token) {
     Claims claims =
         parser()
@@ -60,6 +67,9 @@ public class JwtTokenProvider {
     return claims.get("email").toString();
   }
 
+  /**
+   * Returns user id from token.
+   */
   public Long getUserIdFromToken(String token) {
     Claims claims =
         parser()
@@ -72,7 +82,7 @@ public class JwtTokenProvider {
   }
 
   /**
-   * Gets the clientId the user belongs to from the JWT token. * @param token The JWT token
+   * Gets the clientId the user belongs to from the JWT token. * @param token The JWT token.
    *
    * @return The client ID
    */
@@ -96,7 +106,7 @@ public class JwtTokenProvider {
   }
 
   /**
-   * Gets the client-permission map from the JWT token. * @param token The JWT token
+   * Gets the client-permission map from the JWT token. * @param token The JWT token.
    *
    * @return Map of clientId to list of permissionIds
    */
@@ -132,6 +142,9 @@ public class JwtTokenProvider {
     return result;
   }
 
+  /**
+   * Returns user permission ids.
+   */
   public List<Long> getUserPermissionIds(String token) {
     Claims claims =
         parser()
@@ -161,6 +174,9 @@ public class JwtTokenProvider {
     return List.of();
   }
 
+  /**
+   * Validates token.
+   */
   public boolean validateToken(String token, String userName) {
     try {
       parser().verifyWith(PasswordHelper.getSecretKey(jwtSecret)).build().parseSignedClaims(token);
@@ -173,6 +189,9 @@ public class JwtTokenProvider {
     return true;
   }
 
+  /**
+   * Validates token for web template.
+   */
   public boolean validateTokenForWebTemplate(String token, String wildCard, String apiAccessKey) {
     try {
       parser()

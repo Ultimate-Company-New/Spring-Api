@@ -1,8 +1,8 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.DatabaseModels.Address;
-import com.example.SpringApi.Models.DatabaseModels.PickupLocation;
-import com.example.SpringApi.Models.DatabaseModels.ProductPickupLocationMapping;
+import com.example.springapi.models.databasemodels.Address;
+import com.example.springapi.models.databasemodels.PickupLocation;
+import com.example.springapi.models.databasemodels.ProductPickupLocationMapping;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Response model for product stock at a specific pickup location. Includes pickup location details
+ * Response model for product stock at a specific pickup location. Includes pickup location details.
  * and address for distance calculation.
  */
 @Getter
@@ -52,6 +52,9 @@ public class ProductStockByLocationResponseModel {
     // Required for JSON serialization/deserialization.
   }
 
+  /**
+   * Executes product stock by location response model.
+   */
   public ProductStockByLocationResponseModel(ProductPickupLocationMapping mapping) {
     this.pickupLocationId = mapping.getPickupLocationId();
     this.availableStock = mapping.getAvailableStock();
@@ -86,7 +89,7 @@ public class ProductStockByLocationResponseModel {
   private BigDecimal productHeight;
   private BigDecimal productWeightKgs;
 
-  /** Package information model for available packages at a location */
+  /** Package information model for available packages at a location. */
   @Getter
   @Setter
   public static class PackageInfoModel {
@@ -107,7 +110,7 @@ public class ProductStockByLocationResponseModel {
     }
   }
 
-  /** Package usage model - how many of each package type are needed */
+  /** Package usage model - how many of each package type are needed. */
   @Getter
   @Setter
   public static class PackageUsageModel {
@@ -122,6 +125,9 @@ public class ProductStockByLocationResponseModel {
       // Required for JSON serialization/deserialization.
     }
 
+    /**
+     * Executes package usage model.
+     */
     public PackageUsageModel(
         Long packageId,
         String packageName,
@@ -138,7 +144,7 @@ public class ProductStockByLocationResponseModel {
     }
   }
 
-  /** Courier/shipping option model - comprehensive data from Shiprocket API response */
+  /** Courier/shipping option model - comprehensive data from Shiprocket API response. */
   @Getter
   @Setter
   public static class CourierOptionModel {

@@ -1,12 +1,12 @@
-package com.example.SpringApi.ServiceTests.Shipping;
+package com.example.springapi.ServiceTests.Shipping;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.SpringApi.Controllers.ShippingController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.RequestModels.ShippingCalculationRequestModel;
-import com.example.SpringApi.Models.ResponseModels.ShippingCalculationResponseModel;
-import com.example.SpringApi.Models.ShippingResponseModel.ShippingOptionsResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.ShippingController;
+import com.example.springapi.models.requestmodels.ShippingCalculationRequestModel;
+import com.example.springapi.models.responsemodels.ShippingCalculationResponseModel;
+import com.example.springapi.models.shippingresponsemodel.ShippingOptionsResponseModel;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;

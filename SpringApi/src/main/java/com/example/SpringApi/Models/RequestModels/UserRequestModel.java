@@ -1,6 +1,6 @@
-package com.example.SpringApi.Models.RequestModels;
+package com.example.springapi.models.requestmodels;
 
-import com.example.SpringApi.Constants.UserRole;
+import com.example.springapi.constants.UserRole;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDate;
@@ -9,6 +9,9 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Represents the user request model component.
+ */
 @Getter
 @Setter
 public class UserRequestModel extends PaginationBaseRequestModel {
@@ -46,7 +49,7 @@ public class UserRequestModel extends PaginationBaseRequestModel {
   private List<Long> selectedUserIds;
 
   /**
-   * Get the role as a UserRole enum
+   * Get the role as a UserRole enum.
    *
    * @return UserRole enum or null if role is invalid
    */
@@ -56,7 +59,7 @@ public class UserRequestModel extends PaginationBaseRequestModel {
   }
 
   /**
-   * Validate if the role string is valid
+   * Validate if the role string is valid.
    *
    * @return true if valid, false otherwise
    */

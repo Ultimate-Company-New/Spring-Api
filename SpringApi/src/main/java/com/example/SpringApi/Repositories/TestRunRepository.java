@@ -1,6 +1,6 @@
-package com.example.SpringApi.Repositories;
+package com.example.springapi.repositories;
 
-import com.example.SpringApi.Models.DatabaseModels.TestRun;
+import com.example.springapi.models.databasemodels.TestRun;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -13,24 +13,24 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TestRunRepository extends JpaRepository<TestRun, Long> {
 
-  /** Find all test runs for a client, ordered by creation date descending */
+  /** Find all test runs for a client, ordered by creation date descending. */
   List<TestRun> findByClientIdOrderByCreatedDateDesc(Long clientId);
 
-  /** Find test runs for a specific service */
+  /** Find test runs for a specific service. */
   List<TestRun> findByClientIdAndServiceNameOrderByCreatedDateDesc(
       Long clientId, String serviceName);
 
-  /** Find the latest test run for a service */
+  /** Find the latest test run for a service. */
   Optional<TestRun> findFirstByClientIdAndServiceNameOrderByCreatedDateDesc(
       Long clientId, String serviceName);
 
-  /** Find test runs by status */
+  /** Find test runs by status. */
   List<TestRun> findByClientIdAndStatusOrderByCreatedDateDesc(Long clientId, String status);
 
-  /** Find test runs by user */
+  /** Find test runs by user. */
   List<TestRun> findByClientIdAndUserIdOrderByCreatedDateDesc(Long clientId, Long userId);
 
-  /** Find test runs within a date range */
+  /** Find test runs within a date range. */
   @Query(
       "SELECT tr FROM TestRun tr WHERE tr.clientId = :clientId "
           + "AND tr.createdDate >= :startDate AND tr.createdDate <= :endDate "
@@ -40,13 +40,13 @@ public interface TestRunRepository extends JpaRepository<TestRun, Long> {
       @Param("startDate") LocalDateTime startDate,
       @Param("endDate") LocalDateTime endDate);
 
-  /** Get count of test runs by status for a client */
+  /** Get count of test runs by status for a client. */
   @Query(
       "SELECT tr.status, COUNT(tr) FROM TestRun tr WHERE tr.clientId = :clientId "
           + "GROUP BY tr.status")
   List<Object[]> countByStatusForClient(@Param("clientId") Long clientId);
 
-  /** Find the most recent N test runs for a client */
+  /** Find the most recent N test runs for a client. */
   @Query(
       "SELECT tr FROM TestRun tr WHERE tr.clientId = :clientId "
           + "ORDER BY tr.createdDate DESC LIMIT :limit")

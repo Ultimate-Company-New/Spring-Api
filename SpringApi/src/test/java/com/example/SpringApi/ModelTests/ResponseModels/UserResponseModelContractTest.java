@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.ResponseModels;
+package com.example.springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class UserResponseModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.SpringApi.Models.ResponseModels.UserResponseModel.class)) {
+    if (hasNoArgConstructor(com.example.springapi.models.responsemodels.UserResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.SpringApi.Models.ResponseModels.UserResponseModel.class);
+              .constructType(com.example.springapi.models.responsemodels.UserResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +62,7 @@ class UserResponseModelContractTest {
   void UserResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.ResponseModels.UserResponseModel.class
+        com.example.springapi.models.responsemodels.UserResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -80,9 +80,9 @@ class UserResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.ResponseModels.UserResponseModel createInstance() {
-    return (com.example.SpringApi.Models.ResponseModels.UserResponseModel)
-        instantiate(com.example.SpringApi.Models.ResponseModels.UserResponseModel.class);
+  private com.example.springapi.models.responsemodels.UserResponseModel createInstance() {
+    return (com.example.springapi.models.responsemodels.UserResponseModel)
+        instantiate(com.example.springapi.models.responsemodels.UserResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

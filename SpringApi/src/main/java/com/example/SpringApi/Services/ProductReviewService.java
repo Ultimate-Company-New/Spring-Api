@@ -1,19 +1,19 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.FilterQueryBuilder.ProductReviewFilterQueryBuilder;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.DatabaseModels.ProductReview;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.ProductReviewRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.ProductReviewResponseModel;
-import com.example.SpringApi.Repositories.ProductReviewRepository;
-import com.example.SpringApi.Services.Interface.IProductReviewSubTranslator;
-import com.example.SpringApi.SuccessMessages;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.SuccessMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.filterquerybuilder.ProductReviewFilterQueryBuilder;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.databasemodels.ProductReview;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.ProductReviewRequestModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.ProductReviewResponseModel;
+import com.example.springapi.repositories.ProductReviewRepository;
+import com.example.springapi.services.interfaces.ProductReviewSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,12 +39,15 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 2024-01-15
  */
 @Service
-public class ProductReviewService extends BaseService implements IProductReviewSubTranslator {
+public class ProductReviewService extends BaseService implements ProductReviewSubTranslator {
 
   private final ProductReviewRepository productReviewRepository;
   private final UserLogService userLogService;
   private final ProductReviewFilterQueryBuilder productReviewFilterQueryBuilder;
 
+  /**
+   * Initializes ProductReviewService.
+   */
   @Autowired
   public ProductReviewService(
       ProductReviewRepository productReviewRepository,

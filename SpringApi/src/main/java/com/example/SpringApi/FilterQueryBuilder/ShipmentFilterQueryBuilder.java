@@ -1,7 +1,7 @@
-package com.example.SpringApi.FilterQueryBuilder;
+package com.example.springapi.filterquerybuilder;
 
-import com.example.SpringApi.Models.DatabaseModels.Shipment;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
+import com.example.springapi.models.databasemodels.Shipment;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.util.Arrays;
@@ -112,7 +112,7 @@ public class ShipmentFilterQueryBuilder extends BaseFilterQueryBuilder {
         "shipRocketShipmentId");
   }
 
-  /** Returns list of decimal number columns (BigDecimal) */
+  /** Returns list of decimal number columns (BigDecimal). */
   protected List<String> getDecimalColumns() {
     return Arrays.asList(
         "totalWeightKgs",
@@ -124,7 +124,7 @@ public class ShipmentFilterQueryBuilder extends BaseFilterQueryBuilder {
   }
 
   /**
-   * Gets the column type for validation purposes
+   * Gets the column type for validation purposes.
    *
    * @param column The column name
    * @return "string", "number", "decimal", "date", or "boolean"
@@ -146,7 +146,7 @@ public class ShipmentFilterQueryBuilder extends BaseFilterQueryBuilder {
   // ==================== Query Execution Method ====================
 
   /**
-   * Finds paginated shipments with multiple filter conditions combined with AND/OR logic. Builds
+   * Finds paginated shipments with multiple filter conditions combined with AND/OR logic. Builds.
    * the WHERE clause dynamically and executes the query.
    *
    * @param clientId The client ID to filter shipments by
@@ -217,7 +217,7 @@ public class ShipmentFilterQueryBuilder extends BaseFilterQueryBuilder {
       countTypedQuery.setParameter(entry.getKey(), entry.getValue());
     }
 
-    Long totalCount = countTypedQuery.getSingleResult();
+    final Long totalCount = countTypedQuery.getSingleResult();
 
     // Execute main query with pagination
     TypedQuery<Shipment> mainQuery = entityManager.createQuery(baseQuery, Shipment.class);

@@ -1,13 +1,13 @@
-package com.example.SpringApi.ServiceTests.ProductReview;
+package com.example.springapi.ServiceTests.ProductReview;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.ProductReviewController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Models.DatabaseModels.ProductReview;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.ProductReviewController;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.models.databasemodels.ProductReview;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;

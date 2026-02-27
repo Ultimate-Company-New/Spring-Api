@@ -1,14 +1,14 @@
-package com.example.SpringApi.ServiceTests.User;
+package com.example.springapi.ServiceTests.User;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.UserController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.UserRequestModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.UserController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.UserRequestModel;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import org.junit.jupiter.api.DisplayName;

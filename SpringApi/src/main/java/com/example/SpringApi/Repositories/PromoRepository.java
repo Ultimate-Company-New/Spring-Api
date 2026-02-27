@@ -1,6 +1,6 @@
-package com.example.SpringApi.Repositories;
+package com.example.springapi.repositories;
 
-import com.example.SpringApi.Models.DatabaseModels.Promo;
+import com.example.springapi.models.databasemodels.Promo;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -9,6 +9,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Defines the promo repository contract.
+ */
 @Repository
 public interface PromoRepository extends JpaRepository<Promo, Long> {
 
@@ -23,7 +26,7 @@ public interface PromoRepository extends JpaRepository<Promo, Long> {
       @Param("promoId") Long promoId, @Param("clientId") Long clientId);
 
   /**
-   * Find overlapping promo codes within a date range. Checks for active (non-deleted) promos with
+   * Find overlapping promo codes within a date range. Checks for active (non-deleted) promos with.
    * the same code in the same client that have overlapping date ranges.
    *
    * <p>Overlap logic: Case 1: New promo has no expiry - overlaps if existing promo's end is after

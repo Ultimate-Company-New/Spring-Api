@@ -1,4 +1,4 @@
-package com.example.SpringApi.Models.RequestModels;
+package com.example.springapi.models.requestmodels;
 
 import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import java.util.List;
@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Request model for ShipRocket create custom order API. Uses @SerializedName to map Java field
+ * Request model for ShipRocket create custom order API. Uses @SerializedName to map Java field.
  * names to ShipRocket JSON field names (Gson serialization).
  */
 @Getter

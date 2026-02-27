@@ -1,14 +1,14 @@
-package com.example.SpringApi.ServiceTests.QA;
+package com.example.springapi.ServiceTests.QA;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.ApplicationException;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.DatabaseModels.LatestTestResult;
-import com.example.SpringApi.Models.RequestModels.TestExecutionRequestModel;
-import com.example.SpringApi.Models.ResponseModels.TestExecutionStatusModel;
-import com.example.SpringApi.Services.QAService;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.ApplicationException;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.databasemodels.LatestTestResult;
+import com.example.springapi.models.requestmodels.TestExecutionRequestModel;
+import com.example.springapi.models.responsemodels.TestExecutionStatusModel;
+import com.example.springapi.services.QaService;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
@@ -22,7 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Unit tests for QAService.startTestExecution() method.
+ * Unit tests for QaService.startTestExecution() method.
  *
  * <p>Test Coverage: - Success scenarios (8 tests) - Validation failures (12 tests) - Edge cases (10
  * tests)
@@ -68,7 +68,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList("testMethod1", "testMethod2");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.SpringApi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -88,7 +88,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList("testMethod1", "testMethod1", "testMethod2");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.SpringApi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -122,7 +122,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   void startTestExecution_methodName_startsMethodTests() {
     // Arrange
     TestExecutionRequestModel request =
-        createTestExecutionRequestWithMethodName("QAService", "startTestExecution");
+        createTestExecutionRequestWithMethodName("QaService", "startTestExecution");
     request.setTestClassName("QA/StartTestExecutionTest");
 
     // Act
@@ -143,7 +143,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList("testMethod1", "testMethod2", "testMethod3");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.SpringApi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -163,7 +163,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList("testMethod1");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.SpringApi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -182,7 +182,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList("testMethod1[1]");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.SpringApi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -242,7 +242,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList("testMethod1");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.SpringApi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -265,7 +265,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList("testMethod1", "testMethod2");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.SpringApi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -322,7 +322,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList(" testMethod1 ", "testMethod2");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.SpringApi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -342,7 +342,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList(longTestName);
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.SpringApi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -361,7 +361,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList("testMethod1");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.SpringApi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -396,7 +396,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
               qaService.startTestExecution(request);
             });
     assertEquals(
-        ErrorMessages.QAErrorMessages.MUST_SPECIFY_RUN_ALL_OR_TEST_NAMES_OR_METHOD,
+        ErrorMessages.QaErrorMessages.MUST_SPECIFY_RUN_ALL_OR_TEST_NAMES_OR_METHOD,
         exception.getMessage());
   }
 
@@ -422,7 +422,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
               qaService.startTestExecution(request);
             });
     assertEquals(
-        ErrorMessages.QAErrorMessages.MUST_SPECIFY_RUN_ALL_OR_TEST_NAMES_OR_METHOD,
+        ErrorMessages.QaErrorMessages.MUST_SPECIFY_RUN_ALL_OR_TEST_NAMES_OR_METHOD,
         exception.getMessage());
   }
 
@@ -443,7 +443,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
 
     // Verify the exception message comes from ErrorMessages constants
     assertEquals(
-        ErrorMessages.QAErrorMessages.TEST_EXECUTION_REQUEST_CANNOT_BE_NULL,
+        ErrorMessages.QaErrorMessages.TEST_EXECUTION_REQUEST_CANNOT_BE_NULL,
         exception.getMessage());
   }
 
@@ -468,7 +468,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     // Assert
     String expectedMessage =
         String.format(
-            ErrorMessages.QAErrorMessages.NO_TESTS_FOUND_FOR_METHOD_FORMAT,
+            ErrorMessages.QaErrorMessages.NO_TESTS_FOUND_FOR_METHOD_FORMAT,
             "someMethod",
             "InvalidServiceTest");
     assertEquals(expectedMessage, exception.getMessage());
@@ -493,7 +493,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
               qaService.startTestExecution(request);
             });
     assertEquals(
-        ErrorMessages.QAErrorMessages.MUST_SPECIFY_SERVICE_NAME_OR_TEST_CLASS_NAME,
+        ErrorMessages.QaErrorMessages.MUST_SPECIFY_SERVICE_NAME_OR_TEST_CLASS_NAME,
         exception.getMessage());
   }
 
@@ -505,7 +505,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   void startTestExecution_methodWithNoTests_throwsBadRequestException() {
     // Arrange
     TestExecutionRequestModel request =
-        createTestExecutionRequestWithMethodName("QAService", "nonExistentMethod");
+        createTestExecutionRequestWithMethodName("QaService", "nonExistentMethod");
 
     // Act
     BadRequestException exception =
@@ -518,7 +518,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     // Assert
     String expectedMessage =
         String.format(
-            ErrorMessages.QAErrorMessages.NO_TESTS_FOUND_FOR_METHOD_FORMAT,
+            ErrorMessages.QaErrorMessages.NO_TESTS_FOUND_FOR_METHOD_FORMAT,
             "nonExistentMethod",
             "QAServiceTest");
     assertEquals(expectedMessage, exception.getMessage());
@@ -563,7 +563,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
               qaService.startTestExecution(request);
             });
     assertEquals(
-        ErrorMessages.QAErrorMessages.MUST_SPECIFY_RUN_ALL_OR_TEST_NAMES_OR_METHOD,
+        ErrorMessages.QaErrorMessages.MUST_SPECIFY_RUN_ALL_OR_TEST_NAMES_OR_METHOD,
         exception.getMessage());
   }
 
@@ -583,7 +583,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
               qaService.startTestExecution(null);
             });
     assertEquals(
-        ErrorMessages.QAErrorMessages.TEST_EXECUTION_REQUEST_CANNOT_BE_NULL,
+        ErrorMessages.QaErrorMessages.TEST_EXECUTION_REQUEST_CANNOT_BE_NULL,
         exception.getMessage());
   }
 
@@ -606,7 +606,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
             () -> {
               qaService.startTestExecution(request);
             });
-    assertEquals(ErrorMessages.QAErrorMessages.TEST_CLASS_NAME_REQUIRED, exception.getMessage());
+    assertEquals(ErrorMessages.QaErrorMessages.TEST_CLASS_NAME_REQUIRED, exception.getMessage());
     assertEquals(1, request.getTestNames().size());
   }
 
@@ -628,7 +628,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
               qaService.startTestExecution(request);
             });
     assertEquals(
-        ErrorMessages.QAErrorMessages.MUST_SPECIFY_RUN_ALL_OR_TEST_NAMES_OR_METHOD,
+        ErrorMessages.QaErrorMessages.MUST_SPECIFY_RUN_ALL_OR_TEST_NAMES_OR_METHOD,
         exception.getMessage());
   }
 
@@ -651,7 +651,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
             () -> {
               qaService.startTestExecution(request);
             });
-    assertEquals(ErrorMessages.QAErrorMessages.TEST_CLASS_NAME_REQUIRED, exception.getMessage());
+    assertEquals(ErrorMessages.QaErrorMessages.TEST_CLASS_NAME_REQUIRED, exception.getMessage());
     assertNull(request.getTestClassName());
     assertEquals(1, request.getTestNames().size());
     assertFalse(request.getRunAll());
@@ -665,7 +665,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   @Test
   void startTestExecution_privateBuildMavenCommand_withClassAndMethodFilter_success() {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
 
     // Act
     Object commandObj =
@@ -692,7 +692,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   @Test
   void startTestExecution_privateBuildMavenCommand_withoutClass_success() {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
 
     // Act
     Object commandObj =
@@ -719,9 +719,9 @@ class StartTestExecutionTest extends QAServiceTestBase {
   @Test
   void startTestExecution_privateParseTestOutput_updatesCounters_success() {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     TestExecutionStatusModel status =
-        new TestExecutionStatusModel("exec-parse", "QAService", null, 1);
+        new TestExecutionStatusModel("exec-parse", "QaService", null, 1);
 
     // Act
     invokePrivateMethod(
@@ -746,9 +746,9 @@ class StartTestExecutionTest extends QAServiceTestBase {
   @Test
   void startTestExecution_privateParseTestOutput_runningLine_setsRunningStatus_success() {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     TestExecutionStatusModel status =
-        new TestExecutionStatusModel("exec-running", "QAService", null, 2);
+        new TestExecutionStatusModel("exec-running", "QaService", null, 2);
     status.setStatus("PENDING");
 
     // Act
@@ -756,7 +756,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
         realService,
         "parseTestOutput",
         new Class<?>[] {String.class, TestExecutionStatusModel.class},
-        "Running com.example.SpringApi.ServiceTests.QA.GetAvailableServicesTest",
+        "Running com.example.springapi.ServiceTests.QA.GetAvailableServicesTest",
         status);
 
     // Assert
@@ -772,7 +772,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   void startTestExecution_privateFindProjectDirectory_currentDirPreferred_success()
       throws Exception {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     Path tempProject = Files.createTempDirectory("qa-project-");
     Files.createFile(tempProject.resolve("pom.xml"));
     Files.createDirectories(tempProject.resolve("src/test/java"));
@@ -799,7 +799,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   @Test
   void startTestExecution_privateExecuteTestsAsync_missingStatus_returnsImmediately_success() {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     clearExecutionTrackingState();
 
     // Act
@@ -811,7 +811,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
             "missing-execution",
             "AnyTestClass",
             "anyMethod",
-            "QAService");
+            "QaService");
 
     // Assert
     assertNull(result);
@@ -826,13 +826,13 @@ class StartTestExecutionTest extends QAServiceTestBase {
   void startTestExecution_privateMarkExecutionFailed_updatesStatusAndClearsProcess_success()
       throws Exception {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     clearExecutionTrackingState();
     TestExecutionStatusModel status =
-        new TestExecutionStatusModel("exec-fail", "QAService", null, 3);
+        new TestExecutionStatusModel("exec-fail", "QaService", null, 3);
     long startTime = System.currentTimeMillis() - 100L;
 
-    Object runningProcessesObj = getPrivateStaticFieldValue(QAService.class, "runningProcesses");
+    Object runningProcessesObj = getPrivateStaticFieldValue(QaService.class, "runningProcesses");
     if (runningProcessesObj != null) {
       java.lang.reflect.Method putMethod =
           runningProcessesObj.getClass().getMethod("put", Object.class, Object.class);
@@ -865,9 +865,9 @@ class StartTestExecutionTest extends QAServiceTestBase {
   void startTestExecution_privateParseSurefireReports_missingDirectory_noopSuccess()
       throws Exception {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     TestExecutionStatusModel status =
-        new TestExecutionStatusModel("exec-no-reports", "QAService", null, 0);
+        new TestExecutionStatusModel("exec-no-reports", "QaService", null, 0);
     Path tempProject = Files.createTempDirectory("qa-no-reports-");
 
     // Act
@@ -891,7 +891,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   @Test
   void startTestExecution_privateBuildMavenCommand_withClassOnly_success() {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
 
     // Act
     Object commandObj =
@@ -918,7 +918,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   void startTestExecution_privateFindProjectDirectory_springApiSubdirSelected_success()
       throws Exception {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     Path tempRoot = Files.createTempDirectory("qa-find-project-subdir-");
     Path springApiDir = tempRoot.resolve("SpringApi");
     Files.createDirectories(springApiDir.resolve("src/test/java"));
@@ -947,7 +947,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   void startTestExecution_privateFindProjectDirectory_parentSpringApiSelected_success()
       throws Exception {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     Path tempRoot = Files.createTempDirectory("qa-find-project-parent-");
     Path parentDir = tempRoot.resolve("workspace");
     Path currentDir = parentDir.resolve("module");
@@ -979,7 +979,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   void startTestExecution_privateFindProjectDirectory_noMatches_returnsCurrentDirectory_success()
       throws Exception {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     Path tempRoot = Files.createTempDirectory("qa-find-project-fallback-");
     String originalUserDir = System.getProperty("user.dir");
     System.setProperty("user.dir", tempRoot.toString());
@@ -1006,7 +1006,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   void startTestExecution_privateReadTestMethodsFromFile_parsesNestedAndParameterizedTests_success()
       throws Exception {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     Path tempProject = createParserFixtureProject();
     String originalUserDir = System.getProperty("user.dir");
     System.setProperty("user.dir", tempProject.toString());
@@ -1052,7 +1052,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   void startTestExecution_privateReadTestMethodsFromFile_ioFailure_returnsEmptyList_success()
       throws Exception {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     Path tempProject = Files.createTempDirectory("qa-parser-io-");
     Path testSourceDir = tempProject.resolve("src/test/java/com/example/SpringApi/Services/Tests");
     Files.createDirectories(testSourceDir);
@@ -1086,7 +1086,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   @Test
   void startTestExecution_privateParseValueSourceCount_handlesSupportedVariants_success() {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
 
     // Act
     int nullCount =
@@ -1131,7 +1131,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   void
       startTestExecution_privateExtractParameterTypesForSurefireName_handlesAnnotationsAndGenerics_success() {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
 
     // Act
     String nullTypes =
@@ -1170,7 +1170,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   @Test
   void startTestExecution_privateBuildDeclaringTestClassName_nestedAndFallback_success() {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     ArrayDeque<Object> classStack = new ArrayDeque<>();
     classStack.add(
         createQaPrivateInnerInstance(
@@ -1211,7 +1211,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   @Test
   void startTestExecution_privateFindAssociatedTests_matchesUnderscoreAndCamelCase_success() {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     List<Object> allTestMethods = new ArrayList<>();
     allTestMethods.add(
         createQaPrivateInnerInstance(
@@ -1261,7 +1261,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   void startTestExecution_privateResolveDeclaringClassAndStripParameterizedSuffix_success()
       throws Exception {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     Path tempProject = createParserFixtureProject();
     String originalUserDir = System.getProperty("user.dir");
     System.setProperty("user.dir", tempProject.toString());
@@ -1327,7 +1327,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
   void
       startTestExecution_privateCalculateExpectedTestCount_serviceMethodAndFailureFallback_success() {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
 
     // Act
     int serviceCount =
@@ -1336,7 +1336,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
                 realService,
                 "calculateExpectedTestCount",
                 new Class<?>[] {String.class, String.class, List.class},
-                "QAService",
+                "QaService",
                 null,
                 null);
     int methodCount =
@@ -1345,7 +1345,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
                 realService,
                 "calculateExpectedTestCount",
                 new Class<?>[] {String.class, String.class, List.class},
-                "QAService",
+                "QaService",
                 "getDashboardData",
                 null);
 
@@ -1356,7 +1356,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
                 qaService,
                 "calculateExpectedTestCount",
                 new Class<?>[] {String.class, String.class, List.class},
-                "QAService",
+                "QaService",
                 null,
                 null);
 
@@ -1375,9 +1375,9 @@ class StartTestExecutionTest extends QAServiceTestBase {
   void startTestExecution_privateParseSurefireReports_parsesAndDeduplicatesResults_success()
       throws Exception {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     TestExecutionStatusModel status =
-        new TestExecutionStatusModel("exec-xml-parse", "QAService", null, 0);
+        new TestExecutionStatusModel("exec-xml-parse", "QaService", null, 0);
     Path tempProject = Files.createTempDirectory("qa-surefire-");
     Path surefireDir = tempProject.resolve("target/surefire-reports");
     Files.createDirectories(surefireDir);
@@ -1421,9 +1421,9 @@ class StartTestExecutionTest extends QAServiceTestBase {
   void startTestExecution_privateParseSurefireReports_notDirectory_throwsApplicationException()
       throws Exception {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     TestExecutionStatusModel status =
-        new TestExecutionStatusModel("exec-surefire-fail", "QAService", null, 0);
+        new TestExecutionStatusModel("exec-surefire-fail", "QaService", null, 0);
     Path tempProject = Files.createTempDirectory("qa-surefire-not-dir-");
     Path targetDir = tempProject.resolve("target");
     Files.createDirectories(targetDir);
@@ -1458,9 +1458,9 @@ class StartTestExecutionTest extends QAServiceTestBase {
   @Test
   void startTestExecution_privateParseXmlReport_missingFile_throwsApplicationException() {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     TestExecutionStatusModel status =
-        new TestExecutionStatusModel("exec-xml-missing", "QAService", null, 0);
+        new TestExecutionStatusModel("exec-xml-missing", "QaService", null, 0);
     Path missingFile =
         Path.of("target/surefire-reports/TEST-DefinitelyMissing-" + System.nanoTime() + ".xml");
 
@@ -1495,11 +1495,11 @@ class StartTestExecutionTest extends QAServiceTestBase {
   void startTestExecution_privateExecuteTestsAsync_nonExistentTestClass_marksCompletedWithFailures()
       throws Exception {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     clearExecutionTrackingState();
     String executionId = "exec-nonexistent-test-class";
     TestExecutionStatusModel status =
-        new TestExecutionStatusModel(executionId, "QAService", null, 1);
+        new TestExecutionStatusModel(executionId, "QaService", null, 1);
     putExecutionStatus(executionId, status);
 
     // Act
@@ -1510,7 +1510,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
         executionId,
         "DefinitelyNoSuchTestClass",
         null,
-        "QAService");
+        "QaService");
 
     // Assert
     assertEquals("COMPLETED_WITH_FAILURES", status.getStatus());
@@ -1528,11 +1528,11 @@ class StartTestExecutionTest extends QAServiceTestBase {
       startTestExecution_privateExecuteTestsAsync_ioFailure_marksFailedAndThrowsApplicationException()
           throws Exception {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     clearExecutionTrackingState();
     String executionId = "exec-io-failure";
     TestExecutionStatusModel status =
-        new TestExecutionStatusModel(executionId, "QAService", null, 1);
+        new TestExecutionStatusModel(executionId, "QaService", null, 1);
     putExecutionStatus(executionId, status);
 
     Path missingDir =
@@ -1556,7 +1556,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
                       executionId,
                       "AnyTestClass",
                       null,
-                      "QAService"));
+                      "QaService"));
 
       // Assert
       ApplicationException appException = findCause(exception, ApplicationException.class);
@@ -1580,11 +1580,11 @@ class StartTestExecutionTest extends QAServiceTestBase {
       startTestExecution_privateExecuteTestsAsync_parseReportFailure_marksFailedWithExecutionFailed()
           throws Exception {
     // Arrange
-    QAService realService = createRealQAService();
+    QaService realService = createRealQAService();
     clearExecutionTrackingState();
     String executionId = "exec-generic-failure";
     TestExecutionStatusModel status =
-        new TestExecutionStatusModel(executionId, "QAService", null, 1);
+        new TestExecutionStatusModel(executionId, "QaService", null, 1);
     putExecutionStatus(executionId, status);
 
     Path tempProject = Files.createTempDirectory("qa-exec-generic-failure-");
@@ -1607,7 +1607,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
                       executionId,
                       "DefinitelyNoSuchTestClass",
                       null,
-                      "QAService"));
+                      "QaService"));
 
       // Assert
       ApplicationException appException = findCause(exception, ApplicationException.class);
@@ -1628,7 +1628,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
 
     String source =
         """
-                package com.example.SpringApi.ServiceTests;
+                package com.example.springapi.ServiceTests;
 
                 import org.junit.jupiter.api.DisplayName;
                 import org.junit.jupiter.api.Nested;
@@ -1676,7 +1676,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
 
   private void putExecutionStatus(String executionId, TestExecutionStatusModel status)
       throws Exception {
-    Object activeExecutionsObj = getPrivateStaticFieldValue(QAService.class, "activeExecutions");
+    Object activeExecutionsObj = getPrivateStaticFieldValue(QaService.class, "activeExecutions");
     java.lang.reflect.Method putMethod =
         activeExecutionsObj.getClass().getMethod("put", Object.class, Object.class);
     putMethod.invoke(activeExecutionsObj, executionId, status);
@@ -1713,8 +1713,8 @@ class StartTestExecutionTest extends QAServiceTestBase {
   @Test
   void startTestExecution_controller_permission_unauthorized() {
     // Arrange
-    com.example.SpringApi.Controllers.QAController controller =
-        new com.example.SpringApi.Controllers.QAController(qaSubTranslator);
+    com.example.springapi.controllers.QaController controller =
+        new com.example.springapi.controllers.QaController(qaSubTranslator);
     stubQaTranslatorStartTestExecutionThrowsUnauthorized();
 
     // Act

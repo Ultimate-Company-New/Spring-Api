@@ -1,19 +1,19 @@
-package com.example.SpringApi.ServiceTests.Payment;
+package com.example.springapi.ServiceTests.Payment;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.example.SpringApi.Controllers.PaymentController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Helpers.HTMLHelper;
-import com.example.SpringApi.Helpers.PDFHelper;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.DatabaseModels.Payment;
-import com.example.SpringApi.Models.DatabaseModels.PurchaseOrder;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.PaymentController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.helpers.HtmlHelper;
+import com.example.springapi.helpers.PdfHelper;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.databasemodels.Client;
+import com.example.springapi.models.databasemodels.Payment;
+import com.example.springapi.models.databasemodels.PurchaseOrder;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,7 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-/** Tests for PaymentService.generatePaymentReceiptPDF(). */
+/** Tests for PaymentService.generatePaymentReceiptPdf(). */
 @DisplayName("GeneratePaymentReceiptPDF Tests")
 class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
 
@@ -39,7 +39,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
    * paymentRepository.findById is called once. Assertions: verify interaction count.
    */
   @Test
-  @DisplayName("generatePaymentReceiptPDF - Verify Payment Repository Interaction - Success")
+  @DisplayName("generatePaymentReceiptPdf - Verify Payment Repository Interaction - Success")
   void generatePaymentReceiptPDF_s01_verifyPaymentRepositoryInteraction_success() {
     // Arrange
     stubPaymentRepositoryFindById(TEST_PAYMENT_ID, Optional.empty());
@@ -48,7 +48,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
     NotFoundException ex =
         assertThrows(
             NotFoundException.class,
-            () -> paymentService.generatePaymentReceiptPDF(TEST_PAYMENT_ID));
+            () -> paymentService.generatePaymentReceiptPdf(TEST_PAYMENT_ID));
 
     // Assert
     assertEquals(ErrorMessages.PaymentErrorMessages.NOT_FOUND, ex.getMessage());
@@ -60,7 +60,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
    * HTTP 200 OK with PDF byte[] response. Assertions: Service interaction and response status/body.
    */
   @Test
-  @DisplayName("generatePaymentReceiptPDF - Controller Delegates To Service - Success")
+  @DisplayName("generatePaymentReceiptPdf - Controller Delegates To Service - Success")
   void generatePaymentReceiptPDF_s02_controllerDelegatesToService_success() throws Exception {
     // Arrange
     byte[] bytes = new byte[] {1, 2, 3};
@@ -70,7 +70,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
     ResponseEntity<?> response = paymentControllerWithMock.downloadPaymentReceipt(TEST_PAYMENT_ID);
 
     // Assert
-    verify(paymentServiceMock, times(1)).generatePaymentReceiptPDF(TEST_PAYMENT_ID);
+    verify(paymentServiceMock, times(1)).generatePaymentReceiptPdf(TEST_PAYMENT_ID);
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertArrayEquals(bytes, (byte[]) response.getBody());
   }
@@ -85,7 +85,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
    * message.
    */
   @Test
-  @DisplayName("generatePaymentReceiptPDF - Payment Not Found - Failure")
+  @DisplayName("generatePaymentReceiptPdf - Payment Not Found - Failure")
   void generatePaymentReceiptPDF_f01_paymentNotFound_failure() {
     // Arrange
     stubPaymentRepositoryFindById(TEST_PAYMENT_ID, Optional.empty());
@@ -94,7 +94,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
     NotFoundException ex =
         assertThrows(
             NotFoundException.class,
-            () -> paymentService.generatePaymentReceiptPDF(TEST_PAYMENT_ID));
+            () -> paymentService.generatePaymentReceiptPdf(TEST_PAYMENT_ID));
 
     // Assert
     assertEquals(ErrorMessages.PaymentErrorMessages.NOT_FOUND, ex.getMessage());
@@ -105,14 +105,14 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
    * NotFoundException with payment not found message. Assertions: Exception type and exact message.
    */
   @Test
-  @DisplayName("generatePaymentReceiptPDF - Negative Payment Id - Failure")
+  @DisplayName("generatePaymentReceiptPdf - Negative Payment Id - Failure")
   void generatePaymentReceiptPDF_f02_negativePaymentId_failure() {
     // Arrange
     stubPaymentRepositoryFindById(-1L, Optional.empty());
 
     // Act
     NotFoundException ex =
-        assertThrows(NotFoundException.class, () -> paymentService.generatePaymentReceiptPDF(-1L));
+        assertThrows(NotFoundException.class, () -> paymentService.generatePaymentReceiptPdf(-1L));
 
     // Assert
     assertEquals(ErrorMessages.PaymentErrorMessages.NOT_FOUND, ex.getMessage());
@@ -123,14 +123,14 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
    * with payment not found message. Assertions: Exception type and exact message.
    */
   @Test
-  @DisplayName("generatePaymentReceiptPDF - Zero Payment Id - Failure")
+  @DisplayName("generatePaymentReceiptPdf - Zero Payment Id - Failure")
   void generatePaymentReceiptPDF_f03_zeroPaymentId_failure() {
     // Arrange
     stubPaymentRepositoryFindById(0L, Optional.empty());
 
     // Act
     NotFoundException ex =
-        assertThrows(NotFoundException.class, () -> paymentService.generatePaymentReceiptPDF(0L));
+        assertThrows(NotFoundException.class, () -> paymentService.generatePaymentReceiptPdf(0L));
 
     // Assert
     assertEquals(ErrorMessages.PaymentErrorMessages.NOT_FOUND, ex.getMessage());
@@ -142,7 +142,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
    * message.
    */
   @Test
-  @DisplayName("generatePaymentReceiptPDF - Client Access Denied - Failure")
+  @DisplayName("generatePaymentReceiptPdf - Client Access Denied - Failure")
   void generatePaymentReceiptPDF_f04_clientAccessDenied_failure() {
     // Arrange
     testPayment.setClientId(TEST_CLIENT_ID + 1);
@@ -152,7 +152,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
     BadRequestException ex =
         assertThrows(
             BadRequestException.class,
-            () -> paymentService.generatePaymentReceiptPDF(TEST_PAYMENT_ID));
+            () -> paymentService.generatePaymentReceiptPdf(TEST_PAYMENT_ID));
 
     // Assert
     assertEquals(ErrorMessages.PaymentErrorMessages.ACCESS_DENIED, ex.getMessage());
@@ -164,7 +164,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
    * message.
    */
   @Test
-  @DisplayName("generatePaymentReceiptPDF - Purchase Order Not Found - Failure")
+  @DisplayName("generatePaymentReceiptPdf - Purchase Order Not Found - Failure")
   void generatePaymentReceiptPDF_f05_purchaseOrderNotFound_failure() {
     // Arrange
     testPayment.setClientId(TEST_CLIENT_ID);
@@ -176,7 +176,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
     NotFoundException ex =
         assertThrows(
             NotFoundException.class,
-            () -> paymentService.generatePaymentReceiptPDF(TEST_PAYMENT_ID));
+            () -> paymentService.generatePaymentReceiptPdf(TEST_PAYMENT_ID));
 
     // Assert
     assertEquals(ErrorMessages.PurchaseOrderErrorMessages.INVALID_ID, ex.getMessage());
@@ -187,7 +187,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
    * NotFoundException with client invalid id message. Assertions: Exception type and exact message.
    */
   @Test
-  @DisplayName("generatePaymentReceiptPDF - Client Not Found - Failure")
+  @DisplayName("generatePaymentReceiptPdf - Client Not Found - Failure")
   void generatePaymentReceiptPDF_f06_clientNotFound_failure() {
     // Arrange
     testPayment.setClientId(TEST_CLIENT_ID);
@@ -200,7 +200,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
     NotFoundException ex =
         assertThrows(
             NotFoundException.class,
-            () -> paymentService.generatePaymentReceiptPDF(TEST_PAYMENT_ID));
+            () -> paymentService.generatePaymentReceiptPdf(TEST_PAYMENT_ID));
 
     // Assert
     assertEquals(ErrorMessages.ClientErrorMessages.INVALID_ID, ex.getMessage());
@@ -212,7 +212,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
    * PDF bytes and helper invocations.
    */
   @Test
-  @DisplayName("generatePaymentReceiptPDF - Generates Pdf Bytes - Success")
+  @DisplayName("generatePaymentReceiptPdf - Generates Pdf Bytes - Success")
   void generatePaymentReceiptPDF_s03_generatesPdfBytes_success() throws Exception {
     // Arrange
     byte[] expectedPdf = new byte[] {7, 8, 9};
@@ -240,30 +240,30 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
     stubPurchaseOrderRepositoryFindById(TEST_PO_ID, Optional.of(localPurchaseOrder));
     stubClientRepositoryFindByIdDefaultClient(Optional.of(localClient));
 
-    try (MockedStatic<HTMLHelper> htmlHelperMock =
-            org.mockito.Mockito.mockStatic(HTMLHelper.class);
-        MockedStatic<PDFHelper> pdfHelperMock = org.mockito.Mockito.mockStatic(PDFHelper.class)) {
+    try (MockedStatic<HtmlHelper> htmlHelperMock =
+            org.mockito.Mockito.mockStatic(HtmlHelper.class);
+        MockedStatic<PdfHelper> pdfHelperMock = org.mockito.Mockito.mockStatic(PdfHelper.class)) {
       htmlHelperMock
-          .when(() -> HTMLHelper.replaceBrTags(org.mockito.ArgumentMatchers.anyString()))
+          .when(() -> HtmlHelper.replaceBrTags(org.mockito.ArgumentMatchers.anyString()))
           .thenAnswer(invocation -> invocation.getArgument(0));
       pdfHelperMock
-          .when(() -> PDFHelper.convertHtmlToPdf(org.mockito.ArgumentMatchers.anyString()))
+          .when(() -> PdfHelper.convertHtmlToPdf(org.mockito.ArgumentMatchers.anyString()))
           .thenReturn(expectedPdf);
 
       // Act
-      byte[] result = paymentService.generatePaymentReceiptPDF(TEST_PAYMENT_ID);
+      byte[] result = paymentService.generatePaymentReceiptPdf(TEST_PAYMENT_ID);
 
       // Assert
       assertArrayEquals(expectedPdf, result);
       htmlHelperMock.verify(
-          () -> HTMLHelper.replaceBrTags(org.mockito.ArgumentMatchers.anyString()), times(1));
+          () -> HtmlHelper.replaceBrTags(org.mockito.ArgumentMatchers.anyString()), times(1));
       pdfHelperMock.verify(
-          () -> PDFHelper.convertHtmlToPdf(org.mockito.ArgumentMatchers.anyString()), times(1));
+          () -> PdfHelper.convertHtmlToPdf(org.mockito.ArgumentMatchers.anyString()), times(1));
       verify(userLogService, times(1))
           .logData(
               1L,
               "Payment receipt PDF generated for Payment ID: " + TEST_PAYMENT_ID,
-              "Payment/generatePaymentReceiptPDF");
+              "Payment/generatePaymentReceiptPdf");
     }
   }
 
@@ -273,7 +273,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
    * metadata. Assertions: Returned bytes and helper invocation counts.
    */
   @Test
-  @DisplayName("generatePaymentReceiptPDF - Captured Timestamp And Optional Fields - Success")
+  @DisplayName("generatePaymentReceiptPdf - Captured Timestamp And Optional Fields - Success")
   void generatePaymentReceiptPDF_s04_capturedTimestampAndOptionalFields_success() throws Exception {
     // Arrange
     byte[] expectedPdf = new byte[] {4, 5, 6};
@@ -304,25 +304,25 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
     stubPurchaseOrderRepositoryFindById(TEST_PO_ID, Optional.of(localPurchaseOrder));
     stubClientRepositoryFindByIdDefaultClient(Optional.of(localClient));
 
-    try (MockedStatic<HTMLHelper> htmlHelperMock =
-            org.mockito.Mockito.mockStatic(HTMLHelper.class);
-        MockedStatic<PDFHelper> pdfHelperMock = org.mockito.Mockito.mockStatic(PDFHelper.class)) {
+    try (MockedStatic<HtmlHelper> htmlHelperMock =
+            org.mockito.Mockito.mockStatic(HtmlHelper.class);
+        MockedStatic<PdfHelper> pdfHelperMock = org.mockito.Mockito.mockStatic(PdfHelper.class)) {
       htmlHelperMock
-          .when(() -> HTMLHelper.replaceBrTags(org.mockito.ArgumentMatchers.anyString()))
+          .when(() -> HtmlHelper.replaceBrTags(org.mockito.ArgumentMatchers.anyString()))
           .thenAnswer(invocation -> invocation.getArgument(0));
       pdfHelperMock
-          .when(() -> PDFHelper.convertHtmlToPdf(org.mockito.ArgumentMatchers.anyString()))
+          .when(() -> PdfHelper.convertHtmlToPdf(org.mockito.ArgumentMatchers.anyString()))
           .thenReturn(expectedPdf);
 
       // Act
-      byte[] result = paymentService.generatePaymentReceiptPDF(TEST_PAYMENT_ID);
+      byte[] result = paymentService.generatePaymentReceiptPdf(TEST_PAYMENT_ID);
 
       // Assert
       assertArrayEquals(expectedPdf, result);
       htmlHelperMock.verify(
-          () -> HTMLHelper.replaceBrTags(org.mockito.ArgumentMatchers.anyString()), times(1));
+          () -> HtmlHelper.replaceBrTags(org.mockito.ArgumentMatchers.anyString()), times(1));
       pdfHelperMock.verify(
-          () -> PDFHelper.convertHtmlToPdf(org.mockito.ArgumentMatchers.anyString()), times(1));
+          () -> PdfHelper.convertHtmlToPdf(org.mockito.ArgumentMatchers.anyString()), times(1));
     }
   }
 
@@ -332,7 +332,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
    * date/amount branches. Assertions: Returned bytes and helper invocation counts.
    */
   @Test
-  @DisplayName("generatePaymentReceiptPDF - Payment Date And Amount Paise Fallback - Success")
+  @DisplayName("generatePaymentReceiptPdf - Payment Date And Amount Paise Fallback - Success")
   void generatePaymentReceiptPDF_s05_paymentDateAndAmountPaiseFallback_success() throws Exception {
     // Arrange
     byte[] expectedPdf = new byte[] {2, 4, 6};
@@ -360,25 +360,25 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
     stubPurchaseOrderRepositoryFindById(TEST_PO_ID, Optional.of(localPurchaseOrder));
     stubClientRepositoryFindByIdDefaultClient(Optional.of(localClient));
 
-    try (MockedStatic<HTMLHelper> htmlHelperMock =
-            org.mockito.Mockito.mockStatic(HTMLHelper.class);
-        MockedStatic<PDFHelper> pdfHelperMock = org.mockito.Mockito.mockStatic(PDFHelper.class)) {
+    try (MockedStatic<HtmlHelper> htmlHelperMock =
+            org.mockito.Mockito.mockStatic(HtmlHelper.class);
+        MockedStatic<PdfHelper> pdfHelperMock = org.mockito.Mockito.mockStatic(PdfHelper.class)) {
       htmlHelperMock
-          .when(() -> HTMLHelper.replaceBrTags(org.mockito.ArgumentMatchers.anyString()))
+          .when(() -> HtmlHelper.replaceBrTags(org.mockito.ArgumentMatchers.anyString()))
           .thenAnswer(invocation -> invocation.getArgument(0));
       pdfHelperMock
-          .when(() -> PDFHelper.convertHtmlToPdf(org.mockito.ArgumentMatchers.anyString()))
+          .when(() -> PdfHelper.convertHtmlToPdf(org.mockito.ArgumentMatchers.anyString()))
           .thenReturn(expectedPdf);
 
       // Act
-      byte[] result = paymentService.generatePaymentReceiptPDF(TEST_PAYMENT_ID);
+      byte[] result = paymentService.generatePaymentReceiptPdf(TEST_PAYMENT_ID);
 
       // Assert
       assertArrayEquals(expectedPdf, result);
       htmlHelperMock.verify(
-          () -> HTMLHelper.replaceBrTags(org.mockito.ArgumentMatchers.anyString()), times(1));
+          () -> HtmlHelper.replaceBrTags(org.mockito.ArgumentMatchers.anyString()), times(1));
       pdfHelperMock.verify(
-          () -> PDFHelper.convertHtmlToPdf(org.mockito.ArgumentMatchers.anyString()), times(1));
+          () -> PdfHelper.convertHtmlToPdf(org.mockito.ArgumentMatchers.anyString()), times(1));
     }
   }
 
@@ -392,7 +392,7 @@ class GeneratePaymentReceiptPDFTest extends PaymentServiceTestBase {
    * not null and contains permission constant.
    */
   @Test
-  @DisplayName("generatePaymentReceiptPDF - Controller Permission Forbidden")
+  @DisplayName("generatePaymentReceiptPdf - Controller Permission Forbidden")
   void generatePaymentReceiptPDF_controller_permission_forbidden() throws Exception {
     // Arrange
     Method method = PaymentController.class.getMethod("downloadPaymentReceipt", Long.class);

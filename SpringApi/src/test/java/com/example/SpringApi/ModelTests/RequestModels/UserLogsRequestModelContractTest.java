@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.RequestModels;
+package com.example.springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,11 +49,11 @@ class UserLogsRequestModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.RequestModels.UserLogsRequestModel.class)) {
+        com.example.springapi.models.requestmodels.UserLogsRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.SpringApi.Models.RequestModels.UserLogsRequestModel.class);
+              .constructType(com.example.springapi.models.requestmodels.UserLogsRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -63,7 +63,7 @@ class UserLogsRequestModelContractTest {
   void UserLogsRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.RequestModels.UserLogsRequestModel.class
+        com.example.springapi.models.requestmodels.UserLogsRequestModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -81,9 +81,9 @@ class UserLogsRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.RequestModels.UserLogsRequestModel createInstance() {
-    return (com.example.SpringApi.Models.RequestModels.UserLogsRequestModel)
-        instantiate(com.example.SpringApi.Models.RequestModels.UserLogsRequestModel.class);
+  private com.example.springapi.models.requestmodels.UserLogsRequestModel createInstance() {
+    return (com.example.springapi.models.requestmodels.UserLogsRequestModel)
+        instantiate(com.example.springapi.models.requestmodels.UserLogsRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

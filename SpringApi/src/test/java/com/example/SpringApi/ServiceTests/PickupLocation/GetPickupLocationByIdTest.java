@@ -1,12 +1,12 @@
-package com.example.SpringApi.ServiceTests.PickupLocation;
+package com.example.springapi.ServiceTests.PickupLocation;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.PickupLocationController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Models.ResponseModels.PickupLocationResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.PickupLocationController;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.models.responsemodels.PickupLocationResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;

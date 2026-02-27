@@ -1,10 +1,13 @@
-package com.example.SpringApi.Repositories;
+package com.example.springapi.repositories;
 
-import com.example.SpringApi.Models.DatabaseModels.ReturnShipment;
+import com.example.springapi.models.databasemodels.ReturnShipment;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Defines the return shipment repository contract.
+ */
 @Repository
 public interface ReturnShipmentRepository extends JpaRepository<ReturnShipment, Long> {
   List<ReturnShipment> findByShipmentId(Long shipmentId);

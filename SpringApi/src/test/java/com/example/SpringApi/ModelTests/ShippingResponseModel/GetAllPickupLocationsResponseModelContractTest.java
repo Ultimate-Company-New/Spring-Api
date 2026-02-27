@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.ShippingResponseModel;
+package com.example.springapi.ModelTests.ShippingResponseModel;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,13 +49,13 @@ class GetAllPickupLocationsResponseModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.ShippingResponseModel.GetAllPickupLocationsResponseModel
+        com.example.springapi.models.shippingresponsemodel.GetAllPickupLocationsResponseModel
             .class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.ShippingResponseModel
+                  com.example.springapi.models.shippingresponsemodel
                       .GetAllPickupLocationsResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
@@ -66,7 +66,7 @@ class GetAllPickupLocationsResponseModelContractTest {
   void GetAllPickupLocationsResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.ShippingResponseModel.GetAllPickupLocationsResponseModel.class
+        com.example.springapi.models.shippingresponsemodel.GetAllPickupLocationsResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -84,11 +84,11 @@ class GetAllPickupLocationsResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.ShippingResponseModel.GetAllPickupLocationsResponseModel
+  private com.example.springapi.models.shippingresponsemodel.GetAllPickupLocationsResponseModel
       createInstance() {
-    return (com.example.SpringApi.Models.ShippingResponseModel.GetAllPickupLocationsResponseModel)
+    return (com.example.springapi.models.shippingresponsemodel.GetAllPickupLocationsResponseModel)
         instantiate(
-            com.example.SpringApi.Models.ShippingResponseModel.GetAllPickupLocationsResponseModel
+            com.example.springapi.models.shippingresponsemodel.GetAllPickupLocationsResponseModel
                 .class);
   }
 

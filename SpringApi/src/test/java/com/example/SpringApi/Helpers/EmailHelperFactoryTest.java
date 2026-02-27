@@ -1,4 +1,4 @@
-package com.example.SpringApi.Helpers;
+package com.example.springapi.helpers;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -25,7 +25,8 @@ class EmailHelperFactoryTest {
     when(environment.getProperty("email.service", "sendgrid")).thenReturn("brevo");
 
     // Act
-    IEmailHelper helper = EmailHelperFactory.create("from@u.co", "Sender", "api", environment);
+    EmailHelperContract helper =
+        EmailHelperFactory.create("from@u.co", "Sender", "api", environment);
 
     // Assert
     assertTrue(helper instanceof BrevoEmailHelper);
@@ -43,7 +44,8 @@ class EmailHelperFactoryTest {
     when(environment.getProperty("email.service", "sendgrid")).thenReturn("sendgrid");
 
     // Act
-    IEmailHelper helper = EmailHelperFactory.create("from@u.co", "Sender", "api", environment);
+    EmailHelperContract helper =
+        EmailHelperFactory.create("from@u.co", "Sender", "api", environment);
 
     // Assert
     assertTrue(helper instanceof EmailHelper);
@@ -59,7 +61,7 @@ class EmailHelperFactoryTest {
     // Arrange
 
     // Act
-    IEmailHelper helper = EmailHelperFactory.create("from@u.co", "Sender", "api", null);
+    EmailHelperContract helper = EmailHelperFactory.create("from@u.co", "Sender", "api", null);
 
     // Assert
     assertTrue(helper instanceof EmailHelper);

@@ -1,11 +1,11 @@
-package com.example.SpringApi.ServiceTests.QA;
+package com.example.springapi.ServiceTests.QA;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.SpringApi.Controllers.QAController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.DatabaseModels.LatestTestResult;
-import com.example.SpringApi.Models.ResponseModels.QADashboardResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.QaController;
+import com.example.springapi.models.databasemodels.LatestTestResult;
+import com.example.springapi.models.responsemodels.QaDashboardResponseModel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 /**
- * Unit tests for QAService.getDashboardData() method.
+ * Unit tests for QaService.getDashboardData() method.
  *
  * <p>Test Coverage: - Success scenarios (5 tests) - Validation tests (5 tests) - Edge cases (5
  * tests)
@@ -46,7 +46,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
     stubLatestTestResultRepositoryFindByClientId(results);
 
     // Act
-    QADashboardResponseModel dashboard = qaService.getDashboardData();
+    QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
     // Assert
     assertNotNull(dashboard);
@@ -70,7 +70,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
     stubLatestTestResultRepositoryFindByClientId(results);
 
     // Act
-    QADashboardResponseModel dashboard = qaService.getDashboardData();
+    QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
     // Assert
     assertNotNull(dashboard);
@@ -88,7 +88,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
     stubLatestTestResultRepositoryFindByClientId(new ArrayList<>());
 
     // Act
-    QADashboardResponseModel dashboard = qaService.getDashboardData();
+    QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
     // Assert
     assertNotNull(dashboard);
@@ -108,7 +108,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
     stubLatestTestResultRepositoryFindByClientId(results);
 
     // Act
-    QADashboardResponseModel dashboard = qaService.getDashboardData();
+    QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
     // Assert
     assertNotNull(dashboard);
@@ -130,7 +130,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
     stubLatestTestResultRepositoryFindByClientId(results);
 
     // Act
-    QADashboardResponseModel dashboard = qaService.getDashboardData();
+    QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
     // Assert
     assertNotNull(dashboard);
@@ -152,7 +152,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
     stubLatestTestResultRepositoryFindByClientId(results);
 
     // Act
-    QADashboardResponseModel dashboard = qaService.getDashboardData();
+    QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
     // Assert
     assertNotNull(dashboard);
@@ -172,7 +172,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
     stubLatestTestResultRepositoryFindByClientId(new ArrayList<>());
 
     // Act
-    QADashboardResponseModel dashboard = qaService.getDashboardData();
+    QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
     // Assert
     assertNotNull(dashboard);
@@ -193,7 +193,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
     stubLatestTestResultRepositoryFindByClientId(new ArrayList<>());
 
     // Act
-    QADashboardResponseModel dashboard = qaService.getDashboardData();
+    QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
     // Assert
     assertNotNull(dashboard);
@@ -215,7 +215,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
     stubLatestTestResultRepositoryFindByClientId(results);
 
     // Act
-    QADashboardResponseModel dashboard = qaService.getDashboardData();
+    QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
     // Assert
     assertNotNull(dashboard);
@@ -237,11 +237,11 @@ class GetDashboardDataTest extends QAServiceTestBase {
     stubLatestTestResultRepositoryFindByClientId(results);
 
     // Act
-    QADashboardResponseModel dashboard = qaService.getDashboardData();
+    QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
     // Assert
     assertNotNull(dashboard);
-    assertTrue(dashboard.getAvailableServices().contains("QAService"));
+    assertTrue(dashboard.getAvailableServices().contains("QaService"));
     assertEquals(
         dashboard.getAvailableServices().stream().distinct().count(),
         dashboard.getAvailableServices().size());
@@ -259,7 +259,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
     stubLatestTestResultRepositoryFindByClientId(new ArrayList<>());
 
     // Act
-    QADashboardResponseModel dashboard = qaService.getDashboardData();
+    QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
     // Assert
     assertNotNull(dashboard);
@@ -279,7 +279,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
     stubLatestTestResultRepositoryFindByClientId(results);
 
     // Act
-    QADashboardResponseModel dashboard = qaService.getDashboardData();
+    QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
     // Assert
     assertNotNull(dashboard);
@@ -303,7 +303,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
     stubLatestTestResultRepositoryFindByClientId(results);
 
     // Act
-    QADashboardResponseModel dashboard = qaService.getDashboardData();
+    QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
     // Assert
     assertNotNull(dashboard);
@@ -324,7 +324,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
     stubLatestTestResultRepositoryFindByClientId(results);
 
     // Act
-    QADashboardResponseModel dashboard = qaService.getDashboardData();
+    QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
     // Assert
     assertNotNull(dashboard);
@@ -348,7 +348,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
     stubLatestTestResultRepositoryFindByClientId(results);
 
     // Act
-    QADashboardResponseModel dashboard = qaService.getDashboardData();
+    QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
     // Assert
     assertNotNull(dashboard);
@@ -372,7 +372,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
 
     try {
       // Act
-      QADashboardResponseModel dashboard = qaService.getDashboardData();
+      QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
       // Assert
       assertNotNull(dashboard);
@@ -411,7 +411,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
 
     try {
       // Act
-      QADashboardResponseModel dashboard = qaService.getDashboardData();
+      QaDashboardResponseModel dashboard = qaService.getDashboardData();
 
       // Assert
       assertNotNull(dashboard);
@@ -472,7 +472,7 @@ class GetDashboardDataTest extends QAServiceTestBase {
   @DisplayName("Get Dashboard Data - Controller permission unauthorized - Success")
   void getDashboardData_controller_permission_unauthorized() {
     // Arrange
-    QAController controller = new QAController(qaSubTranslator);
+    QaController controller = new QaController(qaSubTranslator);
     stubQaTranslatorGetDashboardDataThrowsUnauthorized();
 
     // Act

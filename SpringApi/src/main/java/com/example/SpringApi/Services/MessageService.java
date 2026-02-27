@@ -1,35 +1,38 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Helpers.EmailHelperFactory;
-import com.example.SpringApi.Helpers.EmailTemplates;
-import com.example.SpringApi.Helpers.IEmailHelper;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.DatabaseModels.Message;
-import com.example.SpringApi.Models.DatabaseModels.MessageUserGroupMap;
-import com.example.SpringApi.Models.DatabaseModels.MessageUserMap;
-import com.example.SpringApi.Models.DatabaseModels.MessageUserReadMap;
-import com.example.SpringApi.Models.DatabaseModels.User;
-import com.example.SpringApi.Models.RequestModels.MessageRequestModel;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.ResponseModels.MessageResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Repositories.ClientRepository;
-import com.example.SpringApi.Repositories.MessageRepository;
-import com.example.SpringApi.Repositories.MessageUserGroupMapRepository;
-import com.example.SpringApi.Repositories.MessageUserMapRepository;
-import com.example.SpringApi.Repositories.MessageUserReadMapRepository;
-import com.example.SpringApi.Repositories.UserRepository;
-import com.example.SpringApi.Services.Interface.IMessageSubTranslator;
-import com.example.SpringApi.SuccessMessages;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.SuccessMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.helpers.EmailHelperContract;
+import com.example.springapi.helpers.EmailHelperFactory;
+import com.example.springapi.helpers.EmailTemplates;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.databasemodels.Client;
+import com.example.springapi.models.databasemodels.Message;
+import com.example.springapi.models.databasemodels.MessageUserGroupMap;
+import com.example.springapi.models.databasemodels.MessageUserMap;
+import com.example.springapi.models.databasemodels.MessageUserReadMap;
+import com.example.springapi.models.databasemodels.User;
+import com.example.springapi.models.requestmodels.MessageRequestModel;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.responsemodels.MessageResponseModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.repositories.ClientRepository;
+import com.example.springapi.repositories.MessageRepository;
+import com.example.springapi.repositories.MessageUserGroupMapRepository;
+import com.example.springapi.repositories.MessageUserMapRepository;
+import com.example.springapi.repositories.MessageUserReadMapRepository;
+import com.example.springapi.repositories.UserRepository;
+import com.example.springapi.services.interfaces.MessageSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
@@ -50,7 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 2024-01-15
  */
 @Service
-public class MessageService extends BaseService implements IMessageSubTranslator {
+public class MessageService extends BaseService implements MessageSubTranslator {
 
   private final MessageRepository messageRepository;
   private final UserRepository userRepository;
@@ -61,6 +64,9 @@ public class MessageService extends BaseService implements IMessageSubTranslator
   private final UserLogService userLogService;
   private final Environment environment;
 
+  /**
+   * Initializes MessageService.
+   */
   @Autowired
   public MessageService(
       MessageRepository messageRepository,
@@ -85,7 +91,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
   }
 
   /**
-   * Retrieves messages in paginated batches with optional filtering and sorting. Supports
+   * Retrieves messages in paginated batches with optional filtering and sorting. Supports.
    * pagination, sorting by multiple fields, and filtering capabilities. Uses JPQL with LEFT JOIN
    * FETCH to eagerly load MessageUserMap and MessageUserGroupMap collections.
    *
@@ -171,7 +177,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
   }
 
   /**
-   * Creates a new message with user and group targeting. This operation is transactional to ensure
+   * Creates a new message with user and group targeting. This operation is transactional to ensure.
    * all related records are created atomically.
    *
    * @param messageRequestModel The message data including targeting information
@@ -184,7 +190,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
   }
 
   /**
-   * Creates a message with explicit context values (for async operations). This variant is used
+   * Creates a message with explicit context values (for async operations). This variant is used.
    * when the security context is not available (e.g., async methods).
    *
    * @param messageRequestModel The message request model
@@ -211,7 +217,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
 
     // Generate batch ID if sendAsEmail is true and publishDate is set
     if (Boolean.TRUE.equals(message.getSendAsEmail()) && message.getPublishDate() != null) {
-      IEmailHelper emailHelper =
+      EmailHelperContract emailHelper =
           EmailHelperFactory.create(
               client.getSendGridEmailAddress(),
               client.getSendgridSenderName(),
@@ -341,7 +347,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
                       .equals(existingMessage.getPublishDate()));
 
       if (emailSettingsChanged) {
-        IEmailHelper emailHelper =
+        EmailHelperContract emailHelper =
             EmailHelperFactory.create(
                 client.getSendGridEmailAddress(),
                 client.getSendgridSenderName(),
@@ -360,7 +366,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
     // Generate new batch ID if sendAsEmail is true and publishDate is set
     if (Boolean.TRUE.equals(updatedMessage.getSendAsEmail())
         && updatedMessage.getPublishDate() != null) {
-      IEmailHelper emailHelper =
+      EmailHelperContract emailHelper =
           EmailHelperFactory.create(
               client.getSendGridEmailAddress(),
               client.getSendgridSenderName(),
@@ -451,8 +457,8 @@ public class MessageService extends BaseService implements IMessageSubTranslator
   }
 
   /**
-   * Toggles the soft delete status of a message. If the message is deleted, it will be restored. If
-   * not deleted, it will be marked as deleted.
+   * Toggles the soft delete status of a message. If the message is deleted, it will be restored.
+   * If. not deleted, it will be marked as deleted.
    *
    * @param id The message ID
    * @throws NotFoundException if the message doesn't exist or doesn't belong to the current client
@@ -484,7 +490,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
   }
 
   /**
-   * Retrieves detailed information about a specific message by ID. Includes targeting information
+   * Retrieves detailed information about a specific message by ID. Includes targeting information.
    * (userIds and groupIds).
    *
    * @param id The message ID
@@ -511,7 +517,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
   }
 
   /**
-   * Retrieves messages targeted to a specific user in paginated batches. Includes messages where
+   * Retrieves messages targeted to a specific user in paginated batches. Includes messages where.
    * the user is directly targeted or belongs to a targeted group. Only returns non-deleted
    * messages. Orders unread messages first, then read messages, both ordered by messageId DESC.
    *
@@ -581,7 +587,7 @@ public class MessageService extends BaseService implements IMessageSubTranslator
   }
 
   /**
-   * Marks a message as read for a specific user. Creates a record in MessageUserReadMap to track
+   * Marks a message as read for a specific user. Creates a record in MessageUserReadMap to track.
    * when the user read the message.
    *
    * @param userId The ID of the user who read the message

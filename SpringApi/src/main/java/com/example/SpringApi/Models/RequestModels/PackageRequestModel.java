@@ -1,4 +1,4 @@
-package com.example.SpringApi.Models.RequestModels;
+package com.example.springapi.models.requestmodels;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -30,7 +30,7 @@ public class PackageRequestModel {
   private String notes;
 
   /**
-   * Map of pickup location ID to pickup location inventory data. A package can be stocked at
+   * Map of pickup location ID to pickup location inventory data. A package can be stocked at.
    * multiple pickup locations with different inventory settings. Uses
    * PackagePickupLocationMappingRequestModel for each location's inventory configuration.
    */

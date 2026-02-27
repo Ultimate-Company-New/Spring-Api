@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.Message;
+package com.example.springapi.ServiceTests.Message;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -11,24 +11,24 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mockConstruction;
 
-import com.example.SpringApi.Authentication.Authorization;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.Helpers.EmailHelper;
-import com.example.SpringApi.Helpers.EmailTemplates;
-import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.DatabaseModels.Message;
-import com.example.SpringApi.Models.DatabaseModels.MessageUserGroupMap;
-import com.example.SpringApi.Models.DatabaseModels.MessageUserMap;
-import com.example.SpringApi.Models.DatabaseModels.MessageUserReadMap;
-import com.example.SpringApi.Models.DatabaseModels.User;
-import com.example.SpringApi.Models.RequestModels.MessageRequestModel;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Repositories.*;
-import com.example.SpringApi.Services.Interface.IMessageSubTranslator;
-import com.example.SpringApi.Services.MessageService;
-import com.example.SpringApi.Services.UserLogService;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.authentication.Authorization;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.helpers.EmailHelper;
+import com.example.springapi.helpers.EmailTemplates;
+import com.example.springapi.models.databasemodels.Client;
+import com.example.springapi.models.databasemodels.Message;
+import com.example.springapi.models.databasemodels.MessageUserGroupMap;
+import com.example.springapi.models.databasemodels.MessageUserMap;
+import com.example.springapi.models.databasemodels.MessageUserReadMap;
+import com.example.springapi.models.databasemodels.User;
+import com.example.springapi.models.requestmodels.MessageRequestModel;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.repositories.*;
+import com.example.springapi.services.MessageService;
+import com.example.springapi.services.UserLogService;
+import com.example.springapi.services.interfaces.MessageSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -71,7 +71,7 @@ abstract class MessageServiceTestBase {
 
   @Mock protected Environment environment;
 
-  @Mock IMessageSubTranslator messageServiceMock;
+  @Mock MessageSubTranslator messageServiceMock;
 
   @InjectMocks protected MessageService messageService;
 
@@ -379,7 +379,7 @@ abstract class MessageServiceTestBase {
   protected void stubMessageServiceUpdateMessageThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
+            new com.example.springapi.exceptions.UnauthorizedException(
                 ErrorMessages.ERROR_UNAUTHORIZED))
         .when(messageServiceMock)
         .updateMessage(any(MessageRequestModel.class));
@@ -394,7 +394,7 @@ abstract class MessageServiceTestBase {
   protected void stubMessageServiceCreateMessageThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
+            new com.example.springapi.exceptions.UnauthorizedException(
                 ErrorMessages.ERROR_UNAUTHORIZED))
         .when(messageServiceMock)
         .createMessage(any(MessageRequestModel.class));
@@ -404,18 +404,18 @@ abstract class MessageServiceTestBase {
   protected void stubMessageServiceGetMessagesInBatchesThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
+            new com.example.springapi.exceptions.UnauthorizedException(
                 ErrorMessages.ERROR_UNAUTHORIZED))
         .when(messageServiceMock)
         .getMessagesInBatches(
-            any(com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.class));
+            any(com.example.springapi.models.requestmodels.PaginationBaseRequestModel.class));
   }
 
   /** Stub controller service getUnreadMessageCount to throw UnauthorizedException. */
   protected void stubMessageServiceGetUnreadMessageCountThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
+            new com.example.springapi.exceptions.UnauthorizedException(
                 ErrorMessages.ERROR_UNAUTHORIZED))
         .when(messageServiceMock)
         .getUnreadMessageCount();
@@ -425,18 +425,18 @@ abstract class MessageServiceTestBase {
   protected void stubMessageServiceGetMessagesByUserIdThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
+            new com.example.springapi.exceptions.UnauthorizedException(
                 ErrorMessages.ERROR_UNAUTHORIZED))
         .when(messageServiceMock)
         .getMessagesByUserId(
-            any(com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.class));
+            any(com.example.springapi.models.requestmodels.PaginationBaseRequestModel.class));
   }
 
   /** Stub controller service setMessageReadByUserIdAndMessageId to throw UnauthorizedException. */
   protected void stubMessageServiceSetMessageReadByUserIdAndMessageIdThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
+            new com.example.springapi.exceptions.UnauthorizedException(
                 ErrorMessages.ERROR_UNAUTHORIZED))
         .when(messageServiceMock)
         .setMessageReadByUserIdAndMessageId(anyLong(), anyLong());
@@ -446,7 +446,7 @@ abstract class MessageServiceTestBase {
   protected void stubMessageServiceToggleMessageThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
+            new com.example.springapi.exceptions.UnauthorizedException(
                 ErrorMessages.ERROR_UNAUTHORIZED))
         .when(messageServiceMock)
         .toggleMessage(anyLong());
@@ -456,7 +456,7 @@ abstract class MessageServiceTestBase {
   protected void stubMessageServiceGetMessageDetailsByIdThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.SpringApi.Exceptions.UnauthorizedException(
+            new com.example.springapi.exceptions.UnauthorizedException(
                 ErrorMessages.ERROR_UNAUTHORIZED))
         .when(messageServiceMock)
         .getMessageDetailsById(anyLong());
@@ -474,31 +474,31 @@ abstract class MessageServiceTestBase {
 
   /** Stub controller service getMessageDetailsById. */
   protected void stubMessageServiceGetMessageDetailsById(
-      com.example.SpringApi.Models.ResponseModels.MessageResponseModel response) {
+      com.example.springapi.models.responsemodels.MessageResponseModel response) {
     lenient().when(messageServiceMock.getMessageDetailsById(anyLong())).thenReturn(response);
   }
 
   /** Stub controller service getMessagesInBatches. */
   protected void stubMessageServiceGetMessagesInBatches(
-      com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel<
-              com.example.SpringApi.Models.ResponseModels.MessageResponseModel>
+      com.example.springapi.models.responsemodels.PaginationBaseResponseModel<
+              com.example.springapi.models.responsemodels.MessageResponseModel>
           response) {
     lenient()
         .when(
             messageServiceMock.getMessagesInBatches(
-                any(com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.class)))
+                any(com.example.springapi.models.requestmodels.PaginationBaseRequestModel.class)))
         .thenReturn(response);
   }
 
   /** Stub controller service getMessagesByUserId. */
   protected void stubMessageServiceGetMessagesByUserId(
-      com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel<
-              com.example.SpringApi.Models.ResponseModels.MessageResponseModel>
+      com.example.springapi.models.responsemodels.PaginationBaseResponseModel<
+              com.example.springapi.models.responsemodels.MessageResponseModel>
           response) {
     lenient()
         .when(
             messageServiceMock.getMessagesByUserId(
-                any(com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.class)))
+                any(com.example.springapi.models.requestmodels.PaginationBaseRequestModel.class)))
         .thenReturn(response);
   }
 

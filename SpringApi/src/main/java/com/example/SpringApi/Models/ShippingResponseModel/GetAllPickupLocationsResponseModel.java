@@ -1,15 +1,21 @@
-package com.example.SpringApi.Models.ShippingResponseModel;
+package com.example.springapi.models.shippingresponsemodel;
 
 import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Represents the get all pickup locations response model component.
+ */
 @Getter
 @Setter
 public class GetAllPickupLocationsResponseModel {
   private Data data;
 
+  /**
+   * Represents the data component.
+   */
   @Getter
   @Setter
   public static class Data {
@@ -29,6 +35,9 @@ public class GetAllPickupLocationsResponseModel {
     private List<Object> recentAddresses;
   }
 
+  /**
+   * Represents the shipping address component.
+   */
   @Getter
   @Setter
   public static class ShippingAddress {

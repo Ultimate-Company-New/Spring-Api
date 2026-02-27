@@ -1,4 +1,4 @@
-package com.example.SpringApi.Helpers;
+package com.example.springapi.helpers;
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
@@ -8,6 +8,9 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import org.mindrot.jbcrypt.BCrypt;
 
+/**
+ * Represents the password helper component.
+ */
 public class PasswordHelper {
   private static final SecureRandom RANDOM = new SecureRandom();
   private static final Set<Character> SPECIAL_CHARS =
@@ -15,6 +18,9 @@ public class PasswordHelper {
 
   private PasswordHelper() {}
 
+  /**
+   * Represents the password options component.
+   */
   public static class PasswordOptions {
     public static final int REQUIRED_LENGTH = 8;
     public static final int REQUIRED_UNIQUE_CHARS = 6;
@@ -26,6 +32,9 @@ public class PasswordHelper {
     private PasswordOptions() {}
   }
 
+  /**
+   * Enumerates password strength values.
+   */
   public enum PasswordStrength {
     BLANK,
     VERY_WEAK,
@@ -41,6 +50,9 @@ public class PasswordHelper {
   }
 
   // Gets the hashed password and salt for the given plain-text password
+  /**
+   * Returns hashed password and salt.
+   */
   public static String[] getHashedPasswordAndSalt(String plainTextPassword) {
     String salt = BCrypt.gensalt();
     String hashedPassword = BCrypt.hashpw(plainTextPassword + salt, BCrypt.gensalt());
@@ -65,6 +77,9 @@ public class PasswordHelper {
     return BCrypt.checkpw(password, hashPassword);
   }
 
+  /**
+   * Returns password strength.
+   */
   public static PasswordStrength getPasswordStrength(String password) {
     int score = 0;
 
@@ -95,6 +110,9 @@ public class PasswordHelper {
     return PasswordStrength.values()[score];
   }
 
+  /**
+   * Checks whether strong password.
+   */
   public static boolean isStrongPassword(String password) {
     return hasMinimumLength(password, 8)
         && hasUpperCaseLetter(password)
@@ -102,6 +120,9 @@ public class PasswordHelper {
         && (hasDigit(password) || hasSpecialChar(password));
   }
 
+  /**
+   * Checks whether valid password.
+   */
   public static boolean isValidPassword(
       String password,
       int requiredLength,

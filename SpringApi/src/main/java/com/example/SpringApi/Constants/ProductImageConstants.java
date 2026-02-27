@@ -1,4 +1,4 @@
-package com.example.SpringApi.Constants;
+package com.example.springapi.constants;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,12 +36,12 @@ public final class ProductImageConstants {
   public static final String ADDITIONAL_2 = "additional_2";
   public static final String ADDITIONAL_3 = "additional_3";
 
-  /** Required image types (main, top, bottom, front, back, right, left, details) */
+  /** Required image types (main, top, bottom, front, back, right, left, details). */
   public static final List<String> REQUIRED_IMAGE_TYPES =
       Collections.unmodifiableList(
           Arrays.asList(MAIN, TOP, BOTTOM, FRONT, BACK, RIGHT, LEFT, DETAILS));
 
-  /** Optional image types (defect, additional_1, additional_2, additional_3) */
+  /** Optional image types (defect, additional_1, additional_2, additional_3). */
   public static final List<String> OPTIONAL_IMAGE_TYPES =
       Collections.unmodifiableList(Arrays.asList(DEFECT, ADDITIONAL_1, ADDITIONAL_2, ADDITIONAL_3));
 }

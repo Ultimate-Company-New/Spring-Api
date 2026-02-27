@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.RequestModels;
+package com.example.springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class ProductCategoryRequestModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.RequestModels.ProductCategoryRequestModel.class)) {
+        com.example.springapi.models.requestmodels.ProductCategoryRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.RequestModels.ProductCategoryRequestModel.class);
+                  com.example.springapi.models.requestmodels.ProductCategoryRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +64,7 @@ class ProductCategoryRequestModelContractTest {
   void ProductCategoryRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.RequestModels.ProductCategoryRequestModel.class
+        com.example.springapi.models.requestmodels.ProductCategoryRequestModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,9 +82,9 @@ class ProductCategoryRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.RequestModels.ProductCategoryRequestModel createInstance() {
-    return (com.example.SpringApi.Models.RequestModels.ProductCategoryRequestModel)
-        instantiate(com.example.SpringApi.Models.RequestModels.ProductCategoryRequestModel.class);
+  private com.example.springapi.models.requestmodels.ProductCategoryRequestModel createInstance() {
+    return (com.example.springapi.models.requestmodels.ProductCategoryRequestModel)
+        instantiate(com.example.springapi.models.requestmodels.ProductCategoryRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

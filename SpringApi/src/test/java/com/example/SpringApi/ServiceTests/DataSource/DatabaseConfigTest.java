@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.DataSource;
+package com.example.springapi.ServiceTests.DataSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.example.SpringApi.DataSource.DatabaseConfig;
+import com.example.springapi.datasource.DatabaseConfig;
 import jakarta.persistence.EntityManagerFactory;
 import java.lang.reflect.Method;
 import javax.sql.DataSource;

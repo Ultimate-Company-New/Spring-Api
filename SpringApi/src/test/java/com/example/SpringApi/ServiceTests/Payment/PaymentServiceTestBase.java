@@ -1,20 +1,20 @@
-package com.example.SpringApi.ServiceTests.Payment;
+package com.example.springapi.ServiceTests.Payment;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.lenient;
 
-import com.example.SpringApi.Controllers.PaymentController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.UnauthorizedException;
-import com.example.SpringApi.Models.DatabaseModels.*;
-import com.example.SpringApi.Models.RequestModels.CashPaymentRequestModel;
-import com.example.SpringApi.Models.RequestModels.RazorpayOrderRequestModel;
-import com.example.SpringApi.Models.RequestModels.RazorpayVerifyRequestModel;
-import com.example.SpringApi.Models.ResponseModels.PaymentVerificationResponseModel;
-import com.example.SpringApi.Models.ResponseModels.RazorpayOrderResponseModel;
-import com.example.SpringApi.Repositories.*;
-import com.example.SpringApi.Services.PaymentService;
-import com.example.SpringApi.Services.UserLogService;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.PaymentController;
+import com.example.springapi.exceptions.UnauthorizedException;
+import com.example.springapi.models.databasemodels.*;
+import com.example.springapi.models.requestmodels.CashPaymentRequestModel;
+import com.example.springapi.models.requestmodels.RazorpayOrderRequestModel;
+import com.example.springapi.models.requestmodels.RazorpayVerifyRequestModel;
+import com.example.springapi.models.responsemodels.PaymentVerificationResponseModel;
+import com.example.springapi.models.responsemodels.RazorpayOrderResponseModel;
+import com.example.springapi.repositories.*;
+import com.example.springapi.services.PaymentService;
+import com.example.springapi.services.UserLogService;
 import com.razorpay.OrderClient;
 import com.razorpay.PaymentClient;
 import com.razorpay.RazorpayClient;
@@ -514,13 +514,13 @@ class PaymentServiceTestBase {
   }
 
   protected void stubPaymentServiceGeneratePaymentReceiptPDF(byte[] bytes) throws Exception {
-    lenient().when(paymentServiceMock.generatePaymentReceiptPDF(anyLong())).thenReturn(bytes);
+    lenient().when(paymentServiceMock.generatePaymentReceiptPdf(anyLong())).thenReturn(bytes);
   }
 
   protected void stubPaymentServiceGeneratePaymentReceiptPDFThrowsUnauthorized() throws Exception {
     lenient()
         .doThrow(new UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
         .when(paymentServiceMock)
-        .generatePaymentReceiptPDF(anyLong());
+        .generatePaymentReceiptPdf(anyLong());
   }
 }

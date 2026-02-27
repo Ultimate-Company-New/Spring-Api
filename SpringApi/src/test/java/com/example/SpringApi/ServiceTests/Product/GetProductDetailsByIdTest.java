@@ -1,12 +1,12 @@
-package com.example.SpringApi.ServiceTests.Product;
+package com.example.springapi.ServiceTests.Product;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 
-import com.example.SpringApi.Controllers.ProductController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Models.ResponseModels.ProductResponseModel;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.ProductController;
+import com.example.springapi.models.responsemodels.ProductResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;

@@ -1,7 +1,7 @@
-package com.example.SpringApi.FilterQueryBuilder;
+package com.example.springapi.filterquerybuilder;
 
-import com.example.SpringApi.Models.DatabaseModels.Product;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel.FilterCondition;
+import com.example.springapi.models.databasemodels.Product;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.util.Arrays;
@@ -127,7 +127,7 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
   }
 
   /**
-   * Gets the column type for validation purposes
+   * Gets the column type for validation purposes.
    *
    * @param column The column name
    * @return "string", "number", "date", or "boolean"
@@ -147,8 +147,8 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
   // ==================== Query Execution Method ====================
 
   /**
-   * Finds paginated products with multiple filter conditions combined with AND/OR logic. Builds the
-   * WHERE clause dynamically and executes the query.
+   * Finds paginated products with multiple filter conditions combined with AND/OR logic. Builds
+   * the. WHERE clause dynamically and executes the query.
    *
    * <p>When filtering by pickupLocationId, only products with that pickup location are returned,
    * and only the mapping for that specific pickup location is included in the response.
@@ -306,7 +306,7 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
       countTypedQuery.setParameter(entry.getKey(), entry.getValue());
     }
 
-    Long totalCount = countTypedQuery.getSingleResult();
+    final Long totalCount = countTypedQuery.getSingleResult();
 
     // Execute main query with pagination
     TypedQuery<Product> mainQuery = entityManager.createQuery(baseQuery, Product.class);

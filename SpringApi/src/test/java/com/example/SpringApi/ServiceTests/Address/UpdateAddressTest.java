@@ -1,14 +1,14 @@
-package com.example.SpringApi.ServiceTests.Address;
+package com.example.springapi.ServiceTests.Address;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.SpringApi.Controllers.AddressController;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.Authorizations;
-import com.example.SpringApi.Models.DatabaseModels.Address;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.controllers.AddressController;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.Authorizations;
+import com.example.springapi.models.databasemodels.Address;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -89,8 +89,8 @@ class UpdateAddressTest extends AddressServiceTestBase {
     verify(userLogService)
         .logData(
             eq(DEFAULT_USER_ID),
-            contains(com.example.SpringApi.SuccessMessages.AddressSuccessMessages.UPDATE_ADDRESS),
-            eq(com.example.SpringApi.Models.ApiRoutes.AddressSubRoute.UPDATE_ADDRESS));
+            contains(com.example.springapi.SuccessMessages.AddressSuccessMessages.UPDATE_ADDRESS),
+            eq(com.example.springapi.models.ApiRoutes.AddressSubRoute.UPDATE_ADDRESS));
   }
 
   /**
@@ -480,7 +480,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
   @DisplayName("Update Address - Null request - ThrowsBadRequestException")
   void updateAddress_NullRequest_ThrowsBadRequestException() {
     // Arrange
-    com.example.SpringApi.Models.RequestModels.AddressRequestModel nullRequest = null;
+    com.example.springapi.models.requestmodels.AddressRequestModel nullRequest = null;
 
     // Act & Assert
     BadRequestException exception =
@@ -605,7 +605,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
         AddressController.class.getMethod(
             "updateAddress",
             Long.class,
-            com.example.SpringApi.Models.RequestModels.AddressRequestModel.class);
+            com.example.springapi.models.requestmodels.AddressRequestModel.class);
     testAddressRequest.setId(DEFAULT_ADDRESS_ID);
     stubServiceUpdateAddressDoNothing();
 

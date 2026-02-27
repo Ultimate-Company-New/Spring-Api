@@ -1,8 +1,17 @@
-package com.example.SpringApi.Models.DatabaseModels;
+package com.example.springapi.models.databasemodels;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import jakarta.persistence.*;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -229,7 +238,7 @@ public class OrderSummary {
   public OrderSummary(
       String entityType,
       Long entityId,
-      com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel.OrderSummaryData
+      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.OrderSummaryData
           orderSummaryData,
       Long entityAddressId,
       Long clientId,
@@ -307,7 +316,7 @@ public class OrderSummary {
   public OrderSummary(
       String entityType,
       Long entityId,
-      com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel.OrderSummaryData
+      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.OrderSummaryData
           orderSummaryData,
       Long entityAddressId,
       String modifiedUser,
@@ -384,7 +393,7 @@ public class OrderSummary {
   private void validateRequest(
       String entityType,
       Long entityId,
-      com.example.SpringApi.Models.RequestModels.PurchaseOrderRequestModel.OrderSummaryData
+      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.OrderSummaryData
           orderSummaryData,
       Long entityAddressId,
       Long clientId,

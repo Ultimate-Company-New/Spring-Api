@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.ResponseModels;
+package com.example.springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class PurchaseOrderProductItemContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.ResponseModels.PurchaseOrderProductItem.class)) {
+        com.example.springapi.models.responsemodels.PurchaseOrderProductItem.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.ResponseModels.PurchaseOrderProductItem.class);
+                  com.example.springapi.models.responsemodels.PurchaseOrderProductItem.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +64,7 @@ class PurchaseOrderProductItemContractTest {
   void PurchaseOrderProductItem_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.ResponseModels.PurchaseOrderProductItem.class
+        com.example.springapi.models.responsemodels.PurchaseOrderProductItem.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,9 +82,9 @@ class PurchaseOrderProductItemContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.ResponseModels.PurchaseOrderProductItem createInstance() {
-    return (com.example.SpringApi.Models.ResponseModels.PurchaseOrderProductItem)
-        instantiate(com.example.SpringApi.Models.ResponseModels.PurchaseOrderProductItem.class);
+  private com.example.springapi.models.responsemodels.PurchaseOrderProductItem createInstance() {
+    return (com.example.springapi.models.responsemodels.PurchaseOrderProductItem)
+        instantiate(com.example.springapi.models.responsemodels.PurchaseOrderProductItem.class);
   }
 
   private Object instantiate(Class<?> clazz) {

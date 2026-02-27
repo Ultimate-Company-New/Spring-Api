@@ -1,4 +1,4 @@
-package com.example.SpringApi.ModelTests.DatabaseModels;
+package com.example.springapi.ModelTests.DatabaseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,12 +49,12 @@ class PackagePickupLocationMappingContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping.class)) {
+        com.example.springapi.models.databasemodels.PackagePickupLocationMapping.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping.class);
+                  com.example.springapi.models.databasemodels.PackagePickupLocationMapping.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +64,7 @@ class PackagePickupLocationMappingContractTest {
   void PackagePickupLocationMapping_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping.class
+        com.example.springapi.models.databasemodels.PackagePickupLocationMapping.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,10 +82,10 @@ class PackagePickupLocationMappingContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping
+  private com.example.springapi.models.databasemodels.PackagePickupLocationMapping
       createInstance() {
-    return (com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping)
-        instantiate(com.example.SpringApi.Models.DatabaseModels.PackagePickupLocationMapping.class);
+    return (com.example.springapi.models.databasemodels.PackagePickupLocationMapping)
+        instantiate(com.example.springapi.models.databasemodels.PackagePickupLocationMapping.class);
   }
 
   private Object instantiate(Class<?> clazz) {

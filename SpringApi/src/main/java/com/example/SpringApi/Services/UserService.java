@@ -1,42 +1,42 @@
-package com.example.SpringApi.Services;
+package com.example.springapi.services;
 
-import com.example.SpringApi.Authentication.JwtTokenProvider;
-import com.example.SpringApi.Constants.ImageLocationConstants;
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Exceptions.NotFoundException;
-import com.example.SpringApi.FilterQueryBuilder.UserFilterQueryBuilder;
-import com.example.SpringApi.Helpers.BulkInsertHelper;
-import com.example.SpringApi.Helpers.EmailTemplates;
-import com.example.SpringApi.Helpers.FirebaseHelper;
-import com.example.SpringApi.Helpers.ImgbbHelper;
-import com.example.SpringApi.Helpers.PasswordHelper;
-import com.example.SpringApi.Logging.ContextualLogger;
-import com.example.SpringApi.Models.ApiRoutes;
-import com.example.SpringApi.Models.DatabaseModels.Address;
-import com.example.SpringApi.Models.DatabaseModels.Client;
-import com.example.SpringApi.Models.DatabaseModels.GoogleCred;
-import com.example.SpringApi.Models.DatabaseModels.User;
-import com.example.SpringApi.Models.DatabaseModels.UserClientMapping;
-import com.example.SpringApi.Models.DatabaseModels.UserClientPermissionMapping;
-import com.example.SpringApi.Models.DatabaseModels.UserGroupUserMap;
-import com.example.SpringApi.Models.RequestModels.PaginationBaseRequestModel;
-import com.example.SpringApi.Models.RequestModels.UserRequestModel;
-import com.example.SpringApi.Models.ResponseModels.BulkUserInsertResponseModel;
-import com.example.SpringApi.Models.ResponseModels.ClientResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PaginationBaseResponseModel;
-import com.example.SpringApi.Models.ResponseModels.PermissionResponseModel;
-import com.example.SpringApi.Models.ResponseModels.UserResponseModel;
-import com.example.SpringApi.Repositories.AddressRepository;
-import com.example.SpringApi.Repositories.ClientRepository;
-import com.example.SpringApi.Repositories.GoogleCredRepository;
-import com.example.SpringApi.Repositories.PermissionRepository;
-import com.example.SpringApi.Repositories.UserClientMappingRepository;
-import com.example.SpringApi.Repositories.UserClientPermissionMappingRepository;
-import com.example.SpringApi.Repositories.UserGroupUserMapRepository;
-import com.example.SpringApi.Repositories.UserRepository;
-import com.example.SpringApi.Services.Interface.IUserSubTranslator;
-import com.example.SpringApi.SuccessMessages;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.SuccessMessages;
+import com.example.springapi.authentication.JwtTokenProvider;
+import com.example.springapi.constants.ImageLocationConstants;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.exceptions.NotFoundException;
+import com.example.springapi.filterquerybuilder.UserFilterQueryBuilder;
+import com.example.springapi.helpers.BulkInsertHelper;
+import com.example.springapi.helpers.EmailTemplates;
+import com.example.springapi.helpers.FirebaseHelper;
+import com.example.springapi.helpers.ImgbbHelper;
+import com.example.springapi.helpers.PasswordHelper;
+import com.example.springapi.logging.ContextualLogger;
+import com.example.springapi.models.ApiRoutes;
+import com.example.springapi.models.databasemodels.Address;
+import com.example.springapi.models.databasemodels.Client;
+import com.example.springapi.models.databasemodels.GoogleCred;
+import com.example.springapi.models.databasemodels.User;
+import com.example.springapi.models.databasemodels.UserClientMapping;
+import com.example.springapi.models.databasemodels.UserClientPermissionMapping;
+import com.example.springapi.models.databasemodels.UserGroupUserMap;
+import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
+import com.example.springapi.models.requestmodels.UserRequestModel;
+import com.example.springapi.models.responsemodels.BulkUserInsertResponseModel;
+import com.example.springapi.models.responsemodels.ClientResponseModel;
+import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import com.example.springapi.models.responsemodels.PermissionResponseModel;
+import com.example.springapi.models.responsemodels.UserResponseModel;
+import com.example.springapi.repositories.AddressRepository;
+import com.example.springapi.repositories.ClientRepository;
+import com.example.springapi.repositories.GoogleCredRepository;
+import com.example.springapi.repositories.PermissionRepository;
+import com.example.springapi.repositories.UserClientMappingRepository;
+import com.example.springapi.repositories.UserClientPermissionMappingRepository;
+import com.example.springapi.repositories.UserGroupUserMapRepository;
+import com.example.springapi.repositories.UserRepository;
+import com.example.springapi.services.interfaces.UserSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.util.ArrayList;
@@ -56,7 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Service class for User-related business operations.
  *
- * <p>This service implements the IUserSubTranslator interface and provides comprehensive user
+ * <p>This service implements the UserSubTranslator interface and provides comprehensive user
  * management functionality including CRUD operations, user retrieval, and user status management.
  * It follows the established pattern from AddressService and ClientService with proper error
  * handling, validation, and audit logging.
@@ -67,7 +67,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
-public class UserService extends BaseService implements IUserSubTranslator {
+public class UserService extends BaseService implements UserSubTranslator {
 
   private final UserRepository userRepository;
   private final UserFilterQueryBuilder userFilterQueryBuilder;
@@ -87,6 +87,9 @@ public class UserService extends BaseService implements IUserSubTranslator {
   @Value("${imageLocation:firebase}")
   private String imageLocation;
 
+  /**
+   * Executes user service.
+   */
   @Autowired
   public UserService(
       UserRepository userRepository,
@@ -122,15 +125,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
   }
 
   /**
-   * Toggles the deletion status of a user by its ID.
-   *
-   * <p>This method performs a soft delete operation by toggling the isDeleted flag. If the user is
-   * currently active (isDeleted = false), it will be marked as deleted. If the user is currently
-   * deleted (isDeleted = true), it will be restored.
-   *
-   * @param id The unique identifier of the user to toggle
-   * @return true if the operation was successful, false if the user was not found
-   * @throws IllegalArgumentException if the provided ID is null or invalid
+   * Toggles user.
    */
   @Override
   public void toggleUser(long id) {
@@ -217,21 +212,11 @@ public class UserService extends BaseService implements IUserSubTranslator {
   @Override
   @Transactional
   public void createUser(UserRequestModel userRequestModel) {
-    createUser(userRequestModel, true);
+    createUserInternal(userRequestModel, true);
   }
 
   /**
-   * Updates an existing user with new information.
-   *
-   * <p>This method retrieves the existing user by ID, validates the new data, and updates the user
-   * while preserving audit information like createdUser and createdAt. Only the modifiedUser and
-   * updatedAt fields are updated.
-   *
-   * @param user The UserRequestModel containing the updated user data
-   * @return The unique identifier of the updated user
-   * @throws NotFoundException if no user exists with the given ID
-   * @throws BadRequestException if the user data is invalid or incomplete
-   * @throws IllegalArgumentException if the user parameter is null
+   * Updates user.
    */
   @Override
   @Transactional
@@ -400,7 +385,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
   }
 
   /**
-   * Confirms a user's email address using the verification token. This is a public endpoint (no
+   * Confirms a user's email address using the verification token. This is a public endpoint (no.
    * authentication required) as users haven't logged in yet.
    */
   @Override
@@ -494,7 +479,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
         try {
           // Call createUser with sendEmail = false, explicit createdUser, and shouldLog =
           // false (bulk logs collectively)
-          createUser(userRequest, false, requestingUserLoginName, false);
+          createUserInternal(userRequest, false, requestingUserLoginName, false);
 
           // If we get here, user was created successfully
           // Fetch the created user to get the userId
@@ -558,7 +543,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
   // ==================== HELPER METHODS ====================
 
   /**
-   * Creates a new user in the system with optional email sending. Helper method that delegates to
+   * Creates a new user in the system with optional email sending. Helper method that delegates to.
    * the overloaded createUser with explicit createdUser.
    *
    * @param userRequestModel The UserRequestModel containing the user data to create
@@ -566,12 +551,12 @@ public class UserService extends BaseService implements IUserSubTranslator {
    * @throws BadRequestException if the user data is invalid or incomplete
    */
   @Transactional
-  protected void createUser(UserRequestModel userRequestModel, boolean sendEmail) {
-    createUser(userRequestModel, sendEmail, getUser(), true);
+  protected void createUserInternal(UserRequestModel userRequestModel, boolean sendEmail) {
+    createUserInternal(userRequestModel, sendEmail, getUser(), true);
   }
 
   /**
-   * Creates a new user in the system with optional email sending and explicit createdUser. This
+   * Creates a new user in the system with optional email sending and explicit createdUser. This.
    * variant is used for async operations where security context is not available.
    *
    * @param userRequestModel The UserRequestModel containing the user data to create
@@ -581,7 +566,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
    * @throws BadRequestException if the user data is invalid or incomplete
    */
   @Transactional
-  protected void createUser(
+  protected void createUserInternal(
       UserRequestModel userRequestModel, boolean sendEmail, String createdUser, boolean shouldLog) {
     // 1. Check if user email already exists
     if (userRepository.findByLoginName(userRequestModel.getLoginName()) != null) {
@@ -875,7 +860,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
   }
 
   /**
-   * Updates permission mappings for an existing user. Deletes all existing permissions and creates
+   * Updates permission mappings for an existing user. Deletes all existing permissions and creates.
    * new ones.
    *
    * @param userRequestModel The user request containing permission IDs
@@ -903,7 +888,7 @@ public class UserService extends BaseService implements IUserSubTranslator {
   }
 
   /**
-   * Updates user group mappings for an existing user. Deletes all existing group mappings and
+   * Updates user group mappings for an existing user. Deletes all existing group mappings and.
    * creates new ones if provided.
    *
    * @param userRequestModel The user request containing group IDs
@@ -925,8 +910,8 @@ public class UserService extends BaseService implements IUserSubTranslator {
   }
 
   /**
-   * Updates profile picture for an existing user. Handles deletion of old picture and upload of new
-   * one based on the request.
+   * Updates profile picture for an existing user. Handles deletion of old picture and upload of
+   * new. one based on the request.
    *
    * @param userRequestModel The user request containing profile picture base64
    * @param existingUser The existing user entity

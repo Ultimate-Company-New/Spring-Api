@@ -1,6 +1,13 @@
-package com.example.SpringApi.Models.DatabaseModels;
+package com.example.springapi.models.databasemodels;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,7 +49,7 @@ public class LatestTestResult {
   // ENUMS
   // ========================================================================
 
-  /** Test result status enum (includes NOT_RUN for tests never executed) */
+  /** Test result status enum (includes NOT_RUN for tests never executed). */
   public enum LatestResultStatus {
     PASSED("PASSED"),
     FAILED("FAILED"),
@@ -60,10 +67,17 @@ public class LatestTestResult {
       return value;
     }
 
+    /**
+     * Checks whether valid.
+     */
     public static boolean isValid(String value) {
-      if (value == null) return false;
+      if (value == null) {
+        return false;
+      }
       for (LatestResultStatus status : values()) {
-        if (status.value.equals(value)) return true;
+        if (status.value.equals(value)) {
+          return true;
+        }
       }
       return false;
     }

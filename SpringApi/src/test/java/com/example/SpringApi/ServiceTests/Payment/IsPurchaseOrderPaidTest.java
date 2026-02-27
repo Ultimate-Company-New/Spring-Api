@@ -1,4 +1,4 @@
-package com.example.SpringApi.ServiceTests.Payment;
+package com.example.springapi.ServiceTests.Payment;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -6,8 +6,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.example.SpringApi.Controllers.PaymentController;
-import com.example.SpringApi.Models.Authorizations;
+import com.example.springapi.controllers.PaymentController;
+import com.example.springapi.models.Authorizations;
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

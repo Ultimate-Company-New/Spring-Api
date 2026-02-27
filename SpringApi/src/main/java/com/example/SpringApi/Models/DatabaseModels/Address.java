@@ -1,9 +1,17 @@
-package com.example.SpringApi.Models.DatabaseModels;
+package com.example.springapi.models.databasemodels;
 
-import com.example.SpringApi.ErrorMessages;
-import com.example.SpringApi.Exceptions.BadRequestException;
-import com.example.SpringApi.Models.RequestModels.AddressRequestModel;
-import jakarta.persistence.*;
+import com.example.springapi.ErrorMessages;
+import com.example.springapi.exceptions.BadRequestException;
+import com.example.springapi.models.requestmodels.AddressRequestModel;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -12,6 +20,9 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+/**
+ * Represents the address component.
+ */
 @Getter
 @Setter
 @Entity
@@ -115,6 +126,9 @@ public class Address {
   public Address() {}
 
   // Constructor for creating new address
+  /**
+   * Executes address.
+   */
   public Address(AddressRequestModel request, String createdUser) {
     validateRequest(request);
     validateUser(createdUser);
@@ -125,6 +139,9 @@ public class Address {
   }
 
   // Constructor for updating existing address
+  /**
+   * Executes address.
+   */
   public Address(AddressRequestModel request, String modifiedUser, Address existingAddress) {
     validateRequest(request);
     validateUser(modifiedUser);
@@ -138,6 +155,9 @@ public class Address {
     this.modifiedUser = modifiedUser; // When updating, use the provided modified user
   }
 
+  /**
+   * Validates request.
+   */
   public void validateRequest(AddressRequestModel request) {
     if (request == null) {
       throw new BadRequestException(ErrorMessages.AddressErrorMessages.ER001);

@@ -1,6 +1,6 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.DatabaseModels.User;
+import com.example.springapi.models.databasemodels.User;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -52,7 +52,7 @@ public class UserResponseModel {
   public UserResponseModel() {}
 
   /**
-   * Minimal constructor for Purchase Order responses. Excludes permissions, addresses, and
+   * Minimal constructor for Purchase Order responses. Excludes permissions, addresses, and.
    * userGroups.
    *
    * @param user The User entity to populate from
@@ -123,7 +123,7 @@ public class UserResponseModel {
   }
 
   /**
-   * Constructor that populates fields from a User entity. Automatically populates address,
+   * Constructor that populates fields from a User entity. Automatically populates address,.
    * permissions, and userGroups if available.
    *
    * @param user The User entity to populate from

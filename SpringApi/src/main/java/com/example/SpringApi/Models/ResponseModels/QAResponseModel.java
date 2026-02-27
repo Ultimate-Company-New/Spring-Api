@@ -1,6 +1,6 @@
-package com.example.SpringApi.Models.ResponseModels;
+package com.example.springapi.models.responsemodels;
 
-import com.example.SpringApi.Models.DatabaseModels.LatestTestResult;
+import com.example.springapi.models.databasemodels.LatestTestResult;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,37 +23,37 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class QAResponseModel {
+public class QaResponseModel {
 
-  /** The name of the service (e.g., "AddressService", "UserService") */
+  /** The name of the service (e.g., "AddressService", "UserService"). */
   private String serviceName;
 
-  /** The controller that exposes this service's endpoints (e.g., "AddressController") */
+  /** The controller that exposes this service's endpoints (e.g., "AddressController"). */
   private String controllerName;
 
-  /** The base API path for this service (e.g., "/api/Address") */
+  /** The base API path for this service (e.g., "/api/Address"). */
   private String basePath;
 
-  /** The name of the unit test class for this service (e.g., "AddressServiceTest") */
+  /** The name of the unit test class for this service (e.g., "AddressServiceTest"). */
   private String testClassName;
 
-  /** List of all public methods in this service with their test mappings */
+  /** List of all public methods in this service with their test mappings. */
   private List<MethodInfo> methods;
 
-  /** Total number of public methods in this service */
+  /** Total number of public methods in this service. */
   private int totalMethods;
 
-  /** Number of methods that have at least one unit test */
+  /** Number of methods that have at least one unit test. */
   private int methodsWithCoverage;
 
-  /** Total number of unit tests across all methods */
+  /** Total number of unit tests across all methods. */
   private int totalTests;
 
-  /** Coverage percentage (methodsWithCoverage / totalMethods * 100) */
+  /** Coverage percentage (methodsWithCoverage / totalMethods * 100). */
   private double coveragePercentage;
 
   /** Default constructor. */
-  public QAResponseModel() {
+  public QaResponseModel() {
     this.methods = new ArrayList<>();
     this.totalMethods = 0;
     this.methodsWithCoverage = 0;
@@ -69,7 +69,7 @@ public class QAResponseModel {
    * @param basePath The base API path
    * @param testClassName The name of the test class
    */
-  public QAResponseModel(
+  public QaResponseModel(
       String serviceName, String controllerName, String basePath, String testClassName) {
     this.serviceName = serviceName;
     this.controllerName = controllerName;
@@ -112,28 +112,28 @@ public class QAResponseModel {
   @Setter
   public static class MethodInfo {
 
-    /** The name of the service method (e.g., "toggleAddress", "getAddressById") */
+    /** The name of the service method (e.g., "toggleAddress", "getAddressById"). */
     private String methodName;
 
-    /** The HTTP method used by this endpoint (GET, POST, PUT, DELETE) */
+    /** The HTTP method used by this endpoint (GET, POST, PUT, DELETE). */
     private String httpMethod;
 
-    /** The API route/path for this endpoint (e.g., "/api/Address/toggleAddress/{id}") */
+    /** The API route/path for this endpoint (e.g., "/api/Address/toggleAddress/{id}"). */
     private String apiRoute;
 
-    /** Brief description of what this method does */
+    /** Brief description of what this method does. */
     private String description;
 
     /**
-     * List of unit tests associated with this service method. Test names follow the pattern:
+     * List of unit tests associated with this service method. Test names follow the pattern:.
      * methodName_Result_Outcome
      */
     private List<TestInfo> associatedUnitTests;
 
-    /** The number of unit tests associated with this method */
+    /** The number of unit tests associated with this method. */
     private int testCount;
 
-    /** Whether this method has at least one unit test */
+    /** Whether this method has at least one unit test. */
     private boolean hasCoverage;
 
     /** Default constructor. */
@@ -191,7 +191,7 @@ public class QAResponseModel {
   public static class TestInfo {
 
     /**
-     * The name of the test method (e.g., "toggleAddress_AddressNotFound_ThrowsNotFoundException")
+     * The name of the test method (e.g., "toggleAddress_AddressNotFound_ThrowsNotFoundException").
      * Format: serviceMethodName_Result_Outcome
      */
     private String testMethodName;
@@ -206,35 +206,35 @@ public class QAResponseModel {
     private String declaringTestClassName;
 
     /**
-     * The human-readable display name from @DisplayName annotation (e.g., "Toggle Address - Address
-     * not found - ThrowsNotFoundException")
+     * The human-readable display name from @DisplayName annotation (e.g., "Toggle Address -
+     * Address. not found - ThrowsNotFoundException")
      */
     private String displayName;
 
     // ==================== LAST RUN INFORMATION ====================
 
-    /** Whether this test has been run before */
+    /** Whether this test has been run before. */
     private boolean hasBeenRun;
 
-    /** The status of the last run (PASSED, FAILED, SKIPPED, ERROR) */
+    /** The status of the last run (PASSED, FAILED, SKIPPED, ERROR). */
     private String lastRunStatus;
 
-    /** When the test was last run */
+    /** When the test was last run. */
     private LocalDateTime lastRunAt;
 
-    /** Who ran the test last */
+    /** Who ran the test last. */
     private String lastRunByUserName;
 
-    /** User ID of who ran the test last */
+    /** User ID of who ran the test last. */
     private Long lastRunByUserId;
 
-    /** Duration of the last run in milliseconds */
+    /** Duration of the last run in milliseconds. */
     private Integer lastRunDurationMs;
 
-    /** Error message from the last run (if failed) */
+    /** Error message from the last run (if failed). */
     private String lastRunErrorMessage;
 
-    /** Stack trace from the last run (if failed) */
+    /** Stack trace from the last run (if failed). */
     private String lastRunStackTrace;
 
     /** Default constructor. */
