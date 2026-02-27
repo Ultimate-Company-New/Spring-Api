@@ -133,9 +133,6 @@ jobs:
           category: "/language:${{matrix.language}}"
           # Output SARIF to a known location for the reporting job
           upload: true
-        # The analyze action doesn't let us easily name the sarif file here,
-        # but CodeQL stores them in a results directory.
-        # However, we can use the GitHub API in the next job which is more reliable.
 
   snyk:
     needs: analyze
@@ -183,34 +180,39 @@ jobs:
             const sarif = JSON.parse(fs.readFileSync(sarifFile, 'utf8'));
             const results = (sarif.runs && sarif.runs[0] && sarif.runs[0].results) || [];
 
-            console.log(`Analyzing ${results.length} total Snyk findings...`);
+            const { data: existingComments } = await github.rest.pulls.listReviewComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
 
             for (const res of results.slice(0, 50)) {
               const path = res.locations[0].physicalLocation.artifactLocation.uri;
               const fullPath = path.startsWith('SpringApi/') ? path : `SpringApi/${path}`;
               const line = res.locations[0].physicalLocation.region.startLine || 1;
-              const message = `🚀 **Snyk Repo-Wide Finding:** [${res.ruleId}]\n\n${res.message.text}`;
+              const message = `⚡ [Snyk: ${res.ruleId}] ${res.message.text}`;
+
+              const alreadyExists = existingComments.some(c => 
+                c.path === fullPath && 
+                c.line === line && 
+                c.body.includes(`[Snyk: ${res.ruleId}]`)
+              );
+
+              if (alreadyExists) continue;
 
               try {
-                // Try posting as a line comment
                 await github.rest.pulls.createReviewComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   pull_number: context.payload.pull_request.number,
-                  body: message,
+                  body: `⚡ **Snyk Finding:** ${message}`,
                   commit_id: context.payload.pull_request.head.sha,
                   path: fullPath,
                   line: line,
                   side: 'RIGHT'
                 });
               } catch (e) {
-                // Fallback: Post as a general PR comment if not in diff
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: context.payload.pull_request.number,
-                  body: `🚀 **Snyk Finding (External File):** ${fullPath}:${line}\n\n${res.message.text}`
-                });
+                console.log(`::error file=${fullPath},line=${line},title=⚡ Snyk Finding::${message}`);
               }
             }
       - name: Upload result to GitHub Code Scanning
@@ -230,39 +232,44 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            // Fetch ALL open alerts for the repo, not just this ref
             const { data: alerts } = await github.rest.codeScanning.listAlertsForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: 'open'
             });
 
-            console.log(`Annotating ${alerts.length} Repo-Wide CodeQL alerts.`);
+            const { data: existingComments } = await github.rest.pulls.listReviewComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
 
             for (const alert of alerts.slice(0, 50)) {
-              const severityEmoji = alert.rule.security_severity_level === 'critical' ? '🔴' : '🟠';
               const path = alert.most_recent_instance.location.path;
               const line = alert.most_recent_instance.location.start_line;
-              const message = `${severityEmoji} **CodeQL Repo-Wide Detection:** ${alert.rule.description}\n\n[View Details](${alert.html_url})`;
+              const message = `🛡️ [CodeQL: ${alert.rule.id}] ${alert.rule.description}`;
+
+              const alreadyExists = existingComments.some(c => 
+                c.path === path && 
+                c.line === line && 
+                c.body.includes(`[CodeQL: ${alert.rule.id}]`)
+              );
+
+              if (alreadyExists) continue;
 
               try {
                 await github.rest.pulls.createReviewComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   pull_number: context.payload.pull_request.number,
-                  body: message,
+                  body: `🛡️ **CodeQL Finding:** ${message}`,
                   commit_id: context.payload.pull_request.head.sha,
                   path: path,
                   line: line,
                   side: 'RIGHT'
                 });
               } catch (e) {
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: context.payload.pull_request.number,
-                  body: `${severityEmoji} **CodeQL Finding (External File):** ${path}:${line}\n\n${alert.rule.description}`
-                });
+                console.log(`::warning file=${path},line=${line},title=🛡️ CodeQL Finding::${message}`);
               }
             }
 
@@ -426,7 +433,7 @@ jobs:
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar 
           -Dsonar.projectKey=Ultimate-Company-New_Spring-Api
         working-directory: SpringApi
-      - name: Create Sonar Repo-Wide Comments
+      - name: Create Repo-Wide Sonar Comments
         if: always()
         uses: actions/github-script@v7
         env:
@@ -437,42 +444,65 @@ jobs:
             const token = process.env.SONAR_TOKEN;
             const auth = Buffer.from(token + ':').toString('base64');
 
-            const response = await fetch(`https://sonarcloud.io/api/issues/search?componentKeys=${projectKey}&resolved=false`, {
+            console.log(`Fetching all open issues for project: ${projectKey}`);
+
+            const response = await fetch(`https://sonarcloud.io/api/issues/search?componentKeys=${projectKey}&resolved=false&ps=100`, {
               headers: { 'Authorization': `Basic ${auth}` }
             });
+
+            if (!response.ok) {
+              const errText = await response.text();
+              console.error(`Sonar API Error: ${response.status} - ${errText}`);
+              return;
+            }
+
             const data = await response.json();
             const issues = data.issues || [];
+            console.log(`SonarCloud API returned ${issues.length} total open issues.`);
 
-            console.log(`Found ${issues.length} Repo-Wide Sonar issues.`);
+            const { data: existingComments } = await github.rest.pulls.listReviewComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
 
-            for (const issue of issues.slice(0, 50)) {
-              // Sonar paths usually start from the module root
-              const path = issue.component.split(':').pop();
-              const fullPath = `SpringApi/${path}`;
+            let commentsPosted = 0;
+            for (const issue of issues) {
+              if (commentsPosted >= 50) break;
+
+              const componentParts = issue.component.split(':');
+              const path = componentParts[componentParts.length - 1];
+              const fullPath = path.startsWith('SpringApi/') ? path : `SpringApi/${path}`;
               const line = issue.line || 1;
-              const severity = issue.severity === 'CRITICAL' || issue.severity === 'BLOCKER' ? '🔴' : '🟡';
-              const message = `${severity} **SonarCloud Repo-Wide Finding:** ${issue.message}\n\nType: ${issue.type}`;
+              const rule = issue.rule;
+              const message = `📡 [Sonar: ${rule}] ${issue.message}`;
+
+              const alreadyExists = existingComments.some(c => 
+                c.path === fullPath && 
+                c.line === line && 
+                c.body.includes(`[Sonar: ${rule}]`)
+              );
+
+              if (alreadyExists) continue;
 
               try {
                 await github.rest.pulls.createReviewComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   pull_number: context.payload.pull_request.number,
-                  body: message,
+                  body: `📡 **SonarCloud Finding:** ${message}`,
                   commit_id: context.payload.pull_request.head.sha,
                   path: fullPath,
                   line: line,
                   side: 'RIGHT'
                 });
+                commentsPosted++;
+                console.log(`Posted Sonar comment ${commentsPosted}: ${fullPath}:${line}`);
               } catch (e) {
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: context.payload.pull_request.number,
-                  body: `${severity} **Sonar Finding (External File):** ${fullPath}:${line}\n\n${issue.message}`
-                });
+                console.log(`::warning file=${fullPath},line=${line},title=📡 Sonar Finding::${message}`);
               }
             }
+            console.log(`Successfully processed Sonar findings.`);
 
   spotless:
     needs: sonar
@@ -506,8 +536,6 @@ jobs:
 
           if [ -n "$(git status --porcelain)" ]; then
             echo "Changes detected"
-            # Get list of files, replace newlines with comma or just list them
-            # We need to be careful with newlines in GITHUB_OUTPUT
             
             # Use a delimiter for multiline strings
             EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
