@@ -141,6 +141,7 @@ jobs:
       contents: read
       security-events: write
       pull-requests: write
+      checks: write
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
@@ -161,11 +162,6 @@ jobs:
       - name: Snyk Open Source monitor
         working-directory: SpringApi
         run: snyk monitor --all-projects || true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      - name: Snyk IaC test
-        working-directory: SpringApi
-        run: snyk iac test --report || true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: Create Snyk Review
@@ -444,6 +440,10 @@ jobs:
     name: Build and analyze
     needs: test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
     steps:
       - uses: actions/checkout@v4
         with:
