@@ -882,4 +882,3 @@ abstract class ShippingServiceTestBase {
     assertEquals(expectedMessage, ex.getMessage());
   }
 }
-

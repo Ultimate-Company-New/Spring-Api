@@ -123,4 +123,3 @@ public interface IUserGroupSubTranslator {
   com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateUserGroups(
       java.util.List<UserGroupRequestModel> userGroups);
 }
-

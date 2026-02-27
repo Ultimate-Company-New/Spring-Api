@@ -121,4 +121,3 @@ public class GetAllPickupLocationsResponseModel {
     private int primaryLocation;
   }
 }
-

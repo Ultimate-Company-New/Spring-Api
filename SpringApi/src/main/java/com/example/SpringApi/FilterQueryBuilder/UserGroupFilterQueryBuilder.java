@@ -206,4 +206,3 @@ public class UserGroupFilterQueryBuilder extends BaseFilterQueryBuilder {
     return new PageImpl<>(userGroups, pageable, totalCount);
   }
 }
-

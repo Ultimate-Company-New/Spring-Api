@@ -255,4 +255,3 @@ class GetPickupLocationByIdTest extends PickupLocationServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

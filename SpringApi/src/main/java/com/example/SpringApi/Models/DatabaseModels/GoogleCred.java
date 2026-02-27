@@ -105,4 +105,3 @@ public class GoogleCred {
     // Required by JPA.
   }
 }
-

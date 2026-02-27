@@ -82,4 +82,3 @@ public interface IMessageSubTranslator {
    */
   int getUnreadMessageCount();
 }
-

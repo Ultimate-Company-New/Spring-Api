@@ -323,4 +323,3 @@ abstract class ClientServiceTestBase {
             lenient().when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(response));
   }
 }
-

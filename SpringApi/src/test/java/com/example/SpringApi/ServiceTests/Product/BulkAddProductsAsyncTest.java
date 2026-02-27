@@ -268,4 +268,3 @@ class BulkAddProductsAsyncTest extends ProductServiceTestBase {
     verify(productServiceMock).bulkAddProductsAsync(anyList(), anyLong(), anyString(), anyLong());
   }
 }
-

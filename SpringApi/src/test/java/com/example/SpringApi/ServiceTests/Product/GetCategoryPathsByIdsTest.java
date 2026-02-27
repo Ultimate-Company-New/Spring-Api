@@ -171,4 +171,3 @@ class GetCategoryPathsByIdsTest extends ProductServiceTestBase {
     verify(productServiceMock).getCategoryPathsByIds(any());
   }
 }
-

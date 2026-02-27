@@ -81,4 +81,3 @@ public interface IClientSubTranslator {
    */
   List<ClientResponseModel> getClientsByUser();
 }
-

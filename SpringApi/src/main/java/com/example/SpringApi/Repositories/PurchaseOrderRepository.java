@@ -51,4 +51,3 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
   Optional<PurchaseOrder> findByPurchaseOrderIdAndClientIdWithAllRelations(
       @Param("purchaseOrderId") Long purchaseOrderId, @Param("clientId") Long clientId);
 }
-

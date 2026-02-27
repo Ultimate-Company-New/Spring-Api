@@ -22,4 +22,3 @@ public class AddressDuplicateCriteria {
   private Boolean isPrimary;
   private Boolean isDeleted;
 }
-

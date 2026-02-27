@@ -15,4 +15,3 @@ public interface MessageUserReadMapRepository extends JpaRepository<MessageUserR
   MessageUserReadMap findByMessageIdAndUserId(
       @Param("messageId") Long messageId, @Param("userId") Long userId);
 }
-

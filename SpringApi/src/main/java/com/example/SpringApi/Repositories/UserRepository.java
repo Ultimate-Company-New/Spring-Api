@@ -81,4 +81,3 @@ public interface UserRepository extends JpaRepository<User, Long> {
       @Param("userIds") List<Long> userIds,
       @Param("groupIds") List<Long> groupIds);
 }
-

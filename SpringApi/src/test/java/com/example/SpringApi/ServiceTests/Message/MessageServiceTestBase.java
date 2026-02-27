@@ -603,4 +603,3 @@ abstract class MessageServiceTestBase {
     assertEquals(expectedMessage, ex.getMessage());
   }
 }
-

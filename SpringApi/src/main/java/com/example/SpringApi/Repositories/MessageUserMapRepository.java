@@ -19,4 +19,3 @@ public interface MessageUserMapRepository extends JpaRepository<MessageUserMap, 
   @Transactional
   void deleteByMessageId(Long messageId);
 }
-

@@ -49,4 +49,3 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
           "SELECT c FROM Client c LEFT JOIN FETCH c.googleCred WHERE c.isDeleted = false ORDER BY c.clientId ASC LIMIT 1")
   Client findFirstByOrderByClientIdAsc();
 }
-

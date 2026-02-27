@@ -27,4 +27,3 @@ public class CashPaymentRequestModel {
   /** Optional: UPI transaction ID if payment was made via UPI */
   private String upiTransactionId;
 }
-

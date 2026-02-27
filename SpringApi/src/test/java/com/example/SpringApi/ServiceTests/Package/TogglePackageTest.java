@@ -325,4 +325,3 @@ class TogglePackageTest extends PackageServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

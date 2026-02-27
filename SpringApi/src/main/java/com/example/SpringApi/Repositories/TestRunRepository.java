@@ -52,4 +52,3 @@ public interface TestRunRepository extends JpaRepository<TestRun, Long> {
           + "ORDER BY tr.createdDate DESC LIMIT :limit")
   List<TestRun> findRecentTestRuns(@Param("clientId") Long clientId, @Param("limit") int limit);
 }
-

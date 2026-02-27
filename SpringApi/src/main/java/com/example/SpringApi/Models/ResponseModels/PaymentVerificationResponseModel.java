@@ -45,4 +45,3 @@ public class PaymentVerificationResponseModel {
     return new PaymentVerificationResponseModel(false, message, null, null, null);
   }
 }
-

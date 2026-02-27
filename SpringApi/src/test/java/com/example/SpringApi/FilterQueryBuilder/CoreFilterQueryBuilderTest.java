@@ -274,4 +274,3 @@ class CoreFilterQueryBuilderTest extends FilterQueryBuilderTestBase {
         fixture.getCountQueryString().contains("LOWER(pl.addressNickName) LIKE LOWER(:param0)"));
   }
 }
-

@@ -17,4 +17,3 @@ public class PaginationBaseResponseModel<T> {
     this.totalDataCount = totalDataCount;
   }
 }
-

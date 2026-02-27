@@ -19,4 +19,3 @@ public final class ImageLocationConstants {
   /** Constant for Firebase image storage service. */
   public static final String FIREBASE = "firebase";
 }
-

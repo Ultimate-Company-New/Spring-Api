@@ -76,4 +76,3 @@ class ApiRoutesContractTest {
     assertTrue(ApiRoutes.OrdersSubRoute.values().length > 0);
   }
 }
-

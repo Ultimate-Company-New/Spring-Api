@@ -330,4 +330,3 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
     return new PageImpl<>(products, pageable, totalCount);
   }
 }
-

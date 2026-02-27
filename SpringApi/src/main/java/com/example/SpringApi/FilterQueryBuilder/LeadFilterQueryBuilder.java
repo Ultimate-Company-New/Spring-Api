@@ -190,4 +190,3 @@ public class LeadFilterQueryBuilder extends BaseFilterQueryBuilder {
     return new PageImpl<>(leads, pageable, totalCount);
   }
 }
-

@@ -20,4 +20,3 @@ public class LocalDateTimeAdapter
     return LocalDateTime.parse(jsonElement.getAsString(), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
   }
 }
-

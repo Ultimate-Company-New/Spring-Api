@@ -79,4 +79,3 @@ public interface IPromoSubTranslator {
       String requestingUserLoginName,
       Long requestingClientId);
 }
-

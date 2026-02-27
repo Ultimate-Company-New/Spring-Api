@@ -216,4 +216,3 @@ class BulkCreateUserGroupsAsyncTest extends UserGroupServiceTestBase {
     assertEquals(HttpStatus.CREATED, response.getStatusCode());
   }
 }
-

@@ -443,4 +443,3 @@ class UpdateTodoTest extends TodoServiceTestBase {
     verify(todoServiceMock, times(1)).updateTodo(any(TodoRequestModel.class));
   }
 }
-

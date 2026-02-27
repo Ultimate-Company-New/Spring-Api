@@ -145,4 +145,3 @@ class BaseServiceTest {
     RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockRequest));
   }
 }
-

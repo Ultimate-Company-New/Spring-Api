@@ -1039,4 +1039,3 @@ public class UserService extends BaseService implements IUserSubTranslator {
     }
   }
 }
-

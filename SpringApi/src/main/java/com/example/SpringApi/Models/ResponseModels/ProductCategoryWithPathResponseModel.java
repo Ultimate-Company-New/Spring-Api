@@ -40,4 +40,3 @@ public class ProductCategoryWithPathResponseModel {
     this.isEnd = isEnd;
   }
 }
-
