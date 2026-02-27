@@ -345,3 +345,4 @@ class GetAllEndpointsWithTestsTest extends QAServiceTestBase {
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 }
+

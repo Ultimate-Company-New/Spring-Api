@@ -57,3 +57,4 @@ public enum UserRole {
     return this.value;
   }
 }
+

@@ -511,3 +511,4 @@ class CreateUserTest extends UserServiceTestBase {
     assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
   }
 }
+

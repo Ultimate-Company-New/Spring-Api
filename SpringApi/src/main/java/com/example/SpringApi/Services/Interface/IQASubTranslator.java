@@ -98,3 +98,4 @@ public interface IQASubTranslator {
    */
   TestExecutionStatusModel getTestExecutionStatus(String executionId);
 }
+

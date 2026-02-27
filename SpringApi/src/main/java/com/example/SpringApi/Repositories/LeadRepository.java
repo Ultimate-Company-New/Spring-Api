@@ -34,3 +34,4 @@ public interface LeadRepository extends JpaRepository<Lead, Long> {
   Lead findLeadWithDetailsByIdIncludingDeleted(
       @Param("leadId") Long leadId, @Param("clientId") Long clientId);
 }
+

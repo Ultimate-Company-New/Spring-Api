@@ -34,3 +34,4 @@ public class MessageRequestModel extends PaginationBaseRequestModel {
   private List<Long> userGroupIds;
   private List<Long> userIds;
 }
+

@@ -454,3 +454,4 @@ class GetEndpointsWithTestsByServiceTest extends QAServiceTestBase {
         String.join(", ", getServiceMappings().keySet()));
   }
 }
+

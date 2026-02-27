@@ -480,3 +480,4 @@ public class ImgbbHelper {
     return successCount;
   }
 }
+

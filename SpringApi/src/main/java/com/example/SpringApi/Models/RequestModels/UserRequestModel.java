@@ -65,3 +65,4 @@ public class UserRequestModel extends PaginationBaseRequestModel {
     return UserRole.isValid(role);
   }
 }
+

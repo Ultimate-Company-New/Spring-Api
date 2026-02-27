@@ -45,3 +45,4 @@ public final class ProductImageConstants {
   public static final List<String> OPTIONAL_IMAGE_TYPES =
       Collections.unmodifiableList(Arrays.asList(DEFECT, ADDITIONAL_1, ADDITIONAL_2, ADDITIONAL_3));
 }
+

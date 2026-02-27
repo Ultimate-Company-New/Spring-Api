@@ -348,3 +348,4 @@ public class Client {
     this.notes = request.getNotes() != null ? request.getNotes().trim() : null;
   }
 }
+

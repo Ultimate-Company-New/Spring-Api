@@ -30,3 +30,4 @@ public class OrderOptimizationRequestModel {
    */
   private Map<Long, Map<Long, Integer>> customAllocations;
 }
+

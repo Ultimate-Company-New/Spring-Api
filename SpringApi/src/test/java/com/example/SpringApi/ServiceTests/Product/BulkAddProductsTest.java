@@ -173,3 +173,4 @@ class BulkAddProductsTest extends ProductServiceTestBase {
     verify(productServiceMock).bulkAddProducts(anyList());
   }
 }
+

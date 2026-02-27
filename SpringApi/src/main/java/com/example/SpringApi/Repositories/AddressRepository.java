@@ -61,3 +61,4 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
   java.util.Optional<Address> findExactDuplicate(
       @Param("criteria") AddressDuplicateCriteria criteria);
 }
+

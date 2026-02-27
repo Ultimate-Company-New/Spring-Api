@@ -47,3 +47,4 @@ class SecurityConfigTest {
     assertEquals(3600L, configuration.getMaxAge());
   }
 }
+

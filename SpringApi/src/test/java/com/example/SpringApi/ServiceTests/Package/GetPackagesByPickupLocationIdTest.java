@@ -746,3 +746,4 @@ class GetPackagesByPickupLocationIdDuplicateTests extends PackageServiceTestBase
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
+

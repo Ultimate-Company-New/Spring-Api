@@ -28,3 +28,4 @@ public class TokenResponseModel {
   @JsonProperty("token")
   private String token;
 }
+

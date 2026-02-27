@@ -315,3 +315,4 @@ class FirebaseHelperTest {
     return cred;
   }
 }
+

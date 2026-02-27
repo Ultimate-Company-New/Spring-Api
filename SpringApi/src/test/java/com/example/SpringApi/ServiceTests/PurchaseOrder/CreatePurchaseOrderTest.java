@@ -520,3 +520,4 @@ class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
+

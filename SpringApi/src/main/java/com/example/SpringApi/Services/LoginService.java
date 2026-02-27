@@ -358,3 +358,4 @@ public class LoginService extends BaseService implements ILoginSubTranslator {
     return jwtTokenProvider.generateToken(user, permissionIds, clientId);
   }
 }
+

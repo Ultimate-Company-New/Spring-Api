@@ -20,3 +20,4 @@ public class LoginRequestModel {
   private String role;
   private Boolean isTermsAndConditions;
 }
+

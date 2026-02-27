@@ -102,3 +102,4 @@ class AddressResponseModelTest {
     assertEquals(Boolean.TRUE, parsed.getIsPrimary());
   }
 }
+

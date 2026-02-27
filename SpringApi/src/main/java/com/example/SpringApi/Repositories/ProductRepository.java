@@ -26,3 +26,4 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
           + "WHERE p.productId = :id AND p.clientId = :clientId")
   Product findByIdWithRelatedEntities(@Param("id") Long id, @Param("clientId") Long clientId);
 }
+

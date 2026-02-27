@@ -173,3 +173,4 @@ class ShippingRequestModelsTest {
     assertEquals(2, parsed.getPickupLocations().getFirst().getProductIds().size());
   }
 }
+

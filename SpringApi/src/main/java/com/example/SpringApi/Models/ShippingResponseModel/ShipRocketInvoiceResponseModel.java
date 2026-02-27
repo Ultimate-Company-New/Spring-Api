@@ -28,3 +28,4 @@ public class ShipRocketInvoiceResponseModel {
     return Boolean.TRUE.equals(isInvoiceCreated);
   }
 }
+

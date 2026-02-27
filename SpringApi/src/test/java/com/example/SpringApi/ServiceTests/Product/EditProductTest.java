@@ -291,3 +291,4 @@ class EditProductTest extends ProductServiceTestBase {
     verify(productServiceMock).editProduct(testProductRequest);
   }
 }
+

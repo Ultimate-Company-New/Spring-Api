@@ -357,3 +357,4 @@ class BulkCreateUserGroupsTest extends UserGroupServiceTestBase {
     assertEquals(HttpStatus.CREATED, response.getStatusCode());
   }
 }
+

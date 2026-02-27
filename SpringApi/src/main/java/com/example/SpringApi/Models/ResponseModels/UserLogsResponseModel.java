@@ -66,3 +66,4 @@ public class UserLogsResponseModel {
     this.oldValue = userLog.getOldValue();
   }
 }
+

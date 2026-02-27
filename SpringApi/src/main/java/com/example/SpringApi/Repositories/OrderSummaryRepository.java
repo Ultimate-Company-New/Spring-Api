@@ -29,3 +29,4 @@ public interface OrderSummaryRepository extends JpaRepository<OrderSummary, Long
     return findByEntityTypeAndEntityId("PURCHASE_ORDER", purchaseOrderId);
   }
 }
+

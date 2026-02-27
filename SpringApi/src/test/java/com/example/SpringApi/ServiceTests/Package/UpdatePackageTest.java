@@ -604,3 +604,4 @@ class UpdatePackageTest extends PackageServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
+

@@ -342,3 +342,4 @@ class ResetPasswordTest extends LoginServiceTestBase {
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 }
+

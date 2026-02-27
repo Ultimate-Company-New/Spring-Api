@@ -95,3 +95,4 @@ public class MessageUserReadMap {
     this.modifiedUser = createdUser;
   }
 }
+

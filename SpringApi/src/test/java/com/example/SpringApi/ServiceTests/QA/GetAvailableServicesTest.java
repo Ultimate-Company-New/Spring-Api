@@ -251,3 +251,4 @@ class GetAvailableServicesTest extends QAServiceTestBase {
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 }
+

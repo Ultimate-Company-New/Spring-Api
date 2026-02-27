@@ -278,3 +278,4 @@ class ToggleAddressTest extends AddressServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode(), "Should return HTTP 200 OK");
   }
 }
+

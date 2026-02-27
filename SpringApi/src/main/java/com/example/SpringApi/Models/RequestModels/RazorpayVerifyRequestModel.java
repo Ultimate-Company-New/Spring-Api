@@ -22,3 +22,4 @@ public class RazorpayVerifyRequestModel {
   /** Razorpay signature for verification */
   private String razorpaySignature;
 }
+
