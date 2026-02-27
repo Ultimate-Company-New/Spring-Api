@@ -175,66 +175,49 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk-code.sarif
-      - name: Post Snyk Comment
+      - name: Create Snyk Review
         if: always()
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const commentIdentifier = '<!-- snyk-results-comment -->';
-            let message = `${commentIdentifier}\n## 🚀 Snyk Security Results\n\n`;
+            const sarifFile = 'snyk-code.sarif';
 
-            try {
-              if (fs.existsSync('snyk-code.sarif')) {
-                const sarif = JSON.parse(fs.readFileSync('snyk-code.sarif', 'utf8'));
-                const results = sarif.runs[0].results || [];
-                
-                if (results.length === 0) {
-                  message += "✅ **Snyk Code: No vulnerabilities found!**\n";
-                } else {
-                  message += `⚠️ **Snyk Code: Found ${results.length} vulnerability(ies).**\n`;
-                  message += "| Severity | ID | Description |\n";
-                  message += "| :--- | :--- | :--- |\n";
-                  for (const res of results.slice(0, 10)) {
-                    const level = res.level === 'error' ? '🔴' : res.level === 'warning' ? '🟠' : '🟡';
-                    message += `| ${level} ${res.level} | ${res.ruleId} | ${res.message.text} |\n`;
-                  }
-                  if (results.length > 10) message += `\n*...and ${results.length - 10} more. Check the Security tab for full details.*`;
-                }
-              } else {
-                message += "❌ **Snyk Code analysis could not be parsed.**\n";
-              }
-            } catch (e) {
-              message += "⚠️ **Snyk Code analysis finished. Check the GitHub Security tab for details.**\n";
+            if (!fs.existsSync(sarifFile)) {
+              console.log("No Snyk SARIF file found.");
+              return;
             }
 
-            message += "\n---\n*Snyk Open Source and IaC results have been monitored/reported to the Snyk Dashboard.*";
+            const sarif = JSON.parse(fs.readFileSync(sarifFile, 'utf8'));
+            const results = (sarif.runs && sarif.runs[0] && sarif.runs[0].results) || [];
 
-            const prNumber = context.issue.number;
-            if (prNumber) {
-              const { data: comments } = await github.rest.issues.listComments({
+            console.log(`Found ${results.length} Snyk results.`);
+
+            const comments = results.map(res => {
+              const path = res.locations[0].physicalLocation.artifactLocation.uri;
+              // Prepend SpringApi/ to the path since SARIF is generated inside that folder
+              const fullPath = path.startsWith('SpringApi/') ? path : `SpringApi/${path}`;
+              
+              return {
+                path: fullPath,
+                line: res.locations[0].physicalLocation.region.startLine,
+                body: `🚀 **Snyk Code Finding:** [${res.ruleId}]\n\n${res.message.text}`
+              };
+            });
+
+            if (comments.length > 0) {
+              await github.rest.pulls.createReview({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: prNumber,
+                pull_number: context.issue.number,
+                event: 'COMMENT',
+                commit_id: context.payload.pull_request.head.sha,
+                comments: comments.slice(0, 50), // API limit safety
+                body: 'Snyk Code has identified some potential security or quality issues. Please review them below.'
               });
-
-              const existingComment = comments.find(c => c.body.includes(commentIdentifier));
-
-              if (existingComment) {
-                await github.rest.issues.updateComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: existingComment.id,
-                  body: message
-                });
-              } else {
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: prNumber,
-                  body: message
-                });
-              }
+              console.log(`Posted ${Math.min(comments.length, 50)} comments.`);
+            } else {
+              console.log("No issues to comment on.");
             }
 
   security-results:
@@ -245,7 +228,7 @@ jobs:
       security-events: read
       pull-requests: write
     steps:
-      - name: Security Report Comment
+      - name: Create CodeQL Review
         uses: actions/github-script@v7
         with:
           script: |
@@ -256,55 +239,33 @@ jobs:
               state: 'open'
             });
 
-            // Filter for alerts relevant to this PR branch if possible, 
-            // though listAlertsForRepo with ref is usually correct.
+            console.log(`Found ${alerts.length} open CodeQL alerts for ref ${context.ref}`);
 
-            const commentIdentifier = '<!-- codeql-results-comment -->';
-            let message = `${commentIdentifier}\n## 🛡️ CodeQL Security Analysis Results\n\n`;
-
-            if (alerts.length === 0) {
-              message += "✅ **No security vulnerabilities found!** Your code looks secure. 🌟";
-            } else {
-              message += `⚠️ **Found ${alerts.length} open security alert(s).**\n\n`;
-              message += "| Severity | Rule | Description | File |\n";
-              message += "| :--- | :--- | :--- | :--- |\n";
+            const comments = alerts.map(alert => {
+              const severityEmoji = alert.rule.security_severity_level === 'critical' ? '🔴' : 
+                                   alert.rule.security_severity_level === 'high' ? '🟠' : 
+                                   alert.rule.security_severity_level === 'medium' ? '🟡' : '🔵';
               
-              for (const alert of alerts) {
-                const severityEmoji = alert.rule.security_severity_level === 'critical' ? '🔴' : 
-                                     alert.rule.security_severity_level === 'high' ? '🟠' : 
-                                     alert.rule.security_severity_level === 'medium' ? '🟡' : '🔵';
-                
-                message += `| ${severityEmoji} ${alert.rule.security_severity_level} | ${alert.rule.id} | ${alert.rule.description} | [${alert.most_recent_instance.location.path}](${alert.html_url}) |\n`;
-              }
-              
-              message += "\n\nPlease review these findings and address any vulnerabilities. 🔐";
-            }
+              return {
+                path: alert.most_recent_instance.location.path,
+                line: alert.most_recent_instance.location.start_line,
+                body: `${severityEmoji} **CodeQL Alert [${alert.rule.id}]:** ${alert.rule.description}\n\n[View Alert Details](${alert.html_url})`
+              };
+            });
 
-            const prNumber = context.issue.number;
-            if (prNumber) {
-              const { data: comments } = await github.rest.issues.listComments({
+            if (comments.length > 0) {
+              await github.rest.pulls.createReview({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: prNumber,
+                pull_number: context.issue.number,
+                event: 'COMMENT',
+                commit_id: context.payload.pull_request.head.sha,
+                comments: comments.slice(0, 50),
+                body: '🛡️ CodeQL Security Analysis has identified some issues. Please see the line comments below.'
               });
-
-              const existingComment = comments.find(c => c.body.includes(commentIdentifier));
-
-              if (existingComment) {
-                await github.rest.issues.updateComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: existingComment.id,
-                  body: message
-                });
-              } else {
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: prNumber,
-                  body: message
-                });
-              }
+              console.log(`Posted ${Math.min(comments.length, 50)} CodeQL comments.`);
+            } else {
+              console.log("No CodeQL alerts found.");
             }
 
   build:
@@ -463,7 +424,12 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Ultimate-Company-New_Spring-Api
+        run: >
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar 
+          -Dsonar.projectKey=Ultimate-Company-New_Spring-Api
+          -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
+          -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
+          -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
         working-directory: SpringApi
 
   spotless:
