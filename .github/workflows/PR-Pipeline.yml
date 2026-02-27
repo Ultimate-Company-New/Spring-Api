@@ -131,7 +131,7 @@ jobs:
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{matrix.language}}"
-          # Output SARIF to a known location for the reporting job
+          ## Output SARIF to a known location for the reporting job
           upload: true
 
   snyk:
