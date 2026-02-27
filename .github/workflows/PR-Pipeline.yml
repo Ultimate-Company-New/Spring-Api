@@ -204,6 +204,12 @@ jobs:
 
             console.log(`Processing Snyk results for PR #${prNumber} at SHA ${headSha}`);
 
+            const { data: existingComments } = await github.rest.pulls.listReviewComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+
             const prFilesData = await github.paginate(github.rest.pulls.listFiles, {
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -267,6 +273,12 @@ jobs:
           script: |
             const prNumber = context.payload.pull_request.number;
             const headSha = context.payload.pull_request.head.sha;
+
+            const { data: existingComments } = await github.rest.pulls.listReviewComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
 
             const { data: alerts } = await github.rest.codeScanning.listAlertsForRepo({
               owner: context.repo.owner,
