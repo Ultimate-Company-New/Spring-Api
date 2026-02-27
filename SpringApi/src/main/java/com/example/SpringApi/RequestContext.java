@@ -29,4 +29,3 @@ public class RequestContext {
     return context.get();
   }
 }
-

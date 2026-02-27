@@ -55,4 +55,3 @@ public interface ITodoSubTranslator {
    */
   List<TodoResponseModel> getTodoItems();
 }
-

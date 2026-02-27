@@ -215,4 +215,3 @@ class JwtTokenProviderTest {
     return builder.signWith(PasswordHelper.getSecretKey(secret)).compact();
   }
 }
-

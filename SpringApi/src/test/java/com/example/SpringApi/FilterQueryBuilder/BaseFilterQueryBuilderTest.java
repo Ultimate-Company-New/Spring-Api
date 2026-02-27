@@ -437,4 +437,3 @@ class BaseFilterQueryBuilderTest extends FilterQueryBuilderTestBase {
     }
   }
 }
-

@@ -196,4 +196,3 @@ abstract class TodoServiceTestBase {
     assertEquals(expectedMessage, ex.getMessage());
   }
 }
-

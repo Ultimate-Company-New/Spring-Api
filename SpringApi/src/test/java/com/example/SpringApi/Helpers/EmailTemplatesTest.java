@@ -251,4 +251,3 @@ class EmailTemplatesTest {
     return client;
   }
 }
-

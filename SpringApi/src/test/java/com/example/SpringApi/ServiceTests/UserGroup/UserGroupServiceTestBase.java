@@ -331,4 +331,3 @@ abstract class UserGroupServiceTestBase {
                 com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED));
   }
 }
-

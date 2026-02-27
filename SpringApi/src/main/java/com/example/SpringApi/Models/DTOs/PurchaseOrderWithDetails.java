@@ -38,4 +38,3 @@ public class PurchaseOrderWithDetails {
     return model;
   }
 }
-

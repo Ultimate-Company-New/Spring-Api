@@ -10,4 +10,3 @@ public interface IEmailHelper {
 
   void cancelEmail(String batchId);
 }
-

@@ -281,4 +281,3 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
     return null;
   }
 }
-

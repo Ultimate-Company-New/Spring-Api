@@ -21,4 +21,3 @@ public class TodoRequestModel extends PaginationBaseRequestModel {
   private String task;
   private Boolean isDone;
 }
-

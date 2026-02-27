@@ -93,4 +93,3 @@ public interface IPackageSubTranslator {
   com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreatePackages(
       java.util.List<PackageRequestModel> packages);
 }
-

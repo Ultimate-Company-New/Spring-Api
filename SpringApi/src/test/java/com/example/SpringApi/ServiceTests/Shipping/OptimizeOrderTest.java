@@ -735,4 +735,3 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 }
-

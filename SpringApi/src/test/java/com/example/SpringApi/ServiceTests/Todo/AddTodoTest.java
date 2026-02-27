@@ -465,4 +465,3 @@ class AddTodoTest extends TodoServiceTestBase {
     verify(todoServiceMock, times(1)).addTodo(any(TodoRequestModel.class));
   }
 }
-

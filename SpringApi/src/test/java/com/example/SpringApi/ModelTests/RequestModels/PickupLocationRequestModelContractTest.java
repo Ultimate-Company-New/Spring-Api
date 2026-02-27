@@ -217,4 +217,3 @@ class PickupLocationRequestModelContractTest {
     }
   }
 }
-

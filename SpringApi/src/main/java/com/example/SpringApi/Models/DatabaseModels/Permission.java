@@ -83,4 +83,3 @@ public class Permission {
     // Default constructor for JPA
   }
 }
-

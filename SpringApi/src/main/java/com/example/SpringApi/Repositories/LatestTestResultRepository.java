@@ -69,4 +69,3 @@ public interface LatestTestResultRepository extends JpaRepository<LatestTestResu
   /** Delete all results for a service (useful for cleanup) */
   void deleteByClientIdAndServiceName(Long clientId, String serviceName);
 }
-

@@ -310,4 +310,3 @@ class ToggleTodoTest extends TodoServiceTestBase {
     verify(todoServiceMock, times(1)).toggleTodo(TEST_TODO_ID);
   }
 }
-

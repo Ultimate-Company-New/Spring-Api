@@ -144,4 +144,3 @@ class GetLeadDetailsByEmailTest extends LeadServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

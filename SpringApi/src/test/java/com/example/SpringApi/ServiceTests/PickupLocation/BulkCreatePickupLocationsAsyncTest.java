@@ -330,4 +330,3 @@ class BulkCreatePickupLocationsAsyncTest extends PickupLocationServiceTestBase {
         "bulkCreatePickupLocationsAsync should return ResponseEntity");
   }
 }
-

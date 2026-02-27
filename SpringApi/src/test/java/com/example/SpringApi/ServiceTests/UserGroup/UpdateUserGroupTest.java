@@ -369,4 +369,3 @@ class UpdateUserGroupTest extends UserGroupServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

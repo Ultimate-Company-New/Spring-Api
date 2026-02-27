@@ -164,4 +164,3 @@ public class PasswordHelper {
     return password.chars().anyMatch(Character::isLowerCase);
   }
 }
-

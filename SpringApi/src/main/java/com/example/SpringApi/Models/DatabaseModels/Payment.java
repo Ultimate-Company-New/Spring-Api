@@ -650,4 +650,3 @@ public class Payment {
     return paid - refunded;
   }
 }
-

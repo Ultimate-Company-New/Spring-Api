@@ -102,4 +102,3 @@ class AddressRequestModelTest {
     assertTrue(model.isIncludeDeleted());
   }
 }
-

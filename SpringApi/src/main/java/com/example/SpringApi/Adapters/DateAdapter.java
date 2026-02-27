@@ -23,4 +23,3 @@ public class DateAdapter implements JsonSerializer<Date>, JsonDeserializer<Date>
     }
   }
 }
-

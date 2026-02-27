@@ -91,4 +91,3 @@ public class UserClientMapping {
     this.modifiedUser = modifiedUser;
   }
 }
-

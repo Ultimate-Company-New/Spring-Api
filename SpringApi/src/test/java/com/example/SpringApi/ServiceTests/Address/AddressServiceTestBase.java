@@ -307,4 +307,3 @@ abstract class AddressServiceTestBase {
     return createTestAddress(addressRequest, DEFAULT_CREATED_USER);
   }
 }
-
