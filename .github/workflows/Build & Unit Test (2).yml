@@ -1,0 +1,126 @@
+name: Build & Unit Test
+
+on:
+  workflow_call:
+    inputs:
+      pr_number:
+        required: true
+        type: string
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn -B package -DskipTests
+        working-directory: SpringApi
+
+      - name: Run Unit Tests
+        id: run_tests
+        run: mvn -B test
+        working-directory: SpringApi
+        continue-on-error: true
+
+      - name: Post PR Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'SpringApi/target/surefire-reports';
+            let totalUnitTests = 0;
+            let totalUnitFailures = 0;
+            let totalUnitErrors = 0;
+            let totalUnitSkipped = 0;
+            let failureDetails = '';
+
+            if (fs.existsSync(path)) {
+              const files = fs.readdirSync(path);
+              files.forEach(file => {
+                if (file.endsWith('.txt')) {
+                  const content = fs.readFileSync(`${path}/${file}`, 'utf8');
+                  const match = content.match(/Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)/);
+                  if (match) {
+                    totalUnitTests += parseInt(match[1]);
+                    totalUnitFailures += parseInt(match[2]);
+                    totalUnitErrors += parseInt(match[3]);
+                    totalUnitSkipped += parseInt(match[4]);
+                    
+                    if (parseInt(match[2]) > 0 || parseInt(match[3]) > 0) {
+                      failureDetails += `\n**${file}**\n\`\`\`\n${content}\n\`\`\`\n`;
+                    }
+                  }
+                }
+              });
+            }
+
+            const success = totalUnitFailures === 0 && totalUnitErrors === 0 && totalUnitTests > 0;
+            const statusEmoji = success ? '✅' : '❌';
+            const statusText = success ? 'All unit tests passed!' : 'Unit tests failed!';
+
+            const commentIdentifier = '<!-- unit-tests-result-comment -->';
+            let message = `${commentIdentifier}\n### ${statusEmoji} Unit Test Results: ${statusText}\n\n`;
+            message += `| Metric | Count | Emoji |\n`;
+            message += `| :--- | :--- | :--- |\n`;
+            message += `| **Total Tests** | ${totalUnitTests} | 🏃 |\n`;
+            message += `| **Passed** | ${totalUnitTests - totalUnitFailures - totalUnitErrors - totalUnitSkipped} | ✅ |\n`;
+            message += `| **Failures** | ${totalUnitFailures} | ❌ |\n`;
+            message += `| **Errors** | ${totalUnitErrors} | ⚠️ |\n`;
+            message += `| **Skipped** | ${totalUnitSkipped} | ⏭️ |\n\n`;
+
+            if (!success && failureDetails) {
+              message += `#### 🔍 Failure Details\n<details>\n<summary>Click to expand</summary>\n${failureDetails}\n</details>\n\n`;
+            } else if (success) {
+              message += `Great job! All ${totalUnitTests} tests are green! 🌟✨\n\n`;
+            }
+
+            if (totalUnitTests === 0) {
+              message = `${commentIdentifier}\n⚠️ **No unit tests were found or ran.** Please check the build logs.`;
+            }
+
+            const prNumber = parseInt('${{ inputs.pr_number }}');
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const existingComment = comments.find(c => c.body.includes(commentIdentifier));
+
+            if (existingComment) {
+              if (existingComment.body === message) {
+                console.log("Comment content is identical. Skipping...");
+              } else {
+                console.log("Updating existing comment thread via reply...");
+                // Note: github-script uses octokit which doesn't have a direct 'reply' to comment. 
+                // However, we can simply post another comment in the issue as per requirement to be a reply on the comment.
+                // In Github Actions, a reply usually means a reply in a review or just another comment in the issue thread.
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: `♻️ **Update to original report:**\n\n${message}`
+                });
+              }
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: message
+              });
+            }
+
+            if (!success) {
+               core.setFailed('Unit tests failed. Failing the build.');
+            }
