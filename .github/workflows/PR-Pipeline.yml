@@ -121,58 +121,29 @@ jobs:
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
 
-  analyze:
+  codeql:
     needs: check-label
-    name: Analyze (${{ matrix.language }})
-    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
-    permissions:
-      security-events: write
-      packages: read
-      actions: read
-      contents: read
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - language: actions
-            build-mode: none
-          - language: java-kotlin
-            build-mode: none
-          - language: javascript-typescript
-            build-mode: none
-          - language: python
-            build-mode: none
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
-        with:
-          languages: ${{ matrix.language }}
-          build-mode: ${{ matrix.build-mode }}
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
-        with:
-          category: "/language:${{matrix.language}}"
-          ## Output SARIF to a known location for the reporting job
-          upload: true
-
-  snyk:
-    needs: check-label
+    name: Security Analysis (CodeQL & Snyk)
     runs-on: ubuntu-latest
     permissions:
       contents: read
       security-events: write
       pull-requests: write
+      packages: read
+      actions: read
       checks: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: "21"
           distribution: "temurin"
           cache: maven
+
+      # -- SNYK --
       - name: Setup Snyk
         uses: snyk/actions/setup@806182742461562b67788a64410098c9d9b96adb
         env:
@@ -187,7 +158,8 @@ jobs:
         run: snyk monitor --all-projects || true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      - name: Create Snyk Review
+
+      - name: Post Snyk Results
         if: always()
         uses: actions/github-script@v7
         with:
@@ -198,11 +170,8 @@ jobs:
 
             const sarif = JSON.parse(fs.readFileSync(sarifFile, 'utf8'));
             const results = (sarif.runs && sarif.runs[0] && sarif.runs[0].results) || [];
-
             const prNumber = context.payload.pull_request.number;
             const headSha = context.payload.pull_request.head.sha;
-
-            console.log(`Processing Snyk results for PR #${prNumber} at SHA ${headSha}`);
 
             const { data: existingComments } = await github.rest.pulls.listReviewComments({
               owner: context.repo.owner,
@@ -224,13 +193,9 @@ jobs:
               const message = `⚡ **Snyk Finding:** [${res.ruleId}] ${res.message.text}`;
 
               if (!prFiles.includes(fullPath)) continue;
-
-              if (existingComments.some(c => c.path === fullPath && c.body.includes(`[${res.ruleId}]`) && (c.line === line || c.subject_type === 'file'))) {
-                continue;
-              }
+              if (existingComments.some(c => c.path === fullPath && c.body.includes(`[${res.ruleId}]`) && (c.line === line || c.subject_type === 'file'))) continue;
 
               try {
-                // Attempt line comment
                 await github.rest.pulls.createReviewComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -242,7 +207,6 @@ jobs:
                   side: 'RIGHT'
                 });
               } catch (e) {
-                // Fallback to File Header comment if line isn't in diff
                 await github.rest.pulls.createReviewComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -254,20 +218,24 @@ jobs:
                 });
               }
             }
-      - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: snyk-code.sarif
 
-  security-results-decorator:
-    needs: [analyze, snyk]
-    if: always()
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: read
-      pull-requests: write
-    steps:
-      - name: Create Full CodeQL Comments
+      # -- CODEQL --
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: java-kotlin
+          build-mode: none
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:java-kotlin"
+          upload: true
+
+      - name: Wait for CodeQL Backend Processing
+        run: sleep 15
+
+      - name: Post CodeQL Results
+        if: always()
         uses: actions/github-script@v7
         with:
           script: |
@@ -283,6 +251,7 @@ jobs:
             const { data: alerts } = await github.rest.codeScanning.listAlertsForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
+              ref: context.ref,
               state: 'open'
             });
 
@@ -296,11 +265,11 @@ jobs:
             for (const alert of alerts.slice(0, 50)) {
               const path = alert.most_recent_instance.location.path;
               const line = alert.most_recent_instance.location.start_line;
-              const message = `🛡️ **CodeQL Finding:** [${alert.rule.id}] ${alert.rule.description}`;
+              const ruleId = alert.rule.id;
+              const message = `🛡️ **CodeQL Finding:** [${ruleId}] ${alert.rule.description}`;
 
               if (!prFiles.includes(path)) continue;
-
-              if (existingComments.some(c => c.path === path && c.body.includes(`[${alert.rule.id}]`) && (c.line === line || c.subject_type === 'file'))) continue;
+              if (existingComments.some(c => c.path === path && c.body.includes(`[${ruleId}]`) && (c.line === line || c.subject_type === 'file'))) continue;
 
               try {
                 await github.rest.pulls.createReviewComment({
@@ -326,8 +295,14 @@ jobs:
               }
             }
 
+      - name: Final Upload Snyk result to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk-code.sarif
+
   build:
-    needs: [security-results-decorator]
+    needs: [codeql]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
