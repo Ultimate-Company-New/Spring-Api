@@ -180,10 +180,15 @@ jobs:
             const sarif = JSON.parse(fs.readFileSync(sarifFile, 'utf8'));
             const results = (sarif.runs && sarif.runs[0] && sarif.runs[0].results) || [];
 
+            const prNumber = context.payload.pull_request.number;
+            const headSha = context.payload.pull_request.head.sha;
+
+            console.log(`Processing Snyk results for PR #${prNumber} at SHA ${headSha}`);
+
             const { data: existingComments } = await github.rest.pulls.listReviewComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
+              pull_number: prNumber,
             });
 
             for (const res of results.slice(0, 50)) {
@@ -192,27 +197,46 @@ jobs:
               const line = res.locations[0].physicalLocation.region.startLine || 1;
               const message = `⚡ [Snyk: ${res.ruleId}] ${res.message.text}`;
 
-              const alreadyExists = existingComments.some(c => 
-                c.path === fullPath && 
-                c.line === line && 
-                c.body.includes(`[Snyk: ${res.ruleId}]`)
-              );
-
-              if (alreadyExists) continue;
+              if (existingComments.some(c => c.path === fullPath && c.line === line && c.body.includes(`[Snyk: ${res.ruleId}]`))) {
+                console.log(`Duplicate found for ${fullPath}:${line}, skipping.`);
+                continue;
+              }
 
               try {
                 await github.rest.pulls.createReviewComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  pull_number: context.payload.pull_request.number,
+                  pull_number: prNumber,
                   body: `⚡ **Snyk Finding:** ${message}`,
-                  commit_id: context.payload.pull_request.head.sha,
+                  commit_id: headSha,
                   path: fullPath,
                   line: line,
                   side: 'RIGHT'
                 });
+                console.log(`Successfully posted review comment for ${fullPath}:${line}`);
               } catch (e) {
-                console.log(`::error file=${fullPath},line=${line},title=⚡ Snyk Finding::${message}`);
+                // FALLBACK: Checks API for files not in PR diff
+                await github.rest.checks.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: `⚡ Snyk: ${res.ruleId}`,
+                  head_sha: headSha,
+                  status: 'completed',
+                  conclusion: 'neutral',
+                  output: {
+                    title: 'Snyk Finding (External File)',
+                    summary: res.message.text,
+                    annotations: [{
+                      path: fullPath,
+                      start_line: line,
+                      end_line: line,
+                      annotation_level: 'failure',
+                      message: res.message.text,
+                      title: res.ruleId
+                    }]
+                  }
+                });
+                console.log(`Pinned Snyk annotation to ${fullPath}:${line}`);
               }
             }
       - name: Upload result to GitHub Code Scanning
@@ -227,11 +251,15 @@ jobs:
     permissions:
       security-events: read
       pull-requests: write
+      checks: write
     steps:
       - name: Create Full CodeQL Comments
         uses: actions/github-script@v7
         with:
           script: |
+            const prNumber = context.payload.pull_request.number;
+            const headSha = context.payload.pull_request.head.sha;
+
             const { data: alerts } = await github.rest.codeScanning.listAlertsForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -241,7 +269,7 @@ jobs:
             const { data: existingComments } = await github.rest.pulls.listReviewComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
+              pull_number: prNumber,
             });
 
             for (const alert of alerts.slice(0, 50)) {
@@ -249,27 +277,40 @@ jobs:
               const line = alert.most_recent_instance.location.start_line;
               const message = `🛡️ [CodeQL: ${alert.rule.id}] ${alert.rule.description}`;
 
-              const alreadyExists = existingComments.some(c => 
-                c.path === path && 
-                c.line === line && 
-                c.body.includes(`[CodeQL: ${alert.rule.id}]`)
-              );
-
-              if (alreadyExists) continue;
+              if (existingComments.some(c => c.path === path && c.line === line && c.body.includes(`[CodeQL: ${alert.rule.id}]`))) continue;
 
               try {
                 await github.rest.pulls.createReviewComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  pull_number: context.payload.pull_request.number,
+                  pull_number: prNumber,
                   body: `🛡️ **CodeQL Finding:** ${message}`,
-                  commit_id: context.payload.pull_request.head.sha,
+                  commit_id: headSha,
                   path: path,
                   line: line,
                   side: 'RIGHT'
                 });
               } catch (e) {
-                console.log(`::warning file=${path},line=${line},title=🛡️ CodeQL Finding::${message}`);
+                await github.rest.checks.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: `🛡️ CodeQL: ${alert.rule.id}`,
+                  head_sha: headSha,
+                  status: 'completed',
+                  conclusion: 'neutral',
+                  output: {
+                    title: 'CodeQL Finding (External File)',
+                    summary: alert.rule.description,
+                    annotations: [{
+                      path: path,
+                      start_line: line,
+                      end_line: line,
+                      annotation_level: 'warning',
+                      message: alert.rule.description,
+                      title: alert.rule.id
+                    }]
+                  }
+                });
               }
             }
 
@@ -499,7 +540,26 @@ jobs:
                 commentsPosted++;
                 console.log(`Posted Sonar comment ${commentsPosted}: ${fullPath}:${line}`);
               } catch (e) {
-                console.log(`::warning file=${fullPath},line=${line},title=📡 Sonar Finding::${message}`);
+                await github.rest.checks.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: `📡 Sonar: ${rule}`,
+                  head_sha: context.payload.pull_request.head.sha,
+                  status: 'completed',
+                  conclusion: 'neutral',
+                  output: {
+                    title: 'SonarCloud Finding (External File)',
+                    summary: issue.message,
+                    annotations: [{
+                      path: fullPath,
+                      start_line: line,
+                      end_line: line,
+                      annotation_level: 'warning',
+                      message: issue.message,
+                      title: rule
+                    }]
+                  }
+                });
               }
             }
             console.log(`Successfully processed Sonar findings.`);
