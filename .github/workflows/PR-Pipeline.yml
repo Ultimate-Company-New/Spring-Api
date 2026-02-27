@@ -171,37 +171,27 @@ jobs:
         run: snyk iac test --report || true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: snyk-code.sarif
-      - name: Create Snyk Review
+      - name: Create Snyk Line Comments
         if: always()
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
             const sarifFile = 'snyk-code.sarif';
-
-            if (!fs.existsSync(sarifFile)) {
-              console.log("No Snyk SARIF file found.");
-              return;
-            }
+            if (!fs.existsSync(sarifFile)) return;
 
             const sarif = JSON.parse(fs.readFileSync(sarifFile, 'utf8'));
             const results = (sarif.runs && sarif.runs[0] && sarif.runs[0].results) || [];
 
-            console.log(`Found ${results.length} Snyk results.`);
-
-            const comments = results.map(res => {
+            const comments = results.filter(res => res.locations && res.locations[0].physicalLocation).map(res => {
               const path = res.locations[0].physicalLocation.artifactLocation.uri;
-              // Prepend SpringApi/ to the path since SARIF is generated inside that folder
               const fullPath = path.startsWith('SpringApi/') ? path : `SpringApi/${path}`;
+              const line = res.locations[0].physicalLocation.region.startLine || 1;
               
               return {
                 path: fullPath,
-                line: res.locations[0].physicalLocation.region.startLine,
-                body: `🚀 **Snyk Code Finding:** [${res.ruleId}]\n\n${res.message.text}`
+                line: line,
+                body: `🔍 **Snyk Detection:** ${res.message.text}`
               };
             });
 
@@ -212,15 +202,15 @@ jobs:
                 pull_number: context.issue.number,
                 event: 'COMMENT',
                 commit_id: context.payload.pull_request.head.sha,
-                comments: comments.slice(0, 50), // API limit safety
-                body: 'Snyk Code has identified some potential security or quality issues. Please review them below.'
+                comments: comments.slice(0, 50)
               });
-              console.log(`Posted ${Math.min(comments.length, 50)} comments.`);
-            } else {
-              console.log("No issues to comment on.");
             }
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk-code.sarif
 
-  security-results:
+  security-results-decorator:
     needs: [analyze, snyk]
     if: always()
     runs-on: ubuntu-latest
@@ -228,7 +218,7 @@ jobs:
       security-events: read
       pull-requests: write
     steps:
-      - name: Create CodeQL Review
+      - name: Create CodeQL Line Comments
         uses: actions/github-script@v7
         with:
           script: |
@@ -239,17 +229,12 @@ jobs:
               state: 'open'
             });
 
-            console.log(`Found ${alerts.length} open CodeQL alerts for ref ${context.ref}`);
-
             const comments = alerts.map(alert => {
-              const severityEmoji = alert.rule.security_severity_level === 'critical' ? '🔴' : 
-                                   alert.rule.security_severity_level === 'high' ? '🟠' : 
-                                   alert.rule.security_severity_level === 'medium' ? '🟡' : '🔵';
-              
+              const severityEmoji = alert.rule.security_severity_level === 'critical' ? '🔴' : '🟠';
               return {
                 path: alert.most_recent_instance.location.path,
                 line: alert.most_recent_instance.location.start_line,
-                body: `${severityEmoji} **CodeQL Alert [${alert.rule.id}]:** ${alert.rule.description}\n\n[View Alert Details](${alert.html_url})`
+                body: `${severityEmoji} **CodeQL Detection:** ${alert.rule.description}`
               };
             });
 
@@ -260,16 +245,12 @@ jobs:
                 pull_number: context.issue.number,
                 event: 'COMMENT',
                 commit_id: context.payload.pull_request.head.sha,
-                comments: comments.slice(0, 50),
-                body: '🛡️ CodeQL Security Analysis has identified some issues. Please see the line comments below.'
+                comments: comments.slice(0, 50)
               });
-              console.log(`Posted ${Math.min(comments.length, 50)} CodeQL comments.`);
-            } else {
-              console.log("No CodeQL alerts found.");
             }
 
   build:
-    needs: security-results
+    needs: [security-results-decorator]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
