@@ -96,3 +96,4 @@ public class UserClientPermissionMapping {
     this.modifiedUser = modifiedUser;
   }
 }
+

@@ -67,3 +67,4 @@ public interface ResourcesRepository extends JpaRepository<Resources, Long> {
    */
   void deleteByEntityIdAndEntityType(Long entityId, String entityType);
 }
+

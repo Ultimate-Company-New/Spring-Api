@@ -341,3 +341,4 @@ class GetProductInBatchesTest extends ProductServiceTestBase {
     return f;
   }
 }
+

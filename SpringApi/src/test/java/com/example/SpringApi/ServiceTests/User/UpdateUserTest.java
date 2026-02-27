@@ -569,3 +569,4 @@ class UpdateUserTest extends UserServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
+

@@ -65,3 +65,4 @@ public class BulkUserInsertResponseModel {
     private String errorMessage;
   }
 }
+

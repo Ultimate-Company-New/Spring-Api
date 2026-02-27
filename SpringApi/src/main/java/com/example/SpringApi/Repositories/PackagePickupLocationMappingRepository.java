@@ -81,3 +81,4 @@ public interface PackagePickupLocationMappingRepository
   Optional<PackagePickupLocationMapping> findByPackageIdAndPickupLocationId(
       @Param("packageId") Long packageId, @Param("pickupLocationId") Long pickupLocationId);
 }
+

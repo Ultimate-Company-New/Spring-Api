@@ -372,3 +372,4 @@ class EmailHelperTest {
     return request;
   }
 }
+

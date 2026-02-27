@@ -25,3 +25,4 @@ public class PackagePickupLocationMappingRequestModel {
     this.maxStockLevel = maxStockLevel;
   }
 }
+

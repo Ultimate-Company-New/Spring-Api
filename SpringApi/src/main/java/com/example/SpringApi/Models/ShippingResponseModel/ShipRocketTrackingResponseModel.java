@@ -142,3 +142,4 @@ public class ShipRocketTrackingResponseModel {
     private String qcFailedReason;
   }
 }
+

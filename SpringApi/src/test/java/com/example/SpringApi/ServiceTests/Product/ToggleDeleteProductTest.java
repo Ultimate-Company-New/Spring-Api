@@ -181,3 +181,4 @@ class ToggleDeleteProductTest extends ProductServiceTestBase {
     verify(productServiceMock).toggleDeleteProduct(TEST_PRODUCT_ID);
   }
 }
+

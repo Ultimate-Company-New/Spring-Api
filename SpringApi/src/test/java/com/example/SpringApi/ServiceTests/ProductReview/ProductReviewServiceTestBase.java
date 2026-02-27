@@ -204,3 +204,4 @@ abstract class ProductReviewServiceTestBase {
         .setProductReviewScore(anyLong(), anyBoolean());
   }
 }
+

@@ -69,3 +69,4 @@ public final class ProductConditionConstants {
     return String.join(", ", VALID_CONDITIONS);
   }
 }
+

@@ -97,3 +97,4 @@ public interface IAddressSubTranslator {
    */
   List<AddressResponseModel> getAddressByClientId(long id);
 }
+

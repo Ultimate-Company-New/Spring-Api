@@ -32,3 +32,4 @@ public interface UserGroupRepository extends JpaRepository<UserGroup, Long> {
           + "ORDER BY u.userId DESC")
   UserGroup findByIdWithUsers(@Param("groupId") Long groupId);
 }
+

@@ -481,3 +481,4 @@ abstract class LeadServiceTestBase {
     lenient().doNothing().when(leadServiceMock).toggleLead(leadId);
   }
 }
+

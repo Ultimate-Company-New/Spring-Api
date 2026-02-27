@@ -108,3 +108,4 @@ public interface ProductPickupLocationMappingRepository
   Optional<ProductPickupLocationMapping> findByProductIdAndPickupLocationId(
       @Param("productId") Long productId, @Param("pickupLocationId") Long pickupLocationId);
 }
+

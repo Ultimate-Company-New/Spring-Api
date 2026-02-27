@@ -1242,3 +1242,4 @@ public class PaymentService extends BaseService implements IPaymentSubTranslator
     return writer.toString();
   }
 }
+

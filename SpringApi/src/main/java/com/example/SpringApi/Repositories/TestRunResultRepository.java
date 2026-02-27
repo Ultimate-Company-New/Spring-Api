@@ -48,3 +48,4 @@ public interface TestRunResultRepository extends JpaRepository<TestRunResult, Lo
   Double getAverageDurationForTestMethod(
       @Param("clientId") Long clientId, @Param("testMethodName") String testMethodName);
 }
+

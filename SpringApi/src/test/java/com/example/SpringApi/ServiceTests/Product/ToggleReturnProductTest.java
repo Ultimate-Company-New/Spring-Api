@@ -168,3 +168,4 @@ class ToggleReturnProductTest extends ProductServiceTestBase {
     verify(productServiceMock).toggleReturnProduct(TEST_PRODUCT_ID);
   }
 }
+

@@ -366,3 +366,4 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 }
+

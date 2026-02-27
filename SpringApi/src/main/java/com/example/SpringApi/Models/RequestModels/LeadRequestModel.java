@@ -45,3 +45,4 @@ public class LeadRequestModel extends PaginationBaseRequestModel {
   // Additional fields for creation/update
   private AddressRequestModel address;
 }
+

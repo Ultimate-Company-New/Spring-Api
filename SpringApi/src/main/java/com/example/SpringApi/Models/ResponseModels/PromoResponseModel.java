@@ -86,3 +86,4 @@ public class PromoResponseModel {
     return "No discount";
   }
 }
+

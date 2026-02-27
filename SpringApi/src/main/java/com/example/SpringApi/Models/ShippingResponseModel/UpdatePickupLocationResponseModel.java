@@ -8,3 +8,4 @@ import lombok.Setter;
 public class UpdatePickupLocationResponseModel {
   private String message;
 }
+

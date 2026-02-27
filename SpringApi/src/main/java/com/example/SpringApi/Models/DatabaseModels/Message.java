@@ -264,3 +264,4 @@ public class Message {
     this.notes = request.getNotes() != null ? request.getNotes().trim() : null;
   }
 }
+

@@ -17,3 +17,4 @@ public interface PackageRepository extends JpaRepository<Package, Long> {
   Package findByPackageIdAndClientId(
       @Param("packageId") Long packageId, @Param("clientId") Long clientId);
 }
+

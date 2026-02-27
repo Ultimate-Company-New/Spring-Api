@@ -153,3 +153,4 @@ abstract class UserLogServiceTestBase {
                 com.example.SpringApi.ErrorMessages.ERROR_UNAUTHORIZED));
   }
 }
+

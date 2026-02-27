@@ -341,3 +341,4 @@ class GetProductReviewsInBatchesGivenProductIdTest extends ProductReviewServiceT
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 }
+

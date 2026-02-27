@@ -572,3 +572,4 @@ class LogDataWithContextTest extends UserLogServiceTestBase {
     assertEquals(org.springframework.http.HttpStatus.OK, response.getStatusCode());
   }
 }
+

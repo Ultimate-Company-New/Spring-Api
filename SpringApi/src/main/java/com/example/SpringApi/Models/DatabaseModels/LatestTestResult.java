@@ -146,3 +146,4 @@ public class LatestTestResult {
     this.lastRunAt = LocalDateTime.now();
   }
 }
+

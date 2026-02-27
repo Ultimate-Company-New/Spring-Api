@@ -213,3 +213,4 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
     return new PageImpl<>(pickupLocations, pageable, totalCount);
   }
 }
+

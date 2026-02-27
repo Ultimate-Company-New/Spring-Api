@@ -305,3 +305,4 @@ public class User {
     this.notes = request.getNotes();
   }
 }
+

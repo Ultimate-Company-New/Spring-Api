@@ -122,3 +122,4 @@ class RejectedByPurchaseOrderTest extends PurchaseOrderServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
+

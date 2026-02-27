@@ -337,3 +337,4 @@ class TogglePromoTest extends PromoServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
+

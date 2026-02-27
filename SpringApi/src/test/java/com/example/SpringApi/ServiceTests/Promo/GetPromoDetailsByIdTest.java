@@ -197,3 +197,4 @@ class GetPromoDetailsByIdTest extends PromoServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
+

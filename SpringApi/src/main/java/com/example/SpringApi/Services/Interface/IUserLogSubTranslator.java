@@ -47,3 +47,4 @@ public interface IUserLogSubTranslator {
   PaginationBaseResponseModel<UserLogsResponseModel> fetchUserLogsInBatches(
       UserLogsRequestModel userLogsRequestModel);
 }
+

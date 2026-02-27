@@ -112,3 +112,4 @@ public interface IShippingSubTranslator {
    */
   Double getWalletBalance();
 }
+

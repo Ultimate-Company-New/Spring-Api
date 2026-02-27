@@ -65,3 +65,4 @@ public interface PromoRepository extends JpaRepository<Promo, Long> {
       @Param("startDate") LocalDate startDate,
       @Param("expiryDate") LocalDate expiryDate);
 }
+
