@@ -187,11 +187,24 @@ jobs:
               pull_number: prNumber,
             });
 
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            const prFiles = files.map(f => f.filename);
+
             for (const res of results.slice(0, 50)) {
               const path = res.locations[0].physicalLocation.artifactLocation.uri;
               const fullPath = path.startsWith('SpringApi/') ? path : `SpringApi/${path}`;
               const line = res.locations[0].physicalLocation.region.startLine || 1;
               const message = `⚡ [Snyk: ${res.ruleId}] ${res.message.text}`;
+
+              // ONLY post if the file is in the PR diff
+              if (!prFiles.includes(fullPath)) {
+                 console.log(`Skipping snyk finding for ${fullPath} - not in PR diff.`);
+                 continue;
+              }
 
               if (existingComments.some(c => c.path === fullPath && c.line === line && c.body.includes(`[Snyk: ${res.ruleId}]`))) {
                 console.log(`Duplicate found for ${fullPath}:${line}, skipping.`);
@@ -211,28 +224,7 @@ jobs:
                 });
                 console.log(`Successfully posted review comment for ${fullPath}:${line}`);
               } catch (e) {
-                // FALLBACK: Checks API for files not in PR diff
-                await github.rest.checks.create({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name: `⚡ Snyk: ${res.ruleId}`,
-                  head_sha: headSha,
-                  status: 'completed',
-                  conclusion: 'neutral',
-                  output: {
-                    title: 'Snyk Finding (External File)',
-                    summary: res.message.text,
-                    annotations: [{
-                      path: fullPath,
-                      start_line: line,
-                      end_line: line,
-                      annotation_level: 'failure',
-                      message: res.message.text,
-                      title: res.ruleId
-                    }]
-                  }
-                });
-                console.log(`Pinned Snyk annotation to ${fullPath}:${line}`);
+                console.log(`Error posting comment: ${e.message}`);
               }
             }
       - name: Upload result to GitHub Code Scanning
@@ -247,7 +239,6 @@ jobs:
     permissions:
       security-events: read
       pull-requests: write
-      checks: write
     steps:
       - name: Create Full CodeQL Comments
         uses: actions/github-script@v7
@@ -268,10 +259,19 @@ jobs:
               pull_number: prNumber,
             });
 
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            const prFiles = files.map(f => f.filename);
+
             for (const alert of alerts.slice(0, 50)) {
               const path = alert.most_recent_instance.location.path;
               const line = alert.most_recent_instance.location.start_line;
               const message = `🛡️ [CodeQL: ${alert.rule.id}] ${alert.rule.description}`;
+
+              if (!prFiles.includes(path)) continue;
 
               if (existingComments.some(c => c.path === path && c.line === line && c.body.includes(`[CodeQL: ${alert.rule.id}]`))) continue;
 
@@ -287,26 +287,7 @@ jobs:
                   side: 'RIGHT'
                 });
               } catch (e) {
-                await github.rest.checks.create({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name: `🛡️ CodeQL: ${alert.rule.id}`,
-                  head_sha: headSha,
-                  status: 'completed',
-                  conclusion: 'neutral',
-                  output: {
-                    title: 'CodeQL Finding (External File)',
-                    summary: alert.rule.description,
-                    annotations: [{
-                      path: path,
-                      start_line: line,
-                      end_line: line,
-                      annotation_level: 'warning',
-                      message: alert.rule.description,
-                      title: alert.rule.id
-                    }]
-                  }
-                });
+                console.log(`Error posting CodeQL comment: ${e.message}`);
               }
             }
 
@@ -443,7 +424,6 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-      checks: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -507,6 +487,13 @@ jobs:
               pull_number: context.payload.pull_request.number,
             });
 
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+            const prFiles = files.map(f => f.filename);
+
             let commentsPosted = 0;
             for (const issue of issues) {
               if (commentsPosted >= 50) break;
@@ -517,6 +504,8 @@ jobs:
               const line = issue.line || 1;
               const rule = issue.rule;
               const message = `📡 [Sonar: ${rule}] ${issue.message}`;
+
+              if (!prFiles.includes(fullPath)) continue;
 
               const alreadyExists = existingComments.some(c => 
                 c.path === fullPath && 
@@ -538,28 +527,8 @@ jobs:
                   side: 'RIGHT'
                 });
                 commentsPosted++;
-                console.log(`Posted Sonar comment ${commentsPosted}: ${fullPath}:${line}`);
               } catch (e) {
-                await github.rest.checks.create({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name: `📡 Sonar: ${rule}`,
-                  head_sha: context.payload.pull_request.head.sha,
-                  status: 'completed',
-                  conclusion: 'neutral',
-                  output: {
-                    title: 'SonarCloud Finding (External File)',
-                    summary: issue.message,
-                    annotations: [{
-                      path: fullPath,
-                      start_line: line,
-                      end_line: line,
-                      annotation_level: 'warning',
-                      message: issue.message,
-                      title: rule
-                    }]
-                  }
-                });
+                console.log(`Error posting Sonar comment: ${e.message}`);
               }
             }
             console.log(`Successfully processed Sonar findings.`);
