@@ -171,7 +171,7 @@ jobs:
         run: snyk iac test --report || true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      - name: Create Snyk Line Comments
+      - name: Create Snyk Review
         if: always()
         uses: actions/github-script@v7
         with:
@@ -183,27 +183,35 @@ jobs:
             const sarif = JSON.parse(fs.readFileSync(sarifFile, 'utf8'));
             const results = (sarif.runs && sarif.runs[0] && sarif.runs[0].results) || [];
 
-            const comments = results.filter(res => res.locations && res.locations[0].physicalLocation).map(res => {
+            console.log(`Analyzing ${results.length} total Snyk findings...`);
+
+            for (const res of results.slice(0, 50)) {
               const path = res.locations[0].physicalLocation.artifactLocation.uri;
               const fullPath = path.startsWith('SpringApi/') ? path : `SpringApi/${path}`;
               const line = res.locations[0].physicalLocation.region.startLine || 1;
-              
-              return {
-                path: fullPath,
-                line: line,
-                body: `🔍 **Snyk Detection:** ${res.message.text}`
-              };
-            });
+              const message = `🚀 **Snyk Repo-Wide Finding:** [${res.ruleId}]\n\n${res.message.text}`;
 
-            if (comments.length > 0) {
-              await github.rest.pulls.createReview({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.payload.pull_request.number,
-                event: 'COMMENT',
-                commit_id: context.payload.pull_request.head.sha,
-                comments: comments.slice(0, 50)
-              });
+              try {
+                // Try posting as a line comment
+                await github.rest.pulls.createReviewComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.payload.pull_request.number,
+                  body: message,
+                  commit_id: context.payload.pull_request.head.sha,
+                  path: fullPath,
+                  line: line,
+                  side: 'RIGHT'
+                });
+              } catch (e) {
+                // Fallback: Post as a general PR comment if not in diff
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: `🚀 **Snyk Finding (External File):** ${fullPath}:${line}\n\n${res.message.text}`
+                });
+              }
             }
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
@@ -218,35 +226,44 @@ jobs:
       security-events: read
       pull-requests: write
     steps:
-      - name: Create CodeQL Line Comments
+      - name: Create Full CodeQL Comments
         uses: actions/github-script@v7
         with:
           script: |
+            // Fetch ALL open alerts for the repo, not just this ref
             const { data: alerts } = await github.rest.codeScanning.listAlertsForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: context.ref,
               state: 'open'
             });
 
-            const comments = alerts.map(alert => {
-              const severityEmoji = alert.rule.security_severity_level === 'critical' ? '🔴' : '🟠';
-              return {
-                path: alert.most_recent_instance.location.path,
-                line: alert.most_recent_instance.location.start_line,
-                body: `${severityEmoji} **CodeQL Detection:** ${alert.rule.description}`
-              };
-            });
+            console.log(`Annotating ${alerts.length} Repo-Wide CodeQL alerts.`);
 
-            if (comments.length > 0) {
-              await github.rest.pulls.createReview({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.payload.pull_request.number,
-                event: 'COMMENT',
-                commit_id: context.payload.pull_request.head.sha,
-                comments: comments.slice(0, 50)
-              });
+            for (const alert of alerts.slice(0, 50)) {
+              const severityEmoji = alert.rule.security_severity_level === 'critical' ? '🔴' : '🟠';
+              const path = alert.most_recent_instance.location.path;
+              const line = alert.most_recent_instance.location.start_line;
+              const message = `${severityEmoji} **CodeQL Repo-Wide Detection:** ${alert.rule.description}\n\n[View Details](${alert.html_url})`;
+
+              try {
+                await github.rest.pulls.createReviewComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.payload.pull_request.number,
+                  body: message,
+                  commit_id: context.payload.pull_request.head.sha,
+                  path: path,
+                  line: line,
+                  side: 'RIGHT'
+                });
+              } catch (e) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: `${severityEmoji} **CodeQL Finding (External File):** ${path}:${line}\n\n${alert.rule.description}`
+                });
+              }
             }
 
   build:
@@ -401,17 +418,61 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-      - name: Build and analyze
+      - name: Build and full analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
         run: >
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar 
           -Dsonar.projectKey=Ultimate-Company-New_Spring-Api
-          -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
-          -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
-          -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
         working-directory: SpringApi
+      - name: Create Sonar Repo-Wide Comments
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          script: |
+            const projectKey = 'Ultimate-Company-New_Spring-Api';
+            const token = process.env.SONAR_TOKEN;
+            const auth = Buffer.from(token + ':').toString('base64');
+
+            const response = await fetch(`https://sonarcloud.io/api/issues/search?componentKeys=${projectKey}&resolved=false`, {
+              headers: { 'Authorization': `Basic ${auth}` }
+            });
+            const data = await response.json();
+            const issues = data.issues || [];
+
+            console.log(`Found ${issues.length} Repo-Wide Sonar issues.`);
+
+            for (const issue of issues.slice(0, 50)) {
+              // Sonar paths usually start from the module root
+              const path = issue.component.split(':').pop();
+              const fullPath = `SpringApi/${path}`;
+              const line = issue.line || 1;
+              const severity = issue.severity === 'CRITICAL' || issue.severity === 'BLOCKER' ? '🔴' : '🟡';
+              const message = `${severity} **SonarCloud Repo-Wide Finding:** ${issue.message}\n\nType: ${issue.type}`;
+
+              try {
+                await github.rest.pulls.createReviewComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.payload.pull_request.number,
+                  body: message,
+                  commit_id: context.payload.pull_request.head.sha,
+                  path: fullPath,
+                  line: line,
+                  side: 'RIGHT'
+                });
+              } catch (e) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: `${severity} **Sonar Finding (External File):** ${fullPath}:${line}\n\n${issue.message}`
+                });
+              }
+            }
 
   spotless:
     needs: sonar
