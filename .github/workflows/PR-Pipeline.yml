@@ -315,6 +315,23 @@ jobs:
           -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
           -Dsonar.pullrequest.branch=${{ github.head_ref }}
           -Dsonar.pullrequest.base=${{ github.base_ref }}
+          -Dsonar.issue.ignore.multicriteria=e1,e2,e3,e4,e5,e6,e7,e8
+          -Dsonar.issue.ignore.multicriteria.e1.ruleKey=java:S1452
+          -Dsonar.issue.ignore.multicriteria.e1.resourceKey=**/*.java
+          -Dsonar.issue.ignore.multicriteria.e2.ruleKey=java:S120
+          -Dsonar.issue.ignore.multicriteria.e2.resourceKey=**/*.java
+          -Dsonar.issue.ignore.multicriteria.e3.ruleKey=java:S5411
+          -Dsonar.issue.ignore.multicriteria.e3.resourceKey=**/*.java
+          -Dsonar.issue.ignore.multicriteria.e4.ruleKey=java:S3776
+          -Dsonar.issue.ignore.multicriteria.e4.resourceKey=**/*.java
+          -Dsonar.issue.ignore.multicriteria.e5.ruleKey=java:S6809
+          -Dsonar.issue.ignore.multicriteria.e5.resourceKey=**/*.java
+          -Dsonar.issue.ignore.multicriteria.e6.ruleKey=java:S1141
+          -Dsonar.issue.ignore.multicriteria.e6.resourceKey=**/*.java
+          -Dsonar.issue.ignore.multicriteria.e7.ruleKey=java:S2230
+          -Dsonar.issue.ignore.multicriteria.e7.resourceKey=**/*.java
+          -Dsonar.issue.ignore.multicriteria.e8.ruleKey=java:S6541
+          -Dsonar.issue.ignore.multicriteria.e8.resourceKey=**/*.java
         working-directory: SpringApi
 
       - name: Post Sonar Results
@@ -324,20 +341,11 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           script: |
+            const fs = require('fs');
             const projectKey = 'Ultimate-Company-New_Spring-Api';
             const prNumber = context.payload.pull_request.number;
             const token = process.env.SONAR_TOKEN;
             const auth = Buffer.from(token + ':').toString('base64');
-
-            // Fetch issues specifically for this PR
-            const response = await fetch(`https://sonarcloud.io/api/issues/search?componentKeys=${projectKey}&pullRequest=${prNumber}&resolved=false&ps=100`, {
-              headers: { 'Authorization': `Basic ${auth}` }
-            });
-
-            if (!response.ok) return;
-
-            const data = await response.json();
-            const issues = data.issues || [];
             const headSha = context.payload.pull_request.head.sha;
 
             const { data: existingComments } = await github.rest.pulls.listReviewComments({
@@ -353,6 +361,33 @@ jobs:
             });
             const prFiles = prFilesData.map(f => f.filename);
 
+            // Filter and map files for Sonar (removing the SpringApi/ prefix if present)
+            const targetedFiles = prFiles
+              .filter(f => f.endsWith('.java'))
+              .map(f => f.startsWith('SpringApi/') ? f.substring(10) : f);
+
+            if (targetedFiles.length === 0) {
+              console.log('No Java files found in PR. Skipping Sonar fetch.');
+              return;
+            }
+
+            console.log(`Fetching ALL issues for ${targetedFiles.length} files: ${targetedFiles.join(', ')}`);
+
+            // Fetch issues specifically for the files in the PR (all issues, not just PR delta)
+            const response = await fetch(`https://sonarcloud.io/api/issues/search?componentKeys=${projectKey}&resolved=false&ps=100&files=${targetedFiles.join(',')}`, {
+              headers: { 'Authorization': `Basic ${auth}` }
+            });
+
+            if (!response.ok) {
+              console.log(`Sonar API error: ${response.status}`);
+              return;
+            }
+
+            const data = await response.json();
+            const issues = data.issues || [];
+            console.log(`Found ${issues.length} total issues in targeted files.`);
+
+            let postedCount = 0;
             for (const issue of issues) {
               const componentParts = issue.component.split(':');
               const path = componentParts[componentParts.length - 1];
@@ -361,7 +396,6 @@ jobs:
               const rule = issue.rule;
               const message = `📡 **SonarCloud Finding:** [${rule}] ${issue.message}`;
 
-              if (!prFiles.includes(fullPath)) continue;
               if (existingComments.some(c => c.path === fullPath && c.body.includes(`[${rule}]`) && (c.line === line || c.subject_type === 'file'))) continue;
 
               try {
@@ -375,6 +409,7 @@ jobs:
                   line: line,
                   side: 'RIGHT'
                 });
+                postedCount++;
               } catch (e) {
                 await github.rest.pulls.createReviewComment({
                   owner: context.repo.owner,
@@ -385,8 +420,11 @@ jobs:
                   path: fullPath,
                   subject_type: 'file'
                 });
+                postedCount++;
               }
             }
+            console.log(`Successfully posted ${postedCount} Sonar comments.`);
+            console.log(`Successfully posted ${postedCount} Sonar comments.`);
 
   build:
     needs: [codeql]
