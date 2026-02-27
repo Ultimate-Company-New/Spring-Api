@@ -648,4 +648,3 @@ public class MessageService extends BaseService implements IMessageSubTranslator
     return (int) count;
   }
 }
-

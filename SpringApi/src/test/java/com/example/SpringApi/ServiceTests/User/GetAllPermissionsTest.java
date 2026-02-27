@@ -176,4 +176,3 @@ class GetAllPermissionsTest extends UserServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

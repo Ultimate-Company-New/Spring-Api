@@ -86,4 +86,3 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
   Long getTotalNetPaidPaiseForEntity(
       @Param("entityType") String entityType, @Param("entityId") Long entityId);
 }
-

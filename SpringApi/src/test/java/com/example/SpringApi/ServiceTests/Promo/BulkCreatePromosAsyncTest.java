@@ -529,4 +529,3 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
   }
 }
-

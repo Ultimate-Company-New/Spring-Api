@@ -168,4 +168,3 @@ public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
     return new PageImpl<>(reviews, pageable, totalCount);
   }
 }
-

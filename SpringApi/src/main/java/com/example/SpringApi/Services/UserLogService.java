@@ -217,4 +217,3 @@ public class UserLogService extends BaseService implements IUserLogSubTranslator
     return paginationBaseResponseModel;
   }
 }
-

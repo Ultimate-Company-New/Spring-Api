@@ -429,4 +429,3 @@ class RecordCashPaymentFollowUpTest extends PaymentServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

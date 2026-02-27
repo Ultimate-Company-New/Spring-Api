@@ -233,4 +233,3 @@ class ShippingResponseModelsTest {
     assertEquals("https://label.url", parsed.getLabelUrl());
   }
 }
-

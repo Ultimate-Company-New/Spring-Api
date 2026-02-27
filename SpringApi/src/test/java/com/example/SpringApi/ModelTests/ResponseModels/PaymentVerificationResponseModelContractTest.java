@@ -220,4 +220,3 @@ class PaymentVerificationResponseModelContractTest {
     }
   }
 }
-

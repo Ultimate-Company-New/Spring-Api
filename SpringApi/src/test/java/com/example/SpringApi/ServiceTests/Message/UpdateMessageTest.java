@@ -678,4 +678,3 @@ class UpdateMessageTest extends MessageServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

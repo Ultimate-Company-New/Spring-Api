@@ -159,4 +159,3 @@ class FindCategoriesByParentIdTest extends ProductServiceTestBase {
     verify(productServiceMock).findCategoriesByParentId(any());
   }
 }
-

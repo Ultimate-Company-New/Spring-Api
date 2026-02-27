@@ -223,4 +223,3 @@ public class SuccessMessages {
     public static final String GET_USER_GRID_PREFERENCE = "Successfully got grid preferences.";
   }
 }
-

@@ -375,4 +375,3 @@ abstract class LoginServiceTestBase {
                 ErrorMessages.ERROR_UNAUTHORIZED));
   }
 }
-

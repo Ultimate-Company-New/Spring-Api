@@ -65,4 +65,3 @@ class EmailHelperFactoryTest {
     assertTrue(helper instanceof EmailHelper);
   }
 }
-

@@ -44,4 +44,3 @@ public class LatestTestResultResponseModel {
     this.modifiedDate = result.getModifiedDate();
   }
 }
-

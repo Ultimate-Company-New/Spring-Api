@@ -262,4 +262,3 @@ class ToggleUserGroupTest extends UserGroupServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

@@ -65,4 +65,3 @@ public interface ILoginSubTranslator {
    */
   String getToken(LoginRequestModel loginRequestModel);
 }
-

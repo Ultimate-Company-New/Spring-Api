@@ -504,4 +504,3 @@ class InsertProductReviewTest extends ProductReviewServiceTestBase {
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 }
-

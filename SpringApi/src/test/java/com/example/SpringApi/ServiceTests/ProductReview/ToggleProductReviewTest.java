@@ -564,4 +564,3 @@ class ToggleProductReviewDuplicateTests extends ProductReviewServiceTestBase {
     assertEquals(ErrorMessages.ProductReviewErrorMessages.NOT_FOUND, ex.getMessage());
   }
 }
-

@@ -431,4 +431,3 @@ public abstract class BaseFilterQueryBuilder {
     }
   }
 }
-

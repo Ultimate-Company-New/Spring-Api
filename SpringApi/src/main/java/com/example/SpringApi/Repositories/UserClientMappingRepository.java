@@ -40,4 +40,3 @@ public interface UserClientMappingRepository extends JpaRepository<UserClientMap
    */
   List<UserClientMapping> findByUserId(Long userId);
 }
-

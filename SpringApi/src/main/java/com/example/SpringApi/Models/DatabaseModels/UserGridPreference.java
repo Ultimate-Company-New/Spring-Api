@@ -92,4 +92,3 @@ public class UserGridPreference {
   @JoinColumn(name = "clientId", insertable = false, updatable = false)
   private Client client;
 }
-

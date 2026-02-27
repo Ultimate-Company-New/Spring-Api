@@ -261,4 +261,3 @@ class DeleteTodoTest extends TodoServiceTestBase {
     verify(todoServiceMock, times(1)).deleteTodo(TEST_TODO_ID);
   }
 }
-

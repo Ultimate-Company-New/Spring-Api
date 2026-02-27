@@ -44,4 +44,3 @@ public class TestRunResponseModel {
     this.createdDate = testRun.getCreatedDate();
   }
 }
-

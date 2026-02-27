@@ -100,4 +100,3 @@ public class Resources {
     this.notes = notes;
   }
 }
-

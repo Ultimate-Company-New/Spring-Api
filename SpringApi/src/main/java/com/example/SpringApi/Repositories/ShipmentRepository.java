@@ -25,4 +25,3 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
   List<Shipment> findByOrderSummaryIdInWithPickupLocation(
       @Param("orderSummaryIds") List<Long> orderSummaryIds);
 }
-

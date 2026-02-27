@@ -838,4 +838,3 @@ class BulkCreatePackagesDuplicateTests extends PackageServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

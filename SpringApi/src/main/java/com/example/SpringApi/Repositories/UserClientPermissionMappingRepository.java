@@ -38,4 +38,3 @@ public interface UserClientPermissionMappingRepository
       "DELETE FROM UserClientPermissionMapping uc WHERE uc.userId = :userId AND uc.clientId = :clientId")
   void deleteByUserIdAndClientId(@Param("userId") Long userId, @Param("clientId") Long clientId);
 }
-

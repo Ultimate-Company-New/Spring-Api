@@ -35,4 +35,3 @@ public class PurchaseOrderProductItem {
     this.quantity = quantity;
   }
 }
-

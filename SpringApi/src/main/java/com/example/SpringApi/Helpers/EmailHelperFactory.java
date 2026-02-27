@@ -25,4 +25,3 @@ public final class EmailHelperFactory {
     return new EmailHelper(fromAddress, senderName, apiKey);
   }
 }
-

@@ -482,4 +482,3 @@ class GetDashboardDataTest extends QAServiceTestBase {
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 }
-

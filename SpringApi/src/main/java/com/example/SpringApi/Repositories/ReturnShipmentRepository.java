@@ -15,4 +15,3 @@ public interface ReturnShipmentRepository extends JpaRepository<ReturnShipment, 
 
   ReturnShipment findByReturnShipmentIdAndClientId(Long returnShipmentId, Long clientId);
 }
-

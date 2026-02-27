@@ -416,4 +416,3 @@ class CreateUserGroupTest extends UserGroupServiceTestBase {
     assertEquals(HttpStatus.CREATED, response.getStatusCode());
   }
 }
-

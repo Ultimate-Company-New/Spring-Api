@@ -319,4 +319,3 @@ class GetTodoItemsTest extends TodoServiceTestBase {
     verify(todoServiceMock, times(1)).getTodoItems();
   }
 }
-

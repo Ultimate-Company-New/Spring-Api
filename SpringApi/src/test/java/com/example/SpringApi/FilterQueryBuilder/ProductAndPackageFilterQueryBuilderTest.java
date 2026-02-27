@@ -181,4 +181,3 @@ class ProductAndPackageFilterQueryBuilderTest extends FilterQueryBuilderTestBase
     assertTrue(fixture.getMainQueryString().contains("pplm.pickupLocationId = :param0"));
   }
 }
-

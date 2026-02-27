@@ -227,4 +227,3 @@ class GetLeadDetailsByIdTest extends LeadServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-
