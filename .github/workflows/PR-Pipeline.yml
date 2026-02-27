@@ -199,7 +199,7 @@ jobs:
               await github.rest.pulls.createReview({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                pull_number: context.issue.number,
+                pull_number: context.payload.pull_request.number,
                 event: 'COMMENT',
                 commit_id: context.payload.pull_request.head.sha,
                 comments: comments.slice(0, 50)
@@ -242,7 +242,7 @@ jobs:
               await github.rest.pulls.createReview({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                pull_number: context.issue.number,
+                pull_number: context.payload.pull_request.number,
                 event: 'COMMENT',
                 commit_id: context.payload.pull_request.head.sha,
                 comments: comments.slice(0, 50)
