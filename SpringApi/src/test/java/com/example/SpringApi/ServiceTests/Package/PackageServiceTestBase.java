@@ -402,4 +402,3 @@ abstract class PackageServiceTestBase {
     assertEquals(expectedMessage, ex.getMessage());
   }
 }
-

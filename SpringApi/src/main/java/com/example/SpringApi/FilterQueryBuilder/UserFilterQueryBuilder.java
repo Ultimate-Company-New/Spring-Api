@@ -236,4 +236,3 @@ public class UserFilterQueryBuilder extends BaseFilterQueryBuilder {
     return new PageImpl<>(users, pageable, totalCount);
   }
 }
-

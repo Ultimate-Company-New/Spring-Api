@@ -207,4 +207,3 @@ public class LeadResponseModel {
     return "Unknown size";
   }
 }
-

@@ -684,4 +684,3 @@ class AddProductTest extends ProductServiceTestBase {
     }
   }
 }
-

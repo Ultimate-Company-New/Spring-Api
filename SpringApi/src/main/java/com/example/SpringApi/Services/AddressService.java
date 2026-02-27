@@ -239,4 +239,3 @@ public class AddressService extends BaseService implements IAddressSubTranslator
     return responseModels;
   }
 }
-

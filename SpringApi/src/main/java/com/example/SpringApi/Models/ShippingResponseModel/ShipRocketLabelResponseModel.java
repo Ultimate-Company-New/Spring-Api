@@ -31,4 +31,3 @@ public class ShipRocketLabelResponseModel {
     return labelCreated != null && labelCreated == 1;
   }
 }
-

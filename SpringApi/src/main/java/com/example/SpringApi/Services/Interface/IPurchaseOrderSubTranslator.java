@@ -146,4 +146,3 @@ public interface IPurchaseOrderSubTranslator {
       String requestingUserLoginName,
       Long requestingClientId);
 }
-

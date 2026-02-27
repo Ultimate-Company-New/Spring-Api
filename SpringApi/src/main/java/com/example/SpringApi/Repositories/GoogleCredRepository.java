@@ -6,4 +6,3 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface GoogleCredRepository extends JpaRepository<GoogleCred, Long> {}
-

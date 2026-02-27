@@ -453,4 +453,3 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
         NotFoundException.class, () -> qaService.getTestExecutionStatus(executionId));
   }
 }
-

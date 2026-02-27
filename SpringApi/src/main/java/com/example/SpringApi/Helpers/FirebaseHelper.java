@@ -151,4 +151,3 @@ public class FirebaseHelper {
     return clientName + "-" + clientId + "/" + environmentName + "/Logo.png";
   }
 }
-

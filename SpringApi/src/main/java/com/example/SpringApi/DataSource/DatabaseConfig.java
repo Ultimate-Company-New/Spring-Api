@@ -108,4 +108,3 @@ public class DatabaseConfig {
     return new JpaTransactionManager(entityManagerFactory);
   }
 }
-

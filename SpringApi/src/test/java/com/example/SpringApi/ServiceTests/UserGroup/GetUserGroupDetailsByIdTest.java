@@ -235,4 +235,3 @@ class GetUserGroupDetailsByIdTest extends UserGroupServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

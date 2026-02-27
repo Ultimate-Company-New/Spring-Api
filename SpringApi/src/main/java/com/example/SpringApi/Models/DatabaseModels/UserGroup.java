@@ -150,4 +150,3 @@ public class UserGroup {
     this.notes = request.getNotes() != null ? request.getNotes().trim() : null;
   }
 }
-

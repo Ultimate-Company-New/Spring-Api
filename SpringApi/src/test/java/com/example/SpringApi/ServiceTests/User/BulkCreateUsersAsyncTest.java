@@ -274,4 +274,3 @@ class BulkCreateUsersAsyncTest extends UserServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

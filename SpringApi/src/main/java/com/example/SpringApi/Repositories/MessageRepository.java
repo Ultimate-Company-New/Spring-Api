@@ -107,4 +107,3 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
           + ")")
   long countUnreadMessagesByUserId(@Param("clientId") Long clientId, @Param("userId") Long userId);
 }
-

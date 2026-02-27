@@ -323,4 +323,3 @@ class ConfirmEmailTest extends UserServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

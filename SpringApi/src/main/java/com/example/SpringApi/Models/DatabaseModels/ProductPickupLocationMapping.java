@@ -192,4 +192,3 @@ public class ProductPickupLocationMapping {
     this.modifiedUser = modifiedUser;
   }
 }
-

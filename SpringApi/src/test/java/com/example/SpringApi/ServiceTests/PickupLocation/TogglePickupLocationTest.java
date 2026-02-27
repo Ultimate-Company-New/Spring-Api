@@ -322,4 +322,3 @@ class TogglePickupLocationTest extends PickupLocationServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

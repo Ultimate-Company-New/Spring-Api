@@ -38,4 +38,3 @@ public class PickupLocationRequestModel extends PaginationBaseRequestModel {
   private List<ProductPickupLocationMappingRequestModel> productMappings;
   private List<PackagePickupLocationMappingRequestModel> packageMappings;
 }
-

@@ -284,4 +284,3 @@ class CreatePromoTest extends PromoServiceTestBase {
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
   }
 }
-

@@ -564,4 +564,3 @@ public class UserGroupService extends BaseService implements IUserGroupSubTransl
     }
   }
 }
-

@@ -363,4 +363,3 @@ class VerifyPaymentFollowUpTest extends PaymentServiceTestBase {
     assertEquals(HttpStatus.OK, response.getStatusCode());
   }
 }
-

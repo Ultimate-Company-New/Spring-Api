@@ -222,4 +222,3 @@ abstract class FilterQueryBuilderTestBase {
     }
   }
 }
-

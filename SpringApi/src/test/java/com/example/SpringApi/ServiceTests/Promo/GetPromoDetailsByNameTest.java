@@ -327,4 +327,3 @@ class GetPromoDetailsByNameTest extends PromoServiceTestBase {
     assertEquals(mockResponse, response.getBody());
   }
 }
-

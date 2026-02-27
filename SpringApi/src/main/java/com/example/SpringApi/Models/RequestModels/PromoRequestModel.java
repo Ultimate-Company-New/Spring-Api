@@ -30,4 +30,3 @@ public class PromoRequestModel extends PaginationBaseRequestModel {
   private LocalDate startDate;
   private LocalDate expiryDate;
 }
-

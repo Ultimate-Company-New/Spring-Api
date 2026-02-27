@@ -780,4 +780,3 @@ class CreateClientTest extends ClientServiceTestBase {
     assertEquals(HttpStatus.CREATED, response.getStatusCode(), "Should return HTTP 201 Created");
   }
 }
-

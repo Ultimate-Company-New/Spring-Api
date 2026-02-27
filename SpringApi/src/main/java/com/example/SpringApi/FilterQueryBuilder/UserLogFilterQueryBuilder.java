@@ -197,4 +197,3 @@ public class UserLogFilterQueryBuilder extends BaseFilterQueryBuilder {
     return new PageImpl<>(userLogs, pageable, totalCount);
   }
 }
-

@@ -44,4 +44,3 @@ public class ShippingCalculationRequestModel {
     private List<Long> productIds;
   }
 }
-

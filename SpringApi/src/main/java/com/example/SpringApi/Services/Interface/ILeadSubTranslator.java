@@ -96,4 +96,3 @@ public interface ILeadSubTranslator {
   com.example.SpringApi.Models.ResponseModels.BulkInsertResponseModel<Long> bulkCreateLeads(
       java.util.List<LeadRequestModel> leads);
 }
-

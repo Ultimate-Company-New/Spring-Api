@@ -181,4 +181,3 @@ class PurchaseOrderFilterQueryBuilderTest extends FilterQueryBuilderTestBase {
     assertEquals(0L, page.getTotalElements());
   }
 }
-
