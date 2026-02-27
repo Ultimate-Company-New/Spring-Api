@@ -15,6 +15,7 @@
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>21</java.version>
+		<sonar.organization>ultimate-company-new</sonar.organization>
 		<!-- Treat SonarQube quality gate failures as build failures by waiting for the gate -->
 		<sonar.qualitygate.wait>true</sonar.qualitygate.wait>
 		<!-- Wait timeout in seconds for the quality gate (adjust as needed) -->
