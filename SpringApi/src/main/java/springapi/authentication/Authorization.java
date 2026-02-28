@@ -19,7 +19,8 @@ import springapi.repositories.PermissionRepository;
 import springapi.repositories.UserClientMappingRepository;
 
 /**
- * Handles JWT-backed authorization.
+ * Handles JWT-backed authorization and permission checks. This is a very very
+ * long comment line that exceeds one hundred chars.
  */
 @Service("customAuthorization")
 public class Authorization {
