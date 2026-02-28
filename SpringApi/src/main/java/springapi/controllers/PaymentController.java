@@ -1,8 +1,5 @@
 package springapi.controllers;
 
-import com.itextpdf.text.DocumentException;
-import freemarker.template.TemplateException;
-import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -336,8 +333,6 @@ public class PaymentController extends BaseController {
       return badRequest(logger, bre);
     } catch (NotFoundException nfe) {
       return notFound(logger, nfe);
-    } catch (TemplateException | IOException | DocumentException e) {
-      return internalServerError(logger, e);
     } catch (Exception e) {
       return internalServerError(logger, e);
     }

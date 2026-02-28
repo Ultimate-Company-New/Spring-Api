@@ -282,9 +282,8 @@ public class BulkInsertHelper {
             htmlContent.append(TABLE_ROW_START);
             htmlContent.append(WRAPPED_CELL_START).append(result.getIdentifier()).append(TD_END);
             htmlContent
-                .append(
-                    "<td style='padding: 12px; color: #ef4444; word-wrap: break-word; "
-                        + "overflow-wrap: break-word;'>")
+                .append("<td style='padding: 12px; color: #ef4444; word-wrap: break-word; ")
+                .append("overflow-wrap: break-word;'>")
                 .append(result.getErrorMessage())
                 .append(TD_END);
             htmlContent.append(TR_END);
@@ -524,9 +523,8 @@ public class BulkInsertHelper {
             htmlContent.append(TABLE_ROW_START);
             htmlContent.append(WRAPPED_CELL_START).append(result.getEmail()).append(TD_END);
             htmlContent
-                .append(
-                    "<td style='padding: 12px; color: #ef4444; word-wrap: break-word; "
-                        + "overflow-wrap: break-word;'>")
+                .append("<td style='padding: 12px; color: #ef4444; word-wrap: break-word; ")
+                .append("overflow-wrap: break-word;'>")
                 .append(result.getErrorMessage())
                 .append(TD_END);
             htmlContent.append(TR_END);

@@ -142,6 +142,10 @@ public class PromoService extends BaseService implements PromoSubTranslator {
       throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION);
     }
 
+    if (!paginationBaseRequestModel.isValidLogicOperator()) {
+      throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_LOGIC_OPERATOR);
+    }
+
     // Create custom Pageable with proper offset handling
     org.springframework.data.domain.Pageable pageable =
         new PageRequest(0, pageSize, Sort.by("promoId").descending()) {
@@ -152,13 +156,17 @@ public class PromoService extends BaseService implements PromoSubTranslator {
         };
 
     // Use filter query builder for dynamic filtering
+    String logicOperator =
+        PaginationBaseRequestModel.LOGIC_OR.equalsIgnoreCase(
+                paginationBaseRequestModel.getLogicOperator())
+            ? PaginationBaseRequestModel.LOGIC_OR
+            : PaginationBaseRequestModel.LOGIC_AND;
+
     Page<Promo> page =
         promoFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
             getClientId(),
             paginationBaseRequestModel.getSelectedIds(),
-            paginationBaseRequestModel.getLogicOperator() != null
-                ? paginationBaseRequestModel.getLogicOperator()
-                : "AND",
+            logicOperator,
             paginationBaseRequestModel.getFilters(),
             paginationBaseRequestModel.isIncludeDeleted(),
             pageable);

@@ -105,6 +105,10 @@ public class PackageService extends BaseService implements PackageSubTranslator 
           ErrorMessages.CommonErrorMessages.START_INDEX_MUST_BE_LESS_THAN_END);
     }
 
+    if (!paginationBaseRequestModel.isValidLogicOperator()) {
+      throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_LOGIC_OPERATOR);
+    }
+
     // Validate column name
     // Note: pickupLocationId filters through PackagePickupLocationMapping join
     Set<String> validColumns =
@@ -168,13 +172,17 @@ public class PackageService extends BaseService implements PackageSubTranslator 
         };
 
     // Use filter query builder for dynamic filtering
+    String logicOperator =
+        PaginationBaseRequestModel.LOGIC_OR.equalsIgnoreCase(
+                paginationBaseRequestModel.getLogicOperator())
+            ? PaginationBaseRequestModel.LOGIC_OR
+            : PaginationBaseRequestModel.LOGIC_AND;
+
     Page<Package> page =
         packageFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
             getClientId(),
             paginationBaseRequestModel.getSelectedIds(),
-            paginationBaseRequestModel.getLogicOperator() != null
-                ? paginationBaseRequestModel.getLogicOperator()
-                : "AND",
+            logicOperator,
             paginationBaseRequestModel.getFilters(),
             paginationBaseRequestModel.isIncludeDeleted(),
             pageable);

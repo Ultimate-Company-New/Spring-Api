@@ -9,6 +9,8 @@ import springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition
 
 /** Represents the base filter query builder component. */
 public abstract class BaseFilterQueryBuilder {
+  private static final String LOGIC_AND = "AND";
+  private static final String LOGIC_OR = "OR";
   private static final String OP_EQUALS = "equals";
   private static final String OP_IS_EMPTY = "isEmpty";
   private static final String OP_IS_NOT_EMPTY = "isNotEmpty";
@@ -46,7 +48,7 @@ public abstract class BaseFilterQueryBuilder {
 
     StringBuilder whereClause = new StringBuilder();
     Map<String, Object> parameters = new HashMap<>();
-    String operator = " " + logicOperator.toUpperCase() + " ";
+    String operator = " " + resolveLogicOperator(logicOperator) + " ";
 
     for (int i = 0; i < filters.size(); i++) {
       FilterCondition filter = filters.get(i);
@@ -78,6 +80,14 @@ public abstract class BaseFilterQueryBuilder {
     }
 
     return new QueryResult(whereClause.toString(), parameters);
+  }
+
+  /** Resolves logic operator to a safe whitelist value. */
+  private String resolveLogicOperator(String logicOperator) {
+    if (logicOperator != null && LOGIC_OR.equalsIgnoreCase(logicOperator.trim())) {
+      return LOGIC_OR;
+    }
+    return LOGIC_AND;
   }
 
   /** Builds a string filter condition. */

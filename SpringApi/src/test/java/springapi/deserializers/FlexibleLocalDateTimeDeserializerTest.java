@@ -130,14 +130,14 @@ class FlexibleLocalDateTimeDeserializerTest {
    */
   @Test
   @DisplayName("flexibleLocalDateTimeDeserializer - InvalidInput ThrowsIOException - Success")
-  void flexibleLocalDateTimeDeserializer_s07_invalidInputThrowsIOException_success() {
+  void flexibleLocalDateTimeDeserializer_s07_invalidInputThrowsIOException_success()
+      throws IOException {
     // Arrange
     FlexibleLocalDateTimeDeserializer deserializer = new FlexibleLocalDateTimeDeserializer();
+    JsonParser parser = parserFor("invalid-date");
 
     // Act
-    IOException ex =
-        assertThrows(
-            IOException.class, () -> deserializer.deserialize(parserFor("invalid-date"), null));
+    IOException ex = assertThrows(IOException.class, () -> deserializer.deserialize(parser, null));
 
     // Assert
     assertTrue(ex.getMessage().startsWith("Cannot parse date/datetime:"));

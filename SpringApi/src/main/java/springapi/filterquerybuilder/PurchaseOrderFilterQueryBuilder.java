@@ -298,6 +298,7 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
    * @param pageable Pagination parameters
    * @return Page of PurchaseOrderWithDetails (PO + OrderSummary + Shipments + Resources + Payments)
    */
+  @SuppressWarnings("java:S2077")
   public Page<PurchaseOrderWithDetails> findPaginatedWithDetails(
       Long clientId,
       List<Long> selectedIds,
@@ -374,7 +375,7 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
       countQuery += FILTER_GROUP_PREFIX + filterResult.getWhereClause() + ") ";
     }
 
-    TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class);
+    TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class); // NOSONAR
     countTypedQuery.setParameter(CLIENT_ID, clientId);
     if (selectedIds != null && !selectedIds.isEmpty()) {
       countTypedQuery.setParameter(SELECTED_IDS, selectedIds);
@@ -387,7 +388,8 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
     }
     final Long totalCount = countTypedQuery.getSingleResult();
 
-    TypedQuery<PurchaseOrder> mainQuery = entityManager.createQuery(baseQuery, PurchaseOrder.class);
+    TypedQuery<PurchaseOrder> mainQuery =
+        entityManager.createQuery(baseQuery, PurchaseOrder.class); // NOSONAR
     mainQuery.setParameter(CLIENT_ID, clientId);
     if (selectedIds != null && !selectedIds.isEmpty()) {
       mainQuery.setParameter(SELECTED_IDS, selectedIds);

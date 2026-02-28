@@ -110,6 +110,7 @@ public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
    * @param pageable Pagination parameters
    * @return Page of product reviews matching the filter criteria
    */
+  @SuppressWarnings("java:S2077")
   public Page<ProductReview> findPaginatedEntitiesWithMultipleFilters(
       Long clientId,
       Long productId,
@@ -165,8 +166,7 @@ public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
       countQuery += "AND (" + filterResult.getWhereClause() + ") ";
     }
 
-    TypedQuery<Long> countTypedQuery = // NOSONAR
-        entityManager.createQuery(countQuery, Long.class);
+    TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class); // NOSONAR
     countTypedQuery.setParameter("clientId", clientId);
     if (productId != null) {
       countTypedQuery.setParameter(PRODUCT_ID, productId);
@@ -180,8 +180,8 @@ public class ProductReviewFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     final Long totalCount = countTypedQuery.getSingleResult();
 
-    TypedQuery<ProductReview> mainQuery = // NOSONAR
-        entityManager.createQuery(baseQuery, ProductReview.class);
+    TypedQuery<ProductReview> mainQuery =
+        entityManager.createQuery(baseQuery, ProductReview.class); // NOSONAR
     mainQuery.setParameter("clientId", clientId);
     if (productId != null) {
       mainQuery.setParameter(PRODUCT_ID, productId);

@@ -117,6 +117,7 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
    * @param pageable Pagination parameters
    * @return Page of pickup locations matching the filter criteria
    */
+  @SuppressWarnings("java:S2077")
   public Page<PickupLocation> findPaginatedEntitiesWithMultipleFilters(
       Long clientId,
       List<Long> selectedIds,
@@ -176,9 +177,8 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
       countQuery += "AND (" + filterResult.getWhereClause() + ") ";
     }
 
-    // Execute count query
-    TypedQuery<Long> countTypedQuery = // NOSONAR
-        entityManager.createQuery(countQuery, Long.class);
+    // Query fragments are mapped from whitelisted columns/operators; all values are parameterized.
+    TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class); // NOSONAR
     countTypedQuery.setParameter(CLIENT_ID, clientId);
 
     if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -192,9 +192,8 @@ public class PickupLocationFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     final Long totalCount = countTypedQuery.getSingleResult();
 
-    // Execute main query with pagination
-    TypedQuery<PickupLocation> mainQuery = // NOSONAR
-        entityManager.createQuery(baseQuery, PickupLocation.class);
+    TypedQuery<PickupLocation> mainQuery =
+        entityManager.createQuery(baseQuery, PickupLocation.class); // NOSONAR
     mainQuery.setParameter(CLIENT_ID, clientId);
 
     if (selectedIds != null && !selectedIds.isEmpty()) {

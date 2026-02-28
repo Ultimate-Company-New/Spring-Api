@@ -138,6 +138,7 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
    * @param pageable Pagination parameters
    * @return Page of packages matching the filter criteria
    */
+  @SuppressWarnings("java:S2077")
   public Page<Package> findPaginatedEntitiesWithMultipleFilters(
       Long clientId,
       List<Long> selectedIds,
@@ -221,9 +222,8 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
       countQuery += "AND (" + filterResult.getWhereClause() + ") ";
     }
 
-    // Execute count query
-    TypedQuery<Long> countTypedQuery = // NOSONAR
-        entityManager.createQuery(countQuery, Long.class);
+    // Query fragments are mapped from whitelisted columns/operators; all values are parameterized.
+    TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class); // NOSONAR
     countTypedQuery.setParameter(CLIENT_ID, clientId);
 
     if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -237,9 +237,7 @@ public class PackageFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     final Long totalCount = countTypedQuery.getSingleResult();
 
-    // Execute main query with pagination
-    TypedQuery<Package> mainQuery = // NOSONAR
-        entityManager.createQuery(baseQuery, Package.class);
+    TypedQuery<Package> mainQuery = entityManager.createQuery(baseQuery, Package.class); // NOSONAR
     mainQuery.setParameter(CLIENT_ID, clientId);
 
     if (selectedIds != null && !selectedIds.isEmpty()) {

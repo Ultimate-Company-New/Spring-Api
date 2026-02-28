@@ -225,6 +225,10 @@ public class PurchaseOrderService extends BaseService implements PurchaseOrderSu
       throw new BadRequestException(ErrorMessages.PurchaseOrderErrorMessages.INVALID_PAGINATION);
     }
 
+    if (!paginationBaseRequestModel.isValidLogicOperator()) {
+      throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_LOGIC_OPERATOR);
+    }
+
     // Create custom Pageable with proper offset handling
     Pageable pageable =
         new PageRequest(0, pageSize, Sort.by("purchaseOrderId").descending()) {
@@ -237,6 +241,11 @@ public class PurchaseOrderService extends BaseService implements PurchaseOrderSu
     // selectedProductIds can be passed as a separate parameter if needed in the future
     // For now, we'll use null to indicate no product filtering
     List<Long> selectedProductIds = null;
+    String logicOperator =
+        PaginationBaseRequestModel.LOGIC_OR.equalsIgnoreCase(
+                paginationBaseRequestModel.getLogicOperator())
+            ? PaginationBaseRequestModel.LOGIC_OR
+            : PaginationBaseRequestModel.LOGIC_AND;
 
     // Single query fetches PO + OrderSummary + Shipments + Products + Packages + PickupLocation
     // (Resources + Payments in 2 extra queries)
@@ -245,9 +254,7 @@ public class PurchaseOrderService extends BaseService implements PurchaseOrderSu
             getClientId(),
             paginationBaseRequestModel.getSelectedIds(),
             selectedProductIds,
-            paginationBaseRequestModel.getLogicOperator() != null
-                ? paginationBaseRequestModel.getLogicOperator()
-                : "AND",
+            logicOperator,
             paginationBaseRequestModel.getFilters(),
             paginationBaseRequestModel.isIncludeDeleted(),
             pageable);

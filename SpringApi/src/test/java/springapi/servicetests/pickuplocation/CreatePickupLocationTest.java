@@ -655,7 +655,7 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
    */
   @Test
   @DisplayName("createPickupLocation - Controller Permission - Unauthorized")
-  void createPickupLocation_controller_permission_unauthorized() throws Exception {
+  void createPickupLocation_controller_permission_unauthorized() {
     // Arrange
     PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
     stubPickupLocationServiceThrowsUnauthorizedOnCreate();
@@ -673,7 +673,7 @@ class CreatePickupLocationTest extends PickupLocationServiceTestBase {
    */
   @Test
   @DisplayName("createPickupLocation - Controller delegates to service")
-  void createPickupLocation_WithValidRequest_DelegatesToService() throws Exception {
+  void createPickupLocation_WithValidRequest_DelegatesToService() {
     // Arrange
     PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
     stubPickupLocationServiceCreatePickupLocationDoNothing();

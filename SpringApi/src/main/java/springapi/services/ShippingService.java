@@ -205,9 +205,6 @@ public class ShippingService extends BaseService implements ShippingSubTranslato
   @Transactional(readOnly = true)
   public PaginationBaseResponseModel<ShipmentResponseModel> getShipmentsInBatches(
       PaginationBaseRequestModel paginationBaseRequestModel) {
-
-    Long clientId = getClientId();
-
     // Validate filter conditions if provided
     if (paginationBaseRequestModel.getFilters() != null
         && !paginationBaseRequestModel.getFilters().isEmpty()) {
@@ -239,6 +236,10 @@ public class ShippingService extends BaseService implements ShippingSubTranslato
       throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION);
     }
 
+    if (!paginationBaseRequestModel.isValidLogicOperator()) {
+      throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_LOGIC_OPERATOR);
+    }
+
     Pageable pageable =
         new PageRequest(0, pageSize, Sort.by("createdAt").descending()) {
           @Override
@@ -247,13 +248,18 @@ public class ShippingService extends BaseService implements ShippingSubTranslato
           }
         };
 
+    String logicOperator =
+        PaginationBaseRequestModel.LOGIC_OR.equalsIgnoreCase(
+                paginationBaseRequestModel.getLogicOperator())
+            ? PaginationBaseRequestModel.LOGIC_OR
+            : PaginationBaseRequestModel.LOGIC_AND;
+    Long clientId = getClientId();
+
     Page<Shipment> result =
         shipmentFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
             clientId,
             paginationBaseRequestModel.getSelectedIds(),
-            paginationBaseRequestModel.getLogicOperator() != null
-                ? paginationBaseRequestModel.getLogicOperator()
-                : "AND",
+            logicOperator,
             paginationBaseRequestModel.getFilters(),
             pageable);
 

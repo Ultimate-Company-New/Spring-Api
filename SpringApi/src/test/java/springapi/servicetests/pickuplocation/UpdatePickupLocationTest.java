@@ -714,7 +714,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
    */
   @Test
   @DisplayName("updatePickupLocation - Controller Permission - Unauthorized")
-  void updatePickupLocation_controller_permission_unauthorized() throws Exception {
+  void updatePickupLocation_controller_permission_unauthorized() {
     // Arrange
     PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
     stubPickupLocationServiceThrowsUnauthorizedOnUpdate();
@@ -733,7 +733,7 @@ class UpdatePickupLocationTest extends PickupLocationServiceTestBase {
    */
   @Test
   @DisplayName("updatePickupLocation - Controller delegates to service")
-  void updatePickupLocation_WithValidRequest_DelegatesToService() throws Exception {
+  void updatePickupLocation_WithValidRequest_DelegatesToService() {
     // Arrange
     PickupLocationController controller = new PickupLocationController(pickupLocationServiceMock);
     stubPickupLocationServiceUpdatePickupLocationDoNothing();

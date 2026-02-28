@@ -191,6 +191,10 @@ public class PickupLocationService extends BaseService implements PickupLocation
       throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_PAGINATION);
     }
 
+    if (!paginationBaseRequestModel.isValidLogicOperator()) {
+      throw new BadRequestException(ErrorMessages.CommonErrorMessages.INVALID_LOGIC_OPERATOR);
+    }
+
     // Create custom Pageable with proper offset handling
     Pageable pageable =
         new PageRequest(0, pageSize, Sort.by("pickupLocationId").descending()) {
@@ -201,13 +205,17 @@ public class PickupLocationService extends BaseService implements PickupLocation
         };
 
     // Use filter query builder for dynamic filtering
+    String logicOperator =
+        PaginationBaseRequestModel.LOGIC_OR.equalsIgnoreCase(
+                paginationBaseRequestModel.getLogicOperator())
+            ? PaginationBaseRequestModel.LOGIC_OR
+            : PaginationBaseRequestModel.LOGIC_AND;
+
     Page<PickupLocation> result =
         pickupLocationFilterQueryBuilder.findPaginatedEntitiesWithMultipleFilters(
             getClientId(),
             paginationBaseRequestModel.getSelectedIds(),
-            paginationBaseRequestModel.getLogicOperator() != null
-                ? paginationBaseRequestModel.getLogicOperator()
-                : "AND",
+            logicOperator,
             paginationBaseRequestModel.getFilters(),
             paginationBaseRequestModel.isIncludeDeleted(),
             pageable);

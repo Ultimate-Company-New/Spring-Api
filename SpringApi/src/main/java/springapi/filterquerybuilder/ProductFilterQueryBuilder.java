@@ -161,6 +161,7 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
    * @param pageable Pagination parameters
    * @return Page of products matching the filter criteria
    */
+  @SuppressWarnings("java:S2077")
   public Page<Product> findPaginatedEntitiesWithMultipleFilters(
       Long clientId,
       List<Long> selectedIds,
@@ -293,9 +294,8 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
       countQuery += "AND (" + filterResult.getWhereClause() + ") ";
     }
 
-    // Execute count query
-    TypedQuery<Long> countTypedQuery = // NOSONAR
-        entityManager.createQuery(countQuery, Long.class);
+    // Query fragments are mapped from whitelisted columns/operators; all values are parameterized.
+    TypedQuery<Long> countTypedQuery = entityManager.createQuery(countQuery, Long.class); // NOSONAR
     countTypedQuery.setParameter(CLIENT_ID, clientId);
 
     if (selectedIds != null && !selectedIds.isEmpty()) {
@@ -309,9 +309,7 @@ public class ProductFilterQueryBuilder extends BaseFilterQueryBuilder {
 
     final Long totalCount = countTypedQuery.getSingleResult();
 
-    // Execute main query with pagination
-    TypedQuery<Product> mainQuery = // NOSONAR
-        entityManager.createQuery(baseQuery, Product.class);
+    TypedQuery<Product> mainQuery = entityManager.createQuery(baseQuery, Product.class); // NOSONAR
     mainQuery.setParameter(CLIENT_ID, clientId);
 
     if (selectedIds != null && !selectedIds.isEmpty()) {

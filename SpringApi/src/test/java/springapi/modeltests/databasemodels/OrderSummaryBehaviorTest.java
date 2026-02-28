@@ -141,15 +141,17 @@ class OrderSummaryBehaviorTest {
     assertEquals(
         ErrorMessages.OrderSummaryErrorMessages.PAID_AMOUNT_INVALID, nullAmountEx.getMessage());
 
+    BigDecimal negativePaidAmount = new BigDecimal("-1");
     BadRequestException negativeAmountEx =
         assertThrows(
-            BadRequestException.class, () -> summary.updatePendingAmount(new BigDecimal("-1")));
+            BadRequestException.class, () -> summary.updatePendingAmount(negativePaidAmount));
     assertEquals(
         ErrorMessages.OrderSummaryErrorMessages.PAID_AMOUNT_INVALID, negativeAmountEx.getMessage());
 
+    BigDecimal excessivePaidAmount = new BigDecimal("201.00");
     BadRequestException exceedAmountEx =
         assertThrows(
-            BadRequestException.class, () -> summary.updatePendingAmount(new BigDecimal("201.00")));
+            BadRequestException.class, () -> summary.updatePendingAmount(excessivePaidAmount));
     assertEquals(
         ErrorMessages.OrderSummaryErrorMessages.PAID_AMOUNT_EXCEEDS_GRAND_TOTAL,
         exceedAmountEx.getMessage());

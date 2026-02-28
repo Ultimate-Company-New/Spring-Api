@@ -100,11 +100,7 @@ public class ShippingController extends BaseController {
     long startTime = System.currentTimeMillis();
     int productCount =
         request.getProductQuantities() != null ? request.getProductQuantities().size() : 0;
-    String safeDeliveryPostcode = sanitizeForLog(request.getDeliveryPostcode());
-    logger.info(
-        "Received optimizeOrder request for {} products, delivery postcode: {}",
-        productCount,
-        safeDeliveryPostcode);
+    logger.info("Received optimizeOrder request for {} products", productCount);
     try {
       OrderOptimizationResponseModel response = shippingService.optimizeOrder(request);
       long duration = System.currentTimeMillis() - startTime;
