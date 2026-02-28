@@ -115,21 +115,18 @@ jobs:
                 // Identical content — do nothing
                 console.log("Results unchanged. Skipping comment.");
               } else {
-                // Results changed — post a reply that quotes the updated summary
-                console.log("Results changed. Posting reply with updated results.");
-                const replyBody = `> 🔄 **Updated Unit Test Results**\n\n${message}`;
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: prNumber,
-                  body: replyBody
-                });
-                // Also silently update the original so next run compares against the latest state
+                // Results changed — edit the original comment in-place so it stays as a single comment
+                console.log("Results changed. Updating existing comment in-place.");
+                const now = new Date().toUTCString();
+                const updatedMessage = message.replace(
+                  toolIdentifier,
+                  `${toolIdentifier}\n> 🔄 _Last updated: ${now}_`
+                );
                 await github.rest.issues.updateComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   comment_id: existingComment.id,
-                  body: message
+                  body: updatedMessage
                 });
               }
             } else {
