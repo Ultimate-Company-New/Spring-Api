@@ -13,86 +13,67 @@ on:
         required: true
 
 jobs:
-  # spotless:
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: write
-  #     pull-requests: write
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         ref: ${{ github.head_ref }}
-  #         fetch-depth: 0
-  #     - name: Set up JDK 21
-  #       uses: actions/setup-java@v4
-  #       with:
-  #         java-version: "21"
-  #         distribution: "temurin"
-  #         cache: maven
-  #     - name: Configure Git
-  #       run: |
-  #         git config --global user.name 'github-actions[bot]'
-  #         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-  #     - name: Apply Spotless
-  #       id: spotless
-  #       working-directory: SpringApi
-  #       run: |
-  #         mvn spotless:apply
-  #         if [ -n "$(git status --porcelain)" ]; then
-  #           git add .
-  #           git commit -m "style: apply spotless formatting"
-  #           git push
-  #           echo "has_changes=true" >> $GITHUB_OUTPUT
-  #           # Capture names of changed files
-  #           CHANGED=$(git log -1 --name-only --pretty=format:)
-  #           echo "files=${CHANGED//$'\n'/\\n}" >> $GITHUB_OUTPUT
-  #         else
-  #           echo "has_changes=false" >> $GITHUB_OUTPUT
-  #         fi
-  #     - name: Comment Spotless Results
-  #       if: always()
-  #       uses: actions/github-script@v7
-  #       with:
-  #         script: |
-  #           const prNumber = parseInt('${{ inputs.pr_number }}');
-  #           const identifier = '<!-- spotless-comment-id -->';
-  #           const hasChanges = '${{ steps.spotless.outputs.has_changes }}' === 'true';
-
-  #           let body = '';
-  #           if (hasChanges) {
-  #              body = `${identifier}\n### 🎨 Spotless Formatting Applied\nFiles updated:\n\`\`\`\n${'${{ steps.spotless.outputs.files }}'.replace(/\\n/g, '\n')}\n\`\`\``;
-  #           } else {
-  #              body = `${identifier}\n### ✅ Spotless Check Passed\nNo formatting changes required.`;
-  #           }
-
-  #           const { data: comments } = await github.rest.issues.listComments({
-  #             owner: context.repo.owner,
-  #             repo: context.repo.repo,
-  #             issue_number: prNumber
-  #           });
-
-  #           const existingComment = comments.reverse().find(c => c.body.includes(identifier));
-  #           if (existingComment) {
-  #             if (existingComment.body !== body) {
-  #               await github.rest.issues.updateComment({
-  #                 owner: context.repo.owner,
-  #                 repo: context.repo.repo,
-  #                 comment_id: existingComment.id,
-  #                 body: body
-  #               });
-  #             }
-  #           } else {
-  #             await github.rest.issues.createComment({
-  #               owner: context.repo.owner,
-  #               repo: context.repo.repo,
-  #               issue_number: prNumber,
-  #               body: body
-  #             });
-  #           }
+  spotless:
+    name: 🎨 Spotless
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: maven
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+      - name: Apply Spotless
+        id: spotless
+        working-directory: SpringApi
+        run: |
+          mvn spotless:apply
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "style: apply spotless formatting"
+            git push
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            CHANGED=$(git log -1 --name-only --pretty=format:)
+            echo "files=${CHANGED//$'\n'/\\n}" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Comment Spotless Results
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = parseInt('${{ inputs.pr_number }}');
+            const identifier = '<!-- spotless-comment-id -->';
+            const hasChanges = '${{ steps.spotless.outputs.has_changes }}' === 'true';
+            let body = hasChanges
+              ? `${identifier}\n### 🎨 Spotless Formatting Applied\nFiles updated:\n\`\`\`\n${'${{ steps.spotless.outputs.files }}'.replace(/\\n/g, '\n')}\n\`\`\``
+              : `${identifier}\n### ✅ Spotless Check Passed\nNo formatting changes required.`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner, repo: context.repo.repo, issue_number: prNumber
+            });
+            const existing = comments.reverse().find(c => c.body.includes(identifier));
+            if (existing) {
+              if (existing.body !== body)
+                await github.rest.issues.updateComment({ owner: context.repo.owner, repo: context.repo.repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: prNumber, body });
+            }
 
   checkstyle:
     name: 🔍 Checkstyle
-    # needs: spotless
+    needs: spotless
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -113,117 +94,144 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const path = require('path');
-            const reportPath = 'SpringApi/target/checkstyle-result.xml';
             const toolName = 'Checkstyle';
+            const toolEmoji = '🔍';
             const prNumber = parseInt('${{ inputs.pr_number }}');
-            const headSha = context.payload.pull_request ? context.payload.pull_request.head.sha : (await github.rest.pulls.get({owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber})).data.head.sha;
-
-            if (!fs.existsSync(reportPath)) {
-              console.log('No Checkstyle report found.');
-              return;
-            }
-
-            // 1. Parse findings
+            const headSha = context.payload.pull_request
+              ? context.payload.pull_request.head.sha
+              : (await github.rest.pulls.get({ owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber })).data.head.sha;
+            const reportPath = 'SpringApi/target/checkstyle-result.xml';
+            if (!fs.existsSync(reportPath)) { console.log('No Checkstyle report'); return; }
             const xml = fs.readFileSync(reportPath, 'utf8');
             const findings = [];
-            const fileMatches = xml.matchAll(/<file name="([^"]+)">([\s\S]+?)<\/file>/g);
-            for (const fileMatch of fileMatches) {
-              const absPath = fileMatch[1];
+            for (const fm of xml.matchAll(/<file name="([^"]+)">([\s\S]+?)<\/file>/g)) {
+              const absPath = fm[1];
               const relPath = absPath.includes('SpringApi/') ? absPath.split('SpringApi/')[1] : absPath;
-              const fullRepoPath = `SpringApi/${relPath}`;
-              
-              const errorMatches = fileMatch[2].matchAll(/<error line="(\d+)"(?: column="\d+")? severity="[^"]+" message="([^"]+)" source="([^"]+)"/g);
-              for (const err of errorMatches) {
-                const line = parseInt(err[1]);
-                const message = err[2];
-                const ruleId = err[3].split('.').pop();
-                findings.push({ path: fullRepoPath, line, ruleId, message });
-              }
+              const fullPath = `SpringApi/${relPath}`;
+              for (const err of fm[2].matchAll(/<error line="(\d+)"(?: column="\d+")? severity="[^"]+" message="([^"]+)" source="([^"]+)"/g))
+                findings.push({ path: fullPath, line: parseInt(err[1]), ruleId: err[3].split('.').pop(), message: err[2] });
             }
+            await postAndResolveFindings(github, context, prNumber, headSha, toolName, toolEmoji, findings);
 
-            // 2. Fetch Review Threads via GraphQL
-            const query = `query($owner:String!, $repo:String!, $number:Int!) {
-              repository(owner:$owner, name:$repo) {
-                pullRequest(number:$number) {
-                  reviewThreads(first: 100) {
-                    nodes {
-                      id
-                      isResolved
-                      comments(first: 1) {
+            // ── Shared helper (inlined per job since github-script is isolated) ──────────
+            async function postAndResolveFindings(github, context, prNumber, headSha, toolName, toolEmoji, findings) {
+              const toolIdentifier = `<!-- tool: ${toolName} -->`;
+
+              // Fetch ALL threads with ALL their comments so we can detect duplicates in replies too
+              const gql = `
+                query($owner:String!,$repo:String!,$number:Int!) {
+                  repository(owner:$owner, name:$repo) {
+                    pullRequest(number:$number) {
+                      reviewThreads(first:100) {
                         nodes {
-                          body
+                          id
+                          isResolved
                           path
                           line
+                          comments(first:50) {
+                            nodes { id body }
+                          }
                         }
                       }
                     }
                   }
+                }`;
+              const gqlResult = await github.graphql(gql, { owner: context.repo.owner, repo: context.repo.repo, number: prNumber });
+              const allThreads = gqlResult.repository.pullRequest.reviewThreads.nodes;
+
+              // Threads WE OWN = root comment (first comment) has our tool identifier
+              // We can only resolve/unresolve threads we created
+              const myOwnedThreads = allThreads.filter(t =>
+                t.comments.nodes[0] && t.comments.nodes[0].body.includes(toolIdentifier)
+              );
+
+              for (const find of findings) {
+                const findingTag = `<!-- finding-id: ${find.ruleId}|${find.path}|${find.message} -->`;
+
+                // Has THIS specific finding already been posted in ANY comment of ANY thread?
+                const threadWithFinding = allThreads.find(t =>
+                  t.comments.nodes.some(c => c.body.includes(findingTag))
+                );
+
+                if (threadWithFinding) {
+                  // Already posted — just reopen if resolved (only if we own the thread)
+                  if (threadWithFinding.isResolved && myOwnedThreads.some(t => t.id === threadWithFinding.id)) {
+                    console.log(`Reopening resolved thread for ${find.ruleId}`);
+                    await github.graphql(`mutation($id:ID!){unresolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: threadWithFinding.id });
+                  } else {
+                    console.log(`Finding ${find.ruleId} already posted — skipping`);
+                  }
+                  continue;
+                }
+
+                // Not posted yet — check if another tool owns a thread on the same path+line
+                // If so, reply inside it rather than creating a new thread
+                const existingThreadOnLine = allThreads.find(t =>
+                  t.path === find.path && t.line === find.line &&
+                  t.comments.nodes[0] && !t.comments.nodes[0].body.includes(toolIdentifier)
+                );
+
+                const body = `${toolIdentifier}\n${findingTag}\n${toolEmoji} **${toolName} Finding:** [${find.ruleId}] ${find.message}`;
+
+                if (existingThreadOnLine) {
+                  // Another tool flagged the same line — reply in their thread
+                  console.log(`Replying to existing thread on ${find.path}:${find.line} for ${toolName}`);
+                  try {
+                    await github.graphql(
+                      `mutation($threadId:ID!,$body:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$threadId,body:$body}){comment{id}}}`,
+                      { threadId: existingThreadOnLine.id, body }
+                    );
+                  } catch (e) {
+                    console.log(`Reply failed (${e.message}) — creating new thread instead`);
+                    await createThreadWithFallback(github, context, prNumber, headSha, body, find);
+                  }
+                } else {
+                  await createThreadWithFallback(github, context, prNumber, headSha, body, find);
                 }
               }
-            }`;
-            const variables = { owner: context.repo.owner, repo: context.repo.repo, number: prNumber };
-            const result = await github.graphql(query, variables);
-            const threads = result.repository.pullRequest.reviewThreads.nodes;
 
-            const toolIdentifier = `<!-- tool: ${toolName} -->`;
-            const toolThreads = threads.filter(t => t.comments.nodes[0] && t.comments.nodes[0].body.includes(toolIdentifier));
-
-            // 3. Process findings: Add or Unresolve
-            for (const find of findings) {
-              const findingTag = `<!-- finding-id: ${find.ruleId}|${find.path}|${find.message} -->`;
-              const match = toolThreads.find(t => t.comments.nodes[0].body.includes(findingTag));
-
-              if (match) {
-                if (match.isResolved) {
-                  console.log(`Unresolving thread for ${find.ruleId} at ${find.path}:${find.line}`);
-                  await github.graphql(`mutation($id: ID!) { unresolveReviewThread(input: {threadId: $id}) { thread { isResolved } } }`, { id: match.id });
-                }
-              } else {
-                console.log(`Creating new comment for ${find.ruleId} at ${find.path}:${find.line}`);
-                const body = `${toolIdentifier}\n${findingTag}\n� **${toolName} Finding:** [${find.ruleId}] ${find.message}`;
-                try {
-                  await github.rest.pulls.createReviewComment({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    pull_number: prNumber,
-                    body: body,
-                    commit_id: headSha,
-                    path: find.path,
-                    line: find.line,
-                    side: 'RIGHT'
-                  });
-                } catch (e) {
-                   await github.rest.pulls.createReviewComment({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    pull_number: prNumber,
-                    body: body,
-                    commit_id: headSha,
-                    path: find.path,
-                    subject_type: 'file'
-                  });
+              // Resolve threads WE OWN whose finding no longer appears in this run
+              for (const thread of myOwnedThreads) {
+                if (thread.isResolved) continue;
+                // Scan all comments in the thread for a finding tag we own
+                for (const comment of thread.comments.nodes) {
+                  if (!comment.body.includes(toolIdentifier)) continue;
+                  const tagMatch = comment.body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
+                  if (tagMatch) {
+                    const [, ruleId, path, message] = tagMatch;
+                    if (!findings.some(f => f.ruleId === ruleId && f.path === path && f.message === message.trim())) {
+                      console.log(`Resolving fixed finding: ${ruleId} in ${path}`);
+                      await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
+                      break; // Thread resolved — no need to check remaining comments
+                    }
+                  }
                 }
               }
             }
 
-            // 4. Resolve fixed findings
-            for (const thread of toolThreads) {
-              const body = thread.comments.nodes[0].body;
-              const tagMatch = body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
-              if (tagMatch) {
-                const [_, ruleId, path, message] = tagMatch;
-                const stillExists = findings.some(f => f.ruleId === ruleId && f.path === path && f.message === message);
-                if (!stillExists && !thread.isResolved) {
-                   console.log(`Resolving fixed finding: ${ruleId} in ${path}`);
-                   await github.graphql(`mutation($id: ID!) { resolveReviewThread(input: {threadId: $id}) { thread { isResolved } } }`, { id: thread.id });
+            async function createThreadWithFallback(github, context, prNumber, headSha, body, find) {
+              console.log(`Creating new thread for ${find.ruleId} at ${find.path}:${find.line}`);
+              try {
+                await github.rest.pulls.createReviewComment({
+                  owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber,
+                  body, commit_id: headSha, path: find.path, line: find.line, side: 'RIGHT'
+                });
+              } catch (e) {
+                console.log(`Line comment failed (${e.message}), trying file-level`);
+                try {
+                  await github.rest.pulls.createReviewComment({
+                    owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber,
+                    body, commit_id: headSha, path: find.path, subject_type: 'file'
+                  });
+                } catch (e2) {
+                  console.log(`File-level also failed for ${find.path}: ${e2.message}`);
                 }
               }
             }
 
   snyk:
     name: 🛡️ Snyk
-    # needs: spotless
+    needs: spotless
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -244,72 +252,124 @@ jobs:
           script: |
             const fs = require('fs');
             const toolName = 'Snyk';
-            const sarifFile = 'snyk-code.sarif';
+            const toolEmoji = '🛡️';
             const prNumber = parseInt('${{ inputs.pr_number }}');
-            const headSha = context.payload.pull_request ? context.payload.pull_request.head.sha : (await github.rest.pulls.get({owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber})).data.head.sha;
-
-            if (!fs.existsSync(sarifFile)) return;
-
-            const sarif = JSON.parse(fs.readFileSync(sarifFile, 'utf8'));
+            const headSha = context.payload.pull_request
+              ? context.payload.pull_request.head.sha
+              : (await github.rest.pulls.get({ owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber })).data.head.sha;
+            if (!fs.existsSync('snyk-code.sarif')) { console.log('No SARIF file'); return; }
+            const sarif = JSON.parse(fs.readFileSync('snyk-code.sarif', 'utf8'));
             const results = (sarif.runs && sarif.runs[0] && sarif.runs[0].results) || [];
-
             const findings = results.map(res => {
-              const path = res.locations[0].physicalLocation.artifactLocation.uri;
-              const fullPath = path.startsWith('SpringApi/') ? path : `SpringApi/${path}`;
+              const rawPath = res.locations[0].physicalLocation.artifactLocation.uri;
+              const decodedPath = decodeURIComponent(rawPath);
+              const fullPath = decodedPath.startsWith('SpringApi/') ? decodedPath : `SpringApi/${decodedPath}`;
               const line = res.locations[0].physicalLocation.region ? res.locations[0].physicalLocation.region.startLine : 1;
               return { path: fullPath, line, ruleId: res.ruleId, message: res.message.text };
             });
+            await postAndResolveFindings(github, context, prNumber, headSha, toolName, toolEmoji, findings);
 
-            const query = `query($owner:String!, $repo:String!, $number:Int!) {
-              repository(owner:$owner, name:$repo) {
-                pullRequest(number:$number) {
-                  reviewThreads(first: 100) {
-                    nodes {
-                      id
-                      isResolved
-                      comments(first: 1) {
+            async function postAndResolveFindings(github, context, prNumber, headSha, toolName, toolEmoji, findings) {
+              const toolIdentifier = `<!-- tool: ${toolName} -->`;
+              const gql = `
+                query($owner:String!,$repo:String!,$number:Int!) {
+                  repository(owner:$owner, name:$repo) {
+                    pullRequest(number:$number) {
+                      reviewThreads(first:100) {
                         nodes {
-                          body
+                          id
+                          isResolved
+                          path
+                          line
+                          comments(first:50) {
+                            nodes { id body }
+                          }
                         }
                       }
                     }
                   }
+                }`;
+              const gqlResult = await github.graphql(gql, { owner: context.repo.owner, repo: context.repo.repo, number: prNumber });
+              const allThreads = gqlResult.repository.pullRequest.reviewThreads.nodes;
+              const myOwnedThreads = allThreads.filter(t =>
+                t.comments.nodes[0] && t.comments.nodes[0].body.includes(toolIdentifier)
+              );
+
+              for (const find of findings) {
+                const findingTag = `<!-- finding-id: ${find.ruleId}|${find.path}|${find.message} -->`;
+                const threadWithFinding = allThreads.find(t =>
+                  t.comments.nodes.some(c => c.body.includes(findingTag))
+                );
+                if (threadWithFinding) {
+                  if (threadWithFinding.isResolved && myOwnedThreads.some(t => t.id === threadWithFinding.id)) {
+                    console.log(`Reopening resolved thread for ${find.ruleId}`);
+                    await github.graphql(`mutation($id:ID!){unresolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: threadWithFinding.id });
+                  } else {
+                    console.log(`Finding ${find.ruleId} already posted — skipping`);
+                  }
+                  continue;
+                }
+                const existingThreadOnLine = allThreads.find(t =>
+                  t.path === find.path && t.line === find.line &&
+                  t.comments.nodes[0] && !t.comments.nodes[0].body.includes(toolIdentifier)
+                );
+                const body = `${toolIdentifier}\n${findingTag}\n${toolEmoji} **${toolName} Finding:** [${find.ruleId}] ${find.message}`;
+                if (existingThreadOnLine) {
+                  console.log(`Replying to existing thread on ${find.path}:${find.line} for ${toolName}`);
+                  try {
+                    await github.graphql(
+                      `mutation($threadId:ID!,$body:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$threadId,body:$body}){comment{id}}}`,
+                      { threadId: existingThreadOnLine.id, body }
+                    );
+                  } catch (e) {
+                    console.log(`Reply failed — creating new thread`);
+                    await createThreadWithFallback(github, context, prNumber, headSha, body, find);
+                  }
+                } else {
+                  await createThreadWithFallback(github, context, prNumber, headSha, body, find);
                 }
               }
-            }`;
-            const result = await github.graphql(query, { owner: context.repo.owner, repo: context.repo.repo, number: prNumber });
-            const toolIdentifier = `<!-- tool: ${toolName} -->`;
-            const toolThreads = result.repository.pullRequest.reviewThreads.nodes.filter(t => t.comments.nodes[0] && t.comments.nodes[0].body.includes(toolIdentifier));
 
-            for (const find of findings) {
-              const findingTag = `<!-- finding-id: ${find.ruleId}|${find.path}|${find.message} -->`;
-              const match = toolThreads.find(t => t.comments.nodes[0].body.includes(findingTag));
-              if (match) {
-                if (match.isResolved) await github.graphql(`mutation($id: ID!) { unresolveReviewThread(input: {threadId: $id}) { thread { isResolved } } }`, { id: match.id });
-              } else {
-                const body = `${toolIdentifier}\n${findingTag}\n🛡️ **${toolName} Finding:** [${find.ruleId}] ${find.message}`;
-                try {
-                  await github.rest.pulls.createReviewComment({ owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber, body: body, commit_id: headSha, path: find.path, line: find.line, side: 'RIGHT' });
-                } catch (e) {
-                   await github.rest.pulls.createReviewComment({ owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber, body: body, commit_id: headSha, path: find.path, subject_type: 'file' });
+              for (const thread of myOwnedThreads) {
+                if (thread.isResolved) continue;
+                for (const comment of thread.comments.nodes) {
+                  if (!comment.body.includes(toolIdentifier)) continue;
+                  const tagMatch = comment.body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
+                  if (tagMatch) {
+                    const [, ruleId, path, message] = tagMatch;
+                    if (!findings.some(f => f.ruleId === ruleId && f.path === path && f.message === message.trim())) {
+                      console.log(`Resolving fixed finding: ${ruleId}`);
+                      await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
+                      break;
+                    }
+                  }
                 }
               }
             }
 
-            for (const thread of toolThreads) {
-              const body = thread.comments.nodes[0].body;
-              const tagMatch = body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
-              if (tagMatch) {
-                const [_, ruleId, path, message] = tagMatch;
-                if (!findings.some(f => f.ruleId === ruleId && f.path === path && f.message === message) && !thread.isResolved) {
-                   await github.graphql(`mutation($id: ID!) { resolveReviewThread(input: {threadId: $id}) { thread { isResolved } } }`, { id: thread.id });
+            async function createThreadWithFallback(github, context, prNumber, headSha, body, find) {
+              console.log(`Creating new thread for ${find.ruleId} at ${find.path}:${find.line}`);
+              try {
+                await github.rest.pulls.createReviewComment({
+                  owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber,
+                  body, commit_id: headSha, path: find.path, line: find.line, side: 'RIGHT'
+                });
+              } catch (e) {
+                console.log(`Line comment failed (${e.message}), trying file-level`);
+                try {
+                  await github.rest.pulls.createReviewComment({
+                    owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber,
+                    body, commit_id: headSha, path: find.path, subject_type: 'file'
+                  });
+                } catch (e2) {
+                  console.log(`File-level also failed for ${find.path}: ${e2.message}`);
                 }
               }
             }
 
   codeql:
     name: 🔬 CodeQL
-    # needs: spotless
+    needs: spotless
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -328,78 +388,130 @@ jobs:
         with:
           script: |
             const toolName = 'CodeQL';
+            const toolEmoji = '🔬';
             const prNumber = parseInt('${{ inputs.pr_number }}');
-            const headSha = context.payload.pull_request ? context.payload.pull_request.head.sha : (await github.rest.pulls.get({owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber})).data.head.sha;
-
+            const headSha = context.payload.pull_request
+              ? context.payload.pull_request.head.sha
+              : (await github.rest.pulls.get({ owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber })).data.head.sha;
             const { data: alerts } = await github.rest.codeScanning.listAlertsForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: context.ref,
-              state: 'open'
+              owner: context.repo.owner, repo: context.repo.repo, ref: context.ref, state: 'open'
             });
-
             const findings = alerts.map(a => ({
               path: a.most_recent_instance.location.path,
               line: a.most_recent_instance.location.start_line,
               ruleId: a.rule.id,
               message: a.rule.description
             }));
+            await postAndResolveFindings(github, context, prNumber, headSha, toolName, toolEmoji, findings);
 
-            const query = `query($owner:String!, $repo:String!, $number:Int!) {
-              repository(owner:$owner, name:$repo) {
-                pullRequest(number:$number) {
-                  reviewThreads(first: 100) {
-                    nodes {
-                      id
-                      isResolved
-                      comments(first: 1) {
+            async function postAndResolveFindings(github, context, prNumber, headSha, toolName, toolEmoji, findings) {
+              const toolIdentifier = `<!-- tool: ${toolName} -->`;
+              const gql = `
+                query($owner:String!,$repo:String!,$number:Int!) {
+                  repository(owner:$owner, name:$repo) {
+                    pullRequest(number:$number) {
+                      reviewThreads(first:100) {
                         nodes {
-                          body
+                          id
+                          isResolved
+                          path
+                          line
+                          comments(first:50) {
+                            nodes { id body }
+                          }
                         }
                       }
                     }
                   }
+                }`;
+              const gqlResult = await github.graphql(gql, { owner: context.repo.owner, repo: context.repo.repo, number: prNumber });
+              const allThreads = gqlResult.repository.pullRequest.reviewThreads.nodes;
+              const myOwnedThreads = allThreads.filter(t =>
+                t.comments.nodes[0] && t.comments.nodes[0].body.includes(toolIdentifier)
+              );
+
+              for (const find of findings) {
+                const findingTag = `<!-- finding-id: ${find.ruleId}|${find.path}|${find.message} -->`;
+                const threadWithFinding = allThreads.find(t =>
+                  t.comments.nodes.some(c => c.body.includes(findingTag))
+                );
+                if (threadWithFinding) {
+                  if (threadWithFinding.isResolved && myOwnedThreads.some(t => t.id === threadWithFinding.id)) {
+                    console.log(`Reopening resolved thread for ${find.ruleId}`);
+                    await github.graphql(`mutation($id:ID!){unresolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: threadWithFinding.id });
+                  } else {
+                    console.log(`Finding ${find.ruleId} already posted — skipping`);
+                  }
+                  continue;
+                }
+                const existingThreadOnLine = allThreads.find(t =>
+                  t.path === find.path && t.line === find.line &&
+                  t.comments.nodes[0] && !t.comments.nodes[0].body.includes(toolIdentifier)
+                );
+                const body = `${toolIdentifier}\n${findingTag}\n${toolEmoji} **${toolName} Finding:** [${find.ruleId}] ${find.message}`;
+                if (existingThreadOnLine) {
+                  console.log(`Replying to existing thread on ${find.path}:${find.line} for ${toolName}`);
+                  try {
+                    await github.graphql(
+                      `mutation($threadId:ID!,$body:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$threadId,body:$body}){comment{id}}}`,
+                      { threadId: existingThreadOnLine.id, body }
+                    );
+                  } catch (e) {
+                    console.log(`Reply failed — creating new thread`);
+                    await createThreadWithFallback(github, context, prNumber, headSha, body, find);
+                  }
+                } else {
+                  await createThreadWithFallback(github, context, prNumber, headSha, body, find);
                 }
               }
-            }`;
-            const result = await github.graphql(query, { owner: context.repo.owner, repo: context.repo.repo, number: prNumber });
-            const toolIdentifier = `<!-- tool: ${toolName} -->`;
-            const toolThreads = result.repository.pullRequest.reviewThreads.nodes.filter(t => t.comments.nodes[0] && t.comments.nodes[0].body.includes(toolIdentifier));
 
-            for (const find of findings) {
-              const findingTag = `<!-- finding-id: ${find.ruleId}|${find.path}|${find.message} -->`;
-              const match = toolThreads.find(t => t.comments.nodes[0].body.includes(findingTag));
-              if (match) {
-                if (match.isResolved) await github.graphql(`mutation($id: ID!) { unresolveReviewThread(input: {threadId: $id}) { thread { isResolved } } }`, { id: match.id });
-              } else {
-                const body = `${toolIdentifier}\n${findingTag}\n� **${toolName} Finding:** [${find.ruleId}] ${find.message}`;
-                try {
-                  await github.rest.pulls.createReviewComment({ owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber, body: body, commit_id: headSha, path: find.path, line: find.line, side: 'RIGHT' });
-                } catch (e) {
-                   await github.rest.pulls.createReviewComment({ owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber, body: body, commit_id: headSha, path: find.path, subject_type: 'file' });
+              for (const thread of myOwnedThreads) {
+                if (thread.isResolved) continue;
+                for (const comment of thread.comments.nodes) {
+                  if (!comment.body.includes(toolIdentifier)) continue;
+                  const tagMatch = comment.body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
+                  if (tagMatch) {
+                    const [, ruleId, path, message] = tagMatch;
+                    if (!findings.some(f => f.ruleId === ruleId && f.path === path && f.message === message.trim())) {
+                      console.log(`Resolving fixed finding: ${ruleId}`);
+                      await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
+                      break;
+                    }
+                  }
                 }
               }
             }
 
-            for (const thread of toolThreads) {
-              const body = thread.comments.nodes[0].body;
-              const tagMatch = body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
-              if (tagMatch) {
-                const [_, ruleId, path, message] = tagMatch;
-                if (!findings.some(f => f.ruleId === ruleId && f.path === path && f.message === message) && !thread.isResolved) {
-                   await github.graphql(`mutation($id: ID!) { resolveReviewThread(input: {threadId: $id}) { thread { isResolved } } }`, { id: thread.id });
+            async function createThreadWithFallback(github, context, prNumber, headSha, body, find) {
+              console.log(`Creating new thread for ${find.ruleId} at ${find.path}:${find.line}`);
+              try {
+                await github.rest.pulls.createReviewComment({
+                  owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber,
+                  body, commit_id: headSha, path: find.path, line: find.line, side: 'RIGHT'
+                });
+              } catch (e) {
+                console.log(`Line comment failed (${e.message}), trying file-level`);
+                try {
+                  await github.rest.pulls.createReviewComment({
+                    owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber,
+                    body, commit_id: headSha, path: find.path, subject_type: 'file'
+                  });
+                } catch (e2) {
+                  console.log(`File-level also failed for ${find.path}: ${e2.message}`);
                 }
               }
             }
 
   sonar:
     name: 🌊 SonarCloud
-    # needs: spotless
+    needs: spotless
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -409,7 +521,12 @@ jobs:
       - name: Run Sonar Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Ultimate-Company-New_Spring-Api
+        run: |
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=Ultimate-Company-New_Spring-Api \
+            -Dsonar.organization=ultimate-company-new \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
         working-directory: SpringApi
       - name: Post/Resolve Sonar Comments
         uses: actions/github-script@v7
@@ -418,66 +535,121 @@ jobs:
         with:
           script: |
             const toolName = 'SonarCloud';
+            const toolEmoji = '🌊';
             const projectKey = 'Ultimate-Company-New_Spring-Api';
             const prNumber = parseInt('${{ inputs.pr_number }}');
             const token = process.env.SONAR_TOKEN;
             const auth = Buffer.from(token + ':').toString('base64');
-            const headSha = context.payload.pull_request ? context.payload.pull_request.head.sha : (await github.rest.pulls.get({owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber})).data.head.sha;
-
-            const response = await fetch(`https://sonarcloud.io/api/issues/search?projectKeys=${projectKey}&resolved=false&pullRequest=${prNumber}`, {
-              headers: { 'Authorization': `Basic ${auth}` }
-            });
+            const headSha = context.payload.pull_request
+              ? context.payload.pull_request.head.sha
+              : (await github.rest.pulls.get({ owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber })).data.head.sha;
+            const response = await fetch(
+              `https://sonarcloud.io/api/issues/search?projectKeys=${projectKey}&resolved=false&pullRequest=${prNumber}`,
+              { headers: { 'Authorization': `Basic ${auth}` } }
+            );
             const data = await response.json();
             const findings = (data.issues || []).map(issue => {
-               const componentParts = issue.component.split(':');
-               const path = componentParts[componentParts.length - 1];
-               const fullPath = path.startsWith('SpringApi/') ? path : `SpringApi/${path}`;
-               return { path: fullPath, line: issue.line || 1, ruleId: issue.rule, message: issue.message };
+              const parts = issue.component.split(':');
+              const p = parts[parts.length - 1];
+              const fullPath = p.startsWith('SpringApi/') ? p : `SpringApi/${p}`;
+              return { path: fullPath, line: issue.line || 1, ruleId: issue.rule, message: issue.message };
             });
+            await postAndResolveFindings(github, context, prNumber, headSha, toolName, toolEmoji, findings);
 
-            const query = `query($owner:String!, $repo:String!, $number:Int!) {
-              repository(owner:$owner, name:$repo) {
-                pullRequest(number:$number) {
-                  reviewThreads(first: 100) {
-                    nodes {
-                      id
-                      isResolved
-                      comments(first: 1) {
+            async function postAndResolveFindings(github, context, prNumber, headSha, toolName, toolEmoji, findings) {
+              const toolIdentifier = `<!-- tool: ${toolName} -->`;
+              const gql = `
+                query($owner:String!,$repo:String!,$number:Int!) {
+                  repository(owner:$owner, name:$repo) {
+                    pullRequest(number:$number) {
+                      reviewThreads(first:100) {
                         nodes {
-                          body
+                          id
+                          isResolved
+                          path
+                          line
+                          comments(first:50) {
+                            nodes { id body }
+                          }
                         }
                       }
                     }
                   }
+                }`;
+              const gqlResult = await github.graphql(gql, { owner: context.repo.owner, repo: context.repo.repo, number: prNumber });
+              const allThreads = gqlResult.repository.pullRequest.reviewThreads.nodes;
+              const myOwnedThreads = allThreads.filter(t =>
+                t.comments.nodes[0] && t.comments.nodes[0].body.includes(toolIdentifier)
+              );
+
+              for (const find of findings) {
+                const findingTag = `<!-- finding-id: ${find.ruleId}|${find.path}|${find.message} -->`;
+                const threadWithFinding = allThreads.find(t =>
+                  t.comments.nodes.some(c => c.body.includes(findingTag))
+                );
+                if (threadWithFinding) {
+                  if (threadWithFinding.isResolved && myOwnedThreads.some(t => t.id === threadWithFinding.id)) {
+                    console.log(`Reopening resolved thread for ${find.ruleId}`);
+                    await github.graphql(`mutation($id:ID!){unresolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: threadWithFinding.id });
+                  } else {
+                    console.log(`Finding ${find.ruleId} already posted — skipping`);
+                  }
+                  continue;
+                }
+                const existingThreadOnLine = allThreads.find(t =>
+                  t.path === find.path && t.line === find.line &&
+                  t.comments.nodes[0] && !t.comments.nodes[0].body.includes(toolIdentifier)
+                );
+                const body = `${toolIdentifier}\n${findingTag}\n${toolEmoji} **${toolName} Finding:** [${find.ruleId}] ${find.message}`;
+                if (existingThreadOnLine) {
+                  console.log(`Replying to existing thread on ${find.path}:${find.line} for ${toolName}`);
+                  try {
+                    await github.graphql(
+                      `mutation($threadId:ID!,$body:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$threadId,body:$body}){comment{id}}}`,
+                      { threadId: existingThreadOnLine.id, body }
+                    );
+                  } catch (e) {
+                    console.log(`Reply failed — creating new thread`);
+                    await createThreadWithFallback(github, context, prNumber, headSha, body, find);
+                  }
+                } else {
+                  await createThreadWithFallback(github, context, prNumber, headSha, body, find);
                 }
               }
-            }`;
-            const result = await github.graphql(query, { owner: context.repo.owner, repo: context.repo.repo, number: prNumber });
-            const toolIdentifier = `<!-- tool: ${toolName} -->`;
-            const toolThreads = result.repository.pullRequest.reviewThreads.nodes.filter(t => t.comments.nodes[0] && t.comments.nodes[0].body.includes(toolIdentifier));
 
-            for (const find of findings) {
-              const findingTag = `<!-- finding-id: ${find.ruleId}|${find.path}|${find.message} -->`;
-              const match = toolThreads.find(t => t.comments.nodes[0].body.includes(findingTag));
-              if (match) {
-                if (match.isResolved) await github.graphql(`mutation($id: ID!) { unresolveReviewThread(input: {threadId: $id}) { thread { isResolved } } }`, { id: match.id });
-              } else {
-                const body = `${toolIdentifier}\n${findingTag}\n🌊 **${toolName} Finding:** [${find.ruleId}] ${find.message}`;
-                try {
-                  await github.rest.pulls.createReviewComment({ owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber, body: body, commit_id: headSha, path: find.path, line: find.line, side: 'RIGHT' });
-                } catch (e) {
-                   await github.rest.pulls.createReviewComment({ owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber, body: body, commit_id: headSha, path: find.path, subject_type: 'file' });
+              for (const thread of myOwnedThreads) {
+                if (thread.isResolved) continue;
+                for (const comment of thread.comments.nodes) {
+                  if (!comment.body.includes(toolIdentifier)) continue;
+                  const tagMatch = comment.body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
+                  if (tagMatch) {
+                    const [, ruleId, path, message] = tagMatch;
+                    if (!findings.some(f => f.ruleId === ruleId && f.path === path && f.message === message.trim())) {
+                      console.log(`Resolving fixed finding: ${ruleId}`);
+                      await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
+                      break;
+                    }
+                  }
                 }
               }
             }
 
-            for (const thread of toolThreads) {
-              const body = thread.comments.nodes[0].body;
-              const tagMatch = body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
-              if (tagMatch) {
-                const [_, ruleId, path, message] = tagMatch;
-                if (!findings.some(f => f.ruleId === ruleId && f.path === path && f.message === message) && !thread.isResolved) {
-                   await github.graphql(`mutation($id: ID!) { resolveReviewThread(input: {threadId: $id}) { thread { isResolved } } }`, { id: thread.id });
+            async function createThreadWithFallback(github, context, prNumber, headSha, body, find) {
+              console.log(`Creating new thread for ${find.ruleId} at ${find.path}:${find.line}`);
+              try {
+                await github.rest.pulls.createReviewComment({
+                  owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber,
+                  body, commit_id: headSha, path: find.path, line: find.line, side: 'RIGHT'
+                });
+              } catch (e) {
+                console.log(`Line comment failed (${e.message}), trying file-level`);
+                try {
+                  await github.rest.pulls.createReviewComment({
+                    owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber,
+                    body, commit_id: headSha, path: find.path, subject_type: 'file'
+                  });
+                } catch (e2) {
+                  console.log(`File-level also failed for ${find.path}: ${e2.message}`);
                 }
               }
             }
