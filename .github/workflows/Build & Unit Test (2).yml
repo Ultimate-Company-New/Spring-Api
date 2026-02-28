@@ -57,7 +57,9 @@ jobs:
                     totalUnitSkipped += parseInt(match[4]);
                     
                     if (parseInt(match[2]) > 0 || parseInt(match[3]) > 0) {
-                      failureDetails += `\n**${file}**\n\`\`\`\n${content}\n\`\`\`\n`;
+                      // Strip execution time so subsequent runs can be compared accurately
+                      const cleanContent = content.replace(/[,]?\s*Time elapsed: [\d.]+\s*s/g, '').trim();
+                      failureDetails += `\n**${file}**\n\`\`\`\n${cleanContent}\n\`\`\`\n`;
                     }
                   }
                 }
@@ -95,24 +97,22 @@ jobs:
               issue_number: prNumber,
             });
 
-            const existingComment = comments.find(c => c.body.includes(commentIdentifier));
+            const existingComment = comments.reverse().find(c => c.body.includes(commentIdentifier));
 
             if (existingComment) {
               if (existingComment.body === message) {
                 console.log("Comment content is identical. Skipping...");
               } else {
-                console.log("Updating existing comment thread via reply...");
-                // Note: github-script uses octokit which doesn't have a direct 'reply' to comment. 
-                // However, we can simply post another comment in the issue as per requirement to be a reply on the comment.
-                // In Github Actions, a reply usually means a reply in a review or just another comment in the issue thread.
-                await github.rest.issues.createComment({
+                console.log("Updating existing comment...");
+                await github.rest.issues.updateComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  issue_number: prNumber,
-                  body: `♻️ **Update to original report:**\n\n${message}`
+                  comment_id: existingComment.id,
+                  body: message
                 });
               }
             } else {
+              console.log("Creating new comment...");
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
