@@ -1,0 +1,183 @@
+package springapi.controllers;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.logging.ContextualLogger;
+import springapi.models.ApiRoutes;
+import springapi.models.Authorizations;
+import springapi.models.requestmodels.AddressRequestModel;
+import springapi.services.interfaces.AddressSubTranslator;
+
+/**
+ * REST Controller for managing Address-related operations.
+ *
+ * <p>This controller provides RESTful endpoints for address management including CRUD operations,
+ * user/client address retrieval, and address status management. All endpoints are secured with
+ * appropriate authorization checks and include comprehensive error handling with contextual
+ * logging.
+ *
+ * @author SpringApi Team
+ * @version 1.0
+ * @since 2024-01-15
+ */
+@RestController
+@RequestMapping("/api/" + ApiRoutes.ApiControllerNames.ADDRESS)
+public class AddressController extends BaseController {
+  private static final ContextualLogger logger =
+      ContextualLogger.getLogger(AddressController.class);
+  private final AddressSubTranslator addressService;
+
+  @Autowired
+  public AddressController(AddressSubTranslator addressService) {
+    this.addressService = addressService;
+  }
+
+  /**
+   * Retrieves a single address by its unique identifier.
+   *
+   * <p>This endpoint fetches an address from the database using the provided ID. The response
+   * contains all address details including street address, city, state, postal code, country, and
+   * metadata. Requires VIEW_ADDRESS_PERMISSION.
+   *
+   * @param id The unique identifier of the address to retrieve
+   * @return ResponseEntity containing AddressResponseModel or ErrorResponseModel
+   */
+  @PreAuthorize(
+      "@customAuthorization.hasAuthority('" + Authorizations.VIEW_ADDRESS_PERMISSION + "')")
+  @GetMapping("/" + ApiRoutes.AddressSubRoute.GET_ADDRESS_BY_ID + "/{id}")
+  public ResponseEntity<?> getAddressById(@PathVariable Long id) {
+    try {
+      return ResponseEntity.ok(addressService.getAddressById(id));
+    } catch (BadRequestException bre) {
+      return badRequest(logger, bre);
+    } catch (NotFoundException nfe) {
+      return notFound(logger, nfe);
+    } catch (Exception e) {
+      return internalServerError(logger, e);
+    }
+  }
+
+  /** Returns mapping. */
+  @PreAuthorize(
+      "@customAuthorization.hasAuthority('" + Authorizations.VIEW_ADDRESS_PERMISSION + "')")
+  @GetMapping("/" + ApiRoutes.AddressSubRoute.GET_ADDRESS_BY_USER_ID + "/{userId}")
+  public ResponseEntity<?> getAddressesByUserId(@PathVariable Long userId) {
+    try {
+      return ResponseEntity.ok(addressService.getAddressByUserId(userId));
+    } catch (BadRequestException bre) {
+      return badRequest(logger, bre);
+    } catch (NotFoundException nfe) {
+      return notFound(logger, nfe);
+    } catch (Exception e) {
+      return internalServerError(logger, e);
+    }
+  }
+
+  /** Returns mapping. */
+  @PreAuthorize(
+      "@customAuthorization.hasAuthority('" + Authorizations.VIEW_ADDRESS_PERMISSION + "')")
+  @GetMapping("/" + ApiRoutes.AddressSubRoute.GET_ADDRESS_BY_CLIENT_ID + "/{clientId}")
+  public ResponseEntity<?> getAddressByClientId(@PathVariable Long clientId) {
+    try {
+      return ResponseEntity.ok(addressService.getAddressByClientId(clientId));
+    } catch (BadRequestException bre) {
+      return badRequest(logger, bre);
+    } catch (NotFoundException nfe) {
+      return notFound(logger, nfe);
+    } catch (Exception e) {
+      return internalServerError(logger, e);
+    }
+  }
+
+  /**
+   * Creates a new address in the system.
+   *
+   * <p>This endpoint validates the provided address data, creates a new Address entity, and
+   * persists it to the database. The method automatically sets audit fields such as createdUser,
+   * modifiedUser, and timestamps. Requires INSERT_ADDRESS_PERMISSION.
+   *
+   * @param addressRequest The AddressRequestModel containing the address data to create
+   * @return ResponseEntity with success status or ErrorResponseModel
+   */
+  @PreAuthorize(
+      "@customAuthorization.hasAuthority('" + Authorizations.INSERT_ADDRESS_PERMISSION + "')")
+  @PutMapping("/" + ApiRoutes.AddressSubRoute.INSERT_ADDRESS)
+  public ResponseEntity<?> createAddress(@RequestBody AddressRequestModel addressRequest) {
+    try {
+      addressService.insertAddress(addressRequest);
+      return ResponseEntity.status(HttpStatus.CREATED).build();
+    } catch (BadRequestException bre) {
+      return badRequest(logger, bre);
+    } catch (Exception e) {
+      return internalServerError(logger, e);
+    }
+  }
+
+  /**
+   * Updates an existing address with new information.
+   *
+   * <p>This endpoint retrieves the existing address by ID, validates the new data, and updates the
+   * address while preserving audit information like createdUser and createdAt. Only the
+   * modifiedUser and updatedAt fields are updated. Requires UPDATE_ADDRESS_PERMISSION.
+   *
+   * @param id The unique identifier of the address to update
+   * @param addressRequest The AddressRequestModel containing the updated address data
+   * @return ResponseEntity with success status or ErrorResponseModel
+   */
+  @PreAuthorize(
+      "@customAuthorization.hasAuthority('" + Authorizations.UPDATE_ADDRESS_PERMISSION + "')")
+  @PostMapping("/" + ApiRoutes.AddressSubRoute.UPDATE_ADDRESS + "/{id}")
+  public ResponseEntity<?> updateAddress(
+      @PathVariable Long id, @RequestBody AddressRequestModel addressRequest) {
+    try {
+      addressRequest.setId(id);
+      addressService.updateAddress(addressRequest);
+      return ResponseEntity.ok().build();
+    } catch (BadRequestException bre) {
+      return badRequest(logger, bre);
+    } catch (NotFoundException nfe) {
+      return notFound(logger, nfe);
+    } catch (Exception e) {
+      return internalServerError(logger, e);
+    }
+  }
+
+  /**
+   * Toggles the deletion status of an address by its ID.
+   *
+   * <p>This endpoint performs a soft delete operation by toggling the isDeleted flag. If the
+   * address is currently active (isDeleted = false), it will be marked as deleted. If the address
+   * is currently deleted (isDeleted = true), it will be restored. Requires
+   * DELETE_ADDRESS_PERMISSION.
+   *
+   * @param id The unique identifier of the address to toggle
+   * @return ResponseEntity with success status or ErrorResponseModel
+   */
+  @PreAuthorize(
+      "@customAuthorization.hasAuthority('" + Authorizations.DELETE_ADDRESS_PERMISSION + "')")
+  @DeleteMapping("/" + ApiRoutes.AddressSubRoute.TOGGLE_ADDRESS + "/{id}")
+  public ResponseEntity<?> toggleAddress(@PathVariable Long id) {
+    try {
+      addressService.toggleAddress(id);
+      return ResponseEntity.ok().build();
+    } catch (BadRequestException bre) {
+      return badRequest(logger, bre);
+    } catch (NotFoundException nfe) {
+      return notFound(logger, nfe);
+    } catch (Exception e) {
+      return internalServerError(logger, e);
+    }
+  }
+}

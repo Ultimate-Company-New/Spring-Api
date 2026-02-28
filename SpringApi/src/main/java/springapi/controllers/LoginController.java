@@ -1,0 +1,122 @@
+package springapi.controllers;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.exceptions.UnauthorizedException;
+import springapi.logging.ContextualLogger;
+import springapi.models.ApiRoutes;
+import springapi.models.requestmodels.LoginRequestModel;
+import springapi.services.interfaces.LoginSubTranslator;
+
+/**
+ * REST controller for handling login-related HTTP requests. Provides endpoints for user sign-in,.
+ * sign-up, password reset, email confirmation, and token generation. Delegates business logic to
+ * the LoginSubTranslator service.
+ */
+@RestController
+@RequestMapping("/api/" + ApiRoutes.ApiControllerNames.LOGIN)
+public class LoginController extends BaseController {
+  private static final ContextualLogger logger = ContextualLogger.getLogger(LoginController.class);
+  private final LoginSubTranslator loginService;
+
+  @Autowired
+  public LoginController(LoginSubTranslator loginService) {
+    this.loginService = loginService;
+  }
+
+  /**
+   * Endpoint to confirm a user's email address. Accepts a POST request with login details
+   * including. user ID and confirmation token. Returns 200 OK on success, or appropriate error
+   * status on failure.
+   *
+   * @param loginRequestModel The request body containing user ID and token.
+   * @return ResponseEntity with no content on success, or error response on failure.
+   */
+  @PostMapping("/" + ApiRoutes.LoginSubRoute.CONFIRM_EMAIL)
+  public ResponseEntity<?> confirmEmail(@RequestBody LoginRequestModel loginRequestModel) {
+    try {
+      loginService.confirmEmail(loginRequestModel);
+      return ResponseEntity.ok().build();
+    } catch (BadRequestException e) {
+      return badRequestWithInternalCode(logger, e);
+    } catch (UnauthorizedException e) {
+      return unauthorized(logger, e);
+    } catch (NotFoundException e) {
+      return notFound(logger, e);
+    } catch (Exception e) {
+      return internalServerError(logger, e);
+    }
+  }
+
+  /**
+   * Endpoint for user sign-in. Accepts a POST request with login credentials (login name and.
+   * password). Returns a list of clients the user has access to (with logo, name, clientId, and
+   * apiKey for each), or appropriate error status on failure.
+   *
+   * @param loginRequestModel The request body containing login name and password.
+   * @return ResponseEntity with list of ClientResponseModel on success, or error response on
+   *     failure.
+   */
+  @PostMapping("/" + ApiRoutes.LoginSubRoute.SIGN_IN)
+  public ResponseEntity<?> signIn(@RequestBody LoginRequestModel loginRequestModel) {
+    try {
+      return ResponseEntity.ok(loginService.signIn(loginRequestModel));
+    } catch (BadRequestException e) {
+      return badRequestWithInternalCode(logger, e);
+    } catch (NotFoundException e) {
+      return notFound(logger, e);
+    } catch (UnauthorizedException e) {
+      return unauthorized(logger, e);
+    } catch (Exception e) {
+      return internalServerError(logger, e);
+    }
+  }
+
+  /**
+   * Endpoint to reset a user's password. Accepts a POST request with login name for password reset.
+   * Returns true on successful reset, or appropriate error status on failure.
+   *
+   * @param loginRequestModel The request body containing login name.
+   * @return ResponseEntity with boolean result on success, or error response on failure.
+   */
+  @PostMapping("/" + ApiRoutes.LoginSubRoute.RESET_PASSWORD)
+  public ResponseEntity<?> resetPassword(@RequestBody LoginRequestModel loginRequestModel) {
+    try {
+      return ResponseEntity.ok(loginService.resetPassword(loginRequestModel));
+    } catch (BadRequestException | IllegalArgumentException e) {
+      return badRequestWithInternalCode(logger, e);
+    } catch (UnauthorizedException e) {
+      return unauthorized(logger, e);
+    } catch (NotFoundException e) {
+      return notFound(logger, e);
+    } catch (Exception e) {
+      return internalServerError(logger, e);
+    }
+  }
+
+  /**
+   * Endpoint to generate a JWT token for an authenticated user. Accepts a POST request with login.
+   * name and API key. Returns a JWT token with permissions, or appropriate error status on failure.
+   *
+   * @param loginRequestModel The request body containing login name and API key.
+   * @return ResponseEntity with JWT token on success, or error response on failure.
+   */
+  @PostMapping("/" + ApiRoutes.LoginSubRoute.GET_TOKEN)
+  public ResponseEntity<?> getToken(@RequestBody LoginRequestModel loginRequestModel) {
+    try {
+      return ResponseEntity.ok(loginService.getToken(loginRequestModel));
+    } catch (BadRequestException e) {
+      return badRequestWithInternalCode(logger, e);
+    } catch (UnauthorizedException e) {
+      return unauthorized(logger, e);
+    } catch (Exception e) {
+      return internalServerError(logger, e);
+    }
+  }
+}

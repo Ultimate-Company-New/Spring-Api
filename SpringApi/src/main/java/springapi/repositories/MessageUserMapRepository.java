@@ -1,0 +1,21 @@
+package springapi.repositories;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+import springapi.models.databasemodels.MessageUserMap;
+
+/** Repository interface for MessageUserMap entity operations. */
+@Repository
+public interface MessageUserMapRepository extends JpaRepository<MessageUserMap, Long> {
+
+  /**
+   * Deletes all MessageUserMap entries for a specific message.
+   *
+   * @param messageId The message ID
+   */
+  @Modifying
+  @Transactional
+  void deleteByMessageId(Long messageId);
+}
