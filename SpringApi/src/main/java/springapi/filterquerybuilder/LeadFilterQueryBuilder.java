@@ -58,8 +58,7 @@ public class LeadFilterQueryBuilder extends BaseFilterQueryBuilder {
       case "createdAt" -> "l.createdAt";
       case "updatedAt" -> "l.updatedAt";
       case "notes" -> "l.notes";
-      case "address" ->
-          "CONCAT(COALESCE(a.streetAddress, ''), ' ', COALESCE(a.streetAddress2, ''), ' ', "
+      case "address" -> "CONCAT(COALESCE(a.streetAddress, ''), ' ', COALESCE(a.streetAddress2, ''), ' ', "
           + "COALESCE(a.streetAddress3, ''), ' ', COALESCE(a.city, ''), ' ', "
           + "COALESCE(a.state, ''), ' ', COALESCE(a.postalCode, ''), ' ', "
           + "COALESCE(a.country, ''))";

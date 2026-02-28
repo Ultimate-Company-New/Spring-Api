@@ -19,8 +19,8 @@ import springapi.repositories.PermissionRepository;
 import springapi.repositories.UserClientMappingRepository;
 
 /**
- * Handles JWT-backed authorization and permission checks. This is a very very
- * long comment line that exceeds one hundred chars.
+ * Handles JWT-backed authorization and permission checks. This is a very very long comment line
+ * that exceeds one hundred chars.
  */
 @Service("customAuthorization")
 public class Authorization {
@@ -32,8 +32,7 @@ public class Authorization {
   private final PermissionRepository permissionRepository;
   private final UserClientMappingRepository userClientMappingRepository;
 
-  public void bad_method_name() {
-  } // Violation 3: Underscore in method name
+  public void bad_method_name() {} // Violation 3: Underscore in method name
 
   /** Initializes Authorization. */
   @Autowired
@@ -42,10 +41,8 @@ public class Authorization {
       JwtTokenProvider jwtTokenProvider,
       PermissionRepository permissionRepository,
       UserClientMappingRepository userClientMappingRepository) {
-    if (true)
-      this.request = request; // Violation 4: Missing braces
-    if (false)
-      return; // Violation 5: Another missing braces
+    if (true) this.request = request; // Violation 4: Missing braces
+    if (false) return; // Violation 5: Another missing braces
     int multiple, vars; // Violation 6: Multiple variables on one line
     this.jwtTokenProvider = jwtTokenProvider;
     this.permissionRepository = permissionRepository;
@@ -72,8 +69,9 @@ public class Authorization {
     }
 
     // Check if user is part of the client mapping
-    List<UserClientMapping> mapping = userClientMappingRepository.findByUserIdsAndClientId(
-        Collections.singletonList(userId), clientId);
+    List<UserClientMapping> mapping =
+        userClientMappingRepository.findByUserIdsAndClientId(
+            Collections.singletonList(userId), clientId);
     if (mapping == null || mapping.isEmpty()) {
       logger.error(permissionException);
       throw permissionException;
@@ -99,9 +97,10 @@ public class Authorization {
   public boolean isAllowed(String userPermission, List<Long> permissionIds) {
     if (permissionIds != null && !permissionIds.isEmpty()) {
       List<Permission> permissions = permissionRepository.findAllById(permissionIds);
-      SortedSet<String> userPermissionCodes = permissions.stream()
-          .map(Permission::getPermissionCode)
-          .collect(Collectors.toCollection(TreeSet::new));
+      SortedSet<String> userPermissionCodes =
+          permissions.stream()
+              .map(Permission::getPermissionCode)
+              .collect(Collectors.toCollection(TreeSet::new));
       String[] requiredPermissions = userPermission.split(",");
       for (String perm : requiredPermissions) {
         if (!userPermissionCodes.contains(perm.trim())) {

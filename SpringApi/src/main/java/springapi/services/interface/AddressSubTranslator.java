@@ -7,11 +7,8 @@ import springapi.models.responsemodels.AddressResponseModel;
 /**
  * Interface for Address-related business operations.
  *
- * <p>
- * This interface defines the contract for address management operations
- * including CRUD
- * operations, user/client address retrieval, and address status management. All
- * implementations
+ * <p>This interface defines the contract for address management operations including CRUD
+ * operations, user/client address retrieval, and address status management. All implementations
  * should handle proper validation, error handling, and logging.
  *
  * @author SpringApi Team
@@ -23,15 +20,12 @@ public interface AddressSubTranslator {
   /**
    * Toggles the deletion status of an address by its ID.
    *
-   * <p>
-   * This method performs a soft delete operation by toggling the isDeleted flag.
-   * If the address
-   * is currently active (isDeleted = false), it will be marked as deleted. If the
-   * address is
+   * <p>This method performs a soft delete operation by toggling the isDeleted flag. If the address
+   * is currently active (isDeleted = false), it will be marked as deleted. If the address is
    * currently deleted (isDeleted = true), it will be restored.
    *
    * @param id The unique identifier of the address to toggle
-   * @throws NotFoundException        if the address was not found
+   * @throws NotFoundException if the address was not found
    * @throws IllegalArgumentException if the provided ID is null or invalid
    */
   void toggleAddress(long id);
@@ -39,16 +33,13 @@ public interface AddressSubTranslator {
   /**
    * Retrieves a single address by its unique identifier.
    *
-   * <p>
-   * This method fetches an address from the database using the provided ID. The
-   * returned
-   * AddressResponseModel contains all address details including street address,
-   * city, state, postal
+   * <p>This method fetches an address from the database using the provided ID. The returned
+   * AddressResponseModel contains all address details including street address, city, state, postal
    * code, country, and metadata.
    *
    * @param id The unique identifier of the address to retrieve
    * @return AddressResponseModel containing the address information
-   * @throws NotFoundException        if no address exists with the given ID
+   * @throws NotFoundException if no address exists with the given ID
    * @throws IllegalArgumentException if the provided ID is null or invalid
    */
   AddressResponseModel getAddressById(long id);
@@ -56,15 +47,12 @@ public interface AddressSubTranslator {
   /**
    * Creates a new address in the system.
    *
-   * <p>
-   * This method validates the provided address data, creates a new Address
-   * entity, and persists
-   * it to the database. The method automatically sets audit fields such as
-   * createdUser,
+   * <p>This method validates the provided address data, creates a new Address entity, and persists
+   * it to the database. The method automatically sets audit fields such as createdUser,
    * modifiedUser, and timestamps.
    *
    * @param address The AddressRequestModel containing the address data to insert
-   * @throws BadRequestException      if the address data is invalid or incomplete
+   * @throws BadRequestException if the address data is invalid or incomplete
    * @throws IllegalArgumentException if the address parameter is null
    */
   void insertAddress(AddressRequestModel address);
@@ -72,16 +60,13 @@ public interface AddressSubTranslator {
   /**
    * Updates an existing address with new information.
    *
-   * <p>
-   * This method retrieves the existing address by ID, validates the new data, and
-   * updates the
-   * address while preserving audit information like createdUser and createdAt.
-   * Only the
+   * <p>This method retrieves the existing address by ID, validates the new data, and updates the
+   * address while preserving audit information like createdUser and createdAt. Only the
    * modifiedUser and updatedAt fields are updated.
    *
    * @param address The AddressRequestModel containing the updated address data
-   * @throws NotFoundException        if no address exists with the given ID
-   * @throws BadRequestException      if the address data is invalid or incomplete
+   * @throws NotFoundException if no address exists with the given ID
+   * @throws BadRequestException if the address data is invalid or incomplete
    * @throws IllegalArgumentException if the address parameter is null
    */
   void updateAddress(AddressRequestModel address);
@@ -89,11 +74,8 @@ public interface AddressSubTranslator {
   /**
    * Retrieves all addresses associated with a specific user.
    *
-   * <p>
-   * This method fetches all addresses where the userId matches the provided
-   * parameter. The
-   * method returns a list of AddressResponseModel objects, each containing
-   * complete address
+   * <p>This method fetches all addresses where the userId matches the provided parameter. The
+   * method returns a list of AddressResponseModel objects, each containing complete address
    * information. Returns an empty list if no addresses are found.
    *
    * @param id The unique identifier of the user
@@ -105,11 +87,8 @@ public interface AddressSubTranslator {
   /**
    * Retrieves all addresses associated with a specific client.
    *
-   * <p>
-   * This method fetches all addresses where the clientId matches the provided
-   * parameter. The
-   * method returns a list of AddressResponseModel objects, each containing
-   * complete address
+   * <p>This method fetches all addresses where the clientId matches the provided parameter. The
+   * method returns a list of AddressResponseModel objects, each containing complete address
    * information. Returns an empty list if no addresses are found.
    *
    * @param id The unique identifier of the client
