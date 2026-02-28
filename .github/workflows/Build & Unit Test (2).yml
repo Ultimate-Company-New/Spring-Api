@@ -70,8 +70,8 @@ jobs:
             const statusEmoji = success ? '✅' : '❌';
             const statusText = success ? 'All unit tests passed!' : 'Unit tests failed!';
 
-            const commentIdentifier = '<!-- unit-tests-result-comment -->';
-            let message = `${commentIdentifier}\n### ${statusEmoji} Unit Test Results: ${statusText}\n\n`;
+            const toolIdentifier = '<!-- tool: Unit Tests -->';
+            let message = `${toolIdentifier}\n### ${statusEmoji} Unit Test Results: ${statusText}\n\n`;
             message += `| Metric | Count | Emoji |\n`;
             message += `| :--- | :--- | :--- |\n`;
             message += `| **Total Tests** | ${totalUnitTests} | 🏃 |\n`;
@@ -87,37 +87,69 @@ jobs:
             }
 
             if (totalUnitTests === 0) {
-              message = `${commentIdentifier}\n⚠️ **No unit tests were found or ran.** Please check the build logs.`;
+              message = `${toolIdentifier}\n⚠️ **No unit tests were found or ran.** Please check the build logs.`;
             }
 
             const prNumber = parseInt('${{ inputs.pr_number }}');
-            const { data: comments } = await github.rest.issues.listComments({
+            const { data: pull } = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: prNumber,
+              pull_number: prNumber
             });
+            const headSha = pull.head.sha;
 
-            const existingComment = comments.reverse().find(c => c.body.includes(commentIdentifier));
+            // Fetch existing review threads via GraphQL
+            const query = `query($owner:String!, $repo:String!, $number:Int!) {
+              repository(owner:$owner, name:$repo) {
+                pullRequest(number:$number) {
+                  reviewThreads(first: 100) {
+                    nodes {
+                      id
+                      isResolved
+                      comments(first: 1) {
+                        nodes {
+                          id
+                          body
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }`;
+            const variables = { owner: context.repo.owner, repo: context.repo.repo, number: prNumber };
+            const result = await github.graphql(query, variables);
+            const threads = result.repository.pullRequest.reviewThreads.nodes;
 
-            if (existingComment) {
-              if (existingComment.body === message) {
+            const existingThread = threads.find(t => t.comments.nodes[0] && t.comments.nodes[0].body.includes(toolIdentifier));
+
+            if (existingThread) {
+              if (existingThread.comments.nodes[0].body === message) {
                 console.log("Comment content is identical. Skipping...");
               } else {
-                console.log("Updating existing comment...");
-                await github.rest.issues.updateComment({
+                console.log("Updating existing review thread...");
+                await github.rest.pulls.updateReviewComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  comment_id: existingComment.id,
+                  comment_id: existingThread.comments.nodes[0].id,
                   body: message
                 });
+                
+                // If the thread was resolved but we have failures again, unresolve it
+                if (existingThread.isResolved && !success) {
+                  await github.graphql(`mutation($id: ID!) { unresolveReviewThread(input: {threadId: $id}) { thread { isResolved } } }`, { id: existingThread.id });
+                }
               }
             } else {
-              console.log("Creating new comment...");
-              await github.rest.issues.createComment({
+              console.log("Creating new review thread for unit tests...");
+              await github.rest.pulls.createReviewComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: prNumber,
-                body: message
+                pull_number: prNumber,
+                body: message,
+                commit_id: headSha,
+                path: 'SpringApi/pom.xml',
+                subject_type: 'file'
               });
             }
 
