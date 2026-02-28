@@ -1,17 +1,8 @@
 package springapi.services;
 
 import jakarta.servlet.http.HttpServletRequest;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -1009,12 +1000,12 @@ public class ProductService extends BaseService implements ProductSubTranslator 
   }
 
   /**
-   * Converts a URL or base64 string to base64 format. Strips the data:image/png;base64, prefix if.
-   * present. If the input is a URL, fetches the image and converts it to base64.
+   * Converts a base64 image string to canonical base64 format. Strips the data:image/...;base64,
+   * prefix when present.
    *
-   * @param imageData The image data (URL or base64 string)
+   * @param imageData The image data (base64 string)
    * @return Base64 encoded image string (without data:image prefix)
-   * @throws BadRequestException if conversion fails
+   * @throws BadRequestException if URL input is provided
    */
   private String convertToBase64(String imageData) {
     if (imageData == null || imageData.trim().isEmpty()) {
@@ -1036,76 +1027,8 @@ public class ProductService extends BaseService implements ProductSubTranslator 
       return imageData;
     }
 
-    // It's a URL, fetch and convert to base64
-    try {
-      URL url = validateExternalImageUrl(imageData).toURL();
-      HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-      connection.setRequestMethod("GET");
-      connection.setConnectTimeout(10000);
-      connection.setReadTimeout(10000);
-      connection.setInstanceFollowRedirects(false);
-      connection.connect();
-
-      int responseCode = connection.getResponseCode();
-      if (responseCode != 200) {
-        throw new IOException(
-            String.format(
-                ErrorMessages.ProductErrorMessages.HTTP_ERROR_WHEN_FETCHING_IMAGE_FORMAT,
-                responseCode));
-      }
-
-      try (InputStream inputStream = connection.getInputStream();
-          ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-
-        byte[] buffer = new byte[4096];
-        int bytesRead;
-        while ((bytesRead = inputStream.read(buffer)) != -1) {
-          outputStream.write(buffer, 0, bytesRead);
-        }
-
-        byte[] imageBytes = outputStream.toByteArray();
-        // Return just the base64 string (ImgBB doesn't need the data:image prefix)
-        return Base64.getEncoder().encodeToString(imageBytes);
-      } finally {
-        connection.disconnect();
-      }
-    } catch (IOException | IllegalArgumentException e) {
-      throw new BadRequestException(
-          String.format(ErrorMessages.ProductErrorMessages.ER012, imageData));
-    }
-  }
-
-  private URI validateExternalImageUrl(String imageData) {
-    URI imageUri = URI.create(imageData);
-    String scheme = imageUri.getScheme();
-    String host = imageUri.getHost();
-
-    if (scheme == null
-        || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))
-        || host == null
-        || host.isBlank()) {
-      throw new IllegalArgumentException("Invalid image URL");
-    }
-
-    if ("localhost".equalsIgnoreCase(host)) {
-      throw new IllegalArgumentException("Localhost URLs are not allowed");
-    }
-
-    try {
-      for (InetAddress resolvedAddress : InetAddress.getAllByName(host)) {
-        if (resolvedAddress.isAnyLocalAddress()
-            || resolvedAddress.isLoopbackAddress()
-            || resolvedAddress.isSiteLocalAddress()
-            || resolvedAddress.isLinkLocalAddress()
-            || resolvedAddress.isMulticastAddress()) {
-          throw new IllegalArgumentException("Private network URLs are not allowed");
-        }
-      }
-    } catch (UnknownHostException e) {
-      throw new IllegalArgumentException("Image host could not be resolved", e);
-    }
-
-    return imageUri;
+    throw new BadRequestException(
+        String.format(ErrorMessages.ProductErrorMessages.ER012, imageData));
   }
 
   /**

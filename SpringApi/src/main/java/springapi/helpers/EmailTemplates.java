@@ -364,7 +364,7 @@ public class EmailTemplates {
                 """,
             client.getName(),
             messageTitle,
-            messageBodyHtml.replaceAll("<[^>]*>", ""),
+            stripHtmlTags(messageBodyHtml),
             client.getName(),
             client.getSupportEmail());
 
@@ -385,6 +385,33 @@ public class EmailTemplates {
 
     // Send the email
     return emailHelper.sendEmail(sendEmailRequest);
+  }
+
+  /** Strips HTML tags in linear time to avoid regex backtracking on untrusted input. */
+  private String stripHtmlTags(String html) {
+    if (html == null || html.isEmpty()) {
+      return "";
+    }
+
+    StringBuilder plainText = new StringBuilder(html.length());
+    boolean insideTag = false;
+
+    for (int i = 0; i < html.length(); i++) {
+      char current = html.charAt(i);
+      if (current == '<') {
+        insideTag = true;
+        continue;
+      }
+      if (current == '>' && insideTag) {
+        insideTag = false;
+        continue;
+      }
+      if (!insideTag) {
+        plainText.append(current);
+      }
+    }
+
+    return plainText.toString();
   }
 
   /**

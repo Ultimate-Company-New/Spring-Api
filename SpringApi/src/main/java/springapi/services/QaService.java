@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -495,83 +496,14 @@ public class QaService extends BaseService implements QaSubTranslator {
    */
   private List<TestMethodInfo> readTestMethodsFromFile(String testClassName) {
     List<TestMethodInfo> testMethods = new ArrayList<>();
-
-    // Try multiple possible paths for the test file
-    List<Path> possiblePaths = new ArrayList<>();
-
-    List<String> sourceRoots = List.of(TEST_SOURCE_PATH, LEGACY_TEST_SOURCE_PATH);
-
-    // Try to find the project root by looking for pom.xml
-    Path currentDir = Paths.get(System.getProperty(USER_DIR_PROPERTY));
-    Path parent = currentDir.getParent();
-
-    for (String sourceRoot : sourceRoots) {
-      // Current working directory based paths
-      possiblePaths.add(Paths.get(sourceRoot, testClassName + JAVA_EXTENSION));
-      possiblePaths.add(Paths.get(SPRING_API_DIR, sourceRoot, testClassName + JAVA_EXTENSION));
-      possiblePaths.add(currentDir.resolve(sourceRoot).resolve(testClassName + JAVA_EXTENSION));
-      possiblePaths.add(
-          currentDir
-              .resolve(SPRING_API_DIR)
-              .resolve(sourceRoot)
-              .resolve(testClassName + JAVA_EXTENSION));
-
-      // Also check parent directories
-      if (parent != null) {
-        possiblePaths.add(
-            parent
-                .resolve(SPRING_API_DIR)
-                .resolve(sourceRoot)
-                .resolve(testClassName + JAVA_EXTENSION));
-        possiblePaths.add(parent.resolve(sourceRoot).resolve(testClassName + JAVA_EXTENSION));
-      }
+    String safeTestClassName = sanitizeTestClassPath(testClassName);
+    if (safeTestClassName == null) {
+      return testMethods;
     }
+    testClassName = safeTestClassName;
 
-    // Also try with directory segments lowercased (e.g. "QA/StartTestExecutionTest"
-    // → "qa/StartTestExecutionTest") to handle filesystems where the test class
-    // path
-    // uses a different case than the actual on-disk directory.
-    String normalizedTestClassName = testClassName;
-    int lastSlash = Math.max(testClassName.lastIndexOf('/'), testClassName.lastIndexOf('\\'));
-    if (lastSlash > 0) {
-      String dirPart = testClassName.substring(0, lastSlash).toLowerCase();
-      String filePart = testClassName.substring(lastSlash + 1);
-      normalizedTestClassName = dirPart + "/" + filePart;
-    }
-
-    if (!normalizedTestClassName.equals(testClassName)) {
-      for (String sourceRoot : sourceRoots) {
-        possiblePaths.add(Paths.get(sourceRoot, normalizedTestClassName + JAVA_EXTENSION));
-        possiblePaths.add(
-            Paths.get(SPRING_API_DIR, sourceRoot, normalizedTestClassName + JAVA_EXTENSION));
-        possiblePaths.add(
-            currentDir.resolve(sourceRoot).resolve(normalizedTestClassName + JAVA_EXTENSION));
-        possiblePaths.add(
-            currentDir
-                .resolve(SPRING_API_DIR)
-                .resolve(sourceRoot)
-                .resolve(normalizedTestClassName + JAVA_EXTENSION));
-        if (parent != null) {
-          possiblePaths.add(
-              parent
-                  .resolve(SPRING_API_DIR)
-                  .resolve(sourceRoot)
-                  .resolve(normalizedTestClassName + JAVA_EXTENSION));
-          possiblePaths.add(
-              parent.resolve(sourceRoot).resolve(normalizedTestClassName + JAVA_EXTENSION));
-        }
-      }
-    }
-
-    Path testFilePath = null;
-    for (Path path : possiblePaths) {
-      if (Files.exists(path)) {
-        testFilePath = path;
-        break;
-      }
-    }
-
-    if (testFilePath == null || !Files.exists(testFilePath)) {
+    Path testFilePath = findTestFilePath(testClassName);
+    if (testFilePath == null) {
       return testMethods; // Return empty list if file doesn't exist
     }
 
@@ -717,6 +649,143 @@ public class QaService extends BaseService implements QaSubTranslator {
     }
 
     return testMethods;
+  }
+
+  private Path findTestFilePath(String testClassName) {
+    List<String> sourceRoots = List.of(TEST_SOURCE_PATH, LEGACY_TEST_SOURCE_PATH);
+    Path currentDir = Paths.get(System.getProperty(USER_DIR_PROPERTY));
+    Path parent = currentDir.getParent();
+    Set<Path> allowedRoots = buildAllowedTestSearchRoots(currentDir, parent, sourceRoots);
+
+    String normalizedLookup = testClassName.replace('\\', '/').toLowerCase(Locale.ROOT);
+    String expectedRelativePath =
+        normalizedLookup.endsWith(JAVA_EXTENSION)
+            ? normalizedLookup.substring(0, normalizedLookup.length() - JAVA_EXTENSION.length())
+            : normalizedLookup;
+    int lastSlash = expectedRelativePath.lastIndexOf('/');
+    String expectedSimpleName =
+        lastSlash >= 0 ? expectedRelativePath.substring(lastSlash + 1) : expectedRelativePath;
+    boolean hasDirectoryHint = lastSlash >= 0;
+
+    for (Path root : allowedRoots) {
+      if (!Files.isDirectory(root)) {
+        continue;
+      }
+
+      try (java.util.stream.Stream<Path> walk = Files.walk(root, 8)) {
+        Optional<Path> matchedPath =
+            walk.filter(Files::isRegularFile)
+                .filter(path -> path.getFileName().toString().endsWith(JAVA_EXTENSION))
+                .filter(
+                    path ->
+                        stripJavaExtension(path.getFileName().toString())
+                            .equalsIgnoreCase(expectedSimpleName))
+                .filter(
+                    path ->
+                        isPathWithinAllowedRoots(path.toAbsolutePath().normalize(), allowedRoots))
+                .filter(
+                    path ->
+                        matchesRequestedTestPath(
+                            root, path, expectedRelativePath, expectedSimpleName, hasDirectoryHint))
+                .findFirst();
+
+        if (matchedPath.isPresent()) {
+          return matchedPath.get().toAbsolutePath().normalize();
+        }
+      } catch (IOException ignored) {
+        // Keep searching in other roots.
+      }
+    }
+
+    return null;
+  }
+
+  private boolean matchesRequestedTestPath(
+      Path root,
+      Path candidateFile,
+      String expectedRelativePath,
+      String expectedSimpleName,
+      boolean hasDirectoryHint) {
+    Path normalizedCandidate = candidateFile.toAbsolutePath().normalize();
+    if (!normalizedCandidate.startsWith(root)) {
+      return false;
+    }
+
+    String relativePathWithoutExtension =
+        stripJavaExtension(root.relativize(normalizedCandidate).toString().replace('\\', '/'))
+            .toLowerCase(Locale.ROOT);
+
+    if (hasDirectoryHint) {
+      return relativePathWithoutExtension.equals(expectedRelativePath);
+    }
+
+    String candidateSimpleName =
+        stripJavaExtension(candidateFile.getFileName().toString()).toLowerCase(Locale.ROOT);
+    return candidateSimpleName.equals(expectedSimpleName);
+  }
+
+  private String stripJavaExtension(String fileName) {
+    return fileName.endsWith(JAVA_EXTENSION)
+        ? fileName.substring(0, fileName.length() - JAVA_EXTENSION.length())
+        : fileName;
+  }
+
+  private String sanitizeTestClassPath(String testClassName) {
+    if (testClassName == null) {
+      return null;
+    }
+
+    String normalized = testClassName.trim().replace('\\', '/');
+    if (normalized.isEmpty()
+        || normalized.startsWith("/")
+        || normalized.contains("..")
+        || normalized.contains(":")) {
+      return null;
+    }
+
+    for (int i = 0; i < normalized.length(); i++) {
+      char ch = normalized.charAt(i);
+      boolean allowedCharacter =
+          Character.isLetterOrDigit(ch)
+              || ch == '_'
+              || ch == '-'
+              || ch == '$'
+              || ch == '/'
+              || ch == '.';
+      if (!allowedCharacter) {
+        return null;
+      }
+    }
+
+    return normalized;
+  }
+
+  private Set<Path> buildAllowedTestSearchRoots(
+      Path currentDir, Path parent, List<String> sourceRoots) {
+    Set<Path> allowedRoots = new HashSet<>();
+    for (String sourceRoot : sourceRoots) {
+      allowedRoots.add(Paths.get(sourceRoot).toAbsolutePath().normalize());
+      allowedRoots.add(Paths.get(SPRING_API_DIR, sourceRoot).toAbsolutePath().normalize());
+      allowedRoots.add(currentDir.resolve(sourceRoot).toAbsolutePath().normalize());
+      allowedRoots.add(
+          currentDir.resolve(SPRING_API_DIR).resolve(sourceRoot).toAbsolutePath().normalize());
+
+      if (parent != null) {
+        allowedRoots.add(
+            parent.resolve(SPRING_API_DIR).resolve(sourceRoot).toAbsolutePath().normalize());
+        allowedRoots.add(parent.resolve(sourceRoot).toAbsolutePath().normalize());
+      }
+    }
+    return allowedRoots;
+  }
+
+  private boolean isPathWithinAllowedRoots(Path candidatePath, Set<Path> allowedRoots) {
+    for (Path root : allowedRoots) {
+      if (candidatePath.startsWith(root)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -1242,7 +1311,30 @@ public class QaService extends BaseService implements QaSubTranslator {
     if (testName == null) {
       return null;
     }
-    return testName.replaceAll("\\([^)]*\\)\\[\\d+]$", "");
+
+    int openParen = testName.indexOf('(');
+    if (openParen < 0) {
+      return testName;
+    }
+
+    int closeParen = testName.lastIndexOf(')');
+    int openBracket = testName.lastIndexOf('[');
+    int closeBracket = testName.lastIndexOf(']');
+
+    if (closeParen <= openParen
+        || openBracket != closeParen + 1
+        || closeBracket != testName.length() - 1
+        || openBracket + 1 >= closeBracket) {
+      return testName;
+    }
+
+    for (int i = openBracket + 1; i < closeBracket; i++) {
+      if (!Character.isDigit(testName.charAt(i))) {
+        return testName;
+      }
+    }
+
+    return testName.substring(0, openParen);
   }
 
   /** Calculates the expected number of tests based on the execution scope. */
