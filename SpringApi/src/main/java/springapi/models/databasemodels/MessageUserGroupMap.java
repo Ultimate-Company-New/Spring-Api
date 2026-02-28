@@ -1,4 +1,4 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

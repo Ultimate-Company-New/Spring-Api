@@ -1,21 +1,21 @@
-package com.example.springapi.ServiceTests.PurchaseOrder;
+package springapi.ServiceTests.PurchaseOrder;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.PurchaseOrderController;
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.databasemodels.GoogleCred;
-import com.example.springapi.models.databasemodels.Lead;
-import com.example.springapi.models.databasemodels.Shipment;
-import com.example.springapi.models.databasemodels.ShipmentProduct;
-import com.example.springapi.models.databasemodels.User;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.PurchaseOrderController;
+import springapi.models.databasemodels.Client;
+import springapi.models.databasemodels.GoogleCred;
+import springapi.models.databasemodels.Lead;
+import springapi.models.databasemodels.Shipment;
+import springapi.models.databasemodels.ShipmentProduct;
+import springapi.models.databasemodels.User;
 
 /**
  * Test class for PurchaseOrderService.getPurchaseOrderPdf method.
@@ -66,9 +66,9 @@ class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
 
     byte[] pdfBytes = new byte[] {1, 2, 3};
 
-    try (org.mockito.MockedStatic<com.example.springapi.helpers.HtmlHelper> htmlMock =
+    try (org.mockito.MockedStatic<springapi.helpers.HtmlHelper> htmlMock =
             stubHtmlHelperReplaceBrTags("<html>ok</html>");
-        org.mockito.MockedStatic<com.example.springapi.helpers.PdfHelper> pdfMock =
+        org.mockito.MockedStatic<springapi.helpers.PdfHelper> pdfMock =
             stubPdfHelperConvertPurchaseOrderHtmlToPdf(pdfBytes)) {
       // Act
       byte[] result = purchaseOrderService.getPurchaseOrderPdf(TEST_PO_ID);
@@ -194,9 +194,9 @@ class GetPurchaseOrderPDFTest extends PurchaseOrderServiceTestBase {
     stubOrderSummaryRepositoryFindByEntityTypeAndEntityId(Optional.empty());
 
     // Act & Assert
-    com.example.springapi.exceptions.NotFoundException ex =
+    springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.springapi.exceptions.NotFoundException.class,
+            springapi.exceptions.NotFoundException.class,
             () -> purchaseOrderService.getPurchaseOrderPdf(TEST_PO_ID));
     assertEquals(
         ErrorMessages.OrderSummaryNotFoundMessage.PURCHASE_ORDER_NOT_FOUND, ex.getMessage());

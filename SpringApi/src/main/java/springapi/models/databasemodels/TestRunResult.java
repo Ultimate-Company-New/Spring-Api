@@ -1,4 +1,4 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -61,9 +61,7 @@ public class TestRunResult {
       return value;
     }
 
-    /**
-     * Checks whether valid.
-     */
+    /** Checks whether valid. */
     public static boolean isValid(String value) {
       if (value == null) {
         return false;

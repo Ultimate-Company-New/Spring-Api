@@ -1,15 +1,8 @@
-package com.example.springapi.ServiceTests.QA;
+package springapi.ServiceTests.QA;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.QaController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.databasemodels.LatestTestResult;
-import com.example.springapi.models.databasemodels.TestRun;
-import com.example.springapi.models.requestmodels.TestRunRequestModel;
-import com.example.springapi.models.responsemodels.TestRunResponseModel;
 import java.util.ArrayList;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +10,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.QaController;
+import springapi.exceptions.BadRequestException;
+import springapi.models.databasemodels.LatestTestResult;
+import springapi.models.databasemodels.TestRun;
+import springapi.models.requestmodels.TestRunRequestModel;
+import springapi.models.responsemodels.TestRunResponseModel;
 
 /**
  * Unit tests for QaService.saveTestRun() method.

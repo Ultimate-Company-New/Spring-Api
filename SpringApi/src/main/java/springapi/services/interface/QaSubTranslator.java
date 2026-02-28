@@ -1,14 +1,14 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.models.requestmodels.TestExecutionRequestModel;
-import com.example.springapi.models.requestmodels.TestRunRequestModel;
-import com.example.springapi.models.responsemodels.LatestTestResultResponseModel;
-import com.example.springapi.models.responsemodels.QaDashboardResponseModel;
-import com.example.springapi.models.responsemodels.QaResponseModel;
-import com.example.springapi.models.responsemodels.TestExecutionStatusModel;
-import com.example.springapi.models.responsemodels.TestRunResponseModel;
 import java.util.List;
 import java.util.Map;
+import springapi.models.requestmodels.TestExecutionRequestModel;
+import springapi.models.requestmodels.TestRunRequestModel;
+import springapi.models.responsemodels.LatestTestResultResponseModel;
+import springapi.models.responsemodels.QaDashboardResponseModel;
+import springapi.models.responsemodels.QaResponseModel;
+import springapi.models.responsemodels.TestExecutionStatusModel;
+import springapi.models.responsemodels.TestRunResponseModel;
 
 /**
  * Interface for QA Service operations.

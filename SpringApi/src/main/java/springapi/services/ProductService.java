@@ -1,30 +1,5 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.SuccessMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.constants.ProductImageConstants;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.filterquerybuilder.ProductFilterQueryBuilder;
-import com.example.springapi.helpers.BulkInsertHelper;
-import com.example.springapi.helpers.ImgbbHelper;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.databasemodels.Product;
-import com.example.springapi.models.databasemodels.ProductCategory;
-import com.example.springapi.models.databasemodels.ProductPickupLocationMapping;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.ProductRequestModel;
-import com.example.springapi.models.responsemodels.ClientResponseModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.ProductCategoryWithPathResponseModel;
-import com.example.springapi.models.responsemodels.ProductResponseModel;
-import com.example.springapi.repositories.ClientRepository;
-import com.example.springapi.repositories.ProductCategoryRepository;
-import com.example.springapi.repositories.ProductPickupLocationMappingRepository;
-import com.example.springapi.repositories.ProductRepository;
-import com.example.springapi.services.interfaces.ProductSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -57,6 +32,31 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import springapi.ErrorMessages;
+import springapi.SuccessMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.constants.ProductImageConstants;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.filterquerybuilder.ProductFilterQueryBuilder;
+import springapi.helpers.BulkInsertHelper;
+import springapi.helpers.ImgbbHelper;
+import springapi.models.ApiRoutes;
+import springapi.models.databasemodels.Client;
+import springapi.models.databasemodels.Product;
+import springapi.models.databasemodels.ProductCategory;
+import springapi.models.databasemodels.ProductPickupLocationMapping;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.ProductRequestModel;
+import springapi.models.responsemodels.ClientResponseModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.ProductCategoryWithPathResponseModel;
+import springapi.models.responsemodels.ProductResponseModel;
+import springapi.repositories.ClientRepository;
+import springapi.repositories.ProductCategoryRepository;
+import springapi.repositories.ProductPickupLocationMappingRepository;
+import springapi.repositories.ProductRepository;
+import springapi.services.interfaces.ProductSubTranslator;
 
 /**
  * Service implementation for Product operations. This service handles all business logic related
@@ -76,7 +76,7 @@ public class ProductService extends BaseService implements ProductSubTranslator 
 
   private final ProductRepository productRepository;
   private final ProductPickupLocationMappingRepository productPickupLocationMappingRepository;
-  private final com.example.springapi.repositories.PackagePickupLocationMappingRepository
+  private final springapi.repositories.PackagePickupLocationMappingRepository
       packagePickupLocationMappingRepository;
   private final ProductCategoryRepository productCategoryRepository;
   private final ClientRepository clientRepository;
@@ -89,14 +89,12 @@ public class ProductService extends BaseService implements ProductSubTranslator 
   @Value("${imageLocation:firebase}")
   private String imageLocation;
 
-  /**
-   * Executes product service.
-   */
+  /** Executes product service. */
   @Autowired
   public ProductService(
       ProductRepository productRepository,
       ProductPickupLocationMappingRepository productPickupLocationMappingRepository,
-      com.example.springapi.repositories.PackagePickupLocationMappingRepository
+      springapi.repositories.PackagePickupLocationMappingRepository
           packagePickupLocationMappingRepository,
       ProductCategoryRepository productCategoryRepository,
       ClientRepository clientRepository,
@@ -459,8 +457,8 @@ public class ProductService extends BaseService implements ProductSubTranslator 
                 PRODUCT_ENTITY_LABEL));
       }
 
-      com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
-          new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
+      springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
+          new springapi.models.responsemodels.BulkInsertResponseModel<>();
       response.setTotalRequested(products.size());
 
       int successCount = 0;
@@ -523,8 +521,8 @@ public class ProductService extends BaseService implements ProductSubTranslator 
 
     } catch (Exception e) {
       // Still send a message to user about the failure (using captured userId)
-      com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> errorResponse =
-          new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
+      springapi.models.responsemodels.BulkInsertResponseModel<Long> errorResponse =
+          new springapi.models.responsemodels.BulkInsertResponseModel<>();
       errorResponse.setTotalRequested(products != null ? products.size() : 0);
       errorResponse.setSuccessCount(0);
       errorResponse.setFailureCount(products != null ? products.size() : 0);
@@ -547,7 +545,7 @@ public class ProductService extends BaseService implements ProductSubTranslator 
    */
   @Override
   @Transactional
-  public com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkAddProducts(
+  public springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkAddProducts(
       java.util.List<ProductRequestModel> products) {
     // Validate input
     if (products == null || products.isEmpty()) {
@@ -557,8 +555,8 @@ public class ProductService extends BaseService implements ProductSubTranslator 
               PRODUCT_ENTITY_LABEL));
     }
 
-    com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
-        new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
+    springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
+        new springapi.models.responsemodels.BulkInsertResponseModel<>();
     response.setTotalRequested(products.size());
 
     int successCount = 0;
@@ -1124,7 +1122,7 @@ public class ProductService extends BaseService implements ProductSubTranslator 
       throw new BadRequestException(ErrorMessages.ProductErrorMessages.INVALID_CATEGORY_ID);
     }
 
-    Optional<com.example.springapi.models.databasemodels.ProductCategory> categoryOpt =
+    Optional<springapi.models.databasemodels.ProductCategory> categoryOpt =
         productCategoryRepository.findById(productRequestModel.getCategoryId());
     if (categoryOpt.isEmpty()) {
       throw new NotFoundException(
@@ -1245,8 +1243,7 @@ public class ProductService extends BaseService implements ProductSubTranslator 
    * @return List of ProductStockByLocationResponseModel with stock, location, and package details
    */
   @Transactional(readOnly = true)
-  public java.util.List<
-          com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel>
+  public java.util.List<springapi.models.responsemodels.ProductStockByLocationResponseModel>
       getProductStockAtLocationsByProductId(
           Long productId, Integer requestedQuantity, String deliveryPostcode, Boolean isCod) {
     // Fetch product to get its dimensions
@@ -1316,19 +1313,15 @@ public class ProductService extends BaseService implements ProductSubTranslator 
 
     // Fetch package info for all locations in one query
     java.util.Map<
-            Long,
-            java.util.List<
-                com.example.springapi.models.databasemodels.PackagePickupLocationMapping>>
+            Long, java.util.List<springapi.models.databasemodels.PackagePickupLocationMapping>>
         packagesByLocation = new java.util.HashMap<>();
 
     if (!pickupLocationIds.isEmpty()) {
-      java.util.List<com.example.springapi.models.databasemodels.PackagePickupLocationMapping>
-          packageMappings =
-              packagePickupLocationMappingRepository.findByPickupLocationIdsWithPackages(
-                  pickupLocationIds);
+      java.util.List<springapi.models.databasemodels.PackagePickupLocationMapping> packageMappings =
+          packagePickupLocationMappingRepository.findByPickupLocationIdsWithPackages(
+              pickupLocationIds);
 
-      for (com.example.springapi.models.databasemodels.PackagePickupLocationMapping pm :
-          packageMappings) {
+      for (springapi.models.databasemodels.PackagePickupLocationMapping pm : packageMappings) {
         packagesByLocation
             .computeIfAbsent(pm.getPickupLocationId(), k -> new java.util.ArrayList<>())
             .add(pm);
@@ -1336,8 +1329,7 @@ public class ProductService extends BaseService implements ProductSubTranslator 
     }
 
     // Create PackagingHelper for calculations
-    com.example.springapi.helpers.PackagingHelper packagingHelper =
-        new com.example.springapi.helpers.PackagingHelper();
+    springapi.helpers.PackagingHelper packagingHelper = new springapi.helpers.PackagingHelper();
 
     // Note: Shipping options are now calculated at the order level via
     // ShippingController
@@ -1345,27 +1337,25 @@ public class ProductService extends BaseService implements ProductSubTranslator 
     // accurate shipping costs
 
     // Build response list
-    java.util.List<com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel>
+    java.util.List<springapi.models.responsemodels.ProductStockByLocationResponseModel>
         responseList = new java.util.ArrayList<>();
 
-    for (com.example.springapi.models.databasemodels.ProductPickupLocationMapping mapping :
-        mappings) {
-      com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel response =
-          new com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel(
-              mapping);
+    for (springapi.models.databasemodels.ProductPickupLocationMapping mapping : mappings) {
+      springapi.models.responsemodels.ProductStockByLocationResponseModel response =
+          new springapi.models.responsemodels.ProductStockByLocationResponseModel(mapping);
 
       // Set product dimensions
       setProductDimensions(response, product);
 
       // Get packages for this location
-      java.util.List<com.example.springapi.models.databasemodels.PackagePickupLocationMapping>
+      java.util.List<springapi.models.databasemodels.PackagePickupLocationMapping>
           locationPackages =
               packagesByLocation.getOrDefault(
                   mapping.getPickupLocationId(), java.util.Collections.emptyList());
 
       // Add package info and get dimensions for packaging calculation
-      java.util.List<com.example.springapi.helpers.PackagingHelper.PackageDimension>
-          packageDimensions = addPackageInfoToResponse(response, locationPackages);
+      java.util.List<springapi.helpers.PackagingHelper.PackageDimension> packageDimensions =
+          addPackageInfoToResponse(response, locationPackages);
 
       // Calculate packaging estimate
       calculatePackagingEstimate(
@@ -1388,8 +1378,8 @@ public class ProductService extends BaseService implements ProductSubTranslator 
   }
 
   private void setProductDimensions(
-      com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel response,
-      com.example.springapi.models.databasemodels.Product product) {
+      springapi.models.responsemodels.ProductStockByLocationResponseModel response,
+      springapi.models.databasemodels.Product product) {
     if (product != null) {
       response.setProductLength(product.getLength());
       response.setProductBreadth(product.getBreadth());
@@ -1398,27 +1388,25 @@ public class ProductService extends BaseService implements ProductSubTranslator 
     }
   }
 
-  private java.util.List<com.example.springapi.helpers.PackagingHelper.PackageDimension>
+  private java.util.List<springapi.helpers.PackagingHelper.PackageDimension>
       addPackageInfoToResponse(
-          com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel response,
-          java.util.List<com.example.springapi.models.databasemodels.PackagePickupLocationMapping>
+          springapi.models.responsemodels.ProductStockByLocationResponseModel response,
+          java.util.List<springapi.models.databasemodels.PackagePickupLocationMapping>
               locationPackages) {
 
-    java.util.List<com.example.springapi.helpers.PackagingHelper.PackageDimension>
-        packageDimensions = new java.util.ArrayList<>();
+    java.util.List<springapi.helpers.PackagingHelper.PackageDimension> packageDimensions =
+        new java.util.ArrayList<>();
 
-    for (com.example.springapi.models.databasemodels.PackagePickupLocationMapping pm :
-        locationPackages) {
-      com.example.springapi.models.databasemodels.Package pkg = pm.getPackageEntity();
+    for (springapi.models.databasemodels.PackagePickupLocationMapping pm : locationPackages) {
+      springapi.models.databasemodels.Package pkg = pm.getPackageEntity();
       if (pkg == null) {
         continue;
       }
 
       // Add to response
-      com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel
-              .PackageInfoModel
+      springapi.models.responsemodels.ProductStockByLocationResponseModel.PackageInfoModel
           packageInfo =
-              new com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel
+              new springapi.models.responsemodels.ProductStockByLocationResponseModel
                   .PackageInfoModel();
       packageInfo.setPackageId(pkg.getPackageId());
       packageInfo.setPackageName(pkg.getPackageName());
@@ -1433,11 +1421,11 @@ public class ProductService extends BaseService implements ProductSubTranslator 
 
       // Add to packaging calculation list
       packageDimensions.add(
-          new com.example.springapi.helpers.PackagingHelper.PackageDimension(
+          new springapi.helpers.PackagingHelper.PackageDimension(
               pkg.getPackageId(),
               pkg.getPackageName(),
               pkg.getPackageType(),
-              new com.example.springapi.helpers.PackagingHelper.PackageDimension.PackageSize(
+              new springapi.helpers.PackagingHelper.PackageDimension.PackageSize(
                   pkg.getLength(), pkg.getBreadth(), pkg.getHeight()),
               pkg.getMaxWeight(),
               pkg.getPricePerUnit(),
@@ -1448,13 +1436,12 @@ public class ProductService extends BaseService implements ProductSubTranslator 
   }
 
   private void calculatePackagingEstimate(
-      com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel response,
-      com.example.springapi.models.databasemodels.Product product,
+      springapi.models.responsemodels.ProductStockByLocationResponseModel response,
+      springapi.models.databasemodels.Product product,
       Integer requestedQuantity,
       int availableStock,
-      java.util.List<com.example.springapi.helpers.PackagingHelper.PackageDimension>
-          packageDimensions,
-      com.example.springapi.helpers.PackagingHelper packagingHelper) {
+      java.util.List<springapi.helpers.PackagingHelper.PackageDimension> packageDimensions,
+      springapi.helpers.PackagingHelper packagingHelper) {
 
     if (product == null || requestedQuantity == null || requestedQuantity <= 0) {
       return;
@@ -1462,23 +1449,22 @@ public class ProductService extends BaseService implements ProductSubTranslator 
 
     int quantityToPackage = Math.min(requestedQuantity, availableStock);
 
-    com.example.springapi.helpers.PackagingHelper.ProductDimension productDim =
-        new com.example.springapi.helpers.PackagingHelper.ProductDimension(
+    springapi.helpers.PackagingHelper.ProductDimension productDim =
+        new springapi.helpers.PackagingHelper.ProductDimension(
             product.getLength(),
             product.getBreadth(),
             product.getHeight(),
             product.getWeightKgs(),
             quantityToPackage);
 
-    com.example.springapi.helpers.PackagingHelper.PackagingEstimateResult estimate =
+    springapi.helpers.PackagingHelper.PackagingEstimateResult estimate =
         packagingHelper.calculatePackaging(productDim, packageDimensions);
 
-    for (com.example.springapi.helpers.PackagingHelper.PackageUsageResult usage :
-        estimate.getPackagesUsed()) {
+    for (springapi.helpers.PackagingHelper.PackageUsageResult usage : estimate.getPackagesUsed()) {
       response
           .getPackagingEstimate()
           .add(
-              new com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel
+              new springapi.models.responsemodels.ProductStockByLocationResponseModel
                   .PackageUsageModel(
                   usage.getPackageId(),
                   usage.getPackageName(),

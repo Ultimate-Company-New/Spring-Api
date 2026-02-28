@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.ResponseModels;
+package springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class LatestTestResultResponseModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.responsemodels.LatestTestResultResponseModel.class)) {
+    if (hasNoArgConstructor(springapi.models.responsemodels.LatestTestResultResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.responsemodels.LatestTestResultResponseModel.class);
+              .constructType(springapi.models.responsemodels.LatestTestResultResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +62,7 @@ class LatestTestResultResponseModelContractTest {
   void LatestTestResultResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.responsemodels.LatestTestResultResponseModel.class
+        springapi.models.responsemodels.LatestTestResultResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,11 +80,9 @@ class LatestTestResultResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.responsemodels.LatestTestResultResponseModel
-      createInstance() {
-    return (com.example.springapi.models.responsemodels.LatestTestResultResponseModel)
-        instantiate(
-            com.example.springapi.models.responsemodels.LatestTestResultResponseModel.class);
+  private springapi.models.responsemodels.LatestTestResultResponseModel createInstance() {
+    return (springapi.models.responsemodels.LatestTestResultResponseModel)
+        instantiate(springapi.models.responsemodels.LatestTestResultResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

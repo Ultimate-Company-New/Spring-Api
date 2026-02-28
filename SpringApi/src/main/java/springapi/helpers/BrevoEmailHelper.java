@@ -1,8 +1,5 @@
-package com.example.springapi.helpers;
+package springapi.helpers;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.requestmodels.SendEmailRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sendgrid.helpers.mail.objects.Attachments;
 import java.net.URI;
@@ -19,10 +16,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.models.requestmodels.SendEmailRequest;
 
-/**
- * Represents the brevo email helper component.
- */
+/** Represents the brevo email helper component. */
 public class BrevoEmailHelper implements EmailHelperContract {
   private static final String BREVO_API_BASE = "https://api.brevo.com/v3";
   private static final String APPLICATION_JSON = "application/json";
@@ -33,9 +31,7 @@ public class BrevoEmailHelper implements EmailHelperContract {
   private final String senderName;
   private final String sendGridApiKey; // Stores Brevo API key (passed from DB as sendgridApiKey)
 
-  /**
-   * Initializes BrevoEmailHelper.
-   */
+  /** Initializes BrevoEmailHelper. */
   public BrevoEmailHelper(String fromAddress, String senderName, String sendgridApiKey) {
     this.fromAddress = fromAddress;
     this.senderName = senderName;
@@ -104,9 +100,7 @@ public class BrevoEmailHelper implements EmailHelperContract {
         + lineSeparator;
   }
 
-  /**
-   * Executes send email.
-   */
+  /** Executes send email. */
   public boolean sendEmail(SendEmailRequest request) {
     try {
       Map<String, Object> body = new java.util.HashMap<>();

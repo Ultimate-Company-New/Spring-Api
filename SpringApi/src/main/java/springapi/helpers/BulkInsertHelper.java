@@ -1,11 +1,11 @@
-package com.example.springapi.helpers;
+package springapi.helpers;
 
-import com.example.springapi.models.requestmodels.MessageRequestModel;
-import com.example.springapi.models.responsemodels.BulkInsertResponseModel;
-import com.example.springapi.models.responsemodels.BulkUserInsertResponseModel;
-import com.example.springapi.services.MessageService;
 import java.util.ArrayList;
 import java.util.List;
+import springapi.models.requestmodels.MessageRequestModel;
+import springapi.models.responsemodels.BulkInsertResponseModel;
+import springapi.models.responsemodels.BulkUserInsertResponseModel;
+import springapi.services.MessageService;
 
 /**
  * Helper class for bulk insert operations. Provides common functionality for creating result.
@@ -35,18 +35,14 @@ public class BulkInsertHelper {
 
   private BulkInsertHelper() {}
 
-  /**
-   * Represents the bulk message template component.
-   */
+  /** Represents the bulk message template component. */
   public static class BulkMessageTemplate {
     private final String entityType;
     private final String entityTypePlural;
     private final String identifierColumnName;
     private final String entityIdColumnName;
 
-    /**
-     * Initializes BulkMessageTemplate.
-     */
+    /** Initializes BulkMessageTemplate. */
     public BulkMessageTemplate(
         String entityType,
         String entityTypePlural,
@@ -75,18 +71,14 @@ public class BulkInsertHelper {
     }
   }
 
-  /**
-   * Represents the notification context component.
-   */
+  /** Represents the notification context component. */
   public static class NotificationContext {
     private final MessageService messageService;
     private final Long userId;
     private final String userLoginName;
     private final Long clientId;
 
-    /**
-     * Initializes NotificationContext.
-     */
+    /** Initializes NotificationContext. */
     public NotificationContext(
         MessageService messageService, Long userId, String userLoginName, Long clientId) {
       this.messageService = messageService;

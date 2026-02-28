@@ -1,13 +1,13 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
-import com.example.springapi.models.databasemodels.Address;
-import com.example.springapi.models.databasemodels.PickupLocation;
-import com.example.springapi.models.databasemodels.ProductPickupLocationMapping;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import springapi.models.databasemodels.Address;
+import springapi.models.databasemodels.PickupLocation;
+import springapi.models.databasemodels.ProductPickupLocationMapping;
 
 /**
  * Response model for product stock at a specific pickup location. Includes pickup location details.
@@ -52,9 +52,7 @@ public class ProductStockByLocationResponseModel {
     // Required for JSON serialization/deserialization.
   }
 
-  /**
-   * Executes product stock by location response model.
-   */
+  /** Executes product stock by location response model. */
   public ProductStockByLocationResponseModel(ProductPickupLocationMapping mapping) {
     this.pickupLocationId = mapping.getPickupLocationId();
     this.availableStock = mapping.getAvailableStock();
@@ -125,9 +123,7 @@ public class ProductStockByLocationResponseModel {
       // Required for JSON serialization/deserialization.
     }
 
-    /**
-     * Executes package usage model.
-     */
+    /** Executes package usage model. */
     public PackageUsageModel(
         Long packageId,
         String packageName,

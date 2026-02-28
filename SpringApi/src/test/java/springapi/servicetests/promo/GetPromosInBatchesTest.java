@@ -1,12 +1,7 @@
-package com.example.springapi.ServiceTests.Promo;
+package springapi.ServiceTests.Promo;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.databasemodels.Promo;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.PromoResponseModel;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +11,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.models.databasemodels.Promo;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.PromoResponseModel;
 
 /** Test class for PromoService.getPromosInBatches method. */
 @DisplayName("PromoService - GetPromosInBatches Tests")

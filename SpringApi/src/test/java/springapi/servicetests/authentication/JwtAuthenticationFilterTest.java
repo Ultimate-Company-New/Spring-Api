@@ -1,4 +1,4 @@
-package com.example.springapi.ServiceTests.Authentication;
+package springapi.ServiceTests.Authentication;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -8,8 +8,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.springapi.authentication.JwtAuthenticationFilter;
-import com.example.springapi.authentication.JwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +25,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import springapi.authentication.JwtAuthenticationFilter;
+import springapi.authentication.JwtTokenProvider;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("JwtAuthenticationFilter Tests")

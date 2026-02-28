@@ -1,11 +1,11 @@
-package com.example.springapi.repositories;
+package springapi.repositories;
 
-import com.example.springapi.models.databasemodels.Resources;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import springapi.models.databasemodels.Resources;
 
 /**
  * Repository interface for Resources entity.

@@ -1,21 +1,21 @@
-package com.example.springapi.ServiceTests.Product;
+package springapi.ServiceTests.Product;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.ProductController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.helpers.ImgbbHelper;
-import com.example.springapi.models.databasemodels.Product;
-import com.example.springapi.models.requestmodels.ProductRequestModel;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.ProductController;
+import springapi.exceptions.BadRequestException;
+import springapi.helpers.ImgbbHelper;
+import springapi.models.databasemodels.Product;
+import springapi.models.requestmodels.ProductRequestModel;
 
 /**
  * Consolidated test class for ProductService.editProduct. Fully compliant with Unit Test

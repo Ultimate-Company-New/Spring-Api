@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.ResponseModels;
+package springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class UserGroupResponseModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.responsemodels.UserGroupResponseModel.class)) {
+    if (hasNoArgConstructor(springapi.models.responsemodels.UserGroupResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.responsemodels.UserGroupResponseModel.class);
+              .constructType(springapi.models.responsemodels.UserGroupResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,8 +62,7 @@ class UserGroupResponseModelContractTest {
   void UserGroupResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.responsemodels.UserGroupResponseModel.class
-            .getDeclaredConstructors()) {
+        springapi.models.responsemodels.UserGroupResponseModel.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -82,9 +79,9 @@ class UserGroupResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.responsemodels.UserGroupResponseModel createInstance() {
-    return (com.example.springapi.models.responsemodels.UserGroupResponseModel)
-        instantiate(com.example.springapi.models.responsemodels.UserGroupResponseModel.class);
+  private springapi.models.responsemodels.UserGroupResponseModel createInstance() {
+    return (springapi.models.responsemodels.UserGroupResponseModel)
+        instantiate(springapi.models.responsemodels.UserGroupResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

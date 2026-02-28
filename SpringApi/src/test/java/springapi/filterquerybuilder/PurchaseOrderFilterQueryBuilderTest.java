@@ -1,21 +1,21 @@
-package com.example.springapi.filterquerybuilder;
+package springapi.filterquerybuilder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.example.springapi.models.databasemodels.OrderSummary;
-import com.example.springapi.models.databasemodels.Payment;
-import com.example.springapi.models.databasemodels.PurchaseOrder;
-import com.example.springapi.models.databasemodels.Resources;
-import com.example.springapi.models.databasemodels.Shipment;
-import com.example.springapi.models.databasemodels.ShipmentPackage;
-import com.example.springapi.models.dtos.PurchaseOrderWithDetails;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
+import springapi.models.databasemodels.OrderSummary;
+import springapi.models.databasemodels.Payment;
+import springapi.models.databasemodels.PurchaseOrder;
+import springapi.models.databasemodels.Resources;
+import springapi.models.databasemodels.Shipment;
+import springapi.models.databasemodels.ShipmentPackage;
+import springapi.models.dtos.PurchaseOrderWithDetails;
+import springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 
 @DisplayName("PurchaseOrderFilterQueryBuilder Tests")
 class PurchaseOrderFilterQueryBuilderTest extends FilterQueryBuilderTestBase {

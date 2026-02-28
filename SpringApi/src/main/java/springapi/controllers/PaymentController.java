@@ -1,20 +1,5 @@
-package com.example.springapi.controllers;
+package springapi.controllers;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.exceptions.UnauthorizedException;
-import com.example.springapi.logging.ContextualLogger;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.requestmodels.CashPaymentRequestModel;
-import com.example.springapi.models.requestmodels.ProcessPaymentAndShipmentRequestModel;
-import com.example.springapi.models.requestmodels.RazorpayOrderRequestModel;
-import com.example.springapi.models.requestmodels.RazorpayVerifyRequestModel;
-import com.example.springapi.models.responsemodels.ErrorResponseModel;
-import com.example.springapi.models.responsemodels.PaymentVerificationResponseModel;
-import com.example.springapi.models.responsemodels.RazorpayOrderResponseModel;
-import com.example.springapi.services.ShippingService;
-import com.example.springapi.services.interfaces.PaymentSubTranslator;
 import com.itextpdf.text.DocumentException;
 import freemarker.template.TemplateException;
 import java.io.IOException;
@@ -30,6 +15,21 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.exceptions.UnauthorizedException;
+import springapi.logging.ContextualLogger;
+import springapi.models.Authorizations;
+import springapi.models.requestmodels.CashPaymentRequestModel;
+import springapi.models.requestmodels.ProcessPaymentAndShipmentRequestModel;
+import springapi.models.requestmodels.RazorpayOrderRequestModel;
+import springapi.models.requestmodels.RazorpayVerifyRequestModel;
+import springapi.models.responsemodels.ErrorResponseModel;
+import springapi.models.responsemodels.PaymentVerificationResponseModel;
+import springapi.models.responsemodels.RazorpayOrderResponseModel;
+import springapi.services.ShippingService;
+import springapi.services.interfaces.PaymentSubTranslator;
 
 /**
  * REST Controller for Payment operations.

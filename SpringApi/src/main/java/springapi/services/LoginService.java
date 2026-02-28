@@ -1,23 +1,5 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.exceptions.ApplicationException;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.exceptions.UnauthorizedException;
-import com.example.springapi.helpers.EmailTemplates;
-import com.example.springapi.helpers.PasswordHelper;
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.databasemodels.User;
-import com.example.springapi.models.databasemodels.UserClientMapping;
-import com.example.springapi.models.databasemodels.UserClientPermissionMapping;
-import com.example.springapi.models.requestmodels.LoginRequestModel;
-import com.example.springapi.repositories.ClientRepository;
-import com.example.springapi.repositories.UserClientMappingRepository;
-import com.example.springapi.repositories.UserClientPermissionMappingRepository;
-import com.example.springapi.repositories.UserRepository;
-import com.example.springapi.services.interfaces.LoginSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +10,24 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import springapi.ErrorMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.exceptions.ApplicationException;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.exceptions.UnauthorizedException;
+import springapi.helpers.EmailTemplates;
+import springapi.helpers.PasswordHelper;
+import springapi.models.databasemodels.Client;
+import springapi.models.databasemodels.User;
+import springapi.models.databasemodels.UserClientMapping;
+import springapi.models.databasemodels.UserClientPermissionMapping;
+import springapi.models.requestmodels.LoginRequestModel;
+import springapi.repositories.ClientRepository;
+import springapi.repositories.UserClientMappingRepository;
+import springapi.repositories.UserClientPermissionMappingRepository;
+import springapi.repositories.UserRepository;
+import springapi.services.interfaces.LoginSubTranslator;
 
 /**
  * Service class for authentication and login-related business operations.
@@ -47,9 +47,7 @@ public class LoginService extends BaseService implements LoginSubTranslator {
   private final ClientRepository clientRepository;
   private final Environment environment;
 
-  /**
-   * Initializes LoginService.
-   */
+  /** Initializes LoginService. */
   @Autowired
   public LoginService(
       UserRepository userRepository,
@@ -128,7 +126,7 @@ public class LoginService extends BaseService implements LoginSubTranslator {
    */
   @Override
   @Transactional
-  public List<com.example.springapi.models.responsemodels.ClientResponseModel> signIn(
+  public List<springapi.models.responsemodels.ClientResponseModel> signIn(
       LoginRequestModel loginRequestModel) {
     User user = userRepository.findByLoginName(loginRequestModel.getLoginName());
 
@@ -171,7 +169,7 @@ public class LoginService extends BaseService implements LoginSubTranslator {
 
       // Build a list of ClientResponseModel with only logo, name, clientId, and
       // apiKey
-      List<com.example.springapi.models.responsemodels.ClientResponseModel> clientResponseList =
+      List<springapi.models.responsemodels.ClientResponseModel> clientResponseList =
           new ArrayList<>();
 
       for (UserClientMapping mapping : userClientMappings) {
@@ -181,8 +179,8 @@ public class LoginService extends BaseService implements LoginSubTranslator {
           Client client = clientOpt.get();
 
           // Create a minimal ClientResponseModel with only required fields
-          com.example.springapi.models.responsemodels.ClientResponseModel clientResponse =
-              new com.example.springapi.models.responsemodels.ClientResponseModel();
+          springapi.models.responsemodels.ClientResponseModel clientResponse =
+              new springapi.models.responsemodels.ClientResponseModel();
           clientResponse.setClientId(client.getClientId());
           clientResponse.setName(client.getName());
           clientResponse.setLogoUrl(client.getLogoUrl());

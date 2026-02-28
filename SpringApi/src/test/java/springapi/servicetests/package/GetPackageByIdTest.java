@@ -1,17 +1,17 @@
-package com.example.springapi.ServiceTests.Package;
+package springapi.ServiceTests.Package;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.PackageController;
-import com.example.springapi.models.responsemodels.PackageResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.PackageController;
+import springapi.models.responsemodels.PackageResponseModel;
 
 /**
  * Unit tests for PackageService.getPackageById() method.
@@ -100,7 +100,7 @@ class GetPackageByIdTest extends PackageServiceTestBase {
   @DisplayName("Get Package By ID - Max Long Value ID - Success")
   void getPackageById_MaxLongId_Success() {
     // Arrange
-    com.example.springapi.models.databasemodels.Package maxIdPackage = createTestPackage();
+    springapi.models.databasemodels.Package maxIdPackage = createTestPackage();
     maxIdPackage.setPackageId(Long.MAX_VALUE);
     maxIdPackage.setPackageName("Max ID Package");
     stubPackageRepositoryFindByPackageIdAndClientId(Long.MAX_VALUE, TEST_CLIENT_ID, maxIdPackage);

@@ -1,20 +1,20 @@
-package com.example.springapi.ServiceTests.Client;
+package springapi.ServiceTests.Client;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.ClientController;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.databasemodels.Client;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.ClientController;
+import springapi.exceptions.NotFoundException;
+import springapi.models.Authorizations;
+import springapi.models.databasemodels.Client;
 
 /** Unit tests for ClientService.toggleClient() method. */
 @DisplayName("Toggle Client Tests")

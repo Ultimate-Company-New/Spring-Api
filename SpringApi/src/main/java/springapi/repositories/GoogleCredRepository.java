@@ -1,11 +1,9 @@
-package com.example.springapi.repositories;
+package springapi.repositories;
 
-import com.example.springapi.models.databasemodels.GoogleCred;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import springapi.models.databasemodels.GoogleCred;
 
-/**
- * Defines the google cred repository contract.
- */
+/** Defines the google cred repository contract. */
 @Repository
 public interface GoogleCredRepository extends JpaRepository<GoogleCred, Long> {}

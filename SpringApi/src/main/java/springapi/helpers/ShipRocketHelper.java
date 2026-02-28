@@ -1,20 +1,5 @@
-package com.example.springapi.helpers;
+package springapi.helpers;
 
-import com.example.springapi.adapters.DateAdapter;
-import com.example.springapi.adapters.LocalDateTimeAdapter;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.databasemodels.PickupLocation;
-import com.example.springapi.models.shippingresponsemodel.AddPickupLocationResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketAwbResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketLabelResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketManifestResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketOrderResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketPickupResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketTrackingResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShippingOptionsResponseModel;
-import com.example.springapi.models.shippingresponsemodel.TokenResponseModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.shaded.gson.Gson;
 import com.nimbusds.jose.shaded.gson.GsonBuilder;
@@ -29,10 +14,23 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
+import springapi.adapters.DateAdapter;
+import springapi.adapters.LocalDateTimeAdapter;
+import springapi.exceptions.BadRequestException;
+import springapi.models.databasemodels.PickupLocation;
+import springapi.models.shippingresponsemodel.AddPickupLocationResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketAwbResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketLabelResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketManifestResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketOrderResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketPickupResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketTrackingResponseModel;
+import springapi.models.shippingresponsemodel.ShippingOptionsResponseModel;
+import springapi.models.shippingresponsemodel.TokenResponseModel;
 
-/**
- * Represents the ship rocket helper component.
- */
+/** Represents the ship rocket helper component. */
 public class ShipRocketHelper {
   private static final String API_URL = "https://apiv2.shiprocket.in/v1/external";
   private static final String SHIPMENT_ID_KEY = "shipment_id";
@@ -221,9 +219,7 @@ public class ShipRocketHelper {
     }
   }
 
-  /**
-   * Executes add pickup location.
-   */
+  /** Executes add pickup location. */
   public AddPickupLocationResponseModel addPickupLocation(PickupLocation pickupLocation) {
     final String token = getToken();
     HashMap<String, Object> jsonBody = new HashMap<>();
@@ -637,9 +633,7 @@ public class ShipRocketHelper {
     return responseBody;
   }
 
-  /**
-   * Returns order details as json.
-   */
+  /** Returns order details as json. */
   public String getOrderDetailsAsJson(String shipRocketOrderId) {
     if (shipRocketOrderId == null || shipRocketOrderId.trim().isEmpty()) {
       throw new BadRequestException("ShipRocket order ID is required to fetch order details");
@@ -652,13 +646,11 @@ public class ShipRocketHelper {
         httpResponseRaw(token, API_URL + "/orders/show/" + shipRocketOrderId.trim(), "GET", null);
 
     // Validate response content - HTTP 200 doesn't guarantee success
-    com.example.springapi.models.shippingresponsemodel.ShipRocketOrderDetailsResponseModel
-        orderDetails =
-            createGson()
-                .fromJson(
-                    responseBody,
-                    com.example.springapi.models.shippingresponsemodel
-                        .ShipRocketOrderDetailsResponseModel.class);
+    springapi.models.shippingresponsemodel.ShipRocketOrderDetailsResponseModel orderDetails =
+        createGson()
+            .fromJson(
+                responseBody,
+                springapi.models.shippingresponsemodel.ShipRocketOrderDetailsResponseModel.class);
 
     if (orderDetails == null) {
       throw new BadRequestException(

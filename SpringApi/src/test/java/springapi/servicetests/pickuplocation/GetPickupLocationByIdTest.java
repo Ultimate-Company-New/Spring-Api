@@ -1,16 +1,16 @@
-package com.example.springapi.ServiceTests.PickupLocation;
+package springapi.ServiceTests.PickupLocation;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.PickupLocationController;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.responsemodels.PickupLocationResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.PickupLocationController;
+import springapi.exceptions.NotFoundException;
+import springapi.models.responsemodels.PickupLocationResponseModel;
 
 /**
  * Unit tests for PickupLocationService.getPickupLocationById() method. Tests successful retrieval,

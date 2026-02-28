@@ -1,17 +1,17 @@
-package com.example.springapi.ServiceTests.Todo;
+package springapi.ServiceTests.Todo;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.SuccessMessages;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.ApiRoutes;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.SuccessMessages;
+import springapi.exceptions.NotFoundException;
+import springapi.models.ApiRoutes;
 
 /** Test class for TodoService - DeleteTodo operation. */
 @DisplayName("TodoService - DeleteTodo Tests")

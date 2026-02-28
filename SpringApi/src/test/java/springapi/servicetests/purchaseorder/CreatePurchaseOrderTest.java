@@ -1,4 +1,4 @@
-package com.example.springapi.ServiceTests.PurchaseOrder;
+package springapi.ServiceTests.PurchaseOrder;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,12 +11,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.PurchaseOrderController;
-import com.example.springapi.helpers.ImgbbHelper;
-import com.example.springapi.models.databasemodels.Resources;
-import com.example.springapi.models.databasemodels.ShipmentProduct;
-import com.example.springapi.models.requestmodels.PurchaseOrderRequestModel;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +22,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedConstruction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.PurchaseOrderController;
+import springapi.helpers.ImgbbHelper;
+import springapi.models.databasemodels.Resources;
+import springapi.models.databasemodels.ShipmentProduct;
+import springapi.models.requestmodels.PurchaseOrderRequestModel;
 
 /**
  * Test class for PurchaseOrderService.createPurchaseOrder method.
@@ -351,9 +351,9 @@ class CreatePurchaseOrderTest extends PurchaseOrderServiceTestBase {
     // Arrange
     testPurchaseOrderRequest.setProducts(
         List.of(
-            new com.example.springapi.models.requestmodels.PurchaseOrderProductItem(
+            new springapi.models.requestmodels.PurchaseOrderProductItem(
                 TEST_PRODUCT_ID, new java.math.BigDecimal("10"), 1),
-            new com.example.springapi.models.requestmodels.PurchaseOrderProductItem(
+            new springapi.models.requestmodels.PurchaseOrderProductItem(
                 TEST_PRODUCT_ID, new java.math.BigDecimal("20"), 1)));
     stubSuccessfulPurchaseOrderCreate();
 

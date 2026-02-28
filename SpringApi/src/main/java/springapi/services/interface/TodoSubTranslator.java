@@ -1,8 +1,8 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.models.requestmodels.TodoRequestModel;
-import com.example.springapi.models.responsemodels.TodoResponseModel;
 import java.util.List;
+import springapi.models.requestmodels.TodoRequestModel;
+import springapi.models.responsemodels.TodoResponseModel;
 
 /**
  * Interface for task item operations and data access.

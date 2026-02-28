@@ -1,20 +1,20 @@
-package com.example.springapi.ServiceTests.Address;
+package springapi.ServiceTests.Address;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.AddressController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.databasemodels.Address;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.AddressController;
+import springapi.exceptions.BadRequestException;
+import springapi.models.Authorizations;
+import springapi.models.databasemodels.Address;
 
 /** Unit tests for AddressService update functionality. */
 @DisplayName("Update Address Tests")
@@ -89,8 +89,8 @@ class UpdateAddressTest extends AddressServiceTestBase {
     verify(userLogService)
         .logData(
             eq(DEFAULT_USER_ID),
-            contains(com.example.springapi.SuccessMessages.AddressSuccessMessages.UPDATE_ADDRESS),
-            eq(com.example.springapi.models.ApiRoutes.AddressSubRoute.UPDATE_ADDRESS));
+            contains(springapi.SuccessMessages.AddressSuccessMessages.UPDATE_ADDRESS),
+            eq(springapi.models.ApiRoutes.AddressSubRoute.UPDATE_ADDRESS));
   }
 
   /**
@@ -480,7 +480,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
   @DisplayName("Update Address - Null request - ThrowsBadRequestException")
   void updateAddress_NullRequest_ThrowsBadRequestException() {
     // Arrange
-    com.example.springapi.models.requestmodels.AddressRequestModel nullRequest = null;
+    springapi.models.requestmodels.AddressRequestModel nullRequest = null;
 
     // Act & Assert
     BadRequestException exception =
@@ -603,9 +603,7 @@ class UpdateAddressTest extends AddressServiceTestBase {
     // Arrange
     var method =
         AddressController.class.getMethod(
-            "updateAddress",
-            Long.class,
-            com.example.springapi.models.requestmodels.AddressRequestModel.class);
+            "updateAddress", Long.class, springapi.models.requestmodels.AddressRequestModel.class);
     testAddressRequest.setId(DEFAULT_ADDRESS_ID);
     stubServiceUpdateAddressDoNothing();
 

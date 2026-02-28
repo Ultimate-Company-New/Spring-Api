@@ -1,4 +1,4 @@
-package com.example.springapi.ServiceTests.Package;
+package springapi.ServiceTests.Package;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -10,12 +10,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.PackageController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.databasemodels.PackagePickupLocationMapping;
-import com.example.springapi.models.requestmodels.PackagePickupLocationMappingRequestModel;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +19,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.PackageController;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.models.databasemodels.PackagePickupLocationMapping;
+import springapi.models.requestmodels.PackagePickupLocationMappingRequestModel;
 
 /**
  * Unit tests for PackageService.updatePackage() method. Covers field validation, mapping logic, and

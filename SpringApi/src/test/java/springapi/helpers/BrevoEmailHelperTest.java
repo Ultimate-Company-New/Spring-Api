@@ -1,4 +1,4 @@
-package com.example.springapi.helpers;
+package springapi.helpers;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -9,9 +9,6 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.requestmodels.SendEmailRequest;
 import com.sendgrid.helpers.mail.objects.Attachments;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -25,6 +22,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.models.requestmodels.SendEmailRequest;
 
 @DisplayName("BrevoEmailHelper Tests")
 class BrevoEmailHelperTest {

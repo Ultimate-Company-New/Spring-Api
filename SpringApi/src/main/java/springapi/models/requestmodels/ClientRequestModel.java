@@ -1,4 +1,4 @@
-package com.example.springapi.models.requestmodels;
+package springapi.models.requestmodels;
 
 import lombok.Getter;
 import lombok.Setter;

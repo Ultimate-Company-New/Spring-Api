@@ -1,9 +1,5 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.requestmodels.PurchaseOrderProductItem;
-import com.example.springapi.models.requestmodels.PurchaseOrderRequestModel;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -22,6 +18,10 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.models.requestmodels.PurchaseOrderProductItem;
+import springapi.models.requestmodels.PurchaseOrderRequestModel;
 
 /**
  * JPA Entity for the PurchaseOrder table.

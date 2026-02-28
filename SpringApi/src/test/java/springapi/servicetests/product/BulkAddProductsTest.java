@@ -1,14 +1,9 @@
-package com.example.springapi.ServiceTests.Product;
+package springapi.ServiceTests.Product;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.ProductController;
-import com.example.springapi.helpers.ImgbbHelper;
-import com.example.springapi.models.requestmodels.ProductRequestModel;
-import com.example.springapi.models.responsemodels.BulkInsertResponseModel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,6 +12,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.ProductController;
+import springapi.helpers.ImgbbHelper;
+import springapi.models.requestmodels.ProductRequestModel;
+import springapi.models.responsemodels.BulkInsertResponseModel;
 
 /**
  * Consolidated test class for ProductService.bulkAddProducts. Fully compliant with Unit Test

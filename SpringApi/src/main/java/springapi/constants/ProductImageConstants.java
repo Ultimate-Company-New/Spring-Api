@@ -1,4 +1,4 @@
-package com.example.springapi.constants;
+package springapi.constants;
 
 import java.util.Arrays;
 import java.util.Collections;

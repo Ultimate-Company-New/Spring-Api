@@ -1,4 +1,4 @@
-package com.example.springapi.ServiceTests.Payment;
+package springapi.ServiceTests.Payment;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -6,14 +6,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.example.springapi.controllers.PaymentController;
-import com.example.springapi.models.Authorizations;
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import springapi.controllers.PaymentController;
+import springapi.models.Authorizations;
 
 /** Tests for PaymentService.isPurchaseOrderPaid(). */
 @DisplayName("IsPurchaseOrderPaid Tests")

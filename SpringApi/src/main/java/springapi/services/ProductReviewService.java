@@ -1,19 +1,5 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.SuccessMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.filterquerybuilder.ProductReviewFilterQueryBuilder;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.databasemodels.ProductReview;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.ProductReviewRequestModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.ProductReviewResponseModel;
-import com.example.springapi.repositories.ProductReviewRepository;
-import com.example.springapi.services.interfaces.ProductReviewSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +13,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import springapi.ErrorMessages;
+import springapi.SuccessMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.filterquerybuilder.ProductReviewFilterQueryBuilder;
+import springapi.models.ApiRoutes;
+import springapi.models.databasemodels.ProductReview;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.ProductReviewRequestModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.ProductReviewResponseModel;
+import springapi.repositories.ProductReviewRepository;
+import springapi.services.interfaces.ProductReviewSubTranslator;
 
 /**
  * Service implementation for ProductReview operations.
@@ -45,9 +45,7 @@ public class ProductReviewService extends BaseService implements ProductReviewSu
   private final UserLogService userLogService;
   private final ProductReviewFilterQueryBuilder productReviewFilterQueryBuilder;
 
-  /**
-   * Initializes ProductReviewService.
-   */
+  /** Initializes ProductReviewService. */
   @Autowired
   public ProductReviewService(
       ProductReviewRepository productReviewRepository,

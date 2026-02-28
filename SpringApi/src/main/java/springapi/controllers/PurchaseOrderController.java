@@ -1,16 +1,5 @@
-package com.example.springapi.controllers;
+package springapi.controllers;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.exceptions.UnauthorizedException;
-import com.example.springapi.logging.ContextualLogger;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.PurchaseOrderRequestModel;
-import com.example.springapi.models.responsemodels.ErrorResponseModel;
-import com.example.springapi.services.interfaces.PurchaseOrderSubTranslator;
 import freemarker.template.TemplateException;
 import java.io.IOException;
 import org.springframework.http.ContentDisposition;
@@ -27,6 +16,17 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.exceptions.UnauthorizedException;
+import springapi.logging.ContextualLogger;
+import springapi.models.ApiRoutes;
+import springapi.models.Authorizations;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.PurchaseOrderRequestModel;
+import springapi.models.responsemodels.ErrorResponseModel;
+import springapi.services.interfaces.PurchaseOrderSubTranslator;
 
 /**
  * REST Controller for PurchaseOrder operations.
@@ -164,8 +164,8 @@ public class PurchaseOrderController {
       @RequestBody java.util.List<PurchaseOrderRequestModel> purchaseOrders) {
     try {
       // Cast to PurchaseOrderService to access BaseService methods
-      com.example.springapi.services.PurchaseOrderService service =
-          (com.example.springapi.services.PurchaseOrderService) purchaseOrderService;
+      springapi.services.PurchaseOrderService service =
+          (springapi.services.PurchaseOrderService) purchaseOrderService;
       Long userId = service.getUserId();
       String loginName = service.getUser();
       Long clientId = service.getClientId();

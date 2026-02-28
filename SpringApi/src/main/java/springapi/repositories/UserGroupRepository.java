@@ -1,14 +1,12 @@
-package com.example.springapi.repositories;
+package springapi.repositories;
 
-import com.example.springapi.models.databasemodels.UserGroup;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import springapi.models.databasemodels.UserGroup;
 
-/**
- * Defines the user group repository contract.
- */
+/** Defines the user group repository contract. */
 @Repository
 public interface UserGroupRepository extends JpaRepository<UserGroup, Long> {
 

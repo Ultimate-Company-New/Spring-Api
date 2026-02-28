@@ -1,25 +1,21 @@
-package com.example.springapi.helpers;
+package springapi.helpers;
 
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.requestmodels.SendEmailRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.core.env.Environment;
+import springapi.models.databasemodels.Client;
+import springapi.models.requestmodels.SendEmailRequest;
 
-/**
- * Represents the email templates component.
- */
+/** Represents the email templates component. */
 public class EmailTemplates {
   private static final String IMPORT_OF_PREFIX = "Import of ";
   private final EmailHelperContract emailHelper;
   private final Environment environment;
   private final Client client;
 
-  /**
-   * Initializes EmailTemplates.
-   */
+  /** Initializes EmailTemplates. */
   public EmailTemplates(
       String senderName,
       String fromAddress,
@@ -32,9 +28,7 @@ public class EmailTemplates {
         EmailHelperFactory.create(fromAddress, senderName, sendgridApiKey, environment);
   }
 
-  /**
-   * Executes send import bulk data results.
-   */
+  /** Executes send import bulk data results. */
   public boolean sendImportBulkDataResults(
       String importType,
       Map<String, String> errors,
@@ -154,9 +148,7 @@ public class EmailTemplates {
     return emailHelper.sendEmail(sendEmailRequest);
   }
 
-  /**
-   * Executes send new user account confirmation.
-   */
+  /** Executes send new user account confirmation. */
   public boolean sendNewUserAccountConfirmation(
       long userId, String userToken, String userEmail, String temporaryPassword) {
     String profile =

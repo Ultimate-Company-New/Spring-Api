@@ -1,15 +1,9 @@
-package com.example.springapi.ServiceTests.Payment;
+package springapi.ServiceTests.Payment;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.PaymentController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.databasemodels.Payment;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +12,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import springapi.ErrorMessages;
+import springapi.controllers.PaymentController;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.models.Authorizations;
+import springapi.models.databasemodels.Payment;
 
 /** Tests for PaymentService.getPaymentsForPurchaseOrder(). */
 @DisplayName("GetPaymentsForPurchaseOrder Tests")

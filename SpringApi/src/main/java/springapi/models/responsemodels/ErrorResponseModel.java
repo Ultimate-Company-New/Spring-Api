@@ -1,11 +1,9 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Represents the error response model component.
- */
+/** Represents the error response model component. */
 @Getter
 @Setter
 public class ErrorResponseModel {
@@ -19,9 +17,7 @@ public class ErrorResponseModel {
     this.timestamp = java.time.Instant.now().toString();
   }
 
-  /**
-   * Executes error response model.
-   */
+  /** Executes error response model. */
   public ErrorResponseModel(String error, String message, int status) {
     this();
     this.error = error;

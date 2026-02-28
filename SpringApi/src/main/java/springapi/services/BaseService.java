@@ -1,19 +1,17 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.databasemodels.User;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import springapi.ErrorMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.exceptions.BadRequestException;
+import springapi.models.databasemodels.User;
 
-/**
- * Represents the base service component.
- */
+/** Represents the base service component. */
 public class BaseService {
   protected JwtTokenProvider jwtTokenProvider;
   protected static final String CURRENT_ENVIRONMENT = "Local";
@@ -28,9 +26,7 @@ public class BaseService {
     this.request = request;
   }
 
-  /**
-   * Returns user.
-   */
+  /** Returns user. */
   public String getUser() {
     // Try Spring Security first
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -69,9 +65,7 @@ public class BaseService {
     return DEFAULT_TEST_USER;
   }
 
-  /**
-   * Returns user id.
-   */
+  /** Returns user id. */
   public Long getUserId() {
     // Try Spring Security first
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

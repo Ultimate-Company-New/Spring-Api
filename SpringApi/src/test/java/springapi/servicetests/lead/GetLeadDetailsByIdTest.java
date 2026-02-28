@@ -1,18 +1,18 @@
-package com.example.springapi.ServiceTests.Lead;
+package springapi.ServiceTests.Lead;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.LeadController;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.responsemodels.LeadResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.LeadController;
+import springapi.exceptions.NotFoundException;
+import springapi.models.Authorizations;
+import springapi.models.responsemodels.LeadResponseModel;
 
 /** Unit tests for LeadService.getLeadDetailsById() method. */
 @DisplayName("Get Lead Details By ID Tests")

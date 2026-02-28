@@ -1,4 +1,4 @@
-package com.example.springapi.filterquerybuilder;
+package springapi.filterquerybuilder;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -7,11 +7,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.example.springapi.models.databasemodels.Payment;
-import com.example.springapi.models.databasemodels.PurchaseOrder;
-import com.example.springapi.models.databasemodels.Resources;
-import com.example.springapi.models.databasemodels.ShipmentPackage;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.util.List;
@@ -21,6 +16,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import springapi.models.databasemodels.Payment;
+import springapi.models.databasemodels.PurchaseOrder;
+import springapi.models.databasemodels.Resources;
+import springapi.models.databasemodels.ShipmentPackage;
+import springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 
 @ExtendWith(MockitoExtension.class)
 abstract class FilterQueryBuilderTestBase {

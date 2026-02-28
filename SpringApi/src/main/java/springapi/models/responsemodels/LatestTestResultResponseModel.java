@@ -1,9 +1,9 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
-import com.example.springapi.models.databasemodels.LatestTestResult;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
+import springapi.models.databasemodels.LatestTestResult;
 
 /** Response model for latest test result data. */
 @Getter
@@ -27,9 +27,7 @@ public class LatestTestResultResponseModel {
 
   public LatestTestResultResponseModel() {}
 
-  /**
-   * Executes latest test result response model.
-   */
+  /** Executes latest test result response model. */
   public LatestTestResultResponseModel(LatestTestResult result) {
     this.latestTestResultId = result.getLatestTestResultId();
     this.serviceName = result.getServiceName();

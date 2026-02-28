@@ -1,11 +1,7 @@
-package com.example.springapi.ServiceTests.QA;
+package springapi.ServiceTests.QA;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.QaController;
-import com.example.springapi.models.databasemodels.LatestTestResult;
-import com.example.springapi.models.responsemodels.QaDashboardResponseModel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -16,6 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.QaController;
+import springapi.models.databasemodels.LatestTestResult;
+import springapi.models.responsemodels.QaDashboardResponseModel;
 
 /**
  * Unit tests for QaService.getDashboardData() method.

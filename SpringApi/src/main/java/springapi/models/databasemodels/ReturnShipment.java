@@ -1,7 +1,5 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
-import com.example.springapi.models.requestmodels.CreateReturnRequestModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,6 +22,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import springapi.models.requestmodels.CreateReturnRequestModel;
+import springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel;
 
 /**
  * JPA Entity for the ReturnShipment table.
@@ -78,9 +78,7 @@ public class ReturnShipment {
       return value;
     }
 
-    /**
-     * Checks whether valid.
-     */
+    /** Checks whether valid. */
     public static boolean isValid(String status) {
       if (status == null) {
         return true;

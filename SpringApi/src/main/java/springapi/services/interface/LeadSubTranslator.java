@@ -1,8 +1,8 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.models.requestmodels.LeadRequestModel;
-import com.example.springapi.models.responsemodels.LeadResponseModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.requestmodels.LeadRequestModel;
+import springapi.models.responsemodels.LeadResponseModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
 
 /**
  * Interface for Lead operations and business logic. Provides methods for managing leads including.
@@ -40,19 +40,13 @@ public interface LeadSubTranslator {
    */
   LeadResponseModel getLeadDetailsByEmail(String email);
 
-  /**
-   * Creates lead.
-   */
+  /** Creates lead. */
   void createLead(LeadRequestModel leadRequestModel);
 
-  /**
-   * Updates lead.
-   */
+  /** Updates lead. */
   void updateLead(Long leadId, LeadRequestModel leadRequestModel);
 
-  /**
-   * Toggles lead.
-   */
+  /** Toggles lead. */
   void toggleLead(Long leadId);
 
   /**
@@ -83,6 +77,6 @@ public interface LeadSubTranslator {
    * @param leads List of LeadRequestModel containing the lead data to create
    * @return BulkInsertResponseModel containing success/failure details for each lead
    */
-  com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkCreateLeads(
+  springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkCreateLeads(
       java.util.List<LeadRequestModel> leads);
 }

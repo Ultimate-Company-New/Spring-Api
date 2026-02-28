@@ -1,4 +1,4 @@
-package com.example.springapi.constants;
+package springapi.constants;
 
 /**
  * Constants for entity types used in the Resources table.

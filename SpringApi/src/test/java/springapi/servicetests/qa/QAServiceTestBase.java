@@ -1,22 +1,10 @@
-package com.example.springapi.ServiceTests.QA;
+package springapi.ServiceTests.QA;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.exceptions.UnauthorizedException;
-import com.example.springapi.models.databasemodels.LatestTestResult;
-import com.example.springapi.models.databasemodels.TestRun;
-import com.example.springapi.models.databasemodels.TestRunResult;
-import com.example.springapi.models.requestmodels.TestExecutionRequestModel;
-import com.example.springapi.models.requestmodels.TestRunRequestModel;
-import com.example.springapi.repositories.LatestTestResultRepository;
-import com.example.springapi.repositories.TestRunRepository;
-import com.example.springapi.services.QaService;
-import com.example.springapi.services.interfaces.QaSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -28,6 +16,18 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import springapi.ErrorMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.exceptions.UnauthorizedException;
+import springapi.models.databasemodels.LatestTestResult;
+import springapi.models.databasemodels.TestRun;
+import springapi.models.databasemodels.TestRunResult;
+import springapi.models.requestmodels.TestExecutionRequestModel;
+import springapi.models.requestmodels.TestRunRequestModel;
+import springapi.repositories.LatestTestResultRepository;
+import springapi.repositories.TestRunRepository;
+import springapi.services.QaService;
+import springapi.services.interfaces.QaSubTranslator;
 
 /**
  * Base test class for QA Service tests providing common helper methods and stub methods.

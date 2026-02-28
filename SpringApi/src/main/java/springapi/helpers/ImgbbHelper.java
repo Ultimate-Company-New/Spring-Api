@@ -1,4 +1,4 @@
-package com.example.springapi.helpers;
+package springapi.helpers;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,9 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.stream.Collectors;
 
-/**
- * Represents the imgbb helper component.
- */
+/** Represents the imgbb helper component. */
 public class ImgbbHelper {
   // --- Configuration ---
   private final String imgbbApiKey;
@@ -33,9 +31,7 @@ public class ImgbbHelper {
     this.imgbbApiKey = imgbbApiKey;
   }
 
-  /**
-   * Executes generate custom file name for client logo.
-   */
+  /** Executes generate custom file name for client logo. */
   public static String generateCustomFileNameForClientLogo(String environment, String clientName) {
     // Replace spaces with underscores in client name
     String sanitizedClientName = clientName.replaceAll("\\s+", "_");
@@ -48,9 +44,7 @@ public class ImgbbHelper {
     return environment + "-" + sanitizedClientName + "-" + formattedDate + "-Logo";
   }
 
-  /**
-   * Executes generate custom file name for user profile.
-   */
+  /** Executes generate custom file name for user profile. */
   public static String generateCustomFileNameForUserProfile(
       String environment, String clientName, Long userId) {
     // Replace spaces with underscores in client name
@@ -64,9 +58,7 @@ public class ImgbbHelper {
     return environment + "-" + sanitizedClientName + userId + "_" + timestamp + "-UserProfile";
   }
 
-  /**
-   * Executes generate custom file name for product image.
-   */
+  /** Executes generate custom file name for product image. */
   public static String generateCustomFileNameForProductImage(
       String environment, String clientName, Long productId, String imageName) {
     // Replace spaces with underscores in client name
@@ -80,9 +72,7 @@ public class ImgbbHelper {
     return environment + "-" + sanitizedClientName + productId + "_" + timestamp + "-" + imageName;
   }
 
-  /**
-   * Executes generate custom file name for purchase order attachment.
-   */
+  /** Executes generate custom file name for purchase order attachment. */
   public static String generateCustomFileNameForPurchaseOrderAttachment(
       String environment, String clientName, Long purchaseOrderId, String attachmentName) {
     // Replace spaces with underscores in client name
@@ -341,9 +331,7 @@ public class ImgbbHelper {
     private final String base64Data;
     private final String notes;
 
-    /**
-     * Initializes AttachmentUploadRequest.
-     */
+    /** Initializes AttachmentUploadRequest. */
     public AttachmentUploadRequest(String fileName, String base64Data, String notes) {
       this.fileName = fileName;
       this.base64Data = base64Data;
@@ -369,9 +357,7 @@ public class ImgbbHelper {
     private final String deleteHash;
     private final String notes;
 
-    /**
-     * Initializes AttachmentUploadResult.
-     */
+    /** Initializes AttachmentUploadResult. */
     public AttachmentUploadResult(String url, String deleteHash, String notes) {
       this.url = url;
       this.deleteHash = deleteHash;

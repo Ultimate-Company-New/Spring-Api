@@ -1,35 +1,31 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.SuccessMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.databasemodels.Todo;
-import com.example.springapi.models.requestmodels.TodoRequestModel;
-import com.example.springapi.models.responsemodels.TodoResponseModel;
-import com.example.springapi.repositories.TodoRepository;
-import com.example.springapi.services.interfaces.TodoSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import springapi.ErrorMessages;
+import springapi.SuccessMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.models.ApiRoutes;
+import springapi.models.databasemodels.Todo;
+import springapi.models.requestmodels.TodoRequestModel;
+import springapi.models.responsemodels.TodoResponseModel;
+import springapi.repositories.TodoRepository;
+import springapi.services.interfaces.TodoSubTranslator;
 
-/**
- * Represents the todo service component.
- */
+/** Represents the todo service component. */
 @Service
 public class TodoService extends BaseService implements TodoSubTranslator {
 
   private final TodoRepository todoRepository;
   private final UserLogService userLogService;
 
-  /**
-   * Initializes TodoService.
-   */
+  /** Initializes TodoService. */
   @Autowired
   public TodoService(
       TodoRepository todoRepository,

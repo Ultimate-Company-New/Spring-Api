@@ -1,16 +1,5 @@
-package com.example.springapi.controllers;
+package springapi.controllers;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.exceptions.UnauthorizedException;
-import com.example.springapi.logging.ContextualLogger;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.ProductRequestModel;
-import com.example.springapi.models.responsemodels.ErrorResponseModel;
-import com.example.springapi.services.interfaces.ProductSubTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +13,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.exceptions.UnauthorizedException;
+import springapi.logging.ContextualLogger;
+import springapi.models.ApiRoutes;
+import springapi.models.Authorizations;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.ProductRequestModel;
+import springapi.models.responsemodels.ErrorResponseModel;
+import springapi.services.interfaces.ProductSubTranslator;
 
 /**
  * REST Controller for Product operations.
@@ -98,9 +98,7 @@ public class ProductController {
     }
   }
 
-  /**
-   * Executes bulk add products.
-   */
+  /** Executes bulk add products. */
   @PreAuthorize(
       "@customAuthorization.hasAuthority('" + Authorizations.INSERT_PRODUCTS_PERMISSION + "')")
   @PutMapping("/" + ApiRoutes.ProductsSubRoute.BULK_ADD_PRODUCT)
@@ -108,8 +106,8 @@ public class ProductController {
       @RequestBody java.util.List<ProductRequestModel> products) {
     try {
       // Cast to ProductService to access BaseService methods
-      com.example.springapi.services.ProductService service =
-          (com.example.springapi.services.ProductService) productService;
+      springapi.services.ProductService service =
+          (springapi.services.ProductService) productService;
       Long userId = service.getUserId();
       String loginName = service.getUser();
       Long clientId = service.getClientId();
@@ -530,8 +528,8 @@ public class ProductController {
       @PathVariable String deliveryPostcode,
       @PathVariable Boolean isCod) {
     try {
-      com.example.springapi.services.ProductService service =
-          (com.example.springapi.services.ProductService) productService;
+      springapi.services.ProductService service =
+          (springapi.services.ProductService) productService;
       // Handle "0" or empty delivery postcode as null
       String effectivePostcode =
           (deliveryPostcode == null || deliveryPostcode.equals("0") || deliveryPostcode.isEmpty())

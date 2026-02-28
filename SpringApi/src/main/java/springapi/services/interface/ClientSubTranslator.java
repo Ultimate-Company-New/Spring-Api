@@ -1,8 +1,8 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.models.requestmodels.ClientRequestModel;
-import com.example.springapi.models.responsemodels.ClientResponseModel;
 import java.util.List;
+import springapi.models.requestmodels.ClientRequestModel;
+import springapi.models.responsemodels.ClientResponseModel;
 
 /**
  * Interface for Client-related business operations.

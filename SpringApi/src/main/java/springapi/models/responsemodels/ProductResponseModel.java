@@ -1,8 +1,5 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
-import com.example.springapi.models.databasemodels.Product;
-import com.example.springapi.models.databasemodels.ProductPickupLocationMapping;
-import com.example.springapi.models.databasemodels.User;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,6 +7,9 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.Hibernate;
+import springapi.models.databasemodels.Product;
+import springapi.models.databasemodels.ProductPickupLocationMapping;
+import springapi.models.databasemodels.User;
 
 /**
  * Response model for Product operations.
@@ -100,9 +100,7 @@ public class ProductResponseModel {
 
     public CreatedByUserInfo() {}
 
-    /**
-     * Creates d by user info.
-     */
+    /** Creates d by user info. */
     public CreatedByUserInfo(User user) {
       if (user != null) {
         this.userId = user.getUserId();
@@ -224,8 +222,7 @@ public class ProductResponseModel {
    * @param shipmentProduct The ShipmentProduct entity to get allocation details from
    */
   public ProductResponseModel(
-      Product product,
-      com.example.springapi.models.databasemodels.ShipmentProduct shipmentProduct) {
+      Product product, springapi.models.databasemodels.ShipmentProduct shipmentProduct) {
     // First populate from Product
     this(product);
 

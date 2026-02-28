@@ -1,6 +1,5 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
-import com.example.springapi.models.requestmodels.CreateReturnRequestModel;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -17,6 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import springapi.models.requestmodels.CreateReturnRequestModel;
 
 /**
  * JPA Entity for the ReturnShipmentProduct table.

@@ -1,10 +1,10 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.models.databasemodels.Promo;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.PromoRequestModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.PromoResponseModel;
+import springapi.models.databasemodels.Promo;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.PromoRequestModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.PromoResponseModel;
 
 /**
  * Interface for Promo operations and data access.

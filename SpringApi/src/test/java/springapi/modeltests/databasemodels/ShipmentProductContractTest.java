@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.DatabaseModels;
+package springapi.ModelTests.DatabaseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class ShipmentProductContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.springapi.models.databasemodels.ShipmentProduct.class)) {
+    if (hasNoArgConstructor(springapi.models.databasemodels.ShipmentProduct.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.springapi.models.databasemodels.ShipmentProduct.class);
+              .constructType(springapi.models.databasemodels.ShipmentProduct.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,8 +62,7 @@ class ShipmentProductContractTest {
   void ShipmentProduct_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.databasemodels.ShipmentProduct.class
-            .getDeclaredConstructors()) {
+        springapi.models.databasemodels.ShipmentProduct.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -80,9 +79,9 @@ class ShipmentProductContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.databasemodels.ShipmentProduct createInstance() {
-    return (com.example.springapi.models.databasemodels.ShipmentProduct)
-        instantiate(com.example.springapi.models.databasemodels.ShipmentProduct.class);
+  private springapi.models.databasemodels.ShipmentProduct createInstance() {
+    return (springapi.models.databasemodels.ShipmentProduct)
+        instantiate(springapi.models.databasemodels.ShipmentProduct.class);
   }
 
   private Object instantiate(Class<?> clazz) {

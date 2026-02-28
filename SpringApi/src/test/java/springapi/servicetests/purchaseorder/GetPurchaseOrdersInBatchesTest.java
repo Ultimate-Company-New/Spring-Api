@@ -1,14 +1,7 @@
-package com.example.springapi.ServiceTests.PurchaseOrder;
+package springapi.ServiceTests.PurchaseOrder;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.PurchaseOrderController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.dtos.PurchaseOrderWithDetails;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.PurchaseOrderResponseModel;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +11,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.PurchaseOrderController;
+import springapi.exceptions.BadRequestException;
+import springapi.models.dtos.PurchaseOrderWithDetails;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.PurchaseOrderResponseModel;
 
 /**
  * Test class for PurchaseOrderService.getPurchaseOrdersInBatches method.

@@ -1,7 +1,5 @@
-package com.example.springapi.filterquerybuilder;
+package springapi.filterquerybuilder;
 
-import com.example.springapi.models.databasemodels.Lead;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.util.Arrays;
@@ -11,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import springapi.models.databasemodels.Lead;
+import springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 
 /**
  * Lead-specific filter query builder that handles dynamic multi-filter queries.
@@ -60,9 +60,9 @@ public class LeadFilterQueryBuilder extends BaseFilterQueryBuilder {
       case "notes" -> "l.notes";
       case "address" ->
           "CONCAT(COALESCE(a.streetAddress, ''), ' ', COALESCE(a.streetAddress2, ''), ' ', "
-              + "COALESCE(a.streetAddress3, ''), ' ', COALESCE(a.city, ''), ' ', "
-              + "COALESCE(a.state, ''), ' ', COALESCE(a.postalCode, ''), ' ', "
-              + "COALESCE(a.country, ''))";
+          + "COALESCE(a.streetAddress3, ''), ' ', COALESCE(a.city, ''), ' ', "
+          + "COALESCE(a.state, ''), ' ', COALESCE(a.postalCode, ''), ' ', "
+          + "COALESCE(a.country, ''))";
       default -> "l." + column;
     };
   }

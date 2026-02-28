@@ -1,16 +1,5 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.filterquerybuilder.UserLogFilterQueryBuilder;
-import com.example.springapi.models.databasemodels.UserLog;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
-import com.example.springapi.models.requestmodels.UserLogsRequestModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.UserLogsResponseModel;
-import com.example.springapi.repositories.UserLogRepository;
-import com.example.springapi.services.interfaces.UserLogSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -21,18 +10,25 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import springapi.ErrorMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.exceptions.BadRequestException;
+import springapi.filterquerybuilder.UserLogFilterQueryBuilder;
+import springapi.models.databasemodels.UserLog;
+import springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
+import springapi.models.requestmodels.UserLogsRequestModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.UserLogsResponseModel;
+import springapi.repositories.UserLogRepository;
+import springapi.services.interfaces.UserLogSubTranslator;
 
-/**
- * Represents the user log service component.
- */
+/** Represents the user log service component. */
 @Service
 public class UserLogService extends BaseService implements UserLogSubTranslator {
   private final UserLogRepository userLogRepository;
   private final UserLogFilterQueryBuilder userLogFilterQueryBuilder;
 
-  /**
-   * Initializes UserLogService.
-   */
+  /** Initializes UserLogService. */
   @Autowired
   public UserLogService(
       UserLogRepository userLogRepository,

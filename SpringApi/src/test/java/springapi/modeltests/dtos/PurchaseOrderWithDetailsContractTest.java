@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.DTOs;
+package springapi.ModelTests.DTOs;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class PurchaseOrderWithDetailsContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.springapi.models.dtos.PurchaseOrderWithDetails.class)) {
+    if (hasNoArgConstructor(springapi.models.dtos.PurchaseOrderWithDetails.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.springapi.models.dtos.PurchaseOrderWithDetails.class);
+              .constructType(springapi.models.dtos.PurchaseOrderWithDetails.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,8 +62,7 @@ class PurchaseOrderWithDetailsContractTest {
   void PurchaseOrderWithDetails_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.dtos.PurchaseOrderWithDetails.class
-            .getDeclaredConstructors()) {
+        springapi.models.dtos.PurchaseOrderWithDetails.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -80,9 +79,9 @@ class PurchaseOrderWithDetailsContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.dtos.PurchaseOrderWithDetails createInstance() {
-    return (com.example.springapi.models.dtos.PurchaseOrderWithDetails)
-        instantiate(com.example.springapi.models.dtos.PurchaseOrderWithDetails.class);
+  private springapi.models.dtos.PurchaseOrderWithDetails createInstance() {
+    return (springapi.models.dtos.PurchaseOrderWithDetails)
+        instantiate(springapi.models.dtos.PurchaseOrderWithDetails.class);
   }
 
   private Object instantiate(Class<?> clazz) {

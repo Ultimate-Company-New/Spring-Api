@@ -1,14 +1,9 @@
-package com.example.springapi.ServiceTests.Package;
+package springapi.ServiceTests.Package;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.PackageController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.requestmodels.PackageRequestModel;
-import com.example.springapi.models.responsemodels.BulkInsertResponseModel;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +11,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.PackageController;
+import springapi.exceptions.BadRequestException;
+import springapi.models.requestmodels.PackageRequestModel;
+import springapi.models.responsemodels.BulkInsertResponseModel;
 
 /**
  * Unit tests for PackageService.bulkCreatePackages() method. Covers success, partial success, and

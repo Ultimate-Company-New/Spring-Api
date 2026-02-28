@@ -1,20 +1,8 @@
-package com.example.springapi.ServiceTests.Address;
+package springapi.ServiceTests.Address;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.databasemodels.Address;
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.databasemodels.User;
-import com.example.springapi.models.requestmodels.AddressRequestModel;
-import com.example.springapi.models.responsemodels.AddressResponseModel;
-import com.example.springapi.repositories.AddressRepository;
-import com.example.springapi.repositories.ClientRepository;
-import com.example.springapi.repositories.UserRepository;
-import com.example.springapi.services.AddressService;
-import com.example.springapi.services.UserLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,6 +13,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.models.databasemodels.Address;
+import springapi.models.databasemodels.Client;
+import springapi.models.databasemodels.User;
+import springapi.models.requestmodels.AddressRequestModel;
+import springapi.models.responsemodels.AddressResponseModel;
+import springapi.repositories.AddressRepository;
+import springapi.repositories.ClientRepository;
+import springapi.repositories.UserRepository;
+import springapi.services.AddressService;
+import springapi.services.UserLogService;
 
 /**
  * Base test class for AddressService unit tests. Centralizes common test data and stubbing logic.
@@ -71,7 +71,7 @@ abstract class AddressServiceTestBase {
   protected User testUser;
 
   // Controller under test for permission tests (Rule 3)
-  protected com.example.springapi.controllers.AddressController addressController;
+  protected springapi.controllers.AddressController addressController;
 
   /**
    * Common setup for all address tests. Rule 14: No inline mocks allowed here. Only data
@@ -85,7 +85,7 @@ abstract class AddressServiceTestBase {
     testAddress = createTestAddress(testAddressRequest, DEFAULT_CREATED_USER);
 
     // Initialize controller with spied service for local permission tests
-    addressController = new com.example.springapi.controllers.AddressController(addressService);
+    addressController = new springapi.controllers.AddressController(addressService);
   }
 
   /** Centralized stub for service-level token/user details. */

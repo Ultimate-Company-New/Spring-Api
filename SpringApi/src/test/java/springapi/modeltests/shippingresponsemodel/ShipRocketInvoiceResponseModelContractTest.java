@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.ShippingResponseModel;
+package springapi.ModelTests.ShippingResponseModel;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,13 +49,12 @@ class ShipRocketInvoiceResponseModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel.class)) {
+        springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel
-                      .class);
+                  springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -65,7 +64,7 @@ class ShipRocketInvoiceResponseModelContractTest {
   void ShipRocketInvoiceResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel.class
+        springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -83,12 +82,9 @@ class ShipRocketInvoiceResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel
-      createInstance() {
-    return (com.example.springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel)
-        instantiate(
-            com.example.springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel
-                .class);
+  private springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel createInstance() {
+    return (springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel)
+        instantiate(springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

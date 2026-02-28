@@ -1,13 +1,10 @@
-package com.example.springapi.ServiceTests.QA;
+package springapi.ServiceTests.QA;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
-import com.example.springapi.controllers.QaController;
-import com.example.springapi.models.databasemodels.LatestTestResult;
-import com.example.springapi.models.responsemodels.QaResponseModel;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,6 +15,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.controllers.QaController;
+import springapi.models.databasemodels.LatestTestResult;
+import springapi.models.responsemodels.QaResponseModel;
 
 /** Unit tests for QaService.getAllEndpointsWithTests() method. */
 @ExtendWith(MockitoExtension.class)

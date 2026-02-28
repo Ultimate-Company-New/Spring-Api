@@ -1,4 +1,4 @@
-package com.example.springapi.deserializers;
+package springapi.deserializers;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

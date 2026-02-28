@@ -1,4 +1,4 @@
-package com.example.springapi.models.requestmodels;
+package springapi.models.requestmodels;
 
 import com.sendgrid.helpers.mail.objects.Attachments;
 import com.sendgrid.helpers.mail.objects.Email;
@@ -8,9 +8,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Represents the send email request component.
- */
+/** Represents the send email request component. */
 @Getter
 @Setter
 public class SendEmailRequest {

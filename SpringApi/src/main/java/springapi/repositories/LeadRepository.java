@@ -1,14 +1,12 @@
-package com.example.springapi.repositories;
+package springapi.repositories;
 
-import com.example.springapi.models.databasemodels.Lead;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import springapi.models.databasemodels.Lead;
 
-/**
- * Defines the lead repository contract.
- */
+/** Defines the lead repository contract. */
 @Repository
 public interface LeadRepository extends JpaRepository<Lead, Long> {
 

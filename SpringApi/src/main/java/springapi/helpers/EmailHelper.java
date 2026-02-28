@@ -1,8 +1,5 @@
-package com.example.springapi.helpers;
+package springapi.helpers;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.requestmodels.SendEmailRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sendgrid.Method;
 import com.sendgrid.Request;
@@ -19,18 +16,17 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.Collection;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.models.requestmodels.SendEmailRequest;
 
-/**
- * Represents the email helper component.
- */
+/** Represents the email helper component. */
 public class EmailHelper implements EmailHelperContract {
   private final String fromAddress;
   private final String senderName;
   private final String sendGridApiKey;
 
-  /**
-   * Initializes EmailHelper.
-   */
+  /** Initializes EmailHelper. */
   public EmailHelper(String fromAddress, String senderName, String sendgridApiKey) {
     this.fromAddress = fromAddress;
     this.senderName = senderName;
@@ -99,9 +95,7 @@ public class EmailHelper implements EmailHelperContract {
         + lineSeparator;
   }
 
-  /**
-   * Executes send email.
-   */
+  /** Executes send email. */
   public boolean sendEmail(SendEmailRequest request) {
     SendGrid sendGridClient = new SendGrid(sendGridApiKey);
 
@@ -207,9 +201,7 @@ public class EmailHelper implements EmailHelperContract {
     }
   }
 
-  /**
-   * Checks whether it can cel email.
-   */
+  /** Checks whether it can cel email. */
   public void cancelEmail(String batchId) {
     SendGrid sendGridClient = new SendGrid(this.sendGridApiKey);
 

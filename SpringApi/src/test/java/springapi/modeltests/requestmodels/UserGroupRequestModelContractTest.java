@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.RequestModels;
+package springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class UserGroupRequestModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.requestmodels.UserGroupRequestModel.class)) {
+    if (hasNoArgConstructor(springapi.models.requestmodels.UserGroupRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.requestmodels.UserGroupRequestModel.class);
+              .constructType(springapi.models.requestmodels.UserGroupRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,8 +62,7 @@ class UserGroupRequestModelContractTest {
   void UserGroupRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.requestmodels.UserGroupRequestModel.class
-            .getDeclaredConstructors()) {
+        springapi.models.requestmodels.UserGroupRequestModel.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -82,9 +79,9 @@ class UserGroupRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.requestmodels.UserGroupRequestModel createInstance() {
-    return (com.example.springapi.models.requestmodels.UserGroupRequestModel)
-        instantiate(com.example.springapi.models.requestmodels.UserGroupRequestModel.class);
+  private springapi.models.requestmodels.UserGroupRequestModel createInstance() {
+    return (springapi.models.requestmodels.UserGroupRequestModel)
+        instantiate(springapi.models.requestmodels.UserGroupRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

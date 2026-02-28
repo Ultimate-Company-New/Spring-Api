@@ -1,9 +1,7 @@
-package com.example.springapi.ServiceTests.QA;
+package springapi.ServiceTests.QA;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.QaController;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,6 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.QaController;
 
 /**
  * Unit tests for QaService.getAvailableServices() method.

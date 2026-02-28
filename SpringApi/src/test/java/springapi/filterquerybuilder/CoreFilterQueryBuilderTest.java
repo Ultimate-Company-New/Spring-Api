@@ -1,21 +1,21 @@
-package com.example.springapi.filterquerybuilder;
+package springapi.filterquerybuilder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.example.springapi.models.databasemodels.Lead;
-import com.example.springapi.models.databasemodels.PickupLocation;
-import com.example.springapi.models.databasemodels.ProductReview;
-import com.example.springapi.models.databasemodels.Promo;
-import com.example.springapi.models.databasemodels.Shipment;
-import com.example.springapi.models.databasemodels.User;
-import com.example.springapi.models.databasemodels.UserGroup;
-import com.example.springapi.models.databasemodels.UserLog;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
+import springapi.models.databasemodels.Lead;
+import springapi.models.databasemodels.PickupLocation;
+import springapi.models.databasemodels.ProductReview;
+import springapi.models.databasemodels.Promo;
+import springapi.models.databasemodels.Shipment;
+import springapi.models.databasemodels.User;
+import springapi.models.databasemodels.UserGroup;
+import springapi.models.databasemodels.UserLog;
+import springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 
 @DisplayName("Core Filter Query Builder Tests")
 class CoreFilterQueryBuilderTest extends FilterQueryBuilderTestBase {

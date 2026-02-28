@@ -1,13 +1,10 @@
-package com.example.springapi.ServiceTests.Authentication;
+package springapi.ServiceTests.Authentication;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.helpers.PasswordHelper;
-import com.example.springapi.models.databasemodels.User;
 import io.jsonwebtoken.Jwts;
 import java.lang.reflect.Field;
 import java.util.Date;
@@ -15,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import springapi.authentication.JwtTokenProvider;
+import springapi.helpers.PasswordHelper;
+import springapi.models.databasemodels.User;
 
 @DisplayName("JwtTokenProvider Tests")
 class JwtTokenProviderTest {

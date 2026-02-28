@@ -1,18 +1,10 @@
-package com.example.springapi.ServiceTests.UserLog;
+package springapi.ServiceTests.UserLog;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 
-import com.example.springapi.controllers.UserLogController;
-import com.example.springapi.filterquerybuilder.UserLogFilterQueryBuilder;
-import com.example.springapi.models.databasemodels.UserLog;
-import com.example.springapi.models.requestmodels.UserLogsRequestModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.UserLogsResponseModel;
-import com.example.springapi.repositories.UserLogRepository;
-import com.example.springapi.services.UserLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +13,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
+import springapi.controllers.UserLogController;
+import springapi.filterquerybuilder.UserLogFilterQueryBuilder;
+import springapi.models.databasemodels.UserLog;
+import springapi.models.requestmodels.UserLogsRequestModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.UserLogsResponseModel;
+import springapi.repositories.UserLogRepository;
+import springapi.services.UserLogService;
 
 /**
  * Base test class for UserLogService tests. Contains common mocks, test data, and setup methods.
@@ -137,19 +137,19 @@ abstract class UserLogServiceTestBase {
   protected void stubServiceThrowsUnauthorizedException() {
     lenient()
         .when(mockUserLogService.fetchUserLogsInBatches(any()))
-        .thenThrow(new com.example.springapi.exceptions.UnauthorizedException("Unauthorized"));
+        .thenThrow(new springapi.exceptions.UnauthorizedException("Unauthorized"));
   }
 
   protected void stubUserLogServiceLogDataThrowsUnauthorized() {
     lenient()
         .when(mockUserLogService.logData(anyLong(), anyString(), anyString(), anyString()))
         .thenThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED));
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED));
     lenient()
         .when(mockUserLogService.logData(anyLong(), anyString(), anyString()))
         .thenThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED));
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED));
   }
 }

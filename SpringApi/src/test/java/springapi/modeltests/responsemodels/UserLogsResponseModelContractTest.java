@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.ResponseModels;
+package springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class UserLogsResponseModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.responsemodels.UserLogsResponseModel.class)) {
+    if (hasNoArgConstructor(springapi.models.responsemodels.UserLogsResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.responsemodels.UserLogsResponseModel.class);
+              .constructType(springapi.models.responsemodels.UserLogsResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,8 +62,7 @@ class UserLogsResponseModelContractTest {
   void UserLogsResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.responsemodels.UserLogsResponseModel.class
-            .getDeclaredConstructors()) {
+        springapi.models.responsemodels.UserLogsResponseModel.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -82,9 +79,9 @@ class UserLogsResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.responsemodels.UserLogsResponseModel createInstance() {
-    return (com.example.springapi.models.responsemodels.UserLogsResponseModel)
-        instantiate(com.example.springapi.models.responsemodels.UserLogsResponseModel.class);
+  private springapi.models.responsemodels.UserLogsResponseModel createInstance() {
+    return (springapi.models.responsemodels.UserLogsResponseModel)
+        instantiate(springapi.models.responsemodels.UserLogsResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

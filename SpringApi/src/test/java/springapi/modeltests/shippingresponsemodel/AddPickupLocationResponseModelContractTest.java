@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.ShippingResponseModel;
+package springapi.ModelTests.ShippingResponseModel;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,13 +49,12 @@ class AddPickupLocationResponseModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.springapi.models.shippingresponsemodel.AddPickupLocationResponseModel.class)) {
+        springapi.models.shippingresponsemodel.AddPickupLocationResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.springapi.models.shippingresponsemodel.AddPickupLocationResponseModel
-                      .class);
+                  springapi.models.shippingresponsemodel.AddPickupLocationResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -65,7 +64,7 @@ class AddPickupLocationResponseModelContractTest {
   void AddPickupLocationResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.shippingresponsemodel.AddPickupLocationResponseModel.class
+        springapi.models.shippingresponsemodel.AddPickupLocationResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -83,12 +82,9 @@ class AddPickupLocationResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.shippingresponsemodel.AddPickupLocationResponseModel
-      createInstance() {
-    return (com.example.springapi.models.shippingresponsemodel.AddPickupLocationResponseModel)
-        instantiate(
-            com.example.springapi.models.shippingresponsemodel.AddPickupLocationResponseModel
-                .class);
+  private springapi.models.shippingresponsemodel.AddPickupLocationResponseModel createInstance() {
+    return (springapi.models.shippingresponsemodel.AddPickupLocationResponseModel)
+        instantiate(springapi.models.shippingresponsemodel.AddPickupLocationResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

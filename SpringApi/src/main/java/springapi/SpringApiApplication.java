@@ -1,4 +1,4 @@
-package com.example.springapi;
+package springapi;
 
 import java.util.concurrent.Executor;
 import org.springframework.boot.SpringApplication;
@@ -9,49 +9,45 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-/**
- * Stores base packages.
- */
+/** Stores base packages. */
 @SpringBootApplication
 @ComponentScan(
     basePackages = {
       // beans from authentication
-      "com.example.springapi.authentication",
+      "springapi.authentication",
 
       // scan the models and subpackages
-      "com.example.springapi.models",
+      "springapi.models",
 
       // scan the repositories
-      "com.example.springapi.repositories",
+      "springapi.repositories",
 
       // scan the filter query builders
-      "com.example.springapi.filterquerybuilder",
+      "springapi.filterquerybuilder",
 
       // scan the controllers
-      "com.example.springapi.controllers",
+      "springapi.controllers",
 
       // scan the services and subpackages
-      "com.example.springapi.services",
+      "springapi.services",
 
       // scan the helpers
-      "com.example.springapi.helpers",
+      "springapi.helpers",
 
       // scan the datasource beans
-      "com.example.springapi.datasource",
+      "springapi.datasource",
 
       // scan the exception handlers
-      "com.example.springapi.exceptions",
+      "springapi.exceptions",
     })
-@EntityScan(basePackages = {"com.example.springapi.models.databasemodels"})
+@EntityScan(basePackages = {"springapi.models.databasemodels"})
 @EnableAsync
 public class SpringApiApplication {
   public static void main(String[] args) {
     SpringApplication.run(SpringApiApplication.class, args);
   }
 
-  /**
-   * Executes async executor.
-   */
+  /** Executes async executor. */
   @Bean(name = "asyncExecutor")
   public Executor asyncExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

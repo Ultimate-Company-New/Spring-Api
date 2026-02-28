@@ -1,15 +1,15 @@
-package com.example.springapi.ServiceTests.Lead;
+package springapi.ServiceTests.Lead;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.LeadController;
-import com.example.springapi.exceptions.NotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.LeadController;
+import springapi.exceptions.NotFoundException;
 
 /**
  * Test class for LeadService.toggleLead() method. Tests lead deletion toggle functionality. * Test

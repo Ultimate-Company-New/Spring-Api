@@ -1,6 +1,5 @@
-package com.example.springapi.authentication;
+package springapi.authentication;
 
-import com.example.springapi.logging.ContextualLogger;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,10 +12,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import springapi.logging.ContextualLogger;
 
-/**
- * Represents the jwt authentication filter component.
- */
+/** Represents the jwt authentication filter component. */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -53,7 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         username = jwtTokenProvider.getUserNameFromToken(jwt);
       } catch (Exception e) {
         authLogger.error(
-            new com.example.springapi.exceptions.ApplicationException(
+            new springapi.exceptions.ApplicationException(
                 "Unable to extract username from JWT token: " + e.getMessage()));
       }
     }

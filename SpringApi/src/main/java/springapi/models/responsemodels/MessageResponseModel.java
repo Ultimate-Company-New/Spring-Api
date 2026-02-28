@@ -1,12 +1,12 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
-import com.example.springapi.models.databasemodels.Message;
-import com.example.springapi.models.databasemodels.User;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
+import springapi.models.databasemodels.Message;
+import springapi.models.databasemodels.User;
 
 /**
  * Response model for Message operations.
@@ -51,9 +51,7 @@ public class MessageResponseModel {
     private String email;
     private String loginName;
 
-    /**
-     * Initializes SimpleUserDto.
-     */
+    /** Initializes SimpleUserDto. */
     public SimpleUserDto(User user) {
       if (user != null) {
         this.userId = user.getUserId();

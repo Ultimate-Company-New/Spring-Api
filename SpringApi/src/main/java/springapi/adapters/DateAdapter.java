@@ -1,4 +1,4 @@
-package com.example.springapi.adapters;
+package springapi.adapters;
 
 import com.nimbusds.jose.shaded.gson.JsonDeserializationContext;
 import com.nimbusds.jose.shaded.gson.JsonDeserializer;
@@ -11,9 +11,7 @@ import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-/**
- * Represents the date adapter component.
- */
+/** Represents the date adapter component. */
 public class DateAdapter implements JsonSerializer<Date>, JsonDeserializer<Date> {
   private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 

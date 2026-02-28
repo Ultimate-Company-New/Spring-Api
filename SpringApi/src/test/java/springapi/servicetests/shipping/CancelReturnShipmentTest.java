@@ -1,16 +1,16 @@
-package com.example.springapi.ServiceTests.Shipping;
+package springapi.ServiceTests.Shipping;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.ShippingController;
-import com.example.springapi.models.databasemodels.ReturnShipment;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.ShippingController;
+import springapi.models.databasemodels.ReturnShipment;
 
 /** Tests for ShippingService.cancelReturnShipment(). */
 @DisplayName("CancelReturnShipment Tests")
@@ -84,9 +84,9 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
     stubReturnShipmentRepositoryFindByReturnShipmentIdAndClientId(testReturnShipment);
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
 
     // Assert
@@ -106,9 +106,9 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
     stubShipRocketHelperCancelOrdersThrows(new RuntimeException(ErrorMessages.OPERATION_FAILED));
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
 
     // Assert
@@ -131,9 +131,9 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
     stubReturnShipmentRepositoryFindByReturnShipmentIdAndClientId(testReturnShipment);
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
 
     // Assert
@@ -155,9 +155,9 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
     stubClientServiceGetClientById(testClientResponse);
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
 
     // Assert
@@ -179,9 +179,9 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
     stubClientServiceGetClientById(testClientResponse);
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
 
     // Assert
@@ -201,9 +201,9 @@ class CancelReturnShipmentTest extends ShippingServiceTestBase {
     stubReturnShipmentRepositoryFindByReturnShipmentIdAndClientId(null);
 
     // Act
-    com.example.springapi.exceptions.NotFoundException ex =
+    springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.springapi.exceptions.NotFoundException.class,
+            springapi.exceptions.NotFoundException.class,
             () -> shippingService.cancelReturnShipment(TEST_RETURN_SHIPMENT_ID));
 
     // Assert

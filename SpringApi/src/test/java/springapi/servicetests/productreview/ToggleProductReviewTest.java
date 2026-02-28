@@ -1,17 +1,17 @@
-package com.example.springapi.ServiceTests.ProductReview;
+package springapi.ServiceTests.ProductReview;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.ProductReviewController;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.databasemodels.ProductReview;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.ProductReviewController;
+import springapi.exceptions.NotFoundException;
+import springapi.models.databasemodels.ProductReview;
 
 /** Test class for ProductReviewService.toggleProductReview method. */
 @DisplayName("ProductReviewService - ToggleProductReview Tests")

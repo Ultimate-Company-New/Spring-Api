@@ -1,8 +1,6 @@
-package com.example.springapi;
+package springapi;
 
-/**
- * Represents the error messages component.
- */
+/** Represents the error messages component. */
 public class ErrorMessages {
   // Common error types for controllers
   public static final String ERROR_BAD_REQUEST = "Bad Request";
@@ -36,9 +34,7 @@ public class ErrorMessages {
   public static final String INVALID_LEAD_ID = "Invalid lead ID provided.";
   public static final String LEAD_NOT_FOUND = "Lead not found for the given ID.";
 
-  /**
-   * Represents the event error messages component.
-   */
+  /** Represents the event error messages component. */
   public static class EventErrorMessages {
     private EventErrorMessages() {}
 
@@ -55,9 +51,7 @@ public class ErrorMessages {
     public static final String ER005 = "Event location is required.";
   }
 
-  /**
-   * Represents the support error messages component.
-   */
+  /** Represents the support error messages component. */
   public static class SupportErrorMessages {
     private SupportErrorMessages() {}
 
@@ -68,9 +62,7 @@ public class ErrorMessages {
             + "sometime.";
   }
 
-  /**
-   * Represents the carrier error messages component.
-   */
+  /** Represents the carrier error messages component. */
   public static class CarrierErrorMessages {
     private CarrierErrorMessages() {}
 
@@ -88,9 +80,7 @@ public class ErrorMessages {
     public static final String ER007 = "Invalid Google Credentials Id";
   }
 
-  /**
-   * Represents the client error messages component.
-   */
+  /** Represents the client error messages component. */
   public static class ClientErrorMessages {
     private ClientErrorMessages() {}
 
@@ -115,9 +105,7 @@ public class ErrorMessages {
         "Cannot invoke \"java.util.List.iterator()\" because \"clients\" is null";
   }
 
-  /**
-   * Represents the login error messages component.
-   */
+  /** Represents the login error messages component. */
   public static class LoginErrorMessages {
     private LoginErrorMessages() {}
 
@@ -158,13 +146,11 @@ public class ErrorMessages {
     public static final String ER016 = "Please use Oauth to sign in";
     public static final String RESET_PASSWORD_EMAIL_FAILED = "Failed to send reset password email";
     public static final String NULL_REQUEST =
-        "Cannot invoke \"com.example.springapi.models.requestmodels.LoginRequ"
+        "Cannot invoke \"springapi.models.requestmodels.LoginRequ"
             + "estModel.getLoginName()\" because \"loginRequestModel\" is null";
   }
 
-  /**
-   * Represents the user error messages component.
-   */
+  /** Represents the user error messages component. */
   public static class UserErrorMessages {
     private UserErrorMessages() {}
 
@@ -201,9 +187,7 @@ public class ErrorMessages {
     public static final String ER011 = "Google credentials not found for client.";
   }
 
-  /**
-   * Represents the user group error messages component.
-   */
+  /** Represents the user group error messages component. */
   public static class UserGroupErrorMessages {
     private UserGroupErrorMessages() {}
 
@@ -219,9 +203,7 @@ public class ErrorMessages {
         "At least one user should be selected to include in the user group.";
   }
 
-  /**
-   * Represents the address error messages component.
-   */
+  /** Represents the address error messages component. */
   public static class AddressErrorMessages {
     private AddressErrorMessages() {}
 
@@ -240,9 +222,7 @@ public class ErrorMessages {
     public static final String ER007 = "Invalid postal code. Must be a 5 or 6 digit number.";
   }
 
-  /**
-   * Represents the todo error messages component.
-   */
+  /** Represents the todo error messages component. */
   public static class TodoErrorMessages {
     private TodoErrorMessages() {}
 
@@ -253,9 +233,7 @@ public class ErrorMessages {
     public static final String TASK_TOO_LONG = "Task cannot exceed 500 characters.";
   }
 
-  /**
-   * Represents the messages error messages component.
-   */
+  /** Represents the messages error messages component. */
   public static class MessagesErrorMessages {
     private MessagesErrorMessages() {}
 
@@ -267,7 +245,7 @@ public class ErrorMessages {
     public static final String USER_DB_ERROR = "User DB Error";
     public static final String LOOKUP_FAILED = "Lookup failed";
     public static final String NULL_PAGINATION_REQUEST =
-        "Cannot invoke \"com.example.springapi.models.requestmodels.Paginatio"
+        "Cannot invoke \"springapi.models.requestmodels.Paginatio"
             + "nBaseRequestModel.getId()\" because \"paginationBaseRequestModel\" "
             + "is null";
 
@@ -307,9 +285,7 @@ public class ErrorMessages {
     public static final String UPDATE_FAILED = "Update failed";
   }
 
-  /**
-   * Represents the web templates error messages component.
-   */
+  /** Represents the web templates error messages component. */
   public static class WebTemplatesErrorMessages {
     private WebTemplatesErrorMessages() {}
 
@@ -353,9 +329,7 @@ public class ErrorMessages {
         "No items are present in the liked items for the given userid and productid.";
   }
 
-  /**
-   * Represents the package error messages component.
-   */
+  /** Represents the package error messages component. */
   public static class PackageErrorMessages {
     private PackageErrorMessages() {}
 
@@ -413,9 +387,7 @@ public class ErrorMessages {
             + "update the quantity of the same package.";
   }
 
-  /**
-   * Represents the pickup location error messages component.
-   */
+  /** Represents the pickup location error messages component. */
   public static class PickupLocationErrorMessages {
     private PickupLocationErrorMessages() {}
 
@@ -455,9 +427,7 @@ public class ErrorMessages {
         "Location name must be 36 characters or less (Shiprocket limit).";
   }
 
-  /**
-   * Represents the promo error messages component.
-   */
+  /** Represents the promo error messages component. */
   public static class PromoErrorMessages {
     private PromoErrorMessages() {}
 
@@ -501,9 +471,7 @@ public class ErrorMessages {
         "Promo discount value is required and should be greater than 0.";
   }
 
-  /**
-   * Represents the product category error messages component.
-   */
+  /** Represents the product category error messages component. */
   public static class ProductCategoryErrorMessages {
     private ProductCategoryErrorMessages() {}
 
@@ -514,9 +482,7 @@ public class ErrorMessages {
     public static final String INVALID_IS_END = "Category isEnd flag is required.";
   }
 
-  /**
-   * Represents the product error messages component.
-   */
+  /** Represents the product error messages component. */
   public static class ProductErrorMessages {
     private ProductErrorMessages() {}
 
@@ -596,9 +562,7 @@ public class ErrorMessages {
         "At least one pickup location with quantity must be provided.";
   }
 
-  /**
-   * Represents the leads error messages component.
-   */
+  /** Represents the leads error messages component. */
   public static class LeadsErrorMessages {
     private LeadsErrorMessages() {}
 
@@ -646,9 +610,7 @@ public class ErrorMessages {
         "Lead is soft-deleted and cannot be modified.";
   }
 
-  /**
-   * Represents the purchase order error messages component.
-   */
+  /** Represents the purchase order error messages component. */
   public static class PurchaseOrderErrorMessages {
     private PurchaseOrderErrorMessages() {}
 
@@ -724,9 +686,7 @@ public class ErrorMessages {
         "Duplicate productId in products list: %s";
   }
 
-  /**
-   * Represents the product review error messages component.
-   */
+  /** Represents the product review error messages component. */
   public static class ProductReviewErrorMessages {
     private ProductReviewErrorMessages() {}
 
@@ -749,9 +709,7 @@ public class ErrorMessages {
     public static final String INVALID_AUDIT_USER = "Invalid user for audit fields.";
   }
 
-  /**
-   * Represents the test executor error messages component.
-   */
+  /** Represents the test executor error messages component. */
   public static class TestExecutorErrorMessages {
     private TestExecutorErrorMessages() {}
 
@@ -778,9 +736,7 @@ public class ErrorMessages {
     public static final String TESTS_FAILED_EXIT_CODE_FORMAT = "Tests failed. Exit code: %s";
   }
 
-  /**
-   * Represents the qa error messages component.
-   */
+  /** Represents the qa error messages component. */
   public static class QaErrorMessages {
     private QaErrorMessages() {}
 
@@ -819,9 +775,7 @@ public class ErrorMessages {
     public static final String TEST_EXECUTION_NOT_FOUND_FORMAT = "Test execution not found: %s";
   }
 
-  /**
-   * Represents the product pickup location mapping error messages component.
-   */
+  /** Represents the product pickup location mapping error messages component. */
   public static class ProductPickupLocationMappingErrorMessages {
     private ProductPickupLocationMappingErrorMessages() {}
 
@@ -834,9 +788,7 @@ public class ErrorMessages {
         "Available stock for pickup location %d must be positive.";
   }
 
-  /**
-   * Represents the email error messages component.
-   */
+  /** Represents the email error messages component. */
   public static class EmailErrorMessages {
     private EmailErrorMessages() {}
 
@@ -849,9 +801,7 @@ public class ErrorMessages {
     public static final String ER003 = "Failed to cancel email";
   }
 
-  /**
-   * Represents the order summary error messages component.
-   */
+  /** Represents the order summary error messages component. */
   public static class OrderSummaryErrorMessages {
     private OrderSummaryErrorMessages() {}
 
@@ -885,9 +835,7 @@ public class ErrorMessages {
         "Paid amount cannot exceed grand total.";
   }
 
-  /**
-   * Represents the shipment error messages component.
-   */
+  /** Represents the shipment error messages component. */
   public static class ShipmentErrorMessages {
     private ShipmentErrorMessages() {}
 
@@ -936,9 +884,7 @@ public class ErrorMessages {
     public static final String INVALID_ID_WITH_MESSAGE_FORMAT = "Invalid shipment Id. %s";
   }
 
-  /**
-   * Represents the shipment product error messages component.
-   */
+  /** Represents the shipment product error messages component. */
   public static class ShipmentProductErrorMessages {
     private ShipmentProductErrorMessages() {}
 
@@ -954,9 +900,7 @@ public class ErrorMessages {
         "Allocated price must be greater than or equal to 0.";
   }
 
-  /**
-   * Represents the shipment package error messages component.
-   */
+  /** Represents the shipment package error messages component. */
   public static class ShipmentPackageErrorMessages {
     private ShipmentPackageErrorMessages() {}
 
@@ -974,9 +918,7 @@ public class ErrorMessages {
         "Each shipment must have at least one package.";
   }
 
-  /**
-   * Represents the shipment package product error messages component.
-   */
+  /** Represents the shipment package product error messages component. */
   public static class ShipmentPackageProductErrorMessages {
     private ShipmentPackageProductErrorMessages() {}
 
@@ -991,9 +933,7 @@ public class ErrorMessages {
         "Each package must have at least one product.";
   }
 
-  /**
-   * Represents the return shipment error messages component.
-   */
+  /** Represents the return shipment error messages component. */
   public static class ReturnShipmentErrorMessages {
     private ReturnShipmentErrorMessages() {}
 
@@ -1027,9 +967,7 @@ public class ErrorMessages {
         "Failed to cancel return shipment in ShipRocket: %s";
   }
 
-  /**
-   * Represents the shipping error messages component.
-   */
+  /** Represents the shipping error messages component. */
   public static class ShippingErrorMessages {
     private ShippingErrorMessages() {}
 
@@ -1095,9 +1033,7 @@ public class ErrorMessages {
         "Failed to serialize ShipRocket response to JSON for shipment ID %s: %s";
   }
 
-  /**
-   * Represents the order optimization error messages component.
-   */
+  /** Represents the order optimization error messages component. */
   public static class OrderOptimizationErrorMessages {
     private OrderOptimizationErrorMessages() {}
 
@@ -1172,9 +1108,7 @@ public class ErrorMessages {
     public static final String NO_VALID_ALLOCATIONS_SPECIFIED = "No valid allocations specified";
   }
 
-  /**
-   * Represents the shipment processing error messages component.
-   */
+  /** Represents the shipment processing error messages component. */
   public static class ShipmentProcessingErrorMessages {
     private ShipmentProcessingErrorMessages() {}
 
@@ -1206,9 +1140,7 @@ public class ErrorMessages {
     public static final String OPERATION_FAILED_WITH_MESSAGE_FORMAT = "%s %s";
   }
 
-  /**
-   * Represents the payment error messages component.
-   */
+  /** Represents the payment error messages component. */
   public static class PaymentErrorMessages {
     private PaymentErrorMessages() {}
 
@@ -1248,9 +1180,7 @@ public class ErrorMessages {
         "Total paid %s exceeds grand total %s";
   }
 
-  /**
-   * Represents the configuration error messages component.
-   */
+  /** Represents the configuration error messages component. */
   public static class ConfigurationErrorMessages {
     private ConfigurationErrorMessages() {}
 
@@ -1276,9 +1206,7 @@ public class ErrorMessages {
     public static final String NO_CLIENT_CONFIGURATION_FOUND = "No client configuration found.";
   }
 
-  /**
-   * Represents the common error messages component.
-   */
+  /** Represents the common error messages component. */
   public static class CommonErrorMessages {
     private CommonErrorMessages() {}
 
@@ -1325,9 +1253,7 @@ public class ErrorMessages {
     public static final String CRITICAL_FAILURE = "Critical failure.";
   }
 
-  /**
-   * Represents the order summary not found message component.
-   */
+  /** Represents the order summary not found message component. */
   public static class OrderSummaryNotFoundMessage {
     private OrderSummaryNotFoundMessage() {}
 

@@ -1,4 +1,4 @@
-package com.example.springapi.ServiceTests.PickupLocation;
+package springapi.ServiceTests.PickupLocation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -7,17 +7,17 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.PickupLocationController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.requestmodels.PickupLocationRequestModel;
-import com.example.springapi.models.responsemodels.BulkInsertResponseModel;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.PickupLocationController;
+import springapi.exceptions.BadRequestException;
+import springapi.models.requestmodels.PickupLocationRequestModel;
+import springapi.models.responsemodels.BulkInsertResponseModel;
 
 /**
  * Unit tests for PickupLocationService.bulkCreatePickupLocations() method. Covers bulk insertion

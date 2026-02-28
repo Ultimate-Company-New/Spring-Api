@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.RequestModels;
+package springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class RazorpayOrderRequestModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.requestmodels.RazorpayOrderRequestModel.class)) {
+    if (hasNoArgConstructor(springapi.models.requestmodels.RazorpayOrderRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.requestmodels.RazorpayOrderRequestModel.class);
+              .constructType(springapi.models.requestmodels.RazorpayOrderRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,8 +62,7 @@ class RazorpayOrderRequestModelContractTest {
   void RazorpayOrderRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.requestmodels.RazorpayOrderRequestModel.class
-            .getDeclaredConstructors()) {
+        springapi.models.requestmodels.RazorpayOrderRequestModel.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -82,9 +79,9 @@ class RazorpayOrderRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.requestmodels.RazorpayOrderRequestModel createInstance() {
-    return (com.example.springapi.models.requestmodels.RazorpayOrderRequestModel)
-        instantiate(com.example.springapi.models.requestmodels.RazorpayOrderRequestModel.class);
+  private springapi.models.requestmodels.RazorpayOrderRequestModel createInstance() {
+    return (springapi.models.requestmodels.RazorpayOrderRequestModel)
+        instantiate(springapi.models.requestmodels.RazorpayOrderRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

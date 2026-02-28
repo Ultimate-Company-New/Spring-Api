@@ -1,20 +1,5 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.SuccessMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.databasemodels.Address;
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.databasemodels.User;
-import com.example.springapi.models.requestmodels.AddressRequestModel;
-import com.example.springapi.models.responsemodels.AddressResponseModel;
-import com.example.springapi.repositories.AddressRepository;
-import com.example.springapi.repositories.ClientRepository;
-import com.example.springapi.repositories.UserRepository;
-import com.example.springapi.services.interfaces.AddressSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +7,21 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import springapi.ErrorMessages;
+import springapi.SuccessMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.models.ApiRoutes;
+import springapi.models.databasemodels.Address;
+import springapi.models.databasemodels.Client;
+import springapi.models.databasemodels.User;
+import springapi.models.requestmodels.AddressRequestModel;
+import springapi.models.responsemodels.AddressResponseModel;
+import springapi.repositories.AddressRepository;
+import springapi.repositories.ClientRepository;
+import springapi.repositories.UserRepository;
+import springapi.services.interfaces.AddressSubTranslator;
 
 /**
  * Service class for managing Address-related business operations.
@@ -42,9 +42,7 @@ public class AddressService extends BaseService implements AddressSubTranslator 
   private final UserRepository userRepository;
   private final UserLogService userLogService;
 
-  /**
-   * Initializes AddressService.
-   */
+  /** Initializes AddressService. */
   @Autowired
   public AddressService(
       AddressRepository addressRepository,

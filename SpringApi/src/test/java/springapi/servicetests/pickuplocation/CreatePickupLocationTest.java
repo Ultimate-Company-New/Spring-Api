@@ -1,17 +1,9 @@
-package com.example.springapi.ServiceTests.PickupLocation;
+package springapi.ServiceTests.PickupLocation;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.PickupLocationController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.helpers.ShipRocketHelper;
-import com.example.springapi.models.requestmodels.PackagePickupLocationMappingRequestModel;
-import com.example.springapi.models.requestmodels.ProductPickupLocationMappingRequestModel;
-import com.example.springapi.models.responsemodels.ClientResponseModel;
-import com.example.springapi.models.shippingresponsemodel.AddPickupLocationResponseModel;
 import java.lang.reflect.Method;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +11,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
+import springapi.ErrorMessages;
+import springapi.controllers.PickupLocationController;
+import springapi.exceptions.BadRequestException;
+import springapi.helpers.ShipRocketHelper;
+import springapi.models.requestmodels.PackagePickupLocationMappingRequestModel;
+import springapi.models.requestmodels.ProductPickupLocationMappingRequestModel;
+import springapi.models.responsemodels.ClientResponseModel;
+import springapi.models.shippingresponsemodel.AddPickupLocationResponseModel;
 
 /**
  * Unit tests for PickupLocationService.createPickupLocation() method. Extensive validation of all

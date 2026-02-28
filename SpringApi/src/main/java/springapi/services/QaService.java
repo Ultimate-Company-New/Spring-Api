@@ -1,23 +1,5 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.logging.ContextualLogger;
-import com.example.springapi.models.databasemodels.LatestTestResult;
-import com.example.springapi.models.databasemodels.TestRun;
-import com.example.springapi.models.databasemodels.TestRunResult;
-import com.example.springapi.models.requestmodels.TestExecutionRequestModel;
-import com.example.springapi.models.requestmodels.TestRunRequestModel;
-import com.example.springapi.models.responsemodels.LatestTestResultResponseModel;
-import com.example.springapi.models.responsemodels.QaDashboardResponseModel;
-import com.example.springapi.models.responsemodels.QaResponseModel;
-import com.example.springapi.models.responsemodels.TestExecutionStatusModel;
-import com.example.springapi.models.responsemodels.TestRunResponseModel;
-import com.example.springapi.repositories.LatestTestResultRepository;
-import com.example.springapi.repositories.TestRunRepository;
-import com.example.springapi.services.interfaces.QaSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -51,6 +33,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import springapi.ErrorMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.logging.ContextualLogger;
+import springapi.models.databasemodels.LatestTestResult;
+import springapi.models.databasemodels.TestRun;
+import springapi.models.databasemodels.TestRunResult;
+import springapi.models.requestmodels.TestExecutionRequestModel;
+import springapi.models.requestmodels.TestRunRequestModel;
+import springapi.models.responsemodels.LatestTestResultResponseModel;
+import springapi.models.responsemodels.QaDashboardResponseModel;
+import springapi.models.responsemodels.QaResponseModel;
+import springapi.models.responsemodels.TestExecutionStatusModel;
+import springapi.models.responsemodels.TestRunResponseModel;
+import springapi.repositories.LatestTestResultRepository;
+import springapi.repositories.TestRunRepository;
+import springapi.services.interfaces.QaSubTranslator;
 
 /**
  * Service class for QA endpoint-to-test mapping operations.
@@ -71,7 +71,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class QaService extends BaseService implements QaSubTranslator {
 
   // Package paths for scanning
-  private static final String SERVICES_PACKAGE = "com.example.springapi.services";
+  private static final String SERVICES_PACKAGE = "springapi.services";
   private static final String SERVICE_SUFFIX = "Service";
   private static final String JAVA_EXTENSION = ".java";
   private static final String SPRING_API_DIR = "SpringApi";
@@ -83,9 +83,8 @@ public class QaService extends BaseService implements QaSubTranslator {
 
   // Test source file paths (relative to project root)
   // Keep both paths for backward compatibility with older layouts.
-  private static final String TEST_SOURCE_PATH = "src/test/java/com/example/springapi/servicetests";
-  private static final String LEGACY_TEST_SOURCE_PATH =
-      "src/test/java/com/example/springapi/services/tests";
+  private static final String TEST_SOURCE_PATH = "src/test/java/springapi/servicetests";
+  private static final String LEGACY_TEST_SOURCE_PATH = "src/test/java/springapi/services/tests";
 
   // Automated API tests path (relative - Spring-PlayWright-Automation project)
   private static final String AUTOMATED_API_TESTS_PATH =
@@ -195,9 +194,7 @@ public class QaService extends BaseService implements QaSubTranslator {
   private final TestRunRepository testRunRepository;
   private final LatestTestResultRepository latestTestResultRepository;
 
-  /**
-   * Executes qa service.
-   */
+  /** Executes qa service. */
   @Autowired
   public QaService(
       TestRunRepository testRunRepository,
@@ -1379,7 +1376,7 @@ public class QaService extends BaseService implements QaSubTranslator {
           String.format(
               ErrorMessages.TestExecutorErrorMessages.IO_ERROR_DURING_EXECUTION_FORMAT,
               e.getMessage()));
-      throw new com.example.springapi.exceptions.ApplicationException(
+      throw new springapi.exceptions.ApplicationException(
           ErrorMessages.TestExecutorErrorMessages.IO_FAILED, e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -1389,7 +1386,7 @@ public class QaService extends BaseService implements QaSubTranslator {
           startTime,
           String.format(
               ErrorMessages.TestExecutorErrorMessages.INTERRUPTED_FORMAT, e.getMessage()));
-      throw new com.example.springapi.exceptions.ApplicationException(
+      throw new springapi.exceptions.ApplicationException(
           ErrorMessages.TestExecutorErrorMessages.INTERRUPTED, e);
     } catch (Exception e) {
       markExecutionFailed(
@@ -1398,7 +1395,7 @@ public class QaService extends BaseService implements QaSubTranslator {
           startTime,
           String.format(
               ErrorMessages.TestExecutorErrorMessages.EXECUTION_FAILED_FORMAT, e.getMessage()));
-      throw new com.example.springapi.exceptions.ApplicationException(
+      throw new springapi.exceptions.ApplicationException(
           ErrorMessages.TestExecutorErrorMessages.EXECUTION_FAILED, e);
     }
   }
@@ -1496,7 +1493,7 @@ public class QaService extends BaseService implements QaSubTranslator {
           .filter(p -> testClassName == null || p.getFileName().toString().contains(testClassName))
           .forEach(xmlFile -> parseXmlReport(xmlFile, status));
     } catch (IOException e) {
-      throw new com.example.springapi.exceptions.ApplicationException(
+      throw new springapi.exceptions.ApplicationException(
           ErrorMessages.TestExecutorErrorMessages.FAILED_TO_LIST_SUREFIRE_REPORTS, e);
     }
   }
@@ -1556,7 +1553,7 @@ public class QaService extends BaseService implements QaSubTranslator {
       status.updateTotalsFromResults();
 
     } catch (IOException e) {
-      throw new com.example.springapi.exceptions.ApplicationException(
+      throw new springapi.exceptions.ApplicationException(
           String.format(
               ErrorMessages.TestExecutorErrorMessages.FAILED_TO_PARSE_SUREFIRE_REPORT_FORMAT,
               xmlFile.getFileName()),

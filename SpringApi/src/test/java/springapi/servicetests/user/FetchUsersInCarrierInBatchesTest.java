@@ -1,14 +1,8 @@
-package com.example.springapi.ServiceTests.User;
+package springapi.ServiceTests.User;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.UserController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.UserRequestModel;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +11,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import springapi.ErrorMessages;
+import springapi.controllers.UserController;
+import springapi.exceptions.BadRequestException;
+import springapi.models.Authorizations;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.UserRequestModel;
 
 /** Unit tests for UserService.fetchUsersInCarrierInBatches method. */
 @DisplayName("UserService - FetchUsersInCarrierInBatches Tests")

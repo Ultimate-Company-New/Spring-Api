@@ -1,14 +1,10 @@
-package com.example.springapi.ServiceTests.Product;
+package springapi.ServiceTests.Product;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.ProductController;
-import com.example.springapi.models.databasemodels.ProductPickupLocationMapping;
-import com.example.springapi.models.responsemodels.ProductStockByLocationResponseModel;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +14,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.ProductController;
+import springapi.models.databasemodels.ProductPickupLocationMapping;
+import springapi.models.responsemodels.ProductStockByLocationResponseModel;
 
 /** Test class for ProductService.getProductStockAtLocationsByProductId. */
 @DisplayName("ProductService - GetProductStockAtLocationsByProductId Tests")

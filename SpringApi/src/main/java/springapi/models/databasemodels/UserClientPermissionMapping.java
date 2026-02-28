@@ -1,4 +1,4 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,9 +15,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-/**
- * Represents the user client permission mapping component.
- */
+/** Represents the user client permission mapping component. */
 @Getter
 @Setter
 @Entity
@@ -89,9 +87,7 @@ public class UserClientPermissionMapping {
   }
 
   // Constructor for creation
-  /**
-   * Executes user client permission mapping.
-   */
+  /** Executes user client permission mapping. */
   public UserClientPermissionMapping(
       Long userId, Long clientId, Long permissionId, String createdUser, String modifiedUser) {
     this.userId = userId;
@@ -102,9 +98,7 @@ public class UserClientPermissionMapping {
   }
 
   // Constructor for update (do not touch createdUser)
-  /**
-   * Executes user client permission mapping.
-   */
+  /** Executes user client permission mapping. */
   public UserClientPermissionMapping(
       Long userId, Long clientId, Long permissionId, String modifiedUser) {
     this.userId = userId;

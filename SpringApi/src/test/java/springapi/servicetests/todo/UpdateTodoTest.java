@@ -1,21 +1,21 @@
-package com.example.springapi.ServiceTests.Todo;
+package springapi.ServiceTests.Todo;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.SuccessMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.databasemodels.Todo;
-import com.example.springapi.models.requestmodels.TodoRequestModel;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.SuccessMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.models.ApiRoutes;
+import springapi.models.databasemodels.Todo;
+import springapi.models.requestmodels.TodoRequestModel;
 
 /** Test class for TodoService - UpdateTodo operation. */
 @DisplayName("TodoService - UpdateTodo Tests")

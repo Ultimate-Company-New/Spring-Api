@@ -1,11 +1,9 @@
-package com.example.springapi.ServiceTests.PurchaseOrder;
+package springapi.ServiceTests.PurchaseOrder;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-import com.example.springapi.controllers.PurchaseOrderController;
-import com.example.springapi.models.requestmodels.PurchaseOrderRequestModel;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.controllers.PurchaseOrderController;
+import springapi.models.requestmodels.PurchaseOrderRequestModel;
 
 /**
  * Test class for PurchaseOrderService.bulkCreatePurchaseOrdersAsync method.

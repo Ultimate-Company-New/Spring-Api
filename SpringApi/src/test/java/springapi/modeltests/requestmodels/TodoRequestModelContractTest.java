@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.RequestModels;
+package springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class TodoRequestModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.springapi.models.requestmodels.TodoRequestModel.class)) {
+    if (hasNoArgConstructor(springapi.models.requestmodels.TodoRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.springapi.models.requestmodels.TodoRequestModel.class);
+              .constructType(springapi.models.requestmodels.TodoRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,8 +62,7 @@ class TodoRequestModelContractTest {
   void TodoRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.requestmodels.TodoRequestModel.class
-            .getDeclaredConstructors()) {
+        springapi.models.requestmodels.TodoRequestModel.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -80,9 +79,9 @@ class TodoRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.requestmodels.TodoRequestModel createInstance() {
-    return (com.example.springapi.models.requestmodels.TodoRequestModel)
-        instantiate(com.example.springapi.models.requestmodels.TodoRequestModel.class);
+  private springapi.models.requestmodels.TodoRequestModel createInstance() {
+    return (springapi.models.requestmodels.TodoRequestModel)
+        instantiate(springapi.models.requestmodels.TodoRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

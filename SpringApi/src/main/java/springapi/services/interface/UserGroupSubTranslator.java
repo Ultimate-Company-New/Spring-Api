@@ -1,10 +1,10 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.requestmodels.UserGroupRequestModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.UserGroupResponseModel;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.models.requestmodels.UserGroupRequestModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.UserGroupResponseModel;
 
 /**
  * Interface for UserGroup-related business operations.
@@ -120,6 +120,6 @@ public interface UserGroupSubTranslator {
    * @param userGroups List of UserGroupRequestModel containing the user group data to create
    * @return BulkInsertResponseModel containing success/failure details for each user group
    */
-  com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkCreateUserGroups(
+  springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkCreateUserGroups(
       java.util.List<UserGroupRequestModel> userGroups);
 }

@@ -1,14 +1,9 @@
-package com.example.springapi.ServiceTests.Client;
+package springapi.ServiceTests.Client;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.ClientController;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.responsemodels.ClientResponseModel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +11,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.ClientController;
+import springapi.models.Authorizations;
+import springapi.models.databasemodels.Client;
+import springapi.models.responsemodels.ClientResponseModel;
 
 /** Unit tests for ClientService.getClientsByUser() method. */
 @DisplayName("Get Clients By User Tests")

@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.DatabaseModels;
+package springapi.ModelTests.DatabaseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class PickupLocationContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.springapi.models.databasemodels.PickupLocation.class)) {
+    if (hasNoArgConstructor(springapi.models.databasemodels.PickupLocation.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.springapi.models.databasemodels.PickupLocation.class);
+              .constructType(springapi.models.databasemodels.PickupLocation.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,8 +62,7 @@ class PickupLocationContractTest {
   void PickupLocation_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.databasemodels.PickupLocation.class
-            .getDeclaredConstructors()) {
+        springapi.models.databasemodels.PickupLocation.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -80,9 +79,9 @@ class PickupLocationContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.databasemodels.PickupLocation createInstance() {
-    return (com.example.springapi.models.databasemodels.PickupLocation)
-        instantiate(com.example.springapi.models.databasemodels.PickupLocation.class);
+  private springapi.models.databasemodels.PickupLocation createInstance() {
+    return (springapi.models.databasemodels.PickupLocation)
+        instantiate(springapi.models.databasemodels.PickupLocation.class);
   }
 
   private Object instantiate(Class<?> clazz) {

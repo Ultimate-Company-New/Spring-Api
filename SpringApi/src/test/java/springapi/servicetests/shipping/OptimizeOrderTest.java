@@ -1,14 +1,7 @@
-package com.example.springapi.ServiceTests.Shipping;
+package springapi.ServiceTests.Shipping;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.ShippingController;
-import com.example.springapi.helpers.PackagingHelper;
-import com.example.springapi.models.databasemodels.PackagePickupLocationMapping;
-import com.example.springapi.models.databasemodels.ProductPickupLocationMapping;
-import com.example.springapi.models.responsemodels.OrderOptimizationResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShippingOptionsResponseModel;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +10,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.ShippingController;
+import springapi.helpers.PackagingHelper;
+import springapi.models.databasemodels.PackagePickupLocationMapping;
+import springapi.models.databasemodels.ProductPickupLocationMapping;
+import springapi.models.responsemodels.OrderOptimizationResponseModel;
+import springapi.models.shippingresponsemodel.ShippingOptionsResponseModel;
 
 /** Tests for ShippingService.optimizeOrder(). */
 @DisplayName("OptimizeOrder Tests")
@@ -428,8 +428,8 @@ class OptimizeOrderTest extends ShippingServiceTestBase {
         createProductPickupLocationMapping(TEST_PRODUCT_ID, TEST_PICKUP_LOCATION_ID, 3);
     stubProductPickupLocationMappingRepositoryFindByProductIdWithPickupLocationAndAddress(
         List.of(mapping));
-    com.example.springapi.models.databasemodels.Package heavyPackage =
-        new com.example.springapi.models.databasemodels.Package();
+    springapi.models.databasemodels.Package heavyPackage =
+        new springapi.models.databasemodels.Package();
     heavyPackage.setPackageId(TEST_PACKAGE_ID);
     heavyPackage.setPackageName("HEAVY-BOX");
     heavyPackage.setPackageType("BOX");

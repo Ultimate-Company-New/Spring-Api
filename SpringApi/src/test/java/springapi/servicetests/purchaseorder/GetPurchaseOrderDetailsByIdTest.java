@@ -1,15 +1,15 @@
-package com.example.springapi.ServiceTests.PurchaseOrder;
+package springapi.ServiceTests.PurchaseOrder;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.PurchaseOrderController;
-import com.example.springapi.models.responsemodels.PurchaseOrderResponseModel;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.PurchaseOrderController;
+import springapi.models.responsemodels.PurchaseOrderResponseModel;
 
 /**
  * Test class for PurchaseOrderService.getPurchaseOrderDetailsById method.

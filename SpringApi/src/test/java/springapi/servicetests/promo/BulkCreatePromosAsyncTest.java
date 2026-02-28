@@ -1,12 +1,10 @@
-package com.example.springapi.ServiceTests.Promo;
+package springapi.ServiceTests.Promo;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.models.databasemodels.Promo;
-import com.example.springapi.models.requestmodels.PromoRequestModel;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +17,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.models.databasemodels.Promo;
+import springapi.models.requestmodels.PromoRequestModel;
 
 /** Test class for PromoService.bulkCreatePromosAsync method. */
 @DisplayName("PromoService - BulkCreatePromosAsync Tests")
@@ -198,8 +198,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
     stubPromoRepositoryFindByPromoCodeAndClientIdAny(Optional.empty());
     // Service should attempt to save even if it fails later
     stubPromoRepositorySaveThrows(
-        new RuntimeException(
-            com.example.springapi.ErrorMessages.CommonErrorMessages.DATABASE_ERROR));
+        new RuntimeException(springapi.ErrorMessages.CommonErrorMessages.DATABASE_ERROR));
 
     // Act & Assert
     assertDoesNotThrow(
@@ -459,7 +458,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
     // Arrange
     List<PromoRequestModel> promos = List.of(testPromoRequest);
     stubServiceBulkCreatePromosAsyncThrowsBadRequest(
-        com.example.springapi.ErrorMessages.CommonErrorMessages.EMPTY_LIST);
+        springapi.ErrorMessages.CommonErrorMessages.EMPTY_LIST);
 
     // Act
     ResponseEntity<?> response = promoController.bulkCreatePromos(promos);
@@ -475,7 +474,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
     // Arrange
     List<PromoRequestModel> promos = List.of(testPromoRequest);
     stubServiceBulkCreatePromosAsyncThrowsRuntime(
-        com.example.springapi.ErrorMessages.CommonErrorMessages.CRITICAL_FAILURE);
+        springapi.ErrorMessages.CommonErrorMessages.CRITICAL_FAILURE);
 
     // Act
     ResponseEntity<?> response = promoController.bulkCreatePromos(promos);
@@ -490,7 +489,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
   void bulkCreatePromosAsync_p05_ContextRetrievalError_Failure() {
     // Arrange
     stubServiceGetUserIdThrowsUnauthorized(
-        com.example.springapi.ErrorMessages.CommonErrorMessages.CONTEXT_MISSING);
+        springapi.ErrorMessages.CommonErrorMessages.CONTEXT_MISSING);
 
     // Act
     ResponseEntity<?> response = promoController.bulkCreatePromos(List.of(testPromoRequest));
@@ -520,7 +519,7 @@ class BulkCreatePromosAsyncTest extends PromoServiceTestBase {
   void bulkCreatePromosAsync_p07_ControllerWithNullList_Success() {
     // Arrange
     stubServiceBulkCreatePromosAsyncThrowsBadRequest(
-        com.example.springapi.ErrorMessages.CommonErrorMessages.NULL_LIST);
+        springapi.ErrorMessages.CommonErrorMessages.NULL_LIST);
 
     // Act
     ResponseEntity<?> response = promoController.bulkCreatePromos(null);

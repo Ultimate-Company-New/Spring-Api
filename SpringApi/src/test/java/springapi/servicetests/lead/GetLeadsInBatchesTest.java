@@ -1,14 +1,8 @@
-package com.example.springapi.ServiceTests.Lead;
+package springapi.ServiceTests.Lead;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.LeadController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.databasemodels.Lead;
-import com.example.springapi.models.responsemodels.LeadResponseModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
 import java.util.Collections;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +11,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.LeadController;
+import springapi.exceptions.BadRequestException;
+import springapi.models.databasemodels.Lead;
+import springapi.models.responsemodels.LeadResponseModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
 
 /**
  * Test class for LeadService.getLeadsInBatches() method. Tests pagination, filtering, and

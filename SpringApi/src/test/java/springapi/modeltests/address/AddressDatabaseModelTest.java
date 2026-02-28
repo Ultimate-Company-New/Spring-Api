@@ -1,15 +1,15 @@
-package com.example.springapi.ModelTests.Address;
+package springapi.ModelTests.Address;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.databasemodels.Address;
-import com.example.springapi.models.requestmodels.AddressRequestModel;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.models.databasemodels.Address;
+import springapi.models.requestmodels.AddressRequestModel;
 
 class AddressDatabaseModelTest {
 

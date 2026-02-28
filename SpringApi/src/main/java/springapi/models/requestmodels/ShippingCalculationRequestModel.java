@@ -1,4 +1,4 @@
-package com.example.springapi.models.requestmodels;
+package springapi.models.requestmodels;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -22,9 +22,7 @@ public class ShippingCalculationRequestModel {
   /** List of pickup locations with their shipment details. */
   private List<PickupLocationShipment> pickupLocations;
 
-  /**
-   * Represents the pickup location shipment component.
-   */
+  /** Represents the pickup location shipment component. */
   @Getter
   @Setter
   public static class PickupLocationShipment {

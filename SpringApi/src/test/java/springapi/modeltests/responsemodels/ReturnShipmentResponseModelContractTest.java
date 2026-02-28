@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.ResponseModels;
+package springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class ReturnShipmentResponseModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.responsemodels.ReturnShipmentResponseModel.class)) {
+    if (hasNoArgConstructor(springapi.models.responsemodels.ReturnShipmentResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.responsemodels.ReturnShipmentResponseModel.class);
+              .constructType(springapi.models.responsemodels.ReturnShipmentResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +62,7 @@ class ReturnShipmentResponseModelContractTest {
   void ReturnShipmentResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.responsemodels.ReturnShipmentResponseModel.class
+        springapi.models.responsemodels.ReturnShipmentResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,9 +80,9 @@ class ReturnShipmentResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.responsemodels.ReturnShipmentResponseModel createInstance() {
-    return (com.example.springapi.models.responsemodels.ReturnShipmentResponseModel)
-        instantiate(com.example.springapi.models.responsemodels.ReturnShipmentResponseModel.class);
+  private springapi.models.responsemodels.ReturnShipmentResponseModel createInstance() {
+    return (springapi.models.responsemodels.ReturnShipmentResponseModel)
+        instantiate(springapi.models.responsemodels.ReturnShipmentResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

@@ -1,4 +1,4 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,9 +15,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-/**
- * Represents the user client mapping component.
- */
+/** Represents the user client mapping component. */
 @Getter
 @Setter
 @Entity
@@ -85,9 +83,7 @@ public class UserClientMapping {
   }
 
   // Constructor for creation
-  /**
-   * Executes user client mapping.
-   */
+  /** Executes user client mapping. */
   public UserClientMapping(
       Long userId, Long clientId, String apiKey, String createdUser, String modifiedUser) {
     this.userId = userId;
@@ -98,9 +94,7 @@ public class UserClientMapping {
   }
 
   // Constructor for update (do not touch createdUser)
-  /**
-   * Executes user client mapping.
-   */
+  /** Executes user client mapping. */
   public UserClientMapping(Long userId, Long clientId, String apiKey, String modifiedUser) {
     this.userId = userId;
     this.clientId = clientId;

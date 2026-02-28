@@ -1,17 +1,9 @@
-package com.example.springapi.ServiceTests.Login;
+package springapi.ServiceTests.Login;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.exceptions.UnauthorizedException;
-import com.example.springapi.helpers.PasswordHelper;
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.databasemodels.User;
-import com.example.springapi.models.databasemodels.UserClientMapping;
-import com.example.springapi.models.responsemodels.ClientResponseModel;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +11,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.exceptions.UnauthorizedException;
+import springapi.helpers.PasswordHelper;
+import springapi.models.databasemodels.Client;
+import springapi.models.databasemodels.User;
+import springapi.models.databasemodels.UserClientMapping;
+import springapi.models.responsemodels.ClientResponseModel;
 
 /** Unit tests for SignIn functionality in LoginService. Test Count: 21 tests */
 @DisplayName("SignIn Tests")
@@ -233,8 +233,7 @@ class SignInTest extends LoginServiceTestBase {
     UnauthorizedException exception =
         assertThrows(UnauthorizedException.class, () -> loginService.signIn(testLoginRequest));
 
-    assertEquals(
-        com.example.springapi.ErrorMessages.LoginErrorMessages.ER006, exception.getMessage());
+    assertEquals(springapi.ErrorMessages.LoginErrorMessages.ER006, exception.getMessage());
   }
 
   /**
@@ -254,8 +253,7 @@ class SignInTest extends LoginServiceTestBase {
     UnauthorizedException exception =
         assertThrows(UnauthorizedException.class, () -> loginService.signIn(testLoginRequest));
 
-    assertEquals(
-        com.example.springapi.ErrorMessages.LoginErrorMessages.ER006, exception.getMessage());
+    assertEquals(springapi.ErrorMessages.LoginErrorMessages.ER006, exception.getMessage());
     verify(userRepository, never()).save(any(User.class));
   }
 
@@ -274,9 +272,7 @@ class SignInTest extends LoginServiceTestBase {
     NotFoundException exception =
         assertThrows(NotFoundException.class, () -> loginService.signIn(testLoginRequest));
 
-    assertEquals(
-        com.example.springapi.ErrorMessages.LoginErrorMessages.INVALID_EMAIL,
-        exception.getMessage());
+    assertEquals(springapi.ErrorMessages.LoginErrorMessages.INVALID_EMAIL, exception.getMessage());
   }
 
   /**
@@ -294,8 +290,7 @@ class SignInTest extends LoginServiceTestBase {
     UnauthorizedException exception =
         assertThrows(UnauthorizedException.class, () -> loginService.signIn(testLoginRequest));
 
-    assertEquals(
-        com.example.springapi.ErrorMessages.LoginErrorMessages.ER005, exception.getMessage());
+    assertEquals(springapi.ErrorMessages.LoginErrorMessages.ER005, exception.getMessage());
   }
 
   /**
@@ -317,8 +312,7 @@ class SignInTest extends LoginServiceTestBase {
       UnauthorizedException exception =
           assertThrows(UnauthorizedException.class, () -> loginService.signIn(testLoginRequest));
 
-      assertEquals(
-          com.example.springapi.ErrorMessages.LoginErrorMessages.ER007, exception.getMessage());
+      assertEquals(springapi.ErrorMessages.LoginErrorMessages.ER007, exception.getMessage());
       verify(userRepository, times(1)).save(any(User.class));
     }
   }
@@ -342,8 +336,7 @@ class SignInTest extends LoginServiceTestBase {
           assertThrows(UnauthorizedException.class, () -> loginService.signIn(testLoginRequest));
 
       assertEquals(
-          com.example.springapi.ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS,
-          exception.getMessage());
+          springapi.ErrorMessages.LoginErrorMessages.INVALID_CREDENTIALS, exception.getMessage());
     }
   }
 
@@ -361,8 +354,7 @@ class SignInTest extends LoginServiceTestBase {
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> loginService.signIn(testLoginRequest));
 
-    assertEquals(
-        com.example.springapi.ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
+    assertEquals(springapi.ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
   }
 
   /**
@@ -379,8 +371,7 @@ class SignInTest extends LoginServiceTestBase {
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> loginService.signIn(testLoginRequest));
 
-    assertEquals(
-        com.example.springapi.ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
+    assertEquals(springapi.ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
   }
 
   /**
@@ -398,8 +389,7 @@ class SignInTest extends LoginServiceTestBase {
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> loginService.signIn(testLoginRequest));
 
-    assertEquals(
-        com.example.springapi.ErrorMessages.LoginErrorMessages.ER016, exception.getMessage());
+    assertEquals(springapi.ErrorMessages.LoginErrorMessages.ER016, exception.getMessage());
   }
 
   /**
@@ -416,8 +406,7 @@ class SignInTest extends LoginServiceTestBase {
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> loginService.signIn(testLoginRequest));
 
-    assertEquals(
-        com.example.springapi.ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
+    assertEquals(springapi.ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
   }
 
   /**
@@ -434,8 +423,7 @@ class SignInTest extends LoginServiceTestBase {
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> loginService.signIn(testLoginRequest));
 
-    assertEquals(
-        com.example.springapi.ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
+    assertEquals(springapi.ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
   }
 
   /**
@@ -450,9 +438,7 @@ class SignInTest extends LoginServiceTestBase {
     // Act & Assert
     NullPointerException exception =
         assertThrows(NullPointerException.class, () -> loginService.signIn(null));
-    assertEquals(
-        com.example.springapi.ErrorMessages.LoginErrorMessages.NULL_REQUEST,
-        exception.getMessage());
+    assertEquals(springapi.ErrorMessages.LoginErrorMessages.NULL_REQUEST, exception.getMessage());
   }
 
   /**
@@ -469,9 +455,7 @@ class SignInTest extends LoginServiceTestBase {
     NotFoundException exception =
         assertThrows(NotFoundException.class, () -> loginService.signIn(testLoginRequest));
 
-    assertEquals(
-        com.example.springapi.ErrorMessages.LoginErrorMessages.INVALID_EMAIL,
-        exception.getMessage());
+    assertEquals(springapi.ErrorMessages.LoginErrorMessages.INVALID_EMAIL, exception.getMessage());
   }
 
   /**
@@ -488,8 +472,7 @@ class SignInTest extends LoginServiceTestBase {
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> loginService.signIn(testLoginRequest));
 
-    assertEquals(
-        com.example.springapi.ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
+    assertEquals(springapi.ErrorMessages.LoginErrorMessages.ER012, exception.getMessage());
   }
 
   /*

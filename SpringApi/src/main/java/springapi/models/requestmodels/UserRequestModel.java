@@ -1,6 +1,5 @@
-package com.example.springapi.models.requestmodels;
+package springapi.models.requestmodels;
 
-import com.example.springapi.constants.UserRole;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDate;
@@ -8,10 +7,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import springapi.constants.UserRole;
 
-/**
- * Represents the user request model component.
- */
+/** Represents the user request model component. */
 @Getter
 @Setter
 public class UserRequestModel extends PaginationBaseRequestModel {

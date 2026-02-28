@@ -1,16 +1,9 @@
-package com.example.springapi.ServiceTests.Product;
+package springapi.ServiceTests.Product;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.ProductController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.databasemodels.Product;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.ProductResponseModel;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -23,6 +16,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.ProductController;
+import springapi.exceptions.BadRequestException;
+import springapi.models.databasemodels.Product;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.ProductResponseModel;
 
 /**
  * Consolidated test class for ProductService.getProductInBatches. Fully compliant with Unit Test

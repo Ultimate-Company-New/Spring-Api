@@ -1,8 +1,6 @@
-package com.example.springapi.exceptions;
+package springapi.exceptions;
 
-/**
- * Represents the permission exception component.
- */
+/** Represents the permission exception component. */
 public class PermissionException extends RuntimeException {
 
   public PermissionException(String message) {

@@ -1,7 +1,5 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
-import com.example.springapi.models.databasemodels.Package;
-import com.example.springapi.models.databasemodels.ShipmentPackageProduct;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,6 +9,8 @@ import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.Hibernate;
+import springapi.models.databasemodels.Package;
+import springapi.models.databasemodels.ShipmentPackageProduct;
 
 /**
  * Response model for Package operations.
@@ -90,8 +90,7 @@ public class PackageResponseModel {
    * @param shipmentPackage The ShipmentPackage entity to get usage details from
    */
   public PackageResponseModel(
-      Package packageEntity,
-      com.example.springapi.models.databasemodels.ShipmentPackage shipmentPackage) {
+      Package packageEntity, springapi.models.databasemodels.ShipmentPackage shipmentPackage) {
     // First populate from Package
     this(packageEntity);
 

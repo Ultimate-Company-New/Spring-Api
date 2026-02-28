@@ -1,9 +1,9 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.ProductReviewRequestModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.ProductReviewResponseModel;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.ProductReviewRequestModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.ProductReviewResponseModel;
 
 /**
  * Interface for ProductReview operations and data access.

@@ -1,6 +1,5 @@
-package com.example.springapi.repositories;
+package springapi.repositories;
 
-import com.example.springapi.models.databasemodels.Promo;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -8,10 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import springapi.models.databasemodels.Promo;
 
-/**
- * Defines the promo repository contract.
- */
+/** Defines the promo repository contract. */
 @Repository
 public interface PromoRepository extends JpaRepository<Promo, Long> {
 

@@ -1,8 +1,8 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.models.requestmodels.AddressRequestModel;
-import com.example.springapi.models.responsemodels.AddressResponseModel;
 import java.util.List;
+import springapi.models.requestmodels.AddressRequestModel;
+import springapi.models.responsemodels.AddressResponseModel;
 
 /**
  * Interface for Address-related business operations.

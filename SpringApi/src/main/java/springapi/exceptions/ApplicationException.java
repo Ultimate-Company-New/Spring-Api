@@ -1,4 +1,4 @@
-package com.example.springapi.exceptions;
+package springapi.exceptions;
 
 /**
  * Generic application-level runtime exception for use across the codebase. Acts as a single.

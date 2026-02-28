@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.ResponseModels;
+package springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class PermissionResponseModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.responsemodels.PermissionResponseModel.class)) {
+    if (hasNoArgConstructor(springapi.models.responsemodels.PermissionResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.responsemodels.PermissionResponseModel.class);
+              .constructType(springapi.models.responsemodels.PermissionResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,8 +62,7 @@ class PermissionResponseModelContractTest {
   void PermissionResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.responsemodels.PermissionResponseModel.class
-            .getDeclaredConstructors()) {
+        springapi.models.responsemodels.PermissionResponseModel.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -82,9 +79,9 @@ class PermissionResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.responsemodels.PermissionResponseModel createInstance() {
-    return (com.example.springapi.models.responsemodels.PermissionResponseModel)
-        instantiate(com.example.springapi.models.responsemodels.PermissionResponseModel.class);
+  private springapi.models.responsemodels.PermissionResponseModel createInstance() {
+    return (springapi.models.responsemodels.PermissionResponseModel)
+        instantiate(springapi.models.responsemodels.PermissionResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

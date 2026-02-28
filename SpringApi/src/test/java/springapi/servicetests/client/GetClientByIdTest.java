@@ -1,18 +1,18 @@
-package com.example.springapi.ServiceTests.Client;
+package springapi.ServiceTests.Client;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.ClientController;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.responsemodels.ClientResponseModel;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.ClientController;
+import springapi.exceptions.NotFoundException;
+import springapi.models.Authorizations;
+import springapi.models.responsemodels.ClientResponseModel;
 
 /** Unit tests for ClientService.getClientById() method. */
 @DisplayName("Get Client By ID Tests")

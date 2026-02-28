@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.ShippingResponseModel;
+package springapi.ModelTests.ShippingResponseModel;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,14 +49,12 @@ class ShipRocketOrderDetailsResponseModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.springapi.models.shippingresponsemodel.ShipRocketOrderDetailsResponseModel
-            .class)) {
+        springapi.models.shippingresponsemodel.ShipRocketOrderDetailsResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.springapi.models.shippingresponsemodel
-                      .ShipRocketOrderDetailsResponseModel.class);
+                  springapi.models.shippingresponsemodel.ShipRocketOrderDetailsResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -66,7 +64,7 @@ class ShipRocketOrderDetailsResponseModelContractTest {
   void ShipRocketOrderDetailsResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.shippingresponsemodel.ShipRocketOrderDetailsResponseModel.class
+        springapi.models.shippingresponsemodel.ShipRocketOrderDetailsResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -84,12 +82,11 @@ class ShipRocketOrderDetailsResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.shippingresponsemodel.ShipRocketOrderDetailsResponseModel
+  private springapi.models.shippingresponsemodel.ShipRocketOrderDetailsResponseModel
       createInstance() {
-    return (com.example.springapi.models.shippingresponsemodel.ShipRocketOrderDetailsResponseModel)
+    return (springapi.models.shippingresponsemodel.ShipRocketOrderDetailsResponseModel)
         instantiate(
-            com.example.springapi.models.shippingresponsemodel.ShipRocketOrderDetailsResponseModel
-                .class);
+            springapi.models.shippingresponsemodel.ShipRocketOrderDetailsResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

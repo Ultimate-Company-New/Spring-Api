@@ -1,4 +1,4 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,9 +12,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-/**
- * Represents the user log component.
- */
+/** Represents the user log component. */
 @Getter
 @Setter
 @Entity
@@ -105,9 +103,7 @@ public class UserLog {
     this.newValue = newValue;
   }
 
-  /**
-   * Executes user log.
-   */
+  /** Executes user log. */
   public UserLog(
       long userId,
       Long clientId,

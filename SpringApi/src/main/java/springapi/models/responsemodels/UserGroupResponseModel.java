@@ -1,15 +1,13 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
-import com.example.springapi.models.databasemodels.UserGroup;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import springapi.models.databasemodels.UserGroup;
 
-/**
- * Represents the user group response model component.
- */
+/** Represents the user group response model component. */
 @Getter
 @Setter
 public class UserGroupResponseModel {
@@ -39,9 +37,7 @@ public class UserGroupResponseModel {
   }
 
   // Constructor that takes UserGroups entity and optionally populates user IDs
-  /**
-   * Executes user group response model.
-   */
+  /** Executes user group response model. */
   public UserGroupResponseModel(UserGroup userGroup, boolean includeUserIds) {
     this();
     if (userGroup != null) {

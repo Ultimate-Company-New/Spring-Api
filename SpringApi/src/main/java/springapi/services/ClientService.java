@@ -1,21 +1,5 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.SuccessMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.constants.ImageLocationConstants;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.helpers.FirebaseHelper;
-import com.example.springapi.helpers.ImgbbHelper;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.databasemodels.GoogleCred;
-import com.example.springapi.models.requestmodels.ClientRequestModel;
-import com.example.springapi.models.responsemodels.ClientResponseModel;
-import com.example.springapi.repositories.ClientRepository;
-import com.example.springapi.repositories.GoogleCredRepository;
-import com.example.springapi.services.interfaces.ClientSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +9,22 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import springapi.ErrorMessages;
+import springapi.SuccessMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.constants.ImageLocationConstants;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.helpers.FirebaseHelper;
+import springapi.helpers.ImgbbHelper;
+import springapi.models.ApiRoutes;
+import springapi.models.databasemodels.Client;
+import springapi.models.databasemodels.GoogleCred;
+import springapi.models.requestmodels.ClientRequestModel;
+import springapi.models.responsemodels.ClientResponseModel;
+import springapi.repositories.ClientRepository;
+import springapi.repositories.GoogleCredRepository;
+import springapi.services.interfaces.ClientSubTranslator;
 
 /**
  * Service class for managing Client-related business operations.
@@ -48,9 +48,7 @@ public class ClientService extends BaseService implements ClientSubTranslator {
   @Value("${imageLocation:firebase}")
   private String imageLocation;
 
-  /**
-   * Executes client service.
-   */
+  /** Executes client service. */
   @Autowired
   public ClientService(
       ClientRepository clientRepository,

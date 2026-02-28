@@ -1,15 +1,9 @@
-package com.example.springapi.ServiceTests.Message;
+package springapi.ServiceTests.Message;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.MessageController;
-import com.example.springapi.models.databasemodels.MessageUserReadMap;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.responsemodels.MessageResponseModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
 import java.util.Arrays;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -20,6 +14,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.MessageController;
+import springapi.models.databasemodels.MessageUserReadMap;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.responsemodels.MessageResponseModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
 
 /** Unit tests for MessageService.getMessagesByUserId method. */
 @DisplayName("GetMessagesByUserId Tests")
@@ -46,7 +46,7 @@ class GetMessagesByUserIdTest extends MessageServiceTestBase {
     paginationRequest.setStart(0);
     paginationRequest.setEnd(0);
 
-    Page<com.example.springapi.models.databasemodels.Message> messagePage =
+    Page<springapi.models.databasemodels.Message> messagePage =
         new PageImpl<>(Arrays.asList(testMessage));
 
     stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
@@ -73,18 +73,16 @@ class GetMessagesByUserIdTest extends MessageServiceTestBase {
     PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
     paginationRequest.setId(TEST_USER_ID);
 
-    com.example.springapi.models.databasemodels.Message m1 =
-        new com.example.springapi.models.databasemodels.Message();
+    springapi.models.databasemodels.Message m1 = new springapi.models.databasemodels.Message();
     m1.setMessageId(1L);
     m1.setTitle("T1");
     m1.setDescriptionHtml("D");
-    com.example.springapi.models.databasemodels.Message m2 =
-        new com.example.springapi.models.databasemodels.Message();
+    springapi.models.databasemodels.Message m2 = new springapi.models.databasemodels.Message();
     m2.setMessageId(2L);
     m2.setTitle("T2");
     m2.setDescriptionHtml("D");
 
-    Page<com.example.springapi.models.databasemodels.Message> messagePage =
+    Page<springapi.models.databasemodels.Message> messagePage =
         new PageImpl<>(Arrays.asList(m1, m2));
 
     stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
@@ -116,7 +114,7 @@ class GetMessagesByUserIdTest extends MessageServiceTestBase {
     PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
     paginationRequest.setId(TEST_USER_ID);
 
-    Page<com.example.springapi.models.databasemodels.Message> messagePage =
+    Page<springapi.models.databasemodels.Message> messagePage =
         new PageImpl<>(Arrays.asList(testMessage));
 
     stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));
@@ -144,7 +142,7 @@ class GetMessagesByUserIdTest extends MessageServiceTestBase {
     PaginationBaseRequestModel paginationRequest = createValidPaginationRequest();
     paginationRequest.setId(TEST_USER_ID);
 
-    Page<com.example.springapi.models.databasemodels.Message> messagePage =
+    Page<springapi.models.databasemodels.Message> messagePage =
         new PageImpl<>(Arrays.asList(testMessage));
 
     stubUserRepositoryFindByUserIdAndClientId(Optional.of(testUser));

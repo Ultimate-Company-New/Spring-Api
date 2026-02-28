@@ -1,17 +1,17 @@
-package com.example.springapi.ServiceTests.Address;
+package springapi.ServiceTests.Address;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.AddressController;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.databasemodels.Address;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.AddressController;
+import springapi.models.Authorizations;
+import springapi.models.databasemodels.Address;
 
 /** Unit tests for AddressService.toggleAddress() method. */
 @DisplayName("Toggle Address Tests")

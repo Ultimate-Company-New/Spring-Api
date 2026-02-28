@@ -1,10 +1,8 @@
-package com.example.springapi.models;
+package springapi.models;
 
-import com.example.springapi.constants.UserRole;
+import springapi.constants.UserRole;
 
-/**
- * Represents the authorizations component.
- */
+/** Represents the authorizations component. */
 public class Authorizations {
   private Authorizations() {}
 

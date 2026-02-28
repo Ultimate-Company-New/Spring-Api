@@ -1,7 +1,5 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,6 +19,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
 
 /**
  * JPA Entity for the Shipment table.
@@ -313,8 +313,7 @@ public class Shipment {
    */
   public Shipment(
       Long orderSummaryId,
-      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.ShipmentData
-          shipmentData,
+      springapi.models.requestmodels.PurchaseOrderRequestModel.ShipmentData shipmentData,
       Long clientId,
       String createdUser) {
     validateRequest(orderSummaryId, shipmentData, clientId, createdUser);
@@ -344,8 +343,7 @@ public class Shipment {
    */
   public Shipment(
       Long orderSummaryId,
-      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.ShipmentData
-          shipmentData,
+      springapi.models.requestmodels.PurchaseOrderRequestModel.ShipmentData shipmentData,
       String modifiedUser,
       Shipment existingShipment) {
     validateRequest(orderSummaryId, shipmentData, null, modifiedUser);
@@ -384,8 +382,7 @@ public class Shipment {
    */
   private void validateRequest(
       Long orderSummaryId,
-      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.ShipmentData
-          shipmentData,
+      springapi.models.requestmodels.PurchaseOrderRequestModel.ShipmentData shipmentData,
       Long clientId,
       String user) {
     if (shipmentData == null) {
@@ -443,8 +440,7 @@ public class Shipment {
 
   /** Sets courier selection details from CourierSelectionData. All courier fields are required. */
   public void setCourierSelection(
-      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.CourierSelectionData
-          courierData) {
+      springapi.models.requestmodels.PurchaseOrderRequestModel.CourierSelectionData courierData) {
     if (courierData == null) {
       throw new BadRequestException(ErrorMessages.ShipmentErrorMessages.COURIER_SELECTION_REQUIRED);
     }
@@ -488,7 +484,7 @@ public class Shipment {
    * @param response The ShipRocket order creation response
    */
   public void populateFromShipRocketOrderResponse(
-      com.example.springapi.models.shippingresponsemodel.ShipRocketOrderResponseModel response) {
+      springapi.models.shippingresponsemodel.ShipRocketOrderResponseModel response) {
     if (response == null) {
       return;
     }

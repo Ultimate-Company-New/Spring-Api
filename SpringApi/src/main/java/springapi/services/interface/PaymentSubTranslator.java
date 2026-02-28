@@ -1,15 +1,15 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.models.databasemodels.Payment;
-import com.example.springapi.models.requestmodels.CashPaymentRequestModel;
-import com.example.springapi.models.requestmodels.RazorpayOrderRequestModel;
-import com.example.springapi.models.requestmodels.RazorpayVerifyRequestModel;
-import com.example.springapi.models.responsemodels.PaymentVerificationResponseModel;
-import com.example.springapi.models.responsemodels.RazorpayOrderResponseModel;
 import com.itextpdf.text.DocumentException;
 import freemarker.template.TemplateException;
 import java.io.IOException;
 import java.util.List;
+import springapi.models.databasemodels.Payment;
+import springapi.models.requestmodels.CashPaymentRequestModel;
+import springapi.models.requestmodels.RazorpayOrderRequestModel;
+import springapi.models.requestmodels.RazorpayVerifyRequestModel;
+import springapi.models.responsemodels.PaymentVerificationResponseModel;
+import springapi.models.responsemodels.RazorpayOrderResponseModel;
 
 /**
  * Interface for Payment-related business operations.
@@ -32,10 +32,8 @@ public interface PaymentSubTranslator {
    *
    * @param request The order request containing purchaseOrderId and optional amount
    * @return RazorpayOrderResponseModel containing order details for frontend
-   * @throws com.example.springapi.exceptions.BadRequestException if validation fails or Razorpay
-   *     API fails
-   * @throws com.example.springapi.exceptions.NotFoundException if purchase order or client not
-   *     found
+   * @throws springapi.exceptions.BadRequestException if validation fails or Razorpay API fails
+   * @throws springapi.exceptions.NotFoundException if purchase order or client not found
    */
   RazorpayOrderResponseModel createOrder(RazorpayOrderRequestModel request);
 
@@ -47,10 +45,8 @@ public interface PaymentSubTranslator {
    *
    * @param request The order request containing purchaseOrderId and optional amount
    * @return RazorpayOrderResponseModel containing order details for frontend
-   * @throws com.example.springapi.exceptions.BadRequestException if validation fails or Razorpay
-   *     API fails
-   * @throws com.example.springapi.exceptions.NotFoundException if purchase order or client not
-   *     found
+   * @throws springapi.exceptions.BadRequestException if validation fails or Razorpay API fails
+   * @throws springapi.exceptions.NotFoundException if purchase order or client not found
    */
   RazorpayOrderResponseModel createOrderFollowUp(RazorpayOrderRequestModel request);
 
@@ -62,9 +58,8 @@ public interface PaymentSubTranslator {
    *
    * @param request The verification request with payment details
    * @return PaymentVerificationResponseModel indicating success/failure
-   * @throws com.example.springapi.exceptions.BadRequestException if signature verification fails
-   * @throws com.example.springapi.exceptions.NotFoundException if purchase order or payment not
-   *     found
+   * @throws springapi.exceptions.BadRequestException if signature verification fails
+   * @throws springapi.exceptions.NotFoundException if purchase order or payment not found
    */
   PaymentVerificationResponseModel verifyPayment(RazorpayVerifyRequestModel request);
 
@@ -76,8 +71,8 @@ public interface PaymentSubTranslator {
    *
    * @param request The cash payment request containing payment details
    * @return PaymentVerificationResponseModel indicating success/failure
-   * @throws com.example.springapi.exceptions.BadRequestException if validation fails
-   * @throws com.example.springapi.exceptions.NotFoundException if purchase order not found
+   * @throws springapi.exceptions.BadRequestException if validation fails
+   * @throws springapi.exceptions.NotFoundException if purchase order not found
    */
   PaymentVerificationResponseModel recordCashPayment(CashPaymentRequestModel request);
 
@@ -89,9 +84,8 @@ public interface PaymentSubTranslator {
    *
    * @param request The verification request with payment details
    * @return PaymentVerificationResponseModel indicating success/failure
-   * @throws com.example.springapi.exceptions.BadRequestException if signature verification fails
-   * @throws com.example.springapi.exceptions.NotFoundException if purchase order or payment not
-   *     found
+   * @throws springapi.exceptions.BadRequestException if signature verification fails
+   * @throws springapi.exceptions.NotFoundException if purchase order or payment not found
    */
   PaymentVerificationResponseModel verifyPaymentFollowUp(RazorpayVerifyRequestModel request);
 
@@ -103,8 +97,8 @@ public interface PaymentSubTranslator {
    *
    * @param request The cash payment request containing payment details
    * @return PaymentVerificationResponseModel indicating success/failure
-   * @throws com.example.springapi.exceptions.BadRequestException if validation fails
-   * @throws com.example.springapi.exceptions.NotFoundException if purchase order not found
+   * @throws springapi.exceptions.BadRequestException if validation fails
+   * @throws springapi.exceptions.NotFoundException if purchase order not found
    */
   PaymentVerificationResponseModel recordCashPaymentFollowUp(CashPaymentRequestModel request);
 
@@ -115,8 +109,7 @@ public interface PaymentSubTranslator {
    * Razorpay without creating an order first.
    *
    * @return The Razorpay Key ID (public API key)
-   * @throws com.example.springapi.exceptions.NotFoundException if client not found or Razorpay not
-   *     configured
+   * @throws springapi.exceptions.NotFoundException if client not found or Razorpay not configured
    */
   String getRazorpayKeyId();
 
@@ -128,9 +121,8 @@ public interface PaymentSubTranslator {
    *
    * @param paymentId The ID of the payment to generate receipt for
    * @return The PDF as a byte array
-   * @throws com.example.springapi.exceptions.BadRequestException if validation fails
-   * @throws com.example.springapi.exceptions.NotFoundException if payment or purchase order not
-   *     found
+   * @throws springapi.exceptions.BadRequestException if validation fails
+   * @throws springapi.exceptions.NotFoundException if payment or purchase order not found
    * @throws TemplateException if PDF template processing fails
    * @throws IOException if PDF generation fails
    * @throws DocumentException if PDF document creation fails
@@ -143,8 +135,8 @@ public interface PaymentSubTranslator {
    *
    * @param purchaseOrderId The purchase order ID
    * @return List of payments for the purchase order
-   * @throws com.example.springapi.exceptions.BadRequestException if client access denied
-   * @throws com.example.springapi.exceptions.NotFoundException if purchase order not found
+   * @throws springapi.exceptions.BadRequestException if client access denied
+   * @throws springapi.exceptions.NotFoundException if purchase order not found
    */
   List<Payment> getPaymentsForPurchaseOrder(Long purchaseOrderId);
 
@@ -153,8 +145,8 @@ public interface PaymentSubTranslator {
    *
    * @param paymentId The payment ID
    * @return The payment entity
-   * @throws com.example.springapi.exceptions.BadRequestException if client access denied
-   * @throws com.example.springapi.exceptions.NotFoundException if payment not found
+   * @throws springapi.exceptions.BadRequestException if client access denied
+   * @throws springapi.exceptions.NotFoundException if payment not found
    */
   Payment getPaymentById(Long paymentId);
 
@@ -173,9 +165,9 @@ public interface PaymentSubTranslator {
    * @param amountInPaise Amount to refund in paise (null for full refund)
    * @param reason Reason for refund
    * @return Updated Payment entity
-   * @throws com.example.springapi.exceptions.BadRequestException if validation fails or refund
-   *     cannot be processed
-   * @throws com.example.springapi.exceptions.NotFoundException if payment not found
+   * @throws springapi.exceptions.BadRequestException if validation fails or refund cannot be
+   *     processed
+   * @throws springapi.exceptions.NotFoundException if payment not found
    */
   Payment initiateRefund(Long paymentId, Long amountInPaise, String reason);
 }

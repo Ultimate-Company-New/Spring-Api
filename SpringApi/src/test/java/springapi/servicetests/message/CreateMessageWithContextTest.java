@@ -1,17 +1,17 @@
-package com.example.springapi.ServiceTests.Message;
+package springapi.ServiceTests.Message;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.MessageController;
-import com.example.springapi.exceptions.BadRequestException;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.MessageController;
+import springapi.exceptions.BadRequestException;
 
 /** Unit tests for MessageService.createMessageWithContext method. */
 @DisplayName("CreateMessageWithContext Tests")

@@ -1,31 +1,5 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.SuccessMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.helpers.EmailHelperContract;
-import com.example.springapi.helpers.EmailHelperFactory;
-import com.example.springapi.helpers.EmailTemplates;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.databasemodels.Message;
-import com.example.springapi.models.databasemodels.MessageUserGroupMap;
-import com.example.springapi.models.databasemodels.MessageUserMap;
-import com.example.springapi.models.databasemodels.MessageUserReadMap;
-import com.example.springapi.models.databasemodels.User;
-import com.example.springapi.models.requestmodels.MessageRequestModel;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.responsemodels.MessageResponseModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.repositories.ClientRepository;
-import com.example.springapi.repositories.MessageRepository;
-import com.example.springapi.repositories.MessageUserGroupMapRepository;
-import com.example.springapi.repositories.MessageUserMapRepository;
-import com.example.springapi.repositories.MessageUserReadMapRepository;
-import com.example.springapi.repositories.UserRepository;
-import com.example.springapi.services.interfaces.MessageSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -41,6 +15,32 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import springapi.ErrorMessages;
+import springapi.SuccessMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.helpers.EmailHelperContract;
+import springapi.helpers.EmailHelperFactory;
+import springapi.helpers.EmailTemplates;
+import springapi.models.ApiRoutes;
+import springapi.models.databasemodels.Client;
+import springapi.models.databasemodels.Message;
+import springapi.models.databasemodels.MessageUserGroupMap;
+import springapi.models.databasemodels.MessageUserMap;
+import springapi.models.databasemodels.MessageUserReadMap;
+import springapi.models.databasemodels.User;
+import springapi.models.requestmodels.MessageRequestModel;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.responsemodels.MessageResponseModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.repositories.ClientRepository;
+import springapi.repositories.MessageRepository;
+import springapi.repositories.MessageUserGroupMapRepository;
+import springapi.repositories.MessageUserMapRepository;
+import springapi.repositories.MessageUserReadMapRepository;
+import springapi.repositories.UserRepository;
+import springapi.services.interfaces.MessageSubTranslator;
 
 /**
  * Service implementation for Message operations.
@@ -64,9 +64,7 @@ public class MessageService extends BaseService implements MessageSubTranslator 
   private final UserLogService userLogService;
   private final Environment environment;
 
-  /**
-   * Initializes MessageService.
-   */
+  /** Initializes MessageService. */
   @Autowired
   public MessageService(
       MessageRepository messageRepository,

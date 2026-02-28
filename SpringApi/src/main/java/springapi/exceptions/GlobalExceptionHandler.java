@@ -1,11 +1,11 @@
-package com.example.springapi.exceptions;
+package springapi.exceptions;
 
-import com.example.springapi.logging.ContextualLogger;
-import com.example.springapi.models.responsemodels.ErrorResponseModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import springapi.logging.ContextualLogger;
+import springapi.models.responsemodels.ErrorResponseModel;
 
 /**
  * Global exception handler for the Spring API. Catches exceptions that are not handled by.

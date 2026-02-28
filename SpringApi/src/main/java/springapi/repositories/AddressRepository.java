@@ -1,16 +1,14 @@
-package com.example.springapi.repositories;
+package springapi.repositories;
 
-import com.example.springapi.models.databasemodels.Address;
-import com.example.springapi.models.dtos.AddressDuplicateCriteria;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import springapi.models.databasemodels.Address;
+import springapi.models.dtos.AddressDuplicateCriteria;
 
-/**
- * Defines the address repository contract.
- */
+/** Defines the address repository contract. */
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Long> {
   @Query(
@@ -25,9 +23,7 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
   List<Address> findByClientIdAndIsDeletedOrderByAddressIdDesc(
       @Param("clientId") long clientId, @Param("isDeleted") boolean isDeleted);
 
-  /**
-   * Executes or.
-   */
+  /** Executes or. */
   @Query(
       "SELECT a FROM Address a WHERE "
           + "(a.userId = :#{#criteria.userId} OR (a.userId IS NULL AND :"

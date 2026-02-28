@@ -1,11 +1,8 @@
-package com.example.springapi.ServiceTests.UserGroup;
+package springapi.ServiceTests.UserGroup;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.controllers.UserGroupController;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.requestmodels.UserGroupRequestModel;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import springapi.controllers.UserGroupController;
+import springapi.models.Authorizations;
+import springapi.models.requestmodels.UserGroupRequestModel;
 
 /** Unit tests for UserGroupService.bulkCreateUserGroupsAsync method. */
 @DisplayName("UserGroupService - BulkCreateUserGroupsAsync Tests")

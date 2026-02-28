@@ -1,16 +1,14 @@
-package com.example.springapi.repositories;
+package springapi.repositories;
 
-import com.example.springapi.models.databasemodels.OrderSummary;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import springapi.models.databasemodels.OrderSummary;
 
-/**
- * Defines the order summary repository contract.
- */
+/** Defines the order summary repository contract. */
 @Repository
 public interface OrderSummaryRepository extends JpaRepository<OrderSummary, Long> {
   Optional<OrderSummary> findByEntityTypeAndEntityId(String entityType, Long entityId);

@@ -1,13 +1,13 @@
-package com.example.springapi.ModelTests.Core;
+package springapi.ModelTests.Core;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.example.springapi.models.Authorizations;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import org.junit.jupiter.api.Test;
+import springapi.models.Authorizations;
 
 class AuthorizationsContractTest {
 

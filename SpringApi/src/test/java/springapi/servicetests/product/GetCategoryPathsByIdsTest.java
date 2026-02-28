@@ -1,17 +1,17 @@
-package com.example.springapi.ServiceTests.Product;
+package springapi.ServiceTests.Product;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
-import com.example.springapi.controllers.ProductController;
-import com.example.springapi.models.databasemodels.ProductCategory;
 import java.util.Collections;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.controllers.ProductController;
+import springapi.models.databasemodels.ProductCategory;
 
 /**
  * Consolidated test class for ProductService.getCategoryPathsByIds. Fully compliant with Unit Test

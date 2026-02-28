@@ -1,12 +1,10 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Represents the pagination base response model component.
- */
+/** Represents the pagination base response model component. */
 @Getter
 @Setter
 public class PaginationBaseResponseModel<T> {

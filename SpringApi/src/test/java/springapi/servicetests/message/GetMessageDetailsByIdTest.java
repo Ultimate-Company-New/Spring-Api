@@ -1,17 +1,17 @@
-package com.example.springapi.ServiceTests.Message;
+package springapi.ServiceTests.Message;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.MessageController;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.responsemodels.MessageResponseModel;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.MessageController;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.responsemodels.MessageResponseModel;
 
 /** Unit tests for MessageService.getMessageDetailsById method. */
 @DisplayName("GetMessageDetailsById Tests")

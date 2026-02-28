@@ -1,10 +1,10 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.models.requestmodels.PackageRequestModel;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.responsemodels.PackageResponseModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
 import java.util.List;
+import springapi.models.requestmodels.PackageRequestModel;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.responsemodels.PackageResponseModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
 
 /**
  * Interface for Package operations and business logic. Provides methods for managing packages.
@@ -90,6 +90,6 @@ public interface PackageSubTranslator {
    * @param packages List of PackageRequestModel containing the package data to insert
    * @return BulkInsertResponseModel containing success/failure details for each package
    */
-  com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkCreatePackages(
+  springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkCreatePackages(
       java.util.List<PackageRequestModel> packages);
 }

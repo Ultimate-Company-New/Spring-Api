@@ -1,20 +1,5 @@
-package com.example.springapi.controllers;
+package springapi.controllers;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.exceptions.UnauthorizedException;
-import com.example.springapi.logging.ContextualLogger;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.requestmodels.CreateReturnRequestModel;
-import com.example.springapi.models.requestmodels.OrderOptimizationRequestModel;
-import com.example.springapi.models.requestmodels.ShippingCalculationRequestModel;
-import com.example.springapi.models.responsemodels.ErrorResponseModel;
-import com.example.springapi.models.responsemodels.OrderOptimizationResponseModel;
-import com.example.springapi.models.responsemodels.ReturnShipmentResponseModel;
-import com.example.springapi.models.responsemodels.ShippingCalculationResponseModel;
-import com.example.springapi.services.interfaces.ShippingSubTranslator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +12,21 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.exceptions.UnauthorizedException;
+import springapi.logging.ContextualLogger;
+import springapi.models.ApiRoutes;
+import springapi.models.Authorizations;
+import springapi.models.requestmodels.CreateReturnRequestModel;
+import springapi.models.requestmodels.OrderOptimizationRequestModel;
+import springapi.models.requestmodels.ShippingCalculationRequestModel;
+import springapi.models.responsemodels.ErrorResponseModel;
+import springapi.models.responsemodels.OrderOptimizationResponseModel;
+import springapi.models.responsemodels.ReturnShipmentResponseModel;
+import springapi.models.responsemodels.ShippingCalculationResponseModel;
+import springapi.services.interfaces.ShippingSubTranslator;
 
 /**
  * REST Controller for Shipping operations.
@@ -371,8 +371,7 @@ public class ShippingController {
   @PostMapping(ApiRoutes.ShipmentSubRoute.GET_SHIPMENTS_IN_BATCHES)
   public ResponseEntity<?> getShipmentsInBatches(
       @RequestBody
-          com.example.springapi.models.requestmodels.PaginationBaseRequestModel
-              paginationBaseRequestModel) {
+          springapi.models.requestmodels.PaginationBaseRequestModel paginationBaseRequestModel) {
     try {
       return ResponseEntity.ok(shippingService.getShipmentsInBatches(paginationBaseRequestModel));
     } catch (BadRequestException bre) {

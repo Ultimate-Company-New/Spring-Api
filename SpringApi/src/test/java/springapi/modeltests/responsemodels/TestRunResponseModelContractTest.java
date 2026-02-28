@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.ResponseModels;
+package springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class TestRunResponseModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.responsemodels.TestRunResponseModel.class)) {
+    if (hasNoArgConstructor(springapi.models.responsemodels.TestRunResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.responsemodels.TestRunResponseModel.class);
+              .constructType(springapi.models.responsemodels.TestRunResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,8 +62,7 @@ class TestRunResponseModelContractTest {
   void TestRunResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.responsemodels.TestRunResponseModel.class
-            .getDeclaredConstructors()) {
+        springapi.models.responsemodels.TestRunResponseModel.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -82,9 +79,9 @@ class TestRunResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.responsemodels.TestRunResponseModel createInstance() {
-    return (com.example.springapi.models.responsemodels.TestRunResponseModel)
-        instantiate(com.example.springapi.models.responsemodels.TestRunResponseModel.class);
+  private springapi.models.responsemodels.TestRunResponseModel createInstance() {
+    return (springapi.models.responsemodels.TestRunResponseModel)
+        instantiate(springapi.models.responsemodels.TestRunResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

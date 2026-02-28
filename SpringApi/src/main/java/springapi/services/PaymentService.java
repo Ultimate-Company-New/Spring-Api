@@ -1,26 +1,5 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.helpers.HtmlHelper;
-import com.example.springapi.helpers.PdfHelper;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.databasemodels.OrderSummary;
-import com.example.springapi.models.databasemodels.Payment;
-import com.example.springapi.models.databasemodels.PurchaseOrder;
-import com.example.springapi.models.requestmodels.CashPaymentRequestModel;
-import com.example.springapi.models.requestmodels.RazorpayOrderRequestModel;
-import com.example.springapi.models.requestmodels.RazorpayVerifyRequestModel;
-import com.example.springapi.models.responsemodels.PaymentVerificationResponseModel;
-import com.example.springapi.models.responsemodels.RazorpayOrderResponseModel;
-import com.example.springapi.repositories.ClientRepository;
-import com.example.springapi.repositories.OrderSummaryRepository;
-import com.example.springapi.repositories.PaymentRepository;
-import com.example.springapi.repositories.PurchaseOrderRepository;
-import com.example.springapi.services.interfaces.PaymentSubTranslator;
 import com.itextpdf.text.DocumentException;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
@@ -46,6 +25,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import springapi.ErrorMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.helpers.HtmlHelper;
+import springapi.helpers.PdfHelper;
+import springapi.models.ApiRoutes;
+import springapi.models.databasemodels.Client;
+import springapi.models.databasemodels.OrderSummary;
+import springapi.models.databasemodels.Payment;
+import springapi.models.databasemodels.PurchaseOrder;
+import springapi.models.requestmodels.CashPaymentRequestModel;
+import springapi.models.requestmodels.RazorpayOrderRequestModel;
+import springapi.models.requestmodels.RazorpayVerifyRequestModel;
+import springapi.models.responsemodels.PaymentVerificationResponseModel;
+import springapi.models.responsemodels.RazorpayOrderResponseModel;
+import springapi.repositories.ClientRepository;
+import springapi.repositories.OrderSummaryRepository;
+import springapi.repositories.PaymentRepository;
+import springapi.repositories.PurchaseOrderRepository;
+import springapi.services.interfaces.PaymentSubTranslator;
 
 /**
  * Service for handling Razorpay payment operations. Manages order creation, payment verification,.
@@ -73,9 +73,7 @@ public class PaymentService extends BaseService implements PaymentSubTranslator 
   private static final String JSON_FIELD_CURRENCY = "currency";
   private static final String JSON_FIELD_NOTES = "notes";
 
-  /**
-   * Initializes PaymentService.
-   */
+  /** Initializes PaymentService. */
   @Autowired
   public PaymentService(
       PurchaseOrderRepository purchaseOrderRepository,

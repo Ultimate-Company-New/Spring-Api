@@ -1,12 +1,5 @@
-package com.example.springapi.authentication;
+package springapi.authentication;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.PermissionException;
-import com.example.springapi.logging.ContextualLogger;
-import com.example.springapi.models.databasemodels.Permission;
-import com.example.springapi.models.databasemodels.UserClientMapping;
-import com.example.springapi.repositories.PermissionRepository;
-import com.example.springapi.repositories.UserClientMappingRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +9,13 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import springapi.ErrorMessages;
+import springapi.exceptions.PermissionException;
+import springapi.logging.ContextualLogger;
+import springapi.models.databasemodels.Permission;
+import springapi.models.databasemodels.UserClientMapping;
+import springapi.repositories.PermissionRepository;
+import springapi.repositories.UserClientMappingRepository;
 
 /** Handles JWT-backed authorization and permission checks. */
 @Service("customAuthorization")
@@ -27,9 +27,7 @@ public class Authorization {
   private final PermissionRepository permissionRepository;
   private final UserClientMappingRepository userClientMappingRepository;
 
-  /**
-   * Initializes Authorization.
-   */
+  /** Initializes Authorization. */
   @Autowired
   public Authorization(
       HttpServletRequest request,
@@ -62,17 +60,16 @@ public class Authorization {
     }
 
     // Check if user is part of the client mapping
-    List<UserClientMapping> mapping = userClientMappingRepository.findByUserIdsAndClientId(
-        Collections.singletonList(userId), clientId);
+    List<UserClientMapping> mapping =
+        userClientMappingRepository.findByUserIdsAndClientId(
+            Collections.singletonList(userId), clientId);
     if (mapping == null || mapping.isEmpty()) {
       logger.error(permissionException);
       throw permissionException;
     }
   }
 
-  /**
-   * Checks whether it has authority.
-   */
+  /** Checks whether it has authority. */
   public boolean hasAuthority(String userPermission) {
     validateToken();
     if (userPermission == null || userPermission.isEmpty()) {
@@ -87,15 +84,14 @@ public class Authorization {
     return true;
   }
 
-  /**
-   * Checks whether allowed.
-   */
+  /** Checks whether allowed. */
   public boolean isAllowed(String userPermission, List<Long> permissionIds) {
     if (permissionIds != null && !permissionIds.isEmpty()) {
       List<Permission> permissions = permissionRepository.findAllById(permissionIds);
-      SortedSet<String> userPermissionCodes = permissions.stream()
-          .map(Permission::getPermissionCode)
-          .collect(Collectors.toCollection(TreeSet::new));
+      SortedSet<String> userPermissionCodes =
+          permissions.stream()
+              .map(Permission::getPermissionCode)
+              .collect(Collectors.toCollection(TreeSet::new));
       String[] requiredPermissions = userPermission.split(",");
       for (String perm : requiredPermissions) {
         if (!userPermissionCodes.contains(perm.trim())) {

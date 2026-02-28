@@ -1,18 +1,18 @@
-package com.example.springapi.ServiceTests.Todo;
+package springapi.ServiceTests.Todo;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.databasemodels.Todo;
-import com.example.springapi.models.responsemodels.TodoResponseModel;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.models.databasemodels.Todo;
+import springapi.models.responsemodels.TodoResponseModel;
 
 /** Test class for TodoService.getTodoItems method. */
 @DisplayName("TodoService - GetTodoItems Tests")

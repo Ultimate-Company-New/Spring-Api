@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.RequestModels;
+package springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class OrderOptimizationRequestModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.requestmodels.OrderOptimizationRequestModel.class)) {
+    if (hasNoArgConstructor(springapi.models.requestmodels.OrderOptimizationRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.requestmodels.OrderOptimizationRequestModel.class);
+              .constructType(springapi.models.requestmodels.OrderOptimizationRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +62,7 @@ class OrderOptimizationRequestModelContractTest {
   void OrderOptimizationRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.requestmodels.OrderOptimizationRequestModel.class
+        springapi.models.requestmodels.OrderOptimizationRequestModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,10 +80,9 @@ class OrderOptimizationRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.requestmodels.OrderOptimizationRequestModel
-      createInstance() {
-    return (com.example.springapi.models.requestmodels.OrderOptimizationRequestModel)
-        instantiate(com.example.springapi.models.requestmodels.OrderOptimizationRequestModel.class);
+  private springapi.models.requestmodels.OrderOptimizationRequestModel createInstance() {
+    return (springapi.models.requestmodels.OrderOptimizationRequestModel)
+        instantiate(springapi.models.requestmodels.OrderOptimizationRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

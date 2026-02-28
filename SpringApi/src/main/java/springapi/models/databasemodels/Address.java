@@ -1,8 +1,5 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.requestmodels.AddressRequestModel;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -19,10 +16,11 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.models.requestmodels.AddressRequestModel;
 
-/**
- * Represents the address component.
- */
+/** Represents the address component. */
 @Getter
 @Setter
 @Entity
@@ -126,9 +124,7 @@ public class Address {
   public Address() {}
 
   // Constructor for creating new address
-  /**
-   * Executes address.
-   */
+  /** Executes address. */
   public Address(AddressRequestModel request, String createdUser) {
     validateRequest(request);
     validateUser(createdUser);
@@ -139,9 +135,7 @@ public class Address {
   }
 
   // Constructor for updating existing address
-  /**
-   * Executes address.
-   */
+  /** Executes address. */
   public Address(AddressRequestModel request, String modifiedUser, Address existingAddress) {
     validateRequest(request);
     validateUser(modifiedUser);
@@ -155,9 +149,7 @@ public class Address {
     this.modifiedUser = modifiedUser; // When updating, use the provided modified user
   }
 
-  /**
-   * Validates request.
-   */
+  /** Validates request. */
   public void validateRequest(AddressRequestModel request) {
     if (request == null) {
       throw new BadRequestException(ErrorMessages.AddressErrorMessages.ER001);

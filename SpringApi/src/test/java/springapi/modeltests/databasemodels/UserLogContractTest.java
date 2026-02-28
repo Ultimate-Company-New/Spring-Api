@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.DatabaseModels;
+package springapi.ModelTests.DatabaseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,9 @@ class UserLogContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.springapi.models.databasemodels.UserLog.class)) {
+    if (hasNoArgConstructor(springapi.models.databasemodels.UserLog.class)) {
       JavaType jacksonType =
-          jackson
-              .getTypeFactory()
-              .constructType(com.example.springapi.models.databasemodels.UserLog.class);
+          jackson.getTypeFactory().constructType(springapi.models.databasemodels.UserLog.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +60,7 @@ class UserLogContractTest {
   void UserLog_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.databasemodels.UserLog.class.getDeclaredConstructors()) {
+        springapi.models.databasemodels.UserLog.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -79,9 +77,9 @@ class UserLogContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.databasemodels.UserLog createInstance() {
-    return (com.example.springapi.models.databasemodels.UserLog)
-        instantiate(com.example.springapi.models.databasemodels.UserLog.class);
+  private springapi.models.databasemodels.UserLog createInstance() {
+    return (springapi.models.databasemodels.UserLog)
+        instantiate(springapi.models.databasemodels.UserLog.class);
   }
 
   private Object instantiate(Class<?> clazz) {

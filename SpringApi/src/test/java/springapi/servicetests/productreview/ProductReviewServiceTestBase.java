@@ -1,4 +1,4 @@
-package com.example.springapi.ServiceTests.ProductReview;
+package springapi.ServiceTests.ProductReview;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -7,14 +7,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.models.databasemodels.ProductReview;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.ProductReviewRequestModel;
-import com.example.springapi.repositories.ProductReviewRepository;
-import com.example.springapi.services.ProductReviewService;
-import com.example.springapi.services.UserLogService;
-import com.example.springapi.services.interfaces.ProductReviewSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +16,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import springapi.authentication.JwtTokenProvider;
+import springapi.models.databasemodels.ProductReview;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.ProductReviewRequestModel;
+import springapi.repositories.ProductReviewRepository;
+import springapi.services.ProductReviewService;
+import springapi.services.UserLogService;
+import springapi.services.interfaces.ProductReviewSubTranslator;
 
 /**
  * Base test class for ProductReviewService tests. Provides common setup, test data, and helper
@@ -37,7 +37,7 @@ abstract class ProductReviewServiceTestBase {
   @Mock protected UserLogService userLogService;
 
   @Mock
-  protected com.example.springapi.filterquerybuilder.ProductReviewFilterQueryBuilder
+  protected springapi.filterquerybuilder.ProductReviewFilterQueryBuilder
       productReviewFilterQueryBuilder;
 
   @Mock protected HttpServletRequest request;
@@ -170,8 +170,8 @@ abstract class ProductReviewServiceTestBase {
   protected void stubProductReviewServiceInsertProductReviewThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(productReviewServiceMock)
         .insertProductReview(any(ProductReviewRequestModel.class));
   }
@@ -180,8 +180,8 @@ abstract class ProductReviewServiceTestBase {
       stubProductReviewServiceGetProductReviewsInBatchesGivenProductIdThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(productReviewServiceMock)
         .getProductReviewsInBatchesGivenProductId(any(PaginationBaseRequestModel.class), anyLong());
   }
@@ -189,8 +189,8 @@ abstract class ProductReviewServiceTestBase {
   protected void stubProductReviewServiceToggleProductReviewThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(productReviewServiceMock)
         .toggleProductReview(anyLong());
   }
@@ -198,8 +198,8 @@ abstract class ProductReviewServiceTestBase {
   protected void stubProductReviewServiceSetProductReviewScoreThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(productReviewServiceMock)
         .setProductReviewScore(anyLong(), anyBoolean());
   }

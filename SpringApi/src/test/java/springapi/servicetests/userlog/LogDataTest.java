@@ -1,13 +1,13 @@
-package com.example.springapi.ServiceTests.UserLog;
+package springapi.ServiceTests.UserLog;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.models.databasemodels.UserLog;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import springapi.ErrorMessages;
+import springapi.models.databasemodels.UserLog;
 
 /** Unit tests for UserLogService.logData methods. */
 @DisplayName("UserLogService - LogData Tests")
@@ -569,13 +569,12 @@ class LogDataTest extends UserLogServiceTestBase {
   @DisplayName("logData - Controller permission forbidden")
   void logData_p01_controller_permission_forbidden() throws NoSuchMethodException {
     // Arrange
-    com.example.springapi.models.requestmodels.UserLogsRequestModel request =
-        new com.example.springapi.models.requestmodels.UserLogsRequestModel();
+    springapi.models.requestmodels.UserLogsRequestModel request =
+        new springapi.models.requestmodels.UserLogsRequestModel();
     stubServiceThrowsUnauthorizedException();
     java.lang.reflect.Method method =
-        com.example.springapi.controllers.UserLogController.class.getMethod(
-            "fetchUserLogsInBatches",
-            com.example.springapi.models.requestmodels.UserLogsRequestModel.class);
+        springapi.controllers.UserLogController.class.getMethod(
+            "fetchUserLogsInBatches", springapi.models.requestmodels.UserLogsRequestModel.class);
 
     // Act
     org.springframework.http.ResponseEntity<?> response =
@@ -588,9 +587,7 @@ class LogDataTest extends UserLogServiceTestBase {
     assertNotNull(
         annotation, "@PreAuthorize annotation should be present on fetchUserLogsInBatches method");
     assertTrue(
-        annotation
-            .value()
-            .contains(com.example.springapi.models.Authorizations.VIEW_USER_PERMISSION),
+        annotation.value().contains(springapi.models.Authorizations.VIEW_USER_PERMISSION),
         "@PreAuthorize annotation should check for VIEW_USER_PERMISSION");
   }
 
@@ -628,10 +625,10 @@ class LogDataTest extends UserLogServiceTestBase {
   @DisplayName("logData - Controller delegates to service correctly")
   void logData_p04_controller_delegation_success() {
     // Arrange
-    com.example.springapi.models.requestmodels.UserLogsRequestModel request =
-        new com.example.springapi.models.requestmodels.UserLogsRequestModel();
+    springapi.models.requestmodels.UserLogsRequestModel request =
+        new springapi.models.requestmodels.UserLogsRequestModel();
     stubUserLogServiceFetchUserLogsInBatchesMock(
-        request, new com.example.springapi.models.responsemodels.PaginationBaseResponseModel<>());
+        request, new springapi.models.responsemodels.PaginationBaseResponseModel<>());
 
     // Act
     org.springframework.http.ResponseEntity<?> response =

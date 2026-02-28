@@ -1,7 +1,5 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
-import com.example.springapi.models.databasemodels.ReturnShipment;
-import com.example.springapi.models.databasemodels.ReturnShipmentProduct;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -9,6 +7,8 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.Hibernate;
+import springapi.models.databasemodels.ReturnShipment;
+import springapi.models.databasemodels.ReturnShipmentProduct;
 
 /**
  * Response model for ReturnShipment data. Used to return return shipment information in API.
@@ -99,9 +99,7 @@ public class ReturnShipmentResponseModel {
 
     public ReturnProductResponseModel() {}
 
-    /**
-     * Executes return product response model.
-     */
+    /** Executes return product response model. */
     public ReturnProductResponseModel(ReturnShipmentProduct rsp) {
       this.returnShipmentProductId = rsp.getReturnShipmentProductId();
       this.productId = rsp.getProductId();

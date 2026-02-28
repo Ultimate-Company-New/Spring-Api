@@ -1,20 +1,20 @@
-package com.example.springapi.ServiceTests.Address;
+package springapi.ServiceTests.Address;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.AddressController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.databasemodels.Address;
-import com.example.springapi.models.requestmodels.AddressRequestModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.AddressController;
+import springapi.exceptions.BadRequestException;
+import springapi.models.Authorizations;
+import springapi.models.databasemodels.Address;
+import springapi.models.requestmodels.AddressRequestModel;
 
 /** Unit tests for AddressService insert functionality. Tests for: InsertAddressTests (68 tests) */
 @DisplayName("Insert Address Tests")
@@ -416,8 +416,8 @@ class InsertAddressTest extends AddressServiceTestBase {
     verify(userLogService)
         .logData(
             eq(DEFAULT_USER_ID),
-            contains(com.example.springapi.SuccessMessages.AddressSuccessMessages.INSERT_ADDRESS),
-            eq(com.example.springapi.models.ApiRoutes.AddressSubRoute.INSERT_ADDRESS));
+            contains(springapi.SuccessMessages.AddressSuccessMessages.INSERT_ADDRESS),
+            eq(springapi.models.ApiRoutes.AddressSubRoute.INSERT_ADDRESS));
   }
 
   /**
@@ -1247,7 +1247,7 @@ class InsertAddressTest extends AddressServiceTestBase {
     // Arrange
     var method =
         AddressController.class.getMethod(
-            "createAddress", com.example.springapi.models.requestmodels.AddressRequestModel.class);
+            "createAddress", springapi.models.requestmodels.AddressRequestModel.class);
     stubServiceInsertAddressDoNothing();
 
     // Act

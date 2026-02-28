@@ -1,51 +1,5 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.SuccessMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.constants.EntityType;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.filterquerybuilder.PurchaseOrderFilterQueryBuilder;
-import com.example.springapi.helpers.BulkInsertHelper;
-import com.example.springapi.helpers.HtmlHelper;
-import com.example.springapi.helpers.ImgbbHelper;
-import com.example.springapi.helpers.PdfHelper;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.databasemodels.Address;
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.databasemodels.Lead;
-import com.example.springapi.models.databasemodels.OrderSummary;
-import com.example.springapi.models.databasemodels.Payment;
-import com.example.springapi.models.databasemodels.Product;
-import com.example.springapi.models.databasemodels.PurchaseOrder;
-import com.example.springapi.models.databasemodels.Resources;
-import com.example.springapi.models.databasemodels.Shipment;
-import com.example.springapi.models.databasemodels.ShipmentPackage;
-import com.example.springapi.models.databasemodels.ShipmentPackageProduct;
-import com.example.springapi.models.databasemodels.ShipmentProduct;
-import com.example.springapi.models.databasemodels.User;
-import com.example.springapi.models.dtos.AddressDuplicateCriteria;
-import com.example.springapi.models.dtos.PurchaseOrderWithDetails;
-import com.example.springapi.models.requestmodels.AddressRequestModel;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.PurchaseOrderProductItem;
-import com.example.springapi.models.requestmodels.PurchaseOrderRequestModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.PurchaseOrderResponseModel;
-import com.example.springapi.repositories.AddressRepository;
-import com.example.springapi.repositories.ClientRepository;
-import com.example.springapi.repositories.LeadRepository;
-import com.example.springapi.repositories.OrderSummaryRepository;
-import com.example.springapi.repositories.PaymentRepository;
-import com.example.springapi.repositories.PurchaseOrderRepository;
-import com.example.springapi.repositories.ResourcesRepository;
-import com.example.springapi.repositories.ShipmentPackageProductRepository;
-import com.example.springapi.repositories.ShipmentPackageRepository;
-import com.example.springapi.repositories.ShipmentProductRepository;
-import com.example.springapi.repositories.ShipmentRepository;
-import com.example.springapi.repositories.UserRepository;
-import com.example.springapi.services.interfaces.PurchaseOrderSubTranslator;
 import com.itextpdf.text.DocumentException;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -72,6 +26,52 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import springapi.ErrorMessages;
+import springapi.SuccessMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.constants.EntityType;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.filterquerybuilder.PurchaseOrderFilterQueryBuilder;
+import springapi.helpers.BulkInsertHelper;
+import springapi.helpers.HtmlHelper;
+import springapi.helpers.ImgbbHelper;
+import springapi.helpers.PdfHelper;
+import springapi.models.ApiRoutes;
+import springapi.models.databasemodels.Address;
+import springapi.models.databasemodels.Client;
+import springapi.models.databasemodels.Lead;
+import springapi.models.databasemodels.OrderSummary;
+import springapi.models.databasemodels.Payment;
+import springapi.models.databasemodels.Product;
+import springapi.models.databasemodels.PurchaseOrder;
+import springapi.models.databasemodels.Resources;
+import springapi.models.databasemodels.Shipment;
+import springapi.models.databasemodels.ShipmentPackage;
+import springapi.models.databasemodels.ShipmentPackageProduct;
+import springapi.models.databasemodels.ShipmentProduct;
+import springapi.models.databasemodels.User;
+import springapi.models.dtos.AddressDuplicateCriteria;
+import springapi.models.dtos.PurchaseOrderWithDetails;
+import springapi.models.requestmodels.AddressRequestModel;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.PurchaseOrderProductItem;
+import springapi.models.requestmodels.PurchaseOrderRequestModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.PurchaseOrderResponseModel;
+import springapi.repositories.AddressRepository;
+import springapi.repositories.ClientRepository;
+import springapi.repositories.LeadRepository;
+import springapi.repositories.OrderSummaryRepository;
+import springapi.repositories.PaymentRepository;
+import springapi.repositories.PurchaseOrderRepository;
+import springapi.repositories.ResourcesRepository;
+import springapi.repositories.ShipmentPackageProductRepository;
+import springapi.repositories.ShipmentPackageRepository;
+import springapi.repositories.ShipmentProductRepository;
+import springapi.repositories.ShipmentRepository;
+import springapi.repositories.UserRepository;
+import springapi.services.interfaces.PurchaseOrderSubTranslator;
 
 /**
  * Service implementation for PurchaseOrder operations.
@@ -103,9 +103,7 @@ public class PurchaseOrderService extends BaseService implements PurchaseOrderSu
   private final PurchaseOrderFilterQueryBuilder purchaseOrderFilterQueryBuilder;
   private final MessageService messageService;
 
-  /**
-   * Initializes PurchaseOrderService.
-   */
+  /** Initializes PurchaseOrderService. */
   @Autowired
   public PurchaseOrderService(
       PurchaseOrderRepository purchaseOrderRepository,
@@ -595,7 +593,7 @@ public class PurchaseOrderService extends BaseService implements PurchaseOrderSu
       for (Payment payment : payments) {
         responseModel
             .getPayments()
-            .add(new com.example.springapi.models.responsemodels.PaymentResponseModel(payment));
+            .add(new springapi.models.responsemodels.PaymentResponseModel(payment));
       }
     }
 
@@ -1062,8 +1060,8 @@ public class PurchaseOrderService extends BaseService implements PurchaseOrderSu
                 ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Purchase order"));
       }
 
-      com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
-          new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
+      springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
+          new springapi.models.responsemodels.BulkInsertResponseModel<>();
       response.setTotalRequested(purchaseOrders.size());
 
       int successCount = 0;
@@ -1125,8 +1123,8 @@ public class PurchaseOrderService extends BaseService implements PurchaseOrderSu
 
     } catch (Exception e) {
       // Still send a message to user about the failure (using captured userId)
-      com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> errorResponse =
-          new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
+      springapi.models.responsemodels.BulkInsertResponseModel<Long> errorResponse =
+          new springapi.models.responsemodels.BulkInsertResponseModel<>();
       errorResponse.setTotalRequested(purchaseOrders != null ? purchaseOrders.size() : 0);
       errorResponse.setSuccessCount(0);
       errorResponse.setFailureCount(purchaseOrders != null ? purchaseOrders.size() : 0);

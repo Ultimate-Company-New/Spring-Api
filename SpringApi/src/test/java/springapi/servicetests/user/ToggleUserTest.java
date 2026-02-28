@@ -1,20 +1,20 @@
-package com.example.springapi.ServiceTests.User;
+package springapi.ServiceTests.User;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.UserController;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.databasemodels.User;
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import springapi.ErrorMessages;
+import springapi.controllers.UserController;
+import springapi.exceptions.NotFoundException;
+import springapi.models.Authorizations;
+import springapi.models.databasemodels.User;
 
 /** Unit tests for UserService.toggleUser method. */
 @DisplayName("UserService - ToggleUser Tests")

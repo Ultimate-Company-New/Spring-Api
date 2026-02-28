@@ -1,14 +1,10 @@
-package com.example.springapi.models;
+package springapi.models;
 
-/**
- * Represents the api routes component.
- */
+/** Represents the api routes component. */
 public class ApiRoutes {
   private ApiRoutes() {}
 
-  /**
-   * Represents the api controller names component.
-   */
+  /** Represents the api controller names component. */
   public static class ApiControllerNames {
     private ApiControllerNames() {}
 
@@ -43,9 +39,7 @@ public class ApiRoutes {
     public static final String DATA = "Data";
   }
 
-  /**
-   * Represents the event sub route component.
-   */
+  /** Represents the event sub route component. */
   public static class EventSubRoute {
     private EventSubRoute() {}
 
@@ -57,9 +51,7 @@ public class ApiRoutes {
     public static final String GET_EVENT_DETAILS_BY_ID = "getEventDetailsById";
   }
 
-  /**
-   * Represents the support sub route component.
-   */
+  /** Represents the support sub route component. */
   public static class SupportSubRoute {
     private SupportSubRoute() {}
 
@@ -81,9 +73,7 @@ public class ApiRoutes {
     public static final String GET_ATTACHMENT_FROM_TICKET = "getAttachmentFromTicket";
   }
 
-  /**
-   * Represents the address sub route component.
-   */
+  /** Represents the address sub route component. */
   public static class AddressSubRoute {
     private AddressSubRoute() {}
 
@@ -95,9 +85,7 @@ public class ApiRoutes {
     public static final String GET_ADDRESS_BY_ID = "getAddressById";
   }
 
-  /**
-   * Represents the client sub route component.
-   */
+  /** Represents the client sub route component. */
   public static class ClientSubRoute {
     private ClientSubRoute() {}
 
@@ -114,9 +102,7 @@ public class ApiRoutes {
     public static final String GET_CLIENTS_BY_USER = "getClientsByUser";
   }
 
-  /**
-   * Represents the user sub route component.
-   */
+  /** Represents the user sub route component. */
   public static class UserSubRoute {
     private UserSubRoute() {}
 
@@ -128,9 +114,7 @@ public class ApiRoutes {
     public static final String CONFIRM_EMAIL = "confirmEmail";
   }
 
-  /**
-   * Represents the carriers sub route component.
-   */
+  /** Represents the carriers sub route component. */
   public static class CarriersSubRoute {
     private CarriersSubRoute() {}
 
@@ -154,9 +138,7 @@ public class ApiRoutes {
     public static final String GET_TOKEN_FOR_WEBTEMPLATE = "getTokenForWebTemplate";
   }
 
-  /**
-   * Represents the package sub route component.
-   */
+  /** Represents the package sub route component. */
   public static class PackageSubRoute {
     private PackageSubRoute() {}
 
@@ -174,9 +156,7 @@ public class ApiRoutes {
     public static final String GET_PACKAGES_BY_PICKUP_LOCATION_ID = "getPackagesByPickupLocationId";
   }
 
-  /**
-   * Represents the user group sub route component.
-   */
+  /** Represents the user group sub route component. */
   public static class UserGroupSubRoute {
     private UserGroupSubRoute() {}
 
@@ -195,9 +175,7 @@ public class ApiRoutes {
     public static final String GET_USER_GROUP_IDS_BY_USERID = "getUserGroupIdsByUserId";
   }
 
-  /**
-   * Represents the login sub route component.
-   */
+  /** Represents the login sub route component. */
   public static class LoginSubRoute {
     private LoginSubRoute() {}
 
@@ -213,9 +191,7 @@ public class ApiRoutes {
     public static final String GET_TOKEN = "getToken";
   }
 
-  /**
-   * Represents the messages sub route component.
-   */
+  /** Represents the messages sub route component. */
   public static class MessagesSubRoute {
     private MessagesSubRoute() {}
 
@@ -237,9 +213,7 @@ public class ApiRoutes {
     public static final String GET_UNREAD_MESSAGE_COUNT = "getUnreadMessageCount";
   }
 
-  /**
-   * Enumerates orders sub route values.
-   */
+  /** Enumerates orders sub route values. */
   public enum OrdersSubRoute {
     GET_ORDERS_IN_BATCHES,
     PLACE_ORDER,
@@ -258,9 +232,7 @@ public class ApiRoutes {
     ON_PAYMENT_SUCCESS_PB
   }
 
-  /**
-   * Represents the payments sub route component.
-   */
+  /** Represents the payments sub route component. */
   public static class PaymentsSubRoute {
     private PaymentsSubRoute() {}
 
@@ -272,9 +244,7 @@ public class ApiRoutes {
     public static final String GET_REFUNDS_QUEUE = "getRefundsQueue";
   }
 
-  /**
-   * Represents the pickup locations sub route component.
-   */
+  /** Represents the pickup locations sub route component. */
   public static class PickupLocationsSubRoute {
     private PickupLocationsSubRoute() {}
 
@@ -292,9 +262,7 @@ public class ApiRoutes {
     public static final String GET_PICKUP_LOCATION_BY_ID = "getPickupLocationById";
   }
 
-  /**
-   * Represents the product category sub route component.
-   */
+  /** Represents the product category sub route component. */
   public static class ProductCategorySubRoute {
     private ProductCategorySubRoute() {}
 
@@ -306,9 +274,7 @@ public class ApiRoutes {
     public static final String GET_CATEGORY_PATHS_BY_IDS = "getCategoryPathsByIds";
   }
 
-  /**
-   * Represents the products sub route component.
-   */
+  /** Represents the products sub route component. */
   public static class ProductsSubRoute {
     private ProductsSubRoute() {}
 
@@ -341,9 +307,7 @@ public class ApiRoutes {
     public static final String GET_PRODUCT_DETAILS_BY_ID_PUBLIC = "getProductDetailsById_Public";
   }
 
-  /**
-   * Represents the promos sub route component.
-   */
+  /** Represents the promos sub route component. */
   public static class PromosSubRoute {
     private PromosSubRoute() {}
 
@@ -360,18 +324,14 @@ public class ApiRoutes {
     public static final String GET_PROMO_DETAILS_BY_NAME = "getPromoDetailsByName";
   }
 
-  /**
-   * Represents the user log sub route component.
-   */
+  /** Represents the user log sub route component. */
   public static class UserLogSubRoute {
     private UserLogSubRoute() {}
 
     public static final String GET_USER_LOGS_IN_BATCHES_BY_USERID = "getUserLogsInBatchesByUserId";
   }
 
-  /**
-   * Represents the grid sub route component.
-   */
+  /** Represents the grid sub route component. */
   public static class GridSubRoute {
     private GridSubRoute() {}
 
@@ -382,9 +342,7 @@ public class ApiRoutes {
     public static final String GET_GRID_VISIBILITY_PREFERENCE = "getGridVisibilityPreference";
   }
 
-  /**
-   * Represents the users sub route component.
-   */
+  /** Represents the users sub route component. */
   public static class UsersSubRoute {
     private UsersSubRoute() {}
 
@@ -412,9 +370,7 @@ public class ApiRoutes {
     public static final String GET_USER_BY_EMAIL_PB = "getUserByEmail_Pb";
   }
 
-  /**
-   * Represents the permissions sub route component.
-   */
+  /** Represents the permissions sub route component. */
   public static class PermissionsSubRoute {
     private PermissionsSubRoute() {}
 
@@ -423,9 +379,7 @@ public class ApiRoutes {
     public static final String FETCH_PERMISSION_BY_ID = "FetchPermissionById";
   }
 
-  /**
-   * Represents the todo sub route component.
-   */
+  /** Represents the todo sub route component. */
   public static class TodoSubRoute {
     private TodoSubRoute() {}
 
@@ -436,9 +390,7 @@ public class ApiRoutes {
     public static final String GET_ITEMS = "getItems";
   }
 
-  /**
-   * Represents the leads sub route component.
-   */
+  /** Represents the leads sub route component. */
   public static class LeadsSubRoute {
     private LeadsSubRoute() {}
 
@@ -456,9 +408,7 @@ public class ApiRoutes {
     public static final String TOGGLE_LEAD = "toggleLead";
   }
 
-  /**
-   * Represents the purchase order sub route component.
-   */
+  /** Represents the purchase order sub route component. */
   public static class PurchaseOrderSubRoute {
     private PurchaseOrderSubRoute() {}
 
@@ -478,9 +428,7 @@ public class ApiRoutes {
     public static final String GET_PURCHASE_ORDER_PDF = "getPurchaseOrderPdf";
   }
 
-  /**
-   * Represents the shipping sub route component.
-   */
+  /** Represents the shipping sub route component. */
   public static class ShippingSubRoute {
     private ShippingSubRoute() {}
 
@@ -493,9 +441,7 @@ public class ApiRoutes {
     public static final String GET_WALLET_BALANCE = "getWalletBalance";
   }
 
-  /**
-   * Represents the shipment sub route component.
-   */
+  /** Represents the shipment sub route component. */
   public static class ShipmentSubRoute {
     private ShipmentSubRoute() {}
 
@@ -508,9 +454,7 @@ public class ApiRoutes {
     public static final String GET_SHIPMENT_BY_ID = "getShipmentById";
   }
 
-  /**
-   * Represents the web template sub route component.
-   */
+  /** Represents the web template sub route component. */
   public static class WebTemplateSubRoute {
     private WebTemplateSubRoute() {}
 
@@ -532,9 +476,7 @@ public class ApiRoutes {
     public static final String GET_WEB_TEMPLATE_BY_WILDCARD = "getWebTemplateByWildCard";
   }
 
-  /**
-   * Represents the product review sub route component.
-   */
+  /** Represents the product review sub route component. */
   public static class ProductReviewSubRoute {
     private ProductReviewSubRoute() {}
 
@@ -545,9 +487,7 @@ public class ApiRoutes {
     public static final String SET_PRODUCT_REVIEW_SCORE = "setProductReviewScore";
   }
 
-  /**
-   * Represents the data sub route component.
-   */
+  /** Represents the data sub route component. */
   public static class DataSubRoute {
     private DataSubRoute() {}
 
@@ -567,9 +507,7 @@ public class ApiRoutes {
     public static final String FIND_CATEGORIES_WITHOUT_CHILDREN = "findCategoriesWithoutChildren";
   }
 
-  /**
-   * Represents the bulk sub route component.
-   */
+  /** Represents the bulk sub route component. */
   public static class BulkSubRoute {
     private BulkSubRoute() {}
 

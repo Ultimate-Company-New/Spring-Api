@@ -1,20 +1,8 @@
-package com.example.springapi.ServiceTests.Payment;
+package springapi.ServiceTests.Payment;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.lenient;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.PaymentController;
-import com.example.springapi.exceptions.UnauthorizedException;
-import com.example.springapi.models.databasemodels.*;
-import com.example.springapi.models.requestmodels.CashPaymentRequestModel;
-import com.example.springapi.models.requestmodels.RazorpayOrderRequestModel;
-import com.example.springapi.models.requestmodels.RazorpayVerifyRequestModel;
-import com.example.springapi.models.responsemodels.PaymentVerificationResponseModel;
-import com.example.springapi.models.responsemodels.RazorpayOrderResponseModel;
-import com.example.springapi.repositories.*;
-import com.example.springapi.services.PaymentService;
-import com.example.springapi.services.UserLogService;
 import com.razorpay.OrderClient;
 import com.razorpay.PaymentClient;
 import com.razorpay.RazorpayClient;
@@ -35,6 +23,18 @@ import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
+import springapi.ErrorMessages;
+import springapi.controllers.PaymentController;
+import springapi.exceptions.UnauthorizedException;
+import springapi.models.databasemodels.*;
+import springapi.models.requestmodels.CashPaymentRequestModel;
+import springapi.models.requestmodels.RazorpayOrderRequestModel;
+import springapi.models.requestmodels.RazorpayVerifyRequestModel;
+import springapi.models.responsemodels.PaymentVerificationResponseModel;
+import springapi.models.responsemodels.RazorpayOrderResponseModel;
+import springapi.repositories.*;
+import springapi.services.PaymentService;
+import springapi.services.UserLogService;
 
 /**
  * Base class for PaymentService tests.

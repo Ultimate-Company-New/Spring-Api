@@ -1,30 +1,10 @@
-package com.example.springapi.ServiceTests.Login;
+package springapi.ServiceTests.Login;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.authentication.Authorization;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.controllers.LoginController;
-import com.example.springapi.helpers.EmailTemplates;
-import com.example.springapi.helpers.PasswordHelper;
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.databasemodels.GoogleCred;
-import com.example.springapi.models.databasemodels.User;
-import com.example.springapi.models.databasemodels.UserClientMapping;
-import com.example.springapi.models.requestmodels.LoginRequestModel;
-import com.example.springapi.models.requestmodels.UserRequestModel;
-import com.example.springapi.repositories.ClientRepository;
-import com.example.springapi.repositories.GoogleCredRepository;
-import com.example.springapi.repositories.UserClientMappingRepository;
-import com.example.springapi.repositories.UserClientPermissionMappingRepository;
-import com.example.springapi.repositories.UserRepository;
-import com.example.springapi.services.LoginService;
-import com.example.springapi.services.UserLogService;
-import com.example.springapi.services.interfaces.LoginSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -40,6 +20,26 @@ import org.springframework.core.env.Environment;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import springapi.ErrorMessages;
+import springapi.authentication.Authorization;
+import springapi.authentication.JwtTokenProvider;
+import springapi.controllers.LoginController;
+import springapi.helpers.EmailTemplates;
+import springapi.helpers.PasswordHelper;
+import springapi.models.databasemodels.Client;
+import springapi.models.databasemodels.GoogleCred;
+import springapi.models.databasemodels.User;
+import springapi.models.databasemodels.UserClientMapping;
+import springapi.models.requestmodels.LoginRequestModel;
+import springapi.models.requestmodels.UserRequestModel;
+import springapi.repositories.ClientRepository;
+import springapi.repositories.GoogleCredRepository;
+import springapi.repositories.UserClientMappingRepository;
+import springapi.repositories.UserClientPermissionMappingRepository;
+import springapi.repositories.UserRepository;
+import springapi.services.LoginService;
+import springapi.services.UserLogService;
+import springapi.services.interfaces.LoginSubTranslator;
 
 /**
  * Base class for LoginService test classes.
@@ -297,8 +297,7 @@ abstract class LoginServiceTestBase {
 
   /** Stub userClientPermissionMappingRepository.findClientPermissionMappingByUserId. */
   protected void stubUserClientPermissionMappingByUserId(
-      Long userId,
-      List<com.example.springapi.models.databasemodels.UserClientPermissionMapping> mappings) {
+      Long userId, List<springapi.models.databasemodels.UserClientPermissionMapping> mappings) {
     lenient()
         .when(userClientPermissionMappingRepository.findClientPermissionMappingByUserId(userId))
         .thenReturn(mappings);
@@ -346,15 +345,12 @@ abstract class LoginServiceTestBase {
     lenient()
         .when(loginServiceMock.resetPassword(any()))
         .thenThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                ErrorMessages.ERROR_UNAUTHORIZED));
+            new springapi.exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED));
   }
 
   protected void stubLoginServiceThrowsUnauthorizedOnConfirmEmail() {
     lenient()
-        .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                ErrorMessages.ERROR_UNAUTHORIZED))
+        .doThrow(new springapi.exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED))
         .when(loginServiceMock)
         .confirmEmail(any());
   }
@@ -363,15 +359,13 @@ abstract class LoginServiceTestBase {
     lenient()
         .when(loginServiceMock.getToken(any()))
         .thenThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                ErrorMessages.ERROR_UNAUTHORIZED));
+            new springapi.exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED));
   }
 
   protected void stubLoginServiceThrowsUnauthorizedOnSignIn() {
     lenient()
         .when(loginServiceMock.signIn(any()))
         .thenThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                ErrorMessages.ERROR_UNAUTHORIZED));
+            new springapi.exceptions.UnauthorizedException(ErrorMessages.ERROR_UNAUTHORIZED));
   }
 }

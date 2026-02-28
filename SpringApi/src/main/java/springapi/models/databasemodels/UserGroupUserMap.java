@@ -1,7 +1,5 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -16,10 +14,10 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
 
-/**
- * Represents the user group user map component.
- */
+/** Represents the user group user map component. */
 @Getter
 @Setter
 @Entity
@@ -81,9 +79,7 @@ public class UserGroupUserMap {
   public UserGroupUserMap() {}
 
   // Constructor for creating new mapping
-  /**
-   * Executes user group user map.
-   */
+  /** Executes user group user map. */
   public UserGroupUserMap(Long userId, Long groupId, String createdUser) {
     validateUserId(userId);
     validateGroupId(groupId);
@@ -96,9 +92,7 @@ public class UserGroupUserMap {
   }
 
   // Constructor for updating existing mapping
-  /**
-   * Executes user group user map.
-   */
+  /** Executes user group user map. */
   public UserGroupUserMap(
       Long userId, Long groupId, String modifiedUser, UserGroupUserMap existingMapping) {
     validateUserId(userId);

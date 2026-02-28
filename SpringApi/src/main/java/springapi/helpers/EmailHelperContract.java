@@ -1,6 +1,6 @@
-package com.example.springapi.helpers;
+package springapi.helpers;
 
-import com.example.springapi.models.requestmodels.SendEmailRequest;
+import springapi.models.requestmodels.SendEmailRequest;
 
 /** Common interface for email sending implementations (SendGrid, Brevo, etc.). */
 public interface EmailHelperContract {

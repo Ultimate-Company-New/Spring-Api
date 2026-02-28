@@ -1,16 +1,16 @@
-package com.example.springapi.ServiceTests.Message;
+package springapi.ServiceTests.Message;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.MessageController;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.MessageController;
 
 /** Unit tests for MessageService.toggleMessage method. */
 @DisplayName("ToggleMessage Tests")
@@ -40,9 +40,7 @@ class ToggleMessageTest extends MessageServiceTestBase {
     // Act & Assert
     assertDoesNotThrow(() -> messageService.toggleMessage(TEST_MESSAGE_ID));
     verify(messageRepository)
-        .save(
-            argThat(
-                msg -> ((com.example.springapi.models.databasemodels.Message) msg).getIsDeleted()));
+        .save(argThat(msg -> ((springapi.models.databasemodels.Message) msg).getIsDeleted()));
   }
 
   /**
@@ -62,10 +60,7 @@ class ToggleMessageTest extends MessageServiceTestBase {
     // Act & Assert
     assertDoesNotThrow(() -> messageService.toggleMessage(TEST_MESSAGE_ID));
     verify(messageRepository)
-        .save(
-            argThat(
-                msg ->
-                    !((com.example.springapi.models.databasemodels.Message) msg).getIsDeleted()));
+        .save(argThat(msg -> !((springapi.models.databasemodels.Message) msg).getIsDeleted()));
   }
 
   /**

@@ -1,17 +1,17 @@
-package com.example.springapi.ServiceTests.QA;
+package springapi.ServiceTests.QA;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.responsemodels.TestExecutionStatusModel;
-import com.example.springapi.services.QaService;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import springapi.ErrorMessages;
+import springapi.exceptions.NotFoundException;
+import springapi.models.responsemodels.TestExecutionStatusModel;
+import springapi.services.QaService;
 
 /**
  * Unit tests for QaService.getTestExecutionStatus() method.
@@ -435,8 +435,8 @@ class GetTestExecutionStatusTest extends QAServiceTestBase {
   @Test
   void getTestExecutionStatus_controller_permission_unauthorized() {
     // Arrange
-    com.example.springapi.controllers.QaController controller =
-        new com.example.springapi.controllers.QaController(qaSubTranslator);
+    springapi.controllers.QaController controller =
+        new springapi.controllers.QaController(qaSubTranslator);
     stubQaTranslatorGetTestExecutionStatusThrowsUnauthorized();
 
     // Act

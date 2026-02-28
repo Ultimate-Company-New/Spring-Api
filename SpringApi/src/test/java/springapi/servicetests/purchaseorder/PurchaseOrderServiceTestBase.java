@@ -1,24 +1,10 @@
-package com.example.springapi.ServiceTests.PurchaseOrder;
+package springapi.ServiceTests.PurchaseOrder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.lenient;
 
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.filterquerybuilder.PurchaseOrderFilterQueryBuilder;
-import com.example.springapi.helpers.ImgbbHelper;
-import com.example.springapi.models.databasemodels.*;
-import com.example.springapi.models.dtos.AddressDuplicateCriteria;
-import com.example.springapi.models.requestmodels.AddressRequestModel;
-import com.example.springapi.models.requestmodels.PurchaseOrderProductItem;
-import com.example.springapi.models.requestmodels.PurchaseOrderRequestModel;
-import com.example.springapi.repositories.*;
-import com.example.springapi.services.MessageService;
-import com.example.springapi.services.PurchaseOrderService;
-import com.example.springapi.services.UserLogService;
 import com.itextpdf.text.DocumentException;
 import freemarker.template.TemplateException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +20,20 @@ import org.springframework.core.env.Environment;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import springapi.authentication.JwtTokenProvider;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.filterquerybuilder.PurchaseOrderFilterQueryBuilder;
+import springapi.helpers.ImgbbHelper;
+import springapi.models.databasemodels.*;
+import springapi.models.dtos.AddressDuplicateCriteria;
+import springapi.models.requestmodels.AddressRequestModel;
+import springapi.models.requestmodels.PurchaseOrderProductItem;
+import springapi.models.requestmodels.PurchaseOrderRequestModel;
+import springapi.repositories.*;
+import springapi.services.MessageService;
+import springapi.services.PurchaseOrderService;
+import springapi.services.UserLogService;
 
 /**
  * Base test class for PurchaseOrderService tests. Provides common setup, test data, and helper
@@ -398,8 +398,7 @@ abstract class PurchaseOrderServiceTestBase {
   }
 
   protected void stubShipmentProductRepositorySaveAllCapture(
-      org.mockito.ArgumentCaptor<
-              java.util.List<com.example.springapi.models.databasemodels.ShipmentProduct>>
+      org.mockito.ArgumentCaptor<java.util.List<springapi.models.databasemodels.ShipmentProduct>>
           captor) {
     lenient()
         .when(shipmentProductRepository.saveAll(captor.capture()))
@@ -438,9 +437,7 @@ abstract class PurchaseOrderServiceTestBase {
   }
 
   protected void stubPurchaseOrderFilterQueryBuilderFindPaginatedWithDetails(
-      org.springframework.data.domain.Page<
-              com.example.springapi.models.dtos.PurchaseOrderWithDetails>
-          page) {
+      org.springframework.data.domain.Page<springapi.models.dtos.PurchaseOrderWithDetails> page) {
     lenient()
         .when(
             purchaseOrderFilterQueryBuilder.findPaginatedWithDetails(
@@ -469,14 +466,14 @@ abstract class PurchaseOrderServiceTestBase {
   }
 
   protected void stubPurchaseOrderServiceGetPurchaseOrdersInBatches(
-      com.example.springapi.models.responsemodels.PaginationBaseResponseModel<
-              com.example.springapi.models.responsemodels.PurchaseOrderResponseModel>
+      springapi.models.responsemodels.PaginationBaseResponseModel<
+              springapi.models.responsemodels.PurchaseOrderResponseModel>
           response) {
     lenient().when(purchaseOrderServiceMock.getPurchaseOrdersInBatches(any())).thenReturn(response);
   }
 
   protected void stubPurchaseOrderServiceGetPurchaseOrderDetailsById(
-      com.example.springapi.models.responsemodels.PurchaseOrderResponseModel response) {
+      springapi.models.responsemodels.PurchaseOrderResponseModel response) {
     lenient()
         .when(purchaseOrderServiceMock.getPurchaseOrderDetailsById(anyLong()))
         .thenReturn(response);
@@ -523,8 +520,8 @@ abstract class PurchaseOrderServiceTestBase {
   protected void stubPurchaseOrderServiceThrowsUnauthorizedOnCreate() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(purchaseOrderServiceMock)
         .createPurchaseOrder(any());
   }
@@ -543,8 +540,8 @@ abstract class PurchaseOrderServiceTestBase {
   protected void stubPurchaseOrderServiceThrowsUnauthorizedOnUpdate() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(purchaseOrderServiceMock)
         .updatePurchaseOrder(any());
   }
@@ -552,8 +549,8 @@ abstract class PurchaseOrderServiceTestBase {
   protected void stubPurchaseOrderServiceThrowsUnauthorizedOnGetBatches() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(purchaseOrderServiceMock)
         .getPurchaseOrdersInBatches(any());
   }
@@ -561,8 +558,8 @@ abstract class PurchaseOrderServiceTestBase {
   protected void stubPurchaseOrderServiceThrowsUnauthorizedOnGetById() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(purchaseOrderServiceMock)
         .getPurchaseOrderDetailsById(anyLong());
   }
@@ -570,8 +567,8 @@ abstract class PurchaseOrderServiceTestBase {
   protected void stubPurchaseOrderServiceThrowsUnauthorizedOnToggle() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(purchaseOrderServiceMock)
         .togglePurchaseOrder(anyLong());
   }
@@ -579,8 +576,8 @@ abstract class PurchaseOrderServiceTestBase {
   protected void stubPurchaseOrderServiceThrowsUnauthorizedOnApprove() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(purchaseOrderServiceMock)
         .approvedByPurchaseOrder(anyLong());
   }
@@ -588,8 +585,8 @@ abstract class PurchaseOrderServiceTestBase {
   protected void stubPurchaseOrderServiceThrowsUnauthorizedOnReject() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(purchaseOrderServiceMock)
         .rejectedByPurchaseOrder(anyLong());
   }
@@ -598,8 +595,8 @@ abstract class PurchaseOrderServiceTestBase {
       throws TemplateException, IOException, DocumentException {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(purchaseOrderServiceMock)
         .getPurchaseOrderPdf(anyLong());
   }
@@ -607,16 +604,16 @@ abstract class PurchaseOrderServiceTestBase {
   protected void stubPurchaseOrderServiceThrowsUnauthorizedOnBulkCreate() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(purchaseOrderServiceMock)
         .bulkCreatePurchaseOrdersAsync(anyList(), anyLong(), anyString(), anyLong());
   }
 
-  protected org.mockito.MockedConstruction<com.example.springapi.helpers.ImgbbHelper>
+  protected org.mockito.MockedConstruction<springapi.helpers.ImgbbHelper>
       stubImgbbHelperUploadResults(List<ImgbbHelper.AttachmentUploadResult> results) {
     return org.mockito.Mockito.mockConstruction(
-        com.example.springapi.helpers.ImgbbHelper.class,
+        springapi.helpers.ImgbbHelper.class,
         (mock, context) ->
             lenient()
                 .when(
@@ -625,11 +622,11 @@ abstract class PurchaseOrderServiceTestBase {
                 .thenReturn(results));
   }
 
-  protected org.mockito.MockedConstruction<com.example.springapi.helpers.ImgbbHelper>
+  protected org.mockito.MockedConstruction<springapi.helpers.ImgbbHelper>
       stubImgbbHelperUploadResultsWithDelete(
           List<ImgbbHelper.AttachmentUploadResult> results, int deleteResult) {
     return org.mockito.Mockito.mockConstruction(
-        com.example.springapi.helpers.ImgbbHelper.class,
+        springapi.helpers.ImgbbHelper.class,
         (mock, context) -> {
           lenient()
               .when(
@@ -640,24 +637,22 @@ abstract class PurchaseOrderServiceTestBase {
         });
   }
 
-  protected org.mockito.MockedStatic<com.example.springapi.helpers.PdfHelper>
+  protected org.mockito.MockedStatic<springapi.helpers.PdfHelper>
       stubPdfHelperConvertPurchaseOrderHtmlToPdf(byte[] pdfBytes) {
-    org.mockito.MockedStatic<com.example.springapi.helpers.PdfHelper> mocked =
-        org.mockito.Mockito.mockStatic(com.example.springapi.helpers.PdfHelper.class);
+    org.mockito.MockedStatic<springapi.helpers.PdfHelper> mocked =
+        org.mockito.Mockito.mockStatic(springapi.helpers.PdfHelper.class);
     mocked
-        .when(
-            () ->
-                com.example.springapi.helpers.PdfHelper.convertPurchaseOrderHtmlToPdf(anyString()))
+        .when(() -> springapi.helpers.PdfHelper.convertPurchaseOrderHtmlToPdf(anyString()))
         .thenReturn(pdfBytes);
     return mocked;
   }
 
-  protected org.mockito.MockedStatic<com.example.springapi.helpers.HtmlHelper>
-      stubHtmlHelperReplaceBrTags(String htmlResult) {
-    org.mockito.MockedStatic<com.example.springapi.helpers.HtmlHelper> mocked =
-        org.mockito.Mockito.mockStatic(com.example.springapi.helpers.HtmlHelper.class);
+  protected org.mockito.MockedStatic<springapi.helpers.HtmlHelper> stubHtmlHelperReplaceBrTags(
+      String htmlResult) {
+    org.mockito.MockedStatic<springapi.helpers.HtmlHelper> mocked =
+        org.mockito.Mockito.mockStatic(springapi.helpers.HtmlHelper.class);
     mocked
-        .when(() -> com.example.springapi.helpers.HtmlHelper.replaceBrTags(anyString()))
+        .when(() -> springapi.helpers.HtmlHelper.replaceBrTags(anyString()))
         .thenReturn(htmlResult);
     return mocked;
   }

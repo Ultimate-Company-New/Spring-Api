@@ -1,17 +1,17 @@
-package com.example.springapi.ServiceTests.Shipping;
+package springapi.ServiceTests.Shipping;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.ShippingController;
-import com.example.springapi.models.databasemodels.Shipment;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.ShippingController;
+import springapi.models.databasemodels.Shipment;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
 
 /** Tests for ShippingService.getShipmentsInBatches(). */
 @DisplayName("GetShipmentsInBatches Tests")
@@ -192,9 +192,9 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
     request.setEnd(25);
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.getShipmentsInBatches(request));
 
     // Assert
@@ -215,9 +215,9 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
     request.setFilters(List.of(filter));
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.getShipmentsInBatches(request));
 
     // Assert
@@ -242,9 +242,9 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
     request.setFilters(List.of(filter));
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.getShipmentsInBatches(request));
 
     // Assert
@@ -266,9 +266,9 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
     request.setEnd(99);
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.getShipmentsInBatches(request));
 
     // Assert
@@ -288,9 +288,9 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
     request.setEnd(10);
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.getShipmentsInBatches(request));
 
     // Assert
@@ -310,9 +310,9 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
     request.setEnd(5);
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.getShipmentsInBatches(request));
 
     // Assert
@@ -332,9 +332,9 @@ class GetShipmentsInBatchesTest extends ShippingServiceTestBase {
     request.setEnd(0);
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.getShipmentsInBatches(request));
 
     // Assert

@@ -1,14 +1,5 @@
-package com.example.springapi.controllers;
+package springapi.controllers;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.logging.ContextualLogger;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.requestmodels.AddressRequestModel;
-import com.example.springapi.models.responsemodels.ErrorResponseModel;
-import com.example.springapi.services.interfaces.AddressSubTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +12,15 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.logging.ContextualLogger;
+import springapi.models.ApiRoutes;
+import springapi.models.Authorizations;
+import springapi.models.requestmodels.AddressRequestModel;
+import springapi.models.responsemodels.ErrorResponseModel;
+import springapi.services.interfaces.AddressSubTranslator;
 
 /**
  * REST Controller for managing Address-related operations.
@@ -87,9 +87,7 @@ public class AddressController {
     }
   }
 
-  /**
-   * Returns mapping.
-   */
+  /** Returns mapping. */
   @PreAuthorize(
       "@customAuthorization.hasAuthority('" + Authorizations.VIEW_ADDRESS_PERMISSION + "')")
   @GetMapping("/" + ApiRoutes.AddressSubRoute.GET_ADDRESS_BY_USER_ID + "/{userId}")
@@ -121,9 +119,7 @@ public class AddressController {
     }
   }
 
-  /**
-   * Returns mapping.
-   */
+  /** Returns mapping. */
   @PreAuthorize(
       "@customAuthorization.hasAuthority('" + Authorizations.VIEW_ADDRESS_PERMISSION + "')")
   @GetMapping("/" + ApiRoutes.AddressSubRoute.GET_ADDRESS_BY_CLIENT_ID + "/{clientId}")

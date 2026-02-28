@@ -1,8 +1,5 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.requestmodels.UserGroupRequestModel;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,10 +18,11 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.models.requestmodels.UserGroupRequestModel;
 
-/**
- * Represents the user group component.
- */
+/** Represents the user group component. */
 @Getter
 @Setter
 @Entity
@@ -94,9 +92,7 @@ public class UserGroup {
   public UserGroup() {}
 
   // Constructor for creating new user group
-  /**
-   * Executes user group.
-   */
+  /** Executes user group. */
   public UserGroup(UserGroupRequestModel request, String createdUser, long clientId) {
     validateRequest(request);
     validateUser(createdUser);
@@ -109,9 +105,7 @@ public class UserGroup {
   }
 
   // Constructor for updating existing user group
-  /**
-   * Executes user group.
-   */
+  /** Executes user group. */
   public UserGroup(
       UserGroupRequestModel request,
       String modifiedUser,

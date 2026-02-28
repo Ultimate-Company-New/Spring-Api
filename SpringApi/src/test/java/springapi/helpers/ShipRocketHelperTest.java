@@ -1,16 +1,16 @@
-package com.example.springapi.helpers;
+package springapi.helpers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketOrderResponseModel;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import springapi.exceptions.BadRequestException;
+import springapi.models.shippingresponsemodel.ShipRocketOrderResponseModel;
 
 @DisplayName("ShipRocketHelper Tests")
 class ShipRocketHelperTest {
@@ -696,7 +696,7 @@ class ShipRocketHelperTest {
         "POST", BASE_URL + "/orders/create/return", "{\"order_id\":99,\"shipment_id\":77}");
 
     // Act
-    com.example.springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel response =
+    springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel response =
         helper.createReturnOrder(Map.of("key", "value"));
 
     // Assert

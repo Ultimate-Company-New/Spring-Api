@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.RequestModels;
+package springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,14 +49,12 @@ class ProductPickupLocationMappingRequestModelContractTest {
     assertFalse(jacksonJson.isBlank());
 
     if (hasNoArgConstructor(
-        com.example.springapi.models.requestmodels.ProductPickupLocationMappingRequestModel
-            .class)) {
+        springapi.models.requestmodels.ProductPickupLocationMappingRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
               .constructType(
-                  com.example.springapi.models.requestmodels
-                      .ProductPickupLocationMappingRequestModel.class);
+                  springapi.models.requestmodels.ProductPickupLocationMappingRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -66,7 +64,7 @@ class ProductPickupLocationMappingRequestModelContractTest {
   void ProductPickupLocationMappingRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.requestmodels.ProductPickupLocationMappingRequestModel.class
+        springapi.models.requestmodels.ProductPickupLocationMappingRequestModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -84,12 +82,9 @@ class ProductPickupLocationMappingRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.requestmodels.ProductPickupLocationMappingRequestModel
-      createInstance() {
-    return (com.example.springapi.models.requestmodels.ProductPickupLocationMappingRequestModel)
-        instantiate(
-            com.example.springapi.models.requestmodels.ProductPickupLocationMappingRequestModel
-                .class);
+  private springapi.models.requestmodels.ProductPickupLocationMappingRequestModel createInstance() {
+    return (springapi.models.requestmodels.ProductPickupLocationMappingRequestModel)
+        instantiate(springapi.models.requestmodels.ProductPickupLocationMappingRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

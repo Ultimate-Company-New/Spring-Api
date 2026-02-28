@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.DatabaseModels;
+package springapi.ModelTests.DatabaseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class ProductPickupLocationMappingContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.databasemodels.ProductPickupLocationMapping.class)) {
+    if (hasNoArgConstructor(springapi.models.databasemodels.ProductPickupLocationMapping.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.databasemodels.ProductPickupLocationMapping.class);
+              .constructType(springapi.models.databasemodels.ProductPickupLocationMapping.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +62,7 @@ class ProductPickupLocationMappingContractTest {
   void ProductPickupLocationMapping_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.databasemodels.ProductPickupLocationMapping.class
+        springapi.models.databasemodels.ProductPickupLocationMapping.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,10 +80,9 @@ class ProductPickupLocationMappingContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.databasemodels.ProductPickupLocationMapping
-      createInstance() {
-    return (com.example.springapi.models.databasemodels.ProductPickupLocationMapping)
-        instantiate(com.example.springapi.models.databasemodels.ProductPickupLocationMapping.class);
+  private springapi.models.databasemodels.ProductPickupLocationMapping createInstance() {
+    return (springapi.models.databasemodels.ProductPickupLocationMapping)
+        instantiate(springapi.models.databasemodels.ProductPickupLocationMapping.class);
   }
 
   private Object instantiate(Class<?> clazz) {

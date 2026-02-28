@@ -1,10 +1,10 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
-import com.example.springapi.models.databasemodels.ProductReview;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
+import springapi.models.databasemodels.ProductReview;
 
 /**
  * Response model for ProductReview operations.

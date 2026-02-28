@@ -1,4 +1,4 @@
-package com.example.springapi.helpers;
+package springapi.helpers;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -24,9 +24,7 @@ public class PackagingHelper {
     private final BigDecimal weightKgs;
     private final int quantity;
 
-    /**
-     * Initializes ProductDimension.
-     */
+    /** Initializes ProductDimension. */
     public ProductDimension(
         BigDecimal length,
         BigDecimal breadth,
@@ -55,17 +53,13 @@ public class PackagingHelper {
 
   /** Package dimension info for packaging calculation. */
   public static class PackageDimension {
-    /**
-     * Represents the package size component.
-     */
+    /** Represents the package size component. */
     public static class PackageSize {
       private final int length;
       private final int breadth;
       private final int height;
 
-      /**
-       * Initializes PackageSize.
-       */
+      /** Initializes PackageSize. */
       public PackageSize(int length, int breadth, int height) {
         this.length = length;
         this.breadth = breadth;
@@ -83,9 +77,7 @@ public class PackagingHelper {
     private final BigDecimal pricePerUnit;
     private int availableQuantity;
 
-    /**
-     * Executes package dimension.
-     */
+    /** Executes package dimension. */
     public PackageDimension(
         Long packageId,
         String packageName,
@@ -147,9 +139,7 @@ public class PackagingHelper {
     private final BigDecimal pricePerUnit;
     private final BigDecimal totalCost;
 
-    /**
-     * Initializes PackageUsageResult.
-     */
+    /** Initializes PackageUsageResult. */
     public PackageUsageResult(
         Long packageId,
         String packageName,
@@ -198,9 +188,7 @@ public class PackagingHelper {
     private final boolean canPackAllItems;
     private final String errorMessage;
 
-    /**
-     * Initializes PackagingEstimateResult.
-     */
+    /** Initializes PackagingEstimateResult. */
     public PackagingEstimateResult(
         List<PackageUsageResult> packagesUsed, int requestedItems, int packedItems) {
       this.packagesUsed = packagesUsed;
@@ -425,9 +413,7 @@ public class PackagingHelper {
     private final double volume;
     private final double weight;
 
-    /**
-     * Initializes ProductItem.
-     */
+    /** Initializes ProductItem. */
     public ProductItem(Long productId, double volume, double weight) {
       this.productId = productId;
       this.volume = volume;
@@ -498,9 +484,7 @@ public class PackagingHelper {
     private final Map<Long, Integer>
         productQuantities; // productId -> quantity in this package type
 
-    /**
-     * Initializes MultiProductPackageUsageResult.
-     */
+    /** Initializes MultiProductPackageUsageResult. */
     public MultiProductPackageUsageResult(
         Long packageId,
         String packageName,
@@ -555,9 +539,7 @@ public class PackagingHelper {
     private final boolean canPackAllItems;
     private final String errorMessage;
 
-    /**
-     * Initializes MultiProductPackagingResult.
-     */
+    /** Initializes MultiProductPackagingResult. */
     public MultiProductPackagingResult(
         List<MultiProductPackageUsageResult> packagesUsed,
         Map<Long, Integer> requestedItemsByProduct,

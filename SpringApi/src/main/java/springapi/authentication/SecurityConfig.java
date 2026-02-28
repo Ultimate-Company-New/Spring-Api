@@ -1,4 +1,4 @@
-package com.example.springapi.authentication;
+package springapi.authentication;
 
 import java.util.Arrays;
 import java.util.List;
@@ -14,17 +14,13 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-/**
- * Configures application security and CORS behavior.
- */
+/** Configures application security and CORS behavior. */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-  /**
-   * Builds the HTTP security filter chain used by the application.
-   */
+  /** Builds the HTTP security filter chain used by the application. */
   @Bean
   public SecurityFilterChain filterChain(
       HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
@@ -34,8 +30,7 @@ public class SecurityConfig {
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             auth ->
-                auth
-                    .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**")
+                auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**")
                     .permitAll()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                     .permitAll()
@@ -52,9 +47,7 @@ public class SecurityConfig {
     return http.build();
   }
 
-  /**
-   * Provides the CORS configuration source for allowed origins and methods.
-   */
+  /** Provides the CORS configuration source for allowed origins and methods. */
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();

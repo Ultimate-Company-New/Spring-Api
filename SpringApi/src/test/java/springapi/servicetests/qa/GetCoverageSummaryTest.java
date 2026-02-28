@@ -1,8 +1,7 @@
-package com.example.springapi.ServiceTests.QA;
+package springapi.ServiceTests.QA;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.springapi.models.databasemodels.LatestTestResult;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -10,6 +9,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import springapi.models.databasemodels.LatestTestResult;
 
 /**
  * Unit tests for QaService.getCoverageSummary() method.
@@ -389,8 +389,8 @@ class GetCoverageSummaryTest extends QAServiceTestBase {
   @Test
   void getCoverageSummary_controller_permission_unauthorized() {
     // Arrange
-    com.example.springapi.controllers.QaController controller =
-        new com.example.springapi.controllers.QaController(qaSubTranslator);
+    springapi.controllers.QaController controller =
+        new springapi.controllers.QaController(qaSubTranslator);
     stubQaTranslatorGetCoverageSummaryThrowsUnauthorized();
 
     // Act

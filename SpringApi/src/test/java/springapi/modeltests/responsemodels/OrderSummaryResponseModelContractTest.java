@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.ResponseModels;
+package springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class OrderSummaryResponseModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.responsemodels.OrderSummaryResponseModel.class)) {
+    if (hasNoArgConstructor(springapi.models.responsemodels.OrderSummaryResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.responsemodels.OrderSummaryResponseModel.class);
+              .constructType(springapi.models.responsemodels.OrderSummaryResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,8 +62,7 @@ class OrderSummaryResponseModelContractTest {
   void OrderSummaryResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.responsemodels.OrderSummaryResponseModel.class
-            .getDeclaredConstructors()) {
+        springapi.models.responsemodels.OrderSummaryResponseModel.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -82,9 +79,9 @@ class OrderSummaryResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.responsemodels.OrderSummaryResponseModel createInstance() {
-    return (com.example.springapi.models.responsemodels.OrderSummaryResponseModel)
-        instantiate(com.example.springapi.models.responsemodels.OrderSummaryResponseModel.class);
+  private springapi.models.responsemodels.OrderSummaryResponseModel createInstance() {
+    return (springapi.models.responsemodels.OrderSummaryResponseModel)
+        instantiate(springapi.models.responsemodels.OrderSummaryResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

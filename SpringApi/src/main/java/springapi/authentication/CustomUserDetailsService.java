@@ -1,17 +1,15 @@
-package com.example.springapi.authentication;
+package springapi.authentication;
 
-import com.example.springapi.models.databasemodels.User;
-import com.example.springapi.repositories.UserRepository;
 import java.util.Collections;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import springapi.models.databasemodels.User;
+import springapi.repositories.UserRepository;
 
-/**
- * Represents the custom user details service component.
- */
+/** Represents the custom user details service component. */
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 

@@ -1,13 +1,7 @@
-package com.example.springapi.ServiceTests.ProductReview;
+package springapi.ServiceTests.ProductReview;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.ProductReviewController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.databasemodels.ProductReview;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.ProductReviewResponseModel;
 import java.util.Arrays;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +10,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.ProductReviewController;
+import springapi.exceptions.BadRequestException;
+import springapi.models.databasemodels.ProductReview;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.ProductReviewResponseModel;
 
 /** Test class for ProductReviewService.getProductReviewsInBatchesGivenProductId method. */
 @DisplayName("ProductReviewService - GetProductReviewsInBatchesGivenProductId Tests")

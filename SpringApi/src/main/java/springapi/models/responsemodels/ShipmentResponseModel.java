@@ -1,10 +1,5 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
-import com.example.springapi.models.databasemodels.ReturnShipment;
-import com.example.springapi.models.databasemodels.Shipment;
-import com.example.springapi.models.databasemodels.ShipmentPackage;
-import com.example.springapi.models.databasemodels.ShipmentPackageProduct;
-import com.example.springapi.models.databasemodels.ShipmentProduct;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -12,6 +7,11 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.Hibernate;
+import springapi.models.databasemodels.ReturnShipment;
+import springapi.models.databasemodels.Shipment;
+import springapi.models.databasemodels.ShipmentPackage;
+import springapi.models.databasemodels.ShipmentPackageProduct;
+import springapi.models.databasemodels.ShipmentProduct;
 
 /**
  * Response model for Shipment operations.
@@ -186,14 +186,12 @@ public class ShipmentResponseModel {
 
     // Extract purchase order ID and delivery address from OrderSummary
     if (Hibernate.isInitialized(shipment.getOrderSummary()) && shipment.getOrderSummary() != null) {
-      com.example.springapi.models.databasemodels.OrderSummary orderSummary =
-          shipment.getOrderSummary();
+      springapi.models.databasemodels.OrderSummary orderSummary = shipment.getOrderSummary();
       if (orderSummary.getEntityType() != null
           && orderSummary
               .getEntityType()
               .equals(
-                  com.example.springapi.models.databasemodels.OrderSummary.EntityType.PURCHASE_ORDER
-                      .getValue())
+                  springapi.models.databasemodels.OrderSummary.EntityType.PURCHASE_ORDER.getValue())
           && orderSummary.getEntityId() != null) {
         this.purchaseOrderId = orderSummary.getEntityId();
       }
@@ -222,8 +220,7 @@ public class ShipmentResponseModel {
    *
    * @param po The purchase order to extract ID from
    */
-  public void setPurchaseOrderFromEntity(
-      com.example.springapi.models.databasemodels.PurchaseOrder po) {
+  public void setPurchaseOrderFromEntity(springapi.models.databasemodels.PurchaseOrder po) {
     if (po != null) {
       this.purchaseOrderId = po.getPurchaseOrderId();
     }
@@ -240,9 +237,7 @@ public class ShipmentResponseModel {
 
     public PackageProductResponseData() {}
 
-    /**
-     * Executes package product response data.
-     */
+    /** Executes package product response data. */
     public PackageProductResponseData(ShipmentPackageProduct packageProduct) {
       if (packageProduct != null) {
         this.shipmentPackageProductId = packageProduct.getShipmentPackageProductId();

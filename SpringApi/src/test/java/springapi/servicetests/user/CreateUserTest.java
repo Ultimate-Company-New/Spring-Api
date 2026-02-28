@@ -1,15 +1,8 @@
-package com.example.springapi.ServiceTests.User;
+package springapi.ServiceTests.User;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.databasemodels.Address;
-import com.example.springapi.models.databasemodels.User;
-import com.example.springapi.models.databasemodels.UserClientMapping;
-import com.example.springapi.models.requestmodels.AddressRequestModel;
-import com.example.springapi.models.requestmodels.UserRequestModel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,6 +11,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.models.databasemodels.Address;
+import springapi.models.databasemodels.User;
+import springapi.models.databasemodels.UserClientMapping;
+import springapi.models.requestmodels.AddressRequestModel;
+import springapi.models.requestmodels.UserRequestModel;
 
 /** Unit tests for UserService.createUser method. */
 @DisplayName("UserService - CreateUser Tests")
@@ -316,7 +316,7 @@ class CreateUserTest extends UserServiceTestBase {
     org.springframework.test.util.ReflectionTestUtils.setField(
         userService, "imageLocation", "imgbb");
 
-    com.example.springapi.models.databasemodels.Client clientWithoutKey = createTestClient();
+    springapi.models.databasemodels.Client clientWithoutKey = createTestClient();
     clientWithoutKey.setImgbbApiKey(" ");
     stubClientRepositoryFindByIdAny(Optional.of(clientWithoutKey));
 
@@ -350,7 +350,7 @@ class CreateUserTest extends UserServiceTestBase {
     }
     mockedImgbbHelper =
         org.mockito.Mockito.mockConstruction(
-            com.example.springapi.helpers.ImgbbHelper.class,
+            springapi.helpers.ImgbbHelper.class,
             (mock, context) ->
                 when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(null));
 
@@ -422,7 +422,7 @@ class CreateUserTest extends UserServiceTestBase {
     }
     mockedEmailTemplates =
         org.mockito.Mockito.mockConstruction(
-            com.example.springapi.helpers.EmailTemplates.class,
+            springapi.helpers.EmailTemplates.class,
             (mock, context) ->
                 when(mock.sendNewUserAccountConfirmation(
                         anyLong(), anyString(), anyString(), anyString()))
@@ -454,7 +454,7 @@ class CreateUserTest extends UserServiceTestBase {
     }
     mockedEmailTemplates =
         org.mockito.Mockito.mockConstruction(
-            com.example.springapi.helpers.EmailTemplates.class,
+            springapi.helpers.EmailTemplates.class,
             (mock, context) ->
                 when(mock.sendNewUserAccountConfirmation(
                         anyLong(), anyString(), anyString(), anyString()))

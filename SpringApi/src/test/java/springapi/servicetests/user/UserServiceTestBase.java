@@ -1,25 +1,9 @@
-package com.example.springapi.ServiceTests.User;
+package springapi.ServiceTests.User;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.lenient;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.PermissionException;
-import com.example.springapi.exceptions.UnauthorizedException;
-import com.example.springapi.filterquerybuilder.UserFilterQueryBuilder;
-import com.example.springapi.helpers.PasswordHelper;
-import com.example.springapi.models.databasemodels.*;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.UserRequestModel;
-import com.example.springapi.models.responsemodels.ClientResponseModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.PermissionResponseModel;
-import com.example.springapi.models.responsemodels.UserResponseModel;
-import com.example.springapi.repositories.*;
-import com.example.springapi.services.ClientService;
-import com.example.springapi.services.UserLogService;
-import com.example.springapi.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.*;
@@ -34,6 +18,22 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.test.util.ReflectionTestUtils;
+import springapi.ErrorMessages;
+import springapi.exceptions.PermissionException;
+import springapi.exceptions.UnauthorizedException;
+import springapi.filterquerybuilder.UserFilterQueryBuilder;
+import springapi.helpers.PasswordHelper;
+import springapi.models.databasemodels.*;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.UserRequestModel;
+import springapi.models.responsemodels.ClientResponseModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.PermissionResponseModel;
+import springapi.models.responsemodels.UserResponseModel;
+import springapi.repositories.*;
+import springapi.services.ClientService;
+import springapi.services.UserLogService;
+import springapi.services.UserService;
 
 /**
  * Base test class for UserService tests. Contains common mocks, test data, and centralized stubbing
@@ -72,8 +72,8 @@ abstract class UserServiceTestBase {
 
   @Mock protected UserService mockUserService;
 
-  protected com.example.springapi.controllers.UserController userController;
-  protected com.example.springapi.controllers.UserController userControllerWithMock;
+  protected springapi.controllers.UserController userController;
+  protected springapi.controllers.UserController userControllerWithMock;
 
   protected User testUser;
   protected UserRequestModel testUserRequest;
@@ -107,8 +107,8 @@ abstract class UserServiceTestBase {
     testUser.setUserClientPermissionMappings(new HashSet<>());
     testUser.setUserGroupMappings(new HashSet<>());
 
-    userController = new com.example.springapi.controllers.UserController(userService);
-    userControllerWithMock = new com.example.springapi.controllers.UserController(mockUserService);
+    userController = new springapi.controllers.UserController(userService);
+    userControllerWithMock = new springapi.controllers.UserController(mockUserService);
 
     stubEnvironmentActiveProfiles(new String[] {"localhost"});
     stubEnvironmentImageLocation("firebase");
@@ -314,9 +314,9 @@ abstract class UserServiceTestBase {
 
   // Static and Construction Mocks
   protected MockedStatic<PasswordHelper> mockedPasswordHelper;
-  protected MockedConstruction<com.example.springapi.helpers.EmailTemplates> mockedEmailTemplates;
-  protected MockedConstruction<com.example.springapi.helpers.FirebaseHelper> mockedFirebaseHelper;
-  protected MockedConstruction<com.example.springapi.helpers.ImgbbHelper> mockedImgbbHelper;
+  protected MockedConstruction<springapi.helpers.EmailTemplates> mockedEmailTemplates;
+  protected MockedConstruction<springapi.helpers.FirebaseHelper> mockedFirebaseHelper;
+  protected MockedConstruction<springapi.helpers.ImgbbHelper> mockedImgbbHelper;
 
   @org.junit.jupiter.api.AfterEach
   void tearDown() {
@@ -364,7 +364,7 @@ abstract class UserServiceTestBase {
     }
     mockedEmailTemplates =
         org.mockito.Mockito.mockConstruction(
-            com.example.springapi.helpers.EmailTemplates.class,
+            springapi.helpers.EmailTemplates.class,
             (mock, context) -> {
               lenient()
                   .when(
@@ -380,7 +380,7 @@ abstract class UserServiceTestBase {
     }
     mockedFirebaseHelper =
         org.mockito.Mockito.mockConstruction(
-            com.example.springapi.helpers.FirebaseHelper.class,
+            springapi.helpers.FirebaseHelper.class,
             (mock, context) -> {
               lenient().when(mock.uploadFileToFirebase(anyString(), anyString())).thenReturn(true);
             });
@@ -392,7 +392,7 @@ abstract class UserServiceTestBase {
     }
     mockedImgbbHelper =
         org.mockito.Mockito.mockConstruction(
-            com.example.springapi.helpers.ImgbbHelper.class,
+            springapi.helpers.ImgbbHelper.class,
             (mock, context) -> {
               lenient().when(mock.deleteImage(anyString())).thenReturn(true);
             });

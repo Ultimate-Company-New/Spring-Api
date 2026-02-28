@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.Shipping;
+package springapi.ModelTests.Shipping;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -6,18 +6,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.example.springapi.models.shippingresponsemodel.AddPickupLocationResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketAwbResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketLabelResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketManifestResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketOrderResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketPickupResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketTrackingResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShippingOptionsResponseModel;
 import com.nimbusds.jose.shaded.gson.Gson;
 import org.junit.jupiter.api.Test;
+import springapi.models.shippingresponsemodel.AddPickupLocationResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketAwbResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketInvoiceResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketLabelResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketManifestResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketOrderResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketPickupResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketTrackingResponseModel;
+import springapi.models.shippingresponsemodel.ShippingOptionsResponseModel;
 
 class ShippingResponseModelsTest {
 

@@ -1,15 +1,8 @@
-package com.example.springapi.ServiceTests.Message;
+package springapi.ServiceTests.Message;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.MessageController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.databasemodels.Message;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.responsemodels.MessageResponseModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +11,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.MessageController;
+import springapi.exceptions.BadRequestException;
+import springapi.models.databasemodels.Message;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.responsemodels.MessageResponseModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
 
 /** Unit tests for MessageService.getMessagesInBatches method. */
 @DisplayName("GetMessagesInBatches Tests")

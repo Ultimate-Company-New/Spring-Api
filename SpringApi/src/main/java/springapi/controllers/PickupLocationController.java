@@ -1,17 +1,5 @@
-package com.example.springapi.controllers;
+package springapi.controllers;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.exceptions.UnauthorizedException;
-import com.example.springapi.logging.ContextualLogger;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.PickupLocationRequestModel;
-import com.example.springapi.models.responsemodels.ErrorResponseModel;
-import com.example.springapi.services.PickupLocationService;
-import com.example.springapi.services.interfaces.PickupLocationSubTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +12,18 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.exceptions.UnauthorizedException;
+import springapi.logging.ContextualLogger;
+import springapi.models.ApiRoutes;
+import springapi.models.Authorizations;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.PickupLocationRequestModel;
+import springapi.models.responsemodels.ErrorResponseModel;
+import springapi.services.PickupLocationService;
+import springapi.services.interfaces.PickupLocationSubTranslator;
 
 /**
  * REST Controller for PickupLocation management operations.

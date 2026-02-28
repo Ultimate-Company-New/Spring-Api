@@ -1,22 +1,5 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.SuccessMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.filterquerybuilder.LeadFilterQueryBuilder;
-import com.example.springapi.helpers.BulkInsertHelper;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.databasemodels.Address;
-import com.example.springapi.models.databasemodels.Lead;
-import com.example.springapi.models.requestmodels.LeadRequestModel;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
-import com.example.springapi.models.responsemodels.LeadResponseModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.repositories.AddressRepository;
-import com.example.springapi.repositories.LeadRepository;
-import com.example.springapi.services.interfaces.LeadSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -32,6 +15,23 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import springapi.ErrorMessages;
+import springapi.SuccessMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.filterquerybuilder.LeadFilterQueryBuilder;
+import springapi.helpers.BulkInsertHelper;
+import springapi.models.ApiRoutes;
+import springapi.models.databasemodels.Address;
+import springapi.models.databasemodels.Lead;
+import springapi.models.requestmodels.LeadRequestModel;
+import springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
+import springapi.models.responsemodels.LeadResponseModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.repositories.AddressRepository;
+import springapi.repositories.LeadRepository;
+import springapi.services.interfaces.LeadSubTranslator;
 
 /**
  * Service implementation for Lead operations and business logic. Handles all lead-related business.
@@ -51,9 +51,7 @@ public class LeadService extends BaseService implements LeadSubTranslator {
   private ApplicationContext applicationContext;
   private static final String UNKNOWN_VALUE = "unknown";
 
-  /**
-   * Initializes LeadService.
-   */
+  /** Initializes LeadService. */
   @Autowired
   public LeadService(
       LeadRepository leadRepository,
@@ -346,8 +344,8 @@ public class LeadService extends BaseService implements LeadSubTranslator {
             String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Lead"));
       }
 
-      com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
-          new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
+      springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
+          new springapi.models.responsemodels.BulkInsertResponseModel<>();
       response.setTotalRequested(leads.size());
 
       int successCount = 0;
@@ -412,8 +410,8 @@ public class LeadService extends BaseService implements LeadSubTranslator {
 
     } catch (Exception e) {
       // Still send a message to user about the failure (using captured userId)
-      com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> errorResponse =
-          new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
+      springapi.models.responsemodels.BulkInsertResponseModel<Long> errorResponse =
+          new springapi.models.responsemodels.BulkInsertResponseModel<>();
       errorResponse.setTotalRequested(leads != null ? leads.size() : 0);
       errorResponse.setSuccessCount(0);
       errorResponse.setFailureCount(leads != null ? leads.size() : 0);
@@ -438,7 +436,7 @@ public class LeadService extends BaseService implements LeadSubTranslator {
    */
   @Override
   @Transactional
-  public com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkCreateLeads(
+  public springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkCreateLeads(
       List<LeadRequestModel> leads) {
     // Validate input
     if (leads == null || leads.isEmpty()) {
@@ -446,8 +444,8 @@ public class LeadService extends BaseService implements LeadSubTranslator {
           String.format(ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "Lead"));
     }
 
-    com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
-        new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
+    springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
+        new springapi.models.responsemodels.BulkInsertResponseModel<>();
     response.setTotalRequested(leads.size());
 
     int successCount = 0;

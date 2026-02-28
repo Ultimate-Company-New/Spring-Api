@@ -1,4 +1,4 @@
-package com.example.springapi.helpers;
+package springapi.helpers;
 
 /**
  * Helper class for HTML manipulation and formatting.

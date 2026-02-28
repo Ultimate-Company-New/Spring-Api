@@ -1,11 +1,11 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.PickupLocationRequestModel;
-import com.example.springapi.models.responsemodels.BulkInsertResponseModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.PickupLocationResponseModel;
 import java.util.List;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.PickupLocationRequestModel;
+import springapi.models.responsemodels.BulkInsertResponseModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.PickupLocationResponseModel;
 
 /**
  * Interface for PickupLocation-related business operations.

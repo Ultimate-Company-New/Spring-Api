@@ -1,23 +1,5 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.SuccessMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.filterquerybuilder.UserGroupFilterQueryBuilder;
-import com.example.springapi.helpers.BulkInsertHelper;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.databasemodels.UserGroup;
-import com.example.springapi.models.databasemodels.UserGroupUserMap;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
-import com.example.springapi.models.requestmodels.UserGroupRequestModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.UserGroupResponseModel;
-import com.example.springapi.repositories.UserGroupRepository;
-import com.example.springapi.repositories.UserGroupUserMapRepository;
-import com.example.springapi.repositories.UserRepository;
-import com.example.springapi.services.interfaces.UserGroupSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +13,24 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import springapi.ErrorMessages;
+import springapi.SuccessMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.filterquerybuilder.UserGroupFilterQueryBuilder;
+import springapi.helpers.BulkInsertHelper;
+import springapi.models.ApiRoutes;
+import springapi.models.databasemodels.UserGroup;
+import springapi.models.databasemodels.UserGroupUserMap;
+import springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
+import springapi.models.requestmodels.UserGroupRequestModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.UserGroupResponseModel;
+import springapi.repositories.UserGroupRepository;
+import springapi.repositories.UserGroupUserMapRepository;
+import springapi.repositories.UserRepository;
+import springapi.services.interfaces.UserGroupSubTranslator;
 
 /**
  * Service class for managing UserGroup-related business operations.
@@ -54,9 +54,7 @@ public class UserGroupService extends BaseService implements UserGroupSubTransla
   private final UserGroupFilterQueryBuilder userGroupFilterQueryBuilder;
   private final MessageService messageService;
 
-  /**
-   * Initializes UserGroupService.
-   */
+  /** Initializes UserGroupService. */
   @Autowired
   public UserGroupService(
       UserLogService userLogService,
@@ -337,8 +335,8 @@ public class UserGroupService extends BaseService implements UserGroupSubTransla
                 ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "User group"));
       }
 
-      com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
-          new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
+      springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
+          new springapi.models.responsemodels.BulkInsertResponseModel<>();
       response.setTotalRequested(userGroups.size());
 
       int successCount = 0;
@@ -399,8 +397,8 @@ public class UserGroupService extends BaseService implements UserGroupSubTransla
 
     } catch (Exception e) {
       // Still send a message to user about the failure (using captured userId)
-      com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> errorResponse =
-          new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
+      springapi.models.responsemodels.BulkInsertResponseModel<Long> errorResponse =
+          new springapi.models.responsemodels.BulkInsertResponseModel<>();
       errorResponse.setTotalRequested(userGroups != null ? userGroups.size() : 0);
       errorResponse.setSuccessCount(0);
       errorResponse.setFailureCount(userGroups != null ? userGroups.size() : 0);
@@ -423,8 +421,8 @@ public class UserGroupService extends BaseService implements UserGroupSubTransla
    */
   @Override
   @org.springframework.transaction.annotation.Transactional
-  public com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long>
-      bulkCreateUserGroups(List<UserGroupRequestModel> userGroups) {
+  public springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkCreateUserGroups(
+      List<UserGroupRequestModel> userGroups) {
     // Validate input
     if (userGroups == null || userGroups.isEmpty()) {
       throw new BadRequestException(
@@ -432,8 +430,8 @@ public class UserGroupService extends BaseService implements UserGroupSubTransla
               ErrorMessages.CommonErrorMessages.LIST_CANNOT_BE_NULL_OR_EMPTY, "User group"));
     }
 
-    com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
-        new com.example.springapi.models.responsemodels.BulkInsertResponseModel<>();
+    springapi.models.responsemodels.BulkInsertResponseModel<Long> response =
+        new springapi.models.responsemodels.BulkInsertResponseModel<>();
     response.setTotalRequested(userGroups.size());
 
     int successCount = 0;

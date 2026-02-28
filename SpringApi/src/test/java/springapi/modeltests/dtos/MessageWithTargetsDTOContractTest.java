@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.DTOs;
+package springapi.ModelTests.DTOs;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,9 @@ class MessageWithTargetsDTOContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.springapi.models.dtos.MessageWithTargetsDto.class)) {
+    if (hasNoArgConstructor(springapi.models.dtos.MessageWithTargetsDto.class)) {
       JavaType jacksonType =
-          jackson
-              .getTypeFactory()
-              .constructType(com.example.springapi.models.dtos.MessageWithTargetsDto.class);
+          jackson.getTypeFactory().constructType(springapi.models.dtos.MessageWithTargetsDto.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +60,7 @@ class MessageWithTargetsDTOContractTest {
   void MessageWithTargetsDTO_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.dtos.MessageWithTargetsDto.class.getDeclaredConstructors()) {
+        springapi.models.dtos.MessageWithTargetsDto.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -79,9 +77,9 @@ class MessageWithTargetsDTOContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.dtos.MessageWithTargetsDto createInstance() {
-    return (com.example.springapi.models.dtos.MessageWithTargetsDto)
-        instantiate(com.example.springapi.models.dtos.MessageWithTargetsDto.class);
+  private springapi.models.dtos.MessageWithTargetsDto createInstance() {
+    return (springapi.models.dtos.MessageWithTargetsDto)
+        instantiate(springapi.models.dtos.MessageWithTargetsDto.class);
   }
 
   private Object instantiate(Class<?> clazz) {

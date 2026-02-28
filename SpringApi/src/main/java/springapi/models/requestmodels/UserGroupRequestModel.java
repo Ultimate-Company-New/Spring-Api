@@ -1,12 +1,10 @@
-package com.example.springapi.models.requestmodels;
+package springapi.models.requestmodels;
 
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Represents the user group request model component.
- */
+/** Represents the user group request model component. */
 @Getter
 @Setter
 public class UserGroupRequestModel extends PaginationBaseRequestModel {

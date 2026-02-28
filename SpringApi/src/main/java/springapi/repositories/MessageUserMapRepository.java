@@ -1,10 +1,10 @@
-package com.example.springapi.repositories;
+package springapi.repositories;
 
-import com.example.springapi.models.databasemodels.MessageUserMap;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import springapi.models.databasemodels.MessageUserMap;
 
 /** Repository interface for MessageUserMap entity operations. */
 @Repository

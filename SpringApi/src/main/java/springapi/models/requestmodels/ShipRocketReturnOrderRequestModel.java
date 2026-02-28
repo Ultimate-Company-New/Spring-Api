@@ -1,4 +1,4 @@
-package com.example.springapi.models.requestmodels;
+package springapi.models.requestmodels;
 
 import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import java.math.BigDecimal;

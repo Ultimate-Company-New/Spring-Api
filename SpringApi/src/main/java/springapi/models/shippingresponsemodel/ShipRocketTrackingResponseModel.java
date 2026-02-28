@@ -1,4 +1,4 @@
-package com.example.springapi.models.shippingresponsemodel;
+package springapi.models.shippingresponsemodel;
 
 import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import java.util.List;
@@ -24,9 +24,7 @@ public class ShipRocketTrackingResponseModel {
         && trackingData.getTrackStatus() == 1;
   }
 
-  /**
-   * Represents the tracking data component.
-   */
+  /** Represents the tracking data component. */
   @Getter
   @Setter
   public static class TrackingData {
@@ -52,9 +50,7 @@ public class ShipRocketTrackingResponseModel {
     private QcResponse qcResponse;
   }
 
-  /**
-   * Represents the shipment track component.
-   */
+  /** Represents the shipment track component. */
   @Getter
   @Setter
   public static class ShipmentTrack {
@@ -116,9 +112,7 @@ public class ShipRocketTrackingResponseModel {
     private String podStatus;
   }
 
-  /**
-   * Represents the track activity component.
-   */
+  /** Represents the track activity component. */
   @Getter
   @Setter
   public static class TrackActivity {
@@ -141,9 +135,7 @@ public class ShipRocketTrackingResponseModel {
     private String srStatusLabel;
   }
 
-  /**
-   * Represents the qc response component.
-   */
+  /** Represents the qc response component. */
   @Getter
   @Setter
   public static class QcResponse {

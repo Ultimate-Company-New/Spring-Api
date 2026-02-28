@@ -1,4 +1,4 @@
-package com.example.springapi.helpers;
+package springapi.helpers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -8,8 +8,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.requestmodels.SendEmailRequest;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.springframework.core.env.Environment;
+import springapi.models.databasemodels.Client;
+import springapi.models.requestmodels.SendEmailRequest;
 
 @DisplayName("EmailTemplates Tests")
 class EmailTemplatesTest {

@@ -1,13 +1,13 @@
-package com.example.springapi.ServiceTests.Shipping;
+package springapi.ServiceTests.Shipping;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.ShippingController;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.ShippingController;
 
 /** Tests for ShippingService.cancelShipment(). */
 @DisplayName("CancelShipment Tests")
@@ -58,9 +58,9 @@ class CancelShipmentTest extends ShippingServiceTestBase {
     stubShipmentRepositoryFindByShipmentIdAndClientId(testShipment);
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.cancelShipment(TEST_SHIPMENT_ID));
 
     // Assert
@@ -81,9 +81,9 @@ class CancelShipmentTest extends ShippingServiceTestBase {
     stubShipRocketHelperCancelOrdersThrows(new RuntimeException(ErrorMessages.OPERATION_FAILED));
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.cancelShipment(TEST_SHIPMENT_ID));
 
     // Assert
@@ -108,9 +108,9 @@ class CancelShipmentTest extends ShippingServiceTestBase {
     stubClientServiceGetClientById(testClientResponse);
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.cancelShipment(TEST_SHIPMENT_ID));
 
     // Assert
@@ -131,9 +131,9 @@ class CancelShipmentTest extends ShippingServiceTestBase {
     stubShipmentRepositoryFindByShipmentIdAndClientId(testShipment);
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.cancelShipment(TEST_SHIPMENT_ID));
 
     // Assert
@@ -154,9 +154,9 @@ class CancelShipmentTest extends ShippingServiceTestBase {
     stubClientServiceGetClientById(testClientResponse);
 
     // Act
-    com.example.springapi.exceptions.BadRequestException ex =
+    springapi.exceptions.BadRequestException ex =
         assertThrows(
-            com.example.springapi.exceptions.BadRequestException.class,
+            springapi.exceptions.BadRequestException.class,
             () -> shippingService.cancelShipment(TEST_SHIPMENT_ID));
 
     // Assert
@@ -176,9 +176,9 @@ class CancelShipmentTest extends ShippingServiceTestBase {
     stubShipmentRepositoryFindByShipmentIdAndClientId(null);
 
     // Act
-    com.example.springapi.exceptions.NotFoundException ex =
+    springapi.exceptions.NotFoundException ex =
         assertThrows(
-            com.example.springapi.exceptions.NotFoundException.class,
+            springapi.exceptions.NotFoundException.class,
             () -> shippingService.cancelShipment(TEST_SHIPMENT_ID));
 
     // Assert

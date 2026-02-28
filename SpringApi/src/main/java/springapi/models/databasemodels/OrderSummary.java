@@ -1,7 +1,5 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -20,6 +18,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
 
 /**
  * JPA Entity for the OrderSummary table.
@@ -238,8 +238,7 @@ public class OrderSummary {
   public OrderSummary(
       String entityType,
       Long entityId,
-      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.OrderSummaryData
-          orderSummaryData,
+      springapi.models.requestmodels.PurchaseOrderRequestModel.OrderSummaryData orderSummaryData,
       Long entityAddressId,
       Long clientId,
       String createdUser) {
@@ -316,8 +315,7 @@ public class OrderSummary {
   public OrderSummary(
       String entityType,
       Long entityId,
-      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.OrderSummaryData
-          orderSummaryData,
+      springapi.models.requestmodels.PurchaseOrderRequestModel.OrderSummaryData orderSummaryData,
       Long entityAddressId,
       String modifiedUser,
       OrderSummary existingOrderSummary) {
@@ -393,8 +391,7 @@ public class OrderSummary {
   private void validateRequest(
       String entityType,
       Long entityId,
-      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.OrderSummaryData
-          orderSummaryData,
+      springapi.models.requestmodels.PurchaseOrderRequestModel.OrderSummaryData orderSummaryData,
       Long entityAddressId,
       Long clientId,
       String user) {

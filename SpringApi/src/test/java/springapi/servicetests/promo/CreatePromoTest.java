@@ -1,18 +1,18 @@
-package com.example.springapi.ServiceTests.Promo;
+package springapi.ServiceTests.Promo;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.databasemodels.Promo;
-import com.example.springapi.models.requestmodels.PromoRequestModel;
 import java.util.Collections;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.models.databasemodels.Promo;
+import springapi.models.requestmodels.PromoRequestModel;
 
 /** Test class for PromoService.createPromo method. */
 @DisplayName("PromoService - CreatePromo Tests")

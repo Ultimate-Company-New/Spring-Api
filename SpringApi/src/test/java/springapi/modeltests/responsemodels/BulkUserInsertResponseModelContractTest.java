@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.ResponseModels;
+package springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class BulkUserInsertResponseModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.responsemodels.BulkUserInsertResponseModel.class)) {
+    if (hasNoArgConstructor(springapi.models.responsemodels.BulkUserInsertResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.responsemodels.BulkUserInsertResponseModel.class);
+              .constructType(springapi.models.responsemodels.BulkUserInsertResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +62,7 @@ class BulkUserInsertResponseModelContractTest {
   void BulkUserInsertResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.responsemodels.BulkUserInsertResponseModel.class
+        springapi.models.responsemodels.BulkUserInsertResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,9 +80,9 @@ class BulkUserInsertResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.responsemodels.BulkUserInsertResponseModel createInstance() {
-    return (com.example.springapi.models.responsemodels.BulkUserInsertResponseModel)
-        instantiate(com.example.springapi.models.responsemodels.BulkUserInsertResponseModel.class);
+  private springapi.models.responsemodels.BulkUserInsertResponseModel createInstance() {
+    return (springapi.models.responsemodels.BulkUserInsertResponseModel)
+        instantiate(springapi.models.responsemodels.BulkUserInsertResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

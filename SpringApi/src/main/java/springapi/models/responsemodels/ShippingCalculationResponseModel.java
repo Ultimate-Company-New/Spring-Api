@@ -1,11 +1,11 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
-import com.example.springapi.models.shippingresponsemodel.ShippingOptionsResponseModel;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import springapi.models.shippingresponsemodel.ShippingOptionsResponseModel;
 
 /**
  * Response model for shipping calculation at the order level. Returns shipping options grouped by.
@@ -21,9 +21,7 @@ public class ShippingCalculationResponseModel {
   /** Total shipping cost for all locations (sum of selected couriers). */
   private BigDecimal totalShippingCost = BigDecimal.ZERO;
 
-  /**
-   * Represents the location shipping options component.
-   */
+  /** Represents the location shipping options component. */
   @Getter
   @Setter
   public static class LocationShippingOptions {
@@ -55,9 +53,7 @@ public class ShippingCalculationResponseModel {
       // Required for JSON serialization/deserialization.
     }
 
-    /**
-     * Executes location shipping options.
-     */
+    /** Executes location shipping options. */
     public LocationShippingOptions(
         Long pickupLocationId,
         String locationName,
@@ -74,9 +70,7 @@ public class ShippingCalculationResponseModel {
     }
   }
 
-  /**
-   * Represents the courier option component.
-   */
+  /** Represents the courier option component. */
   @Getter
   @Setter
   public static class CourierOption {

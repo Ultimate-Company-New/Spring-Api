@@ -1,7 +1,5 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -16,6 +14,8 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
 
 /**
  * JPA Entity for the ShipmentProduct table.
@@ -76,8 +76,7 @@ public class ShipmentProduct {
    */
   public ShipmentProduct(
       Long shipmentId,
-      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.ShipmentProductData
-          productData) {
+      springapi.models.requestmodels.PurchaseOrderRequestModel.ShipmentProductData productData) {
     validateRequest(shipmentId, productData);
 
     this.shipmentId = shipmentId;
@@ -95,8 +94,7 @@ public class ShipmentProduct {
    */
   public ShipmentProduct(
       Long shipmentId,
-      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.ShipmentProductData
-          productData,
+      springapi.models.requestmodels.PurchaseOrderRequestModel.ShipmentProductData productData,
       ShipmentProduct existingShipmentProduct) {
     validateRequest(shipmentId, productData);
 
@@ -117,8 +115,7 @@ public class ShipmentProduct {
    */
   private void validateRequest(
       Long shipmentId,
-      com.example.springapi.models.requestmodels.PurchaseOrderRequestModel.ShipmentProductData
-          productData) {
+      springapi.models.requestmodels.PurchaseOrderRequestModel.ShipmentProductData productData) {
     if (productData == null) {
       throw new BadRequestException(ErrorMessages.ShipmentProductErrorMessages.INVALID_REQUEST);
     }

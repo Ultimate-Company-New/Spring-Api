@@ -1,17 +1,9 @@
-package com.example.springapi.ServiceTests.Client;
+package springapi.ServiceTests.Client;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.ClientController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.helpers.FirebaseHelper;
-import com.example.springapi.helpers.ImgbbHelper;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.databasemodels.Client;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +12,14 @@ import org.mockito.MockedConstruction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
+import springapi.ErrorMessages;
+import springapi.controllers.ClientController;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.helpers.FirebaseHelper;
+import springapi.helpers.ImgbbHelper;
+import springapi.models.Authorizations;
+import springapi.models.databasemodels.Client;
 
 /** Unit tests for ClientService.updateClient() method. */
 @DisplayName("Update Client Tests")
@@ -917,9 +917,7 @@ class UpdateClientTest extends ClientServiceTestBase {
     // Arrange
     var method =
         ClientController.class.getMethod(
-            "updateClient",
-            Long.class,
-            com.example.springapi.models.requestmodels.ClientRequestModel.class);
+            "updateClient", Long.class, springapi.models.requestmodels.ClientRequestModel.class);
     testClientRequest.setClientId(TEST_CLIENT_ID);
     stubServiceUpdateClientDoNothing();
 

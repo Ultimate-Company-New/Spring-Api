@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.ShippingResponseModel;
+package springapi.ModelTests.ShippingResponseModel;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class TokenResponseModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.shippingresponsemodel.TokenResponseModel.class)) {
+    if (hasNoArgConstructor(springapi.models.shippingresponsemodel.TokenResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.shippingresponsemodel.TokenResponseModel.class);
+              .constructType(springapi.models.shippingresponsemodel.TokenResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,8 +62,7 @@ class TokenResponseModelContractTest {
   void TokenResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.shippingresponsemodel.TokenResponseModel.class
-            .getDeclaredConstructors()) {
+        springapi.models.shippingresponsemodel.TokenResponseModel.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -82,9 +79,9 @@ class TokenResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.shippingresponsemodel.TokenResponseModel createInstance() {
-    return (com.example.springapi.models.shippingresponsemodel.TokenResponseModel)
-        instantiate(com.example.springapi.models.shippingresponsemodel.TokenResponseModel.class);
+  private springapi.models.shippingresponsemodel.TokenResponseModel createInstance() {
+    return (springapi.models.shippingresponsemodel.TokenResponseModel)
+        instantiate(springapi.models.shippingresponsemodel.TokenResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

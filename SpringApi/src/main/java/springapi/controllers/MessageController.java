@@ -1,16 +1,5 @@
-package com.example.springapi.controllers;
+package springapi.controllers;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.exceptions.UnauthorizedException;
-import com.example.springapi.logging.ContextualLogger;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.requestmodels.MessageRequestModel;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.responsemodels.ErrorResponseModel;
-import com.example.springapi.services.interfaces.MessageSubTranslator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +12,17 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.exceptions.UnauthorizedException;
+import springapi.logging.ContextualLogger;
+import springapi.models.ApiRoutes;
+import springapi.models.Authorizations;
+import springapi.models.requestmodels.MessageRequestModel;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.responsemodels.ErrorResponseModel;
+import springapi.services.interfaces.MessageSubTranslator;
 
 /**
  * REST Controller for Message operations.
@@ -196,9 +196,7 @@ public class MessageController {
     }
   }
 
-  /**
-   * Toggles message.
-   */
+  /** Toggles message. */
   @DeleteMapping("/" + ApiRoutes.MessagesSubRoute.TOGGLE_MESSAGE + "/{id}")
   @PreAuthorize(
       "@customAuthorization.hasAuthority('" + Authorizations.DELETE_MESSAGES_PERMISSION + "')")
@@ -339,9 +337,7 @@ public class MessageController {
     }
   }
 
-  /**
-   * Documents this member.
-   */
+  /** Documents this member. */
   @PostMapping(
       "/"
           + ApiRoutes.MessagesSubRoute.SET_MESSAGE_READ_BY_USER_ID_AND_MESSAGE_ID

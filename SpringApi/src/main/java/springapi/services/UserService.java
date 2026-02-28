@@ -1,42 +1,5 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.SuccessMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.constants.ImageLocationConstants;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.filterquerybuilder.UserFilterQueryBuilder;
-import com.example.springapi.helpers.BulkInsertHelper;
-import com.example.springapi.helpers.EmailTemplates;
-import com.example.springapi.helpers.FirebaseHelper;
-import com.example.springapi.helpers.ImgbbHelper;
-import com.example.springapi.helpers.PasswordHelper;
-import com.example.springapi.logging.ContextualLogger;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.databasemodels.Address;
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.databasemodels.GoogleCred;
-import com.example.springapi.models.databasemodels.User;
-import com.example.springapi.models.databasemodels.UserClientMapping;
-import com.example.springapi.models.databasemodels.UserClientPermissionMapping;
-import com.example.springapi.models.databasemodels.UserGroupUserMap;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.UserRequestModel;
-import com.example.springapi.models.responsemodels.BulkUserInsertResponseModel;
-import com.example.springapi.models.responsemodels.ClientResponseModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.PermissionResponseModel;
-import com.example.springapi.models.responsemodels.UserResponseModel;
-import com.example.springapi.repositories.AddressRepository;
-import com.example.springapi.repositories.ClientRepository;
-import com.example.springapi.repositories.GoogleCredRepository;
-import com.example.springapi.repositories.PermissionRepository;
-import com.example.springapi.repositories.UserClientMappingRepository;
-import com.example.springapi.repositories.UserClientPermissionMappingRepository;
-import com.example.springapi.repositories.UserGroupUserMapRepository;
-import com.example.springapi.repositories.UserRepository;
-import com.example.springapi.services.interfaces.UserSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.util.ArrayList;
@@ -52,6 +15,43 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import springapi.ErrorMessages;
+import springapi.SuccessMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.constants.ImageLocationConstants;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.filterquerybuilder.UserFilterQueryBuilder;
+import springapi.helpers.BulkInsertHelper;
+import springapi.helpers.EmailTemplates;
+import springapi.helpers.FirebaseHelper;
+import springapi.helpers.ImgbbHelper;
+import springapi.helpers.PasswordHelper;
+import springapi.logging.ContextualLogger;
+import springapi.models.ApiRoutes;
+import springapi.models.databasemodels.Address;
+import springapi.models.databasemodels.Client;
+import springapi.models.databasemodels.GoogleCred;
+import springapi.models.databasemodels.User;
+import springapi.models.databasemodels.UserClientMapping;
+import springapi.models.databasemodels.UserClientPermissionMapping;
+import springapi.models.databasemodels.UserGroupUserMap;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.UserRequestModel;
+import springapi.models.responsemodels.BulkUserInsertResponseModel;
+import springapi.models.responsemodels.ClientResponseModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.PermissionResponseModel;
+import springapi.models.responsemodels.UserResponseModel;
+import springapi.repositories.AddressRepository;
+import springapi.repositories.ClientRepository;
+import springapi.repositories.GoogleCredRepository;
+import springapi.repositories.PermissionRepository;
+import springapi.repositories.UserClientMappingRepository;
+import springapi.repositories.UserClientPermissionMappingRepository;
+import springapi.repositories.UserGroupUserMapRepository;
+import springapi.repositories.UserRepository;
+import springapi.services.interfaces.UserSubTranslator;
 
 /**
  * Service class for User-related business operations.
@@ -87,9 +87,7 @@ public class UserService extends BaseService implements UserSubTranslator {
   @Value("${imageLocation:firebase}")
   private String imageLocation;
 
-  /**
-   * Executes user service.
-   */
+  /** Executes user service. */
   @Autowired
   public UserService(
       UserRepository userRepository,
@@ -124,9 +122,7 @@ public class UserService extends BaseService implements UserSubTranslator {
     this.logger = ContextualLogger.getLogger(UserService.class);
   }
 
-  /**
-   * Toggles user.
-   */
+  /** Toggles user. */
   @Override
   public void toggleUser(long id) {
     User user = userRepository.findByIdWithAllRelations(id, getClientId());
@@ -215,9 +211,7 @@ public class UserService extends BaseService implements UserSubTranslator {
     createUserInternal(userRequestModel, true);
   }
 
-  /**
-   * Updates user.
-   */
+  /** Updates user. */
   @Override
   @Transactional
   public void updateUser(UserRequestModel user) {

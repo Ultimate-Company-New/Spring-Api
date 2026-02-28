@@ -1,4 +1,4 @@
-package com.example.springapi.models.shippingresponsemodel;
+package springapi.models.shippingresponsemodel;
 
 import com.nimbusds.jose.shaded.gson.annotations.SerializedName;
 import lombok.Getter;
@@ -55,9 +55,7 @@ public class ShipRocketAwbResponseModel {
     return null;
   }
 
-  /**
-   * Represents the awb response component.
-   */
+  /** Represents the awb response component. */
   @Getter
   @Setter
   public static class AwbResponse {
@@ -65,9 +63,7 @@ public class ShipRocketAwbResponseModel {
     private AwbData data;
   }
 
-  /**
-   * Represents the awb data component.
-   */
+  /** Represents the awb data component. */
   @Getter
   @Setter
   public static class AwbData {
@@ -126,9 +122,7 @@ public class ShipRocketAwbResponseModel {
     private ShippedBy shippedBy;
   }
 
-  /**
-   * Represents the assigned date time component.
-   */
+  /** Represents the assigned date time component. */
   @Getter
   @Setter
   public static class AssignedDateTime {
@@ -142,9 +136,7 @@ public class ShipRocketAwbResponseModel {
     private String timezone;
   }
 
-  /**
-   * Represents the shipped by component.
-   */
+  /** Represents the shipped by component. */
   @Getter
   @Setter
   public static class ShippedBy {

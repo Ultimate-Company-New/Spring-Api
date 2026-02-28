@@ -1,14 +1,7 @@
-package com.example.springapi.ServiceTests.QA;
+package springapi.ServiceTests.QA;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.ApplicationException;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.databasemodels.LatestTestResult;
-import com.example.springapi.models.requestmodels.TestExecutionRequestModel;
-import com.example.springapi.models.responsemodels.TestExecutionStatusModel;
-import com.example.springapi.services.QaService;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
@@ -20,6 +13,13 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import springapi.ErrorMessages;
+import springapi.exceptions.ApplicationException;
+import springapi.exceptions.BadRequestException;
+import springapi.models.databasemodels.LatestTestResult;
+import springapi.models.requestmodels.TestExecutionRequestModel;
+import springapi.models.responsemodels.TestExecutionStatusModel;
+import springapi.services.QaService;
 
 /**
  * Unit tests for QaService.startTestExecution() method.
@@ -68,7 +68,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList("testMethod1", "testMethod2");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -88,7 +88,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList("testMethod1", "testMethod1", "testMethod2");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -143,7 +143,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList("testMethod1", "testMethod2", "testMethod3");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -163,7 +163,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList("testMethod1");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -182,7 +182,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList("testMethod1[1]");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -242,7 +242,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList("testMethod1");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -265,7 +265,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList("testMethod1", "testMethod2");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -322,7 +322,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList(" testMethod1 ", "testMethod2");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -342,7 +342,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList(longTestName);
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -361,7 +361,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     List<String> testNames = Arrays.asList("testMethod1");
     TestExecutionRequestModel request =
         createTestExecutionRequestWithTestNames(
-            "com.example.springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
+            "springapi.ServiceTests.QA.GetAvailableServicesTest", testNames);
 
     // Act
     TestExecutionStatusModel status = qaService.startTestExecution(request);
@@ -756,7 +756,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
         realService,
         "parseTestOutput",
         new Class<?>[] {String.class, TestExecutionStatusModel.class},
-        "Running com.example.springapi.ServiceTests.QA.GetAvailableServicesTest",
+        "Running springapi.ServiceTests.QA.GetAvailableServicesTest",
         status);
 
     // Assert
@@ -1054,7 +1054,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     // Arrange
     QaService realService = createRealQAService();
     Path tempProject = Files.createTempDirectory("qa-parser-io-");
-    Path testSourceDir = tempProject.resolve("src/test/java/com/example/springapi/services/tests");
+    Path testSourceDir = tempProject.resolve("src/test/java/springapi/services/tests");
     Files.createDirectories(testSourceDir);
     Files.createDirectories(testSourceDir.resolve("BrokenFixture.java"));
     String originalUserDir = System.getProperty("user.dir");
@@ -1623,12 +1623,12 @@ class StartTestExecutionTest extends QAServiceTestBase {
 
   private Path createParserFixtureProject() throws Exception {
     Path tempProject = Files.createTempDirectory("qa-parser-fixture-");
-    Path testSourceDir = tempProject.resolve("src/test/java/com/example/springapi/services/tests");
+    Path testSourceDir = tempProject.resolve("src/test/java/springapi/services/tests");
     Files.createDirectories(testSourceDir);
 
     String source =
         """
-                package com.example.springapi.ServiceTests;
+                package springapi.ServiceTests;
 
                 import org.junit.jupiter.api.DisplayName;
                 import org.junit.jupiter.api.Nested;
@@ -1713,8 +1713,8 @@ class StartTestExecutionTest extends QAServiceTestBase {
   @Test
   void startTestExecution_controller_permission_unauthorized() {
     // Arrange
-    com.example.springapi.controllers.QaController controller =
-        new com.example.springapi.controllers.QaController(qaSubTranslator);
+    springapi.controllers.QaController controller =
+        new springapi.controllers.QaController(qaSubTranslator);
     stubQaTranslatorStartTestExecutionThrowsUnauthorized();
 
     // Act

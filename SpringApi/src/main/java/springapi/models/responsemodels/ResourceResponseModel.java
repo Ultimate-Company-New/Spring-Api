@@ -1,9 +1,9 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
-import com.example.springapi.models.databasemodels.Resources;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
+import springapi.models.databasemodels.Resources;
 
 /**
  * Response model for Resources operations.

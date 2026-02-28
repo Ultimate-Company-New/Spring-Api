@@ -1,18 +1,9 @@
-package com.example.springapi.ServiceTests.UserGroup;
+package springapi.ServiceTests.UserGroup;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.UserGroupController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.databasemodels.UserGroup;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.UserGroupRequestModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.UserGroupResponseModel;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +14,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import springapi.ErrorMessages;
+import springapi.controllers.UserGroupController;
+import springapi.exceptions.BadRequestException;
+import springapi.models.Authorizations;
+import springapi.models.databasemodels.UserGroup;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.UserGroupRequestModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.UserGroupResponseModel;
 
 /** Unit tests for UserGroupService.fetchUserGroupsInClientInBatches method. */
 @DisplayName("UserGroupService - FetchUserGroupsInClientInBatches Tests")

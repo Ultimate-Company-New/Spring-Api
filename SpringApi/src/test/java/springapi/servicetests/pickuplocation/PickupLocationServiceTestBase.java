@@ -1,25 +1,8 @@
-package com.example.springapi.ServiceTests.PickupLocation;
+package springapi.ServiceTests.PickupLocation;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.authentication.Authorization;
-import com.example.springapi.filterquerybuilder.PickupLocationFilterQueryBuilder;
-import com.example.springapi.helpers.ShipRocketHelper;
-import com.example.springapi.models.databasemodels.Address;
-import com.example.springapi.models.databasemodels.PickupLocation;
-import com.example.springapi.models.requestmodels.AddressRequestModel;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.PickupLocationRequestModel;
-import com.example.springapi.models.responsemodels.ClientResponseModel;
-import com.example.springapi.models.shippingresponsemodel.AddPickupLocationResponseModel;
-import com.example.springapi.repositories.AddressRepository;
-import com.example.springapi.repositories.PackagePickupLocationMappingRepository;
-import com.example.springapi.repositories.PickupLocationRepository;
-import com.example.springapi.repositories.ProductPickupLocationMappingRepository;
-import com.example.springapi.services.ClientService;
-import com.example.springapi.services.PickupLocationService;
-import com.example.springapi.services.UserLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +12,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import springapi.authentication.Authorization;
+import springapi.filterquerybuilder.PickupLocationFilterQueryBuilder;
+import springapi.helpers.ShipRocketHelper;
+import springapi.models.databasemodels.Address;
+import springapi.models.databasemodels.PickupLocation;
+import springapi.models.requestmodels.AddressRequestModel;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.PickupLocationRequestModel;
+import springapi.models.responsemodels.ClientResponseModel;
+import springapi.models.shippingresponsemodel.AddPickupLocationResponseModel;
+import springapi.repositories.AddressRepository;
+import springapi.repositories.PackagePickupLocationMappingRepository;
+import springapi.repositories.PickupLocationRepository;
+import springapi.repositories.ProductPickupLocationMappingRepository;
+import springapi.services.ClientService;
+import springapi.services.PickupLocationService;
+import springapi.services.UserLogService;
 
 /**
  * Base test class for PickupLocationService tests. Contains common mocks, dependencies, and setup
@@ -263,22 +263,22 @@ abstract class PickupLocationServiceTestBase {
   protected void stubPickupLocationServiceThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(pickupLocationServiceMock)
         .bulkCreatePickupLocationsAsync(anyList(), anyLong(), anyString(), anyLong());
   }
 
   protected void stubPickupLocationServiceGetPickupLocationByIdReturns(
-      com.example.springapi.models.responsemodels.PickupLocationResponseModel result) {
+      springapi.models.responsemodels.PickupLocationResponseModel result) {
     lenient().when(pickupLocationServiceMock.getPickupLocationById(anyLong())).thenReturn(result);
   }
 
   protected void stubPickupLocationServiceThrowsUnauthorizedOnGetById() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(pickupLocationServiceMock)
         .getPickupLocationById(anyLong());
   }
@@ -286,8 +286,8 @@ abstract class PickupLocationServiceTestBase {
   protected void stubPickupLocationServiceThrowsUnauthorizedOnCreate() throws Exception {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(pickupLocationServiceMock)
         .createPickupLocation(any());
   }
@@ -299,8 +299,8 @@ abstract class PickupLocationServiceTestBase {
   protected void stubPickupLocationServiceThrowsUnauthorizedOnUpdate() throws Exception {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(pickupLocationServiceMock)
         .updatePickupLocation(any());
   }
@@ -312,8 +312,8 @@ abstract class PickupLocationServiceTestBase {
   protected void stubPickupLocationServiceThrowsUnauthorizedOnToggle() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(pickupLocationServiceMock)
         .togglePickupLocation(anyLong());
   }
@@ -325,15 +325,15 @@ abstract class PickupLocationServiceTestBase {
   protected void stubPickupLocationServiceThrowsUnauthorizedOnGetBatches() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(pickupLocationServiceMock)
         .getPickupLocationsInBatches(any());
   }
 
   protected void stubPickupLocationServiceGetPickupLocationsInBatchesReturns(
-      com.example.springapi.models.responsemodels.PaginationBaseResponseModel<
-              com.example.springapi.models.responsemodels.PickupLocationResponseModel>
+      springapi.models.responsemodels.PaginationBaseResponseModel<
+              springapi.models.responsemodels.PickupLocationResponseModel>
           result) {
     lenient().when(pickupLocationServiceMock.getPickupLocationsInBatches(any())).thenReturn(result);
   }

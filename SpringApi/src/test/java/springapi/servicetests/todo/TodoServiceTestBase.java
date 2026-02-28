@@ -1,4 +1,4 @@
-package com.example.springapi.ServiceTests.Todo;
+package springapi.ServiceTests.Todo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -7,15 +7,6 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 
-import com.example.springapi.controllers.TodoController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.databasemodels.Todo;
-import com.example.springapi.models.requestmodels.TodoRequestModel;
-import com.example.springapi.repositories.TodoRepository;
-import com.example.springapi.services.TodoService;
-import com.example.springapi.services.UserLogService;
-import com.example.springapi.services.interfaces.TodoSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,6 +16,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import springapi.controllers.TodoController;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.models.databasemodels.Todo;
+import springapi.models.requestmodels.TodoRequestModel;
+import springapi.repositories.TodoRepository;
+import springapi.services.TodoService;
+import springapi.services.UserLogService;
+import springapi.services.interfaces.TodoSubTranslator;
 
 @ExtendWith(MockitoExtension.class)
 abstract class TodoServiceTestBase {
@@ -113,8 +113,8 @@ abstract class TodoServiceTestBase {
   protected void stubTodoServiceAddTodoThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(todoServiceMock)
         .addTodo(any(TodoRequestModel.class));
   }
@@ -122,8 +122,8 @@ abstract class TodoServiceTestBase {
   protected void stubTodoServiceUpdateTodoThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(todoServiceMock)
         .updateTodo(any(TodoRequestModel.class));
   }
@@ -131,8 +131,8 @@ abstract class TodoServiceTestBase {
   protected void stubTodoServiceGetTodoItemsThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(todoServiceMock)
         .getTodoItems();
   }
@@ -140,8 +140,8 @@ abstract class TodoServiceTestBase {
   protected void stubTodoServiceDeleteTodoThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(todoServiceMock)
         .deleteTodo(anyLong());
   }
@@ -149,8 +149,8 @@ abstract class TodoServiceTestBase {
   protected void stubTodoServiceToggleTodoThrowsUnauthorized() {
     lenient()
         .doThrow(
-            new com.example.springapi.exceptions.UnauthorizedException(
-                com.example.springapi.ErrorMessages.ERROR_UNAUTHORIZED))
+            new springapi.exceptions.UnauthorizedException(
+                springapi.ErrorMessages.ERROR_UNAUTHORIZED))
         .when(todoServiceMock)
         .toggleTodo(anyLong());
   }

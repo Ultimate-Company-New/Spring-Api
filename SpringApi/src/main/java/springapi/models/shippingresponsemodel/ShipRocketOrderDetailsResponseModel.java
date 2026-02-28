@@ -1,4 +1,4 @@
-package com.example.springapi.models.shippingresponsemodel;
+package springapi.models.shippingresponsemodel;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.ResponseModels;
+package springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,12 +48,11 @@ class ClientResponseModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.responsemodels.ClientResponseModel.class)) {
+    if (hasNoArgConstructor(springapi.models.responsemodels.ClientResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.springapi.models.responsemodels.ClientResponseModel.class);
+              .constructType(springapi.models.responsemodels.ClientResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -63,8 +62,7 @@ class ClientResponseModelContractTest {
   void ClientResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.responsemodels.ClientResponseModel.class
-            .getDeclaredConstructors()) {
+        springapi.models.responsemodels.ClientResponseModel.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -81,9 +79,9 @@ class ClientResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.responsemodels.ClientResponseModel createInstance() {
-    return (com.example.springapi.models.responsemodels.ClientResponseModel)
-        instantiate(com.example.springapi.models.responsemodels.ClientResponseModel.class);
+  private springapi.models.responsemodels.ClientResponseModel createInstance() {
+    return (springapi.models.responsemodels.ClientResponseModel)
+        instantiate(springapi.models.responsemodels.ClientResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

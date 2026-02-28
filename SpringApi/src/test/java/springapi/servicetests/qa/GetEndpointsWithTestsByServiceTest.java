@@ -1,11 +1,7 @@
-package com.example.springapi.ServiceTests.QA;
+package springapi.ServiceTests.QA;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.QaController;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.responsemodels.QaResponseModel;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,6 +9,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.QaController;
+import springapi.exceptions.NotFoundException;
+import springapi.models.responsemodels.QaResponseModel;
 
 /**
  * Unit tests for QaService.getEndpointsWithTestsByService() method.

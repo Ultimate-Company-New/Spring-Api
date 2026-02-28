@@ -1,15 +1,10 @@
-package com.example.springapi.ServiceTests.User;
+package springapi.ServiceTests.User;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.UserController;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.responsemodels.UserResponseModel;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +12,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import springapi.ErrorMessages;
+import springapi.controllers.UserController;
+import springapi.exceptions.NotFoundException;
+import springapi.models.Authorizations;
+import springapi.models.responsemodels.UserResponseModel;
 
 /** Unit tests for UserService.getUserByEmail method. */
 @DisplayName("UserService - GetUserByEmail Tests")
@@ -71,18 +71,18 @@ class GetUserByEmailTest extends UserServiceTestBase {
   @DisplayName("getUserByEmail - Success - Returns Permissions")
   void getUserByEmail_success_returnsPermissions() {
     // Arrange
-    com.example.springapi.models.databasemodels.Permission p1 =
-        new com.example.springapi.models.databasemodels.Permission();
+    springapi.models.databasemodels.Permission p1 =
+        new springapi.models.databasemodels.Permission();
     p1.setPermissionId(1L);
-    com.example.springapi.models.databasemodels.UserClientPermissionMapping m1 =
-        new com.example.springapi.models.databasemodels.UserClientPermissionMapping();
+    springapi.models.databasemodels.UserClientPermissionMapping m1 =
+        new springapi.models.databasemodels.UserClientPermissionMapping();
     m1.setPermission(p1);
 
-    com.example.springapi.models.databasemodels.Permission p2 =
-        new com.example.springapi.models.databasemodels.Permission();
+    springapi.models.databasemodels.Permission p2 =
+        new springapi.models.databasemodels.Permission();
     p2.setPermissionId(2L);
-    com.example.springapi.models.databasemodels.UserClientPermissionMapping m2 =
-        new com.example.springapi.models.databasemodels.UserClientPermissionMapping();
+    springapi.models.databasemodels.UserClientPermissionMapping m2 =
+        new springapi.models.databasemodels.UserClientPermissionMapping();
     m2.setPermission(p2);
 
     testUser.setUserClientPermissionMappings(new HashSet<>());

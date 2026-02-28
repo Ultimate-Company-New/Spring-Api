@@ -1,63 +1,5 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.filterquerybuilder.ShipmentFilterQueryBuilder;
-import com.example.springapi.helpers.PackagingHelper;
-import com.example.springapi.helpers.ShipRocketHelper;
-import com.example.springapi.models.databasemodels.Address;
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.databasemodels.OrderSummary;
-import com.example.springapi.models.databasemodels.PackagePickupLocationMapping;
-import com.example.springapi.models.databasemodels.PickupLocation;
-import com.example.springapi.models.databasemodels.Product;
-import com.example.springapi.models.databasemodels.ProductPickupLocationMapping;
-import com.example.springapi.models.databasemodels.PurchaseOrder;
-import com.example.springapi.models.databasemodels.ReturnShipment;
-import com.example.springapi.models.databasemodels.ReturnShipmentProduct;
-import com.example.springapi.models.databasemodels.Shipment;
-import com.example.springapi.models.databasemodels.ShipmentPackage;
-import com.example.springapi.models.databasemodels.ShipmentProduct;
-import com.example.springapi.models.requestmodels.CashPaymentRequestModel;
-import com.example.springapi.models.requestmodels.CreateReturnRequestModel;
-import com.example.springapi.models.requestmodels.OrderOptimizationRequestModel;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.RazorpayVerifyRequestModel;
-import com.example.springapi.models.requestmodels.ShipRocketOrderRequestModel;
-import com.example.springapi.models.requestmodels.ShipRocketReturnOrderRequestModel;
-import com.example.springapi.models.requestmodels.ShippingCalculationRequestModel;
-import com.example.springapi.models.responsemodels.ClientResponseModel;
-import com.example.springapi.models.responsemodels.OrderOptimizationResponseModel;
-import com.example.springapi.models.responsemodels.PackageResponseModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.PaymentVerificationResponseModel;
-import com.example.springapi.models.responsemodels.PickupLocationResponseModel;
-import com.example.springapi.models.responsemodels.ProductResponseModel;
-import com.example.springapi.models.responsemodels.ReturnShipmentResponseModel;
-import com.example.springapi.models.responsemodels.ShipmentResponseModel;
-import com.example.springapi.models.responsemodels.ShippingCalculationResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketAwbResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketOrderResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel;
-import com.example.springapi.models.shippingresponsemodel.ShippingOptionsResponseModel;
-import com.example.springapi.repositories.ClientRepository;
-import com.example.springapi.repositories.OrderSummaryRepository;
-import com.example.springapi.repositories.PackagePickupLocationMappingRepository;
-import com.example.springapi.repositories.PackageRepository;
-import com.example.springapi.repositories.PickupLocationRepository;
-import com.example.springapi.repositories.ProductPickupLocationMappingRepository;
-import com.example.springapi.repositories.ProductRepository;
-import com.example.springapi.repositories.PurchaseOrderRepository;
-import com.example.springapi.repositories.ReturnShipmentProductRepository;
-import com.example.springapi.repositories.ReturnShipmentRepository;
-import com.example.springapi.repositories.ShipmentPackageProductRepository;
-import com.example.springapi.repositories.ShipmentPackageRepository;
-import com.example.springapi.repositories.ShipmentProductRepository;
-import com.example.springapi.repositories.ShipmentRepository;
-import com.example.springapi.services.interfaces.PaymentSubTranslator;
-import com.example.springapi.services.interfaces.ShippingSubTranslator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.shaded.gson.Gson;
 import jakarta.servlet.http.HttpServletRequest;
@@ -86,6 +28,64 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import springapi.ErrorMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.filterquerybuilder.ShipmentFilterQueryBuilder;
+import springapi.helpers.PackagingHelper;
+import springapi.helpers.ShipRocketHelper;
+import springapi.models.databasemodels.Address;
+import springapi.models.databasemodels.Client;
+import springapi.models.databasemodels.OrderSummary;
+import springapi.models.databasemodels.PackagePickupLocationMapping;
+import springapi.models.databasemodels.PickupLocation;
+import springapi.models.databasemodels.Product;
+import springapi.models.databasemodels.ProductPickupLocationMapping;
+import springapi.models.databasemodels.PurchaseOrder;
+import springapi.models.databasemodels.ReturnShipment;
+import springapi.models.databasemodels.ReturnShipmentProduct;
+import springapi.models.databasemodels.Shipment;
+import springapi.models.databasemodels.ShipmentPackage;
+import springapi.models.databasemodels.ShipmentProduct;
+import springapi.models.requestmodels.CashPaymentRequestModel;
+import springapi.models.requestmodels.CreateReturnRequestModel;
+import springapi.models.requestmodels.OrderOptimizationRequestModel;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.RazorpayVerifyRequestModel;
+import springapi.models.requestmodels.ShipRocketOrderRequestModel;
+import springapi.models.requestmodels.ShipRocketReturnOrderRequestModel;
+import springapi.models.requestmodels.ShippingCalculationRequestModel;
+import springapi.models.responsemodels.ClientResponseModel;
+import springapi.models.responsemodels.OrderOptimizationResponseModel;
+import springapi.models.responsemodels.PackageResponseModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.PaymentVerificationResponseModel;
+import springapi.models.responsemodels.PickupLocationResponseModel;
+import springapi.models.responsemodels.ProductResponseModel;
+import springapi.models.responsemodels.ReturnShipmentResponseModel;
+import springapi.models.responsemodels.ShipmentResponseModel;
+import springapi.models.responsemodels.ShippingCalculationResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketAwbResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketOrderResponseModel;
+import springapi.models.shippingresponsemodel.ShipRocketReturnOrderResponseModel;
+import springapi.models.shippingresponsemodel.ShippingOptionsResponseModel;
+import springapi.repositories.ClientRepository;
+import springapi.repositories.OrderSummaryRepository;
+import springapi.repositories.PackagePickupLocationMappingRepository;
+import springapi.repositories.PackageRepository;
+import springapi.repositories.PickupLocationRepository;
+import springapi.repositories.ProductPickupLocationMappingRepository;
+import springapi.repositories.ProductRepository;
+import springapi.repositories.PurchaseOrderRepository;
+import springapi.repositories.ReturnShipmentProductRepository;
+import springapi.repositories.ReturnShipmentRepository;
+import springapi.repositories.ShipmentPackageProductRepository;
+import springapi.repositories.ShipmentPackageRepository;
+import springapi.repositories.ShipmentProductRepository;
+import springapi.repositories.ShipmentRepository;
+import springapi.services.interfaces.PaymentSubTranslator;
+import springapi.services.interfaces.ShippingSubTranslator;
 
 /**
  * Helper class for shipping-related operations. Consolidates functionality from.
@@ -151,9 +151,7 @@ public class ShippingService extends BaseService implements ShippingSubTranslato
   private final UserLogService userLogService;
   private final ShipmentFilterQueryBuilder shipmentFilterQueryBuilder;
 
-  /**
-   * Initializes ShippingService.
-   */
+  /** Initializes ShippingService. */
   @Autowired
   public ShippingService(
       ClientService clientService,
@@ -743,7 +741,7 @@ public class ShippingService extends BaseService implements ShippingSubTranslato
     List<ShipmentPackage> shipmentPackages =
         shipmentPackageRepository.findByShipmentId(shipment.getShipmentId());
     for (ShipmentPackage shipmentPackage : shipmentPackages) {
-      com.example.springapi.models.databasemodels.Package packageEntity =
+      springapi.models.databasemodels.Package packageEntity =
           packageRepository
               .findById(shipmentPackage.getPackageId())
               .orElseThrow(
@@ -942,11 +940,10 @@ public class ShippingService extends BaseService implements ShippingSubTranslato
         shipment.setShipRocketAwbMetadata(awbMetadataJson);
 
         Gson gson = new Gson();
-        com.example.springapi.models.shippingresponsemodel.ShipRocketAwbResponseModel awbResponse =
+        springapi.models.shippingresponsemodel.ShipRocketAwbResponseModel awbResponse =
             gson.fromJson(
                 awbMetadataJson,
-                com.example.springapi.models.shippingresponsemodel.ShipRocketAwbResponseModel
-                    .class);
+                springapi.models.shippingresponsemodel.ShipRocketAwbResponseModel.class);
 
         if (awbResponse != null && awbResponse.isSuccess() && awbResponse.getAwbCode() != null) {
           shipment.setShipRocketAwbCode(awbResponse.getAwbCode());
@@ -1304,8 +1301,7 @@ public class ShippingService extends BaseService implements ShippingSubTranslato
     String locationName;
     String postalCode;
     List<PackagingHelper.PackageDimension> packageDimensions = new ArrayList<>();
-    Map<Long, com.example.springapi.models.databasemodels.Package> packageEntities =
-        new HashMap<>();
+    Map<Long, springapi.models.databasemodels.Package> packageEntities = new HashMap<>();
   }
 
   private static class ProductAllocationTracker {
@@ -3140,7 +3136,7 @@ public class ShippingService extends BaseService implements ShippingSubTranslato
       OrderOptimizationResponseModel.PackageUsage pkgUsage =
           new OrderOptimizationResponseModel.PackageUsage();
 
-      com.example.springapi.models.databasemodels.Package pkgEntity =
+      springapi.models.databasemodels.Package pkgEntity =
           locInfo.packageEntities.get(usage.getPackageId());
       if (pkgEntity != null) {
         pkgUsage.setPackageInfo(new PackageResponseModel(pkgEntity));

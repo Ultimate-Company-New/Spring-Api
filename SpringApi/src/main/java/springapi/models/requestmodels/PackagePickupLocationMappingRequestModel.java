@@ -1,4 +1,4 @@
-package com.example.springapi.models.requestmodels;
+package springapi.models.requestmodels;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -17,9 +17,7 @@ public class PackagePickupLocationMappingRequestModel {
 
   public PackagePickupLocationMappingRequestModel() {}
 
-  /**
-   * Executes package pickup location mapping request model.
-   */
+  /** Executes package pickup location mapping request model. */
   public PackagePickupLocationMappingRequestModel(
       Long packageId, Integer quantity, Integer reorderLevel, Integer maxStockLevel) {
     this.packageId = packageId;

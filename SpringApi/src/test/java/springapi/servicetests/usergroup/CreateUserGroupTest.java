@@ -1,15 +1,9 @@
-package com.example.springapi.ServiceTests.UserGroup;
+package springapi.ServiceTests.UserGroup;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.UserGroupController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.databasemodels.UserGroup;
-import com.example.springapi.models.requestmodels.UserGroupRequestModel;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +13,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import springapi.ErrorMessages;
+import springapi.controllers.UserGroupController;
+import springapi.exceptions.BadRequestException;
+import springapi.models.Authorizations;
+import springapi.models.databasemodels.UserGroup;
+import springapi.models.requestmodels.UserGroupRequestModel;
 
 /** Unit tests for UserGroupService.createUserGroup method. */
 @DisplayName("UserGroupService - CreateUserGroup Tests")
@@ -327,9 +327,7 @@ class CreateUserGroupTest extends UserGroupServiceTestBase {
     assertNotNull(ex.getMessage());
     assertTrue(
         ex.getMessage()
-            .contains(
-                com.example.springapi.models.requestmodels.UserGroupRequestModel.class
-                    .getSimpleName()));
+            .contains(springapi.models.requestmodels.UserGroupRequestModel.class.getSimpleName()));
   }
 
   /**

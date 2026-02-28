@@ -1,4 +1,4 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -44,9 +44,7 @@ import org.hibernate.annotations.UpdateTimestamp;
       @Index(name = "idx_payment_created_at", columnList = "createdAt")
     })
 public class Payment {
-  /**
-   * Represents the payment order data component.
-   */
+  /** Represents the payment order data component. */
   @Getter
   @Setter
   public static class PaymentOrderData {
@@ -61,9 +59,7 @@ public class Payment {
     private String createdUser;
   }
 
-  /**
-   * Represents the manual payment data component.
-   */
+  /** Represents the manual payment data component. */
   @Getter
   @Setter
   public static class ManualPaymentData {
@@ -107,9 +103,7 @@ public class Payment {
       return value;
     }
 
-    /**
-     * Checks whether valid.
-     */
+    /** Checks whether valid. */
     public static boolean isValid(String value) {
       if (value == null) {
         return false;

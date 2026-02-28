@@ -1,11 +1,11 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.PurchaseOrderRequestModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.PurchaseOrderResponseModel;
 import freemarker.template.TemplateException;
 import java.io.IOException;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.PurchaseOrderRequestModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.PurchaseOrderResponseModel;
 
 /**
  * Interface for PurchaseOrder operations and data access.

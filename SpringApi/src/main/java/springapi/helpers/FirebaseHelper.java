@@ -1,6 +1,5 @@
-package com.example.springapi.helpers;
+package springapi.helpers;
 
-import com.example.springapi.models.databasemodels.GoogleCred;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
@@ -11,14 +10,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import springapi.models.databasemodels.GoogleCred;
 
-/**
- * Represents the firebase helper component.
- */
+/** Represents the firebase helper component. */
 public class FirebaseHelper {
-  /**
-   * Initializes FirebaseHelper.
-   */
+  /** Initializes FirebaseHelper. */
   public FirebaseHelper(GoogleCred googleCred) {
     try {
       if (FirebaseApp.getApps() == null || FirebaseApp.getApps().isEmpty()) {
@@ -74,9 +70,7 @@ public class FirebaseHelper {
     }
   }
 
-  /**
-   * Executes download file as bytes from firebase.
-   */
+  /** Executes download file as bytes from firebase. */
   public byte[] downloadFileAsBytesFromFirebase(String filePath) {
     // Get a reference to the Firebase storage bucket
     Bucket bucket = StorageClient.getInstance().bucket();
@@ -96,9 +90,7 @@ public class FirebaseHelper {
     return outputStream.toByteArray();
   }
 
-  /**
-   * Executes download file as base64 from firebase.
-   */
+  /** Executes download file as base64 from firebase. */
   public String downloadFileAsBase64FromFirebase(String filePath) {
     // Get a reference to the Firebase storage bucket
     Bucket bucket = StorageClient.getInstance().bucket();
@@ -121,9 +113,7 @@ public class FirebaseHelper {
     return Base64.getEncoder().encodeToString(fileBytes); // Return the Base64 string
   }
 
-  /**
-   * Executes upload file to firebase.
-   */
+  /** Executes upload file to firebase. */
   public boolean uploadFileToFirebase(String imageBase64, String filePath) {
     try {
       // Get Firebase bucket instance
@@ -140,9 +130,7 @@ public class FirebaseHelper {
     }
   }
 
-  /**
-   * Deletes file.
-   */
+  /** Deletes file. */
   public void deleteFile(String filePath) {
     // Get Firebase bucket instance
     Bucket bucket = StorageClient.getInstance().bucket();

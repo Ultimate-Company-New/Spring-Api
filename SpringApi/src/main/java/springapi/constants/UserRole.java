@@ -1,4 +1,4 @@
-package com.example.springapi.constants;
+package springapi.constants;
 
 /**
  * Enum representing the different user roles in the system. These roles must match the database.

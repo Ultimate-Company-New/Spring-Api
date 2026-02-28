@@ -1,12 +1,12 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.models.requestmodels.OrderOptimizationRequestModel;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.ShippingCalculationRequestModel;
-import com.example.springapi.models.responsemodels.OrderOptimizationResponseModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.ShipmentResponseModel;
-import com.example.springapi.models.responsemodels.ShippingCalculationResponseModel;
+import springapi.models.requestmodels.OrderOptimizationRequestModel;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.ShippingCalculationRequestModel;
+import springapi.models.responsemodels.OrderOptimizationResponseModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.ShipmentResponseModel;
+import springapi.models.responsemodels.ShippingCalculationResponseModel;
 
 /**
  * Interface for shipping-related operations.
@@ -92,8 +92,8 @@ public interface ShippingSubTranslator {
    * @return ReturnShipmentResponseModel with the created return details
    * @throws BadRequestException if the return cannot be created
    */
-  com.example.springapi.models.responsemodels.ReturnShipmentResponseModel createReturn(
-      com.example.springapi.models.requestmodels.CreateReturnRequestModel request);
+  springapi.models.responsemodels.ReturnShipmentResponseModel createReturn(
+      springapi.models.requestmodels.CreateReturnRequestModel request);
 
   /**
    * Cancel a return shipment. Cancels the return order in ShipRocket and updates the local return.

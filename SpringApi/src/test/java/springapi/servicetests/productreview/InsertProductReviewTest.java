@@ -1,14 +1,9 @@
-package com.example.springapi.ServiceTests.ProductReview;
+package springapi.ServiceTests.ProductReview;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.ProductReviewController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.databasemodels.ProductReview;
-import com.example.springapi.models.requestmodels.ProductReviewRequestModel;
 import java.math.BigDecimal;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -20,6 +15,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.ProductReviewController;
+import springapi.exceptions.BadRequestException;
+import springapi.models.databasemodels.ProductReview;
+import springapi.models.requestmodels.ProductReviewRequestModel;
 
 /** Test class for ProductReviewService.insertProductReview method. */
 @DisplayName("ProductReviewService - InsertProductReview Tests")

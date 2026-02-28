@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.ResponseModels;
+package springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class QADashboardResponseModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.responsemodels.QaDashboardResponseModel.class)) {
+    if (hasNoArgConstructor(springapi.models.responsemodels.QaDashboardResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.responsemodels.QaDashboardResponseModel.class);
+              .constructType(springapi.models.responsemodels.QaDashboardResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,8 +62,7 @@ class QADashboardResponseModelContractTest {
   void QADashboardResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.responsemodels.QaDashboardResponseModel.class
-            .getDeclaredConstructors()) {
+        springapi.models.responsemodels.QaDashboardResponseModel.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -82,9 +79,9 @@ class QADashboardResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.responsemodels.QaDashboardResponseModel createInstance() {
-    return (com.example.springapi.models.responsemodels.QaDashboardResponseModel)
-        instantiate(com.example.springapi.models.responsemodels.QaDashboardResponseModel.class);
+  private springapi.models.responsemodels.QaDashboardResponseModel createInstance() {
+    return (springapi.models.responsemodels.QaDashboardResponseModel)
+        instantiate(springapi.models.responsemodels.QaDashboardResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

@@ -1,4 +1,4 @@
-package com.example.springapi.helpers;
+package springapi.helpers;
 
 import com.itextpdf.text.DocumentException;
 import java.io.ByteArrayOutputStream;

@@ -1,25 +1,5 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.SuccessMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.filterquerybuilder.PackageFilterQueryBuilder;
-import com.example.springapi.helpers.BulkInsertHelper;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.databasemodels.Package;
-import com.example.springapi.models.databasemodels.PackagePickupLocationMapping;
-import com.example.springapi.models.requestmodels.PackagePickupLocationMappingRequestModel;
-import com.example.springapi.models.requestmodels.PackageRequestModel;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.responsemodels.BulkInsertResponseModel;
-import com.example.springapi.models.responsemodels.PackagePickupLocationMappingResponseModel;
-import com.example.springapi.models.responsemodels.PackageResponseModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.repositories.PackagePickupLocationMappingRepository;
-import com.example.springapi.repositories.PackageRepository;
-import com.example.springapi.services.interfaces.PackageSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +16,26 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import springapi.ErrorMessages;
+import springapi.SuccessMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.filterquerybuilder.PackageFilterQueryBuilder;
+import springapi.helpers.BulkInsertHelper;
+import springapi.models.ApiRoutes;
+import springapi.models.databasemodels.Package;
+import springapi.models.databasemodels.PackagePickupLocationMapping;
+import springapi.models.requestmodels.PackagePickupLocationMappingRequestModel;
+import springapi.models.requestmodels.PackageRequestModel;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.responsemodels.BulkInsertResponseModel;
+import springapi.models.responsemodels.PackagePickupLocationMappingResponseModel;
+import springapi.models.responsemodels.PackageResponseModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.repositories.PackagePickupLocationMappingRepository;
+import springapi.repositories.PackageRepository;
+import springapi.services.interfaces.PackageSubTranslator;
 
 /**
  * Service implementation for Package operations and business logic. Handles all package-related.
@@ -50,20 +50,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class PackageService extends BaseService implements PackageSubTranslator {
   private final PackageRepository packageRepository;
   private final PackagePickupLocationMappingRepository packagePickupLocationMappingRepository;
-  private final com.example.springapi.repositories.PickupLocationRepository
-      pickupLocationRepository;
+  private final springapi.repositories.PickupLocationRepository pickupLocationRepository;
   private final UserLogService userLogService;
   private final PackageFilterQueryBuilder packageFilterQueryBuilder;
   private final MessageService messageService;
 
-  /**
-   * Initializes PackageService.
-   */
+  /** Initializes PackageService. */
   @Autowired
   public PackageService(
       PackageRepository packageRepository,
       PackagePickupLocationMappingRepository packagePickupLocationMappingRepository,
-      com.example.springapi.repositories.PickupLocationRepository pickupLocationRepository,
+      springapi.repositories.PickupLocationRepository pickupLocationRepository,
       UserLogService userLogService,
       PackageFilterQueryBuilder packageFilterQueryBuilder,
       MessageService messageService,

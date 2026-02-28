@@ -1,17 +1,8 @@
-package com.example.springapi.ServiceTests.UserLog;
+package springapi.ServiceTests.UserLog;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.UserLogController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.databasemodels.UserLog;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.UserLogsRequestModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.UserLogsResponseModel;
 import java.lang.reflect.Method;
 import java.util.*;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +13,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import springapi.ErrorMessages;
+import springapi.controllers.UserLogController;
+import springapi.exceptions.BadRequestException;
+import springapi.models.Authorizations;
+import springapi.models.databasemodels.UserLog;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.UserLogsRequestModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.UserLogsResponseModel;
 
 /** Unit tests for UserLogService.fetchUserLogsInBatches method. */
 @DisplayName("UserLogService - FetchUserLogsInBatches Tests")

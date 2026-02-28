@@ -1,12 +1,12 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.requestmodels.UserRequestModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.PermissionResponseModel;
-import com.example.springapi.models.responsemodels.UserResponseModel;
 import java.util.List;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.models.requestmodels.UserRequestModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.PermissionResponseModel;
+import springapi.models.responsemodels.UserResponseModel;
 
 /**
  * Interface for User-related business operations.

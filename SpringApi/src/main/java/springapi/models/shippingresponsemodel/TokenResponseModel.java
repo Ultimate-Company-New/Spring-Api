@@ -1,12 +1,10 @@
-package com.example.springapi.models.shippingresponsemodel;
+package springapi.models.shippingresponsemodel;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Represents the token response model component.
- */
+/** Represents the token response model component. */
 @Getter
 @Setter
 public class TokenResponseModel {

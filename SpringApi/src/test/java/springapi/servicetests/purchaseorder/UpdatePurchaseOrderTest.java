@@ -1,4 +1,4 @@
-package com.example.springapi.ServiceTests.PurchaseOrder;
+package springapi.ServiceTests.PurchaseOrder;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -9,12 +9,6 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.PurchaseOrderController;
-import com.example.springapi.helpers.ImgbbHelper;
-import com.example.springapi.models.databasemodels.OrderSummary;
-import com.example.springapi.models.databasemodels.PurchaseOrder;
-import com.example.springapi.models.databasemodels.Resources;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +18,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.PurchaseOrderController;
+import springapi.helpers.ImgbbHelper;
+import springapi.models.databasemodels.OrderSummary;
+import springapi.models.databasemodels.PurchaseOrder;
+import springapi.models.databasemodels.Resources;
 
 /**
  * Test class for PurchaseOrderService.updatePurchaseOrder method.

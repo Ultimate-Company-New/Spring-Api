@@ -1,9 +1,5 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
-import com.example.springapi.models.databasemodels.OrderSummary;
-import com.example.springapi.models.databasemodels.PurchaseOrder;
-import com.example.springapi.models.databasemodels.Resources;
-import com.example.springapi.models.databasemodels.Shipment;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,6 +7,10 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.Hibernate;
+import springapi.models.databasemodels.OrderSummary;
+import springapi.models.databasemodels.PurchaseOrder;
+import springapi.models.databasemodels.Resources;
+import springapi.models.databasemodels.Shipment;
 
 /**
  * Response model for PurchaseOrder operations.
@@ -217,9 +217,7 @@ public class PurchaseOrderResponseModel {
     private BigDecimal courierMinWeight; // Courier minimum weight in kg
     private String courierMetadata; // Full CourierOption JSON as string
 
-    /**
-     * Initializes CourierSelectionResponseData.
-     */
+    /** Initializes CourierSelectionResponseData. */
     public CourierSelectionResponseData(Shipment shipment) {
       if (shipment != null) {
         this.courierCompanyId = shipment.getSelectedCourierCompanyId();

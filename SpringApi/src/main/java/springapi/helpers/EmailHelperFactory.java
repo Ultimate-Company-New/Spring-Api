@@ -1,4 +1,4 @@
-package com.example.springapi.helpers;
+package springapi.helpers;
 
 import org.springframework.core.env.Environment;
 
@@ -13,9 +13,7 @@ public final class EmailHelperFactory {
 
   private EmailHelperFactory() {}
 
-  /**
-   * Executes create.
-   */
+  /** Executes create. */
   public static EmailHelperContract create(
       String fromAddress, String senderName, String apiKey, Environment environment) {
     String emailService =

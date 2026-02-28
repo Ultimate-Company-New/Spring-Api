@@ -1,9 +1,9 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.models.requestmodels.MessageRequestModel;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.responsemodels.MessageResponseModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.requestmodels.MessageRequestModel;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.responsemodels.MessageResponseModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
 
 /**
  * Interface for Message operations and data access.

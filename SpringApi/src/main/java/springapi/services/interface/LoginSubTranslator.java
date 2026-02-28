@@ -1,8 +1,8 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.models.requestmodels.LoginRequestModel;
-import com.example.springapi.models.responsemodels.ClientResponseModel;
 import java.util.List;
+import springapi.models.requestmodels.LoginRequestModel;
+import springapi.models.responsemodels.ClientResponseModel;
 
 /**
  * Interface for login-related operations, defining the contract for user authentication and.

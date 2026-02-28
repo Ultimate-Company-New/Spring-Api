@@ -1,17 +1,17 @@
-package com.example.springapi.ModelTests.Shipping;
+package springapi.ModelTests.Shipping;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.example.springapi.models.requestmodels.CreateReturnRequestModel;
-import com.example.springapi.models.requestmodels.ShipRocketOrderRequestModel;
-import com.example.springapi.models.requestmodels.ShipRocketReturnOrderRequestModel;
-import com.example.springapi.models.requestmodels.ShippingCalculationRequestModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.shaded.gson.Gson;
 import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import springapi.models.requestmodels.CreateReturnRequestModel;
+import springapi.models.requestmodels.ShipRocketOrderRequestModel;
+import springapi.models.requestmodels.ShipRocketReturnOrderRequestModel;
+import springapi.models.requestmodels.ShippingCalculationRequestModel;
 
 class ShippingRequestModelsTest {
 

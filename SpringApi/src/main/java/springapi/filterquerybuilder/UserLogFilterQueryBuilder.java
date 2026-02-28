@@ -1,7 +1,5 @@
-package com.example.springapi.filterquerybuilder;
+package springapi.filterquerybuilder;
 
-import com.example.springapi.models.databasemodels.UserLog;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.util.Arrays;
@@ -11,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import springapi.models.databasemodels.UserLog;
+import springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 
 /**
  * UserLog-specific filter query builder that handles dynamic multi-filter queries.

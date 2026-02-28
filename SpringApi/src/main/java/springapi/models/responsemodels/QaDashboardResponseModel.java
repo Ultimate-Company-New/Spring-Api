@@ -1,4 +1,4 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
 import java.util.List;
 import lombok.Getter;
@@ -37,9 +37,7 @@ public class QaDashboardResponseModel {
     this(services, coverageSummary, availableServices, null);
   }
 
-  /**
-   * Executes qa dashboard response model.
-   */
+  /** Executes qa dashboard response model. */
   public QaDashboardResponseModel(
       List<QaResponseModel> services,
       CoverageSummaryData coverageSummary,
@@ -64,9 +62,7 @@ public class QaDashboardResponseModel {
 
     public CoverageSummaryData() {}
 
-    /**
-     * Executes coverage summary data.
-     */
+    /** Executes coverage summary data. */
     public CoverageSummaryData(
         int totalServices,
         int totalMethods,
@@ -95,9 +91,7 @@ public class QaDashboardResponseModel {
 
     public ServiceBreakdownData() {}
 
-    /**
-     * Executes service breakdown data.
-     */
+    /** Executes service breakdown data. */
     public ServiceBreakdownData(
         String serviceName,
         int totalMethods,
@@ -133,9 +127,7 @@ public class QaDashboardResponseModel {
 
     public AutomatedApiTestsData() {}
 
-    /**
-     * Executes automated api tests data.
-     */
+    /** Executes automated api tests data. */
     public AutomatedApiTestsData(
         String basePath, int totalTests, List<AutomatedApiTestCategory> categories) {
       this.basePath = basePath;
@@ -157,9 +149,7 @@ public class QaDashboardResponseModel {
 
     public AutomatedApiTestCategory() {}
 
-    /**
-     * Executes automated api test category.
-     */
+    /** Executes automated api test category. */
     public AutomatedApiTestCategory(
         String categoryName, String relativePath, List<AutomatedApiTestInfo> tests) {
       this.categoryName = categoryName;

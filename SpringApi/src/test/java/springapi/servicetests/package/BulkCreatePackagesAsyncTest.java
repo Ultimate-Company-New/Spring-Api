@@ -1,19 +1,19 @@
-package com.example.springapi.ServiceTests.Package;
+package springapi.ServiceTests.Package;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.requestmodels.PackageRequestModel;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.models.requestmodels.PackageRequestModel;
 
 /** Unit tests for PackageService.bulkCreatePackagesAsync() method. */
 @DisplayName("Bulk Create Packages Async Tests")
@@ -124,9 +124,8 @@ class BulkCreatePackagesAsyncTest extends PackageServiceTestBase {
   @DisplayName("bulkCreatePackagesAsync - Controller Permission - Unauthorized")
   void bulkCreatePackagesAsync_controller_permission_unauthorized() {
     // Arrange
-    com.example.springapi.controllers.PackageController controller =
-        new com.example.springapi.controllers.PackageController(
-            packageServiceMock, concretePackageServiceMock);
+    springapi.controllers.PackageController controller =
+        new springapi.controllers.PackageController(packageServiceMock, concretePackageServiceMock);
     stubConcretePackageServiceThrowsUnauthorized();
 
     // Act

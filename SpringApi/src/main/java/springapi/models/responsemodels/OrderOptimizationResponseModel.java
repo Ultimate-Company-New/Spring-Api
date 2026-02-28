@@ -1,4 +1,4 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

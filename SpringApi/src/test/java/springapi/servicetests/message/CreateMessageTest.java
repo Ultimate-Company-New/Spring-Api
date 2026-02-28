@@ -1,16 +1,9 @@
-package com.example.springapi.ServiceTests.Message;
+package springapi.ServiceTests.Message;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.MessageController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.helpers.EmailHelper;
-import com.example.springapi.helpers.EmailTemplates;
-import com.example.springapi.models.databasemodels.MessageUserGroupMap;
-import com.example.springapi.models.databasemodels.MessageUserMap;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -22,6 +15,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedConstruction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.MessageController;
+import springapi.exceptions.BadRequestException;
+import springapi.helpers.EmailHelper;
+import springapi.helpers.EmailTemplates;
+import springapi.models.databasemodels.MessageUserGroupMap;
+import springapi.models.databasemodels.MessageUserMap;
 
 /** Unit tests for MessageService.createMessage method. */
 @DisplayName("CreateMessage Tests")
@@ -165,8 +165,8 @@ class CreateMessageTest extends MessageServiceTestBase {
     // Act & Assert
     assertDoesNotThrow(() -> messageService.createMessage(validRequest));
 
-    ArgumentCaptor<com.example.springapi.models.databasemodels.Message> messageCaptor =
-        ArgumentCaptor.forClass(com.example.springapi.models.databasemodels.Message.class);
+    ArgumentCaptor<springapi.models.databasemodels.Message> messageCaptor =
+        ArgumentCaptor.forClass(springapi.models.databasemodels.Message.class);
     verify(messageRepository).save(messageCaptor.capture());
     assertNull(messageCaptor.getValue().getSendgridEmailBatchId());
   }
@@ -191,8 +191,8 @@ class CreateMessageTest extends MessageServiceTestBase {
         stubEmailHelperGenerateBatchId("batch-123")) {
       assertDoesNotThrow(() -> messageService.createMessage(validRequest));
 
-      ArgumentCaptor<com.example.springapi.models.databasemodels.Message> messageCaptor =
-          ArgumentCaptor.forClass(com.example.springapi.models.databasemodels.Message.class);
+      ArgumentCaptor<springapi.models.databasemodels.Message> messageCaptor =
+          ArgumentCaptor.forClass(springapi.models.databasemodels.Message.class);
       verify(messageRepository).save(messageCaptor.capture());
       assertEquals("batch-123", messageCaptor.getValue().getSendgridEmailBatchId());
     }
@@ -291,8 +291,8 @@ class CreateMessageTest extends MessageServiceTestBase {
     messageService.createMessage(validRequest);
 
     // Assert
-    ArgumentCaptor<com.example.springapi.models.databasemodels.Message> captor =
-        ArgumentCaptor.forClass(com.example.springapi.models.databasemodels.Message.class);
+    ArgumentCaptor<springapi.models.databasemodels.Message> captor =
+        ArgumentCaptor.forClass(springapi.models.databasemodels.Message.class);
     verify(messageRepository).save(captor.capture());
     assertEquals("Trimmed Title", captor.getValue().getTitle());
     assertEquals("<p>Trimmed</p>", captor.getValue().getDescriptionHtml());

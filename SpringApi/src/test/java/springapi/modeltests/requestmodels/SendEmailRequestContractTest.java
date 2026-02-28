@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.RequestModels;
+package springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class SendEmailRequestContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.springapi.models.requestmodels.SendEmailRequest.class)) {
+    if (hasNoArgConstructor(springapi.models.requestmodels.SendEmailRequest.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.springapi.models.requestmodels.SendEmailRequest.class);
+              .constructType(springapi.models.requestmodels.SendEmailRequest.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,8 +62,7 @@ class SendEmailRequestContractTest {
   void SendEmailRequest_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.requestmodels.SendEmailRequest.class
-            .getDeclaredConstructors()) {
+        springapi.models.requestmodels.SendEmailRequest.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -80,9 +79,9 @@ class SendEmailRequestContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.requestmodels.SendEmailRequest createInstance() {
-    return (com.example.springapi.models.requestmodels.SendEmailRequest)
-        instantiate(com.example.springapi.models.requestmodels.SendEmailRequest.class);
+  private springapi.models.requestmodels.SendEmailRequest createInstance() {
+    return (springapi.models.requestmodels.SendEmailRequest)
+        instantiate(springapi.models.requestmodels.SendEmailRequest.class);
   }
 
   private Object instantiate(Class<?> clazz) {

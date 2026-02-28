@@ -1,15 +1,10 @@
-package com.example.springapi.ServiceTests.Payment;
+package springapi.ServiceTests.Payment;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.databasemodels.PurchaseOrder;
-import com.example.springapi.models.responsemodels.RazorpayOrderResponseModel;
 import java.math.BigDecimal;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +12,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.models.databasemodels.PurchaseOrder;
+import springapi.models.responsemodels.RazorpayOrderResponseModel;
 
 /** Tests for PaymentService.createOrderFollowUp(). */
 @DisplayName("CreateOrderFollowUp Tests")
@@ -73,10 +73,10 @@ class CreateOrderFollowUpTest extends PaymentServiceTestBase {
       RazorpayOrderResponseModel response = paymentService.createOrderFollowUp(testOrderRequest);
 
       // Assert
-      ArgumentCaptor<com.example.springapi.models.databasemodels.Payment> paymentCaptor =
-          ArgumentCaptor.forClass(com.example.springapi.models.databasemodels.Payment.class);
+      ArgumentCaptor<springapi.models.databasemodels.Payment> paymentCaptor =
+          ArgumentCaptor.forClass(springapi.models.databasemodels.Payment.class);
       verify(paymentRepository, times(1)).save(paymentCaptor.capture());
-      com.example.springapi.models.databasemodels.Payment savedPayment = paymentCaptor.getValue();
+      springapi.models.databasemodels.Payment savedPayment = paymentCaptor.getValue();
       assertEquals("order_followup_001", response.getOrderId());
       assertEquals(new BigDecimal("750.00"), response.getAmount());
       assertEquals(75000L, response.getAmountInPaise());

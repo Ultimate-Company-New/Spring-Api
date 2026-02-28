@@ -1,19 +1,19 @@
-package com.example.springapi.ServiceTests.UserGroup;
+package springapi.ServiceTests.UserGroup;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.UserGroupController;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.responsemodels.UserGroupResponseModel;
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import springapi.ErrorMessages;
+import springapi.controllers.UserGroupController;
+import springapi.exceptions.NotFoundException;
+import springapi.models.Authorizations;
+import springapi.models.responsemodels.UserGroupResponseModel;
 
 /** Unit tests for UserGroupService.getUserGroupDetailsById method. */
 @DisplayName("UserGroupService - GetUserGroupDetailsById Tests")

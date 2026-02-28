@@ -1,4 +1,4 @@
-package com.example.springapi.logging;
+package springapi.logging;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -11,9 +11,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-/**
- * Represents the contextual logger component.
- */
+/** Represents the contextual logger component. */
 @Component
 public class ContextualLogger {
   private static final String REQUEST_BODY_KEY = "requestBody";

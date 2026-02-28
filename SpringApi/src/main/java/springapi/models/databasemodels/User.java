@@ -1,9 +1,5 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.constants.UserRole;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.models.requestmodels.UserRequestModel;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,6 +20,10 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.UpdateTimestamp;
+import springapi.ErrorMessages;
+import springapi.constants.UserRole;
+import springapi.exceptions.BadRequestException;
+import springapi.models.requestmodels.UserRequestModel;
 
 /**
  * JPA Entity representing the User table.

@@ -1,6 +1,5 @@
-package com.example.springapi.models.requestmodels;
+package springapi.models.requestmodels;
 
-import com.example.springapi.deserializers.FlexibleLocalDateTimeDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -9,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
+import springapi.deserializers.FlexibleLocalDateTimeDeserializer;
 
 /**
  * Request model for PurchaseOrder operations.

@@ -1,11 +1,11 @@
-package com.example.springapi.services.interfaces;
+package springapi.services.interfaces;
 
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.ProductRequestModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.ProductCategoryWithPathResponseModel;
-import com.example.springapi.models.responsemodels.ProductResponseModel;
 import java.util.List;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.ProductRequestModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.ProductCategoryWithPathResponseModel;
+import springapi.models.responsemodels.ProductResponseModel;
 
 /**
  * Interface for Product operations and data access.
@@ -128,7 +128,7 @@ public interface ProductSubTranslator {
    * @param products List of ProductRequestModel containing the product data to insert
    * @return BulkInsertResponseModel containing success/failure details for each product
    */
-  com.example.springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkAddProducts(
+  springapi.models.responsemodels.BulkInsertResponseModel<Long> bulkAddProducts(
       java.util.List<ProductRequestModel> products);
 
   /**

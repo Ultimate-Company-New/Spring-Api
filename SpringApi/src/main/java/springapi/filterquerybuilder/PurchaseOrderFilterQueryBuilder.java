@@ -1,12 +1,5 @@
-package com.example.springapi.filterquerybuilder;
+package springapi.filterquerybuilder;
 
-import com.example.springapi.constants.EntityType;
-import com.example.springapi.models.databasemodels.OrderSummary;
-import com.example.springapi.models.databasemodels.PurchaseOrder;
-import com.example.springapi.models.databasemodels.Shipment;
-import com.example.springapi.models.databasemodels.ShipmentPackage;
-import com.example.springapi.models.dtos.PurchaseOrderWithDetails;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.util.ArrayList;
@@ -20,6 +13,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import springapi.constants.EntityType;
+import springapi.models.databasemodels.OrderSummary;
+import springapi.models.databasemodels.PurchaseOrder;
+import springapi.models.databasemodels.Shipment;
+import springapi.models.databasemodels.ShipmentPackage;
+import springapi.models.dtos.PurchaseOrderWithDetails;
+import springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 
 /**
  * PurchaseOrder-specific filter query builder that handles dynamic multi-filter queries.
@@ -440,45 +440,41 @@ public class PurchaseOrderFilterQueryBuilder extends BaseFilterQueryBuilder {
     // Batch fetch Resources and Payments for these POs (2 queries - unavoidable as they're in
     // separate tables)
     List<Long> poIds = distinct.stream().map(PurchaseOrder::getPurchaseOrderId).toList();
-    List<com.example.springapi.models.databasemodels.Resources> allResources =
+    List<springapi.models.databasemodels.Resources> allResources =
         poIds.isEmpty()
             ? List.of()
             : entityManager
                 .createQuery(
                     "SELECT r FROM Resources r WHERE r.entityId IN :poIds AND "
                         + "r.entityType = :entityType ORDER BY r.entityId, r.createdAt DESC",
-                    com.example.springapi.models.databasemodels.Resources.class)
+                    springapi.models.databasemodels.Resources.class)
                 .setParameter("poIds", poIds)
                 .setParameter("entityType", EntityType.PURCHASE_ORDER)
                 .getResultList();
-    List<com.example.springapi.models.databasemodels.Payment> allPayments =
+    List<springapi.models.databasemodels.Payment> allPayments =
         poIds.isEmpty()
             ? List.of()
             : entityManager
                 .createQuery(
                     "SELECT p FROM Payment p WHERE p.entityType = 'PURCHASE_ORDER' AND "
                         + "p.entityId IN :poIds ORDER BY p.entityId, p.createdAt DESC",
-                    com.example.springapi.models.databasemodels.Payment.class)
+                    springapi.models.databasemodels.Payment.class)
                 .setParameter("poIds", poIds)
                 .getResultList();
 
-    Map<Long, List<com.example.springapi.models.databasemodels.Resources>> resourcesByPoId =
+    Map<Long, List<springapi.models.databasemodels.Resources>> resourcesByPoId =
         allResources.stream()
-            .collect(
-                Collectors.groupingBy(
-                    com.example.springapi.models.databasemodels.Resources::getEntityId));
-    Map<Long, List<com.example.springapi.models.databasemodels.Payment>> paymentsByPoId =
+            .collect(Collectors.groupingBy(springapi.models.databasemodels.Resources::getEntityId));
+    Map<Long, List<springapi.models.databasemodels.Payment>> paymentsByPoId =
         allPayments.stream()
-            .collect(
-                Collectors.groupingBy(
-                    com.example.springapi.models.databasemodels.Payment::getEntityId));
+            .collect(Collectors.groupingBy(springapi.models.databasemodels.Payment::getEntityId));
 
     List<PurchaseOrderWithDetails> result = new ArrayList<>();
     for (PurchaseOrder po : distinct) {
       OrderSummary os = po.getOrderSummary();
-      List<com.example.springapi.models.databasemodels.Resources> attachments =
+      List<springapi.models.databasemodels.Resources> attachments =
           resourcesByPoId.getOrDefault(po.getPurchaseOrderId(), List.of());
-      List<com.example.springapi.models.databasemodels.Payment> payments =
+      List<springapi.models.databasemodels.Payment> payments =
           paymentsByPoId.getOrDefault(po.getPurchaseOrderId(), List.of());
       result.add(new PurchaseOrderWithDetails(po, os, attachments, payments));
     }

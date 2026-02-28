@@ -1,4 +1,4 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,9 +16,7 @@ public class TestExecutionStatusModel {
 
   public TestExecutionStatusModel() {}
 
-  /**
-   * Executes test execution status model.
-   */
+  /** Executes test execution status model. */
   public TestExecutionStatusModel(
       String executionId, String serviceName, String methodName, int totalTests) {
     this.executionId = executionId;
@@ -136,9 +134,7 @@ public class TestExecutionStatusModel {
 
     public TestResultInfo() {}
 
-    /**
-     * Executes test result info.
-     */
+    /** Executes test result info. */
     public TestResultInfo(String testMethodName, String status, long durationMs) {
       this.testMethodName = testMethodName;
       this.status = status;

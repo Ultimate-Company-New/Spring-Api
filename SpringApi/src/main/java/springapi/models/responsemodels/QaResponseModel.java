@@ -1,11 +1,11 @@
-package com.example.springapi.models.responsemodels;
+package springapi.models.responsemodels;
 
-import com.example.springapi.models.databasemodels.LatestTestResult;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import springapi.models.databasemodels.LatestTestResult;
 
 /**
  * Comprehensive response model for QA endpoint-to-test mapping.

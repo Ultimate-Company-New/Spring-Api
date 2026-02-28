@@ -1,12 +1,9 @@
-package com.example.springapi.ServiceTests.Lead;
+package springapi.ServiceTests.Lead;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.LeadController;
-import com.example.springapi.exceptions.BadRequestException;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +13,9 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.LeadController;
+import springapi.exceptions.BadRequestException;
 
 /**
  * Test class for LeadService.createLead() method. Tests lead creation with various validation
@@ -160,7 +160,7 @@ class CreateLeadTest extends LeadServiceTestBase {
   @MethodSource("emptyRequiredFieldScenarios")
   void createLead_emptyRequiredFields_ThrowsBadRequestException(
       String scenario,
-      Consumer<com.example.springapi.models.requestmodels.LeadRequestModel> mutator,
+      Consumer<springapi.models.requestmodels.LeadRequestModel> mutator,
       String expectedError) {
     // Arrange
     mutator.accept(testLeadRequest);
@@ -175,27 +175,23 @@ class CreateLeadTest extends LeadServiceTestBase {
     return Stream.of(
         Arguments.of(
             "Empty Email",
-            (Consumer<com.example.springapi.models.requestmodels.LeadRequestModel>)
-                req -> req.setEmail(""),
+            (Consumer<springapi.models.requestmodels.LeadRequestModel>) req -> req.setEmail(""),
             ErrorMessages.LeadsErrorMessages.ER001),
         Arguments.of(
             "Empty First Name",
-            (Consumer<com.example.springapi.models.requestmodels.LeadRequestModel>)
-                req -> req.setFirstName(""),
+            (Consumer<springapi.models.requestmodels.LeadRequestModel>) req -> req.setFirstName(""),
             ErrorMessages.LeadsErrorMessages.ER002),
         Arguments.of(
             "Empty Last Name",
-            (Consumer<com.example.springapi.models.requestmodels.LeadRequestModel>)
-                req -> req.setLastName(""),
+            (Consumer<springapi.models.requestmodels.LeadRequestModel>) req -> req.setLastName(""),
             ErrorMessages.LeadsErrorMessages.ER003),
         Arguments.of(
             "Empty Phone",
-            (Consumer<com.example.springapi.models.requestmodels.LeadRequestModel>)
-                req -> req.setPhone(""),
+            (Consumer<springapi.models.requestmodels.LeadRequestModel>) req -> req.setPhone(""),
             ErrorMessages.LeadsErrorMessages.ER004),
         Arguments.of(
             "Empty Status",
-            (Consumer<com.example.springapi.models.requestmodels.LeadRequestModel>)
+            (Consumer<springapi.models.requestmodels.LeadRequestModel>)
                 req -> req.setLeadStatus(""),
             ErrorMessages.LeadsErrorMessages.ER008));
   }

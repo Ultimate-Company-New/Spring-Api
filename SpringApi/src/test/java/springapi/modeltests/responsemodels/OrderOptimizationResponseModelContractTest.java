@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.ResponseModels;
+package springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class OrderOptimizationResponseModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.responsemodels.OrderOptimizationResponseModel.class)) {
+    if (hasNoArgConstructor(springapi.models.responsemodels.OrderOptimizationResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.responsemodels.OrderOptimizationResponseModel.class);
+              .constructType(springapi.models.responsemodels.OrderOptimizationResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,7 +62,7 @@ class OrderOptimizationResponseModelContractTest {
   void OrderOptimizationResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.responsemodels.OrderOptimizationResponseModel.class
+        springapi.models.responsemodels.OrderOptimizationResponseModel.class
             .getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
@@ -82,11 +80,9 @@ class OrderOptimizationResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.responsemodels.OrderOptimizationResponseModel
-      createInstance() {
-    return (com.example.springapi.models.responsemodels.OrderOptimizationResponseModel)
-        instantiate(
-            com.example.springapi.models.responsemodels.OrderOptimizationResponseModel.class);
+  private springapi.models.responsemodels.OrderOptimizationResponseModel createInstance() {
+    return (springapi.models.responsemodels.OrderOptimizationResponseModel)
+        instantiate(springapi.models.responsemodels.OrderOptimizationResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

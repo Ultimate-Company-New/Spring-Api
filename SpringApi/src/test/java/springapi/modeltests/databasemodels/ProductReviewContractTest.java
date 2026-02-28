@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.DatabaseModels;
+package springapi.ModelTests.DatabaseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,11 +48,11 @@ class ProductReviewContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(com.example.springapi.models.databasemodels.ProductReview.class)) {
+    if (hasNoArgConstructor(springapi.models.databasemodels.ProductReview.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(com.example.springapi.models.databasemodels.ProductReview.class);
+              .constructType(springapi.models.databasemodels.ProductReview.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -62,7 +62,7 @@ class ProductReviewContractTest {
   void ProductReview_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.databasemodels.ProductReview.class.getDeclaredConstructors()) {
+        springapi.models.databasemodels.ProductReview.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -79,9 +79,9 @@ class ProductReviewContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.databasemodels.ProductReview createInstance() {
-    return (com.example.springapi.models.databasemodels.ProductReview)
-        instantiate(com.example.springapi.models.databasemodels.ProductReview.class);
+  private springapi.models.databasemodels.ProductReview createInstance() {
+    return (springapi.models.databasemodels.ProductReview)
+        instantiate(springapi.models.databasemodels.ProductReview.class);
   }
 
   private Object instantiate(Class<?> clazz) {

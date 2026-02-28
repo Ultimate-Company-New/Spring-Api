@@ -1,4 +1,4 @@
-package com.example.springapi.ServiceTests.DataSource;
+package springapi.ServiceTests.DataSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.example.springapi.datasource.DatabaseConfig;
 import jakarta.persistence.EntityManagerFactory;
 import java.lang.reflect.Method;
 import javax.sql.DataSource;
@@ -17,6 +16,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
+import springapi.datasource.DatabaseConfig;
 
 @DisplayName("DatabaseConfig Tests")
 class DatabaseConfigTest {

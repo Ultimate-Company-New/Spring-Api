@@ -1,15 +1,13 @@
-package com.example.springapi.filterquerybuilder;
+package springapi.filterquerybuilder;
 
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import springapi.models.requestmodels.PaginationBaseRequestModel.FilterCondition;
 
-/**
- * Represents the base filter query builder component.
- */
+/** Represents the base filter query builder component. */
 public abstract class BaseFilterQueryBuilder {
   private static final String OP_EQUALS = "equals";
   private static final String OP_IS_EMPTY = "isEmpty";

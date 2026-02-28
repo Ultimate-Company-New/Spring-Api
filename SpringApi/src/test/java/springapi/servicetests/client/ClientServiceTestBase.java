@@ -1,20 +1,9 @@
-package com.example.springapi.ServiceTests.Client;
+package springapi.ServiceTests.Client;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.lenient;
 
-import com.example.springapi.controllers.ClientController;
-import com.example.springapi.helpers.FirebaseHelper;
-import com.example.springapi.helpers.ImgbbHelper;
-import com.example.springapi.models.databasemodels.Client;
-import com.example.springapi.models.databasemodels.GoogleCred;
-import com.example.springapi.models.requestmodels.ClientRequestModel;
-import com.example.springapi.models.responsemodels.ClientResponseModel;
-import com.example.springapi.repositories.ClientRepository;
-import com.example.springapi.repositories.GoogleCredRepository;
-import com.example.springapi.services.ClientService;
-import com.example.springapi.services.UserLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -26,6 +15,17 @@ import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
 import org.springframework.test.util.ReflectionTestUtils;
+import springapi.controllers.ClientController;
+import springapi.helpers.FirebaseHelper;
+import springapi.helpers.ImgbbHelper;
+import springapi.models.databasemodels.Client;
+import springapi.models.databasemodels.GoogleCred;
+import springapi.models.requestmodels.ClientRequestModel;
+import springapi.models.responsemodels.ClientResponseModel;
+import springapi.repositories.ClientRepository;
+import springapi.repositories.GoogleCredRepository;
+import springapi.services.ClientService;
+import springapi.services.UserLogService;
 
 /**
  * Base test class for ClientService tests. Contains common mocks, dependencies, and setup logic

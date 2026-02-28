@@ -1,16 +1,16 @@
-package com.example.springapi.ServiceTests.Address;
+package springapi.ServiceTests.Address;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.AddressController;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.responsemodels.AddressResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.AddressController;
+import springapi.models.Authorizations;
+import springapi.models.responsemodels.AddressResponseModel;
 
 /**
  * Unit tests for AddressService.getAddressById() method. Tests retrieval of address by ID with

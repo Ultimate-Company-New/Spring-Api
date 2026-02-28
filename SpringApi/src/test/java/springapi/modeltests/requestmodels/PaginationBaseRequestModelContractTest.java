@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.RequestModels;
+package springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class PaginationBaseRequestModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.requestmodels.PaginationBaseRequestModel.class)) {
+    if (hasNoArgConstructor(springapi.models.requestmodels.PaginationBaseRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.requestmodels.PaginationBaseRequestModel.class);
+              .constructType(springapi.models.requestmodels.PaginationBaseRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,8 +62,7 @@ class PaginationBaseRequestModelContractTest {
   void PaginationBaseRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.requestmodels.PaginationBaseRequestModel.class
-            .getDeclaredConstructors()) {
+        springapi.models.requestmodels.PaginationBaseRequestModel.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -82,9 +79,9 @@ class PaginationBaseRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.requestmodels.PaginationBaseRequestModel createInstance() {
-    return (com.example.springapi.models.requestmodels.PaginationBaseRequestModel)
-        instantiate(com.example.springapi.models.requestmodels.PaginationBaseRequestModel.class);
+  private springapi.models.requestmodels.PaginationBaseRequestModel createInstance() {
+    return (springapi.models.requestmodels.PaginationBaseRequestModel)
+        instantiate(springapi.models.requestmodels.PaginationBaseRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

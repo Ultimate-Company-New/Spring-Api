@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.RequestModels;
+package springapi.ModelTests.RequestModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class ProductReviewRequestModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.requestmodels.ProductReviewRequestModel.class)) {
+    if (hasNoArgConstructor(springapi.models.requestmodels.ProductReviewRequestModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.requestmodels.ProductReviewRequestModel.class);
+              .constructType(springapi.models.requestmodels.ProductReviewRequestModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,8 +62,7 @@ class ProductReviewRequestModelContractTest {
   void ProductReviewRequestModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.requestmodels.ProductReviewRequestModel.class
-            .getDeclaredConstructors()) {
+        springapi.models.requestmodels.ProductReviewRequestModel.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -82,9 +79,9 @@ class ProductReviewRequestModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.requestmodels.ProductReviewRequestModel createInstance() {
-    return (com.example.springapi.models.requestmodels.ProductReviewRequestModel)
-        instantiate(com.example.springapi.models.requestmodels.ProductReviewRequestModel.class);
+  private springapi.models.requestmodels.ProductReviewRequestModel createInstance() {
+    return (springapi.models.requestmodels.ProductReviewRequestModel)
+        instantiate(springapi.models.requestmodels.ProductReviewRequestModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

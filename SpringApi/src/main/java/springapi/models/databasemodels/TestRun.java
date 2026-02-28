@@ -1,4 +1,4 @@
-package com.example.springapi.models.databasemodels;
+package springapi.models.databasemodels;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -62,9 +62,7 @@ public class TestRun {
       return value;
     }
 
-    /**
-     * Checks whether valid.
-     */
+    /** Checks whether valid. */
     public static boolean isValid(String value) {
       if (value == null) {
         return false;
@@ -95,9 +93,7 @@ public class TestRun {
       return value;
     }
 
-    /**
-     * Checks whether valid.
-     */
+    /** Checks whether valid. */
     public static boolean isValid(String value) {
       if (value == null) {
         return false;
@@ -180,9 +176,7 @@ public class TestRun {
 
   public TestRun() {}
 
-  /**
-   * Executes test run.
-   */
+  /** Executes test run. */
   public TestRun(String serviceName, String runType, Long userId, String userName, Long clientId) {
     this.serviceName = serviceName;
     this.runType = runType;

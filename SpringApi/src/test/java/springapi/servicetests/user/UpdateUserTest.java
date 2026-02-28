@@ -1,20 +1,9 @@
-package com.example.springapi.ServiceTests.User;
+package springapi.ServiceTests.User;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.UserController;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.models.Authorizations;
-import com.example.springapi.models.databasemodels.Address;
-import com.example.springapi.models.databasemodels.GoogleCred;
-import com.example.springapi.models.databasemodels.User;
-import com.example.springapi.models.requestmodels.AddressRequestModel;
-import com.example.springapi.models.requestmodels.UserRequestModel;
-import com.example.springapi.models.responsemodels.ClientResponseModel;
 import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -25,6 +14,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import springapi.ErrorMessages;
+import springapi.controllers.UserController;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.models.Authorizations;
+import springapi.models.databasemodels.Address;
+import springapi.models.databasemodels.GoogleCred;
+import springapi.models.databasemodels.User;
+import springapi.models.requestmodels.AddressRequestModel;
+import springapi.models.requestmodels.UserRequestModel;
+import springapi.models.responsemodels.ClientResponseModel;
 
 /** Unit tests for UserService.updateUser method. */
 @DisplayName("UserService - UpdateUser Tests")
@@ -378,7 +378,7 @@ class UpdateUserTest extends UserServiceTestBase {
     org.springframework.test.util.ReflectionTestUtils.setField(
         userService, "imageLocation", "imgbb");
 
-    com.example.springapi.models.databasemodels.Client clientWithoutKey = createTestClient();
+    springapi.models.databasemodels.Client clientWithoutKey = createTestClient();
     clientWithoutKey.setImgbbApiKey(" ");
     stubClientRepositoryFindByIdAny(Optional.of(clientWithoutKey));
 
@@ -411,7 +411,7 @@ class UpdateUserTest extends UserServiceTestBase {
     }
     mockedImgbbHelper =
         org.mockito.Mockito.mockConstruction(
-            com.example.springapi.helpers.ImgbbHelper.class,
+            springapi.helpers.ImgbbHelper.class,
             (mock, context) ->
                 when(mock.uploadFileToImgbb(anyString(), anyString())).thenReturn(null));
 
@@ -464,7 +464,7 @@ class UpdateUserTest extends UserServiceTestBase {
     }
     mockedFirebaseHelper =
         org.mockito.Mockito.mockConstruction(
-            com.example.springapi.helpers.FirebaseHelper.class,
+            springapi.helpers.FirebaseHelper.class,
             (mock, context) -> {
               when(mock.uploadFileToFirebase(anyString(), anyString())).thenReturn(false);
               doNothing().when(mock).deleteFile(anyString());

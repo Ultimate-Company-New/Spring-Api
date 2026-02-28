@@ -1,16 +1,16 @@
-package com.example.springapi.ServiceTests.Product;
+package springapi.ServiceTests.Product;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.controllers.ProductController;
-import com.example.springapi.models.responsemodels.ProductResponseModel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import springapi.ErrorMessages;
+import springapi.controllers.ProductController;
+import springapi.models.responsemodels.ProductResponseModel;
 
 /**
  * Consolidated test class for ProductService.getProductDetailsById. Fully compliant with Unit Test

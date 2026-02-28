@@ -1,4 +1,4 @@
-package com.example.springapi.ModelTests.ResponseModels;
+package springapi.ModelTests.ResponseModels;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,13 +48,11 @@ class PaymentResponseModelContractTest {
     String jacksonJson = jackson.writeValueAsString(instance);
     assertFalse(jacksonJson.isBlank());
 
-    if (hasNoArgConstructor(
-        com.example.springapi.models.responsemodels.PaymentResponseModel.class)) {
+    if (hasNoArgConstructor(springapi.models.responsemodels.PaymentResponseModel.class)) {
       JavaType jacksonType =
           jackson
               .getTypeFactory()
-              .constructType(
-                  com.example.springapi.models.responsemodels.PaymentResponseModel.class);
+              .constructType(springapi.models.responsemodels.PaymentResponseModel.class);
       Object jacksonRoundTrip = jackson.readValue(jacksonJson, jacksonType);
       assertNotNull(jacksonRoundTrip);
     }
@@ -64,8 +62,7 @@ class PaymentResponseModelContractTest {
   void PaymentResponseModel_constructors_areExercised() {
     int attempted = 0;
     for (Constructor<?> constructor :
-        com.example.springapi.models.responsemodels.PaymentResponseModel.class
-            .getDeclaredConstructors()) {
+        springapi.models.responsemodels.PaymentResponseModel.class.getDeclaredConstructors()) {
       attempted++;
       constructor.setAccessible(true);
       Object[] args =
@@ -82,9 +79,9 @@ class PaymentResponseModelContractTest {
     assertTrue(attempted > 0);
   }
 
-  private com.example.springapi.models.responsemodels.PaymentResponseModel createInstance() {
-    return (com.example.springapi.models.responsemodels.PaymentResponseModel)
-        instantiate(com.example.springapi.models.responsemodels.PaymentResponseModel.class);
+  private springapi.models.responsemodels.PaymentResponseModel createInstance() {
+    return (springapi.models.responsemodels.PaymentResponseModel)
+        instantiate(springapi.models.responsemodels.PaymentResponseModel.class);
   }
 
   private Object instantiate(Class<?> clazz) {

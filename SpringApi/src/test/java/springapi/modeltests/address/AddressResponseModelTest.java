@@ -1,14 +1,14 @@
-package com.example.springapi.ModelTests.Address;
+package springapi.ModelTests.Address;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.example.springapi.models.databasemodels.Address;
-import com.example.springapi.models.responsemodels.AddressResponseModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
+import springapi.models.databasemodels.Address;
+import springapi.models.responsemodels.AddressResponseModel;
 
 class AddressResponseModelTest {
 

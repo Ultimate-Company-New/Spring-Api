@@ -1,21 +1,5 @@
-package com.example.springapi.services;
+package springapi.services;
 
-import com.example.springapi.ErrorMessages;
-import com.example.springapi.SuccessMessages;
-import com.example.springapi.authentication.JwtTokenProvider;
-import com.example.springapi.exceptions.BadRequestException;
-import com.example.springapi.exceptions.NotFoundException;
-import com.example.springapi.filterquerybuilder.PromoFilterQueryBuilder;
-import com.example.springapi.helpers.BulkInsertHelper;
-import com.example.springapi.models.ApiRoutes;
-import com.example.springapi.models.databasemodels.Promo;
-import com.example.springapi.models.requestmodels.PaginationBaseRequestModel;
-import com.example.springapi.models.requestmodels.PromoRequestModel;
-import com.example.springapi.models.responsemodels.BulkInsertResponseModel;
-import com.example.springapi.models.responsemodels.PaginationBaseResponseModel;
-import com.example.springapi.models.responsemodels.PromoResponseModel;
-import com.example.springapi.repositories.PromoRepository;
-import com.example.springapi.services.interfaces.PromoSubTranslator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -30,6 +14,22 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import springapi.ErrorMessages;
+import springapi.SuccessMessages;
+import springapi.authentication.JwtTokenProvider;
+import springapi.exceptions.BadRequestException;
+import springapi.exceptions.NotFoundException;
+import springapi.filterquerybuilder.PromoFilterQueryBuilder;
+import springapi.helpers.BulkInsertHelper;
+import springapi.models.ApiRoutes;
+import springapi.models.databasemodels.Promo;
+import springapi.models.requestmodels.PaginationBaseRequestModel;
+import springapi.models.requestmodels.PromoRequestModel;
+import springapi.models.responsemodels.BulkInsertResponseModel;
+import springapi.models.responsemodels.PaginationBaseResponseModel;
+import springapi.models.responsemodels.PromoResponseModel;
+import springapi.repositories.PromoRepository;
+import springapi.services.interfaces.PromoSubTranslator;
 
 /**
  * Service implementation for Promo operations.
@@ -50,9 +50,7 @@ public class PromoService extends BaseService implements PromoSubTranslator {
   private final PromoFilterQueryBuilder promoFilterQueryBuilder;
   private final MessageService messageService;
 
-  /**
-   * Initializes PromoService.
-   */
+  /** Initializes PromoService. */
   @Autowired
   public PromoService(
       PromoRepository promoRepository,
