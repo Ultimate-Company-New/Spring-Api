@@ -83,9 +83,9 @@ public class QaService extends BaseService implements QaSubTranslator {
 
   // Test source file paths (relative to project root)
   // Keep both paths for backward compatibility with older layouts.
-  private static final String TEST_SOURCE_PATH = "src/test/java/com/example/SpringApi/ServiceTests";
+  private static final String TEST_SOURCE_PATH = "src/test/java/com/example/springapi/servicetests";
   private static final String LEGACY_TEST_SOURCE_PATH =
-      "src/test/java/com/example/SpringApi/Services/Tests";
+      "src/test/java/com/example/springapi/services/tests";
 
   // Automated API tests path (relative - Spring-PlayWright-Automation project)
   private static final String AUTOMATED_API_TESTS_PATH =

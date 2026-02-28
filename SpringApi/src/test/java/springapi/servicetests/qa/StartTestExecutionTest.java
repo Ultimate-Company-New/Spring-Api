@@ -1054,7 +1054,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
     // Arrange
     QaService realService = createRealQAService();
     Path tempProject = Files.createTempDirectory("qa-parser-io-");
-    Path testSourceDir = tempProject.resolve("src/test/java/com/example/SpringApi/Services/Tests");
+    Path testSourceDir = tempProject.resolve("src/test/java/com/example/springapi/services/tests");
     Files.createDirectories(testSourceDir);
     Files.createDirectories(testSourceDir.resolve("BrokenFixture.java"));
     String originalUserDir = System.getProperty("user.dir");
@@ -1623,7 +1623,7 @@ class StartTestExecutionTest extends QAServiceTestBase {
 
   private Path createParserFixtureProject() throws Exception {
     Path tempProject = Files.createTempDirectory("qa-parser-fixture-");
-    Path testSourceDir = tempProject.resolve("src/test/java/com/example/SpringApi/Services/Tests");
+    Path testSourceDir = tempProject.resolve("src/test/java/com/example/springapi/services/tests");
     Files.createDirectories(testSourceDir);
 
     String source =

@@ -17,9 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-/**
- * Represents the authorization component.
- */
+/** Handles JWT-backed authorization and permission checks. */
 @Service("customAuthorization")
 public class Authorization {
   private static final ContextualLogger logger = ContextualLogger.getLogger(Authorization.class);
@@ -64,9 +62,8 @@ public class Authorization {
     }
 
     // Check if user is part of the client mapping
-    List<UserClientMapping> mapping =
-        userClientMappingRepository.findByUserIdsAndClientId(
-            Collections.singletonList(userId), clientId);
+    List<UserClientMapping> mapping = userClientMappingRepository.findByUserIdsAndClientId(
+        Collections.singletonList(userId), clientId);
     if (mapping == null || mapping.isEmpty()) {
       logger.error(permissionException);
       throw permissionException;
@@ -96,10 +93,9 @@ public class Authorization {
   public boolean isAllowed(String userPermission, List<Long> permissionIds) {
     if (permissionIds != null && !permissionIds.isEmpty()) {
       List<Permission> permissions = permissionRepository.findAllById(permissionIds);
-      SortedSet<String> userPermissionCodes =
-          permissions.stream()
-              .map(Permission::getPermissionCode)
-              .collect(Collectors.toCollection(TreeSet::new));
+      SortedSet<String> userPermissionCodes = permissions.stream()
+          .map(Permission::getPermissionCode)
+          .collect(Collectors.toCollection(TreeSet::new));
       String[] requiredPermissions = userPermission.split(",");
       for (String perm : requiredPermissions) {
         if (!userPermissionCodes.contains(perm.trim())) {
