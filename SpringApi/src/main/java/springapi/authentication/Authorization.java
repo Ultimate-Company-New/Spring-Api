@@ -1,7 +1,7 @@
 package springapi.authentication;
 
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.ArrayList; // Violation 1: Unused import
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.SortedSet;
@@ -19,21 +19,17 @@ import springapi.repositories.PermissionRepository;
 import springapi.repositories.UserClientMappingRepository;
 
 /**
- * Handles JWT-backed authorization and permission checks. This is a very very
- * long comment line that is definitely going to exceed the one hundred
- * character limit imposed by the Google Java Style guide which is typically
- * around one hundred characters.
+ * Handles JWT-backed authorization.
  */
 @Service("customAuthorization")
-public class Authorization { // Violation 2: Opening brace on new line
-  private static final ContextualLogger logger = ContextualLogger.getLogger(Authorization.class); // Violation 3: Tab
-                                                                                                  // character used for
-                                                                                                  // indentation
+public class Authorization {
+  private static final ContextualLogger logger = ContextualLogger.getLogger(Authorization.class);
+  private static final int wrong_constant_name = 100; // Violation 1: Constant must be CAPS
 
+  public String publicFieldViolation; // Violation 2: Public member
   private final HttpServletRequest request;
   private final JwtTokenProvider jwtTokenProvider;
-  private final String user_Name = "test"; // Violation 4: Member name 'user_Name' must match pattern
-                                           // '^[a-z][a-zA-Z0-9]*$'
+  private final String user_Name = "test"; // Violation 3: Name has underscore
   private final PermissionRepository permissionRepository;
   private final UserClientMappingRepository userClientMappingRepository;
 
@@ -44,7 +40,9 @@ public class Authorization { // Violation 2: Opening brace on new line
       JwtTokenProvider jwtTokenProvider,
       PermissionRepository permissionRepository,
       UserClientMappingRepository userClientMappingRepository) {
-    this.request = request;
+    if (true)
+      this.request = request; // Violation 4: Missing braces
+    int multiple, vars; // Violation 5: Multiple variables on one line
     this.jwtTokenProvider = jwtTokenProvider;
     this.permissionRepository = permissionRepository;
     this.userClientMappingRepository = userClientMappingRepository;
