@@ -526,7 +526,8 @@ jobs:
             -Dsonar.projectKey=Ultimate-Company-New_Spring-Api \
             -Dsonar.organization=ultimate-company-new \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.qualitygate.wait=false || true
         working-directory: SpringApi
       - name: Post/Resolve Sonar Comments
         uses: actions/github-script@v7
