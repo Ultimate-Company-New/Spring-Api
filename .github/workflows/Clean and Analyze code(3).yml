@@ -11,6 +11,8 @@ on:
         required: true
       SONAR_TOKEN:
         required: true
+      GH_PAT:
+        required: true
 
 jobs:
   spotless:
@@ -92,6 +94,7 @@ jobs:
       - name: Post/Resolve Checkstyle Comments
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GH_PAT }}
           script: |
             const fs = require('fs');
             const toolName = 'Checkstyle';
@@ -252,6 +255,7 @@ jobs:
       - name: Post/Resolve Snyk Comments
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GH_PAT }}
           script: |
             const fs = require('fs');
             const toolName = 'Snyk';
@@ -393,6 +397,7 @@ jobs:
       - name: Post/Resolve CodeQL Comments
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GH_PAT }}
           script: |
             const toolName = 'CodeQL';
             const toolEmoji = '🔬';
@@ -545,6 +550,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
+          github-token: ${{ secrets.GH_PAT }}
           script: |
             const toolName = 'SonarCloud';
             const toolEmoji = '🌊';
