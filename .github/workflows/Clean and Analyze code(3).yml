@@ -392,6 +392,12 @@ jobs:
         with:
           languages: java
           build-mode: none
+          config: |
+            disable-default-queries: false
+            paths-ignore:
+              - "**/*.js"
+              - "**/*.ts"
+              - "**/*.py"
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
       - name: Post/Resolve CodeQL Comments
