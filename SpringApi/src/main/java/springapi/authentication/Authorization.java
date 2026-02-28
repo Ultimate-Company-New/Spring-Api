@@ -1,5 +1,6 @@
 package springapi.authentication;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList; // Violation 1: Unused import
 import java.util.Collections;
 import java.util.List;
