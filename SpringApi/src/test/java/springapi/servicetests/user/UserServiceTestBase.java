@@ -1,4 +1,4 @@
-package springapi.ServiceTests.User;
+package springapi.servicetests.user;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.*;
@@ -89,6 +89,10 @@ abstract class UserServiceTestBase {
   protected static final String TEST_LOGIN_NAME = "test@example.com";
   protected static final String CREATED_USER = "system_user";
   protected static final String TEST_EMAIL = "test@example.com";
+  protected static final String GENERATED_TEST_PASSWORD = createSensitiveValue("cred");
+  protected static final String GENERATED_TEST_SALT = createSensitiveValue("salt");
+  protected static final String GENERATED_TEST_HASH = createSensitiveValue("hash");
+  protected static final String GENERATED_TEST_TOKEN = createSensitiveValue("token");
 
   @BeforeEach
   void setUp() {
@@ -165,11 +169,15 @@ abstract class UserServiceTestBase {
 
   protected void stubConfigurePasswordHelperMock(
       MockedStatic<PasswordHelper> mockedPasswordHelper) {
-    mockedPasswordHelper.when(PasswordHelper::getRandomPassword).thenReturn("randomPassword123");
+    mockedPasswordHelper
+        .when(PasswordHelper::getRandomPassword)
+        .thenReturn(GENERATED_TEST_PASSWORD);
     mockedPasswordHelper
         .when(() -> PasswordHelper.getHashedPasswordAndSalt(anyString()))
-        .thenReturn(new String[] {"salt123", "hashedPassword123"});
-    mockedPasswordHelper.when(() -> PasswordHelper.getToken(anyString())).thenReturn("token123");
+        .thenReturn(new String[] {GENERATED_TEST_SALT, GENERATED_TEST_HASH});
+    mockedPasswordHelper
+        .when(() -> PasswordHelper.getToken(anyString()))
+        .thenReturn(GENERATED_TEST_TOKEN);
   }
 
   protected void stubStandardCreateUserMocks() {
@@ -351,11 +359,15 @@ abstract class UserServiceTestBase {
       mockedPasswordHelper.close();
     }
     mockedPasswordHelper = org.mockito.Mockito.mockStatic(PasswordHelper.class);
-    mockedPasswordHelper.when(PasswordHelper::getRandomPassword).thenReturn("randomPassword123");
+    mockedPasswordHelper
+        .when(PasswordHelper::getRandomPassword)
+        .thenReturn(GENERATED_TEST_PASSWORD);
     mockedPasswordHelper
         .when(() -> PasswordHelper.getHashedPasswordAndSalt(anyString()))
-        .thenReturn(new String[] {"salt123", "hashedPassword123"});
-    mockedPasswordHelper.when(() -> PasswordHelper.getToken(anyString())).thenReturn("token123");
+        .thenReturn(new String[] {GENERATED_TEST_SALT, GENERATED_TEST_HASH});
+    mockedPasswordHelper
+        .when(() -> PasswordHelper.getToken(anyString()))
+        .thenReturn(GENERATED_TEST_TOKEN);
   }
 
   protected void stubEmailTemplates() {
@@ -428,9 +440,9 @@ abstract class UserServiceTestBase {
     savedUser.setUserId(TEST_USER_ID);
 
     stubUserRepositoryFindByLoginNameAny(null); // No duplicate by default
-    savedUser.setToken("token123");
-    savedUser.setSalt("salt123");
-    savedUser.setPassword("hashedPassword123");
+    savedUser.setToken(GENERATED_TEST_TOKEN);
+    savedUser.setSalt(GENERATED_TEST_SALT);
+    savedUser.setPassword(GENERATED_TEST_HASH);
     stubUserRepositorySave(savedUser);
     stubUserClientPermissionMappingRepositorySaveAll(new ArrayList<>());
     stubUserClientMappingRepositorySave(null);
@@ -456,6 +468,10 @@ abstract class UserServiceTestBase {
     stubUserLogServiceLogData(true);
     stubEnvironmentActiveProfiles(new String[] {"test"});
     stubImgbbHelper();
+  }
+
+  private static String createSensitiveValue(String prefix) {
+    return prefix + "-" + UUID.randomUUID();
   }
 
   protected void testStringFilter(String column, String operator, String value) {

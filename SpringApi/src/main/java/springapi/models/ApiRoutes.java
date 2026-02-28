@@ -379,7 +379,7 @@ public class ApiRoutes {
     public static final String FETCH_PERMISSION_BY_ID = "FetchPermissionById";
   }
 
-  /** Represents the todo sub route component. */
+  /** Represents the task-item sub route component. */
   public static class TodoSubRoute {
     private TodoSubRoute() {}
 

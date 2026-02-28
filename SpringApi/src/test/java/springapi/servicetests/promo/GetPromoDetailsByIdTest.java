@@ -1,4 +1,4 @@
-package springapi.ServiceTests.Promo;
+package springapi.servicetests.promo;
 
 import static org.junit.jupiter.api.Assertions.*;
 

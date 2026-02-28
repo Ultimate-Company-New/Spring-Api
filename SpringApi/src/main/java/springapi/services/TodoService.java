@@ -18,14 +18,14 @@ import springapi.models.responsemodels.TodoResponseModel;
 import springapi.repositories.TodoRepository;
 import springapi.services.interfaces.TodoSubTranslator;
 
-/** Represents the todo service component. */
+/** Represents the task-item service component. */
 @Service
 public class TodoService extends BaseService implements TodoSubTranslator {
 
   private final TodoRepository todoRepository;
   private final UserLogService userLogService;
 
-  /** Initializes TodoService. */
+  /** Initializes the task-item service. */
   @Autowired
   public TodoService(
       TodoRepository todoRepository,

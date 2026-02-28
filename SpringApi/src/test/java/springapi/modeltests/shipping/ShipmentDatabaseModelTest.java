@@ -1,4 +1,4 @@
-package springapi.ModelTests.Shipping;
+package springapi.modeltests.shipping;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;

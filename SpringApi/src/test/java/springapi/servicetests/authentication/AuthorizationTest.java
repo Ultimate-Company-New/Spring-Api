@@ -1,4 +1,4 @@
-package springapi.ServiceTests.Authentication;
+package springapi.servicetests.authentication;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

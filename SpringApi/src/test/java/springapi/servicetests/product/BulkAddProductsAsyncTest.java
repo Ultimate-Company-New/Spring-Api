@@ -1,4 +1,4 @@
-package springapi.ServiceTests.Product;
+package springapi.servicetests.product;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;

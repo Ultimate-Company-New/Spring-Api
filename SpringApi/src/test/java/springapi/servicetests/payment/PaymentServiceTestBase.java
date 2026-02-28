@@ -1,4 +1,4 @@
-package springapi.ServiceTests.Payment;
+package springapi.servicetests.payment;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.lenient;

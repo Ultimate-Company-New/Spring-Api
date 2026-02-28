@@ -1,4 +1,4 @@
-package springapi.ServiceTests.Message;
+package springapi.servicetests.message;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

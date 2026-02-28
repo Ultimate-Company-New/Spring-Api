@@ -1,4 +1,4 @@
-package springapi.ServiceTests.User;
+package springapi.servicetests.user;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;

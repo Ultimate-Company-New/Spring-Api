@@ -1,4 +1,4 @@
-package springapi.ServiceTests.Login;
+package springapi.servicetests.login;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.lenient;
@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -105,9 +106,11 @@ abstract class LoginServiceTestBase {
   protected static final Long TEST_USER_ID = DEFAULT_USER_ID;
   protected static final Long TEST_CLIENT_ID = DEFAULT_CLIENT_ID;
   protected static final String TEST_LOGIN_NAME = DEFAULT_LOGIN_NAME;
-  protected static final String TEST_PASSWORD = "password123";
-  protected static final String TEST_TOKEN = "test-token-123";
-  protected static final String TEST_API_KEY = "test-api-key-123";
+  protected static final String TEST_PASSWORD = createSensitiveValue("cred");
+  protected static final String TEST_TOKEN = createSensitiveValue("token");
+  protected static final String TEST_API_KEY = createSensitiveValue("api-key");
+  private static final String TEST_SALT = createSensitiveValue("salt");
+  private static final String TEST_HASHED_PASSWORD = createSensitiveValue("hash");
 
   /**
    * Sets up test data before each test execution. Initializes common test objects and configures
@@ -131,8 +134,8 @@ abstract class LoginServiceTestBase {
     testUser.setEmailConfirmed(true);
     testUser.setLocked(false);
     testUser.setLoginAttempts(5);
-    testUser.setSalt("test-salt");
-    testUser.setPassword("hashedPassword");
+    testUser.setSalt(TEST_SALT);
+    testUser.setPassword(TEST_HASHED_PASSWORD);
 
     // Initialize test login request
     testLoginRequest = createValidLoginRequest();
@@ -218,9 +221,13 @@ abstract class LoginServiceTestBase {
     LoginRequestModel loginRequest = new LoginRequestModel();
     loginRequest.setUserId(DEFAULT_USER_ID);
     loginRequest.setLoginName(DEFAULT_LOGIN_NAME);
-    loginRequest.setPassword("testPassword123");
+    loginRequest.setPassword(TEST_PASSWORD);
     loginRequest.setClientId(DEFAULT_CLIENT_ID);
     return loginRequest;
+  }
+
+  private static String createSensitiveValue(String prefix) {
+    return prefix + "-" + UUID.randomUUID();
   }
 
   protected GoogleCred createTestGoogleCred(Long googleCredId) {

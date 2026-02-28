@@ -1,4 +1,4 @@
-package springapi.ServiceTests.ProductReview;
+package springapi.servicetests.productreview;
 
 import static org.junit.jupiter.api.Assertions.*;
 

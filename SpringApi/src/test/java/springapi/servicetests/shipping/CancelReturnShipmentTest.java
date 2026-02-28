@@ -1,4 +1,4 @@
-package springapi.ServiceTests.Shipping;
+package springapi.servicetests.shipping;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;

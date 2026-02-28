@@ -1,4 +1,4 @@
-package springapi.ServiceTests.UserGroup;
+package springapi.servicetests.usergroup;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;

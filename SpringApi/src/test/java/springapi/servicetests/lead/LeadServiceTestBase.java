@@ -1,4 +1,4 @@
-package springapi.ServiceTests.Lead;
+package springapi.servicetests.lead;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;

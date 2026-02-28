@@ -1,4 +1,4 @@
-package springapi.ServiceTests.UserLog;
+package springapi.servicetests.userlog;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;

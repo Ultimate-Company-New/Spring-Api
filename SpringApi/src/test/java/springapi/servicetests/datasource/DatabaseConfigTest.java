@@ -1,4 +1,4 @@
-package springapi.ServiceTests.DataSource;
+package springapi.servicetests.datasource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -35,6 +35,7 @@ class DatabaseConfigTest {
     DatabaseConfig config = new DatabaseConfig();
     Environment environment = mock(Environment.class);
     when(environment.getActiveProfiles()).thenReturn(new String[] {"development"});
+    when(environment.getProperty("spring.datasource.development.password")).thenReturn("root");
 
     // Act
     DataSource dataSource = config.dataSource(environment);
@@ -78,6 +79,8 @@ class DatabaseConfigTest {
     DatabaseConfig config = new DatabaseConfig();
     Environment environment = mock(Environment.class);
     when(environment.getActiveProfiles()).thenReturn(new String[] {"staging"});
+    when(environment.getProperty("spring.datasource.staging.password"))
+        .thenReturn("staging_password");
 
     // Act
     DataSource dataSource = config.dataSource(environment);
@@ -99,6 +102,7 @@ class DatabaseConfigTest {
     DatabaseConfig config = new DatabaseConfig();
     Environment environment = mock(Environment.class);
     when(environment.getActiveProfiles()).thenReturn(new String[] {"uat"});
+    when(environment.getProperty("spring.datasource.uat.password")).thenReturn("uat_password");
 
     // Act
     DataSource dataSource = config.dataSource(environment);
@@ -120,6 +124,8 @@ class DatabaseConfigTest {
     DatabaseConfig config = new DatabaseConfig();
     Environment environment = mock(Environment.class);
     when(environment.getActiveProfiles()).thenReturn(new String[] {"production"});
+    when(environment.getProperty("spring.datasource.production.password"))
+        .thenReturn("prod_password");
 
     // Act
     DataSource dataSource = config.dataSource(environment);

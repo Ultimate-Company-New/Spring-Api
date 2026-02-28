@@ -47,7 +47,8 @@ class PasswordHelperTest {
   @DisplayName("getHashedPasswordAndSalt - Round Trip Validation - Success")
   void getHashedPasswordAndSalt_s02_roundTripValidation_success() {
     // Arrange
-    String password = "StrongP@ss123";
+    String password = createSensitiveValue();
+    String wrongPassword = createSensitiveValue();
 
     // Act
     String[] hashedAndSalt = PasswordHelper.getHashedPasswordAndSalt(password);
@@ -55,7 +56,7 @@ class PasswordHelperTest {
     // Assert
     assertEquals(2, hashedAndSalt.length);
     assertTrue(PasswordHelper.checkPassword(password, hashedAndSalt[1], hashedAndSalt[0]));
-    assertFalse(PasswordHelper.checkPassword("WrongPassword", hashedAndSalt[1], hashedAndSalt[0]));
+    assertFalse(PasswordHelper.checkPassword(wrongPassword, hashedAndSalt[1], hashedAndSalt[0]));
   }
 
   /**
@@ -88,7 +89,7 @@ class PasswordHelperTest {
   @DisplayName("getSecretKey - HmacSha256KeyMaterial - Success")
   void getSecretKey_s04_hmacSha256KeyMaterial_success() {
     // Arrange
-    String rawKey = "jwt-secret-key";
+    String rawKey = createSensitiveValue();
 
     // Act
     SecretKey secretKey = PasswordHelper.getSecretKey(rawKey);
@@ -227,5 +228,11 @@ class PasswordHelperTest {
     assertTrue(strictValid);
     assertTrue(relaxedDigitValid);
     assertEquals(8, PasswordHelper.PasswordOptions.REQUIRED_LENGTH);
+  }
+
+  private static String createSensitiveValue() {
+    byte[] randomBytes = new byte[32];
+    new java.security.SecureRandom().nextBytes(randomBytes);
+    return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
   }
 }

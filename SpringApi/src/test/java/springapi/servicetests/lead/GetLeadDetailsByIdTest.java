@@ -1,4 +1,4 @@
-package springapi.ServiceTests.Lead;
+package springapi.servicetests.lead;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;

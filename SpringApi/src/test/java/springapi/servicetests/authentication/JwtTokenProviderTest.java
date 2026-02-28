@@ -1,4 +1,4 @@
-package springapi.ServiceTests.Authentication;
+package springapi.servicetests.authentication;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.jsonwebtoken.Jwts;
 import java.lang.reflect.Field;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -20,8 +22,8 @@ import springapi.models.databasemodels.User;
 class JwtTokenProviderTest {
 
   // Total Tests: 6
-  private static final String JWT_SECRET_32 = "01234567890123456789012345678901";
-  private static final String WEB_API_KEY_32 = "webapikey012345678901234567890123";
+  private static final String JWT_SECRET_32 = generateSecret();
+  private static final String WEB_API_KEY_32 = generateSecret();
 
   /**
    * Purpose: Verify generated JWT token can be parsed for core user/client/permission claims.
@@ -213,5 +215,11 @@ class JwtTokenProviderTest {
     }
 
     return builder.signWith(PasswordHelper.getSecretKey(secret)).compact();
+  }
+
+  private static String generateSecret() {
+    byte[] secretBytes = new byte[32];
+    new SecureRandom().nextBytes(secretBytes);
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(secretBytes);
   }
 }

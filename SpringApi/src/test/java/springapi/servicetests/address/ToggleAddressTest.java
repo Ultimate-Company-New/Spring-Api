@@ -1,4 +1,4 @@
-package springapi.ServiceTests.Address;
+package springapi.servicetests.address;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;

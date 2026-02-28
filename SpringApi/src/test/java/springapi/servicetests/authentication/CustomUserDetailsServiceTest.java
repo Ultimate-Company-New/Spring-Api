@@ -1,4 +1,4 @@
-package springapi.ServiceTests.Authentication;
+package springapi.servicetests.authentication;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +24,7 @@ import springapi.repositories.UserRepository;
 class CustomUserDetailsServiceTest {
 
   // Total Tests: 3
+  private static final String TEST_HASHED_PASSWORD = createSensitiveValue("hashed");
 
   @Mock private UserRepository userRepository;
 
@@ -38,7 +40,7 @@ class CustomUserDetailsServiceTest {
     CustomUserDetailsService service = new CustomUserDetailsService(userRepository);
     User dbUser = new User();
     dbUser.setLoginName("nahush");
-    dbUser.setPassword("hashed");
+    dbUser.setPassword(TEST_HASHED_PASSWORD);
     dbUser.setRole("ADMIN");
     dbUser.setIsDeleted(false);
     dbUser.setLocked(false);
@@ -67,7 +69,7 @@ class CustomUserDetailsServiceTest {
     CustomUserDetailsService service = new CustomUserDetailsService(userRepository);
     User dbUser = new User();
     dbUser.setLoginName("locked-user");
-    dbUser.setPassword("hashed");
+    dbUser.setPassword(TEST_HASHED_PASSWORD);
     dbUser.setRole("USER");
     dbUser.setIsDeleted(true);
     dbUser.setLocked(true);
@@ -98,5 +100,9 @@ class CustomUserDetailsServiceTest {
 
     // Assert
     assertEquals("User not found with username: missing", exception.getMessage());
+  }
+
+  private static String createSensitiveValue(String prefix) {
+    return prefix + "-" + UUID.randomUUID();
   }
 }

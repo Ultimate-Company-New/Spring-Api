@@ -1,4 +1,4 @@
-package springapi.ServiceTests.PickupLocation;
+package springapi.servicetests.pickuplocation;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

@@ -1,4 +1,4 @@
-package springapi.ServiceTests.Payment;
+package springapi.servicetests.payment;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;

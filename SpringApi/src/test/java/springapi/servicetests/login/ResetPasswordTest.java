@@ -1,8 +1,9 @@
-package springapi.ServiceTests.Login;
+package springapi.servicetests.login;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
@@ -35,14 +36,17 @@ class ResetPasswordTest extends LoginServiceTestBase {
   @DisplayName("Reset Password - Success - Should reset password and send email")
   void resetPassword_Success_Success() {
     // Arrange
-    testUser.setPassword("oldHashedPassword");
+    String newPassword = createSensitiveValue("cred-new");
+    String newSalt = createSensitiveValue("new-salt");
+    String newHashedPassword = createSensitiveValue("new-hash");
+    testUser.setPassword(createSensitiveValue("old-hash"));
     stubUserRepositoryFindByLoginName(TEST_LOGIN_NAME, testUser);
     stubClientRepositoryFindFirstByOrderByClientIdAsc(testClient);
     stubEnvironmentSendGridProperties("test@example.com", "Test Sender", "test-api-key");
 
     try (MockedStatic<PasswordHelper> mockedPasswordHelper =
             stubPasswordHelperRandomPassword(
-                "newPassword123", new String[] {"newSalt", "newHashedPassword"});
+                newPassword, new String[] {newSalt, newHashedPassword});
         MockedConstruction<EmailTemplates> mockedEmailTemplates =
             stubEmailTemplatesSendResetPasswordEmail(true)) {
 
@@ -70,13 +74,16 @@ class ResetPasswordTest extends LoginServiceTestBase {
   @DisplayName("Reset Password - Email send failure - Throws RuntimeException")
   void resetPassword_EmailSendFailure_ThrowsRuntimeException() {
     // Arrange
+    String newPassword = createSensitiveValue("cred-temp");
+    String salt = createSensitiveValue("temp-salt");
+    String hashed = createSensitiveValue("temp-hash");
     stubUserRepositoryFindByLoginName(TEST_LOGIN_NAME, testUser);
     stubClientRepositoryFindFirstByOrderByClientIdAsc(testClient);
     stubEnvironmentSendGridProperties("test@example.com", "Sender", "key");
 
     // Act & Assert
     try (MockedStatic<PasswordHelper> mockedPasswordHelper =
-            stubPasswordHelperRandomPassword("newpass", new String[] {"salt", "hash"});
+            stubPasswordHelperRandomPassword(newPassword, new String[] {salt, hashed});
         MockedConstruction<EmailTemplates> emailTemplatesMock =
             stubEmailTemplatesSendResetPasswordEmail(false)) {
 
@@ -333,5 +340,9 @@ class ResetPasswordTest extends LoginServiceTestBase {
 
     // Assert
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+  }
+
+  private static String createSensitiveValue(String prefix) {
+    return prefix + "-" + UUID.randomUUID();
   }
 }

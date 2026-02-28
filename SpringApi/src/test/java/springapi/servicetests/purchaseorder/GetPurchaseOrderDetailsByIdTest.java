@@ -1,4 +1,4 @@
-package springapi.ServiceTests.PurchaseOrder;
+package springapi.servicetests.purchaseorder;
 
 import static org.junit.jupiter.api.Assertions.*;
 

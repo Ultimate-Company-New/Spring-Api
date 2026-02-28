@@ -1,4 +1,4 @@
-package springapi.ModelTests.Address;
+package springapi.modeltests.address;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

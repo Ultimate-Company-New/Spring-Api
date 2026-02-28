@@ -1,4 +1,4 @@
-package springapi.ServiceTests.Package;
+package springapi.servicetests.packagetests;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;

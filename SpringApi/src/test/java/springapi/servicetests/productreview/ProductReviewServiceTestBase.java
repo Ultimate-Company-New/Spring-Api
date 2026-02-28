@@ -1,4 +1,4 @@
-package springapi.ServiceTests.ProductReview;
+package springapi.servicetests.productreview;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;

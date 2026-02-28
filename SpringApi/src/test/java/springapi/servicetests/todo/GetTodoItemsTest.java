@@ -1,4 +1,4 @@
-package springapi.ServiceTests.Todo;
+package springapi.servicetests.todo;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

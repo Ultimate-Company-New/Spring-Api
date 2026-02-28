@@ -1,7 +1,6 @@
 package springapi.authentication;
 
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.*; // Violation 1: Star import
 import java.util.Collections;
 import java.util.List;
 import java.util.SortedSet;
@@ -18,21 +17,15 @@ import springapi.models.databasemodels.UserClientMapping;
 import springapi.repositories.PermissionRepository;
 import springapi.repositories.UserClientMappingRepository;
 
-/**
- * Handles JWT-backed authorization and permission checks. This is a very very long comment line
- * that exceeds one hundred chars.
- */
+/** Handles JWT-backed authorization and permission checks. */
 @Service("customAuthorization")
 public class Authorization {
   private static final ContextualLogger logger = ContextualLogger.getLogger(Authorization.class);
 
   private final HttpServletRequest request;
   private final JwtTokenProvider jwtTokenProvider;
-  private final String user_Name = "test"; // Violation 2: Underscore in name
   private final PermissionRepository permissionRepository;
   private final UserClientMappingRepository userClientMappingRepository;
-
-  public void bad_method_name() {} // Violation 3: Underscore in method name
 
   /** Initializes Authorization. */
   @Autowired
@@ -41,9 +34,7 @@ public class Authorization {
       JwtTokenProvider jwtTokenProvider,
       PermissionRepository permissionRepository,
       UserClientMappingRepository userClientMappingRepository) {
-    if (true) this.request = request; // Violation 4: Missing braces
-    if (false) return; // Violation 5: Another missing braces
-    int multiple, vars; // Violation 6: Multiple variables on one line
+    this.request = request;
     this.jwtTokenProvider = jwtTokenProvider;
     this.permissionRepository = permissionRepository;
     this.userClientMappingRepository = userClientMappingRepository;

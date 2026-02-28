@@ -1,4 +1,4 @@
-package springapi.ServiceTests.QA;
+package springapi.servicetests.qa;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;

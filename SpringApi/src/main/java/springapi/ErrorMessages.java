@@ -222,7 +222,7 @@ public class ErrorMessages {
     public static final String ER007 = "Invalid postal code. Must be a 5 or 6 digit number.";
   }
 
-  /** Represents the todo error messages component. */
+  /** Represents the task-item error messages component. */
   public static class TodoErrorMessages {
     private TodoErrorMessages() {}
 

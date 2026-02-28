@@ -1,4 +1,4 @@
-package springapi.ServiceTests.QA;
+package springapi.servicetests.qa;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;

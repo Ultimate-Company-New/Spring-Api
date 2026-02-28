@@ -1,4 +1,4 @@
-package springapi.ModelTests.Core;
+package springapi.modeltests.core;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

@@ -1,4 +1,4 @@
-package springapi.ServiceTests.UserGroup;
+package springapi.servicetests.usergroup;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;

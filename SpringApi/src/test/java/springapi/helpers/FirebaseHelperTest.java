@@ -63,7 +63,7 @@ class FirebaseHelperTest {
   void constructor_s02_emptyAppsCatchesInitializationError_success() {
     // Arrange
     GoogleCred googleCred = buildGoogleCred();
-    googleCred.setPrivateKey("invalid-key-material");
+    googleCred.setPrivateKey(createInvalidPrivateKeyPayload());
 
     try (MockedStatic<FirebaseApp> firebaseAppMock = mockStatic(FirebaseApp.class)) {
       firebaseAppMock.when(FirebaseApp::getApps).thenReturn(Collections.emptyList());
@@ -304,7 +304,7 @@ class FirebaseHelperTest {
     cred.setType("service_account");
     cred.setProjectId("project-id");
     cred.setPrivateKeyId("private-key-id");
-    cred.setPrivateKey("-----BEGIN PRIVATE KEY-----\\nINVALID\\n-----END PRIVATE KEY-----\\n");
+    cred.setPrivateKey(createInvalidPrivateKeyPem());
     cred.setClientEmail("client@example.com");
     cred.setClientId("123456789");
     cred.setAuthUri("https://accounts.google.com/o/oauth2/auth");
@@ -313,5 +313,17 @@ class FirebaseHelperTest {
     cred.setClientx509CertUrl(
         "https://www.googleapis.com/robot/v1/metadata/x509/client%40example.com");
     return cred;
+  }
+
+  private static String createInvalidPrivateKeyPayload() {
+    byte[] randomBytes = new byte[32];
+    new java.security.SecureRandom().nextBytes(randomBytes);
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+  }
+
+  private static String createInvalidPrivateKeyPem() {
+    return "-----BEGIN PRIVATE KEY-----\n"
+        + createInvalidPrivateKeyPayload()
+        + "\n-----END PRIVATE KEY-----\n";
   }
 }

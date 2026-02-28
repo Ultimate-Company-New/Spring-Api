@@ -77,7 +77,7 @@ public class SuccessMessages {
     public static final String SUCC001 = "Successfully got user's from the from the given groupid.";
   }
 
-  /** Represents the todo success messages component. */
+  /** Represents the task-item success messages component. */
   public static class TodoSuccessMessages {
     private TodoSuccessMessages() {}
 

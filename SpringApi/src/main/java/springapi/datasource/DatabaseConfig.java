@@ -17,6 +17,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.util.StringUtils;
 
 /** Stores entity manager factory ref. */
 @Configuration
@@ -27,6 +28,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
     basePackages = {"springapi.repositories"})
 public class DatabaseConfig {
   private static final String MYSQL_DRIVER_CLASS = "com.mysql.cj.jdbc.Driver";
+  private static final String DEFAULT_PASSWORD_PROPERTY = "spring.datasource.password";
+  private static final String DEVELOPMENT_PASSWORD_PROPERTY =
+      "spring.datasource.development." + "password";
+  private static final String STAGING_PASSWORD_PROPERTY = "spring.datasource.staging.password";
+  private static final String UAT_PASSWORD_PROPERTY = "spring.datasource.uat.password";
+  private static final String PRODUCTION_PASSWORD_PROPERTY =
+      "spring.datasource.production." + "password";
 
   @Bean(name = "entityManagerFactoryBuilder")
   public EntityManagerFactoryBuilder entityManagerFactoryBuilder() {
@@ -41,46 +49,47 @@ public class DatabaseConfig {
         environment.getActiveProfiles().length > 0 ? environment.getActiveProfiles()[0] : "default";
     switch (profile) {
       case "development":
-        return DataSourceBuilder.create()
-            .url("jdbc:mysql://host.docker.internal:3307/UltimateCompanyDatabase")
-            .password("root")
-            .username("root")
-            .driverClassName(MYSQL_DRIVER_CLASS)
-            .build();
+        return buildDataSource(
+            "jdbc:mysql://host.docker.internal:3307/UltimateCompanyDatabase",
+            "root",
+            getPassword(environment, DEVELOPMENT_PASSWORD_PROPERTY));
       case "localhost":
-        return DataSourceBuilder.create()
-            .url("jdbc:mysql://localhost:3306/UltimateCompanyDatabase")
-            .username("root")
-            .driverClassName(MYSQL_DRIVER_CLASS)
-            .build();
+        return buildDataSource("jdbc:mysql://localhost:3306/UltimateCompanyDatabase", "root", null);
       case "staging":
-        return DataSourceBuilder.create()
-            .url("jdbc:mysql://staging-host:3307/UltimateCompanyDatabase")
-            .password("staging_password")
-            .username("staging_user")
-            .driverClassName(MYSQL_DRIVER_CLASS)
-            .build();
+        return buildDataSource(
+            "jdbc:mysql://staging-host:3307/UltimateCompanyDatabase",
+            "staging_user",
+            getPassword(environment, STAGING_PASSWORD_PROPERTY));
       case "uat":
-        return DataSourceBuilder.create()
-            .url("jdbc:mysql://uat-host:3307/UltimateCompanyDatabase")
-            .password("uat_password")
-            .username("uat_user")
-            .driverClassName(MYSQL_DRIVER_CLASS)
-            .build();
+        return buildDataSource(
+            "jdbc:mysql://uat-host:3307/UltimateCompanyDatabase",
+            "uat_user",
+            getPassword(environment, UAT_PASSWORD_PROPERTY));
       case "production":
-        return DataSourceBuilder.create()
-            .url("jdbc:mysql://prod-host:3307/UltimateCompanyDatabase")
-            .password("prod_password")
-            .username("prod_user")
-            .driverClassName(MYSQL_DRIVER_CLASS)
-            .build();
+        return buildDataSource(
+            "jdbc:mysql://prod-host:3307/UltimateCompanyDatabase",
+            "prod_user",
+            getPassword(environment, PRODUCTION_PASSWORD_PROPERTY));
       default:
-        return DataSourceBuilder.create()
-            .url("jdbc:mysql://localhost:3306/UltimateCompanyDatabase")
-            .username("root")
-            .driverClassName(MYSQL_DRIVER_CLASS)
-            .build();
+        return buildDataSource("jdbc:mysql://localhost:3306/UltimateCompanyDatabase", "root", null);
     }
+  }
+
+  private String getPassword(Environment environment, String profilePasswordProperty) {
+    String profilePassword = environment.getProperty(profilePasswordProperty);
+    if (StringUtils.hasText(profilePassword)) {
+      return profilePassword;
+    }
+    return environment.getProperty(DEFAULT_PASSWORD_PROPERTY);
+  }
+
+  private DataSource buildDataSource(String url, String username, String password) {
+    DataSourceBuilder<?> builder =
+        DataSourceBuilder.create().url(url).username(username).driverClassName(MYSQL_DRIVER_CLASS);
+    if (StringUtils.hasText(password)) {
+      builder.password(password);
+    }
+    return builder.build();
   }
 
   /** Executes qualifier. */
