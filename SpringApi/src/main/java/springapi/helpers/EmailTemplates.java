@@ -400,13 +400,9 @@ public class EmailTemplates {
       char current = html.charAt(i);
       if (current == '<') {
         insideTag = true;
-        continue;
-      }
-      if (current == '>' && insideTag) {
+      } else if (current == '>' && insideTag) {
         insideTag = false;
-        continue;
-      }
-      if (!insideTag) {
+      } else if (!insideTag) {
         plainText.append(current);
       }
     }

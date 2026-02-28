@@ -199,19 +199,34 @@ jobs:
               // Resolve threads WE OWN whose finding no longer appears in this run
               for (const thread of myOwnedThreads) {
                 if (thread.isResolved) continue;
+                let shouldResolve = false;
                 for (const comment of thread.comments.nodes) {
-                  if (!comment.body.includes(toolIdentifier)) continue;
-                  const tagMatch = comment.body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
-                  if (tagMatch) {
-                    const [, ruleId, path, message] = tagMatch;
+                  if (!toolPattern.test(comment.body)) continue;
+                  // New format: has a finding-id tag with full ruleId|path|message
+                  const newTagMatch = comment.body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
+                  if (newTagMatch) {
+                    const [, ruleId, path, message] = newTagMatch;
                     if (!findings.some(f => f.ruleId === ruleId && f.path === path && f.message === message.trim())) {
-                      console.log(`Resolving fixed finding: ${ruleId} in ${path}`);
-                      try {
-                        await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
-                      } catch (e) { console.log(`Could not resolve thread: ${e.message}`); }
-                      break;
+                      console.log(`Resolving fixed finding (new-format): ${ruleId}`);
+                      shouldResolve = true;
                     }
+                    break;
                   }
+                  // Old format: extract ruleId from [java:SXXX] bracket, match by ruleId + thread path
+                  const oldTagMatch = comment.body.match(/\[([\w:]+)\]/);
+                  if (oldTagMatch) {
+                    const ruleId = oldTagMatch[1];
+                    if (!findings.some(f => f.ruleId === ruleId && thread.path && f.path.endsWith(thread.path))) {
+                      console.log(`Resolving fixed finding (old-format): ${ruleId}`);
+                      shouldResolve = true;
+                    }
+                    break;
+                  }
+                }
+                if (shouldResolve) {
+                  try {
+                    await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
+                  } catch (e) { console.log(`Could not resolve thread: ${e.message}`); }
                 }
               }
             }
@@ -343,19 +358,32 @@ jobs:
 
               for (const thread of myOwnedThreads) {
                 if (thread.isResolved) continue;
+                let shouldResolve = false;
                 for (const comment of thread.comments.nodes) {
-                  if (!comment.body.includes(toolIdentifier)) continue;
-                  const tagMatch = comment.body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
-                  if (tagMatch) {
-                    const [, ruleId, path, message] = tagMatch;
+                  if (!toolPattern.test(comment.body)) continue;
+                  const newTagMatch = comment.body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
+                  if (newTagMatch) {
+                    const [, ruleId, path, message] = newTagMatch;
                     if (!findings.some(f => f.ruleId === ruleId && f.path === path && f.message === message.trim())) {
-                      console.log(`Resolving fixed finding: ${ruleId}`);
-                      try {
-                        await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
-                      } catch (e) { console.log(`Could not resolve thread: ${e.message}`); }
-                      break;
+                      console.log(`Resolving fixed finding (new-format): Snyk ${ruleId}`);
+                      shouldResolve = true;
                     }
+                    break;
                   }
+                  const oldTagMatch = comment.body.match(/\[([\w:]+)\]/);
+                  if (oldTagMatch) {
+                    const ruleId = oldTagMatch[1];
+                    if (!findings.some(f => f.ruleId === ruleId && thread.path && f.path.endsWith(thread.path))) {
+                      console.log(`Resolving fixed finding (old-format): Snyk ${ruleId}`);
+                      shouldResolve = true;
+                    }
+                    break;
+                  }
+                }
+                if (shouldResolve) {
+                  try {
+                    await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
+                  } catch (e) { console.log(`Could not resolve thread: ${e.message}`); }
                 }
               }
             }
@@ -490,19 +518,32 @@ jobs:
 
               for (const thread of myOwnedThreads) {
                 if (thread.isResolved) continue;
+                let shouldResolve = false;
                 for (const comment of thread.comments.nodes) {
-                  if (!comment.body.includes(toolIdentifier)) continue;
-                  const tagMatch = comment.body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
-                  if (tagMatch) {
-                    const [, ruleId, path, message] = tagMatch;
+                  if (!toolPattern.test(comment.body)) continue;
+                  const newTagMatch = comment.body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
+                  if (newTagMatch) {
+                    const [, ruleId, path, message] = newTagMatch;
                     if (!findings.some(f => f.ruleId === ruleId && f.path === path && f.message === message.trim())) {
-                      console.log(`Resolving fixed finding: ${ruleId}`);
-                      try {
-                        await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
-                      } catch (e) { console.log(`Could not resolve thread: ${e.message}`); }
-                      break;
+                      console.log(`Resolving fixed finding (new-format): CodeQL ${ruleId}`);
+                      shouldResolve = true;
                     }
+                    break;
                   }
+                  const oldTagMatch = comment.body.match(/\[([\w:]+)\]/);
+                  if (oldTagMatch) {
+                    const ruleId = oldTagMatch[1];
+                    if (!findings.some(f => f.ruleId === ruleId && thread.path && f.path.endsWith(thread.path))) {
+                      console.log(`Resolving fixed finding (old-format): CodeQL ${ruleId}`);
+                      shouldResolve = true;
+                    }
+                    break;
+                  }
+                }
+                if (shouldResolve) {
+                  try {
+                    await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
+                  } catch (e) { console.log(`Could not resolve thread: ${e.message}`); }
                 }
               }
             }
@@ -649,22 +690,34 @@ jobs:
 
               for (const thread of myOwnedThreads) {
                 if (thread.isResolved) continue;
+                let shouldResolve = false;
                 for (const comment of thread.comments.nodes) {
-                  if (!comment.body.includes(toolIdentifier)) continue;
-                  const tagMatch = comment.body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
-                  if (tagMatch) {
-                    const [, ruleId, path, message] = tagMatch;
+                  if (!toolPattern.test(comment.body)) continue;
+                  const newTagMatch = comment.body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
+                  if (newTagMatch) {
+                    const [, ruleId, path, message] = newTagMatch;
                     if (!findings.some(f => f.ruleId === ruleId && f.path === path && f.message === message.trim())) {
-                      console.log(`Resolving fixed finding: ${ruleId}`);
-                      try {
-                        await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
-                      } catch (e) { console.log(`Could not resolve thread: ${e.message}`); }
-                      break;
+                      console.log(`Resolving fixed finding (new-format): Sonar ${ruleId}`);
+                      shouldResolve = true;
                     }
+                    break;
+                  }
+                  const oldTagMatch = comment.body.match(/\[([\w:]+)\]/);
+                  if (oldTagMatch) {
+                    const ruleId = oldTagMatch[1];
+                    if (!findings.some(f => f.ruleId === ruleId && thread.path && f.path.endsWith(thread.path))) {
+                      console.log(`Resolving fixed finding (old-format): Sonar ${ruleId}`);
+                      shouldResolve = true;
+                    }
+                    break;
                   }
                 }
+                if (shouldResolve) {
+                  try {
+                    await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
+                  } catch (e) { console.log(`Could not resolve thread: ${e.message}`); }
+                }
               }
-            }
 
             async function createThreadWithFallback(github, context, prNumber, headSha, body, find) {
               console.log(`Creating new thread for ${find.ruleId} at ${find.path}:${find.line}`);
