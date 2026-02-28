@@ -142,10 +142,11 @@ jobs:
               const gqlResult = await github.graphql(gql, { owner: context.repo.owner, repo: context.repo.repo, number: prNumber });
               const allThreads = gqlResult.repository.pullRequest.reviewThreads.nodes;
 
-              // Threads WE OWN = root comment (first comment) has our tool identifier
-              // We can only resolve/unresolve threads we created
+              // Threads WE OWN = root comment has our tool identifier (new format)
+              // OR any comment contains our tool emoji+name pattern (old format, for backwards compat)
+              const toolPattern = new RegExp(`(?:${toolIdentifier}|${toolEmoji}\\s+\\*\\*${toolName}\\s+Finding)`);
               const myOwnedThreads = allThreads.filter(t =>
-                t.comments.nodes[0] && t.comments.nodes[0].body.includes(toolIdentifier)
+                t.comments.nodes.some(c => toolPattern.test(c.body))
               );
 
               for (const find of findings) {
@@ -298,8 +299,9 @@ jobs:
                 }`;
               const gqlResult = await github.graphql(gql, { owner: context.repo.owner, repo: context.repo.repo, number: prNumber });
               const allThreads = gqlResult.repository.pullRequest.reviewThreads.nodes;
+              const toolPattern = new RegExp(`(?:${toolIdentifier}|${toolEmoji}\\s+\\*\\*${toolName}\\s+Finding)`);
               const myOwnedThreads = allThreads.filter(t =>
-                t.comments.nodes[0] && t.comments.nodes[0].body.includes(toolIdentifier)
+                t.comments.nodes.some(c => toolPattern.test(c.body))
               );
 
               for (const find of findings) {
@@ -444,8 +446,9 @@ jobs:
                 }`;
               const gqlResult = await github.graphql(gql, { owner: context.repo.owner, repo: context.repo.repo, number: prNumber });
               const allThreads = gqlResult.repository.pullRequest.reviewThreads.nodes;
+              const toolPattern = new RegExp(`(?:${toolIdentifier}|${toolEmoji}\\s+\\*\\*${toolName}\\s+Finding)`);
               const myOwnedThreads = allThreads.filter(t =>
-                t.comments.nodes[0] && t.comments.nodes[0].body.includes(toolIdentifier)
+                t.comments.nodes.some(c => toolPattern.test(c.body))
               );
 
               for (const find of findings) {
@@ -602,8 +605,9 @@ jobs:
                 }`;
               const gqlResult = await github.graphql(gql, { owner: context.repo.owner, repo: context.repo.repo, number: prNumber });
               const allThreads = gqlResult.repository.pullRequest.reviewThreads.nodes;
+              const toolPattern = new RegExp(`(?:${toolIdentifier}|${toolEmoji}\\s+\\*\\*${toolName}\\s+Finding)`);
               const myOwnedThreads = allThreads.filter(t =>
-                t.comments.nodes[0] && t.comments.nodes[0].body.includes(toolIdentifier)
+                t.comments.nodes.some(c => toolPattern.test(c.body))
               );
 
               for (const find of findings) {
