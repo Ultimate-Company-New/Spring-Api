@@ -157,7 +157,9 @@ jobs:
                   // Already posted — just reopen if resolved (only if we own the thread)
                   if (threadWithFinding.isResolved && myOwnedThreads.some(t => t.id === threadWithFinding.id)) {
                     console.log(`Reopening resolved thread for ${find.ruleId}`);
-                    await github.graphql(`mutation($id:ID!){unresolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: threadWithFinding.id });
+                    try {
+                      await github.graphql(`mutation($id:ID!){unresolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: threadWithFinding.id });
+                    } catch (e) { console.log(`Could not unresolve thread: ${e.message}`); }
                   } else {
                     console.log(`Finding ${find.ruleId} already posted — skipping`);
                   }
@@ -193,7 +195,6 @@ jobs:
               // Resolve threads WE OWN whose finding no longer appears in this run
               for (const thread of myOwnedThreads) {
                 if (thread.isResolved) continue;
-                // Scan all comments in the thread for a finding tag we own
                 for (const comment of thread.comments.nodes) {
                   if (!comment.body.includes(toolIdentifier)) continue;
                   const tagMatch = comment.body.match(/<!-- finding-id: ([^|]+)\|([^|]+)\|([^<]+) -->/);
@@ -201,8 +202,10 @@ jobs:
                     const [, ruleId, path, message] = tagMatch;
                     if (!findings.some(f => f.ruleId === ruleId && f.path === path && f.message === message.trim())) {
                       console.log(`Resolving fixed finding: ${ruleId} in ${path}`);
-                      await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
-                      break; // Thread resolved — no need to check remaining comments
+                      try {
+                        await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
+                      } catch (e) { console.log(`Could not resolve thread: ${e.message}`); }
+                      break;
                     }
                   }
                 }
@@ -303,7 +306,9 @@ jobs:
                 if (threadWithFinding) {
                   if (threadWithFinding.isResolved && myOwnedThreads.some(t => t.id === threadWithFinding.id)) {
                     console.log(`Reopening resolved thread for ${find.ruleId}`);
-                    await github.graphql(`mutation($id:ID!){unresolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: threadWithFinding.id });
+                    try {
+                      await github.graphql(`mutation($id:ID!){unresolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: threadWithFinding.id });
+                    } catch (e) { console.log(`Could not unresolve thread: ${e.message}`); }
                   } else {
                     console.log(`Finding ${find.ruleId} already posted — skipping`);
                   }
@@ -339,7 +344,9 @@ jobs:
                     const [, ruleId, path, message] = tagMatch;
                     if (!findings.some(f => f.ruleId === ruleId && f.path === path && f.message === message.trim())) {
                       console.log(`Resolving fixed finding: ${ruleId}`);
-                      await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
+                      try {
+                        await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
+                      } catch (e) { console.log(`Could not resolve thread: ${e.message}`); }
                       break;
                     }
                   }
@@ -438,7 +445,9 @@ jobs:
                 if (threadWithFinding) {
                   if (threadWithFinding.isResolved && myOwnedThreads.some(t => t.id === threadWithFinding.id)) {
                     console.log(`Reopening resolved thread for ${find.ruleId}`);
-                    await github.graphql(`mutation($id:ID!){unresolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: threadWithFinding.id });
+                    try {
+                      await github.graphql(`mutation($id:ID!){unresolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: threadWithFinding.id });
+                    } catch (e) { console.log(`Could not unresolve thread: ${e.message}`); }
                   } else {
                     console.log(`Finding ${find.ruleId} already posted — skipping`);
                   }
@@ -474,7 +483,9 @@ jobs:
                     const [, ruleId, path, message] = tagMatch;
                     if (!findings.some(f => f.ruleId === ruleId && f.path === path && f.message === message.trim())) {
                       console.log(`Resolving fixed finding: ${ruleId}`);
-                      await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
+                      try {
+                        await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
+                      } catch (e) { console.log(`Could not resolve thread: ${e.message}`); }
                       break;
                     }
                   }
@@ -591,7 +602,9 @@ jobs:
                 if (threadWithFinding) {
                   if (threadWithFinding.isResolved && myOwnedThreads.some(t => t.id === threadWithFinding.id)) {
                     console.log(`Reopening resolved thread for ${find.ruleId}`);
-                    await github.graphql(`mutation($id:ID!){unresolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: threadWithFinding.id });
+                    try {
+                      await github.graphql(`mutation($id:ID!){unresolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: threadWithFinding.id });
+                    } catch (e) { console.log(`Could not unresolve thread: ${e.message}`); }
                   } else {
                     console.log(`Finding ${find.ruleId} already posted — skipping`);
                   }
@@ -627,7 +640,9 @@ jobs:
                     const [, ruleId, path, message] = tagMatch;
                     if (!findings.some(f => f.ruleId === ruleId && f.path === path && f.message === message.trim())) {
                       console.log(`Resolving fixed finding: ${ruleId}`);
-                      await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
+                      try {
+                        await github.graphql(`mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}`, { id: thread.id });
+                      } catch (e) { console.log(`Could not resolve thread: ${e.message}`); }
                       break;
                     }
                   }
