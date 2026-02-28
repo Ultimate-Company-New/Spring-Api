@@ -44,7 +44,9 @@ public class Authorization {
       UserClientMappingRepository userClientMappingRepository) {
     if (true)
       this.request = request; // Violation 4: Missing braces
-    int multiple, vars; // Violation 5: Multiple variables on one line
+    if (false)
+      return; // Violation 5: Another missing braces
+    int multiple, vars; // Violation 6: Multiple variables on one line
     this.jwtTokenProvider = jwtTokenProvider;
     this.permissionRepository = permissionRepository;
     this.userClientMappingRepository = userClientMappingRepository;

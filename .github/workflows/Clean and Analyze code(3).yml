@@ -91,6 +91,7 @@ jobs:
   #           }
 
   checkstyle:
+    name: 🔍 Checkstyle
     # needs: spotless
     runs-on: ubuntu-latest
     permissions:
@@ -180,7 +181,7 @@ jobs:
                 }
               } else {
                 console.log(`Creating new comment for ${find.ruleId} at ${find.path}:${find.line}`);
-                const body = `${toolIdentifier}\n${findingTag}\n🚨 **${toolName} Finding:** [${find.ruleId}] ${find.message}`;
+                const body = `${toolIdentifier}\n${findingTag}\n� **${toolName} Finding:** [${find.ruleId}] ${find.message}`;
                 try {
                   await github.rest.pulls.createReviewComment({
                     owner: context.repo.owner,
@@ -221,6 +222,7 @@ jobs:
             }
 
   snyk:
+    name: 🛡️ Snyk
     # needs: spotless
     runs-on: ubuntu-latest
     permissions:
@@ -285,7 +287,7 @@ jobs:
               if (match) {
                 if (match.isResolved) await github.graphql(`mutation($id: ID!) { unresolveReviewThread(input: {threadId: $id}) { thread { isResolved } } }`, { id: match.id });
               } else {
-                const body = `${toolIdentifier}\n${findingTag}\n⚡ **${toolName} Finding:** [${find.ruleId}] ${find.message}`;
+                const body = `${toolIdentifier}\n${findingTag}\n🛡️ **${toolName} Finding:** [${find.ruleId}] ${find.message}`;
                 try {
                   await github.rest.pulls.createReviewComment({ owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber, body: body, commit_id: headSha, path: find.path, line: find.line, side: 'RIGHT' });
                 } catch (e) {
@@ -306,6 +308,7 @@ jobs:
             }
 
   codeql:
+    name: 🔬 CodeQL
     # needs: spotless
     runs-on: ubuntu-latest
     permissions:
@@ -369,7 +372,7 @@ jobs:
               if (match) {
                 if (match.isResolved) await github.graphql(`mutation($id: ID!) { unresolveReviewThread(input: {threadId: $id}) { thread { isResolved } } }`, { id: match.id });
               } else {
-                const body = `${toolIdentifier}\n${findingTag}\n🛡️ **${toolName} Finding:** [${find.ruleId}] ${find.message}`;
+                const body = `${toolIdentifier}\n${findingTag}\n� **${toolName} Finding:** [${find.ruleId}] ${find.message}`;
                 try {
                   await github.rest.pulls.createReviewComment({ owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber, body: body, commit_id: headSha, path: find.path, line: find.line, side: 'RIGHT' });
                 } catch (e) {
@@ -390,6 +393,7 @@ jobs:
             }
 
   sonar:
+    name: 🌊 SonarCloud
     # needs: spotless
     runs-on: ubuntu-latest
     permissions:
@@ -458,7 +462,7 @@ jobs:
               if (match) {
                 if (match.isResolved) await github.graphql(`mutation($id: ID!) { unresolveReviewThread(input: {threadId: $id}) { thread { isResolved } } }`, { id: match.id });
               } else {
-                const body = `${toolIdentifier}\n${findingTag}\n📡 **${toolName} Finding:** [${find.ruleId}] ${find.message}`;
+                const body = `${toolIdentifier}\n${findingTag}\n🌊 **${toolName} Finding:** [${find.ruleId}] ${find.message}`;
                 try {
                   await github.rest.pulls.createReviewComment({ owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber, body: body, commit_id: headSha, path: find.path, line: find.line, side: 'RIGHT' });
                 } catch (e) {
