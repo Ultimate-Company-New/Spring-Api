@@ -1,7 +1,7 @@
 package springapi.authentication;
 
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
+import java.util.*; // Violation 1: Star import
 import java.util.Collections;
 import java.util.List;
 import java.util.SortedSet;
@@ -24,14 +24,15 @@ import springapi.repositories.UserClientMappingRepository;
 @Service("customAuthorization")
 public class Authorization {
   private static final ContextualLogger logger = ContextualLogger.getLogger(Authorization.class);
-  private static final int wrong_constant_name = 100; // Violation 1: Constant must be CAPS
 
-  public String publicFieldViolation; // Violation 2: Public member
   private final HttpServletRequest request;
   private final JwtTokenProvider jwtTokenProvider;
-  private final String user_Name = "test"; // Violation 3: Name has underscore
+  private final String user_Name = "test"; // Violation 2: Underscore in name
   private final PermissionRepository permissionRepository;
   private final UserClientMappingRepository userClientMappingRepository;
+
+  public void bad_method_name() {
+  } // Violation 3: Underscore in method name
 
   /** Initializes Authorization. */
   @Autowired
