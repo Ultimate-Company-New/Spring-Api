@@ -718,6 +718,7 @@ jobs:
                   } catch (e) { console.log(`Could not resolve thread: ${e.message}`); }
                 }
               }
+            }
 
             async function createThreadWithFallback(github, context, prNumber, headSha, body, find) {
               console.log(`Creating new thread for ${find.ruleId} at ${find.path}:${find.line}`);
