@@ -274,11 +274,4 @@ public class ShippingController extends BaseController {
       return internalServerError(contextualLogger, e);
     }
   }
-
-  private String sanitizeForLog(String value) {
-    if (value == null) {
-      return "null";
-    }
-    return value.replace('\n', '_').replace('\r', '_');
-  }
 }

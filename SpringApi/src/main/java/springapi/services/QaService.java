@@ -30,10 +30,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 import springapi.ErrorMessages;
 import springapi.authentication.JwtTokenProvider;
 import springapi.exceptions.BadRequestException;
@@ -1630,20 +1638,18 @@ public class QaService extends BaseService implements QaSubTranslator {
   /** Parses a single Surefire XML report file and populates test results. */
   private void parseXmlReport(Path xmlFile, TestExecutionStatusModel status) {
     try {
-      String content = Files.readString(xmlFile);
+      Document document = parseSurefireXml(xmlFile);
+      NodeList testcases = document.getElementsByTagName("testcase");
 
-      Pattern testcasePattern =
-          Pattern.compile(
-              "<testcase\\s+name=\"([^\"]+)\"[^>]*classname=\"([^\"]+)\"[^>"
-                  + "]*time=\"([^\"]+)\"[^>]*(?:/>|>([\\s\\S]*?)</testcase>)",
-              Pattern.MULTILINE);
+      for (int i = 0; i < testcases.getLength(); i++) {
+        Node node = testcases.item(i);
+        if (node.getNodeType() != Node.ELEMENT_NODE) {
+          continue;
+        }
 
-      Matcher matcher = testcasePattern.matcher(content);
-      while (matcher.find()) {
-        String testName = matcher.group(1);
-        double timeSeconds = Double.parseDouble(matcher.group(3));
-        final String innerContent = matcher.group(4);
-
+        Element testcase = (Element) node;
+        String testName = testcase.getAttribute("name");
+        double timeSeconds = parseDurationSeconds(testcase.getAttribute("time"));
         TestExecutionStatusModel.TestResultInfo result =
             new TestExecutionStatusModel.TestResultInfo();
         result.setTestMethodName(testName);
@@ -1653,20 +1659,22 @@ public class QaService extends BaseService implements QaSubTranslator {
           result.setMethodName(testName.substring(0, testName.indexOf("_")));
         }
 
-        if (innerContent != null
-            && (innerContent.contains("<failure") || innerContent.contains("<error"))) {
+        Element failureElement = getDirectChildElement(testcase, "failure");
+        Element errorElement = getDirectChildElement(testcase, "error");
+        Element skippedElement = getDirectChildElement(testcase, "skipped");
+
+        if (failureElement != null || errorElement != null) {
           result.setStatus("FAILED");
-          Pattern messagePattern = Pattern.compile("message=\"([^\"]+)\"");
-          Matcher msgMatcher = messagePattern.matcher(innerContent);
-          if (msgMatcher.find()) {
-            result.setErrorMessage(msgMatcher.group(1));
+          Element failedElement = failureElement != null ? failureElement : errorElement;
+          String errorMessage = failedElement.getAttribute("message");
+          if (!errorMessage.isEmpty()) {
+            result.setErrorMessage(errorMessage);
           }
-          Pattern stackPattern = Pattern.compile(">([^<]+)</(failure|error)>");
-          Matcher stackMatcher = stackPattern.matcher(innerContent);
-          if (stackMatcher.find()) {
-            result.setStackTrace(stackMatcher.group(1).trim());
+          String stackTrace = failedElement.getTextContent();
+          if (stackTrace != null && !stackTrace.trim().isEmpty()) {
+            result.setStackTrace(stackTrace.trim());
           }
-        } else if (innerContent != null && innerContent.contains("<skipped")) {
+        } else if (skippedElement != null) {
           result.setStatus("SKIPPED");
         } else {
           result.setStatus("PASSED");
@@ -1681,12 +1689,48 @@ public class QaService extends BaseService implements QaSubTranslator {
 
       status.updateTotalsFromResults();
 
-    } catch (IOException e) {
+    } catch (IOException | ParserConfigurationException | SAXException e) {
       throw new springapi.exceptions.ApplicationException(
           String.format(
               ErrorMessages.TestExecutorErrorMessages.FAILED_TO_PARSE_SUREFIRE_REPORT_FORMAT,
               xmlFile.getFileName()),
           e);
+    }
+  }
+
+  private Document parseSurefireXml(Path xmlFile)
+      throws ParserConfigurationException, SAXException, IOException {
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+    factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+    factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+    factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+    factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+    factory.setXIncludeAware(false);
+    factory.setExpandEntityReferences(false);
+
+    return factory.newDocumentBuilder().parse(xmlFile.toFile());
+  }
+
+  private Element getDirectChildElement(Element parent, String childTagName) {
+    NodeList childNodes = parent.getChildNodes();
+    for (int i = 0; i < childNodes.getLength(); i++) {
+      Node child = childNodes.item(i);
+      if (child.getNodeType() == Node.ELEMENT_NODE && childTagName.equals(child.getNodeName())) {
+        return (Element) child;
+      }
+    }
+    return null;
+  }
+
+  private double parseDurationSeconds(String durationText) {
+    if (durationText == null || durationText.isBlank()) {
+      return 0.0;
+    }
+    try {
+      return Double.parseDouble(durationText);
+    } catch (NumberFormatException ignored) {
+      return 0.0;
     }
   }
 
