@@ -284,7 +284,7 @@ public class PurchaseOrderService extends BaseService implements PurchaseOrderSu
         getClientId(),
         getUserId(),
         true // shouldLog = true for singular operations
-    );
+        );
   }
 
   /**
